@@ -1,0 +1,145 @@
+# Tadabbur-AI Docker Compose - Production Configuration
+# Use: docker compose -f docker-compose.prod.yml up --build
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: tadabbur-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tadabbur}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tadabbur_prod}
+      POSTGRES_DB: ${POSTGRES_DB:-tadabbur}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tadabbur}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    container_name: tadabbur-qdrant
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 3 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  redis:
+    image: redis:7-alpine
+    container_name: tadabbur-redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+
+  surrealdb:
+    image: surrealdb/surrealdb:v1.5.0
+    container_name: tadabbur-surrealdb
+    user: root
+    command: start --log info --user root --pass root memory
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: tadabbur-backend
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-tadabbur}:${POSTGRES_PASSWORD:-tadabbur_prod}@postgres:5432/${POSTGRES_DB:-tadabbur}
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - REDIS_URL=redis://redis:6379/0
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - ENVIRONMENT=production
+      - LLM_PROVIDER=ollama
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5:32b}
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-change_this_in_production}
+      - SURREAL_HOST=surrealdb
+      - SURREAL_PORT=8000
+      - SURREAL_USER=root
+      - SURREAL_PASS=root
+      - SURREAL_NAMESPACE=tadabbur
+      - SURREAL_DATABASE=quran_kg
+      - WORKERS=4
+      - FEATURE_REDIS_CACHE=true
+    volumes:
+      - ./data:/app/data:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      surrealdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: tadabbur-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+volumes:
+  postgres_data:
+  qdrant_data:
+  redis_data:

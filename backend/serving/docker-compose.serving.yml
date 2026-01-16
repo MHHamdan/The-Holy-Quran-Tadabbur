@@ -1,0 +1,100 @@
+# Docker Compose for TorchServe Model Serving
+# Arabic: تكوين Docker لخدمة النماذج
+#
+# Usage:
+#   docker-compose -f docker-compose.serving.yml up -d
+#
+# Access:
+#   - Inference API: http://localhost:8080
+#   - Management API: http://localhost:8081
+#   - Metrics API: http://localhost:8082
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # TorchServe - Cross-Encoder Model Serving
+  # =============================================================================
+  torchserve:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tadabbur-torchserve
+    restart: unless-stopped
+    ports:
+      - "8080:8080"   # Inference API
+      - "8081:8081"   # Management API
+      - "8082:8082"   # Metrics API
+    volumes:
+      - ./models:/models:ro
+      - torchserve_snapshots:/snapshots
+      - torchserve_logs:/logs
+    environment:
+      - TS_CONFIG_FILE=/home/model-server/config.properties
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+    networks:
+      - tadabbur-network
+
+  # =============================================================================
+  # TorchServe GPU Version (uncomment for GPU support)
+  # =============================================================================
+  # torchserve-gpu:
+  #   image: pytorch/torchserve:0.9.0-gpu
+  #   container_name: tadabbur-torchserve-gpu
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8080:8080"
+  #     - "8081:8081"
+  #     - "8082:8082"
+  #   volumes:
+  #     - ./models:/models:ro
+  #     - ./config.properties:/home/model-server/config.properties:ro
+  #     - ./cross_encoder_handler.py:/home/model-server/handlers/cross_encoder_handler.py:ro
+  #     - torchserve_snapshots:/snapshots
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+  #   networks:
+  #     - tadabbur-network
+
+  # =============================================================================
+  # Load Balancer (for scaling)
+  # =============================================================================
+  nginx-lb:
+    image: nginx:alpine
+    container_name: tadabbur-serving-lb
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - torchserve
+    networks:
+      - tadabbur-network
+    profiles:
+      - loadbalancer
+
+volumes:
+  torchserve_snapshots:
+  torchserve_logs:
+
+networks:
+  tadabbur-network:
+    external: true

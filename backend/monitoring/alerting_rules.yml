@@ -1,0 +1,243 @@
+# Prometheus Alerting Rules for Tadabbur Platform
+# Arabic: قواعد التنبيه لمنصة تدبر
+
+groups:
+  # =============================================================================
+  # RAG Performance Alerts
+  # =============================================================================
+  - name: rag_performance
+    interval: 30s
+    rules:
+      # High RAG query latency
+      - alert: RAGQueryLatencyHigh
+        expr: histogram_quantile(0.95, rate(rag_query_latency_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: rag
+        annotations:
+          summary: "RAG query latency is high"
+          description: "95th percentile RAG query latency is {{ $value | printf \"%.2f\" }}s (threshold: 5s)"
+          runbook: "Check Ollama/Claude API latency, vector search performance, and cache hit rate"
+
+      # Critical RAG latency
+      - alert: RAGQueryLatencyCritical
+        expr: histogram_quantile(0.99, rate(rag_query_latency_seconds_bucket[5m])) > 15
+        for: 2m
+        labels:
+          severity: critical
+          component: rag
+        annotations:
+          summary: "RAG query latency is critically high"
+          description: "99th percentile latency is {{ $value | printf \"%.2f\" }}s"
+          runbook: "Immediate investigation required. Check LLM service, database, and vector store."
+
+      # Low RAG confidence
+      - alert: RAGConfidenceLow
+        expr: histogram_quantile(0.5, rate(rag_query_confidence_bucket[1h])) < 0.4
+        for: 30m
+        labels:
+          severity: warning
+          component: rag
+        annotations:
+          summary: "RAG response confidence is low"
+          description: "Median confidence score is {{ $value | printf \"%.2f\" }} (threshold: 0.4)"
+          runbook: "Review retrieval quality, embedding model, and tafseer coverage"
+
+  # =============================================================================
+  # Cache Performance Alerts
+  # =============================================================================
+  - name: cache_performance
+    interval: 30s
+    rules:
+      # Low cache hit rate
+      - alert: CacheHitRateLow
+        expr: |
+          (
+            sum(rate(cache_hits_total[5m])) /
+            (sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m])))
+          ) < 0.3
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Cache hit rate is low"
+          description: "Cache hit rate is {{ $value | printf \"%.1f\" }}% (threshold: 30%)"
+          runbook: "Consider cache warming, increasing TTL, or reviewing cache key strategy"
+
+      # Redis connection issues
+      - alert: RedisCacheUnavailable
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis cache is unavailable"
+          description: "Cannot connect to Redis. Fallback to in-memory cache may cause inconsistency."
+          runbook: "Check Redis container/service status and network connectivity"
+
+  # =============================================================================
+  # Reranker Performance Alerts
+  # =============================================================================
+  - name: reranker_performance
+    interval: 30s
+    rules:
+      # Reranker fallback rate high
+      - alert: RerankerFallbackRateHigh
+        expr: |
+          (
+            sum(rate(rerank_total{method="keyword_overlap"}[1h])) /
+            sum(rate(rerank_total[1h]))
+          ) > 0.5
+        for: 30m
+        labels:
+          severity: warning
+          component: reranker
+        annotations:
+          summary: "Cross-encoder reranker fallback rate is high"
+          description: "{{ $value | printf \"%.1f\" }}% of requests falling back to keyword overlap"
+          runbook: "Check cross-encoder model availability and GPU status"
+
+      # Reranker latency high
+      - alert: RerankerLatencyHigh
+        expr: histogram_quantile(0.95, rate(rerank_latency_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: reranker
+        annotations:
+          summary: "Reranker latency is high"
+          description: "95th percentile reranker latency is {{ $value | printf \"%.3f\" }}s"
+          runbook: "Check GPU utilization and batch size configuration"
+
+  # =============================================================================
+  # Search Performance Alerts
+  # =============================================================================
+  - name: search_performance
+    interval: 30s
+    rules:
+      # Vector search latency high
+      - alert: VectorSearchLatencyHigh
+        expr: histogram_quantile(0.95, rate(search_latency_seconds_bucket{search_type="vector"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: search
+        annotations:
+          summary: "Vector search latency is high"
+          description: "95th percentile vector search latency is {{ $value | printf \"%.2f\" }}s"
+          runbook: "Check Qdrant performance, index optimization, and network latency"
+
+      # Empty search results
+      - alert: SearchEmptyResultsHigh
+        expr: |
+          sum(rate(search_results_count_bucket{le="0"}[1h])) /
+          sum(rate(search_results_count_count[1h])) > 0.2
+        for: 30m
+        labels:
+          severity: warning
+          component: search
+        annotations:
+          summary: "High rate of empty search results"
+          description: "{{ $value | printf \"%.1f\" }}% of searches returning no results"
+          runbook: "Review query expansion, embedding quality, and tafseer coverage"
+
+  # =============================================================================
+  # Infrastructure Alerts
+  # =============================================================================
+  - name: infrastructure
+    interval: 30s
+    rules:
+      # Qdrant unavailable
+      - alert: QdrantUnavailable
+        expr: up{job="qdrant"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: vector-db
+        annotations:
+          summary: "Qdrant vector database is unavailable"
+          description: "Cannot connect to Qdrant. Vector search will fail."
+          runbook: "Check Qdrant container and storage"
+
+      # PostgreSQL unavailable
+      - alert: PostgresUnavailable
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL database is unavailable"
+          description: "Cannot connect to PostgreSQL. All database queries will fail."
+          runbook: "Check PostgreSQL container, storage, and connections"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | printf \"%.1f\" }}%"
+          runbook: "Check for memory leaks, consider scaling, or optimizing cache sizes"
+
+      # GPU memory usage (if available)
+      - alert: GPUMemoryHigh
+        expr: DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_TOTAL > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: gpu
+        annotations:
+          summary: "GPU memory usage is high"
+          description: "GPU memory usage is {{ $value | printf \"%.1f\" }}%"
+          runbook: "Reduce batch size or model size, or add GPU capacity"
+
+  # =============================================================================
+  # API Health Alerts
+  # =============================================================================
+  - name: api_health
+    interval: 30s
+    rules:
+      # Backend API unavailable
+      - alert: BackendAPIUnavailable
+        expr: up{job="tadabbur-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Tadabbur Backend API is unavailable"
+          description: "Cannot scrape metrics from backend. Service may be down."
+          runbook: "Check backend container logs and restart if necessary"
+
+      # High error rate
+      - alert: HighAPIErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) /
+          sum(rate(http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API error rate"
+          description: "{{ $value | printf \"%.2f\" }}% of requests are failing"
+          runbook: "Check application logs for error patterns"
+
+      # Ollama LLM unavailable
+      - alert: OllamaUnavailable
+        expr: up{job="ollama"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: llm
+        annotations:
+          summary: "Ollama LLM service is unavailable"
+          description: "Cannot connect to Ollama. RAG responses will fail."
+          runbook: "Check Ollama container and GPU availability"

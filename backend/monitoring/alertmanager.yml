@@ -1,0 +1,106 @@
+# Alertmanager Configuration for Tadabbur
+# Arabic: إعدادات مدير التنبيهات لمنصة تدبر
+
+global:
+  # The smarthost and SMTP sender for email notifications
+  smtp_smarthost: 'localhost:25'
+  smtp_from: 'alertmanager@tadabbur.local'
+  smtp_require_tls: false
+
+  # Default Slack webhook URL (override with environment variable)
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+# Route tree
+route:
+  # Default receiver
+  receiver: 'default-receiver'
+
+  # Group alerts by these labels
+  group_by: ['alertname', 'severity', 'component']
+
+  # Wait time before sending the first notification
+  group_wait: 30s
+
+  # Interval between notifications for the same group
+  group_interval: 5m
+
+  # Interval before resending a notification
+  repeat_interval: 4h
+
+  # Child routes for specific severities
+  routes:
+    # Critical alerts go to all channels immediately
+    - match:
+        severity: critical
+      receiver: 'critical-receiver'
+      group_wait: 10s
+      repeat_interval: 1h
+
+    # Warning alerts grouped and sent less frequently
+    - match:
+        severity: warning
+      receiver: 'warning-receiver'
+      group_wait: 1m
+      repeat_interval: 4h
+
+    # RAG-specific alerts
+    - match:
+        component: rag
+      receiver: 'rag-receiver'
+      group_wait: 30s
+
+# Inhibition rules
+inhibit_rules:
+  # If critical, suppress warning for same alertname
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'component']
+
+# Receivers
+receivers:
+  # Default receiver - logs only
+  - name: 'default-receiver'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook'
+        send_resolved: true
+
+  # Critical receiver - Slack + Email
+  - name: 'critical-receiver'
+    slack_configs:
+      - channel: '#tadabbur-alerts-critical'
+        send_resolved: true
+        title: '{{ template "slack.title" . }}'
+        text: '{{ template "slack.text" . }}'
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+    # email_configs:
+    #   - to: 'admin@tadabbur.local'
+    #     send_resolved: true
+    #     headers:
+    #       Subject: '[CRITICAL] Tadabbur Alert: {{ .GroupLabels.alertname }}'
+
+  # Warning receiver - Slack only
+  - name: 'warning-receiver'
+    slack_configs:
+      - channel: '#tadabbur-alerts'
+        send_resolved: true
+        title: '{{ template "slack.title" . }}'
+        text: '{{ template "slack.text" . }}'
+        color: '{{ if eq .Status "firing" }}warning{{ else }}good{{ end }}'
+
+  # RAG-specific receiver
+  - name: 'rag-receiver'
+    slack_configs:
+      - channel: '#tadabbur-rag-monitoring'
+        send_resolved: true
+        title: 'RAG Alert: {{ .GroupLabels.alertname }}'
+        text: |-
+          *Status*: {{ .Status | toUpper }}
+          *Component*: {{ .GroupLabels.component }}
+          *Description*: {{ range .Alerts }}{{ .Annotations.description }}{{ end }}
+          *Runbook*: {{ range .Alerts }}{{ .Annotations.runbook }}{{ end }}
+
+# Templates
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

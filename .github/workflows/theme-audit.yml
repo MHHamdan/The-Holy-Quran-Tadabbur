@@ -1,0 +1,124 @@
+# Quranic Themes Completeness Audit CI Gate
+# Runs on every PR to ensure no theme ships without Quran grounding
+
+name: Theme Audit
+
+on:
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'backend/app/data/themes/**'
+      - 'backend/scripts/ingest/seed_themes.py'
+      - 'backend/scripts/verify/theme_completeness_audit.py'
+      - 'backend/app/models/theme.py'
+      - 'backend/alembic/versions/*themes*.py'
+  push:
+    branches: [main, master]
+    paths:
+      - 'backend/app/data/themes/**'
+      - 'backend/scripts/ingest/seed_themes.py'
+      - 'backend/scripts/verify/theme_completeness_audit.py'
+  workflow_dispatch:
+    # Allow manual trigger
+
+env:
+  DATABASE_URL: postgresql://tadabbur:tadabbur_test@localhost:5432/tadabbur_test
+
+jobs:
+  theme-audit:
+    name: Theme Completeness Audit
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: tadabbur
+          POSTGRES_PASSWORD: tadabbur_test
+          POSTGRES_DB: tadabbur_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run migrations
+        working-directory: backend
+        run: |
+          alembic upgrade head
+
+      - name: Seed theme data
+        working-directory: backend
+        run: |
+          python scripts/ingest/seed_themes.py
+
+      - name: Run Theme Audit (Unit Tests)
+        working-directory: backend
+        run: |
+          python -m pytest tests/unit/test_theme_completeness_audit.py -v
+
+      - name: Run Theme Completeness Audit (CI Gate)
+        working-directory: backend
+        run: |
+          python scripts/verify/theme_completeness_audit.py --ci --min-verses 3
+
+      - name: Generate Audit Report
+        if: always()
+        working-directory: backend
+        run: |
+          python scripts/verify/theme_completeness_audit.py \
+            --json reports/theme_audit.json \
+            --markdown reports/theme_audit.md || true
+
+      - name: Upload Audit Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: theme-audit-report
+          path: |
+            backend/reports/theme_audit.json
+            backend/reports/theme_audit.md
+          retention-days: 30
+
+  audit-unit-tests:
+    name: Audit Script Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install test dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest sqlalchemy
+
+      - name: Run Unit Tests
+        working-directory: backend
+        run: |
+          python -m pytest tests/unit/test_theme_completeness_audit.py -v --tb=short

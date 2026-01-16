@@ -1,0 +1,418 @@
+{
+  "metadata": {
+    "generated_at": "2026-01-07T03:51:18.899851",
+    "registry_version": "2.0.0",
+    "engine_version": "1.0.0"
+  },
+  "summary": {
+    "total_checks": 12,
+    "passed_checks": 10,
+    "failed_checks": 2,
+    "errors": 0,
+    "warnings": 2,
+    "infos": 0,
+    "pass_rate": 83.3
+  },
+  "coverage_stats": {
+    "total_stories": 37,
+    "category_counts": {
+      "prophet": 11,
+      "nation": 8,
+      "parable": 6,
+      "historical": 7,
+      "unseen": 3,
+      "named_char": 2
+    },
+    "empty_categories": [],
+    "stories_without_arabic": 0,
+    "stories_without_evidence": 37,
+    "stories_needing_review": 37,
+    "total_verses_covered": 880,
+    "suras_with_stories": 35
+  },
+  "checks_by_category": {
+    "coverage": [
+      {
+        "check_id": "coverage_required_categories",
+        "check_name_ar": "تغطية التصنيفات المطلوبة",
+        "check_name_en": "Required Categories Coverage",
+        "severity": "error",
+        "passed": true,
+        "message_ar": "جميع التصنيفات المطلوبة تحتوي على قصص",
+        "message_en": "All required categories have stories",
+        "details": {
+          "counts": {
+            "prophet": 11,
+            "nation": 8,
+            "parable": 6,
+            "historical": 7,
+            "unseen": 3,
+            "named_char": 2
+          },
+          "empty_required": []
+        },
+        "affected_items": []
+      },
+      {
+        "check_id": "coverage_minimum_per_category",
+        "check_name_ar": "الحد الأدنى للقصص في كل تصنيف",
+        "check_name_en": "Minimum Stories Per Category",
+        "severity": "warning",
+        "passed": true,
+        "message_ar": "جميع التصنيفات تحتوي على الحد الأدنى",
+        "message_en": "All categories meet minimum",
+        "details": {
+          "below_minimum": []
+        },
+        "affected_items": []
+      },
+      {
+        "check_id": "coverage_stories_have_ranges",
+        "check_name_ar": "جميع القصص لها نطاقات آيات",
+        "check_name_en": "All Stories Have Ayah Ranges",
+        "severity": "error",
+        "passed": true,
+        "message_ar": "جميع القصص لها نطاقات آيات",
+        "message_en": "All stories have ranges",
+        "details": {},
+        "affected_items": []
+      }
+    ],
+    "completeness": [
+      {
+        "check_id": "completeness_arabic_content",
+        "check_name_ar": "اكتمال المحتوى العربي",
+        "check_name_en": "Arabic Content Completeness",
+        "severity": "error",
+        "passed": true,
+        "message_ar": "جميع القصص لها محتوى عربي",
+        "message_en": "All stories have Arabic content",
+        "details": {},
+        "affected_items": []
+      },
+      {
+        "check_id": "completeness_events_for_long_stories",
+        "check_name_ar": "أحداث للقصص الطويلة",
+        "check_name_en": "Events for Long Stories",
+        "severity": "warning",
+        "passed": true,
+        "message_ar": "جميع القصص الطويلة لها أحداث",
+        "message_en": "All long stories have events",
+        "details": {
+          "threshold_verses": 10,
+          "stories": []
+        },
+        "affected_items": []
+      },
+      {
+        "check_id": "completeness_main_persons",
+        "check_name_ar": "الشخصيات الرئيسية محددة",
+        "check_name_en": "Main Persons Populated",
+        "severity": "warning",
+        "passed": true,
+        "message_ar": "جميع قصص الأنبياء والشخصيات لها أشخاص رئيسيون",
+        "message_en": "All prophet/character stories have main persons",
+        "details": {},
+        "affected_items": []
+      }
+    ],
+    "integrity": [
+      {
+        "check_id": "integrity_ayah_ranges_valid",
+        "check_name_ar": "نطاقات الآيات صالحة",
+        "check_name_en": "Ayah Ranges Valid",
+        "severity": "error",
+        "passed": true,
+        "message_ar": "جميع نطاقات الآيات صالحة",
+        "message_en": "All ayah ranges are valid",
+        "details": {
+          "errors": []
+        },
+        "affected_items": []
+      },
+      {
+        "check_id": "integrity_no_duplicate_ids",
+        "check_name_ar": "لا توجد معرفات مكررة",
+        "check_name_en": "No Duplicate Story IDs",
+        "severity": "error",
+        "passed": true,
+        "message_ar": "تم التحقق من 37 قصة بدون تكرار",
+        "message_en": "Verified 37 stories with no duplicates",
+        "details": {},
+        "affected_items": []
+      },
+      {
+        "check_id": "integrity_event_indices_sequential",
+        "check_name_ar": "ترتيب الأحداث متسلسل",
+        "check_name_en": "Event Indices Sequential",
+        "severity": "warning",
+        "passed": false,
+        "message_ar": "9 قصص بفجوات في الترتيب",
+        "message_en": "9 stories with index gaps",
+        "details": {
+          "stories_with_gaps": [
+            {
+              "story_id": "story_adam",
+              "indices": [
+                1,
+                2,
+                3,
+                3,
+                3,
+                4,
+                4,
+                5
+              ],
+              "expected": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ]
+            },
+            {
+              "story_id": "story_nuh",
+              "indices": [
+                1,
+                2,
+                3,
+                3,
+                4,
+                5
+              ],
+              "expected": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            {
+              "story_id": "story_isa",
+              "indices": [
+                1,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "expected": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ]
+            },
+            {
+              "story_id": "story_zakariyya_yahya",
+              "indices": [
+                1,
+                1,
+                2,
+                3
+              ],
+              "expected": [
+                1,
+                2,
+                3,
+                4
+              ]
+            },
+            {
+              "story_id": "story_sulayman",
+              "indices": [
+                1,
+                2,
+                2,
+                3,
+                4,
+                5
+              ],
+              "expected": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            }
+          ]
+        },
+        "affected_items": [
+          "story_adam",
+          "story_nuh",
+          "story_isa",
+          "story_zakariyya_yahya",
+          "story_sulayman",
+          "story_ayyub",
+          "story_yunus",
+          "story_lut",
+          "story_shuayb"
+        ]
+      }
+    ],
+    "i18n": [
+      {
+        "check_id": "i18n_arabic_titles_arabic",
+        "check_name_ar": "العناوين العربية بالعربية",
+        "check_name_en": "Arabic Titles Are Arabic",
+        "severity": "error",
+        "passed": true,
+        "message_ar": "جميع العناوين العربية بالعربية",
+        "message_en": "All Arabic titles are in Arabic",
+        "details": {
+          "english_titles": []
+        },
+        "affected_items": []
+      },
+      {
+        "check_id": "i18n_arabic_summaries_present",
+        "check_name_ar": "الملخصات العربية موجودة",
+        "check_name_en": "Arabic Summaries Present",
+        "severity": "error",
+        "passed": true,
+        "message_ar": "جميع الملخصات العربية موجودة",
+        "message_en": "All Arabic summaries present",
+        "details": {},
+        "affected_items": []
+      }
+    ],
+    "evidence": [
+      {
+        "check_id": "evidence_stories_grounded",
+        "check_name_ar": "القصص مدعومة بأدلة",
+        "check_name_en": "Stories Have Evidence",
+        "severity": "warning",
+        "passed": false,
+        "message_ar": "37 قصص بدون أدلة",
+        "message_en": "37 stories without evidence",
+        "details": {},
+        "affected_items": [
+          "story_adam",
+          "story_nuh",
+          "story_ibrahim",
+          "story_musa",
+          "story_yusuf",
+          "story_isa",
+          "story_maryam",
+          "story_zakariyya_yahya",
+          "story_sulayman",
+          "story_dawud",
+          "story_ayyub",
+          "story_yunus",
+          "story_lut",
+          "story_shuayb",
+          "story_salih",
+          "story_hud",
+          "story_kahf",
+          "story_dhulqarnayn",
+          "story_luqman",
+          "story_qarun",
+          "story_habil_qabil",
+          "story_elephant",
+          "story_baqarah_cow",
+          "story_uzair",
+          "story_sabbath_breakers",
+          "story_angels_prostration",
+          "story_jinn_quran",
+          "story_yajuj_majuj",
+          "story_two_gardens",
+          "story_good_word",
+          "story_fly",
+          "story_spider",
+          "story_tubba",
+          "story_rass",
+          "story_ayka",
+          "story_talut_jalut",
+          "story_ifk"
+        ]
+      }
+    ]
+  },
+  "all_checks": [
+    {
+      "check_id": "coverage_required_categories",
+      "passed": true,
+      "severity": "error",
+      "message_ar": "جميع التصنيفات المطلوبة تحتوي على قصص"
+    },
+    {
+      "check_id": "coverage_minimum_per_category",
+      "passed": true,
+      "severity": "warning",
+      "message_ar": "جميع التصنيفات تحتوي على الحد الأدنى"
+    },
+    {
+      "check_id": "coverage_stories_have_ranges",
+      "passed": true,
+      "severity": "error",
+      "message_ar": "جميع القصص لها نطاقات آيات"
+    },
+    {
+      "check_id": "completeness_arabic_content",
+      "passed": true,
+      "severity": "error",
+      "message_ar": "جميع القصص لها محتوى عربي"
+    },
+    {
+      "check_id": "completeness_events_for_long_stories",
+      "passed": true,
+      "severity": "warning",
+      "message_ar": "جميع القصص الطويلة لها أحداث"
+    },
+    {
+      "check_id": "completeness_main_persons",
+      "passed": true,
+      "severity": "warning",
+      "message_ar": "جميع قصص الأنبياء والشخصيات لها أشخاص رئيسيون"
+    },
+    {
+      "check_id": "integrity_ayah_ranges_valid",
+      "passed": true,
+      "severity": "error",
+      "message_ar": "جميع نطاقات الآيات صالحة"
+    },
+    {
+      "check_id": "integrity_no_duplicate_ids",
+      "passed": true,
+      "severity": "error",
+      "message_ar": "تم التحقق من 37 قصة بدون تكرار"
+    },
+    {
+      "check_id": "integrity_event_indices_sequential",
+      "passed": false,
+      "severity": "warning",
+      "message_ar": "9 قصص بفجوات في الترتيب"
+    },
+    {
+      "check_id": "i18n_arabic_titles_arabic",
+      "passed": true,
+      "severity": "error",
+      "message_ar": "جميع العناوين العربية بالعربية"
+    },
+    {
+      "check_id": "i18n_arabic_summaries_present",
+      "passed": true,
+      "severity": "error",
+      "message_ar": "جميع الملخصات العربية موجودة"
+    },
+    {
+      "check_id": "evidence_stories_grounded",
+      "passed": false,
+      "severity": "warning",
+      "message_ar": "37 قصص بدون أدلة"
+    }
+  ]
+}

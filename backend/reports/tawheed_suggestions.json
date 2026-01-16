@@ -1,0 +1,345 @@
+{
+  "timestamp": "2026-01-14T05:45:59.030255",
+  "mode": "suggest",
+  "themes_processed": 1,
+  "total_candidates": 100,
+  "total_strict_additions": 0,
+  "total_suggestions": 100,
+  "errors": [],
+  "results": [
+    {
+      "theme_id": "theme_tawheed",
+      "title_ar": "التوحيد",
+      "existing_segments": 15,
+      "candidates_found": 100,
+      "strict_additions": 0,
+      "suggestions": 100,
+      "candidates": [
+        {
+          "sura_no": 2,
+          "aya_no": 85,
+          "text_uthmani": "ثُمَّ أَنتُمْ هَٰٓؤُلَآءِ تَقْتُلُونَ أَنفُسَكُمْ وَتُخْرِجُونَ فَرِيقًۭا مِّنكُم مِّن دِيَٰرِهِمْ ...",
+          "match_type": "root",
+          "confidence": 0.579,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:85",
+            "tabari:2:85",
+            "muyassar:2:85"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 275,
+          "text_uthmani": "ٱلَّذِينَ يَأْكُلُونَ ٱلرِّبَوٰا۟ لَا يَقُومُونَ إِلَّا كَمَا يَقُومُ ٱلَّذِى يَتَخَبَّطُهُ ٱلشَّيْط...",
+          "match_type": "lexical",
+          "confidence": 0.564,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله، الرب",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:275",
+            "tabari:2:275",
+            "muyassar:2:275"
+          ],
+          "matching_keywords": [
+            "الله",
+            "الرب"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 276,
+          "text_uthmani": "يَمْحَقُ ٱللَّهُ ٱلرِّبَوٰا۟ وَيُرْبِى ٱلصَّدَقَٰتِ ۗ وَٱللَّهُ لَا يُحِبُّ كُلَّ كَفَّارٍ أَثِيمٍ",
+          "match_type": "lexical",
+          "confidence": 0.564,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله، الرب",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:276",
+            "tabari:2:276",
+            "muyassar:2:276"
+          ],
+          "matching_keywords": [
+            "الله",
+            "الرب"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 164,
+          "text_uthmani": "إِنَّ فِى خَلْقِ ٱلسَّمَٰوَٰتِ وَٱلْأَرْضِ وَٱخْتِلَٰفِ ٱلَّيْلِ وَٱلنَّهَارِ وَٱلْفُلْكِ ٱلَّتِى تَ...",
+          "match_type": "root",
+          "confidence": 0.557,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:164",
+            "tabari:2:164",
+            "muyassar:2:164"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 233,
+          "text_uthmani": "۞ وَٱلْوَٰلِدَٰتُ يُرْضِعْنَ أَوْلَٰدَهُنَّ حَوْلَيْنِ كَامِلَيْنِ ۖ لِمَنْ أَرَادَ أَن يُتِمَّ ٱلرّ...",
+          "match_type": "root",
+          "confidence": 0.557,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:233",
+            "tabari:2:233",
+            "muyassar:2:233"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 3,
+          "aya_no": 13,
+          "text_uthmani": "قَدْ كَانَ لَكُمْ ءَايَةٌۭ فِى فِئَتَيْنِ ٱلْتَقَتَا ۖ فِئَةٌۭ تُقَٰتِلُ فِى سَبِيلِ ٱللَّهِ وَأُخْر...",
+          "match_type": "root",
+          "confidence": 0.557,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:3:13",
+            "tabari:3:13",
+            "muyassar:3:13"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 278,
+          "text_uthmani": "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ ٱللَّهَ وَذَرُوا۟ مَا بَقِىَ مِنَ ٱلرِّبَوٰٓا۟ إِن كُنتُ...",
+          "match_type": "lexical",
+          "confidence": 0.543,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله، الرب",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:278",
+            "tabari:2:278",
+            "muyassar:2:278"
+          ],
+          "matching_keywords": [
+            "الله",
+            "الرب"
+          ]
+        },
+        {
+          "sura_no": 3,
+          "aya_no": 130,
+          "text_uthmani": "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ لَا تَأْكُلُوا۟ ٱلرِّبَوٰٓا۟ أَضْعَٰفًۭا مُّضَٰعَفَةًۭ ۖ وَٱتَّقُو...",
+          "match_type": "lexical",
+          "confidence": 0.543,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله، الرب",
+          "evidence_chunk_ids": [
+            "ibn_kathir:3:130",
+            "tabari:3:130",
+            "muyassar:3:130"
+          ],
+          "matching_keywords": [
+            "الله",
+            "الرب"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 143,
+          "text_uthmani": "وَكَذَٰلِكَ جَعَلْنَٰكُمْ أُمَّةًۭ وَسَطًۭا لِّتَكُونُوا۟ شُهَدَآءَ عَلَى ٱلنَّاسِ وَيَكُونَ ٱلرَّس...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:143",
+            "tabari:2:143",
+            "muyassar:2:143"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 196,
+          "text_uthmani": "وَأَتِمُّوا۟ ٱلْحَجَّ وَٱلْعُمْرَةَ لِلَّهِ ۚ فَإِنْ أُحْصِرْتُمْ فَمَا ٱسْتَيْسَرَ مِنَ ٱلْهَدْىِ ۖ...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:196",
+            "tabari:2:196",
+            "muyassar:2:196"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 214,
+          "text_uthmani": "أَمْ حَسِبْتُمْ أَن تَدْخُلُوا۟ ٱلْجَنَّةَ وَلَمَّا يَأْتِكُم مَّثَلُ ٱلَّذِينَ خَلَوْا۟ مِن قَبْلِك...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:214",
+            "tabari:2:214",
+            "muyassar:2:214"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 219,
+          "text_uthmani": "۞ يَسْـَٔلُونَكَ عَنِ ٱلْخَمْرِ وَٱلْمَيْسِرِ ۖ قُلْ فِيهِمَآ إِثْمٌۭ كَبِيرٌۭ وَمَنَٰفِعُ لِلنَّاس...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:219",
+            "tabari:2:219",
+            "muyassar:2:219"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 247,
+          "text_uthmani": "وَقَالَ لَهُمْ نَبِيُّهُمْ إِنَّ ٱللَّهَ قَدْ بَعَثَ لَكُمْ طَالُوتَ مَلِكًۭا ۚ قَالُوٓا۟ أَنَّىٰ يَ...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:247",
+            "tabari:2:247",
+            "muyassar:2:247"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 251,
+          "text_uthmani": "فَهَزَمُوهُم بِإِذْنِ ٱللَّهِ وَقَتَلَ دَاوُۥدُ جَالُوتَ وَءَاتَىٰهُ ٱللَّهُ ٱلْمُلْكَ وَٱلْحِكْمَةَ...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "tabari:2:251",
+            "muyassar:2:251",
+            "qurtubi:2:251"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 2,
+          "aya_no": 282,
+          "text_uthmani": "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟ إِذَا تَدَايَنتُم بِدَيْنٍ إِلَىٰٓ أَجَلٍۢ مُّسَمًّۭى فَٱكْتُبُوه...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:2:282",
+            "tabari:2:282",
+            "muyassar:2:282"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 3,
+          "aya_no": 7,
+          "text_uthmani": "هُوَ ٱلَّذِىٓ أَنزَلَ عَلَيْكَ ٱلْكِتَٰبَ مِنْهُ ءَايَٰتٌۭ مُّحْكَمَٰتٌ هُنَّ أُمُّ ٱلْكِتَٰبِ وَأُخ...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "tabari:3:7",
+            "ibn_kathir:3:7",
+            "muyassar:3:7"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 3,
+          "aya_no": 19,
+          "text_uthmani": "إِنَّ ٱلدِّينَ عِندَ ٱللَّهِ ٱلْإِسْلَٰمُ ۗ وَمَا ٱخْتَلَفَ ٱلَّذِينَ أُوتُوا۟ ٱلْكِتَٰبَ إِلَّا مِن...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:3:19",
+            "tabari:3:19",
+            "muyassar:3:19"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 3,
+          "aya_no": 73,
+          "text_uthmani": "وَلَا تُؤْمِنُوٓا۟ إِلَّا لِمَن تَبِعَ دِينَكُمْ قُلْ إِنَّ ٱلْهُدَىٰ هُدَى ٱللَّهِ أَن يُؤْتَىٰٓ أَ...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:3:73",
+            "tabari:3:73",
+            "muyassar:3:73"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 3,
+          "aya_no": 148,
+          "text_uthmani": "فَـَٔاتَىٰهُمُ ٱللَّهُ ثَوَابَ ٱلدُّنْيَا وَحُسْنَ ثَوَابِ ٱلْءَاخِرَةِ ۗ وَٱللَّهُ يُحِبُّ ٱلْمُحْس...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:3:148",
+            "tabari:3:148",
+            "muyassar:3:148"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        },
+        {
+          "sura_no": 3,
+          "aya_no": 152,
+          "text_uthmani": "وَلَقَدْ صَدَقَكُمُ ٱللَّهُ وَعْدَهُۥٓ إِذْ تَحُسُّونَهُم بِإِذْنِهِۦ ۖ حَتَّىٰٓ إِذَا فَشِلْتُمْ وَ...",
+          "match_type": "root",
+          "confidence": 0.536,
+          "reasons_ar": "تتعلق الآية بموضوع التوحيد - تحتوي على: الله",
+          "evidence_chunk_ids": [
+            "ibn_kathir:3:152",
+            "tabari:3:152",
+            "muyassar:3:152"
+          ],
+          "matching_keywords": [
+            "الله"
+          ]
+        }
+      ]
+    }
+  ]
+}

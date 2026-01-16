@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.pyc
+.env
+.venv/
+
+# Node / frontend
+node_modules/
+dist/
+build/
+
+# Data (usually large / private)
+data/
+
+# OS
+.DS_Store
+# Node (frontend)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Python (backend)
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/venv/
+backend/.pytest_cache/
+
+# Docker
+docker-compose.override.yml
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Database backups
+*.sql
+*_backup/
+*_backup.rdb
+tadabbur_backup*
+qdrant_backup/
+surrealdb_backup/
+redis_backup.rdb
+
+# ============================
+# Database backups & dumps
+# ============================
+*.sql
+*_backup/
+*_backup.rdb
+tadabbur_backup*
+qdrant_backup/
+surrealdb_backup/
+redis_backup.rdb
+

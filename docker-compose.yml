@@ -1,0 +1,244 @@
+# Tadabbur-AI Docker Compose Configuration
+# FAANG-Optimized for Performance and Scalability
+# Note: 'version' attribute is obsolete in Docker Compose V2
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: tadabbur-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tadabbur}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tadabbur_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-tadabbur}
+      # Performance tuning
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tadabbur}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    # PostgreSQL performance settings
+    command: >
+      postgres
+      -c shared_buffers=256MB
+      -c effective_cache_size=768MB
+      -c work_mem=16MB
+      -c maintenance_work_mem=64MB
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c max_connections=100
+
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    container_name: tadabbur-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 3 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    container_name: tadabbur-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    # Redis performance settings
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --appendfsync everysec
+      --tcp-keepalive 300
+
+  surrealdb:
+    image: surrealdb/surrealdb:v1.5.0
+    container_name: tadabbur-surrealdb
+    user: root
+    ports:
+      - "8529:8000"
+    command: start --log trace --user root --pass root memory
+    healthcheck:
+      test: ["CMD", "/surreal", "isready", "--conn", "http://localhost:8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tadabbur-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-tadabbur}:${POSTGRES_PASSWORD:-tadabbur_dev}@postgres:5432/${POSTGRES_DB:-tadabbur}
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - REDIS_URL=redis://redis:6379/0
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LLM_PROVIDER=ollama
+      - OLLAMA_BASE_URL=http://172.20.0.1:11434
+      - OLLAMA_MODEL=qwen2.5:32b
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-test_admin_token_dev}
+      - SURREAL_HOST=surrealdb
+      - SURREAL_PORT=8000
+      - SURREAL_USER=root
+      - SURREAL_PASS=root
+      - SURREAL_NAMESPACE=tadabbur
+      - SURREAL_DATABASE=quran_kg
+      # Performance settings
+      - WORKERS=4
+      - FEATURE_REDIS_CACHE=true
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      surrealdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: tadabbur-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 64M
+
+  rq-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tadabbur-worker
+    command: >
+      python -m rq.cli worker
+      --url redis://redis:6379/0
+      --job-monitoring-interval 30
+      --default-result-ttl 500
+      --log-level info
+      high default low
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-tadabbur}:${POSTGRES_PASSWORD:-tadabbur_dev}@postgres:5432/${POSTGRES_DB:-tadabbur}
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - REDIS_URL=redis://redis:6379/0
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - SURREAL_HOST=surrealdb
+      - SURREAL_PORT=8000
+      - SURREAL_USER=root
+      - SURREAL_PASS=root
+      - SURREAL_NAMESPACE=tadabbur
+      - SURREAL_DATABASE=quran_kg
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      surrealdb:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+volumes:
+  postgres_data:
+  qdrant_data:
+  redis_data:
+  surrealdb_data:
