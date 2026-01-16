@@ -58,3 +58,6 @@ qdrant_backup/
 surrealdb_backup/
 redis_backup.rdb
 
+
+# Claude / AI tooling
+.claude/
