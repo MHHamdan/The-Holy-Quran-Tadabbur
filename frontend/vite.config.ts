@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import fs from 'fs'
+import path from 'path'
 
 /**
  * Vite Configuration - Optimized for FAANG-level Performance
@@ -9,6 +11,11 @@ import react from '@vitejs/plugin-react'
  * 2. Vendor chunking for better caching
  * 3. Tree shaking and minification
  * 4. Compression support
+ *
+ * HTTPS for Microphone Access:
+ * - Run with HTTPS: HTTPS=true npm run dev
+ * - This enables microphone access over LAN (required for getUserMedia)
+ * - For localhost, HTTP works fine (browser exception)
  */
 export default defineConfig({
   plugins: [react()],
@@ -16,10 +23,17 @@ export default defineConfig({
   server: {
     port: 3000,
     host: '0.0.0.0',
+    // Enable HTTPS if HTTPS=true environment variable is set
+    // This is required for microphone access over LAN
+    https: process.env.HTTPS === 'true' ? {
+      key: fs.readFileSync(path.resolve(__dirname, 'certs/key.pem')),
+      cert: fs.readFileSync(path.resolve(__dirname, 'certs/cert.pem')),
+    } : undefined,
     proxy: {
       '/api': {
-        target: process.env.DOCKER_ENV === 'true' ? 'http://backend:8000' : 'http://localhost:8000',
+        target: process.env.CONTAINER_ENV === 'true' ? 'http://backend:8000' : 'http://localhost:8002',
         changeOrigin: true,
+        ws: true,  // Enable WebSocket proxying
       },
     },
   },
@@ -67,8 +81,6 @@ export default defineConfig({
           'feature-stories': [
             './src/pages/StoriesPage.tsx',
             './src/pages/StoryDetailPage.tsx',
-            './src/pages/StoryAtlasPage.tsx',
-            './src/pages/StoryAtlasDetailPage.tsx',
           ],
           'feature-tools': [
             './src/pages/ToolsPage.tsx',

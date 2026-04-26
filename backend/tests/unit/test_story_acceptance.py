@@ -36,15 +36,23 @@ def manifest_path():
 
 
 def extract_translation_keys(translations_content: str) -> Set[str]:
-    """Extract all translation keys from the translations.ts file."""
+    """Extract all translation keys from the translations.ts file.
+
+    Handles both plain keys (key_name: {) and quoted keys ('key-name': {).
+    """
     keys = set()
     import re
-    # Match patterns like: key_name: { ar:
-    pattern = r'^\s+(\w+):\s*\{'
+    # Unquoted: key_name: { ar:
+    pattern_plain = r'^\s+(\w+):\s*\{'
+    # Single-quoted key: 'key-name': {  (key cannot contain single quote)
+    pattern_single = r"^\s+'([^']+)'\s*:\s*\{"
+    # Double-quoted key: "key'name": {  (key cannot contain double quote)
+    pattern_double = r'^\s+"([^"]+)"\s*:\s*\{'
     for line in translations_content.split('\n'):
-        match = re.match(pattern, line)
-        if match:
-            keys.add(match.group(1))
+        for pattern in [pattern_plain, pattern_single, pattern_double]:
+            match = re.match(pattern, line)
+            if match:
+                keys.add(match.group(1))
     return keys
 
 
@@ -375,6 +383,96 @@ class TestCrossStoryConnections:
         # This is a warning, not a hard failure
         if connections_without_explanation:
             print(f"Warning: {len(connections_without_explanation)} connections without explanations")
+
+
+# ============================================================================
+# 5. REVIEW SAFETY ACCEPTANCE TESTS
+# ============================================================================
+
+class TestReviewSafetyAcceptance:
+    """
+    Acceptance tests: the UI must display needs_review content safely.
+
+    REQUIREMENTS:
+    - needs_review  → 'Pending Scholarly Review' banner visible at all audience levels
+    - humanReviewRequired → explicit flag inside the banner
+    - rejected      → never rendered as story explanation
+    - missing evidence → orange warning shown
+    - missing sources  → warning shown, not silently hidden
+    - related stories  → evidenceReferences displayed or warned about
+    """
+
+    @pytest.fixture
+    def story_detail_tsx(self):
+        path = (
+            Path(__file__).parent.parent.parent.parent
+            / "frontend" / "src" / "pages" / "StoryDetailPage.tsx"
+        )
+        if not path.exists():
+            pytest.skip(f"StoryDetailPage.tsx not found: {path}")
+        return path.read_text(encoding='utf-8')
+
+    def test_ac_needs_review_warning_visible(self, story_detail_tsx):
+        """AC: needs_review content shows a warning that cannot be confused with approved content."""
+        assert 'Pending Scholarly Review' in story_detail_tsx, \
+            "AC FAIL: 'Pending Scholarly Review' label missing — needs_review content may appear approved"
+
+    def test_ac_human_review_required_flagged(self, story_detail_tsx):
+        """AC: humanReviewRequired: true renders an explicit human-review-required flag."""
+        assert 'Human review required before publishing' in story_detail_tsx, \
+            "AC FAIL: humanReviewRequired is not surfaced to the user"
+
+    def test_ac_rejected_not_shown(self, story_detail_tsx):
+        """AC: Rejected segments never render as a story explanation."""
+        assert 'if (isRejected) return null' in story_detail_tsx, \
+            "AC FAIL: rejected segments are not filtered — they may appear as valid content"
+
+    def test_ac_evidence_references_displayed_or_warned(self, story_detail_tsx):
+        """AC: Related stories display evidenceReferences or show a warning when none exist."""
+        has_evidence_render = 'evidenceReferences.length > 0' in story_detail_tsx
+        has_missing_warning = 'No Quranic evidence references for this connection' in story_detail_tsx
+        assert has_evidence_render and has_missing_warning, \
+            "AC FAIL: Related stories must show evidence refs AND warn when refs are absent"
+
+    def test_ac_missing_source_evidence_warning(self, story_detail_tsx):
+        """AC: Missing matchedEvidence triggers an orange warning, not silent omission."""
+        assert 'missingEvidence' in story_detail_tsx, \
+            "AC FAIL: missingEvidence variable not defined"
+        assert 'Source evidence not yet linked' in story_detail_tsx, \
+            "AC FAIL: Missing source evidence is silently hidden rather than warned about"
+
+    def test_ac_empty_sources_warning(self, story_detail_tsx):
+        """AC: Segments with no sourceIds show a warning instead of an empty sources section."""
+        assert 'No sources identified for this segment yet' in story_detail_tsx, \
+            "AC FAIL: Empty sourceIds are silently hidden rather than warned about"
+
+    def test_ac_warning_not_audience_gated(self, story_detail_tsx):
+        """AC: Review warnings must not be conditioned on audienceLevel."""
+        import re
+        gated = re.findall(
+            r"audienceLevel\s*===\s*['\"]adults['\"]\s*&&\s*[^{]*(?:needsReview|humanReviewReq)",
+            story_detail_tsx,
+        )
+        assert not gated, \
+            "AC FAIL: Warning is gated on audienceLevel — kids audience would not see it"
+
+    def test_ac_kids_and_adults_see_warning(self, story_detail_tsx):
+        """AC: Warning block appears before the segment summary <p> in the JSX return."""
+        import re
+        # The segment summary paragraph uses class 'text-gray-700 text-sm leading-relaxed mb-3'.
+        # The warning block must appear before it in the JSX source so both audience levels see it.
+        warning_block_pos = story_detail_tsx.find('(needsReview || humanReviewReq) && (')
+        # Use the segment summary paragraph's class as an anchor (unique to the segment card)
+        segment_summary_match = re.search(
+            r'text-gray-700 text-sm leading-relaxed mb-3',
+            story_detail_tsx,
+        )
+        assert warning_block_pos != -1, "Warning conditional block must be present"
+        assert segment_summary_match is not None, \
+            "Segment summary paragraph (text-gray-700 text-sm leading-relaxed mb-3) must be present"
+        segment_summary_pos = segment_summary_match.start()
+        assert warning_block_pos < segment_summary_pos, \
+            "AC FAIL: Warning block must appear before the segment summary paragraph in the JSX"
 
 
 # ============================================================================

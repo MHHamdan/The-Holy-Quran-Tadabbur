@@ -3,6 +3,15 @@ import { BookOpen, Shield, CheckCircle, AlertCircle, ChevronDown, ChevronUp, Tog
 import { useLanguageStore } from '../stores/languageStore';
 import { ragApi, TafseerSource } from '../lib/api';
 import clsx from 'clsx';
+import { SourceBadge } from '../components/common/SourceBadge';
+import type { ReliabilityLevel } from '../data/sourceRegistry';
+
+function scoreToReliability(score: number): ReliabilityLevel {
+  if (score >= 0.97) return 'canonical';
+  if (score >= 0.85) return 'verified';
+  if (score >= 0.60) return 'supporting';
+  return 'experimental';
+}
 
 const ADMIN_TOKEN_KEY = 'tadabbur_admin_token';
 
@@ -329,6 +338,7 @@ function SourceCard({ source, language, isExpanded, onToggle, isAdminMode, isTog
                 "text-lg font-semibold",
                 isEnabled ? "text-gray-900" : "text-gray-500"
               )}>{name}</h3>
+              <SourceBadge reliabilityLevel={scoreToReliability(source.reliability_score)} compact />
               {!isEnabled && (
                 <span className="flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
                   {language === 'ar' ? 'معطل' : 'Disabled'}

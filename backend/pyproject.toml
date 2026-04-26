@@ -50,6 +50,10 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.8.0",
 ]
+stt = [
+    "faster-whisper>=0.10.0",
+    "numpy>=1.24.0",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -61,6 +65,14 @@ packages = ["app"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "integration: marks tests as integration tests",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
 
 [tool.ruff]
 line-length = 100

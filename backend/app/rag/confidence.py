@@ -35,7 +35,7 @@ REFUSAL_THRESHOLD = 0.35  # Below this = hard refuse (separated from LOW)
 
 # REFUSAL TRIGGER CONDITIONS
 MIN_CITATION_COVERAGE = 0.30  # At least 30% of paragraphs need citations
-MIN_AVERAGE_RELEVANCE = 0.20  # Average relevance must be at least 0.2 (lowered for cross-encoder scores)
+MIN_AVERAGE_RELEVANCE = 0.30  # Average relevance must be at least 0.3 (matches module docstring)
 MIN_TOP_RELEVANCE = 0.50  # At least one chunk must have high relevance
 MIN_SOURCE_RELIABILITY = 0.50  # At least one source must have 0.5+ reliability
 

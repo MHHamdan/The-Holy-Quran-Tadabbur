@@ -130,7 +130,7 @@ export function SearchHistoryPanel({ onSearchSelect, onVerseSelect, compact = fa
             <button
               key={idx}
               onClick={() => handleSearchClick(entry.query)}
-              className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 text-left transition-colors"
+              className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 text-start transition-colors"
             >
               <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <span className="flex-1 truncate text-sm">{entry.query}</span>

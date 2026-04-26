@@ -72,8 +72,13 @@ from app.rag.types import (
     TafsirExplanation,
     SAFE_REFUSAL_INSUFFICIENT,
     SAFE_REFUSAL_NO_SOURCES,
+    SAFE_REFUSAL_NO_SOURCES_EN,
+    SAFE_REFUSAL_NO_SOURCES_AR,
+    NEEDS_CLARIFICATION_EN,
+    NEEDS_CLARIFICATION_AR,
     SAFE_REFUSAL_FIQH,
     RAG_SUPPORTED_LANGUAGES,
+    reliability_float_to_level,
 )
 from app.rag.retrieval import HybridRetriever, extract_verse_reference, FAMOUS_VERSES
 from app.rag.prompts import GROUNDED_SYSTEM_PROMPT, build_user_prompt
@@ -81,6 +86,7 @@ from app.rag.query_expander import expand_query, ExpandedQuery
 from app.rag.confidence import confidence_scorer, get_confidence_message, ConfidenceBreakdown
 from app.validators.citation_validator import CitationValidator
 from app.rag.llm_provider import get_llm, LLMProvider, BaseLLM
+from app.rag.source_validator import source_validator
 
 logger = logging.getLogger(__name__)
 
@@ -243,9 +249,50 @@ class RAGPipeline:
         processing_time = int((time.time() - start_time) * 1000)
         logger.info(f"[FAST-PATH] Response built in {processing_time}ms")
 
+        # Enrich fast-path citations with reliability_level
+        enriched_citations = []
+        for chunk in chunks[:5]:
+            rel_level = reliability_float_to_level(
+                getattr(chunk, 'source_reliability', 0.8)
+            )
+            enriched_citations.append(Citation(
+                chunk_id=chunk.chunk_id,
+                source_id=chunk.source_id,
+                source_name=chunk.source_name,
+                source_name_ar=getattr(chunk, 'source_name_ar', '') or chunk.source_name,
+                verse_reference=chunk.verse_reference,
+                excerpt=chunk.content[:200] if chunk.content else "",
+                relevance_score=chunk.relevance_score,
+                reliability_level=rel_level,
+                surah_number=chunk.sura_no,
+                ayah_number=chunk.aya_start,
+                quoted_evidence=chunk.content[:400] if chunk.content else None,
+            ))
+
+        # Phase 2.5: validate fast-path citations against trusted source registry
+        sv_result = source_validator.validate_citations(
+            enriched_citations, intent=QueryIntent.VERSE_MEANING.value, language=language
+        )
+        if not sv_result.is_valid:
+            refusal = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
+            logger.warning(f"[FAST-PATH] Source validation blocked: {sv_result.hard_block_reason}")
+            return GroundedResponse(
+                answer=refusal,
+                citations=[],
+                status="no_verified_source",
+                answer_language=language,
+                confidence=0.0,
+                intent=QueryIntent.VERSE_MEANING.value,
+                warnings=[sv_result.hard_block_reason or "Source validation failed"],
+                session_id=session_id,
+                api_version=settings.api_version,
+            )
+
         return GroundedResponse(
             answer=answer,
-            citations=citations,
+            citations=enriched_citations,
+            status="answered",
+            answer_language=language,
             confidence=0.95,  # High confidence for direct lookup
             intent=QueryIntent.VERSE_MEANING.value,
             warnings=[],
@@ -257,7 +304,7 @@ class RAGPipeline:
             scholarly_consensus="Direct tafsir lookup - no synthesis required",
             evidence_chunk_count=len(chunks),
             evidence_source_count=len(tafsir_by_source),
-            evidence=chunks[:5],  # Include top chunks for transparency
+            evidence=chunks[:5],
             processing_time_ms=processing_time,
             api_version=settings.api_version,
         )
@@ -329,9 +376,12 @@ class RAGPipeline:
 
         # 5. Check if we have enough evidence
         if not chunks:
+            refusal_text = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
             return GroundedResponse(
-                answer=SAFE_REFUSAL_NO_SOURCES,
+                answer=refusal_text,
                 citations=[],
+                status="no_verified_source",
+                answer_language=language,
                 confidence=0.0,
                 intent=intent.value,
                 warnings=["No relevant sources found"],
@@ -367,6 +417,7 @@ class RAGPipeline:
             chunk_ids=chunk_ids,
             intent=intent,
             query_expansion=expanded,
+            language=language,
         )
 
         # 9. Extract related verses for verse-first display
@@ -385,6 +436,19 @@ class RAGPipeline:
         validated.related_verses = related_verses
         validated.tafsir_by_source = tafsir_by_source
         validated.follow_up_suggestions = follow_up_suggestions
+        validated.answer_language = language
+
+        # Determine status based on citations and question
+        if not validated.citations:
+            validated.status = "no_verified_source"
+            # Override answer with language-specific safe refusal text
+            validated.answer = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
+        elif self._is_vague_question(question):
+            validated.status = "needs_clarification"
+        elif validated.confidence == 0.0:
+            validated.status = "no_verified_source"
+        else:
+            validated.status = "answered"
 
         # Add LLM latency to processing time
         validated.processing_time_ms = llm_latency_ms
@@ -748,6 +812,20 @@ class RAGPipeline:
             logger.error(f"LLM generation error: {e}")
             return f"Error generating response: {str(e)}", 0
 
+    def _is_vague_question(self, question: str) -> bool:
+        """Return True if the question lacks enough context to retrieve targeted sources."""
+        q = question.strip()
+        # Very short questions are likely decontextualised
+        if len(q) < 10:
+            return True
+        vague_patterns = [
+            "اشرح", "explain it", "what does this mean", "ماذا يعني هذا",
+            "tell me more", "what about it", "what is this", "ما هذا",
+            "اشرح الآية", "explain the verse", "what does this verse mean",
+        ]
+        q_lower = q.lower()
+        return any(p in q_lower for p in vague_patterns) and len(q) < 40
+
     async def _validate_and_parse_response(
         self,
         raw_response: str,
@@ -755,6 +833,7 @@ class RAGPipeline:
         chunk_ids: List[str],
         intent: QueryIntent,
         query_expansion: Optional[ExpandedQuery] = None,
+        language: str = "en",
     ) -> GroundedResponse:
         """
         Validate citations and parse response into structured format
@@ -764,11 +843,10 @@ class RAGPipeline:
         # Match both Latin (12:4) and Arabic-Indic numerals (١٢:٤)
         citation_pattern = r'\[([^\]]+)[,،]\s*([٠-٩\d]+:[٠-٩\d]+(?:-[٠-٩\d]+)?)\]'
         found_citations = re.findall(citation_pattern, raw_response)
-        print(f"[CITATION] Found {len(found_citations)} citation patterns in response")
-        print(f"[CITATION] Available chunks source_name: {[c.source_name for c in chunks[:3]]}...")
-        print(f"[CITATION] Available chunks source_name_ar: {[getattr(c, 'source_name_ar', 'N/A') for c in chunks[:5]]}...")
+        logger.debug(f"[CITATION] Found {len(found_citations)} citation patterns in response")
+        logger.debug(f"[CITATION] Available chunks: {[c.source_name for c in chunks[:3]]}...")
         if found_citations:
-            print(f"[CITATION] Sample citations: {found_citations[:3]}")
+            logger.debug(f"[CITATION] Sample citations: {found_citations[:3]}")
 
         # Map chunks by ID for quick lookup
         chunk_map = {c.chunk_id: c for c in chunks}
@@ -834,7 +912,10 @@ class RAGPipeline:
 
                 if is_match:
                     if chunk.chunk_id not in valid_citation_ids:
-                        print(f"[CITATION] Matched '{source_name}' verse {verse_ref} to chunk {chunk.chunk_id} ({chunk.verse_reference})")
+                        logger.debug(f"[CITATION] Matched '{source_name}' verse {verse_ref} to chunk {chunk.chunk_id} ({chunk.verse_reference})")
+                        rel_level = reliability_float_to_level(
+                            getattr(chunk, 'source_reliability', 0.8)
+                        )
                         citations.append(Citation(
                             chunk_id=chunk.chunk_id,
                             source_id=chunk.source_id,
@@ -843,6 +924,10 @@ class RAGPipeline:
                             verse_reference=chunk.verse_reference,
                             excerpt=chunk.content[:200] if chunk.content else "",
                             relevance_score=chunk.relevance_score,
+                            reliability_level=rel_level,
+                            surah_number=chunk.sura_no,
+                            ayah_number=chunk.aya_start,
+                            quoted_evidence=chunk.content[:400] if chunk.content else None,
                         ))
                         valid_citation_ids.add(chunk.chunk_id)
                     # Count as matched even if chunk was already cited
@@ -850,8 +935,27 @@ class RAGPipeline:
                     break
 
             if not matched:
-                print(f"[CITATION] FAILED to match '{source_name}' verse {verse_ref}")
+                logger.debug(f"[CITATION] FAILED to match '{source_name}' verse {verse_ref}")
                 invalid_count += 1
+
+        # Phase 2.5: validate every citation source_id against trusted registry
+        sv_result = source_validator.validate_citations(citations, intent.value, language)
+        if not sv_result.is_valid:
+            refusal = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
+            logger.warning(f"[SOURCE-VALIDATOR] Hard block: {sv_result.hard_block_reason}")
+            return GroundedResponse(
+                answer=refusal,
+                citations=[],
+                status="no_verified_source",
+                answer_language=language,
+                confidence=0.0,
+                intent=intent.value,
+                warnings=[sv_result.hard_block_reason or "Source validation failed"],
+                query_expansion=query_expansion.expansion_applied if query_expansion else None,
+                api_version=settings.api_version,
+            )
+        # Append any non-fatal source-validation warnings
+        source_warnings = list(sv_result.warnings)
 
         # Count paragraphs and those with citations
         paragraphs = [p.strip() for p in raw_response.split('\n\n') if p.strip() and len(p.strip()) > 100]
@@ -887,7 +991,7 @@ class RAGPipeline:
         )
 
         # Build warnings based on confidence
-        warnings = []
+        warnings = list(source_warnings)  # seed with Phase-2.5 source warnings
         if confidence_breakdown.confidence_level == "insufficient":
             warnings.append("This response lacks sufficient scholarly source support.")
         elif confidence_breakdown.confidence_level == "low":

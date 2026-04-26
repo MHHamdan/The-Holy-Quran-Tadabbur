@@ -165,7 +165,6 @@ export function useAsyncCallback<T, Args extends unknown[]>(
   asyncFunction: (...args: Args) => Promise<T>,
   deps: React.DependencyList = []
 ): UseAsyncReturn<T, Args> {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const stableAsyncFunction = useCallback(asyncFunction, deps);
   return useAsync(stableAsyncFunction);
 }

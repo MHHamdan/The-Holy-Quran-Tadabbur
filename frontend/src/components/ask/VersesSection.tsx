@@ -36,7 +36,7 @@ function VerseCard({ verse, language }: { verse: RelatedVerse; language: 'ar' | 
   return (
     <div className="group relative bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-xl border-2 border-emerald-200 hover:border-emerald-400 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
       {/* Decorative accent */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500" />
+      <div className="absolute top-0 start-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500" />
 
       {/* Header with verse reference and link */}
       <div className="px-4 pt-4 pb-2 flex items-center justify-between flex-wrap gap-2">
@@ -88,10 +88,7 @@ function VerseCard({ verse, language }: { verse: RelatedVerse; language: 'ar' | 
       {/* Translation */}
       <div className="px-4 pb-4">
         <p
-          className={clsx(
-            'text-sm text-gray-700 leading-relaxed bg-white/50 rounded-lg p-3 border border-gray-100',
-            language === 'ar' ? 'text-right' : 'text-left'
-          )}
+          className="text-sm text-gray-700 leading-relaxed bg-white/50 rounded-lg p-3 border border-gray-100 text-start"
           dir={language === 'ar' ? 'rtl' : 'ltr'}
         >
           <span className="text-gray-500 font-medium">

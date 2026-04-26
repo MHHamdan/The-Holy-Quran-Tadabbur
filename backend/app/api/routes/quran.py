@@ -1,7 +1,10 @@
 """
 Quran API routes for verses, translations, and tafseer.
 """
+import logging
 from typing import List, Optional, Dict, Any
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from pydantic import BaseModel, Field
@@ -13361,3 +13364,440 @@ async def list_available_concepts():
         "total_concepts": len(BILINGUAL_CONCEPTS),
         "categories": categories,
     }
+
+
+# =============================================================================
+# SEMANTIC SEARCH WITH VERSE GROUNDING
+# =============================================================================
+
+class GroundedVerseResponse(BaseModel):
+    """A verse with grounding explanation."""
+    verse_id: int
+    sura_no: int
+    sura_name_ar: str
+    sura_name_en: str
+    aya_no: int
+    reference: str
+    text_uthmani: str
+    text_imlaei: str
+    page_no: int
+    juz_no: int
+    relevance_score: float
+    highlighted_text: str  # Uthmani text with 【】 highlight markers
+    grounding: str  # Explanation of why this verse is relevant
+    matched_concepts: List[str]  # Which search concepts matched
+    highlighted_terms: List[str]  # Terms that were matched
+
+
+class SemanticSearchResponse(BaseModel):
+    """Response for semantic search with grounding."""
+    query: str
+    query_language: str  # 'ar', 'en', 'mixed'
+    expanded_concepts: List[str]
+    total_matches: int
+    search_time_ms: float
+    summary: str  # Brief summary of what was found
+    verses: List[GroundedVerseResponse]
+    concept_distribution: Dict[str, int]  # How many verses per concept
+    related_searches: List[str]  # Suggested related searches
+
+
+@router.get("/search/intelligent")
+async def intelligent_search_with_grounding(
+    query: str = Query(..., min_length=1, description="Natural language search query (Arabic or English)"),
+    limit: int = Query(30, ge=1, le=100, description="Maximum results"),
+    include_related: bool = Query(True, description="Include related concepts in search"),
+    lang: str = Query("ar", description="Response language: 'ar' for Arabic, 'en' for English"),
+    session: AsyncSession = Depends(get_async_session),
+) -> SemanticSearchResponse:
+    """
+    Intelligent semantic search with verse grounding.
+
+    This endpoint provides:
+    1. Bilingual query understanding (Arabic/English)
+    2. Automatic concept expansion to related terms
+    3. Verse grounding (explanation of relevance)
+    4. Summary of findings
+    5. Related search suggestions
+
+    Examples:
+        - "patience" → finds all verses about صبر with explanations
+        - "Moses and Pharaoh" → finds their story with context
+        - "الرحمة" → finds mercy verses with English concept mapping
+
+    Arabic: بحث دلالي ذكي مع تفسير الصلة بالآيات
+    """
+    import time
+    from app.services.quran_text_utils import (
+        parse_multi_concept_query,
+        expand_bilingual_query,
+        get_related_concepts,
+        BILINGUAL_CONCEPTS,
+    )
+    from app.services.quran_search import QuranSearchService, normalize_arabic
+
+    start_time = time.time()
+
+    # Parse and understand the query
+    parsed = parse_multi_concept_query(query)
+
+    # Expand query with bilingual synonyms
+    all_expansions, concept_map = expand_bilingual_query(query)
+
+    # Add related concepts if requested
+    related_concepts = []
+    if include_related:
+        for concept in parsed.concepts:
+            related = get_related_concepts(concept)
+            related_concepts.extend(related)
+            for rel in related[:3]:  # Limit related concepts per term
+                rel_expansions = set()
+                if rel in BILINGUAL_CONCEPTS:
+                    rel_expansions.update(BILINGUAL_CONCEPTS[rel].get('ar', []))
+                all_expansions.update(rel_expansions)
+
+    # Search for verses using all expanded terms — single batched DB query
+    search_service = QuranSearchService(session)
+
+    # Filter valid search terms
+    valid_terms = [t for t in all_expansions if t and len(t) >= 2]
+
+    # Collect all matching verses with their matched concepts
+    verse_matches: Dict[int, Dict] = {}  # verse_id -> match info
+    concept_counts: Dict[str, int] = {}
+
+    if valid_terms:
+        # Build a single batched query with all terms OR'd together
+        from sqlalchemy import select, or_
+        from app.models.quran import QuranVerse
+
+        normalized_terms = [normalize_arabic(t) for t in valid_terms]
+
+        conditions = [
+            QuranVerse.text_normalized.ilike(f'%{nt}%')
+            for nt in normalized_terms
+        ]
+        stmt = select(QuranVerse).where(
+            or_(*conditions)
+        ).order_by(QuranVerse.sura_no, QuranVerse.aya_no).limit(500)
+
+        result = await session.execute(stmt)
+        verses = result.scalars().all()
+
+        # For each verse, determine which terms matched and build highlights
+        for verse in verses:
+            verse_normalized = normalize_arabic(verse.text_uthmani)
+            matched_terms = []
+            for nt, orig_term in zip(normalized_terms, valid_terms):
+                if nt in verse_normalized:
+                    matched_terms.append(orig_term)
+
+            if not matched_terms:
+                continue
+
+            # Find positions and build highlighted text using the search service
+            all_term_set = set(matched_terms)
+            positions = search_service._find_match_positions(verse.text_uthmani, all_term_set)
+            highlighted = search_service._highlight_matches(verse.text_uthmani, positions)
+
+            # Compute a simple relevance score based on term coverage
+            relevance_score = len(matched_terms) / max(len(valid_terms), 1)
+
+            # Build a SearchMatch-like object
+            from app.services.quran_search import SearchMatch
+            match_obj = SearchMatch(
+                verse_id=verse.id,
+                sura_no=verse.sura_no,
+                sura_name_ar=verse.sura_name_ar,
+                sura_name_en=verse.sura_name_en,
+                aya_no=verse.aya_no,
+                text_uthmani=verse.text_uthmani,
+                text_imlaei=verse.text_imlaei,
+                page_no=verse.page_no,
+                juz_no=verse.juz_no,
+                match_positions=positions,
+                highlighted_text=highlighted,
+                context_before='',
+                context_after='',
+                relevance_score=relevance_score,
+                tfidf_score=relevance_score,
+                exact_match=normalize_arabic(query) in verse_normalized,
+            )
+
+            verse_matches[verse.id] = {
+                'match': match_obj,
+                'concepts': set(),
+                'terms': set(matched_terms),
+                'max_score': relevance_score,
+            }
+
+            # Track which concepts matched
+            for orig_concept, expansions in concept_map.items():
+                expansions_lower = {e.lower() for e in expansions}
+                for mt in matched_terms:
+                    if mt in expansions or mt.lower() in expansions_lower:
+                        verse_matches[verse.id]['concepts'].add(orig_concept)
+                        concept_counts[orig_concept] = concept_counts.get(orig_concept, 0) + 1
+                        break
+
+    # Sort by relevance and concept coverage
+    sorted_verses = sorted(
+        verse_matches.values(),
+        key=lambda x: (len(x['concepts']), x['max_score']),
+        reverse=True
+    )[:limit]
+
+    # Generate grounding explanations
+    grounded_verses = []
+    for v in sorted_verses:
+        match = v['match']
+        concepts = list(v['concepts'])
+        terms = list(v['terms'])
+
+        # Generate grounding explanation
+        if concepts:
+            concept_names = ', '.join(concepts[:3])
+            if lang == 'ar':
+                grounding = f"هذه الآية تتعلق بـ: {concept_names}. "
+                if len(terms) > 1:
+                    grounding += f"مصطلحات متعددة: {', '.join(terms[:5])}."
+                elif terms:
+                    grounding += f"المصطلح المطابق: {terms[0]}."
+            else:
+                grounding = f"This verse relates to: {concept_names}. "
+                if len(terms) > 1:
+                    grounding += f"Multiple related terms found: {', '.join(terms[:5])}."
+                elif terms:
+                    grounding += f"Matched term: {terms[0]}."
+        else:
+            if lang == 'ar':
+                grounding = f"تحتوي على مصطلح البحث: {', '.join(terms[:3])}."
+            else:
+                grounding = f"Contains search term(s): {', '.join(terms[:3])}."
+
+        grounded_verses.append(GroundedVerseResponse(
+            verse_id=match.verse_id,
+            sura_no=match.sura_no,
+            sura_name_ar=match.sura_name_ar,
+            sura_name_en=match.sura_name_en,
+            aya_no=match.aya_no,
+            reference=f"{match.sura_no}:{match.aya_no}",
+            text_uthmani=match.text_uthmani,
+            text_imlaei=match.text_imlaei,
+            highlighted_text=match.highlighted_text,
+            page_no=match.page_no,
+            juz_no=match.juz_no,
+            relevance_score=round(v['max_score'], 4),
+            grounding=grounding,
+            matched_concepts=concepts,
+            highlighted_terms=terms[:10],
+        ))
+
+    # Generate summary
+    total = len(grounded_verses)
+    if lang == 'ar':
+        if total == 0:
+            summary = f"لم يتم العثور على آيات لـ '{query}'. جرّب استخدام مصطلحات عربية أو كلمات مختلفة."
+        elif total == 1:
+            summary = f"تم العثور على آية واحدة متعلقة بـ '{query}'."
+        else:
+            top_concepts = sorted(concept_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+            if top_concepts:
+                concept_summary = ', '.join([f"{c[0]} ({c[1]} آية)" for c in top_concepts])
+                summary = f"تم العثور على {total} آية. المواضيع الرئيسية: {concept_summary}."
+            else:
+                summary = f"تم العثور على {total} آية مطابقة لـ '{query}'."
+    else:
+        if total == 0:
+            summary = f"No verses found for '{query}'. Try using Arabic terms or different keywords."
+        elif total == 1:
+            summary = f"Found 1 verse related to '{query}'."
+        else:
+            top_concepts = sorted(concept_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+            if top_concepts:
+                concept_summary = ', '.join([f"{c[0]} ({c[1]} verses)" for c in top_concepts])
+                summary = f"Found {total} verses. Main topics: {concept_summary}."
+            else:
+                summary = f"Found {total} verses matching '{query}'."
+
+    # Generate related searches
+    related_searches = []
+    for rel in related_concepts[:5]:
+        if rel in BILINGUAL_CONCEPTS:
+            ar_term = BILINGUAL_CONCEPTS[rel].get('ar', [''])[0]
+            en_term = BILINGUAL_CONCEPTS[rel].get('en', [''])[0]
+            if ar_term:
+                related_searches.append(ar_term)
+            if en_term and en_term not in related_searches:
+                related_searches.append(en_term)
+
+    search_time = (time.time() - start_time) * 1000
+
+    return SemanticSearchResponse(
+        query=query,
+        query_language=parsed.language,
+        expanded_concepts=list(all_expansions)[:20],
+        total_matches=len(grounded_verses),
+        search_time_ms=round(search_time, 2),
+        summary=summary,
+        verses=grounded_verses,
+        concept_distribution=concept_counts,
+        related_searches=related_searches[:10],
+    )
+
+
+# =============================================================================
+# Allah Names (أسماء الله الحسنى) Endpoint
+# =============================================================================
+
+class NameVerseMatchResponse(BaseModel):
+    """A verse that mentions one of Allah's names."""
+    sura_no: int
+    aya_no: int
+    reference: str
+    text_uthmani: str
+    highlighted_text: str
+    tafseer_snippet: str = ""
+
+
+class AllahNameResponse(BaseModel):
+    """Response model for a single name of Allah."""
+    number: int
+    name_ar: str
+    name_simple: str
+    transliteration: str
+    meaning_en: str
+    meaning_ar: str
+    description_ar: str
+    description_en: str
+    category: str
+    category_label_ar: str = ""
+    category_label_en: str = ""
+    verses: List[NameVerseMatchResponse] = []
+
+
+class AllahNamesListResponse(BaseModel):
+    """Response model for the list of Allah names."""
+    names: List[AllahNameResponse]
+    total: int
+
+
+@router.get("/allah-names", response_model=AllahNamesListResponse)
+async def get_allah_names(
+    lang: str = Query("ar", description="Language for descriptions (ar/en)"),
+    name_number: Optional[int] = Query(None, ge=1, le=99, description="Specific name number (1-99)"),
+    category: Optional[str] = Query(None, description="Filter by category (dhat, jamal, jalal, kamal, af'al)"),
+    include_verses: bool = Query(True, description="Include matching verses"),
+    max_verses_per_name: int = Query(5, ge=1, le=20, description="Maximum verses per name"),
+    session: AsyncSession = Depends(get_async_session),
+) -> AllahNamesListResponse:
+    """
+    Get the 99 Names of Allah (أسماء الله الحسنى).
+
+    Returns all names with their meanings, descriptions, and Quranic verses
+    where each name appears (with highlighted Uthmani text).
+
+    Categories:
+    - dhat (الذات): Names relating to Allah's Essence
+    - jamal (الجمال): Names relating to Beauty, Mercy, and Grace
+    - jalal (الجلال): Names relating to Majesty, Power, and Authority
+    - kamal (الكمال): Names relating to Perfection
+    - af'al (الأفعال): Names relating to Allah's Actions
+    """
+    from app.data.allah_names import ALLAH_NAMES_99, CATEGORY_LABELS
+    from app.services.quran_search import QuranSearchService, normalize_arabic
+
+    search_service = QuranSearchService(session)
+
+    # Filter names
+    names_to_process = ALLAH_NAMES_99
+    if name_number is not None:
+        names_to_process = [n for n in ALLAH_NAMES_99 if n["number"] == name_number]
+    if category is not None:
+        names_to_process = [n for n in names_to_process if n["category"] == category]
+
+    result_names = []
+
+    for name_data in names_to_process:
+        verses_list: List[NameVerseMatchResponse] = []
+
+        if include_verses:
+            # Search for verses containing this name
+            name_simple = name_data["name_simple"]
+
+            # Remove "ال" prefix for broader matching
+            search_term = name_simple
+            if search_term.startswith("ال"):
+                search_term_no_al = search_term[2:]
+            else:
+                search_term_no_al = search_term
+
+            # Query verses containing the name
+            normalized_term = normalize_arabic(search_term_no_al).lower()
+
+            stmt = select(QuranVerse)
+            verses = (await session.execute(stmt)).scalars().all()
+
+            matching_verses = []
+            for verse in verses:
+                verse_normalized = normalize_arabic(verse.text_uthmani).lower()
+                if normalized_term in verse_normalized:
+                    matching_verses.append(verse)
+
+            # Limit and process matching verses
+            for verse in matching_verses[:max_verses_per_name]:
+                # Highlight the name in the verse
+                positions = search_service._find_match_positions(
+                    verse.text_uthmani,
+                    {search_term_no_al, search_term}
+                )
+                highlighted = search_service._highlight_matches(verse.text_uthmani, positions)
+
+                # Get tafseer snippet if available
+                tafseer_snippet = ""
+                tafseer_stmt = select(TafseerChunk).where(
+                    TafseerChunk.sura_no == verse.sura_no,
+                    TafseerChunk.aya_start <= verse.aya_no,
+                    TafseerChunk.aya_end >= verse.aya_no
+                ).limit(1)
+                tafseer_result = await session.execute(tafseer_stmt)
+                tafseer = tafseer_result.scalar_one_or_none()
+                if tafseer:
+                    content = tafseer.content_ar if lang == "ar" else (tafseer.content_en or tafseer.content_ar)
+                    if content:
+                        # Get first 200 chars as snippet
+                        tafseer_snippet = content[:200] + "..." if len(content) > 200 else content
+
+                verses_list.append(NameVerseMatchResponse(
+                    sura_no=verse.sura_no,
+                    aya_no=verse.aya_no,
+                    reference=f"{verse.sura_no}:{verse.aya_no}",
+                    text_uthmani=verse.text_uthmani,
+                    highlighted_text=highlighted,
+                    tafseer_snippet=tafseer_snippet,
+                ))
+
+        # Get category labels
+        cat = name_data["category"]
+        cat_label_ar = CATEGORY_LABELS.get(cat, {}).get("ar", cat)
+        cat_label_en = CATEGORY_LABELS.get(cat, {}).get("en", cat)
+
+        result_names.append(AllahNameResponse(
+            number=name_data["number"],
+            name_ar=name_data["name_ar"],
+            name_simple=name_data["name_simple"],
+            transliteration=name_data["transliteration"],
+            meaning_en=name_data["meaning_en"],
+            meaning_ar=name_data["meaning_ar"],
+            description_ar=name_data["description_ar"],
+            description_en=name_data["description_en"],
+            category=name_data["category"],
+            category_label_ar=cat_label_ar,
+            category_label_en=cat_label_en,
+            verses=verses_list,
+        ))
+
+    return AllahNamesListResponse(
+        names=result_names,
+        total=len(result_names),
+    )

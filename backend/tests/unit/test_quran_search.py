@@ -15,6 +15,7 @@ from typing import Set
 
 from app.services.quran_search import (
     normalize_arabic,
+    normalize_for_matching,
     extract_words,
     expand_query,
     TFIDFScorer,
@@ -27,6 +28,8 @@ from app.services.quran_search import (
     SENTENCE_TYPE_AR,
     ARABIC_STOP_WORDS,
     CONCEPT_EXPANSIONS,
+    HAMZA_VARIANTS,
+    TA_MARBUTA,
     jaccard_similarity,
     cosine_similarity_words,
     concept_overlap_score,
@@ -473,3 +476,195 @@ class TestSearchIntegration:
             expanded = expand_query(query)
             # Should have at least one result (the normalized form)
             assert len(expanded) >= 1
+
+
+# =============================================================================
+# PHASE 4: ENHANCED NORMALIZATION TESTS
+# =============================================================================
+
+class TestTaMarbuta:
+    """Tests for Ta Marbuta normalization (ة → ه, for matching only)."""
+
+    def test_ta_marbuta_mapping_defined(self):
+        """TA_MARBUTA dict must contain ة → ه."""
+        assert 'ة' in TA_MARBUTA  # ة
+        assert TA_MARBUTA['ة'] == 'ه'  # ه
+
+    def test_normalize_arabic_ta_marbuta_off_by_default(self):
+        """normalize_arabic() must NOT normalize ة by default."""
+        result = normalize_arabic("رحمة")
+        assert result.endswith("ة"), "ة must be preserved when normalize_ta_marbuta=False"
+
+    def test_normalize_arabic_ta_marbuta_on(self):
+        """normalize_arabic() must normalize ة → ه when flag is True."""
+        result = normalize_arabic("رحمة", normalize_ta_marbuta=True)
+        assert "ة" not in result, "ة should be gone after ta marbuta normalization"
+        assert result.endswith("ه"), f"Expected trailing ه, got: {result}"
+
+    def test_ta_marbuta_multiple_in_word(self):
+        """Multiple ة in a word should all be normalized."""
+        result = normalize_arabic("نعمة", normalize_ta_marbuta=True)
+        assert "ة" not in result
+
+    def test_ta_marbuta_midword_preserved_without_flag(self):
+        """ة is rare mid-word but must be preserved if flag is False."""
+        text = "رحمة الله"
+        result = normalize_arabic(text, normalize_ta_marbuta=False)
+        assert "ة" in result
+
+
+class TestHamzaVariants:
+    """Tests for Hamza-carrier normalization (ؤ → و, ئ → ي, for matching only)."""
+
+    def test_hamza_variants_dict_defined(self):
+        """HAMZA_VARIANTS must contain both ؤ and ئ mappings."""
+        assert 'ؤ' in HAMZA_VARIANTS  # ؤ
+        assert 'ئ' in HAMZA_VARIANTS  # ئ
+        assert HAMZA_VARIANTS['ؤ'] == 'و'  # و
+        assert HAMZA_VARIANTS['ئ'] == 'ي'  # ي
+
+    def test_hamza_on_waw_off_by_default(self):
+        """ؤ must be preserved when normalize_hamza_variants=False (default)."""
+        result = normalize_arabic("مؤمن")
+        assert "ؤ" in result or "ؤ" in result
+
+    def test_hamza_on_waw_normalized(self):
+        """ؤ → و when normalize_hamza_variants=True."""
+        result = normalize_arabic("مؤمن", normalize_hamza_variants=True)
+        assert "ؤ" not in result
+        assert "و" in result
+
+    def test_hamza_on_ya_normalized(self):
+        """ئ → ي when normalize_hamza_variants=True."""
+        result = normalize_arabic("بئر", normalize_hamza_variants=True)
+        assert "ئ" not in result
+        assert "ي" in result
+
+    def test_hamza_variants_do_not_apply_by_default(self):
+        """Hamza normalization must not fire without the explicit flag."""
+        result = normalize_arabic("مؤمن رئيس")
+        assert "ؤ" in result  # ؤ preserved
+
+
+class TestNormalizeForMatching:
+    """Tests for normalize_for_matching() convenience function."""
+
+    def test_applies_diacritics_removal(self):
+        """Must remove diacritics."""
+        result = normalize_for_matching("الرَّحْمَٰنِ")
+        assert "َ" not in result and "ْ" not in result
+
+    def test_applies_alef_normalization(self):
+        """Must normalize alef variants."""
+        result = normalize_for_matching("آمن")
+        assert "آ" not in result
+        assert "ا" in result
+
+    def test_applies_ta_marbuta(self):
+        """Must normalize ة → ه."""
+        result = normalize_for_matching("رحمة")
+        assert "ة" not in result
+
+    def test_applies_hamza_on_waw(self):
+        """Must normalize ؤ → و."""
+        result = normalize_for_matching("مؤمن")
+        assert "ؤ" not in result
+
+    def test_applies_hamza_on_ya(self):
+        """Must normalize ئ → ي."""
+        result = normalize_for_matching("بئر")
+        assert "ئ" not in result
+
+    def test_empty_string(self):
+        """Empty string returns empty."""
+        assert normalize_for_matching("") == ""
+
+    def test_ta_marbuta_matching_equivalence(self):
+        """Query رحمه and stored رحمة should match when both go through normalize_for_matching."""
+        query = normalize_for_matching("رحمه")    # user typed ه
+        stored = normalize_for_matching("رحمة")   # Quran has ة
+        assert query == stored, f"Expected match: {query!r} == {stored!r}"
+
+    def test_hamza_waw_matching_equivalence(self):
+        """Query مومن and stored مؤمن should match after normalize_for_matching."""
+        query = normalize_for_matching("مومن")
+        stored = normalize_for_matching("مؤمن")
+        assert query == stored, f"Expected match: {query!r} == {stored!r}"
+
+
+class TestMatchType:
+    """Tests for SearchMatch.match_type field (Phase 4)."""
+
+    def test_match_type_default_is_normalized(self):
+        """SearchMatch.match_type should default to 'normalized'."""
+        match = SearchMatch(
+            verse_id=1,
+            sura_no=1,
+            sura_name_ar="الفاتحة",
+            sura_name_en="Al-Fatihah",
+            aya_no=1,
+            text_uthmani="بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+            text_imlaei="بسم الله الرحمن الرحيم",
+            page_no=1,
+            juz_no=1,
+        )
+        assert match.match_type == "normalized"
+
+    def test_match_type_exact(self):
+        """match_type='exact' should be accepted."""
+        match = SearchMatch(
+            verse_id=255,
+            sura_no=2,
+            sura_name_ar="البقرة",
+            sura_name_en="Al-Baqarah",
+            aya_no=255,
+            text_uthmani="اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ",
+            text_imlaei="الله لا إله إلا هو الحي القيوم",
+            page_no=42,
+            juz_no=3,
+            exact_match=True,
+            match_type="exact",
+        )
+        assert match.match_type == "exact"
+        assert match.exact_match is True
+
+    def test_match_type_root(self):
+        """match_type='root' should be accepted for semantic expansions."""
+        match = SearchMatch(
+            verse_id=2,
+            sura_no=1,
+            sura_name_ar="الفاتحة",
+            sura_name_en="Al-Fatihah",
+            aya_no=2,
+            text_uthmani="الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+            text_imlaei="الحمد لله رب العالمين",
+            page_no=1,
+            juz_no=1,
+            match_type="root",
+        )
+        assert match.match_type == "root"
+
+    def test_exact_match_outranks_normalized_in_relevance(self):
+        """compute_combined_relevance with exact_match=True should score higher."""
+        query = "الرحمن"
+        verse = "بسم الله الرحمن الرحيم"
+        concepts = {"الرحمن", "الرحيم", "الله"}
+
+        score_exact = compute_combined_relevance(
+            query=query,
+            verse_text=verse,
+            tf_idf_score=0.6,
+            exact_match=True,
+            query_concepts=concepts,
+        )
+        score_normalized = compute_combined_relevance(
+            query=query,
+            verse_text=verse,
+            tf_idf_score=0.6,
+            exact_match=False,
+            query_concepts=concepts,
+        )
+        assert score_exact > score_normalized, (
+            f"Exact match score ({score_exact:.3f}) should exceed "
+            f"normalized score ({score_normalized:.3f})"
+        )

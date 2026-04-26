@@ -79,7 +79,7 @@ class OccurrenceResponse(BaseModel):
     ayah_end: Optional[int] = None
     page_no: Optional[int] = None  # Mushaf page number for navigation
     verse_reference: str = ""
-    weight: float = 1.0
+    weight: Optional[float] = 1.0
     context_ar: Optional[str] = None
     context_en: Optional[str] = None
     has_evidence: bool = False

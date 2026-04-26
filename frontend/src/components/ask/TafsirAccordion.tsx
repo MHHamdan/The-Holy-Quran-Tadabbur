@@ -62,7 +62,7 @@ export function TafsirAccordion({ tafsirBySources, language }: TafsirAccordionPr
               {/* Header - always visible */}
               <button
                 onClick={() => toggleSource(sourceId)}
-                className="w-full px-4 py-3 flex items-center justify-between text-left"
+                className="w-full px-4 py-3 flex items-center justify-between text-start"
               >
                 <div className="flex items-center gap-3">
                   {/* Source icon with number */}
@@ -75,7 +75,7 @@ export function TafsirAccordion({ tafsirBySources, language }: TafsirAccordionPr
                       isExpanded ? 'text-amber-700' : 'text-gray-500'
                     )} />
                     <span className={clsx(
-                      'absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center',
+                      'absolute -top-1 -end-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center',
                       isExpanded ? 'bg-amber-500 text-white' : 'bg-gray-300 text-gray-700'
                     )}>
                       {index + 1}
@@ -160,7 +160,7 @@ export function TafsirAccordion({ tafsirBySources, language }: TafsirAccordionPr
 
                       {/* Tafsir content */}
                       <div className="bg-white rounded-lg p-4 border border-amber-100 shadow-inner">
-                        <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap font-['Amiri',_serif]">
+                        <p className={`text-sm text-gray-800 whitespace-pre-wrap ${language === 'ar' ? 'tafsir-text' : 'leading-relaxed'}`}>
                           {explanation.explanation}
                         </p>
                       </div>

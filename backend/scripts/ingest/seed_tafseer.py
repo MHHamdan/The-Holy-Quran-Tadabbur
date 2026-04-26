@@ -410,7 +410,7 @@ def seed_source(session: Session, source_id: str) -> tuple[int, int, int]:
 
         # Batch commit
         if inserted % batch_size == 0:
-            session.flush()
+            session.commit()
             print(f"    Inserted {inserted} chunks...")
 
     # Create audit log
@@ -465,14 +465,15 @@ def main():
     total_skipped = 0
     total_failed = 0
 
-    with Session(engine) as session:
-        for source_id in source_ids:
-            print(f"\nProcessing: {source_id}")
+    for source_id in source_ids:
+        print(f"\nProcessing: {source_id}")
+        with Session(engine) as session:
             inserted, skipped, failed = seed_source(session, source_id)
-            total_inserted += inserted
-            total_skipped += skipped
-            total_failed += failed
-            print(f"  Inserted: {inserted}, Skipped: {skipped}, Failed: {failed}")
+            session.commit()
+        total_inserted += inserted
+        total_skipped += skipped
+        total_failed += failed
+        print(f"  Inserted: {inserted}, Skipped: {skipped}, Failed: {failed}")
 
     duration = (datetime.utcnow() - start_time).total_seconds()
 

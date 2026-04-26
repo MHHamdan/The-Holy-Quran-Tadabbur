@@ -1,14 +1,16 @@
 /**
- * Optimized Mushaf Page - المصحف الشريف
+ * Mushaf Page - المصحف الشريف
  *
- * FAANG-level Performance Optimizations:
- * 1. React Query for data fetching and caching
- * 2. React.memo for component memoization
- * 3. useCallback/useMemo for function stability
- * 4. useTransition for non-blocking UI updates
- * 5. Virtualization-ready architecture
- * 6. Prefetching for smooth navigation
- * 7. Full i18n support with translation keys
+ * Traditional King Fahad Mushaf style display with:
+ * - Flowing text layout (verses displayed together, not separately)
+ * - Inline verse number markers (۝)
+ * - Surah headers with Bismillah
+ * - Click to select verse for tafseer/audio
+ *
+ * Performance Optimizations:
+ * - React Query for data fetching and caching
+ * - Prefetching for smooth navigation
+ * - Memoized components
  */
 
 import { useState, useCallback, useRef, memo, useTransition, useMemo, useEffect } from 'react';
@@ -18,15 +20,12 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
-  ChevronUp,
   Loader2,
   ZoomIn,
   ZoomOut,
   Play,
   Pause,
   Settings,
-  Volume2,
   Sparkles,
   MessageSquare,
   Lightbulb,
@@ -34,7 +33,8 @@ import {
   X,
   Copy,
   Check,
-  RefreshCw,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
@@ -49,7 +49,7 @@ interface TafsirEdition {
   id: string;
   translationKey: string;
   has_audio: boolean;
-  quran_com_id?: number; // For English tafsirs from Quran.com API
+  quran_com_id?: number;
 }
 
 interface TafsirData {
@@ -64,12 +64,11 @@ interface ReciterOption {
 }
 
 // =============================================================================
-// Constants (Moved outside component to prevent recreation)
+// Constants
 // =============================================================================
 
 const TOTAL_PAGES = 604;
 
-// Arabic tafsir editions
 const ARABIC_TAFSIR_EDITIONS: TafsirEdition[] = [
   { id: 'muyassar', translationKey: 'tafseer_muyassar', has_audio: true },
   { id: 'ibn_kathir', translationKey: 'tafseer_ibn_kathir', has_audio: false },
@@ -80,7 +79,6 @@ const ARABIC_TAFSIR_EDITIONS: TafsirEdition[] = [
   { id: 'baghawi', translationKey: 'tafseer_baghawi', has_audio: false },
 ];
 
-// English tafsir editions (from Quran.com API v4)
 const ENGLISH_TAFSIR_EDITIONS: TafsirEdition[] = [
   { id: 'en_ibn_kathir', translationKey: 'tafseer_ibn_kathir_en', has_audio: false, quran_com_id: 169 },
   { id: 'en_maarif', translationKey: 'tafseer_maarif', has_audio: false, quran_com_id: 168 },
@@ -97,8 +95,11 @@ const RECITERS: ReciterOption[] = [
 
 const ARABIC_NUMS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 
+// Surah data for Bismillah display
+const SURAHS_WITHOUT_BISMILLAH = [1, 9]; // Al-Fatiha (included in text), At-Tawbah (no Bismillah)
+
 // =============================================================================
-// Utility Functions (Pure functions outside component)
+// Utility Functions
 // =============================================================================
 
 function toArabicNumber(num: number): string {
@@ -106,7 +107,7 @@ function toArabicNumber(num: number): string {
 }
 
 // =============================================================================
-// Custom Hooks for Data Fetching
+// Custom Hooks
 // =============================================================================
 
 function usePageVerses(pageNo: number) {
@@ -122,7 +123,6 @@ function usePageVerses(pageNo: number) {
     enabled: pageNo >= 1 && pageNo <= TOTAL_PAGES,
   });
 
-  // Prefetch adjacent pages
   const prefetchAdjacent = useCallback(() => {
     if (pageNo > 1) {
       queryClient.prefetchQuery({
@@ -153,7 +153,6 @@ function useTafsir(
   return useQuery({
     queryKey: queryKeys.tafsir.verse(suraNo, ayaNo, edition),
     queryFn: async (): Promise<TafsirData> => {
-      // Use Quran.com API for English tafsirs
       if (quranComId) {
         const response = await api.get(`/tafseer/quran-com/verse/${suraNo}/${ayaNo}`, {
           params: { tafsir_id: quranComId }
@@ -163,7 +162,6 @@ function useTafsir(
           source: response.data.source || '',
         };
       }
-      // Use existing API for Arabic tafsirs
       const response = await api.get(`/tafseer/external/verse/${suraNo}/${ayaNo}`, {
         params: { edition }
       });
@@ -179,7 +177,164 @@ function useTafsir(
 }
 
 // =============================================================================
-// AI Assistant Component (Memoized)
+// Surah Header Component (for when a new surah starts on the page)
+// =============================================================================
+
+interface SurahHeaderProps {
+  suraNo: number;
+  suraNameAr: string;
+  suraNameEn: string;
+  showBismillah: boolean;
+}
+
+const SurahHeader = memo(function SurahHeader({
+  suraNo,
+  suraNameAr,
+  suraNameEn,
+  showBismillah,
+}: SurahHeaderProps) {
+  return (
+    <div className="my-6 text-center">
+      {/* Surah Name Banner */}
+      <div className="inline-block bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 px-8 py-3 rounded-lg border-2 border-amber-400 shadow-md">
+        <div className="font-mushaf text-2xl text-amber-900 font-bold">
+          سُورَةُ {suraNameAr}
+        </div>
+        <div className="text-sm text-amber-700 mt-1">
+          {suraNameEn} ({suraNo})
+        </div>
+      </div>
+
+      {/* Bismillah */}
+      {showBismillah && (
+        <div className="mt-4 font-mushaf text-2xl text-gray-800">
+          بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+        </div>
+      )}
+    </div>
+  );
+});
+
+// =============================================================================
+// Verse Panel Component (shows when a verse is selected)
+// =============================================================================
+
+interface VersePanelProps {
+  verse: Verse;
+  edition: TafsirEdition;
+  language: 'ar' | 'en';
+  isPlaying: boolean;
+  onPlayAudio: () => void;
+  onOpenAI: () => void;
+  onClose: () => void;
+}
+
+const VersePanel = memo(function VersePanel({
+  verse,
+  edition,
+  language,
+  isPlaying,
+  onPlayAudio,
+  onOpenAI,
+  onClose,
+}: VersePanelProps) {
+  const { t } = useLanguageStore();
+  const [showTafsir, setShowTafsir] = useState(true);
+
+  const { data: tafsirData, isLoading: tafsirLoading } = useTafsir(
+    verse.sura_no,
+    verse.aya_no,
+    edition.id,
+    showTafsir,
+    edition.quran_com_id
+  );
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-amber-400 shadow-2xl z-50 max-h-[50vh] overflow-y-auto">
+      {/* Header */}
+      <div className="sticky top-0 bg-gradient-to-r from-emerald-700 to-emerald-600 text-white px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="font-mushaf text-lg">
+            {verse.sura_name_ar} : {toArabicNumber(verse.aya_no)}
+          </span>
+          <span className="text-sm text-white/70">
+            ({verse.sura_name_en} {verse.sura_no}:{verse.aya_no})
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onPlayAudio}
+            className={clsx(
+              'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+              isPlaying ? 'bg-red-500 hover:bg-red-600' : 'bg-white/20 hover:bg-white/30'
+            )}
+          >
+            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            {isPlaying ? t('mushaf_pause') : t('mushaf_listen')}
+          </button>
+          <button
+            onClick={onOpenAI}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-500 hover:bg-purple-600 transition-colors"
+          >
+            <Sparkles className="w-4 h-4" />
+            {t('ai_assistant')}
+          </button>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Selected Verse Text */}
+      <div className="px-6 py-4 bg-amber-50 border-b border-amber-200">
+        <p className="font-mushaf text-xl text-gray-900 leading-loose text-center" dir="rtl">
+          {verse.text_uthmani}
+        </p>
+      </div>
+
+      {/* Tafsir Section */}
+      <div className="px-6 py-4">
+        <button
+          onClick={() => setShowTafsir(!showTafsir)}
+          className="flex items-center gap-2 text-emerald-700 font-medium mb-3"
+        >
+          <BookOpen className="w-5 h-5" />
+          {t(edition.translationKey)}
+          {showTafsir ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+
+        {showTafsir && (
+          <div className="bg-gray-50 rounded-lg p-4">
+            {tafsirLoading ? (
+              <div className="flex items-center justify-center py-4 text-gray-500">
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                {t('tafseer_loading')}
+              </div>
+            ) : tafsirData?.text ? (
+              <p
+                className={clsx(
+                  'text-gray-800 leading-relaxed',
+                  language === 'ar' ? 'font-arabic text-lg' : ''
+                )}
+                dir={language === 'ar' ? 'rtl' : 'ltr'}
+              >
+                {tafsirData.text}
+              </p>
+            ) : (
+              <p className="text-gray-500 text-center">{t('tafseer_not_found')}</p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+// =============================================================================
+// AI Assistant Sidebar
 // =============================================================================
 
 interface AIAssistantProps {
@@ -203,7 +358,6 @@ const AIAssistant = memo(function AIAssistant({
   const [question, setQuestion] = useState('');
   const [copied, setCopied] = useState(false);
 
-  // AI Mutations
   const summaryMutation = useMutation({
     mutationFn: async () => {
       const response = await api.post('/tafseer/llm/summarize', {
@@ -245,56 +399,49 @@ const AIAssistant = memo(function AIAssistant({
     setTimeout(() => setCopied(false), 2000);
   }, []);
 
-  const handleTextSelection = useCallback(() => {
-    const selection = window.getSelection();
-    if (selection && selection.toString().trim()) {
-      const word = selection.toString().trim();
-      setActiveTab('explain');
-      setSelectedWord(word);
-      explainMutation.mutate(word);
-    }
-  }, [explainMutation]);
-
   const suggestedQuestions = useMemo(() => [
     t('ai_question_revelation'),
     t('ai_question_lessons'),
     t('ai_question_context'),
   ], [t]);
 
+  const isRTL = language === 'ar';
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200">
+    <div
+      className={clsx(
+        'fixed inset-y-0 w-96 bg-white shadow-2xl z-50 flex flex-col',
+        isRTL ? 'left-0 border-r border-gray-200' : 'right-0 border-l border-gray-200'
+      )}
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5" />
-          <span className="font-bold">{t('ai_assistant')}</span>
+          <span className="font-bold text-lg">{t('ai_assistant')}</span>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-white/20 rounded">
+        <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors">
           <X className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Current Verse */}
+      {/* Selected Verse */}
       {verse && (
-        <div className="p-3 bg-purple-50 border-b">
-          <p className="text-sm text-purple-700 font-medium mb-1">
+        <div className="p-4 bg-emerald-50 border-b border-emerald-200">
+          <p className="text-sm text-emerald-700 font-semibold mb-2">
             {verse.sura_name_ar} : {verse.aya_no}
           </p>
-          <p
-            className="text-sm text-gray-700 font-arabic line-clamp-2 cursor-pointer"
-            dir="rtl"
-            onMouseUp={handleTextSelection}
-            title={t('ai_select_word')}
-          >
+          <p className="font-mushaf text-gray-800 leading-relaxed text-lg" dir="rtl">
             {verse.text_uthmani}
           </p>
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex border-b">
+      <div className="flex border-b border-gray-200">
         {[
           { key: 'summary', icon: Lightbulb, labelKey: 'ai_summary' },
           { key: 'explain', icon: BookOpen, labelKey: 'ai_explain' },
@@ -304,12 +451,14 @@ const AIAssistant = memo(function AIAssistant({
             key={key}
             onClick={() => setActiveTab(key as typeof activeTab)}
             className={clsx(
-              'flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1',
-              activeTab === key ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-500'
+              'flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors',
+              activeTab === key
+                ? 'text-emerald-700 border-b-2 border-emerald-600 bg-emerald-50'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             )}
           >
             <Icon className="w-4 h-4" />
-            {t(labelKey)}
+            <span>{t(labelKey)}</span>
           </button>
         ))}
       </div>
@@ -318,8 +467,8 @@ const AIAssistant = memo(function AIAssistant({
       <div className="flex-1 overflow-y-auto p-4">
         {!verse ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400">
-            <BookOpen className="w-12 h-12 mb-4" />
-            <p>{t('ai_select_verse')}</p>
+            <BookOpen className="w-16 h-16 mb-4 text-gray-300" />
+            <p className="text-lg">{t('ai_select_verse')}</p>
           </div>
         ) : (
           <>
@@ -329,7 +478,7 @@ const AIAssistant = memo(function AIAssistant({
                 <button
                   onClick={() => summaryMutation.mutate()}
                   disabled={summaryMutation.isPending || !tafsirText}
-                  className="w-full py-3 bg-purple-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="w-full py-3 bg-emerald-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
                   {summaryMutation.isPending ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -340,29 +489,26 @@ const AIAssistant = memo(function AIAssistant({
                 </button>
 
                 {!tafsirText && (
-                  <p className="text-sm text-amber-600 text-center">
-                    {t('ai_open_tafsir_first')}
-                  </p>
-                )}
-
-                {summaryMutation.data?.result && (
-                  <div className="bg-gray-50 rounded-lg p-4 relative group">
-                    <button
-                      onClick={() => handleCopy(summaryMutation.data.result)}
-                      className="absolute top-2 left-2 p-1 bg-white rounded shadow opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-500" />}
-                    </button>
-                    <p className="font-arabic text-gray-800 leading-relaxed" dir="rtl">
-                      {summaryMutation.data.result}
-                    </p>
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
+                    <p className="text-sm text-amber-700">{t('ai_open_tafsir_first')}</p>
                   </div>
                 )}
 
-                {summaryMutation.error && (
-                  <p className="text-sm text-red-500 text-center">
-                    {t('ai_unavailable')}
-                  </p>
+                {summaryMutation.data?.result && (
+                  <div className="bg-gray-50 rounded-lg p-4 relative group border border-gray-200">
+                    <button
+                      onClick={() => handleCopy(summaryMutation.data.result)}
+                      className={clsx(
+                        'absolute top-2 p-1.5 bg-white rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity border',
+                        isRTL ? 'left-2' : 'right-2'
+                      )}
+                    >
+                      {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-500" />}
+                    </button>
+                    <p className="font-arabic text-gray-800 leading-loose text-lg" dir="rtl">
+                      {summaryMutation.data.result}
+                    </p>
+                  </div>
                 )}
               </div>
             )}
@@ -370,8 +516,8 @@ const AIAssistant = memo(function AIAssistant({
             {/* Explain Tab */}
             {activeTab === 'explain' && (
               <div className="space-y-4">
-                <div className="bg-blue-50 rounded-lg p-3 text-sm text-blue-700">
-                  {t('ai_select_word_hint')}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-700">{t('ai_select_word_hint')}</p>
                 </div>
 
                 <div className="flex gap-2">
@@ -380,13 +526,13 @@ const AIAssistant = memo(function AIAssistant({
                     value={selectedWord}
                     onChange={(e) => setSelectedWord(e.target.value)}
                     placeholder={t('ai_enter_word')}
-                    className="flex-1 px-3 py-2 border rounded-lg text-right"
+                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-arabic text-lg"
                     dir="rtl"
                   />
                   <button
                     onClick={() => explainMutation.mutate(selectedWord)}
                     disabled={explainMutation.isPending || !selectedWord.trim()}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg disabled:bg-gray-300"
+                    className="px-4 py-2.5 bg-emerald-600 text-white rounded-lg disabled:bg-gray-300 hover:bg-emerald-700 transition-colors font-medium"
                   >
                     {explainMutation.isPending ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -397,11 +543,11 @@ const AIAssistant = memo(function AIAssistant({
                 </div>
 
                 {explainMutation.data?.result && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="font-bold text-purple-700 mb-2" dir="rtl">
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="font-bold text-emerald-700 mb-3 text-lg" dir="rtl">
                       {t('ai_explanation_of').replace('{word}', selectedWord)}
                     </p>
-                    <p className="font-arabic text-gray-800 leading-relaxed" dir="rtl">
+                    <p className="font-arabic text-gray-800 leading-loose text-lg" dir="rtl">
                       {explainMutation.data.result}
                     </p>
                   </div>
@@ -417,15 +563,15 @@ const AIAssistant = memo(function AIAssistant({
                     type="text"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && answerMutation.mutate(question)}
+                    onKeyDown={(e) => e.key === 'Enter' && !answerMutation.isPending && question.trim() && answerMutation.mutate(question)}
                     placeholder={t('ai_ask_question')}
-                    className="flex-1 px-3 py-2 border rounded-lg"
-                    dir={language === 'ar' ? 'rtl' : 'ltr'}
+                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    dir={isRTL ? 'rtl' : 'ltr'}
                   />
                   <button
                     onClick={() => answerMutation.mutate(question)}
                     disabled={answerMutation.isPending || !question.trim()}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg disabled:bg-gray-300"
+                    className="px-4 py-2.5 bg-emerald-600 text-white rounded-lg disabled:bg-gray-300 hover:bg-emerald-700 transition-colors"
                   >
                     {answerMutation.isPending ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -436,15 +582,13 @@ const AIAssistant = memo(function AIAssistant({
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-xs text-gray-500 font-medium">
-                    {t('ai_suggested_questions')}
-                  </p>
+                  <p className="text-sm text-gray-500 font-medium">{t('ai_suggested_questions')}</p>
                   {suggestedQuestions.map((q, i) => (
                     <button
                       key={i}
                       onClick={() => setQuestion(q)}
-                      className="block w-full text-left text-sm text-purple-600 hover:bg-purple-50 p-2 rounded"
-                      dir={language === 'ar' ? 'rtl' : 'ltr'}
+                      className="block w-full text-sm text-emerald-700 hover:bg-emerald-50 p-3 rounded-lg border border-gray-200 hover:border-emerald-300 transition-colors"
+                      dir={isRTL ? 'rtl' : 'ltr'}
                     >
                       {q}
                     </button>
@@ -452,20 +596,12 @@ const AIAssistant = memo(function AIAssistant({
                 </div>
 
                 {answerMutation.data?.result && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="font-arabic text-gray-800 leading-relaxed" dir="rtl">
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="font-arabic text-gray-800 leading-loose text-lg" dir="rtl">
                       {answerMutation.data.result}
                     </p>
                   </div>
                 )}
-              </div>
-            )}
-
-            {/* Global Error */}
-            {(summaryMutation.error || explainMutation.error || answerMutation.error) && (
-              <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm flex items-center gap-2">
-                <RefreshCw className="w-4 h-4" />
-                {t('ai_unavailable')}
               </div>
             )}
           </>
@@ -476,262 +612,7 @@ const AIAssistant = memo(function AIAssistant({
 });
 
 // =============================================================================
-// Tafsir Card Component (Memoized)
-// =============================================================================
-
-interface TafsirCardProps {
-  verse: Verse;
-  edition: TafsirEdition;
-  language: 'ar' | 'en';
-  isExpanded: boolean;
-  onToggle: () => void;
-  onTafsirLoaded: (text: string) => void;
-}
-
-const TafsirCard = memo(function TafsirCard({
-  verse,
-  edition,
-  language,
-  isExpanded,
-  onToggle,
-  onTafsirLoaded,
-}: TafsirCardProps) {
-  const { t } = useLanguageStore();
-  const { data: tafsirData, isLoading, error } = useTafsir(
-    verse.sura_no,
-    verse.aya_no,
-    edition.id,
-    isExpanded,
-    edition.quran_com_id
-  );
-
-  const [audioPlaying, setAudioPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Notify parent when tafsir is loaded
-  if (tafsirData?.text && isExpanded) {
-    onTafsirLoaded(tafsirData.text);
-  }
-
-  const toggleAudio = useCallback(() => {
-    if (!audioRef.current || !tafsirData?.audio_url) return;
-
-    if (audioPlaying) {
-      audioRef.current.pause();
-      setAudioPlaying(false);
-    } else {
-      audioRef.current.src = tafsirData.audio_url;
-      audioRef.current.play().catch(console.error);
-      setAudioPlaying(true);
-    }
-  }, [audioPlaying, tafsirData?.audio_url]);
-
-  return (
-    <div className="mt-4">
-      <button
-        onClick={onToggle}
-        className={clsx(
-          'w-full flex items-center justify-between p-3 rounded-lg transition-colors',
-          isExpanded ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-        )}
-      >
-        <div className="flex items-center gap-2">
-          <BookOpen className="w-4 h-4" />
-          <span className="font-medium">{t(edition.translationKey)}</span>
-          {edition.has_audio && <Volume2 className="w-4 h-4 text-emerald-600" />}
-        </div>
-        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-      </button>
-
-      {isExpanded && (
-        <div className="mt-2 p-4 bg-white rounded-lg border border-emerald-200 shadow-sm">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8 text-gray-500">
-              <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              <span>{t('tafseer_loading')}</span>
-            </div>
-          ) : error ? (
-            <div className="text-center py-4 text-red-500">
-              {t('tafseer_error')}
-            </div>
-          ) : (
-            <>
-              {tafsirData?.audio_url && (
-                <div className="mb-4 flex items-center gap-3 p-3 bg-emerald-50 rounded-lg">
-                  <button
-                    onClick={toggleAudio}
-                    className={clsx(
-                      'flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors',
-                      audioPlaying
-                        ? 'bg-red-500 text-white hover:bg-red-600'
-                        : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                    )}
-                  >
-                    {audioPlaying ? (
-                      <>
-                        <Pause className="w-4 h-4" />
-                        <span>{t('mushaf_stop')}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Volume2 className="w-4 h-4" />
-                        <span>{t('tafsir_listen')}</span>
-                      </>
-                    )}
-                  </button>
-                  <span className="text-sm text-emerald-700">
-                    {t('tafsir_audio_available')}
-                  </span>
-                </div>
-              )}
-
-              <p
-                className={clsx(
-                  'text-gray-800 leading-loose text-lg',
-                  language === 'ar' ? 'font-arabic' : ''
-                )}
-                dir={language === 'ar' ? 'rtl' : 'ltr'}
-              >
-                {tafsirData?.text}
-              </p>
-
-              <audio
-                ref={audioRef}
-                onEnded={() => setAudioPlaying(false)}
-                onError={() => setAudioPlaying(false)}
-              />
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  );
-});
-
-// =============================================================================
-// Verse Card Component (Memoized)
-// =============================================================================
-
-interface VerseCardProps {
-  verse: Verse;
-  fontSize: number;
-  isSelected: boolean;
-  isPlaying: boolean;
-  expandedTafsir: number | null;
-  selectedEdition: TafsirEdition;
-  language: 'ar' | 'en';
-  onSelect: (verse: Verse) => void;
-  onPlayAudio: (verse: Verse) => void;
-  onOpenAI: (verse: Verse) => void;
-  onToggleTafsir: (verseId: number) => void;
-  onTafsirLoaded: (text: string) => void;
-}
-
-const VerseCard = memo(function VerseCard({
-  verse,
-  fontSize,
-  isSelected,
-  isPlaying,
-  expandedTafsir,
-  selectedEdition,
-  language,
-  onSelect,
-  onPlayAudio,
-  onOpenAI,
-  onToggleTafsir,
-  onTafsirLoaded,
-}: VerseCardProps) {
-  const { t } = useLanguageStore();
-  const handleClick = useCallback(() => onSelect(verse), [onSelect, verse]);
-  const handlePlay = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onPlayAudio(verse);
-  }, [onPlayAudio, verse]);
-  const handleAI = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onOpenAI(verse);
-  }, [onOpenAI, verse]);
-  const handleTafsirToggle = useCallback(() => onToggleTafsir(verse.id), [onToggleTafsir, verse.id]);
-
-  return (
-    <div
-      className={clsx(
-        'relative p-5 rounded-xl border-2 transition-all cursor-pointer',
-        isSelected
-          ? 'bg-amber-100 border-amber-500 shadow-md'
-          : 'bg-white/60 border-transparent hover:border-amber-300 hover:bg-amber-50'
-      )}
-      onClick={handleClick}
-    >
-      {/* Verse Number Badge */}
-      <div className="absolute left-4 top-4 w-10 h-10 flex items-center justify-center bg-gradient-to-br from-amber-400 to-amber-500 rounded-full border-2 border-amber-600 shadow">
-        <span className="font-arabic text-sm font-bold text-amber-900">
-          {toArabicNumber(verse.aya_no)}
-        </span>
-      </div>
-
-      {/* Verse Text */}
-      <p
-        className="font-arabic leading-loose text-gray-900 pr-0 pl-14 text-right"
-        style={{ fontSize: `${fontSize}px`, lineHeight: 2.2 }}
-        dir="rtl"
-      >
-        {verse.text_uthmani}
-      </p>
-
-      {/* Action Buttons */}
-      <div className="flex flex-wrap gap-2 mt-4 pl-14">
-        <button
-          onClick={handlePlay}
-          className={clsx(
-            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
-            isPlaying
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          )}
-        >
-          {isPlaying ? (
-            <><Pause className="w-4 h-4" />{t('mushaf_pause')}</>
-          ) : (
-            <><Play className="w-4 h-4" />{t('mushaf_listen')}</>
-          )}
-        </button>
-
-        <button
-          onClick={handleAI}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
-        >
-          <Sparkles className="w-4 h-4" />
-          {t('ai_assistant')}
-        </button>
-      </div>
-
-      {/* Tafsir Section */}
-      <TafsirCard
-        verse={verse}
-        edition={selectedEdition}
-        language={language}
-        isExpanded={expandedTafsir === verse.id}
-        onToggle={handleTafsirToggle}
-        onTafsirLoaded={onTafsirLoaded}
-      />
-    </div>
-  );
-}, (prev, next) => {
-  // Custom comparison for better performance
-  return (
-    prev.verse.id === next.verse.id &&
-    prev.fontSize === next.fontSize &&
-    prev.isSelected === next.isSelected &&
-    prev.isPlaying === next.isPlaying &&
-    prev.expandedTafsir === next.expandedTafsir &&
-    prev.selectedEdition.id === next.selectedEdition.id &&
-    prev.language === next.language
-  );
-});
-
-// =============================================================================
-// Main Component
+// Main Mushaf Page Component
 // =============================================================================
 
 export function MushafPage() {
@@ -745,18 +626,12 @@ export function MushafPage() {
     [language]
   );
 
-  // Page State
+  // State
   const [currentPage, setCurrentPage] = useState(() => {
     const page = searchParams.get('page');
     return page ? parseInt(page, 10) : 1;
   });
-
-  // Selection State
   const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
-  const [expandedTafsir, setExpandedTafsir] = useState<number | null>(null);
-  const [currentTafsirText, setCurrentTafsirText] = useState('');
-
-  // Settings State
   const [fontSize, setFontSize] = useState(28);
   const [selectedTafsir, setSelectedTafsir] = useState(() =>
     language === 'ar' ? 'muyassar' : 'en_ibn_kathir'
@@ -764,41 +639,40 @@ export function MushafPage() {
   const [selectedReciter, setSelectedReciter] = useState('mishary_afasy');
   const [showSettings, setShowSettings] = useState(false);
   const [showAI, setShowAI] = useState(false);
-
-  // Audio State
   const [playingVerseId, setPlayingVerseId] = useState<number | null>(null);
+  const [currentTafsirText, setCurrentTafsirText] = useState('');
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Data Fetching with React Query
+  // Data Fetching
   const { data: verses = [], isLoading, error, prefetchAdjacent } = usePageVerses(currentPage);
 
-  // Reset selected tafsir when language changes
+  // Reset tafsir when language changes
   useEffect(() => {
     setSelectedTafsir(language === 'ar' ? 'muyassar' : 'en_ibn_kathir');
-    setExpandedTafsir(null);
+    setSelectedVerse(null);
     setCurrentTafsirText('');
   }, [language]);
 
-  // Prefetch adjacent pages when current page loads
+  // Prefetch adjacent pages
   useEffect(() => {
     if (verses.length > 0) {
       prefetchAdjacent();
     }
   }, [verses.length, prefetchAdjacent]);
 
-  // Update URL when page changes
+  // Update URL
   useEffect(() => {
     setSearchParams({ page: currentPage.toString() });
   }, [currentPage, setSearchParams]);
 
-  // Navigate pages with transition for smooth UI
+  // Navigate pages
   const goToPage = useCallback((page: number) => {
     if (page >= 1 && page <= TOTAL_PAGES) {
       startTransition(() => {
         setCurrentPage(page);
-        setExpandedTafsir(null);
-        setPlayingVerseId(null);
         setSelectedVerse(null);
+        setPlayingVerseId(null);
         setCurrentTafsirText('');
       });
     }
@@ -826,50 +700,49 @@ export function MushafPage() {
     }
   }, [playingVerseId, selectedReciter]);
 
-  // Handle verse selection
-  const handleVerseSelect = useCallback((verse: Verse) => {
-    setSelectedVerse(verse);
+  // Handle verse click
+  const handleVerseClick = useCallback((verse: Verse) => {
+    setSelectedVerse(prev => prev?.id === verse.id ? null : verse);
   }, []);
 
-  // Open AI for verse
-  const handleOpenAI = useCallback((verse: Verse) => {
-    setSelectedVerse(verse);
+  // Open AI Assistant
+  const handleOpenAI = useCallback(() => {
     setShowAI(true);
   }, []);
 
-  // Toggle tafsir with transition
-  const toggleTafsir = useCallback((verseId: number) => {
-    startTransition(() => {
-      setExpandedTafsir(prev => prev === verseId ? null : verseId);
-      if (expandedTafsir !== verseId) {
-        setCurrentTafsirText('');
-      }
-    });
-  }, [expandedTafsir]);
-
-  // Handle tafsir loaded
-  const handleTafsirLoaded = useCallback((text: string) => {
-    setCurrentTafsirText(text);
-  }, []);
-
-  // Memoized values
-  const currentSura = useMemo(() => verses.length > 0 ? verses[0] : null, [verses]);
+  // Get selected edition
   const selectedEdition = useMemo(
     () => tafsirEditions.find(e => e.id === selectedTafsir) || tafsirEditions[0],
     [selectedTafsir, tafsirEditions]
   );
 
-  // Settings handlers
-  const handleFontDecrease = useCallback(() => setFontSize(prev => Math.max(18, prev - 2)), []);
-  const handleFontIncrease = useCallback(() => setFontSize(prev => Math.min(48, prev + 2)), []);
-  const handleTafsirChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedTafsir(e.target.value);
-    setExpandedTafsir(null);
-    setCurrentTafsirText('');
-  }, []);
-  const handleReciterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedReciter(e.target.value);
-  }, []);
+  // Group verses by surah for header display
+  const versesWithHeaders = useMemo(() => {
+    const result: Array<{ type: 'header' | 'verse'; data: any }> = [];
+    let lastSuraNo = 0;
+
+    verses.forEach((verse) => {
+      // Check if we need a surah header
+      if (verse.sura_no !== lastSuraNo && verse.aya_no === 1) {
+        result.push({
+          type: 'header',
+          data: {
+            suraNo: verse.sura_no,
+            suraNameAr: verse.sura_name_ar,
+            suraNameEn: verse.sura_name_en,
+            showBismillah: !SURAHS_WITHOUT_BISMILLAH.includes(verse.sura_no),
+          },
+        });
+        lastSuraNo = verse.sura_no;
+      }
+      result.push({ type: 'verse', data: verse });
+    });
+
+    return result;
+  }, [verses]);
+
+  // Current surah info
+  const currentSura = useMemo(() => verses.length > 0 ? verses[0] : null, [verses]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50">
@@ -921,11 +794,6 @@ export function MushafPage() {
             {currentSura && (
               <h1 className="font-arabic text-xl font-bold">
                 {language === 'ar' ? currentSura.sura_name_ar : currentSura.sura_name_en}
-                {language === 'ar' && (
-                  <span className="text-sm font-normal text-white/70 ml-2">
-                    {currentSura.sura_name_en}
-                  </span>
-                )}
               </h1>
             )}
           </div>
@@ -933,7 +801,7 @@ export function MushafPage() {
           {/* Controls */}
           <div className="flex items-center gap-2">
             <button
-              onClick={handleFontDecrease}
+              onClick={() => setFontSize(prev => Math.max(20, prev - 2))}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               title={t('mushaf_zoom_out')}
             >
@@ -941,7 +809,7 @@ export function MushafPage() {
             </button>
             <span className="text-sm min-w-[2rem] text-center">{fontSize}</span>
             <button
-              onClick={handleFontIncrease}
+              onClick={() => setFontSize(prev => Math.min(48, prev + 2))}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               title={t('mushaf_zoom_in')}
             >
@@ -953,7 +821,7 @@ export function MushafPage() {
             <button
               onClick={() => setShowAI(!showAI)}
               className={clsx(
-                'p-2 rounded-lg transition-colors flex items-center gap-1',
+                'p-2 rounded-lg transition-colors',
                 showAI ? 'bg-purple-500' : 'bg-white/10 hover:bg-white/20'
               )}
               title={t('ai_assistant')}
@@ -978,30 +846,25 @@ export function MushafPage() {
         {showSettings && (
           <div className="bg-emerald-700/50 px-4 py-3 flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-white/80">
-                {t('mushaf_tafsir')}:
-              </label>
+              <label className="text-sm text-white/80">{t('mushaf_tafsir')}:</label>
               <select
                 value={selectedTafsir}
-                onChange={handleTafsirChange}
+                onChange={(e) => setSelectedTafsir(e.target.value)}
                 className="px-3 py-1.5 rounded bg-white/15 text-white text-sm border border-white/20"
               >
                 {tafsirEditions.map(ed => (
                   <option key={ed.id} value={ed.id} className="bg-emerald-800">
-                    {t(ed.translationKey)}
-                    {ed.has_audio ? ' 🔊' : ''}
+                    {t(ed.translationKey)} {ed.has_audio ? '🔊' : ''}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm text-white/80">
-                {t('mushaf_reciter')}:
-              </label>
+              <label className="text-sm text-white/80">{t('mushaf_reciter')}:</label>
               <select
                 value={selectedReciter}
-                onChange={handleReciterChange}
+                onChange={(e) => setSelectedReciter(e.target.value)}
                 className="px-3 py-1.5 rounded bg-white/15 text-white text-sm border border-white/20"
               >
                 {RECITERS.map(r => (
@@ -1016,22 +879,34 @@ export function MushafPage() {
       </nav>
 
       {/* Main Content */}
-      <main className={clsx('transition-all duration-300', showAI ? 'mr-96' : '')}>
+      <main className={clsx(
+        'transition-all duration-300 pb-16',
+        showAI && language === 'ar' ? 'ml-96' : '',
+        showAI && language === 'en' ? 'mr-96' : '',
+        selectedVerse ? 'pb-72' : ''
+      )}>
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Mushaf Frame */}
-          <div className="bg-amber-50 rounded-2xl border-4 border-amber-600 shadow-2xl overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-amber-200 to-amber-100 px-6 py-3 border-b-2 border-amber-600 flex justify-between items-center">
-              <span className="font-arabic text-amber-900 font-medium">
-                {t('mushaf_juz')} {verses[0]?.juz_no || 1}
-              </span>
-              <span className="font-arabic text-amber-900 font-medium">
-                {t('mushaf_page')} {currentPage}
-              </span>
+          <div className="mushaf-border rounded-xl overflow-hidden">
+            {/* Ornamental Header */}
+            <div className="bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 px-6 py-4 border-b-2 border-amber-400 flex justify-between items-center">
+              <div className="text-center">
+                <span className="font-mushaf text-amber-800 text-lg font-semibold">
+                  {t('mushaf_juz')} {toArabicNumber(verses[0]?.juz_no || 1)}
+                </span>
+              </div>
+              <div className="text-center">
+                <span className="font-mushaf text-2xl text-amber-700">۞</span>
+              </div>
+              <div className="text-center">
+                <span className="font-mushaf text-amber-800 text-lg font-semibold">
+                  {toArabicNumber(currentPage)}
+                </span>
+              </div>
             </div>
 
-            {/* Verses */}
-            <div className="p-6 min-h-[60vh]">
+            {/* Mushaf Page Content - Flowing Text */}
+            <div className="p-8 min-h-[70vh] mushaf-page">
               {isLoading || isPending ? (
                 <div className="flex flex-col items-center justify-center h-96 text-amber-700">
                   <Loader2 className="w-10 h-10 animate-spin mb-4" />
@@ -1048,41 +923,95 @@ export function MushafPage() {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {verses.map((verse) => (
-                    <VerseCard
-                      key={verse.id}
-                      verse={verse}
-                      fontSize={fontSize}
-                      isSelected={selectedVerse?.id === verse.id}
-                      isPlaying={playingVerseId === verse.id}
-                      expandedTafsir={expandedTafsir}
-                      selectedEdition={selectedEdition}
-                      language={language}
-                      onSelect={handleVerseSelect}
-                      onPlayAudio={playVerse}
-                      onOpenAI={handleOpenAI}
-                      onToggleTafsir={toggleTafsir}
-                      onTafsirLoaded={handleTafsirLoaded}
-                    />
-                  ))}
+                <div className="text-center" dir="rtl">
+                  {/* Render headers and flowing verses */}
+                  {versesWithHeaders.map((item) => {
+                    if (item.type === 'header') {
+                      return (
+                        <SurahHeader
+                          key={`header-${item.data.suraNo}`}
+                          suraNo={item.data.suraNo}
+                          suraNameAr={item.data.suraNameAr}
+                          suraNameEn={item.data.suraNameEn}
+                          showBismillah={item.data.showBismillah}
+                        />
+                      );
+                    }
+
+                    const verse = item.data as Verse;
+                    const isSelected = selectedVerse?.id === verse.id;
+                    const isPlaying = playingVerseId === verse.id;
+
+                    return (
+                      <span
+                        key={verse.id}
+                        onClick={() => handleVerseClick(verse)}
+                        className={clsx(
+                          'cursor-pointer transition-all duration-200 inline',
+                          isSelected && 'bg-amber-200 rounded px-1',
+                          isPlaying && 'bg-emerald-200 rounded px-1',
+                          !isSelected && !isPlaying && 'hover:bg-amber-100 rounded'
+                        )}
+                      >
+                        <span
+                          className="font-mushaf"
+                          style={{
+                            fontSize: `${fontSize}px`,
+                            lineHeight: 2.2,
+                            letterSpacing: '0.01em',
+                          }}
+                        >
+                          {verse.text_uthmani}
+                        </span>
+                        {/* Verse Number Marker */}
+                        <span
+                          className="inline-flex items-center justify-center mx-1 text-amber-700 font-mushaf"
+                          style={{ fontSize: `${fontSize * 0.7}px` }}
+                        >
+                          ﴿{toArabicNumber(verse.aya_no)}﴾
+                        </span>
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* Footer */}
-            <div className="bg-gradient-to-r from-amber-200 to-amber-100 px-6 py-3 border-t-2 border-amber-600 text-center">
-              <span className="font-arabic text-amber-900 text-sm">
-                {verses.length > 0 && (
-                  language === 'ar'
-                    ? `${verses[0].sura_name_ar} - ${t('mushaf_verses')} ${verses[0].aya_no} ${t('to') || 'إلى'} ${verses[verses.length - 1].aya_no}`
-                    : `${verses[0].sura_name_en} - ${t('mushaf_verses')} ${verses[0].aya_no} to ${verses[verses.length - 1].aya_no}`
-                )}
-              </span>
+            {/* Ornamental Footer */}
+            <div className="bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 px-6 py-4 border-t-2 border-amber-400">
+              <div className="flex justify-between items-center">
+                <span className="font-mushaf text-amber-800 text-sm">
+                  {verses.length > 0 && `${t('mushaf_verses')} ${toArabicNumber(verses[0].aya_no)} - ${toArabicNumber(verses[verses.length - 1].aya_no)}`}
+                </span>
+                <span className="font-mushaf text-amber-900 text-lg font-semibold">
+                  {verses.length > 0 && (language === 'ar' ? verses[0].sura_name_ar : verses[0].sura_name_en)}
+                </span>
+                <span className="font-mushaf text-amber-800 text-sm">
+                  ﴿ {verses.length} {language === 'ar' ? 'آيات' : 'verses'} ﴾
+                </span>
+              </div>
             </div>
           </div>
+
+          {/* Instructions */}
+          <p className="text-center text-sm text-gray-500 mt-4">
+            {t('mushaf_click_verse_hint') || 'Click on any verse to view tafseer and listen to recitation'}
+          </p>
         </div>
       </main>
+
+      {/* Selected Verse Panel */}
+      {selectedVerse && (
+        <VersePanel
+          verse={selectedVerse}
+          edition={selectedEdition}
+          language={language}
+          isPlaying={playingVerseId === selectedVerse.id}
+          onPlayAudio={() => playVerse(selectedVerse)}
+          onOpenAI={handleOpenAI}
+          onClose={() => setSelectedVerse(null)}
+        />
+      )}
 
       {/* AI Assistant Sidebar */}
       <AIAssistant

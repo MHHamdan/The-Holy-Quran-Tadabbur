@@ -11,7 +11,7 @@ import { t } from '../i18n/translations';
 import {
   quranApi, EnhancedSearchResponse, SearchMatch, WordAnalyticsResponse,
   SimilarVersesResponse, ConceptEvolutionResponse,
-  ThemeInfo
+  ThemeInfo, IntelligentSearchResponse
 } from '../lib/api';
 import clsx from 'clsx';
 
@@ -39,13 +39,13 @@ interface SearchError {
 const ERROR_CODES: Record<string, SearchError> = {
   NO_RESULTS: {
     code: 'NO_RESULTS',
-    message_ar: 'لم يتم العثور على نتائج لهذا البحث',
-    message_en: 'No results found for this search',
+    message_ar: 'لم يتم العثور على نتائج لهذا البحث. جرّب كلمات مختلفة أو استخدم المصطلحات العربية',
+    message_en: 'No results found. Try different keywords or use Arabic terms for better results.',
   },
   INVALID_QUERY: {
     code: 'INVALID_QUERY',
-    message_ar: 'صيغة البحث غير صالحة. يرجى إدخال كلمة عربية صحيحة',
-    message_en: 'Invalid query format. Please enter a valid Arabic word',
+    message_ar: 'صيغة البحث غير صالحة. يرجى إدخال كلمة عربية أو إنجليزية صحيحة',
+    message_en: 'Invalid query format. Please enter a valid Arabic or English term',
   },
   QUERY_TOO_SHORT: {
     code: 'QUERY_TOO_SHORT',
@@ -231,6 +231,7 @@ export function SearchPage() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<EnhancedSearchResponse | null>(null);
   const [analytics, setAnalytics] = useState<WordAnalyticsResponse | null>(null);
+  const [intelligentSearchData, setIntelligentSearchData] = useState<IntelligentSearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<SearchError | null>(null);
 
@@ -378,13 +379,15 @@ export function SearchPage() {
     return ERROR_CODES.SERVER_ERROR;
   };
 
-  // Validate query
+  // Validate query - now accepts both Arabic and English
   const validateQuery = (q: string): SearchError | null => {
     if (q.trim().length < 2) {
       return ERROR_CODES.QUERY_TOO_SHORT;
     }
-    // Check if contains Arabic characters
-    if (!/[\u0600-\u06FF]/.test(q)) {
+    // Accept both Arabic and English characters for bilingual search
+    const hasArabic = /[\u0600-\u06FF]/.test(q);
+    const hasEnglish = /[a-zA-Z]/.test(q);
+    if (!hasArabic && !hasEnglish) {
       return ERROR_CODES.INVALID_QUERY;
     }
     return null;
@@ -407,25 +410,66 @@ export function SearchPage() {
     setShowAutocomplete(false);
 
     try {
-      const searchResult = await quranApi.enhancedSearch(query, {
-        limit,
-        offset: newOffset,
-        sura: selectedSura,
-        include_semantic: includeSemantic,
-        theme: selectedTheme,
+      // Use intelligent search for all queries (supports Arabic, English, and multi-concept)
+      const intelligentResult = await quranApi.intelligentSearch(query, {
+        limit: limit + newOffset,  // Get all results up to current offset + limit
+        include_related: includeSemantic,
+        lang: language,
       });
 
+      const totalMatches = intelligentResult.data.total_matches;
+
       // Check for no results
-      if (searchResult.data.total_matches === 0) {
+      if (totalMatches === 0) {
         setError(ERROR_CODES.NO_RESULTS);
         setResults(null);
         setAnalytics(null);
+        setIntelligentSearchData(null);
         return;
       }
 
-      // Fetch analytics only on first search
+      // Store intelligent search data for display
+      setIntelligentSearchData(intelligentResult.data);
+
+      // Convert intelligent search results to EnhancedSearchResponse format for compatibility
+      const convertedMatches: SearchMatch[] = intelligentResult.data.verses.slice(newOffset).map(verse => ({
+        verse_id: verse.verse_id,
+        sura_no: verse.sura_no,
+        sura_name_ar: verse.sura_name_ar,
+        sura_name_en: verse.sura_name_en,
+        aya_no: verse.aya_no,
+        reference: verse.reference,
+        text_uthmani: verse.text_uthmani,
+        text_imlaei: verse.text_imlaei,
+        page_no: verse.page_no,
+        juz_no: verse.juz_no,
+        highlighted_text: verse.highlighted_text || verse.text_uthmani,
+        context_before: '',
+        context_after: '',
+        relevance_score: verse.relevance_score,
+        tfidf_score: verse.relevance_score,
+        exact_match: true,
+        match_type: 'semantic',
+        result_type: 'quran_text',
+        grounding: verse.grounding,
+        matched_concepts: verse.matched_concepts,
+        highlighted_terms: verse.highlighted_terms,
+      }));
+
+      const searchResult: EnhancedSearchResponse = {
+        query: intelligentResult.data.query,
+        query_normalized: intelligentResult.data.query,
+        total_matches: totalMatches,
+        search_time_ms: intelligentResult.data.search_time_ms,
+        matches: convertedMatches,
+        sura_distribution: {},  // Will compute from results
+        juz_distribution: {},
+        related_terms: intelligentResult.data.related_searches,
+      };
+
+      // Fetch analytics only on first search (for Arabic queries)
       let analyticsResult = null;
-      if (newOffset === 0) {
+      if (newOffset === 0 && /[\u0600-\u06FF]/.test(query)) {
         try {
           analyticsResult = await quranApi.getWordAnalytics(query);
         } catch {
@@ -434,22 +478,23 @@ export function SearchPage() {
       }
 
       if (newOffset === 0) {
-        setResults(searchResult.data);
+        setResults(searchResult);
         if (analyticsResult) {
           setAnalytics(analyticsResult.data);
         }
         // Record search in history
-        recordSearch(query, 'text', searchResult.data.total_matches);
+        recordSearch(query, 'text', searchResult.total_matches);
       } else {
         setResults(prev => prev ? {
-          ...searchResult.data,
-          matches: [...prev.matches, ...searchResult.data.matches],
-        } : searchResult.data);
+          ...searchResult,
+          matches: [...prev.matches, ...searchResult.matches],
+        } : searchResult);
       }
     } catch (err) {
       console.error('Search error:', err);
       setError(parseError(err));
       setResults(null);
+      setIntelligentSearchData(null);
     } finally {
       setLoading(false);
     }
@@ -488,7 +533,7 @@ export function SearchPage() {
               onFocus={() => query.length >= 1 && autocompleteResults.length > 0 && setShowAutocomplete(true)}
               placeholder={t('search_placeholder', language)}
               className="input pl-10 w-full"
-              dir="rtl"
+              dir={language === 'ar' ? 'rtl' : 'ltr'}
               autoComplete="off"
             />
 
@@ -503,7 +548,7 @@ export function SearchPage() {
                     key={idx}
                     type="button"
                     onClick={() => selectSuggestion(suggestion.word)}
-                    className="w-full px-4 py-2 text-right hover:bg-primary-50 flex items-center justify-between"
+                    className="w-full px-4 py-2 text-start hover:bg-primary-50 flex items-center justify-between"
                     dir="rtl"
                   >
                     <span className="font-arabic text-lg">{suggestion.word}</span>
@@ -666,6 +711,80 @@ export function SearchPage() {
       {/* Results */}
       {results && (
         <div className="space-y-6">
+          {/* Intelligent Search Summary */}
+          {intelligentSearchData && (
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-200">
+              <div className="flex items-start gap-3">
+                <Sparkles className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-emerald-800 mb-1">
+                    {language === 'ar' ? 'ملخص البحث الذكي' : 'Intelligent Search Summary'}
+                  </h3>
+                  <p className="text-emerald-700 text-sm">{intelligentSearchData.summary}</p>
+
+                  {/* Query Language Badge */}
+                  <span className={clsx(
+                    'inline-block mt-2 text-xs px-2 py-0.5 rounded',
+                    intelligentSearchData.query_language === 'ar' ? 'bg-emerald-100 text-emerald-700' :
+                    intelligentSearchData.query_language === 'en' ? 'bg-blue-100 text-blue-700' :
+                    'bg-purple-100 text-purple-700'
+                  )}>
+                    {intelligentSearchData.query_language === 'ar' ? 'عربي' :
+                     intelligentSearchData.query_language === 'en' ? 'English' : 'Mixed'}
+                  </span>
+
+                  {/* Expanded Concepts */}
+                  {intelligentSearchData.expanded_concepts.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-emerald-200">
+                      <span className="text-xs text-emerald-600 flex items-center gap-1 mb-1">
+                        <Languages className="w-3 h-3" />
+                        {language === 'ar' ? 'مفاهيم موسّعة:' : 'Expanded concepts:'}
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {intelligentSearchData.expanded_concepts.slice(0, 10).map((concept, i) => (
+                          <span
+                            key={i}
+                            className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded"
+                          >
+                            {concept}
+                          </span>
+                        ))}
+                        {intelligentSearchData.expanded_concepts.length > 10 && (
+                          <span className="text-xs text-emerald-500">
+                            +{intelligentSearchData.expanded_concepts.length - 10} {language === 'ar' ? 'أخرى' : 'more'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Concept Distribution */}
+                  {Object.keys(intelligentSearchData.concept_distribution).length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-emerald-200">
+                      <span className="text-xs text-emerald-600 flex items-center gap-1 mb-1">
+                        <BarChart3 className="w-3 h-3" />
+                        {language === 'ar' ? 'توزيع المفاهيم:' : 'Concept distribution:'}
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(intelligentSearchData.concept_distribution)
+                          .sort((a, b) => b[1] - a[1])
+                          .slice(0, 5)
+                          .map(([concept, count]) => (
+                          <span
+                            key={concept}
+                            className="text-xs bg-white text-emerald-700 px-2 py-1 rounded border border-emerald-200"
+                          >
+                            {concept}: <strong>{count}</strong>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Results Summary */}
           <div className="bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg p-4 border border-primary-100">
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -680,7 +799,7 @@ export function SearchPage() {
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-blue-600" />
                   <span className="text-sm">
-                    <span className="font-semibold">{Object.keys(results.sura_distribution).length}</span>{' '}
+                    <span className="font-semibold">{Object.keys(results.sura_distribution).length || results.matches.length}</span>{' '}
                     {language === 'ar' ? 'سورة' : 'suras'}
                   </span>
                 </div>
@@ -701,15 +820,15 @@ export function SearchPage() {
               </button>
             </div>
 
-            {/* Related Terms */}
-            {results.related_terms && results.related_terms.length > 0 && (
+            {/* Related Searches */}
+            {intelligentSearchData?.related_searches && intelligentSearchData.related_searches.length > 0 && (
               <div className="mt-3 pt-3 border-t border-primary-100">
                 <span className="text-xs text-gray-500 mr-2 flex items-center gap-1 inline-flex">
                   <Sparkles className="w-3 h-3" />
-                  {t('search_related_terms', language)}:
+                  {language === 'ar' ? 'بحث ذو صلة:' : 'Related searches:'}
                 </span>
                 <div className="inline-flex flex-wrap gap-1 mt-1">
-                  {results.related_terms.map((term, i) => (
+                  {intelligentSearchData.related_searches.map((term, i) => (
                     <button
                       key={i}
                       onClick={() => {
@@ -822,6 +941,40 @@ export function SearchPage() {
 }
 
 // =============================================================================
+// MATCH TYPE BADGE
+// =============================================================================
+
+function MatchTypeBadge({ matchType, language }: { matchType: string; language: 'ar' | 'en' }) {
+  switch (matchType) {
+    case 'exact':
+      return (
+        <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+          <CheckCircle className="w-3 h-3" />
+          {t('search_match_exact', language)}
+        </span>
+      );
+    case 'root':
+      return (
+        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+          {t('search_match_root', language)}
+        </span>
+      );
+    case 'semantic':
+      return (
+        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
+          {t('search_match_semantic', language)}
+        </span>
+      );
+    default:
+      return (
+        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+          {t('search_match_normalized', language)}
+        </span>
+      );
+  }
+}
+
+// =============================================================================
 // SEARCH MATCH CARD
 // =============================================================================
 
@@ -879,16 +1032,12 @@ function SearchMatchCard({
           </button>
         </div>
         <div className="flex items-center gap-2">
-          {match.exact_match ? (
-            <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-              <CheckCircle className="w-3 h-3" />
-              {language === 'ar' ? 'تطابق تام' : 'Exact'}
-            </span>
-          ) : (
-            <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
-              {language === 'ar' ? 'دلالي' : 'Semantic'}
-            </span>
-          )}
+          {/* Result type badge — always "Quran Text" for direct search */}
+          <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
+            {t('search_result_type_quran', language)}
+          </span>
+          {/* Match type badge — reflects how the verse was matched */}
+          <MatchTypeBadge matchType={match.match_type ?? (match.exact_match ? 'exact' : 'normalized')} language={language} />
           <span className="text-xs text-gray-500" title={language === 'ar' ? 'درجة الصلة' : 'Relevance Score'}>
             {Math.round(match.relevance_score * 100)}%
           </span>
@@ -953,6 +1102,33 @@ function SearchMatchCard({
         </p>
       )}
 
+      {/* Verse Grounding - Why this verse is relevant */}
+      {(match as SearchMatch & { grounding?: string; matched_concepts?: string[]; highlighted_terms?: string[] }).grounding && (
+        <div className="mt-3 p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+          <div className="flex items-start gap-2">
+            <Info className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-emerald-700">
+                {(match as SearchMatch & { grounding?: string }).grounding}
+              </p>
+              {(match as SearchMatch & { matched_concepts?: string[] }).matched_concepts &&
+               (match as SearchMatch & { matched_concepts?: string[] }).matched_concepts!.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {(match as SearchMatch & { matched_concepts?: string[] }).matched_concepts!.map((concept, i) => (
+                    <span
+                      key={i}
+                      className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded"
+                    >
+                      {concept}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Grammatical Analysis */}
       {(match.word_role_ar || match.sentence_type_ar) && (
         <div className="mt-3 pt-3 border-t border-gray-200">
@@ -984,9 +1160,9 @@ function SearchMatchCard({
         <span>{language === 'ar' ? 'الصفحة' : 'Page'}: {match.page_no}</span>
         <span>{language === 'ar' ? 'الجزء' : 'Juz'}: {match.juz_no}</span>
         {match.tfidf_score > 0 && (
-          <span className="flex items-center gap-1" title="TF-IDF Score">
+          <span className="flex items-center gap-1" title={language === 'ar' ? 'درجة TF-IDF' : 'TF-IDF Score'}>
             <Info className="w-3 h-3" />
-            TF-IDF: {match.tfidf_score.toFixed(3)}
+            {language === 'ar' ? 'الصلة' : 'TF-IDF'}: {match.tfidf_score.toFixed(3)}
           </span>
         )}
       </div>

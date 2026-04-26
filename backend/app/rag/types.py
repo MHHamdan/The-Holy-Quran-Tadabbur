@@ -74,6 +74,13 @@ class Citation:
     verse_reference: str
     excerpt: str
     relevance_score: float
+    # Phase-2 enrichment fields
+    reliability_level: Optional[str] = None   # canonical|verified|supporting|experimental
+    author: Optional[str] = None              # Human scholar name
+    surah_number: Optional[int] = None
+    ayah_number: Optional[int] = None
+    quoted_evidence: Optional[str] = None     # Verbatim tafsir excerpt used
+    explanation: Optional[str] = None         # Why this citation supports the answer
 
 
 @dataclass
@@ -147,6 +154,9 @@ class GroundedResponse:
     confidence_message: Optional[str] = None
     query_expansion: Optional[List[str]] = None
     degradation_reasons: List[str] = field(default_factory=list)
+    # Phase-2: explicit status and answer language
+    status: str = "answered"          # answered|no_verified_source|needs_clarification|error
+    answer_language: str = "en"       # ar|en
 
     # Evidence density metadata (for transparency)
     # These expose HOW MUCH evidence backs the response without exposing raw IDs
@@ -176,6 +186,8 @@ class GroundedResponse:
         """Convert to dictionary for API response."""
         return {
             "answer": self.answer,
+            "status": self.status,
+            "answer_language": self.answer_language,
             "citations": [
                 {
                     "chunk_id": c.chunk_id,
@@ -185,6 +197,12 @@ class GroundedResponse:
                     "verse_reference": c.verse_reference,
                     "excerpt": c.excerpt,
                     "relevance_score": c.relevance_score,
+                    "reliability_level": c.reliability_level,
+                    "author": c.author,
+                    "surah_number": c.surah_number,
+                    "ayah_number": c.ayah_number,
+                    "quoted_evidence": c.quoted_evidence,
+                    "explanation": c.explanation,
                 }
                 for c in self.citations
             ],
@@ -260,8 +278,33 @@ SAFE_REFUSAL_NO_SOURCES = (
     "Please consult qualified scholars for guidance."
 )
 
+# Phase-2: language-specific no_verified_source text (verbatim — do not modify without review)
+SAFE_REFUSAL_NO_SOURCES_EN = "No verified source available for this answer."
+SAFE_REFUSAL_NO_SOURCES_AR = "لا يوجد مصدر موثوق متاح لهذه الإجابة."
+
+# Phase-2: needs_clarification refusal text
+NEEDS_CLARIFICATION_EN = (
+    "Your question needs more context. "
+    "Please specify a verse reference, surah name, or topic so I can find relevant sources."
+)
+NEEDS_CLARIFICATION_AR = (
+    "سؤالك يحتاج إلى مزيد من التوضيح. "
+    "يرجى تحديد رقم الآية أو اسم السورة أو الموضوع حتى أتمكن من البحث في المصادر المناسبة."
+)
+
 SAFE_REFUSAL_FIQH = (
     "Note: This information is provided for educational purposes only and "
     "should not be taken as a religious ruling (fatwa). Please consult "
     "qualified scholars for personal religious guidance."
 )
+
+# Reliability level mapping from source_reliability float → string label
+def reliability_float_to_level(score: float) -> str:
+    """Map a 0–1 reliability score to a ReliabilityLevel string."""
+    if score >= 0.9:
+        return "canonical"
+    if score >= 0.7:
+        return "verified"
+    if score >= 0.5:
+        return "supporting"
+    return "experimental"

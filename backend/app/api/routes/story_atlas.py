@@ -46,6 +46,7 @@ class ClusterSummaryResponse(BaseModel):
     tags: List[str] = []
     event_count: int = 0
     primary_sura: Optional[int] = None
+    summary_ar: Optional[str] = None
     summary_en: Optional[str] = None
 
 
@@ -225,6 +226,7 @@ async def list_clusters(
                 tags=c.tags,
                 event_count=c.event_count,
                 primary_sura=c.primary_sura,
+                summary_ar=c.summary_ar,
                 summary_en=c.summary_en,
             )
             for c in clusters

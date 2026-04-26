@@ -1,0 +1,593 @@
+{
+  "name": "Curated Quranic Concepts Dictionary",
+  "version": "1.0.0",
+  "description": "Base concepts for the Quran Concept Graph - verified against Quran text",
+  "last_updated": "2026-01-06",
+
+  "persons": [
+    {
+      "id": "person_adam",
+      "slug": "adam",
+      "label_ar": "آدم عليه السلام",
+      "label_en": "Adam",
+      "aliases_ar": ["آدم", "أبو البشر"],
+      "aliases_en": ["Adam", "Father of Humanity"],
+      "description_ar": "أول الأنبياء وأبو البشرية",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_nuh",
+      "slug": "nuh",
+      "label_ar": "نوح عليه السلام",
+      "label_en": "Nuh (Noah)",
+      "aliases_ar": ["نوح", "نوحاً"],
+      "aliases_en": ["Noah", "Nuh"],
+      "description_ar": "نبي الطوفان ومن أولي العزم",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_ibrahim",
+      "slug": "ibrahim",
+      "label_ar": "إبراهيم عليه السلام",
+      "label_en": "Ibrahim (Abraham)",
+      "aliases_ar": ["إبراهيم", "الخليل", "أبو الأنبياء"],
+      "aliases_en": ["Abraham", "Ibrahim", "Khalil"],
+      "description_ar": "خليل الله وأبو الأنبياء",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_musa",
+      "slug": "musa",
+      "label_ar": "موسى عليه السلام",
+      "label_en": "Musa (Moses)",
+      "aliases_ar": ["موسى", "كليم الله"],
+      "aliases_en": ["Moses", "Musa", "Kalimullah"],
+      "description_ar": "كليم الله ومنقذ بني إسرائيل",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_isa",
+      "slug": "isa",
+      "label_ar": "عيسى عليه السلام",
+      "label_en": "Isa (Jesus)",
+      "aliases_ar": ["عيسى", "المسيح", "ابن مريم"],
+      "aliases_en": ["Jesus", "Isa", "Christ", "Son of Mary"],
+      "description_ar": "روح الله وكلمته ألقاها إلى مريم",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_yusuf",
+      "slug": "yusuf",
+      "label_ar": "يوسف عليه السلام",
+      "label_en": "Yusuf (Joseph)",
+      "aliases_ar": ["يوسف", "الصديق"],
+      "aliases_en": ["Joseph", "Yusuf"],
+      "description_ar": "صاحب الرؤيا والصديق",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_dawud",
+      "slug": "dawud",
+      "label_ar": "داود عليه السلام",
+      "label_en": "Dawud (David)",
+      "aliases_ar": ["داود", "داوود"],
+      "aliases_en": ["David", "Dawud"],
+      "description_ar": "أوتي الزبور والملك",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_sulayman",
+      "slug": "sulayman",
+      "label_ar": "سليمان عليه السلام",
+      "label_en": "Sulayman (Solomon)",
+      "aliases_ar": ["سليمان"],
+      "aliases_en": ["Solomon", "Sulayman"],
+      "description_ar": "صاحب الملك العظيم وعلم منطق الطير",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_ayyub",
+      "slug": "ayyub",
+      "label_ar": "أيوب عليه السلام",
+      "label_en": "Ayyub (Job)",
+      "aliases_ar": ["أيوب"],
+      "aliases_en": ["Job", "Ayyub"],
+      "description_ar": "الصابر على البلاء",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_yunus",
+      "slug": "yunus",
+      "label_ar": "يونس عليه السلام",
+      "label_en": "Yunus (Jonah)",
+      "aliases_ar": ["يونس", "ذو النون", "صاحب الحوت"],
+      "aliases_en": ["Jonah", "Yunus", "Dhul-Nun"],
+      "description_ar": "صاحب الحوت والتائب",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_lut",
+      "slug": "lut",
+      "label_ar": "لوط عليه السلام",
+      "label_en": "Lut (Lot)",
+      "aliases_ar": ["لوط", "لوطاً"],
+      "aliases_en": ["Lot", "Lut"],
+      "description_ar": "ابن أخ إبراهيم والمرسل لقوم سدوم",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_hud",
+      "slug": "hud",
+      "label_ar": "هود عليه السلام",
+      "label_en": "Hud",
+      "aliases_ar": ["هود", "هوداً"],
+      "aliases_en": ["Hud"],
+      "description_ar": "نبي أرسل إلى عاد",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_salih",
+      "slug": "salih",
+      "label_ar": "صالح عليه السلام",
+      "label_en": "Salih",
+      "aliases_ar": ["صالح", "صالحاً"],
+      "aliases_en": ["Salih"],
+      "description_ar": "نبي أرسل إلى ثمود",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_shuayb",
+      "slug": "shuayb",
+      "label_ar": "شعيب عليه السلام",
+      "label_en": "Shuayb",
+      "aliases_ar": ["شعيب", "شعيباً"],
+      "aliases_en": ["Shuayb", "Jethro"],
+      "description_ar": "خطيب الأنبياء ونبي مدين",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_maryam",
+      "slug": "maryam",
+      "label_ar": "مريم عليها السلام",
+      "label_en": "Maryam (Mary)",
+      "aliases_ar": ["مريم", "مريماً", "البتول"],
+      "aliases_en": ["Mary", "Maryam"],
+      "description_ar": "الصديقة أم عيسى",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_luqman",
+      "slug": "luqman",
+      "label_ar": "لقمان الحكيم",
+      "label_en": "Luqman the Wise",
+      "aliases_ar": ["لقمان", "لقماناً"],
+      "aliases_en": ["Luqman", "Lukman"],
+      "description_ar": "الحكيم صاحب الوصايا",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_firawn",
+      "slug": "firawn",
+      "label_ar": "فرعون",
+      "label_en": "Pharaoh",
+      "aliases_ar": ["فرعون", "فرعوناً"],
+      "aliases_en": ["Pharaoh", "Firaun"],
+      "description_ar": "طاغية مصر في عهد موسى",
+      "icon_hint": "user-x"
+    },
+    {
+      "id": "person_iblis",
+      "slug": "iblis",
+      "label_ar": "إبليس",
+      "label_en": "Iblis (Satan)",
+      "aliases_ar": ["إبليس", "الشيطان"],
+      "aliases_en": ["Iblis", "Satan", "Devil"],
+      "description_ar": "عدو الإنسان المبين",
+      "icon_hint": "user-x"
+    },
+    {
+      "id": "person_dhulqarnayn",
+      "slug": "dhulqarnayn",
+      "label_ar": "ذو القرنين",
+      "label_en": "Dhul-Qarnayn",
+      "aliases_ar": ["ذو القرنين", "ذا القرنين"],
+      "aliases_en": ["Dhul-Qarnayn", "Dhul Qarnayn"],
+      "description_ar": "الملك الصالح صاحب السد",
+      "icon_hint": "user"
+    },
+    {
+      "id": "person_qarun",
+      "slug": "qarun",
+      "label_ar": "قارون",
+      "label_en": "Qarun (Korah)",
+      "aliases_ar": ["قارون", "قارونا"],
+      "aliases_en": ["Qarun", "Korah"],
+      "description_ar": "المفتون بالمال والكنوز",
+      "icon_hint": "user-x"
+    }
+  ],
+
+  "nations": [
+    {
+      "id": "nation_aad",
+      "slug": "aad",
+      "label_ar": "قوم عاد",
+      "label_en": "People of Aad",
+      "aliases_ar": ["عاد", "عاداً", "الأولى"],
+      "aliases_en": ["Aad", "Ad"],
+      "description_ar": "قوم هود أصحاب الإرم ذات العماد",
+      "icon_hint": "users"
+    },
+    {
+      "id": "nation_thamud",
+      "slug": "thamud",
+      "label_ar": "قوم ثمود",
+      "label_en": "People of Thamud",
+      "aliases_ar": ["ثمود", "ثموداً"],
+      "aliases_en": ["Thamud"],
+      "description_ar": "قوم صالح الذين نحتوا الجبال",
+      "icon_hint": "users"
+    },
+    {
+      "id": "nation_madyan",
+      "slug": "madyan",
+      "label_ar": "أهل مدين",
+      "label_en": "People of Madyan",
+      "aliases_ar": ["مدين", "أصحاب الأيكة"],
+      "aliases_en": ["Madyan", "Midian"],
+      "description_ar": "قوم شعيب أصحاب الأيكة",
+      "icon_hint": "users"
+    },
+    {
+      "id": "nation_lut",
+      "slug": "qawm_lut",
+      "label_ar": "قوم لوط",
+      "label_en": "People of Lut",
+      "aliases_ar": ["قوم لوط", "سدوم"],
+      "aliases_en": ["People of Lot", "Sodom"],
+      "description_ar": "أصحاب الفاحشة المؤتفكات",
+      "icon_hint": "users"
+    },
+    {
+      "id": "nation_bani_israel",
+      "slug": "bani_israel",
+      "label_ar": "بنو إسرائيل",
+      "label_en": "Children of Israel",
+      "aliases_ar": ["بني إسرائيل", "بنو إسرائيل", "اليهود"],
+      "aliases_en": ["Bani Israel", "Children of Israel", "Israelites"],
+      "description_ar": "ذرية يعقوب المستخلفون",
+      "icon_hint": "users"
+    },
+    {
+      "id": "nation_quraysh",
+      "slug": "quraysh",
+      "label_ar": "قريش",
+      "label_en": "Quraysh",
+      "aliases_ar": ["قريش", "قريشاً"],
+      "aliases_en": ["Quraysh", "Quraish"],
+      "description_ar": "قبيلة النبي في مكة",
+      "icon_hint": "users"
+    },
+    {
+      "id": "nation_pharaohs_people",
+      "slug": "aal_firawn",
+      "label_ar": "آل فرعون",
+      "label_en": "Pharaoh's People",
+      "aliases_ar": ["آل فرعون", "قوم فرعون"],
+      "aliases_en": ["Pharaoh's people", "Egyptians"],
+      "description_ar": "قوم فرعون في مصر",
+      "icon_hint": "users"
+    }
+  ],
+
+  "places": [
+    {
+      "id": "place_makkah",
+      "slug": "makkah",
+      "label_ar": "مكة المكرمة",
+      "label_en": "Makkah",
+      "aliases_ar": ["مكة", "بكة", "أم القرى"],
+      "aliases_en": ["Makkah", "Mecca"],
+      "description_ar": "البلد الأمين وموضع الكعبة",
+      "icon_hint": "map-pin"
+    },
+    {
+      "id": "place_egypt",
+      "slug": "egypt",
+      "label_ar": "مصر",
+      "label_en": "Egypt",
+      "aliases_ar": ["مصر", "مصراً"],
+      "aliases_en": ["Egypt", "Misr"],
+      "description_ar": "أرض الكنانة موضع قصة موسى ويوسف",
+      "icon_hint": "map-pin"
+    },
+    {
+      "id": "place_madyan",
+      "slug": "madyan_place",
+      "label_ar": "مدين",
+      "label_en": "Madyan",
+      "aliases_ar": ["مدين"],
+      "aliases_en": ["Madyan", "Midian"],
+      "description_ar": "موضع قوم شعيب",
+      "icon_hint": "map-pin"
+    },
+    {
+      "id": "place_tur_sinai",
+      "slug": "tur_sinai",
+      "label_ar": "طور سيناء",
+      "label_en": "Mount Sinai",
+      "aliases_ar": ["الطور", "طور سيناء", "طور سينين"],
+      "aliases_en": ["Mount Sinai", "Tur Sina"],
+      "description_ar": "جبل المناجاة",
+      "icon_hint": "map-pin"
+    },
+    {
+      "id": "place_jerusalem",
+      "slug": "jerusalem",
+      "label_ar": "القدس",
+      "label_en": "Jerusalem",
+      "aliases_ar": ["القدس", "الأقصى", "إيليا"],
+      "aliases_en": ["Jerusalem", "Al-Quds"],
+      "description_ar": "الأرض المقدسة",
+      "icon_hint": "map-pin"
+    },
+    {
+      "id": "place_cave",
+      "slug": "kahf",
+      "label_ar": "الكهف",
+      "label_en": "The Cave",
+      "aliases_ar": ["الكهف"],
+      "aliases_en": ["The Cave", "Kahf"],
+      "description_ar": "ملجأ الفتية المؤمنين",
+      "icon_hint": "map-pin"
+    }
+  ],
+
+  "miracles": [
+    {
+      "id": "miracle_staff_snake",
+      "slug": "staff_snake",
+      "label_ar": "العصا تتحول إلى حية",
+      "label_en": "Staff Turns to Snake",
+      "description_ar": "معجزة موسى أمام فرعون",
+      "related_persons": ["person_musa"],
+      "icon_hint": "zap"
+    },
+    {
+      "id": "miracle_sea_split",
+      "slug": "sea_split",
+      "label_ar": "انفلاق البحر",
+      "label_en": "Splitting of the Sea",
+      "description_ar": "نجاة بني إسرائيل وهلاك فرعون",
+      "related_persons": ["person_musa"],
+      "icon_hint": "zap"
+    },
+    {
+      "id": "miracle_she_camel",
+      "slug": "she_camel",
+      "label_ar": "الناقة",
+      "label_en": "The She-Camel",
+      "description_ar": "آية صالح لثمود",
+      "related_persons": ["person_salih"],
+      "icon_hint": "zap"
+    },
+    {
+      "id": "miracle_fire_safety",
+      "slug": "fire_safety",
+      "label_ar": "النار برداً وسلاماً",
+      "label_en": "Fire Becomes Cool",
+      "description_ar": "نجاة إبراهيم من النار",
+      "related_persons": ["person_ibrahim"],
+      "icon_hint": "zap"
+    },
+    {
+      "id": "miracle_virgin_birth",
+      "slug": "virgin_birth",
+      "label_ar": "الولادة العجيبة",
+      "label_en": "Miraculous Birth",
+      "description_ar": "ولادة عيسى من غير أب",
+      "related_persons": ["person_isa", "person_maryam"],
+      "icon_hint": "zap"
+    },
+    {
+      "id": "miracle_whale",
+      "slug": "whale",
+      "label_ar": "الحوت",
+      "label_en": "The Whale",
+      "description_ar": "نجاة يونس من بطن الحوت",
+      "related_persons": ["person_yunus"],
+      "icon_hint": "zap"
+    },
+    {
+      "id": "miracle_birds_ibrahim",
+      "slug": "birds_ibrahim",
+      "label_ar": "إحياء الطير",
+      "label_en": "Birds Resurrection",
+      "description_ar": "إحياء الطير لإبراهيم",
+      "related_persons": ["person_ibrahim"],
+      "icon_hint": "zap"
+    },
+    {
+      "id": "miracle_flood",
+      "slug": "flood",
+      "label_ar": "الطوفان",
+      "label_en": "The Great Flood",
+      "description_ar": "طوفان نوح",
+      "related_persons": ["person_nuh"],
+      "icon_hint": "zap"
+    },
+    {
+      "id": "miracle_dreams_yusuf",
+      "slug": "dreams_yusuf",
+      "label_ar": "تأويل الأحلام",
+      "label_en": "Dream Interpretation",
+      "description_ar": "علم يوسف بتأويل الرؤى",
+      "related_persons": ["person_yusuf"],
+      "icon_hint": "zap"
+    },
+    {
+      "id": "miracle_wind_aad",
+      "slug": "wind_aad",
+      "label_ar": "الريح العقيم",
+      "label_en": "Destructive Wind",
+      "description_ar": "هلاك عاد بالريح",
+      "related_nations": ["nation_aad"],
+      "icon_hint": "zap"
+    },
+    {
+      "id": "miracle_scream_thamud",
+      "slug": "scream_thamud",
+      "label_ar": "الصيحة",
+      "label_en": "The Blast",
+      "description_ar": "هلاك ثمود بالصيحة",
+      "related_nations": ["nation_thamud"],
+      "icon_hint": "zap"
+    }
+  ],
+
+  "themes": [
+    {
+      "id": "theme_patience",
+      "slug": "patience",
+      "label_ar": "الصبر",
+      "label_en": "Patience",
+      "aliases_ar": ["الصبر", "التصبر", "الصابرين"],
+      "aliases_en": ["patience", "perseverance", "steadfastness"],
+      "icon_hint": "heart"
+    },
+    {
+      "id": "theme_obedience",
+      "slug": "obedience",
+      "label_ar": "الطاعة",
+      "label_en": "Obedience",
+      "aliases_ar": ["الطاعة", "السمع والطاعة"],
+      "aliases_en": ["obedience", "submission"],
+      "icon_hint": "heart"
+    },
+    {
+      "id": "theme_repentance",
+      "slug": "repentance",
+      "label_ar": "التوبة",
+      "label_en": "Repentance",
+      "aliases_ar": ["التوبة", "الإنابة", "التوبة والرجوع"],
+      "aliases_en": ["repentance", "tawbah"],
+      "icon_hint": "heart"
+    },
+    {
+      "id": "theme_trust",
+      "slug": "trust",
+      "label_ar": "التوكل",
+      "label_en": "Trust in Allah",
+      "aliases_ar": ["التوكل", "التوكل على الله"],
+      "aliases_en": ["trust", "tawakkul", "reliance on Allah"],
+      "icon_hint": "heart"
+    },
+    {
+      "id": "theme_justice",
+      "slug": "justice",
+      "label_ar": "العدل",
+      "label_en": "Justice",
+      "aliases_ar": ["العدل", "القسط"],
+      "aliases_en": ["justice", "equity"],
+      "icon_hint": "heart"
+    },
+    {
+      "id": "theme_gratitude",
+      "slug": "gratitude",
+      "label_ar": "الشكر",
+      "label_en": "Gratitude",
+      "aliases_ar": ["الشكر", "شكر النعمة"],
+      "aliases_en": ["gratitude", "thankfulness", "shukr"],
+      "icon_hint": "heart"
+    },
+    {
+      "id": "theme_arrogance",
+      "slug": "arrogance",
+      "label_ar": "الكِبر",
+      "label_en": "Arrogance",
+      "aliases_ar": ["الكبر", "الاستكبار", "التكبر"],
+      "aliases_en": ["arrogance", "pride", "kibr"],
+      "icon_hint": "alert-triangle"
+    },
+    {
+      "id": "theme_divine_punishment",
+      "slug": "divine_punishment",
+      "label_ar": "العقوبة الإلهية",
+      "label_en": "Divine Punishment",
+      "aliases_ar": ["العذاب", "العقوبة", "الهلاك"],
+      "aliases_en": ["divine punishment", "destruction"],
+      "icon_hint": "alert-triangle"
+    },
+    {
+      "id": "theme_salvation",
+      "slug": "salvation",
+      "label_ar": "النجاة",
+      "label_en": "Salvation",
+      "aliases_ar": ["النجاة", "الإنقاذ"],
+      "aliases_en": ["salvation", "rescue", "deliverance"],
+      "icon_hint": "heart"
+    },
+    {
+      "id": "theme_test_trial",
+      "slug": "test_trial",
+      "label_ar": "الابتلاء",
+      "label_en": "Test & Trial",
+      "aliases_ar": ["الابتلاء", "الامتحان", "الاختبار"],
+      "aliases_en": ["test", "trial", "tribulation"],
+      "icon_hint": "alert-circle"
+    },
+    {
+      "id": "theme_monotheism",
+      "slug": "monotheism",
+      "label_ar": "التوحيد",
+      "label_en": "Monotheism",
+      "aliases_ar": ["التوحيد", "توحيد الله"],
+      "aliases_en": ["monotheism", "tawhid", "oneness of God"],
+      "icon_hint": "heart"
+    },
+    {
+      "id": "theme_sacrifice",
+      "slug": "sacrifice",
+      "label_ar": "التضحية",
+      "label_en": "Sacrifice",
+      "aliases_ar": ["التضحية", "الأضحية"],
+      "aliases_en": ["sacrifice"],
+      "icon_hint": "heart"
+    }
+  ],
+
+  "moral_patterns": [
+    {
+      "id": "pattern_test_patience_salvation",
+      "slug": "test_patience_salvation",
+      "label_ar": "نمط: ابتلاء ← صبر ← نجاة",
+      "label_en": "Pattern: Trial → Patience → Salvation",
+      "description_ar": "نمط قرآني متكرر في قصص الأنبياء والصالحين",
+      "icon_hint": "trending-up"
+    },
+    {
+      "id": "pattern_rejection_destruction",
+      "slug": "rejection_destruction",
+      "label_ar": "نمط: تكذيب ← إمهال ← هلاك",
+      "label_en": "Pattern: Rejection → Respite → Destruction",
+      "description_ar": "نمط سنني في هلاك الأمم المكذبة",
+      "icon_hint": "trending-down"
+    },
+    {
+      "id": "pattern_repentance_forgiveness",
+      "slug": "repentance_forgiveness",
+      "label_ar": "نمط: توبة ← مغفرة",
+      "label_en": "Pattern: Repentance → Forgiveness",
+      "description_ar": "رحمة الله بالتائبين",
+      "icon_hint": "heart"
+    },
+    {
+      "id": "pattern_arrogance_downfall",
+      "slug": "arrogance_downfall",
+      "label_ar": "نمط: استكبار ← سقوط",
+      "label_en": "Pattern: Arrogance → Downfall",
+      "description_ar": "مصير المتكبرين كفرعون وقارون",
+      "icon_hint": "trending-down"
+    }
+  ]
+}

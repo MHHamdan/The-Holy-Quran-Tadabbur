@@ -3,18 +3,22 @@ import { Link } from 'react-router-dom';
 import { Map, Book, Users, Clock, ArrowRight, Search } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { storyAtlasApi, StoryCluster } from '../lib/api';
-import { translateTag, translateFigure, Language } from '../i18n/translations';
+import { t, translateTag, translateFigure, Language } from '../i18n/translations';
 import clsx from 'clsx';
 
 // Category translations
 const CATEGORY_TRANSLATIONS: Record<string, { ar: string; en: string }> = {
   prophet: { ar: 'الأنبياء', en: 'Prophet' },
+  prophetic: { ar: 'نبوي', en: 'Prophetic' },
+  prophetic_sira: { ar: 'السيرة النبوية', en: 'Prophetic Era' },
   named_char: { ar: 'شخصيات مسماة', en: 'Named Character' },
   nation: { ar: 'أمة', en: 'Nation' },
   parable: { ar: 'مثل', en: 'Parable' },
   historical: { ar: 'تاريخي', en: 'Historical' },
   unseen: { ar: 'الغيب', en: 'Unseen' },
   righteous: { ar: 'الصالحين', en: 'Righteous' },
+  companions: { ar: 'الصحابة', en: 'Companions' },
+  battles: { ar: 'الغزوات', en: 'Battles' },
 };
 
 // Helper to translate category
@@ -26,6 +30,8 @@ function translateCategory(category: string, language: Language): string {
 const CATEGORIES = [
   { id: 'all', labelAr: 'الكل', labelEn: 'All' },
   { id: 'prophet', labelAr: 'الأنبياء', labelEn: 'Prophets' },
+  { id: 'prophetic', labelAr: 'نبوي', labelEn: 'Prophetic' },
+  { id: 'prophetic_sira', labelAr: 'السيرة النبوية', labelEn: 'Prophetic Era' },
   { id: 'named_char', labelAr: 'شخصيات', labelEn: 'Characters' },
   { id: 'nation', labelAr: 'الأمم', labelEn: 'Nations' },
   { id: 'parable', labelAr: 'أمثال', labelEn: 'Parables' },
@@ -38,7 +44,9 @@ const ERA_LABELS: Record<string, { ar: string; en: string }> = {
   ancient: { ar: 'الأنبياء الأوائل', en: 'Ancient' },
   egypt: { ar: 'عصر مصر', en: 'Egypt Era' },
   israelite: { ar: 'بني إسرائيل', en: 'Israelite' },
+  bani_israil: { ar: 'بني إسرائيل', en: 'Bani Israil' },
   pre_islamic: { ar: 'ما قبل الإسلام', en: 'Pre-Islamic' },
+  prophetic: { ar: 'العصر النبوي', en: 'Prophetic Era' },
   unknown: { ar: 'غير محدد', en: 'Unknown' },
 };
 
@@ -85,13 +93,11 @@ export function StoryAtlasPage() {
         <div className="flex items-center gap-3 mb-2">
           <Map className="w-8 h-8 text-primary-600" />
           <h1 className="text-3xl font-bold text-gray-900">
-            {isArabic ? 'أطلس القصص القرآنية' : 'Quran Story Atlas'}
+            {t('atlas_title', language)}
           </h1>
         </div>
         <p className="text-gray-600">
-          {isArabic
-            ? 'استكشف قصص القرآن الكريم مرتبة حسب الشخصيات والأماكن والأزمنة'
-            : 'Explore Quranic narratives organized by persons, places, and eras'}
+          {t('atlas_subtitle', language)}
         </p>
       </div>
 
@@ -101,7 +107,7 @@ export function StoryAtlasPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder={isArabic ? 'ابحث في القصص...' : 'Search stories...'}
+            placeholder={t('atlas_search', language)}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -130,29 +136,23 @@ export function StoryAtlasPage() {
 
       {/* Results count */}
       <div className="mb-4 text-sm text-gray-500">
-        {isArabic
-          ? `${total} قصة متاحة`
-          : `${total} stories available`}
+        {total} {t('atlas_stories_available', language)}
       </div>
 
       {/* Stories Grid */}
       {loading ? (
         <div className="text-center py-12">
           <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-500">{isArabic ? 'جاري التحميل...' : 'Loading...'}</p>
+          <p className="text-gray-500">{t('loading', language)}</p>
         </div>
       ) : clusters.length === 0 ? (
         <div className="text-center py-12 card">
           <Map className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500">
-            {isArabic
-              ? 'لا توجد قصص مطابقة للبحث'
-              : 'No stories match your search'}
+            {t('atlas_no_results', language)}
           </p>
           <p className="text-sm text-gray-400 mt-2">
-            {isArabic
-              ? 'جرب تغيير معايير البحث'
-              : 'Try adjusting your filters'}
+            {t('atlas_try_adjusting', language)}
           </p>
         </div>
       ) : (
@@ -201,9 +201,9 @@ function ClusterCard({ cluster, language }: { cluster: StoryCluster; language: '
         {title}
       </h3>
 
-      {cluster.summary_en && (
+      {(isArabic ? cluster.summary_ar : cluster.summary_en) && (
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {cluster.summary_en}
+          {isArabic ? cluster.summary_ar : cluster.summary_en}
         </p>
       )}
 
@@ -222,12 +222,12 @@ function ClusterCard({ cluster, language }: { cluster: StoryCluster; language: '
       <div className="flex items-center gap-4 mb-4 text-sm text-gray-500">
         <div className="flex items-center gap-1">
           <Clock className="w-4 h-4" />
-          <span>{cluster.event_count} {isArabic ? 'أحداث' : 'events'}</span>
+          <span>{cluster.event_count} {t('atlas_events', language)}</span>
         </div>
         {cluster.primary_sura && (
           <div className="flex items-center gap-1">
             <Book className="w-4 h-4" />
-            <span>{isArabic ? 'سورة' : 'Surah'} {cluster.primary_sura}</span>
+            <span>{t('atlas_surah', language)} {cluster.primary_sura}</span>
           </div>
         )}
       </div>
@@ -250,7 +250,7 @@ function ClusterCard({ cluster, language }: { cluster: StoryCluster; language: '
       )}
 
       <div className="flex items-center text-primary-600 text-sm font-medium">
-        {isArabic ? 'استكشف القصة' : 'Explore Story'}
+        {t('atlas_explore', language)}
         <ArrowRight className={`w-4 h-4 ${isArabic ? 'mr-1 group-hover:-translate-x-1' : 'ml-1 group-hover:translate-x-1'} transition-transform`} />
       </div>
     </Link>

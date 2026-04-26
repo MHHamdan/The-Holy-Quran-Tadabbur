@@ -1,0 +1,5 @@
+# Tadabbur Streamlit App Requirements
+# For Streamlit Community Cloud deployment
+
+streamlit>=1.30.0
+httpx>=0.26.0

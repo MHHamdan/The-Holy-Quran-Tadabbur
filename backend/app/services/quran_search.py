@@ -41,8 +41,11 @@ logger = logging.getLogger(__name__)
 # ARABIC TEXT UTILITIES
 # =============================================================================
 
-# Arabic diacritics (tashkeel) for normalization
-ARABIC_DIACRITICS = re.compile(r'[\u064B-\u065F\u0670]')
+# Arabic diacritics (tashkeel) for normalization — covers all Quranic marks
+ARABIC_DIACRITICS = re.compile(
+    r'[\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED'
+    r'\u0610-\u061A\u08D3-\u08E1\u08E3-\u08FF\uFE70-\uFE7F]'
+)
 
 # Alef variants to normalize
 ALEF_VARIANTS = {
@@ -57,9 +60,15 @@ YA_VARIANTS = {
     '\u0649': '\u064A',  # ى -> ي (Alef Maqsura to Ya)
 }
 
-# Ta Marbuta
+# Ta Marbuta — used for matching only, NOT for display or stored text mutation
 TA_MARBUTA = {
     '\u0629': '\u0647',  # ة -> ه
+}
+
+# Hamza variants on carrier letters — normalise for matching only
+HAMZA_VARIANTS = {
+    '\u0624': '\u0648',  # ؤ -> و (Hamza on Waw)
+    '\u0626': '\u064A',  # ئ -> ي (Hamza on Ya)
 }
 
 # Arabic stop words to exclude from TF-IDF
@@ -77,19 +86,28 @@ ARABIC_STOP_WORDS = {
 }
 
 
-def normalize_arabic(text: str, remove_diacritics: bool = True) -> str:
+def normalize_arabic(
+    text: str,
+    remove_diacritics: bool = True,
+    normalize_ta_marbuta: bool = False,
+    normalize_hamza_variants: bool = False,
+) -> str:
     """
     Normalize Arabic text for search matching.
 
-    - Removes diacritics (tashkeel)
-    - Normalizes Alef variants
-    - Normalizes Ya/Alef Maqsura
-    - Normalizes Ta Marbuta (optional)
+    Args:
+        text: Input Arabic text.
+        remove_diacritics: Remove tashkeel (default True).
+        normalize_ta_marbuta: Map ة -> ه (default False; use True for query matching only,
+            never apply to stored Quran text or display output).
+        normalize_hamza_variants: Map ؤ -> و and ئ -> ي (default False; use True for
+            query matching only).
     """
     if not text:
         return ""
 
-    result = text
+    # Strip BOM and zero-width characters
+    result = text.replace('\uFEFF', '').replace('\u200B', '').replace('\u200C', '').replace('\u200D', '')
 
     # Remove diacritics
     if remove_diacritics:
@@ -99,11 +117,37 @@ def normalize_arabic(text: str, remove_diacritics: bool = True) -> str:
     for variant, normalized in ALEF_VARIANTS.items():
         result = result.replace(variant, normalized)
 
-    # Normalize Ya
+    # Normalize Ya/Alef Maqsura
     for variant, normalized in YA_VARIANTS.items():
         result = result.replace(variant, normalized)
 
+    # Normalize Ta Marbuta (for query matching only — never mutate stored text)
+    if normalize_ta_marbuta:
+        for variant, normalized in TA_MARBUTA.items():
+            result = result.replace(variant, normalized)
+
+    # Normalize hamza carrier variants (for query matching only)
+    if normalize_hamza_variants:
+        for variant, normalized in HAMZA_VARIANTS.items():
+            result = result.replace(variant, normalized)
+
     return result
+
+
+def normalize_for_matching(text: str) -> str:
+    """
+    Full normalization for search-query matching.
+
+    Applies all normalizations including Ta Marbuta and hamza variants.
+    MUST NOT be applied to stored Quran text or display output — for matching only.
+    """
+    return normalize_arabic(
+        text,
+        remove_diacritics=True,
+        normalize_ta_marbuta=True,
+        normalize_hamza_variants=True,
+    )
+
 
 
 def extract_words(text: str) -> List[str]:
@@ -409,6 +453,8 @@ class SearchMatch:
     relevance_score: float = 0.0
     tfidf_score: float = 0.0
     exact_match: bool = False
+    # "exact" | "normalized" | "root" | "semantic" | "metadata"
+    match_type: str = "normalized"
 
     # Grammatical analysis (populated by LLM)
     word_role: Optional[GrammaticalRole] = None
@@ -851,19 +897,19 @@ class QuranSearchService:
 
         for verse in verses:
             # Find match positions
-            positions = self._find_match_positions(verse.text_imlaei, search_terms)
+            positions = self._find_match_positions(verse.text_uthmani, search_terms)
             if not positions:
                 continue
 
             # Apply theme filter if specified
             if theme_filter:
-                verse_themes = detect_theme(verse.text_imlaei)
+                verse_themes = detect_theme(verse.text_uthmani)
                 if theme_filter not in verse_themes:
                     continue
 
             # Compute TF-IDF score
             tfidf_score = await self.tfidf_scorer.compute_tfidf(
-                query_normalized, verse.text_imlaei, self.session
+                query_normalized, verse.text_uthmani, self.session
             )
 
             # Create highlighted text
@@ -875,12 +921,22 @@ class QuranSearchService:
             )
 
             # Check for exact match
-            exact_match = query_normalized in normalize_arabic(verse.text_imlaei)
+            verse_norm = normalize_arabic(verse.text_uthmani)
+            exact_match = query_normalized in verse_norm
+
+            # Determine match_type
+            if exact_match:
+                match_type = "exact"
+            elif include_semantic and len(search_terms) > 1 and query_normalized not in verse_norm:
+                # Verse returned only via semantic expansion terms, not the core query
+                match_type = "root"
+            else:
+                match_type = "normalized"
 
             # Compute combined relevance using multiple algorithms
             combined_relevance = compute_combined_relevance(
                 query=query,
-                verse_text=verse.text_imlaei,
+                verse_text=verse.text_uthmani,
                 tf_idf_score=tfidf_score,
                 exact_match=exact_match,
                 query_concepts=search_terms,
@@ -903,6 +959,7 @@ class QuranSearchService:
                 relevance_score=combined_relevance,
                 tfidf_score=tfidf_score,
                 exact_match=exact_match,
+                match_type=match_type,
             )
 
             matches.append(match)
@@ -1051,7 +1108,7 @@ class QuranSearchService:
 
         matches = []
         for verse in verses:
-            positions = self._find_match_positions(verse.text_imlaei, {normalized})
+            positions = self._find_match_positions(verse.text_uthmani, {normalized})
             highlighted = self._highlight_matches(verse.text_uthmani, positions)
 
             match = SearchMatch(
@@ -1067,6 +1124,7 @@ class QuranSearchService:
                 match_positions=positions,
                 highlighted_text=highlighted,
                 exact_match=True,
+                match_type="exact",
             )
             matches.append(match)
 
@@ -1159,7 +1217,7 @@ class QuranSearchService:
 
         for char in text:
             # Check if this character would be removed during normalization
-            is_diacritic = '\u064B' <= char <= '\u065F' or char == '\u0670'
+            is_diacritic = bool(ARABIC_DIACRITICS.match(char))
             if not is_diacritic:
                 norm_to_orig.append(orig_idx)
             orig_idx += 1
@@ -1189,7 +1247,7 @@ class QuranSearchService:
             # Extend to include trailing diacritics
             while orig_end < len(text):
                 char = text[orig_end]
-                is_diacritic = '\u064B' <= char <= '\u065F' or char == '\u0670'
+                is_diacritic = bool(ARABIC_DIACRITICS.match(char))
                 if is_diacritic:
                     orig_end += 1
                 else:
@@ -1333,7 +1391,7 @@ class QuranSearchService:
         for verse in verses:
             # Find which concepts match in this verse
             concept_highlights = find_concept_matches(
-                verse.text_imlaei,
+                verse.text_uthmani,
                 parsed.concepts,
                 include_expansions=True
             )

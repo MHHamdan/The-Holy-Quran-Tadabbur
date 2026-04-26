@@ -284,7 +284,7 @@ export function ConceptSearchPanel({
                 <button
                   key={suggestion.key}
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="w-full px-3 py-2 text-left hover:bg-emerald-50 flex items-center justify-between"
+                  className="w-full px-3 py-2 text-start hover:bg-emerald-50 flex items-center justify-between"
                 >
                   <div>
                     <span className="font-medium text-gray-800">{suggestion.en[0]}</span>

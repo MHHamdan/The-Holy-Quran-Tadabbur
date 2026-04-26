@@ -6,3 +6,12 @@ export { useAsync, useAsyncCallback, type AsyncState, type UseAsyncOptions, type
 export { useGeolocation, type GeolocationState, type UseGeolocationOptions } from './useGeolocation';
 export { useDebounce, useDebouncedCallback, useThrottle, useThrottledCallback } from './useDebounce';
 export { useLocalStorage, useLocalStorageSync } from './useLocalStorage';
+export {
+  useTasmeeWebSocket,
+  type ProgressiveWord,
+  type MistakeAlert,
+  type RevealMode,
+  type TasmeeWSConfig,
+  type TasmeeWSState,
+  type TasmeeWSOptions,
+} from './useTasmeeWebSocket';

@@ -51,6 +51,10 @@ export interface SearchMatch {
   relevance_score: number;
   tfidf_score: number;
   exact_match: boolean;
+  /** "exact" | "normalized" | "root" | "semantic" | "metadata" */
+  match_type: string;
+  /** Always "quran_text" for direct text search results */
+  result_type?: string;
   word_role?: string;
   word_role_ar?: string;
   sentence_type?: string;
@@ -66,6 +70,37 @@ export interface EnhancedSearchResponse {
   sura_distribution: Record<number, number>;
   juz_distribution: Record<number, number>;
   related_terms: string[];
+}
+
+// Intelligent Semantic Search with Verse Grounding
+export interface GroundedVerse {
+  verse_id: number;
+  sura_no: number;
+  sura_name_ar: string;
+  sura_name_en: string;
+  aya_no: number;
+  reference: string;
+  text_uthmani: string;
+  text_imlaei: string;
+  page_no: number;
+  juz_no: number;
+  highlighted_text: string;  // Uthmani text with highlight markers
+  relevance_score: number;
+  grounding: string;  // Explanation of why this verse is relevant
+  matched_concepts: string[];
+  highlighted_terms: string[];
+}
+
+export interface IntelligentSearchResponse {
+  query: string;
+  query_language: 'ar' | 'en' | 'mixed';
+  expanded_concepts: string[];
+  total_matches: number;
+  search_time_ms: number;
+  summary: string;  // Brief summary of findings
+  verses: GroundedVerse[];
+  concept_distribution: Record<string, number>;
+  related_searches: string[];
 }
 
 export interface WordContextResponse {
@@ -254,6 +289,13 @@ export interface Citation {
   verse_reference: string;
   excerpt: string;
   relevance_score: number;
+  // Phase-2 enrichment
+  reliability_level?: 'canonical' | 'verified' | 'supporting' | 'experimental';
+  author?: string;
+  surah_number?: number;
+  ayah_number?: number;
+  quoted_evidence?: string;
+  explanation?: string;
 }
 
 export interface EvidenceChunk {
@@ -298,6 +340,8 @@ export interface TafsirExplanation {
   reliability_score: number;
 }
 
+export type RAGStatus = 'answered' | 'no_verified_source' | 'needs_clarification' | 'error';
+
 export interface RAGResponse {
   answer: string;
   citations: Citation[];
@@ -312,12 +356,15 @@ export interface RAGResponse {
     chunk_count: number;
     source_count: number;
   };
-  cached?: boolean;  // Indicates if response came from cache
-  // === NEW: Chat experience fields ===
-  session_id?: string;  // Session ID for conversation continuity
-  related_verses?: RelatedVerse[];  // Quranic verses displayed first
-  tafsir_by_source?: Record<string, TafsirExplanation[]>;  // Tafsir grouped by source
-  follow_up_suggestions?: string[];  // Suggested follow-up questions
+  cached?: boolean;
+  // Phase-2: explicit status and answer language
+  status?: RAGStatus;
+  answer_language?: 'ar' | 'en';
+  // Chat experience fields
+  session_id?: string;
+  related_verses?: RelatedVerse[];
+  tafsir_by_source?: Record<string, TafsirExplanation[]>;
+  follow_up_suggestions?: string[];
 }
 
 // Chat session types
@@ -357,6 +404,49 @@ export interface TafseerSourcesResponse {
   count: number;
 }
 
+// =============================================================================
+// Allah Names (أسماء الله الحسنى) Types
+// =============================================================================
+
+export interface NameVerseMatch {
+  sura_no: number;
+  aya_no: number;
+  reference: string;
+  text_uthmani: string;
+  highlighted_text: string;
+  tafseer_snippet: string;
+}
+
+export interface AllahNameResponse {
+  number: number;
+  name_ar: string;
+  name_simple: string;
+  transliteration: string;
+  meaning_en: string;
+  meaning_ar: string;
+  description_ar: string;
+  description_en: string;
+  category: string;
+  category_label_ar: string;
+  category_label_en: string;
+  verses: NameVerseMatch[];
+}
+
+export interface AllahNamesListResponse {
+  names: AllahNameResponse[];
+  total: number;
+}
+
+export type AllahNameCategory = 'dhat' | 'jamal' | 'jalal' | 'kamal' | "af'al";
+
+export const ALLAH_NAME_CATEGORIES: Record<AllahNameCategory, { ar: string; en: string }> = {
+  dhat: { ar: 'الذات', en: 'Essence' },
+  jamal: { ar: 'الجمال', en: 'Beauty' },
+  jalal: { ar: 'الجلال', en: 'Majesty' },
+  kamal: { ar: 'الكمال', en: 'Perfection' },
+  "af'al": { ar: 'الأفعال', en: 'Actions' },
+};
+
 // API functions
 export const quranApi = {
   getSuraVerses: (suraNo: number) =>
@@ -387,6 +477,16 @@ export const quranApi = {
     theme?: string;
   }) =>
     api.get<EnhancedSearchResponse>(`/quran/search/enhanced/${encodeURIComponent(word)}`, { params }),
+
+  // Intelligent Semantic Search with Verse Grounding
+  intelligentSearch: (query: string, params?: {
+    limit?: number;
+    include_related?: boolean;
+    lang?: string;
+  }) =>
+    api.get<IntelligentSearchResponse>(`/quran/search/intelligent`, {
+      params: { query, ...params }
+    }),
 
   getWordContext: (word: string, suraNo: number, ayaNo: number, includeGrammar?: boolean) =>
     api.get<WordContextResponse>(`/quran/search/enhanced/${encodeURIComponent(word)}/context/${suraNo}/${ayaNo}`, {
@@ -503,6 +603,16 @@ export const quranApi = {
 
   getSearchStats: () =>
     api.get<SearchStats>('/quran/history/stats'),
+
+  // Allah Names (أسماء الله الحسنى) API
+  getAllahNames: (params?: {
+    lang?: 'ar' | 'en';
+    name_number?: number;
+    category?: string;
+    include_verses?: boolean;
+    max_verses_per_name?: number;
+  }) =>
+    api.get<AllahNamesListResponse>('/quran/allah-names', { params }),
 };
 
 // Advanced Similarity Types
@@ -620,6 +730,7 @@ export interface StoryCluster {
   tags: string[];
   event_count: number;
   primary_sura: number | null;
+  summary_ar: string | null;
   summary_en: string | null;
 }
 

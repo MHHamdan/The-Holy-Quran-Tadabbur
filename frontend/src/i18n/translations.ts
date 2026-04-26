@@ -57,11 +57,15 @@ export const translations: Translations = {
     ar: 'المصحف',
     en: 'Mushaf',
   },
+  nav_status: {
+    ar: 'حالة المنصة',
+    en: 'Status',
+  },
 
   // Common
   app_title: {
-    ar: 'تدبر',
-    en: 'Tadabbur-AI',
+    ar: 'تدبر القرآن',
+    en: 'Taddabur Al-Quran',
   },
   app_subtitle: {
     ar: 'منصة معرفة قرآنية مبنية على المصادر',
@@ -191,6 +195,50 @@ export const translations: Translations = {
     ar: 'استكشف القصص القرآنية وترابطها عبر السور',
     en: 'Explore Quranic narratives and their connections across surahs',
   },
+  stories_search_placeholder: {
+    ar: 'ابحث عن قصة أو شخصية...',
+    en: 'Search stories or figures...',
+  },
+  stories_view_all: {
+    ar: 'عرض الكل',
+    en: 'View All',
+  },
+  stories_count: {
+    ar: 'قصة',
+    en: 'stories',
+  },
+  stories_verses: {
+    ar: 'آيات',
+    en: 'verses',
+  },
+  stories_surahs: {
+    ar: 'سور',
+    en: 'surahs',
+  },
+  category_prophets_desc: {
+    ar: 'قصص الأنبياء والمرسلين عليهم السلام',
+    en: 'Stories of the prophets and messengers',
+  },
+  category_parables_desc: {
+    ar: 'أمثال وعبر من القرآن الكريم',
+    en: 'Parables and moral lessons from the Quran',
+  },
+  category_nations_desc: {
+    ar: 'قصص الأمم والحضارات السابقة',
+    en: 'Stories of past nations and civilizations',
+  },
+  category_historical_desc: {
+    ar: 'أحداث تاريخية ذكرت في القرآن',
+    en: 'Historical events mentioned in the Quran',
+  },
+  category_righteous_desc: {
+    ar: 'قصص الصالحين والصالحات',
+    en: 'Stories of the righteous men and women',
+  },
+  category_unseen_desc: {
+    ar: 'عالم الغيب والآخرة والخلق',
+    en: 'The unseen realm, afterlife, and creation',
+  },
   story_segments: {
     ar: 'المقاطع',
     en: 'Segments',
@@ -232,6 +280,152 @@ export const translations: Translations = {
   category_historical: {
     ar: 'الأحداث التاريخية',
     en: 'Historical Events',
+  },
+
+  // Themes Page
+  themes_title: {
+    ar: 'المحاور القرآنية',
+    en: 'Quranic Themes',
+  },
+  themes_subtitle: {
+    ar: 'استكشف الموضوعات الأساسية في القرآن الكريم - مصنفة وفق المنهج السني',
+    en: 'Explore the foundational themes of the Quran - classified following Sunni methodology',
+  },
+  themes_no_results: {
+    ar: 'لا توجد محاور متاحة حالياً',
+    en: 'No themes available yet',
+  },
+  themes_run_seed: {
+    ar: 'قم بتشغيل seed_themes.py لإضافة البيانات',
+    en: 'Run seed_themes.py to add data',
+  },
+  themes_explore: {
+    ar: 'استكشاف المحور',
+    en: 'Explore Theme',
+  },
+  themes_segments: {
+    ar: 'مقطع',
+    en: 'segments',
+  },
+  themes_verses: {
+    ar: 'آية',
+    en: 'verses',
+  },
+  themes_rewards: {
+    ar: 'الجزاء والعاقبة',
+    en: 'Rewards & Consequences',
+  },
+  themes_tab: {
+    ar: 'المواضيع',
+    en: 'Themes',
+  },
+
+  // Allah Names (أسماء الله الحسنى)
+  allah_names_tab: {
+    ar: 'أسماء الله الحسنى',
+    en: 'Names of Allah',
+  },
+  allah_names_title: {
+    ar: 'أسماء الله الحسنى',
+    en: 'The 99 Beautiful Names of Allah',
+  },
+  allah_names_subtitle: {
+    ar: 'تعرف على أسماء الله الحسنى ومعانيها وشواهدها القرآنية',
+    en: 'Discover the Beautiful Names of Allah with their meanings and Quranic references',
+  },
+  allah_names_meaning: {
+    ar: 'المعنى',
+    en: 'Meaning',
+  },
+  allah_names_description: {
+    ar: 'التفسير',
+    en: 'Description',
+  },
+  allah_names_verses: {
+    ar: 'الآيات القرآنية',
+    en: 'Quranic Verses',
+  },
+  allah_names_tafseer: {
+    ar: 'التفسير',
+    en: 'Tafseer',
+  },
+  allah_names_no_results: {
+    ar: 'لا توجد أسماء متاحة حالياً',
+    en: 'No names available yet',
+  },
+  view_in_mushaf: {
+    ar: 'عرض في المصحف',
+    en: 'View in Mushaf',
+  },
+
+  // Story Atlas Page
+  atlas_title: {
+    ar: 'أطلس القصص القرآنية',
+    en: 'Quran Story Atlas',
+  },
+  atlas_subtitle: {
+    ar: 'استكشف قصص القرآن الكريم مرتبة حسب الشخصيات والأماكن والأزمنة',
+    en: 'Explore Quranic narratives organized by persons, places, and eras',
+  },
+  atlas_search: {
+    ar: 'ابحث في القصص...',
+    en: 'Search stories...',
+  },
+  atlas_stories_available: {
+    ar: 'قصة متاحة',
+    en: 'stories available',
+  },
+  atlas_no_results: {
+    ar: 'لا توجد قصص مطابقة للبحث',
+    en: 'No stories match your search',
+  },
+  atlas_try_adjusting: {
+    ar: 'جرب تغيير معايير البحث',
+    en: 'Try adjusting your filters',
+  },
+  atlas_events: {
+    ar: 'أحداث',
+    en: 'events',
+  },
+  atlas_surah: {
+    ar: 'سورة',
+    en: 'Surah',
+  },
+  atlas_explore: {
+    ar: 'استكشف القصة',
+    en: 'Explore Story',
+  },
+  atlas_back: {
+    ar: 'العودة للأطلس',
+    en: 'Back to Atlas',
+  },
+  atlas_related: {
+    ar: 'قصص متصلة',
+    en: 'Related Stories',
+  },
+  atlas_timeline: {
+    ar: 'الجدول الزمني',
+    en: 'Timeline',
+  },
+  atlas_graph: {
+    ar: 'الرسم البياني',
+    en: 'Graph',
+  },
+  atlas_lessons: {
+    ar: 'الدروس والعبر',
+    en: 'Lessons',
+  },
+  atlas_no_events: {
+    ar: 'لا توجد أحداث متاحة بعد',
+    en: 'No events available yet',
+  },
+  atlas_loading_graph: {
+    ar: 'جاري تحميل الرسم البياني...',
+    en: 'Loading graph...',
+  },
+  atlas_no_graph: {
+    ar: 'لا توجد بيانات للرسم البياني',
+    en: 'No graph data available',
   },
 
   // Ask/RAG
@@ -369,15 +563,87 @@ export const translations: Translations = {
     ar: 'آيات شائعة للبحث',
     en: 'Popular Verses to Explore',
   },
+
+  // =============================================================================
+  // Tasmeeʿ (Memorization) Page - صفحة التسميع
+  // =============================================================================
+  nav_tasmee: { ar: 'التسميع', en: 'Memorize' },
+  tasmee_title: { ar: 'التسميع', en: 'Tasmeeʿ' },
+  tasmee_subtitle: { ar: 'تدرب على حفظ القرآن الكريم مع التصحيح الفوري', en: 'Practice Quran memorization with real-time feedback' },
+  tasmee_select_range: { ar: 'اختر نطاق الآيات', en: 'Select Verse Range' },
+  tasmee_surah: { ar: 'السورة', en: 'Surah' },
+  tasmee_aya_start: { ar: 'من الآية', en: 'From Ayah' },
+  tasmee_aya_end: { ar: 'إلى الآية', en: 'To Ayah' },
+  tasmee_start_session: { ar: 'ابدأ التسميع', en: 'Start Session' },
+  tasmee_verses: { ar: 'الآيات', en: 'Verses' },
+  tasmee_progress: { ar: 'التقدم', en: 'Progress' },
+  tasmee_mistakes: { ar: 'الأخطاء', en: 'Mistakes' },
+  tasmee_time: { ar: 'الوقت', en: 'Time' },
+  tasmee_recording: { ar: 'جاري التسجيل...', en: 'Recording...' },
+  tasmee_paused: { ar: 'متوقف مؤقتاً', en: 'Paused' },
+  tasmee_tap_to_start: { ar: 'اضغط للبدء', en: 'Tap to start recording' },
+  tasmee_expected: { ar: 'المتوقع', en: 'Expected' },
+  tasmee_heard: { ar: 'المسموع', en: 'Heard' },
+  tasmee_reset: { ar: 'إعادة', en: 'Reset' },
+  tasmee_complete: { ar: 'إنهاء', en: 'Complete' },
+  tasmee_completed: { ar: 'أحسنت! لقد أكملت التسميع', en: 'Well done! Session completed' },
+  tasmee_accuracy: { ar: 'الدقة', en: 'Accuracy' },
+  tasmee_total_words: { ar: 'الكلمات', en: 'Words' },
+  tasmee_try_again: { ar: 'حاول مرة أخرى', en: 'Try Again' },
+  tasmee_mistakes_list: { ar: 'قائمة الأخطاء', en: 'Mistakes List' },
+  tasmee_mic_error: { ar: 'فشل الوصول للميكروفون. تأكد من السماح بالوصول.', en: 'Failed to access microphone. Please allow access.' },
+
+  // Reveal mode translations (progressive reveal feature)
+  reveal_mode: { ar: 'وضع الكشف', en: 'Reveal Mode' },
+  reveal_auto: { ar: 'تلقائي', en: 'Auto' },
+  reveal_tap: { ar: 'بالنقر', en: 'Smart Tap' },
+  reveal_hybrid: { ar: 'مختلط', en: 'Hybrid' },
+  words_per_tap: { ar: 'كلمات لكل نقرة', en: 'Words per tap' },
+  tap_to_reveal: { ar: 'انقر للكشف', en: 'Tap to reveal' },
+  hybrid_threshold: { ar: 'عتبة التحول', en: 'Switch threshold' },
+  show_full_text: { ar: 'إظهار النص الكامل', en: 'Show full text' },
+
+  // Status badges (platform status dashboard)
+  status_active: { ar: 'نشط', en: 'Active' },
+  status_error: { ar: 'خطأ', en: 'Error' },
+  status_checking: { ar: 'جارٍ التحقق', en: 'Checking' },
+  status_warning: { ar: 'تحذير', en: 'Warning' },
+
+  // Source attribution labels
+  source_unverified: { ar: 'غير موثق', en: 'Unverified' },
+  source_verified_on: { ar: 'موثق بتاريخ', en: 'Verified' },
+  source_link: { ar: 'المصدر', en: 'Source' },
+
+  // Accessibility / ARIA labels
+  aria_helpful: { ar: 'مفيد', en: 'Helpful' },
+  aria_not_helpful: { ar: 'غير مفيد', en: 'Not helpful' },
+
+  // Common inline labels
+  tafsir_explanations_header: { ar: 'شروحات التفسير', en: 'Tafsir Explanations' },
+  tafsir_sources_count: { ar: 'مصادر', en: 'sources' },
+  citation_sources_used: { ar: 'المصادر المستخدمة', en: 'Sources Used' },
+  answer_summary: { ar: 'ملخص الإجابة', en: 'Answer Summary' },
+  missing_source_warning: {
+    ar: 'لا يوجد مصدر موثق متاح لهذه الإجابة.',
+    en: 'No verified source available for this answer.',
+  },
+
+  // Search result type and match type labels
+  search_result_type_quran: { ar: 'نص قرآني', en: 'Quran Text' },
+  search_match_exact: { ar: 'تطابق تام', en: 'Exact Match' },
+  search_match_normalized: { ar: 'نص قرآني', en: 'Quran Text' },
+  search_match_root: { ar: 'مرتبط', en: 'Related' },
+  search_match_semantic: { ar: 'دلالي', en: 'Semantic' },
 };
 
 // Story categories translation map
 export const categoryTranslations: Record<string, { ar: string; en: string }> = {
-  prophet: { ar: 'قصص الأنبياء', en: 'Prophet' },
-  nation: { ar: 'قصص الأمم', en: 'Nation' },
-  parable: { ar: 'أمثال', en: 'Parable' },
-  historical: { ar: 'تاريخية', en: 'Historical' },
+  prophet: { ar: 'قصص الأنبياء', en: 'Prophets' },
+  nation: { ar: 'قصص الأمم', en: 'Nations' },
+  parable: { ar: 'أمثال وعبر', en: 'Parables' },
+  historical: { ar: 'أحداث تاريخية', en: 'Historical' },
   righteous: { ar: 'الصالحين', en: 'Righteous' },
+  unseen: { ar: 'الغيبيات', en: 'Unseen' },
 };
 
 // Theme translations - comprehensive list covering ALL semantic tags in data
@@ -843,6 +1109,71 @@ export const themeTranslations: Record<string, { ar: string; en: string }> = {
   shadow: { ar: 'الظلة', en: 'shadow' },
   shadow_day: { ar: 'يوم الظلة', en: 'shadow_day' },
   accusation: { ar: 'الاتهام', en: 'accusation' },
+
+  // New story themes
+  elevation: { ar: 'الرفعة', en: 'elevation' },
+  building_kaaba: { ar: 'بناء الكعبة', en: 'building the Ka\'bah' },
+  preference: { ar: 'التفضيل', en: 'preference' },
+  charity: { ar: 'الصدقة', en: 'charity' },
+  multiplication: { ar: 'المضاعفة', en: 'multiplication' },
+  tyranny: { ar: 'الطغيان', en: 'tyranny' },
+  transience: { ar: 'زوال الدنيا', en: 'transience' },
+  worldliness: { ar: 'الدنيا', en: 'worldliness' },
+  contrast: { ar: 'المقابلة', en: 'contrast' },
+  misguidance: { ar: 'الضلال', en: 'misguidance' },
+  divine_light: { ar: 'النور الإلهي', en: 'divine_light' },
+  light: { ar: 'النور', en: 'light' },
+  divine_attributes: { ar: 'الصفات الإلهية', en: 'divine_attributes' },
+  hereafter: { ar: 'الآخرة', en: 'hereafter' },
+  limbo: { ar: 'الأعراف', en: 'the heights' },
+  paradise: { ar: 'الجنة', en: 'paradise' },
+  eternal_bliss: { ar: 'النعيم الأبدي', en: 'eternal bliss' },
+  reward: { ar: 'الثواب', en: 'reward' },
+  accountability: { ar: 'المحاسبة', en: 'accountability' },
+  enmity: { ar: 'العداوة', en: 'enmity' },
+  fitrah: { ar: 'الفطرة', en: 'fitrah' },
+  hope: { ar: 'الرجاء', en: 'hope' },
+  concealment: { ar: 'الكتمان', en: 'concealment' },
+  hidden_knowledge: { ar: 'العلم الخفي', en: 'hidden knowledge' },
+  divine_kingdom: { ar: 'الملك الإلهي', en: 'divine kingdom' },
+  temptation: { ar: 'الفتنة', en: 'temptation' },
+  maternal_love: { ar: 'حنان الأم', en: 'maternal love' },
+  identity: { ar: 'الهوية', en: 'identity' },
+  divine_command: { ar: 'الأمر الإلهي', en: 'divine command' },
+  migration: { ar: 'الهجرة', en: 'migration' },
+  trust_in_allah: { ar: 'التوكل على الله', en: 'trust in Allah' },
+  divine_aid: { ar: 'المدد الإلهي', en: 'divine aid' },
+  mubahala: { ar: 'المباهلة', en: 'mubahala' },
+  dialogue: { ar: 'الحوار', en: 'dialogue' },
+  prophecy: { ar: 'النبوءة', en: 'prophecy' },
+  divine_knowledge: { ar: 'العلم الإلهي', en: 'divine knowledge' },
+  preservation: { ar: 'الحفظ', en: 'preservation' },
+  ingratitude: { ar: 'الجحود', en: 'ingratitude' },
+  blessings: { ar: 'النعم', en: 'blessings' },
+  defiance: { ar: 'التحدي', en: 'defiance' },
+  'she-camel': { ar: 'الناقة', en: 'she-camel' },
+  flood: { ar: 'الطوفان', en: 'flood' },
+  sabbath: { ar: 'السبت', en: 'sabbath' },
+  magic: { ar: 'السحر', en: 'magic' },
+  dream_interpretation: { ar: 'تفسير الأحلام', en: 'dream interpretation' },
+  chivalry: { ar: 'المروءة', en: 'chivalry' },
+  exile: { ar: 'المنفى', en: 'exile' },
+  divine_encounter: { ar: 'اللقاء الإلهي', en: 'divine encounter' },
+  companionship: { ar: 'الصحبة', en: 'companionship' },
+  divine_care: { ar: 'العناية الإلهية', en: 'divine care' },
+  truth_vs_falsehood: { ar: 'الحق والباطل', en: 'truth vs falsehood' },
+  subjugation: { ar: 'التسخير', en: 'subjugation' },
+  debate: { ar: 'المناظرة', en: 'debate' },
+  unseen_knowledge: { ar: 'علم الغيب', en: 'unseen knowledge' },
+  divine_admonition: { ar: 'العتاب الإلهي', en: 'divine admonition' },
+  equality: { ar: 'المساواة', en: 'equality' },
+  certainty: { ar: 'اليقين', en: 'certainty' },
+  loyalty: { ar: 'الوفاء', en: 'loyalty' },
+  "da'wah": { ar: 'الدعوة', en: "da'wah" },
+  grief: { ar: 'الحزن', en: 'grief' },
+  trials: { ar: 'الابتلاءات', en: 'trials' },
+  anger: { ar: 'الغضب', en: 'anger' },
+  disbelief: { ar: 'الكفر', en: 'disbelief' },
 };
 
 // Main figures translations
@@ -1016,6 +1347,23 @@ export const figureTranslations: Record<string, { ar: string; en: string }> = {
   // People of Aiyka
   'People of Aiyka': { ar: 'أصحاب الأيكة', en: 'People of Aiyka' },
   Shuayb: { ar: 'شعيب', en: "Shu'ayb" },
+
+  // New story figures
+  "Fir'awn": { ar: 'فرعون', en: 'Pharaoh' },
+  Haman: { ar: 'هامان', en: 'Haman' },
+  Samiri: { ar: 'السامري', en: 'As-Samiri' },
+  Khidr: { ar: 'الخضر', en: 'Al-Khidr' },
+  Bilqis: { ar: 'بلقيس', en: 'Bilqis' },
+  Jibril: { ar: 'جبريل', en: 'Jibril' },
+  Israfil: { ar: 'إسرافيل', en: 'Israfil' },
+  Nimrod: { ar: 'النمرود', en: 'Nimrod' },
+  Harut: { ar: 'هاروت', en: 'Harut' },
+  Marut: { ar: 'ماروت', en: 'Marut' },
+  "Ya'qub": { ar: 'يعقوب', en: "Ya'qub" },
+  'Mother of Musa': { ar: 'أم موسى', en: 'Mother of Musa' },
+  "Believer of Fir'awn": { ar: 'مؤمن آل فرعون', en: "Believer of Pharaoh's Family" },
+  "Bal'am ibn Ba'ura": { ar: 'بلعام بن باعوراء', en: "Bal'am ibn Ba'ura" },
+  "Imran's wife": { ar: 'امرأة عمران', en: "Wife of Imran" },
 };
 
 // Segment aspect/type translations
@@ -1336,28 +1684,30 @@ export const aspectTranslations: Record<string, { ar: string; en: string }> = {
   mushaf_verses_range: { ar: 'الآيات من {start} إلى {end}', en: 'Verses {start} to {end}' },
   mushaf_load_failed: { ar: 'فشل في تحميل الصفحة', en: 'Failed to load page' },
   mushaf_retry: { ar: 'إعادة المحاولة', en: 'Retry' },
+  mushaf_click_verse_hint: { ar: 'اضغط على أي آية لعرض التفسير والاستماع للتلاوة', en: 'Click on any verse to view tafseer and listen to recitation' },
+  tafseer_not_found: { ar: 'لم يتم العثور على التفسير', en: 'Tafseer not found' },
 
   // =============================================================================
   // AI Assistant - المساعد الذكي
   // =============================================================================
-  ai_assistant: { ar: 'المساعد الذكي', en: 'AI Assistant' },
-  ai_summary: { ar: 'ملخص', en: 'Summary' },
-  ai_explain: { ar: 'شرح', en: 'Explain' },
+  ai_assistant: { ar: 'اسأل الذكاء الاصطناعي', en: 'Ask AI' },
+  ai_summary: { ar: 'التلخيص', en: 'Summary' },
+  ai_explain: { ar: 'الشرح', en: 'Explain' },
   ai_qa: { ar: 'سؤال وجواب', en: 'Q&A' },
-  ai_generate_summary: { ar: 'إنشاء ملخص التفسير', en: 'Generate Tafsir Summary' },
+  ai_generate_summary: { ar: 'لخّص التفسير', en: 'Summarize Tafsir' },
   ai_select_verse: { ar: 'اختر آية للبدء', en: 'Select a verse to start' },
   ai_select_word: { ar: 'حدد كلمة للشرح', en: 'Select a word to explain' },
-  ai_select_word_hint: { ar: 'حدد كلمة من الآية أعلاه أو اكتب كلمة للشرح', en: 'Select a word from the verse above or type a word to explain' },
-  ai_enter_word: { ar: 'أدخل كلمة...', en: 'Enter a word...' },
-  ai_explanation_of: { ar: 'شرح "{word}"', en: 'Explanation of "{word}"' },
-  ai_ask_question: { ar: 'اسأل سؤالاً عن الآية...', en: 'Ask a question about the verse...' },
+  ai_select_word_hint: { ar: 'اختر كلمة من الآية أو اكتبها هنا', en: 'Select a word from the verse or type it here' },
+  ai_enter_word: { ar: 'اكتب الكلمة...', en: 'Enter a word...' },
+  ai_explanation_of: { ar: 'معنى كلمة: {word}', en: 'Meaning of: {word}' },
+  ai_ask_question: { ar: 'اكتب سؤالك هنا...', en: 'Type your question here...' },
   ai_suggested_questions: { ar: 'أسئلة مقترحة:', en: 'Suggested questions:' },
   ai_question_revelation: { ar: 'ما سبب نزول هذه الآية؟', en: 'What is the reason for revelation?' },
-  ai_question_lessons: { ar: 'ما الدروس المستفادة؟', en: 'What are the lessons learned?' },
-  ai_question_context: { ar: 'ما علاقة الآية بما قبلها؟', en: 'How does this relate to previous verses?' },
-  ai_unavailable: { ar: 'خدمة الذكاء الاصطناعي غير متاحة', en: 'AI service unavailable' },
-  ai_timeout: { ar: 'انتهت مهلة الطلب', en: 'Request timeout' },
-  ai_open_tafsir_first: { ar: 'افتح التفسير أولاً', en: 'Open tafsir first' },
+  ai_question_lessons: { ar: 'ما الدروس والعبر المستفادة من هذه الآية؟', en: 'What lessons can we learn from this verse?' },
+  ai_question_context: { ar: 'ما علاقة هذه الآية بما قبلها وما بعدها؟', en: 'How does this verse relate to its context?' },
+  ai_unavailable: { ar: 'الخدمة غير متاحة حالياً', en: 'Service unavailable' },
+  ai_timeout: { ar: 'انتهت مهلة الطلب، حاول مرة أخرى', en: 'Request timeout, please try again' },
+  ai_open_tafsir_first: { ar: 'اختر آية أولاً لعرض التفسير', en: 'Select a verse first to view tafsir' },
 
   // =============================================================================
   // Tafsir Audio - التفسير الصوتي

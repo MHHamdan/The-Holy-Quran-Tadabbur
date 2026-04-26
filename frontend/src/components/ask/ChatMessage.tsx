@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
-import { User, Bot, Clock, AlertTriangle, CheckCircle, Sparkles, Info, BookOpen, ExternalLink, Copy, Check, Share2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { User, Bot, Clock, AlertTriangle, CheckCircle, Sparkles, Info, BookOpen, ExternalLink, Copy, Check, Share2, ThumbsUp, ThumbsDown, HelpCircle, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
-import { RAGResponse } from '../../lib/api';
+import { RAGResponse, Citation } from '../../lib/api';
 import { VersesSection } from './VersesSection';
 import { TafsirAccordion } from './TafsirAccordion';
 import { FollowUpChips } from './FollowUpChips';
+import { MissingSourceWarning } from '../common/SourceBadge';
 
 export interface ChatMessageData {
   id: string;
@@ -66,6 +67,11 @@ function AssistantMessage({
 }) {
   const { response, isLoading, error } = message;
 
+  // Status-based routing (Phase 2)
+  const status = response?.status ?? (response?.citations?.length ? 'answered' : 'no_verified_source');
+  const isNoSource = status === 'no_verified_source';
+  const isNeedsClarity = status === 'needs_clarification';
+
   // Check if we have meaningful data
   const hasVerses = response?.related_verses && response.related_verses.length > 0;
   const hasTafsir = response?.tafsir_by_source && Object.keys(response.tafsir_by_source).length > 0;
@@ -88,9 +94,14 @@ function AssistantMessage({
         {/* Response content */}
         {response && (
           <>
+            {/* Needs clarification notice */}
+            {isNeedsClarity && (
+              <NeedsClarificationNotice language={language} />
+            )}
+
             {/* Warnings */}
             {response.warnings && response.warnings.length > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
                 {response.warnings.map((warning, i) => (
                   <p key={i} className="text-amber-800 text-sm flex items-start gap-2">
                     <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -100,30 +111,32 @@ function AssistantMessage({
               </div>
             )}
 
-            {/* No Data Notice - Show when retrieval returned nothing */}
-            {!hasEvidenceData && isLowConfidence && (
+            {/* No Data Notice - Show when retrieval returned nothing (legacy fallback) */}
+            {!hasEvidenceData && isLowConfidence && !isNoSource && (
               <NoDataNotice language={language} />
             )}
 
-            {/* Related verses - displayed first */}
-            {hasVerses && (
+            {/* Related verses - displayed first (only when we have a real answer) */}
+            {hasVerses && !isNoSource && (
               <VersesSection verses={response.related_verses!} language={language} />
             )}
 
             {/* Tafsir explanations - accordion */}
-            {hasTafsir && (
+            {hasTafsir && !isNoSource && (
               <TafsirAccordion tafsirBySources={response.tafsir_by_source!} language={language} />
             )}
 
-            {/* Main answer */}
+            {/* Main answer — always show (safe refusal text when no_verified_source) */}
             <AnswerCard response={response} language={language} />
 
-            {/* Citations summary (when we have them) */}
-            {hasCitations && (
-              <CitationsSummary
-                citations={response.citations}
-                language={language}
-              />
+            {/* Citation cards (Phase 2: richer display) */}
+            {hasCitations && !isNoSource && (
+              <CitationCards citations={response.citations} language={language} />
+            )}
+
+            {/* Missing source warning — driven by status */}
+            {(isNoSource || (!hasCitations && !isLoading && !error)) && (
+              <MissingSourceWarning language={language} />
             )}
 
             {/* Processing info */}
@@ -248,47 +261,120 @@ function NoDataNotice({ language }: { language: 'ar' | 'en' }) {
   );
 }
 
-function CitationsSummary({ citations, language }: { citations: RAGResponse['citations']; language: 'ar' | 'en' }) {
-  // Group citations by source
-  const sourceMap = new Map<string, typeof citations>();
-  citations.forEach(c => {
-    const existing = sourceMap.get(c.source_name) || [];
-    existing.push(c);
-    sourceMap.set(c.source_name, existing);
-  });
+function NeedsClarificationNotice({ language }: { language: 'ar' | 'en' }) {
+  return (
+    <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+      <div className="flex items-start gap-3">
+        <HelpCircle className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
+        <div>
+          <h4 className="text-sm font-medium text-indigo-800 mb-1">
+            {language === 'ar' ? 'يحتاج إلى توضيح' : 'Needs Clarification'}
+          </h4>
+          <p className="text-sm text-indigo-700">
+            {language === 'ar'
+              ? 'يرجى تحديد رقم الآية أو اسم السورة أو الموضوع حتى أتمكن من البحث في المصادر المناسبة.'
+              : 'Please specify a verse reference, surah name, or topic so I can find relevant sources.'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  const sources = Array.from(sourceMap.entries());
+const RELIABILITY_CONFIG = {
+  canonical: { label: 'Canonical', labelAr: 'متواتر', Icon: ShieldCheck, classes: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  verified: { label: 'Verified', labelAr: 'موثق', Icon: ShieldCheck, classes: 'bg-blue-50 text-blue-700 border-blue-200' },
+  supporting: { label: 'Supporting', labelAr: 'مساند', Icon: ShieldAlert, classes: 'bg-amber-50 text-amber-700 border-amber-200' },
+  experimental: { label: 'Experimental', labelAr: 'تجريبي', Icon: ShieldX, classes: 'bg-red-50 text-red-700 border-red-200' },
+};
 
-  if (sources.length === 0) return null;
+function CitationCard({ citation, language }: { citation: Citation; language: 'ar' | 'en' }) {
+  const [expanded, setExpanded] = useState(false);
+  const level = citation.reliability_level ?? 'verified';
+  const cfg = RELIABILITY_CONFIG[level as keyof typeof RELIABILITY_CONFIG] ?? RELIABILITY_CONFIG.verified;
+  const Icon = cfg.Icon;
+
+  const sourceName = language === 'ar' ? (citation.source_name_ar || citation.source_name) : citation.source_name;
+  const [sura, aya] = citation.verse_reference.split(':');
 
   return (
-    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-      <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden text-sm">
+      {/* Card header */}
+      <div className="flex items-start gap-2 px-3 py-2.5">
+        <span className={clsx('inline-flex items-center gap-1 border rounded-full px-1.5 py-0.5 text-xs font-medium shrink-0 mt-0.5', cfg.classes)}>
+          <Icon className="w-3 h-3" />
+          {language === 'ar' ? cfg.labelAr : cfg.label}
+        </span>
+        <div className="flex-1 min-w-0">
+          <Link
+            to={`/quran/${sura}?aya=${aya}&highlight=true`}
+            className="font-semibold text-gray-900 hover:text-primary-600 transition-colors truncate block"
+            dir={language === 'ar' ? 'rtl' : 'ltr'}
+          >
+            {sourceName}
+          </Link>
+          {citation.author && (
+            <span className="text-xs text-gray-500" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+              {citation.author}
+            </span>
+          )}
+        </div>
+        <Link
+          to={`/quran/${sura}?aya=${aya}&highlight=true`}
+          className="shrink-0 flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
+        >
+          {citation.verse_reference}
+          <ExternalLink className="w-3 h-3" />
+        </Link>
+      </div>
+
+      {/* Excerpt */}
+      {citation.excerpt && (
+        <div className="px-3 pb-2">
+          <p
+            className="text-xs text-gray-600 leading-relaxed line-clamp-2"
+            dir={language === 'ar' ? 'rtl' : 'ltr'}
+          >
+            {citation.excerpt}
+          </p>
+          {citation.quoted_evidence && citation.quoted_evidence !== citation.excerpt && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="text-xs text-primary-600 hover:underline mt-1"
+            >
+              {expanded
+                ? (language === 'ar' ? 'إخفاء' : 'Show less')
+                : (language === 'ar' ? 'عرض المزيد' : 'Show more')}
+            </button>
+          )}
+          {expanded && citation.quoted_evidence && (
+            <p
+              className="text-xs text-gray-600 leading-relaxed mt-1 border-t border-gray-100 pt-1"
+              dir={language === 'ar' ? 'rtl' : 'ltr'}
+            >
+              {citation.quoted_evidence}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CitationCards({ citations, language }: { citations: Citation[]; language: 'ar' | 'en' }) {
+  if (citations.length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
         <BookOpen className="w-4 h-4 text-primary-600" />
         {language === 'ar' ? 'المصادر المستخدمة' : 'Sources Used'}
+        <span className="text-xs text-gray-400 font-normal">({citations.length})</span>
       </h4>
-      <div className="flex flex-wrap gap-2">
-        {sources.map(([sourceName, sourceCitations]) => {
-          const firstCitation = sourceCitations[0];
-          const verseRef = firstCitation.verse_reference;
-          const [sura, aya] = verseRef.split(':');
-
-          return (
-            <Link
-              key={sourceName}
-              to={`/quran/${sura}?aya=${aya}&highlight=true`}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors text-sm"
-            >
-              <span className="font-medium text-gray-900">
-                {language === 'ar' ? firstCitation.source_name_ar || sourceName : sourceName}
-              </span>
-              <span className="text-primary-600 text-xs">
-                ({sourceCitations.length})
-              </span>
-              <ExternalLink className="w-3 h-3 text-gray-400" />
-            </Link>
-          );
-        })}
+      <div className="space-y-2">
+        {citations.map((c) => (
+          <CitationCard key={c.chunk_id} citation={c} language={language} />
+        ))}
       </div>
     </div>
   );
@@ -398,7 +484,7 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
                   ? 'bg-green-100 text-green-600'
                   : 'hover:bg-gray-200 text-gray-400 hover:text-gray-600 active:scale-95'
               )}
-              aria-label="Helpful"
+              aria-label={language === 'ar' ? 'مفيد' : 'Helpful'}
             >
               <ThumbsUp className="w-4 h-4" />
             </button>
@@ -410,7 +496,7 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
                   ? 'bg-red-100 text-red-600'
                   : 'hover:bg-gray-200 text-gray-400 hover:text-gray-600 active:scale-95'
               )}
-              aria-label="Not helpful"
+              aria-label={language === 'ar' ? 'غير مفيد' : 'Not helpful'}
             >
               <ThumbsDown className="w-4 h-4" />
             </button>

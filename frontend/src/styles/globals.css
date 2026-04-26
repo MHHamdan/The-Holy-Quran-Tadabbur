@@ -16,31 +16,68 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
 
-  /* RTL support */
-  [dir="rtl"] {
-    font-family: 'Amiri', 'Traditional Arabic', serif;
+  /* RTL support — apply Arabic font only to Arabic text nodes, not the whole page.
+     Navigation labels, source IDs, and technical terms remain in the sans-serif stack. */
+  [dir="rtl"] .font-arabic,
+  [dir="rtl"] .arabic-text,
+  [dir="rtl"] .verse-text,
+  [dir="rtl"] .font-mushaf,
+  [dir="rtl"] p:lang(ar),
+  [dir="rtl"] span:lang(ar) {
+    font-family: 'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', serif;
   }
 
   /* Arabic text styling */
   .arabic-text {
-    font-family: 'Amiri', 'Traditional Arabic', serif;
+    font-family: 'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', serif;
     font-size: 1.5rem;
-    line-height: 2.5;
+    line-height: 2.6;
     direction: rtl;
     text-align: right;
   }
 
-  /* Quran verse styling */
+  /* Quran verse styling - King Fahad Mushaf style */
   .verse-text {
-    font-family: 'Amiri', serif;
+    font-family: 'Amiri Quran', 'Scheherazade New', 'Amiri', serif;
     font-size: 1.75rem;
     line-height: 2.8;
     color: #1a1a2e;
   }
 
-  /* Arabic font for Quranic text */
+  /* Arabic font for Quranic text - King Fahad Mushaf style */
   .font-arabic {
-    font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade', serif;
+    font-family: 'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', serif;
+  }
+
+  /* King Fahad Mushaf specific font for Quran text */
+  .font-mushaf {
+    font-family: 'Amiri Quran', 'Scheherazade New', 'Noto Naskh Arabic', serif;
+    font-feature-settings: "liga" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Mushaf page styling - Traditional look */
+  .mushaf-page {
+    background: linear-gradient(135deg, #faf8f5 0%, #f5f0e8 100%);
+    border: 3px solid #8b7355;
+    box-shadow: inset 0 0 20px rgba(139, 115, 85, 0.1);
+  }
+
+  /* Ornamental border for Mushaf */
+  .mushaf-border {
+    border: 4px double #c9a959;
+    background: linear-gradient(135deg, #fffef9 0%, #faf5eb 100%);
+    box-shadow:
+      0 0 0 2px #8b6914,
+      0 4px 20px rgba(139, 105, 20, 0.15);
+  }
+
+  /* Verse number circle - traditional style */
+  .verse-number-circle {
+    background: linear-gradient(135deg, #c9a959 0%, #b8942e 100%);
+    border: 2px solid #8b6914;
+    box-shadow: 0 2px 4px rgba(139, 105, 20, 0.3);
   }
 
   /* Citation styling */
@@ -141,6 +178,17 @@
   }
 }
 
+@keyframes slideInRtl {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes pulse-soft {
   0%, 100% {
     opacity: 1;
@@ -177,6 +225,10 @@
   animation: slideIn 0.3s ease-out forwards;
 }
 
+[dir="rtl"] .animate-slideIn {
+  animation: slideInRtl 0.3s ease-out forwards;
+}
+
 .animate-pulse-soft {
   animation: pulse-soft 2s ease-in-out infinite;
 }
@@ -211,6 +263,33 @@
 .hover-lift:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================
+   Bilingual Typography
+   ============================ */
+
+/* Arabic prose in tafsir/citation containers */
+.tafsir-text {
+  font-family: 'Noto Naskh Arabic', 'Amiri', serif;
+  font-size: 1rem;
+  line-height: 2.2;
+  direction: rtl;
+  text-align: right;
+}
+
+/* Better spacing for Arabic block text (tafsir explanations) */
+[dir="rtl"] .prose,
+[dir="rtl"] .leading-relaxed {
+  line-height: 2.1;
+}
+
+/* Mixed-direction number/reference badges — always LTR */
+.verse-ref,
+.source-id,
+code {
+  direction: ltr;
+  unicode-bidi: embed;
 }
 
 /* ============================

@@ -1004,7 +1004,6 @@ export function SimilarityPage() {
     if (suraNo && ayaNo && data) {
       loadSimilarVerses(suraNo, ayaNo);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTheme, selectedConnectionType, excludeSameSura, minScore]);
 
   // Load from URL params on mount
@@ -1017,7 +1016,6 @@ export function SimilarityPage() {
         loadSimilarVerses(parsed.sura, parsed.aya);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Group matches

@@ -11,16 +11,21 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect, memo } from 'react';
 import { Layout } from './components/layout/Layout';
 import { Loader2 } from 'lucide-react';
+import { useLanguageStore } from './stores/languageStore';
+import { t } from './i18n/translations';
 
 // =============================================================================
 // Loading Component - Optimized for perceived performance
 // =============================================================================
 
 const PageLoader = memo(function PageLoader() {
+  const { language } = useLanguageStore();
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center">
       <Loader2 className="w-10 h-10 text-emerald-600 animate-spin mb-4" />
-      <p className="text-gray-600 font-arabic">جاري التحميل...</p>
+      <p className={`text-gray-600 ${language === 'ar' ? 'font-arabic' : ''}`}>
+        {t('loading', language)}
+      </p>
     </div>
   );
 });
@@ -43,8 +48,6 @@ const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ default:
 // Stories feature
 const StoriesPage = lazy(() => import('./pages/StoriesPage').then(m => ({ default: m.StoriesPage })));
 const StoryDetailPage = lazy(() => import('./pages/StoryDetailPage').then(m => ({ default: m.StoryDetailPage })));
-const StoryAtlasPage = lazy(() => import('./pages/StoryAtlasPage').then(m => ({ default: m.StoryAtlasPage })));
-const StoryAtlasDetailPage = lazy(() => import('./pages/StoryAtlasDetailPage').then(m => ({ default: m.StoryAtlasDetailPage })));
 
 // Concepts feature
 const ConceptsPage = lazy(() => import('./pages/ConceptsPage').then(m => ({ default: m.ConceptsPage })));
@@ -60,6 +63,9 @@ const MiraclesPage = lazy(() => import('./pages/MiraclesPage').then(m => ({ defa
 const SimilarityPage = lazy(() => import('./pages/SimilarityPage').then(m => ({ default: m.SimilarityPage })));
 const SourcesPage = lazy(() => import('./pages/SourcesPage').then(m => ({ default: m.SourcesPage })));
 
+// Tasmeeʿ (Memorization) - Audio recording with STT
+const TasmeePage = lazy(() => import('./pages/TasmeePage'));
+
 // Tools pages (bundled together)
 const ToolsPage = lazy(() => import('./pages/ToolsPage').then(m => ({ default: m.ToolsPage })));
 const ZakatCalculatorPage = lazy(() => import('./pages/tools/ZakatCalculatorPage').then(m => ({ default: m.ZakatCalculatorPage })));
@@ -71,6 +77,9 @@ const HajjUmrahGuidePage = lazy(() => import('./pages/tools/HajjUmrahGuidePage')
 const IslamicWebSearchPage = lazy(() => import('./pages/tools/IslamicWebSearchPage').then(m => ({ default: m.IslamicWebSearchPage })));
 const PrayerTimesPage = lazy(() => import('./pages/tools/PrayerTimesPage').then(m => ({ default: m.PrayerTimesPage })));
 const HijriCalendarPage = lazy(() => import('./pages/tools/HijriCalendarPage').then(m => ({ default: m.HijriCalendarPage })));
+
+// Admin / Status
+const StatusDashboardPage = lazy(() => import('./pages/admin/StatusDashboardPage').then(m => ({ default: m.StatusDashboardPage })));
 
 // =============================================================================
 // Preloading - Predictive loading for common navigation paths
@@ -147,8 +156,6 @@ function App() {
           {/* Stories */}
           <Route path="/stories" element={<StoriesPage />} />
           <Route path="/stories/:storyId" element={<StoryDetailPage />} />
-          <Route path="/story-atlas" element={<StoryAtlasPage />} />
-          <Route path="/story-atlas/:clusterId" element={<StoryAtlasDetailPage />} />
 
           {/* Concepts */}
           <Route path="/concepts" element={<ConceptsPage />} />
@@ -164,6 +171,9 @@ function App() {
           <Route path="/similarity" element={<SimilarityPage />} />
           <Route path="/sources" element={<SourcesPage />} />
 
+          {/* Tasmeeʿ (Memorization) */}
+          <Route path="/tasmee" element={<TasmeePage />} />
+
           {/* Tools */}
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="/tools/prayer-times" element={<PrayerTimesPage />} />
@@ -175,6 +185,9 @@ function App() {
           <Route path="/tools/books" element={<IslamicBooksPage />} />
           <Route path="/tools/trips" element={<HajjUmrahGuidePage />} />
           <Route path="/tools/web" element={<IslamicWebSearchPage />} />
+
+          {/* Admin / Status Dashboard */}
+          <Route path="/status" element={<StatusDashboardPage />} />
         </Routes>
       </Suspense>
     </Layout>

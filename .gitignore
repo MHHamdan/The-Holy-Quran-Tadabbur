@@ -4,6 +4,10 @@ __pycache__/
 .env
 .venv/
 
+# Runtime artefacts from scripts/start_all.sh
+.pids/
+logs/
+
 # Node / frontend
 node_modules/
 dist/
@@ -11,6 +15,9 @@ build/
 
 # Data (usually large / private)
 data/
+
+# But INCLUDE streamlit_data for cloud deployment
+!streamlit_data/
 
 # OS
 .DS_Store

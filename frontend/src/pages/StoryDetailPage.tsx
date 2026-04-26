@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Book, Network, List, Users, Tag, ChevronDown, ChevronUp, ExternalLink, BarChart3, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Book, Network, List, Users, Tag, ChevronDown, ChevronUp, ExternalLink, BarChart3, Lightbulb, Baby, GraduationCap, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t, translateCategory, translateTheme, translateFigure, translateAspect } from '../i18n/translations';
 import { storiesApi, quranApi, StoryDetail, StoryGraph, Verse, StorySegment } from '../lib/api';
@@ -8,6 +8,8 @@ import { StoryGraphView } from '../components/stories/StoryGraphView';
 import { ThematicFlow } from '../components/stories/ThematicFlow';
 import { NarrativeInsights } from '../components/stories/NarrativeInsights';
 import { RelatedStories } from '../components/stories/RelatedStories';
+import { getStoryById } from '../data/quranStories';
+import type { AudienceLevel, QuranStory } from '../types/quranStory';
 import clsx from 'clsx';
 
 type ViewMode = 'list' | 'graph' | 'themes' | 'insights';
@@ -24,9 +26,13 @@ export function StoryDetailPage() {
   const [graphData, setGraphData] = useState<StoryGraph | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [audienceLevel, setAudienceLevel] = useState<AudienceLevel>('adults');
   const [segmentVerses, setSegmentVerses] = useState<SegmentVerses>({});
   const [expandedSegments, setExpandedSegments] = useState<Set<string>>(new Set());
   const [loadingVerses, setLoadingVerses] = useState<Set<string>>(new Set());
+
+  // Rich story data from local seed (if available)
+  const richStory: QuranStory | undefined = storyId ? getStoryById(storyId) : undefined;
 
   useEffect(() => {
     if (storyId) {
@@ -163,6 +169,314 @@ export function StoryDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Audience Level Toggle — shown when rich story data is available */}
+      {richStory && (
+        <div className="card mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">
+                {language === 'ar' ? 'مستوى العرض' : 'Reading Level'}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {language === 'ar'
+                  ? 'اختر المستوى المناسب لك'
+                  : 'Choose the level that suits you'}
+              </p>
+            </div>
+            <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+              <button
+                onClick={() => setAudienceLevel('kids')}
+                className={clsx(
+                  'flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
+                  audienceLevel === 'kids'
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                )}
+              >
+                <Baby className="w-4 h-4" />
+                {language === 'ar' ? 'للأطفال' : 'Kids'}
+              </button>
+              <button
+                onClick={() => setAudienceLevel('adults')}
+                className={clsx(
+                  'flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
+                  audienceLevel === 'adults'
+                    ? 'bg-primary-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                )}
+              >
+                <GraduationCap className="w-4 h-4" />
+                {language === 'ar' ? 'للكبار' : 'Adults'}
+              </button>
+            </div>
+          </div>
+
+          {/* Level description */}
+          <div className={clsx(
+            'mt-4 p-3 rounded-lg text-sm',
+            audienceLevel === 'kids' ? 'bg-amber-50 text-amber-800' : 'bg-primary-50 text-primary-800'
+          )}>
+            {audienceLevel === 'kids' ? (
+              language === 'ar'
+                ? 'عرض مبسط للأطفال: لغة سهلة، دروس واضحة، مناسب لجميع الأعمار.'
+                : 'Simple presentation for children: easy language, clear lessons, appropriate for all ages.'
+            ) : (
+              language === 'ar'
+                ? 'عرض متعمق للكبار: سياق عبر السور، مصادر التفسير، الدروس والمواضيع.'
+                : 'In-depth presentation for adults: cross-surah context, tafsir sources, lessons and themes.'
+            )}
+          </div>
+
+          {/* Needs review notice */}
+          {richStory.reliabilityLevel === 'supporting' && (
+            <div className="mt-3 flex items-start gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <AlertTriangle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-yellow-800">
+                {language === 'ar'
+                  ? 'هذه الشروح تحتاج إلى مراجعة علمية قبل اعتمادها. المراجع القرآنية موثقة والتفاصيل قيد المراجعة.'
+                  : 'These explanations require scholarly review before full approval. Quranic references are documented; details are pending verification.'}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Rich story segments — shown when first-batch data is available */}
+      {richStory && viewMode === 'list' && (
+        <div className="space-y-4 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {language === 'ar' ? 'مقاطع القصة' : 'Story Segments'}
+            <span className="text-sm font-normal text-gray-500 ml-2">
+              ({richStory.storySegments.length})
+            </span>
+          </h2>
+
+          {richStory.storySegments
+            .sort((a, b) => a.sequenceOrder - b.sequenceOrder)
+            .map((segment) => {
+              const isRejected = segment.sunniReview.status === 'rejected';
+              const needsReview = segment.sunniReview.status === 'needs_review';
+              const humanReviewReq = segment.sunniReview.humanReviewRequired;
+              const missingEvidence = (needsReview || humanReviewReq) && segment.sunniReview.matchedEvidence.length === 0;
+
+              if (isRejected) return null;
+
+              const summary = audienceLevel === 'kids'
+                ? (language === 'ar' ? segment.summaryKidsArabic : segment.summaryKidsEnglish)
+                : (language === 'ar' ? segment.summaryAdultsArabic : segment.summaryAdultsEnglish);
+
+              const lessons = language === 'ar' ? segment.lessonsArabic : segment.lessonsEnglish;
+              const ref = `${segment.surahNumber}:${segment.ayahStart}${segment.ayahEnd !== segment.ayahStart ? `–${segment.ayahEnd}` : ''}`;
+
+              return (
+                <div key={segment.segmentId} className={clsx(
+                  'card border-l-4',
+                  (needsReview || humanReviewReq) ? 'border-l-yellow-400' : 'border-l-primary-500'
+                )}>
+                  {/* Segment Header */}
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-7 h-7 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {segment.sequenceOrder}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <h3 className="font-semibold text-gray-900">
+                          {language === 'ar' ? segment.titleArabic : segment.titleEnglish}
+                        </h3>
+                        <Link
+                          to={`/quran/${segment.surahNumber}?aya=${segment.ayahStart}`}
+                          className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full hover:bg-primary-100 transition-colors"
+                        >
+                          {ref}
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Review Status Warning — shown for needs_review or humanReviewRequired; NOT hidden by audience level */}
+                  {(needsReview || humanReviewReq) && (
+                    <div
+                      role="alert"
+                      aria-label={language === 'ar' ? 'تحذير: مراجعة معلقة' : 'Warning: Pending Review'}
+                      className="flex items-start gap-2 p-3 bg-yellow-50 rounded-lg border-2 border-yellow-300 mb-3"
+                    >
+                      <AlertTriangle className="w-4 h-4 text-yellow-700 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-yellow-900 mb-0.5">
+                          {language === 'ar' ? 'بانتظار المراجعة العلمية' : 'Pending Scholarly Review'}
+                        </p>
+                        <p className="text-xs text-yellow-800">
+                          {language === 'ar'
+                            ? 'هذا الشرح لم يُراجَع علمياً بعد ولا يُعدّ محتوىً معتمداً.'
+                            : 'This explanation has not been scholarly reviewed and is not approved content.'}
+                        </p>
+                        {humanReviewReq && (
+                          <p className="text-xs text-yellow-700 mt-1 font-medium">
+                            {language === 'ar' ? '⚠ مطلوب مراجعة بشرية قبل النشر' : '⚠ Human review required before publishing'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Missing source evidence warning */}
+                  {missingEvidence && (
+                    <div className="flex items-center gap-2 p-2 bg-orange-50 rounded border border-orange-200 mb-3">
+                      <AlertTriangle className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
+                      <p className="text-xs text-orange-700">
+                        {language === 'ar'
+                          ? 'لم تُربط الأدلة المصدرية بعد.'
+                          : 'Source evidence not yet linked.'}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Summary */}
+                  <p
+                    className="text-gray-700 text-sm leading-relaxed mb-3"
+                    dir={language === 'ar' ? 'rtl' : 'ltr'}
+                  >
+                    {summary}
+                  </p>
+
+                  {/* Lessons */}
+                  {lessons.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        {language === 'ar' ? 'الدروس المستفادة' : 'Lessons'}
+                      </p>
+                      <ul className="space-y-1">
+                        {lessons.map((lesson, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                            <CheckCircle className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+                            <span dir={language === 'ar' ? 'rtl' : 'ltr'}>{lesson}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Source attribution */}
+                  {segment.sourceIds.length > 0 ? (
+                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2 flex-wrap">
+                      <Book className="w-3.5 h-3.5 text-gray-400" />
+                      <span className="text-xs text-gray-500">
+                        {language === 'ar' ? 'المصادر: ' : 'Sources: '}
+                        {segment.sourceIds.join(', ')}
+                      </span>
+                      {segment.sunniReview.disagreementNotes.length > 0 && (
+                        <span className="text-xs text-orange-600 ml-2">
+                          ⚠ {language === 'ar' ? 'خلاف علمي' : 'Scholarly disagreement noted'}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
+                      <AlertTriangle className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
+                      <span className="text-xs text-orange-600">
+                        {language === 'ar' ? 'لم تُحدَّد مصادر لهذا المقطع بعد' : 'No sources identified for this segment yet'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* View in Quran link */}
+                  <div className="mt-2">
+                    <Link
+                      to={`/quran/${segment.surahNumber}?aya=${segment.ayahStart}`}
+                      className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 transition-colors"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      {language === 'ar' ? 'عرض في المصحف' : 'View in Quran'}
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+
+          {/* Rich related stories with evidence references */}
+          {richStory.relatedStories.length > 0 && (
+            <div className="card border border-amber-200 bg-amber-50/30">
+              <div className="flex items-center gap-2 mb-3">
+                <Network className="w-4 h-4 text-primary-600" />
+                <h3 className="text-sm font-semibold text-gray-800">
+                  {language === 'ar' ? 'القصص ذات الصلة' : 'Related Stories'}
+                </h3>
+                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full border border-yellow-200 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {language === 'ar' ? 'مراجعة معلقة' : 'Pending Review'}
+                </span>
+              </div>
+              <p className="text-xs text-amber-700 mb-3 flex items-start gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                {language === 'ar'
+                  ? 'صلات القصص لم تُراجع علمياً بعد. الأدلة القرآنية الموثقة مذكورة لكل صلة.'
+                  : 'Story connections have not yet been reviewed. Documented Quranic references are shown for each connection.'}
+              </p>
+              <div className="space-y-3">
+                {richStory.relatedStories.map((related) => (
+                  <div key={related.storyId} className="p-3 rounded-lg bg-white border border-gray-200">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <Link
+                        to={`/stories/${related.storyId}`}
+                        className="text-sm font-medium text-primary-700 hover:text-primary-900 transition-colors"
+                      >
+                        {related.storyId}
+                      </Link>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                        {related.relationType.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-2 leading-relaxed" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                      {language === 'ar' ? related.explanationArabic : related.explanationEnglish}
+                    </p>
+                    {related.evidenceReferences.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 items-center">
+                        <span className="text-xs text-gray-500">
+                          {language === 'ar' ? 'الأدلة:' : 'Evidence:'}
+                        </span>
+                        {related.evidenceReferences.map((ev, idx) => (
+                          <Link
+                            key={idx}
+                            to={`/quran/${ev.surahNumber}?aya=${ev.ayahStart}`}
+                            className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full hover:bg-primary-100 transition-colors"
+                          >
+                            {ev.surahNumber}:{ev.ayahStart}{ev.ayahEnd !== ev.ayahStart ? `–${ev.ayahEnd}` : ''}
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-xs text-orange-600">
+                        <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+                        {language === 'ar' ? 'لا توجد أدلة قرآنية محددة لهذه الصلة' : 'No Quranic evidence references for this connection'}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sources section */}
+          <div className="card bg-gray-50">
+            <h3 className="font-semibold text-gray-700 mb-2 text-sm">
+              {language === 'ar' ? 'المصادر المرجعية' : 'Reference Sources'}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {richStory.sourceIds.map((sid) => (
+                <span key={sid} className="text-xs bg-white border border-gray-200 text-gray-600 px-2 py-1 rounded">
+                  {sid}
+                </span>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              {language === 'ar'
+                ? 'جميع التفاسير المذكورة تفاسير سنية معتمدة. الشروح بحاجة لمراجعة قبل النشر الكامل.'
+                : 'All listed tafsirs are approved Sunni sources. Explanations require review before full production release.'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* View Toggle */}
       <div className="flex items-center gap-4 mb-6">

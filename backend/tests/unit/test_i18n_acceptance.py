@@ -155,8 +155,13 @@ class TestTranslationCompleteness:
         content = translations_path.read_text(encoding='utf-8')
         entries = extract_translation_entries(content)
 
+        # Keys whose Arabic values are intentionally non-Arabic (e.g. language name labels)
+        INTENTIONALLY_ENGLISH_KEYS = {'lang_toggle_en'}
+
         invalid_ar = []
         for key, values in entries.items():
+            if key in INTENTIONALLY_ENGLISH_KEYS:
+                continue
             ar_value = values.get('ar', '')
             if ar_value and not has_arabic_characters(ar_value):
                 invalid_ar.append((key, ar_value))
@@ -167,13 +172,16 @@ class TestTranslationCompleteness:
     def test_no_english_leaks_in_arabic_values(self, translations_path):
         """
         Arabic values should not contain English words.
-        Exceptions: technical terms, proper nouns in brackets.
+        Exceptions: technical terms, proper nouns in brackets, template variables, script names.
         """
         if not translations_path.exists():
             pytest.skip("Translations file not found")
 
         content = translations_path.read_text(encoding='utf-8')
         entries = extract_translation_entries(content)
+
+        # Keys whose Arabic values are legitimately English (language toggle labels)
+        INTENTIONALLY_ENGLISH_KEYS = {'lang_toggle_en'}
 
         # Allowed English words (technical terms, proper nouns)
         allowed_english = {
@@ -183,13 +191,22 @@ class TestTranslationCompleteness:
 
         english_leaks = []
         for key, values in entries.items():
+            if key in INTENTIONALLY_ENGLISH_KEYS:
+                continue
             ar_value = values.get('ar', '')
-            if ar_value and has_english_words(ar_value):
-                # Check if it's an allowed term
-                found_words = re.findall(r'[a-zA-Z]{3,}', ar_value)
-                disallowed = [w for w in found_words if w.upper() not in allowed_english]
-                if disallowed:
-                    english_leaks.append((key, ar_value, disallowed))
+            if not ar_value or not has_english_words(ar_value):
+                continue
+            # Strip template variables like {word}, {start}, {end} before checking
+            stripped = re.sub(r'\{[^}]+\}', '', ar_value)
+            # Strip Python script names (*.py references)
+            stripped = re.sub(r'\S+\.py', '', stripped)
+            if not has_english_words(stripped):
+                continue
+            # Check if remaining words are allowed terms
+            found_words = re.findall(r'[a-zA-Z]{3,}', stripped)
+            disallowed = [w for w in found_words if w.upper() not in allowed_english]
+            if disallowed:
+                english_leaks.append((key, ar_value, disallowed))
 
         assert len(english_leaks) == 0, \
             f"English words found in Arabic translations: {english_leaks}"

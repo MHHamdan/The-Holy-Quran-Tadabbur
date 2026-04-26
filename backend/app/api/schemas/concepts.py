@@ -332,7 +332,7 @@ class TafsirEvidenceResponse(BaseModel):
 
 class VerificationTaskCreate(BaseModel):
     """Request to create a verification task."""
-    entity_type: Literal["concept", "miracle", "occurrence", "association"]
+    entity_type: Literal["concept", "miracle", "occurrence", "association", "grammar", "tafsir"]
     entity_id: str
     proposed_change: dict
     evidence_refs: Optional[dict] = None
@@ -346,7 +346,7 @@ class VerificationTaskResponse(BaseModel):
     entity_id: str
     proposed_change: dict
     evidence_refs: Optional[dict] = None
-    status: VerificationStatus
+    status: str
     priority: int
     created_by: Optional[str] = None
     created_at: str
@@ -362,10 +362,11 @@ class VerificationDecisionCreate(BaseModel):
 
 class VerificationDecisionResponse(BaseModel):
     """Response after verification decision."""
-    ok: bool = True
+    id: int
     task_id: int
+    admin_id: str
     decision: str
-    decided_by: str
+    notes: Optional[str] = None
     decided_at: str
 
 

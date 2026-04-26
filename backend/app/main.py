@@ -17,7 +17,7 @@ from pydantic import ValidationError
 
 from app.core.config import settings
 from app.core.responses import APIError, ErrorCode, error_response, ErrorDetail
-from app.api.routes import quran, stories, rag, health, translation, story_atlas, concepts, grammar, kg, tafseer, search, admin, graph, streaming, performance, rhetoric, themes
+from app.api.routes import quran, stories, rag, health, translation, story_atlas, concepts, grammar, kg, tafseer, search, admin, graph, streaming, performance, rhetoric, themes, tasmee
 
 # Configure structured logging
 logging.basicConfig(
@@ -76,9 +76,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
+        "http://localhost:5174",
         "http://127.0.0.1:3000",
+        "http://127.0.0.1:5174",
         "http://172.24.50.21:3000",
-        "http://172.24.50.21:5173",  # Vite dev server
+        "http://172.24.50.21:5173",
+        "http://172.24.50.21:5174",
+        "http://172.24.50.21:8002",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -198,6 +202,7 @@ app.include_router(streaming.router, prefix="/api/v1", tags=["Streaming"])
 app.include_router(performance.router, prefix="/api/v1", tags=["Performance"])
 app.include_router(rhetoric.router, prefix="/api/v1/rhetoric", tags=["Rhetoric"])
 app.include_router(themes.router, prefix="/api/v1/themes", tags=["Quranic Themes"])
+app.include_router(tasmee.router, prefix="/api/v1/tasmee", tags=["Tasmee (Memorization)"])
 
 
 @app.get("/")

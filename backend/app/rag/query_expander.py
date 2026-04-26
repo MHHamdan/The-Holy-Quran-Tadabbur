@@ -420,6 +420,31 @@ class QueryExpander:
         """Classify query intent from query text."""
         q_lower = query.lower()
 
+        # Story patterns (checked before generic verse_meaning to avoid "what is the story of X" mismatch)
+        story_patterns = [
+            "story", "prophet", "narrative", "قصة", "قصص", "نبي", "أنبياء",
+            "حكاية", "رواية", "سيرة",
+        ]
+        if any(pattern in q_lower for pattern in story_patterns):
+            return QueryIntent.STORY_EXPLORATION
+
+        # Linguistic patterns (checked before generic verse_meaning to avoid "what is the root of X" mismatch)
+        linguistic_patterns = [
+            "root", "grammar", "جذر", "نحو",
+            "لغة", "صرف", "اعراب", "etymology",
+        ]
+        if any(pattern in q_lower for pattern in linguistic_patterns):
+            return QueryIntent.LINGUISTIC
+
+        # Ruling patterns
+        ruling_patterns = [
+            "ruling", "halal", "haram", "allowed", "forbidden", "permissible",
+            "حكم", "أحكام", "حلال", "حرام", "جائز", "محرم",
+            "فتوى", "فقه", "شرعي",
+        ]
+        if any(pattern in q_lower for pattern in ruling_patterns):
+            return QueryIntent.RULING
+
         # Verse meaning patterns (Arabic and English)
         verse_meaning_patterns = [
             # English
@@ -433,14 +458,6 @@ class QueryExpander:
         ]
         if any(pattern in q_lower for pattern in verse_meaning_patterns):
             return QueryIntent.VERSE_MEANING
-
-        # Story patterns
-        story_patterns = [
-            "story", "prophet", "narrative", "قصة", "قصص", "نبي", "أنبياء",
-            "حكاية", "رواية", "سيرة",
-        ]
-        if any(pattern in q_lower for pattern in story_patterns):
-            return QueryIntent.STORY_EXPLORATION
 
         # Theme patterns
         theme_patterns = [
@@ -456,23 +473,6 @@ class QueryExpander:
         ]
         if any(pattern in q_lower for pattern in comparative_patterns):
             return QueryIntent.COMPARATIVE
-
-        # Linguistic patterns
-        linguistic_patterns = [
-            "root", "word", "grammar", "جذر", "كلمة", "نحو",
-            "لغة", "صرف", "اعراب", "etymology",
-        ]
-        if any(pattern in q_lower for pattern in linguistic_patterns):
-            return QueryIntent.LINGUISTIC
-
-        # Ruling patterns
-        ruling_patterns = [
-            "ruling", "halal", "haram", "allowed", "forbidden", "permissible",
-            "حكم", "أحكام", "حلال", "حرام", "جائز", "محرم",
-            "فتوى", "فقه", "شرعي",
-        ]
-        if any(pattern in q_lower for pattern in ruling_patterns):
-            return QueryIntent.RULING
 
         return QueryIntent.VERSE_MEANING  # Default for Quranic questions
 

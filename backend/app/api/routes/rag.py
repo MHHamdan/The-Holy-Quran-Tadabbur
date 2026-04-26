@@ -131,6 +131,13 @@ class Citation(BaseModel):
     verse_reference: str
     excerpt: str
     relevance_score: float
+    # Phase-2 enrichment
+    reliability_level: Optional[str] = None
+    author: Optional[str] = None
+    surah_number: Optional[int] = None
+    ayah_number: Optional[int] = None
+    quoted_evidence: Optional[str] = None
+    explanation: Optional[str] = None
 
 
 class EvidenceChunk(BaseModel):
@@ -205,14 +212,13 @@ class GroundedResponse(BaseModel):
     cached: bool = False
     # API version for compatibility
     api_version: Optional[str] = None
-    # === NEW: Chat experience fields ===
-    # Session ID for conversation continuity
+    # Phase-2: explicit status and answer language
+    status: str = "answered"          # answered|no_verified_source|needs_clarification|error
+    answer_language: str = "en"       # ar|en
+    # === Chat experience fields ===
     session_id: Optional[str] = None
-    # Related Quranic verses - displayed first
     related_verses: List[RelatedVerseResponse] = []
-    # Tafsir explanations grouped by source for accordion display
-    tafsir_by_source: Optional[dict] = None  # Dict[str, List[TafsirExplanationResponse]]
-    # Follow-up question suggestions
+    tafsir_by_source: Optional[dict] = None
     follow_up_suggestions: List[str] = []
 
 

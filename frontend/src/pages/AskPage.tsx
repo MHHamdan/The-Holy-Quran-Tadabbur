@@ -339,7 +339,7 @@ export function AskPage() {
         <div className="mt-3 sm:mt-4">
           <button
             onClick={() => setShowSourceSelector(!showSourceSelector)}
-            className="w-full flex items-center justify-between text-left p-2.5 sm:p-3 min-h-[44px] bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-full flex items-center justify-between text-start p-2.5 sm:p-3 min-h-[44px] bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <div className="flex items-center gap-2">
               <Settings2 className="w-4 h-4 text-primary-600" />
@@ -484,7 +484,7 @@ export function AskPage() {
                 >
                   {loadingSuggestions && (
                     <div className="p-3 text-center text-gray-500 text-sm">
-                      <div className="inline-block animate-spin w-4 h-4 border-2 border-primary-600 border-t-transparent rounded-full mr-2" />
+                      <div className="inline-block animate-spin w-4 h-4 border-2 border-primary-600 border-t-transparent rounded-full me-2" />
                       {language === 'ar' ? 'جاري البحث...' : 'Searching...'}
                     </div>
                   )}
@@ -498,10 +498,10 @@ export function AskPage() {
                         onClick={() => handleSelectSuggestion(suggestion)}
                         onMouseEnter={() => setSelectedSuggestionIndex(idx)}
                         className={clsx(
-                          'w-full text-left px-4 py-3 transition-colors flex items-center gap-3',
+                          'w-full text-start px-4 py-3 transition-colors flex items-center gap-3',
                           idx === selectedSuggestionIndex
-                            ? 'bg-primary-50 border-l-2 border-primary-500'
-                            : 'hover:bg-gray-50 border-l-2 border-transparent'
+                            ? 'bg-primary-50 border-s-2 border-primary-500'
+                            : 'hover:bg-gray-50 border-s-2 border-transparent'
                         )}
                       >
                         <Search className={clsx(
@@ -762,7 +762,7 @@ const EmptyState = memo(function EmptyState({
                   key={`${cat.id}-${i}`}
                   onClick={() => onQuestionSelect(q)}
                   className={clsx(
-                    'group text-left p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 min-h-[60px]',
+                    'group text-start p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 min-h-[60px]',
                     colors.border,
                     colors.hover,
                     'bg-white hover:shadow-md active:scale-[0.98]'

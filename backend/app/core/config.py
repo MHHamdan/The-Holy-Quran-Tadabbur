@@ -46,7 +46,7 @@ class Settings(BaseSettings):
 
     # SurrealDB Knowledge Graph
     surreal_host: str = "localhost"
-    surreal_port: int = 8000
+    surreal_port: int = 8529  # Docker maps 8529:8000
     surreal_user: str = "root"
     surreal_pass: str = "root"
     surreal_namespace: str = "tadabbur"
