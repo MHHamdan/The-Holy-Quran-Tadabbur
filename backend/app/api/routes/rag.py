@@ -220,6 +220,10 @@ class GroundedResponse(BaseModel):
     related_verses: List[RelatedVerseResponse] = []
     tafsir_by_source: Optional[dict] = None
     follow_up_suggestions: List[str] = []
+    # === Phase E — Tafsir Assistant fields ===
+    answer_mode: str = "tafsir_summary"
+    ai_summary_disclaimer: bool = True
+    disagreement_warning: Optional[str] = None
 
 
 class ValidationResult(BaseModel):

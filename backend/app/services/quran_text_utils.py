@@ -596,6 +596,189 @@ BILINGUAL_CONCEPTS = {
         "en": ["kaaba", "kabah", "sacred house"],
         "related": ["mecca", "hajj", "abraham"],
     },
+
+    # ==========================================================================
+    # ADDITIONAL PROPHETS & FIGURES (أنبياء وشخصيات إضافية)
+    # ==========================================================================
+    "ayyub": {
+        "ar": ["أيوب", "أَيُّوب"],
+        "en": ["job", "ayyub", "prophet job"],
+        "related": ["patience", "trials"],
+    },
+    "luqman": {
+        "ar": ["لقمان", "لُقْمَان"],
+        "en": ["luqman", "luqmaan", "prophet luqman"],
+        "related": ["wisdom", "son", "advice"],
+    },
+    "idris": {
+        "ar": ["إدريس", "إِدْرِيس"],
+        "en": ["idris", "enoch", "prophet idris"],
+        "related": [],
+    },
+    "dhul_qarnayn": {
+        "ar": ["ذو القرنين", "ذِي الْقَرْنَيْن", "ذي القرنين"],
+        "en": ["dhul-qarnayn", "dhul qarnayn", "the two-horned"],
+        "related": ["yajuj_majuj", "barrier"],
+    },
+    "yajuj_majuj": {
+        "ar": ["يأجوج ومأجوج", "يَأْجُوج وَمَأْجُوج"],
+        "en": ["gog and magog", "yajuj majuj", "yajuj wa majuj"],
+        "related": ["dhul_qarnayn"],
+    },
+    "bilqis": {
+        "ar": ["بلقيس", "ملكة سبأ", "الملكة"],
+        "en": ["bilqis", "queen of sheba", "sheba"],
+        "related": ["solomon"],
+    },
+    "qarun": {
+        "ar": ["قارون", "قَارُون"],
+        "en": ["qarun", "korah", "the wealthy"],
+        "related": ["moses", "wealth", "arrogance"],
+    },
+    "haman": {
+        "ar": ["هامان", "هَامَان"],
+        "en": ["haman", "haaman"],
+        "related": ["pharaoh", "moses"],
+    },
+    "abu_lahab": {
+        "ar": ["أبو لهب", "ابو لهب", "تبت يدا أبي لهب"],
+        "en": ["abu lahab", "father of flame"],
+        "related": ["quraysh"],
+    },
+    "companions_cave": {
+        "ar": ["أصحاب الكهف", "فتية", "الكهف"],
+        "en": ["companions of the cave", "people of the cave", "sleepers of ephesus", "ashab al-kahf"],
+        "related": ["faith", "persecution"],
+    },
+    "elephant_army": {
+        "ar": ["أصحاب الفيل", "الفيل", "أبرهة"],
+        "en": ["companions of the elephant", "elephant army", "abraha"],
+        "related": ["mecca", "birds"],
+    },
+    "sabbath_breakers": {
+        "ar": ["أصحاب السبت", "الحيتان", "عصاة"],
+        "en": ["sabbath breakers", "people of the sabbath", "fish people"],
+        "related": ["israelites", "punishment"],
+    },
+
+    # ==========================================================================
+    # ADDITIONAL THEMES & CONCEPTS (مفاهيم إضافية)
+    # ==========================================================================
+    "tawbah": {
+        "ar": ["توبة", "التوبة", "تاب", "تائب", "تائبون", "استغفر"],
+        "en": ["repentance", "tawbah", "returning to allah", "seeking forgiveness"],
+        "related": ["forgiveness", "mercy"],
+    },
+    "taqwa": {
+        "ar": ["تقوى", "التقوى", "تَقْوَى", "متقي", "متقين", "اتقى"],
+        "en": ["taqwa", "piety", "god-consciousness", "fear of allah"],
+        "related": ["faith", "righteousness"],
+    },
+    "ihsan": {
+        "ar": ["إحسان", "الإحسان", "إِحْسَان", "محسن", "محسنين"],
+        "en": ["ihsan", "excellence", "perfection in worship", "doing good"],
+        "related": ["faith", "worship"],
+    },
+    "zikr": {
+        "ar": ["ذكر", "الذكر", "ذِكْر", "يذكر", "ذاكرين", "تسبيح"],
+        "en": ["dhikr", "remembrance", "zikr", "glorification"],
+        "related": ["prayer", "gratitude"],
+    },
+    "quran": {
+        "ar": ["القرآن", "الكتاب", "الفرقان", "التنزيل", "الذكر"],
+        "en": ["quran", "quran", "book", "revelation", "furqan"],
+        "related": ["guidance", "light", "miracle"],
+    },
+    "light": {
+        "ar": ["نور", "النور", "نُور", "ضياء", "مشكاة"],
+        "en": ["light", "nur", "illumination", "radiance"],
+        "related": ["guidance", "knowledge"],
+    },
+    "knowledge": {
+        "ar": ["علم", "العلم", "عِلْم", "عالم", "علماء", "يعلم"],
+        "en": ["knowledge", "ilm", "knowing", "wisdom", "learning"],
+        "related": ["reason", "guidance"],
+    },
+    "creation": {
+        "ar": ["خلق", "الخلق", "خَلَقَ", "خالق", "خلقنا", "مخلوق"],
+        "en": ["creation", "khalq", "created", "creator"],
+        "related": ["adam", "universe"],
+    },
+    "rizq": {
+        "ar": ["رزق", "الرزق", "رِزْق", "رزقنا", "يرزق", "رازق"],
+        "en": ["provision", "rizq", "sustenance", "livelihood"],
+        "related": ["gratitude", "trust"],
+    },
+    "death": {
+        "ar": ["موت", "الموت", "مَوْت", "يموت", "مات", "الوفاة", "الأجل"],
+        "en": ["death", "mawt", "dying", "appointed time"],
+        "related": ["afterlife", "soul"],
+    },
+    "soul": {
+        "ar": ["نفس", "النفس", "نَفْس", "روح", "الروح"],
+        "en": ["soul", "nafs", "spirit", "self"],
+        "related": ["death", "afterlife"],
+    },
+    "angels": {
+        "ar": ["ملائكة", "الملائكة", "مَلَائِكَة", "ملك", "جبريل", "ميكائيل", "إسرافيل"],
+        "en": ["angels", "malaika", "gabriel", "jibril", "michael"],
+        "related": ["revelation", "death"],
+    },
+    "jinn": {
+        "ar": ["جن", "الجن", "جِنّ", "جان", "شيطان"],
+        "en": ["jinn", "djinn", "spirits", "unseen beings"],
+        "related": ["iblis", "shaitan"],
+    },
+    "iblis_shaytan": {
+        "ar": ["إبليس", "الشيطان", "عدو الله", "رجيم"],
+        "en": ["iblis", "satan", "devil", "shaytan"],
+        "related": ["adam", "jinn", "temptation"],
+    },
+    "flood": {
+        "ar": ["طوفان", "الطوفان", "فيضان", "الماء"],
+        "en": ["flood", "tufan", "noah's flood"],
+        "related": ["noah", "ark"],
+    },
+    "ark": {
+        "ar": ["سفينة نوح", "الفلك", "سفينة"],
+        "en": ["ark", "ship of noah", "boat"],
+        "related": ["noah", "flood"],
+    },
+    "isra_miraj": {
+        "ar": ["الإسراء والمعراج", "الإسراء", "المعراج", "ليلة الإسراء"],
+        "en": ["isra and miraj", "night journey", "ascension", "isra mi'raj"],
+        "related": ["muhammad", "prayer"],
+    },
+    "hajj": {
+        "ar": ["حج", "الحج", "عمرة", "مناسك"],
+        "en": ["hajj", "pilgrimage", "umrah", "rituals"],
+        "related": ["mecca", "kaaba", "ibrahim"],
+    },
+    "zakat": {
+        "ar": ["زكاة", "الزكاة", "صدقة", "إنفاق", "أنفقوا"],
+        "en": ["zakat", "almsgiving", "charity", "sadaqa"],
+        "related": ["prayer", "wealth"],
+    },
+    "fasting": {
+        "ar": ["صيام", "الصيام", "صوم", "رمضان", "صائم"],
+        "en": ["fasting", "sawm", "siyam", "ramadan"],
+        "related": ["prayer", "taqwa"],
+    },
+    "jihad": {
+        "ar": ["جهاد", "الجهاد", "جاهدوا", "في سبيل الله", "قتال"],
+        "en": ["jihad", "striving", "struggle", "fighting in allah's path"],
+        "related": ["patience", "faith"],
+    },
+    "riba": {
+        "ar": ["ربا", "الربا", "رِبَا", "فوائد"],
+        "en": ["riba", "usury", "interest", "forbidden increase"],
+        "related": ["trade", "justice"],
+    },
+    "halal_haram": {
+        "ar": ["حلال", "حرام", "الحلال", "الحرام", "المحرمات"],
+        "en": ["halal", "haram", "permissible", "forbidden", "lawful"],
+        "related": ["ruling", "food"],
+    },
 }
 
 

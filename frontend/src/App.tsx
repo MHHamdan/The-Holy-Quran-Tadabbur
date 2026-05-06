@@ -77,9 +77,13 @@ const HajjUmrahGuidePage = lazy(() => import('./pages/tools/HajjUmrahGuidePage')
 const IslamicWebSearchPage = lazy(() => import('./pages/tools/IslamicWebSearchPage').then(m => ({ default: m.IslamicWebSearchPage })));
 const PrayerTimesPage = lazy(() => import('./pages/tools/PrayerTimesPage').then(m => ({ default: m.PrayerTimesPage })));
 const HijriCalendarPage = lazy(() => import('./pages/tools/HijriCalendarPage').then(m => ({ default: m.HijriCalendarPage })));
+const VocabularyPage = lazy(() => import('./pages/tools/VocabularyPage').then(m => ({ default: m.VocabularyPage })));
 
 // Admin / Status
 const StatusDashboardPage = lazy(() => import('./pages/admin/StatusDashboardPage').then(m => ({ default: m.StatusDashboardPage })));
+
+// Admin / Review Workflow (Phase 6)
+const ReviewDashboardPage = lazy(() => import('./pages/admin/ReviewDashboardPage').then(m => ({ default: m.ReviewDashboardPage })));
 
 // =============================================================================
 // Preloading - Predictive loading for common navigation paths
@@ -185,9 +189,13 @@ function App() {
           <Route path="/tools/books" element={<IslamicBooksPage />} />
           <Route path="/tools/trips" element={<HajjUmrahGuidePage />} />
           <Route path="/tools/web" element={<IslamicWebSearchPage />} />
+          <Route path="/tools/vocabulary" element={<VocabularyPage />} />
 
           {/* Admin / Status Dashboard */}
           <Route path="/status" element={<StatusDashboardPage />} />
+
+          {/* Admin / Review Workflow (Phase 6) */}
+          <Route path="/admin/review" element={<ReviewDashboardPage />} />
         </Routes>
       </Suspense>
     </Layout>

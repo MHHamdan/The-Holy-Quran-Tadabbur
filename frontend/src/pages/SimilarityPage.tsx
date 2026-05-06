@@ -41,6 +41,7 @@ import {
   SimilarityScores,
 } from '../lib/api';
 import { parseAPIError } from '../components/common';
+import { KGSimilaritySection } from '../components/quran/KGSimilaritySection';
 
 // Local error type for similarity page
 interface SimilarityError {
@@ -764,13 +765,16 @@ function CandidateSelectionModal({
 // =============================================================================
 // Fuzzy Match Warning Banner
 // =============================================================================
-function FuzzyMatchWarning({ language: _language }: { language: 'ar' | 'en' }) {
+function FuzzyMatchWarning({ language }: { language: 'ar' | 'en' }) {
+  const isArabic = language === 'ar';
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
       <div className="flex items-start gap-2">
         <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-amber-800" dir="rtl">
-          تنبيه: تم مطابقة نص الآية بطريقة تقريبية. يُرجى التأكد من المرجع قبل الاعتماد.
+        <p className="text-sm text-amber-800" dir={isArabic ? 'rtl' : 'ltr'}>
+          {isArabic
+            ? 'تنبيه: تم مطابقة نص الآية بطريقة تقريبية. يُرجى التأكد من المرجع قبل الاعتماد.'
+            : 'Notice: The verse was matched approximately. Please verify the reference before relying on it.'}
         </p>
       </div>
     </div>
@@ -1413,6 +1417,13 @@ export function SimilarityPage() {
               <p className="text-gray-500">
                 {t('similarity_no_results', language)}
               </p>
+            </div>
+          )}
+
+          {/* KG-Based Relations (Phase 5) */}
+          {suraNo && ayaNo && (
+            <div className="card p-6">
+              <KGSimilaritySection suraNo={suraNo} ayaNo={ayaNo} />
             </div>
           )}
         </div>

@@ -461,7 +461,8 @@ class TestReviewSafetyAcceptance:
         import re
         # The segment summary paragraph uses class 'text-gray-700 text-sm leading-relaxed mb-3'.
         # The warning block must appear before it in the JSX source so both audience levels see it.
-        warning_block_pos = story_detail_tsx.find('(needsReview || humanReviewReq) && (')
+        # Phase 6.5: the conditional may include '!segmentIsApproved' for overlay-aware suppression.
+        warning_block_pos = story_detail_tsx.find('(needsReview || humanReviewReq) &&')
         # Use the segment summary paragraph's class as an anchor (unique to the segment card)
         segment_summary_match = re.search(
             r'text-gray-700 text-sm leading-relaxed mb-3',

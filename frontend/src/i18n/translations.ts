@@ -564,6 +564,191 @@ export const translations: Translations = {
     en: 'Popular Verses to Explore',
   },
 
+  // Phase 5.5 – KG Similarity safety & display keys
+  similarity_kg_title: {
+    ar: 'الروابط المعرفية',
+    en: 'Knowledge Graph Relations',
+  },
+  similarity_kg_subtitle: {
+    ar: 'صلات مستخرجة من القصص والمفاهيم القرآنية',
+    en: 'Relations derived from Quranic stories and concepts',
+  },
+  similarity_enter_reference: {
+    ar: 'أدخل مرجع الآية (مثال: 2:255)',
+    en: 'Enter ayah reference (e.g., 2:255)',
+  },
+  similarity_invalid_ayah: {
+    ar: 'مرجع الآية غير صحيح. أدخل على شكل سورة:آية مثل 2:255',
+    en: 'Invalid ayah reference. Use format sura:aya like 2:255',
+  },
+  similarity_needs_review: {
+    ar: 'قيد المراجعة',
+    en: 'Needs Review',
+  },
+  similarity_human_review_required: {
+    ar: 'يتطلب مراجعة علمية',
+    en: 'Human Review Required',
+  },
+  similarity_experimental: {
+    ar: 'تجريبي',
+    en: 'Experimental',
+  },
+  similarity_approved: {
+    ar: 'معتمد',
+    en: 'Approved',
+  },
+  similarity_show_experimental: {
+    ar: 'إظهار العلاقات التجريبية',
+    en: 'Show experimental relations',
+  },
+  similarity_experimental_warning: {
+    ar: 'العلاقات التجريبية مقترحات آلية وليست تفسيراً معتمداً.',
+    en: 'Experimental relations are automated suggestions, not approved tafsir.',
+  },
+  similarity_no_verified_ayahs: {
+    ar: 'لا توجد صلات موثوقة متاحة لهذه الآية حالياً.',
+    en: 'No verified related ayahs are available for this ayah yet.',
+  },
+  similarity_open_in_mushaf: {
+    ar: 'عرض في المصحف',
+    en: 'Open in Mushaf',
+  },
+  similarity_evidence: {
+    ar: 'الأدلة والمصادر',
+    en: 'Evidence & Sources',
+  },
+  similarity_path_explanation: {
+    ar: 'مسار الصلة',
+    en: 'Path Explanation',
+  },
+  similarity_path_via: {
+    ar: 'عبر',
+    en: 'via',
+  },
+  similarity_path_node_ayah: {
+    ar: 'آية',
+    en: 'Ayah',
+  },
+  similarity_path_node_story: {
+    ar: 'القصة',
+    en: 'Story',
+  },
+  similarity_path_node_story_segment: {
+    ar: 'مقطع القصة',
+    en: 'Story Segment',
+  },
+  similarity_path_node_concept: {
+    ar: 'مفهوم',
+    en: 'Concept',
+  },
+  similarity_path_node_theme: {
+    ar: 'موضوع',
+    en: 'Theme',
+  },
+  similarity_path_pending_review: {
+    ar: 'قيد المراجعة',
+    en: 'Pending Review',
+  },
+  similarity_relation_type: {
+    ar: 'نوع الصلة',
+    en: 'Relation Type',
+  },
+  similarity_kg_pending_notice_title: {
+    ar: 'جميع الروابط المعرفية قيد المراجعة العلمية',
+    en: 'All knowledge graph relations are pending scholarly review',
+  },
+  similarity_kg_pending_notice_body: {
+    ar: 'هذه الروابط مستخرجة من القصص والمفاهيم القرآنية المتاحة. لا ينبغي الاعتماد عليها دون تحقق علمي.',
+    en: 'These relations are derived from available Quranic stories and concepts. Do not rely on them without scholarly verification.',
+  },
+  similarity_kg_human_review_detail: {
+    ar: 'هذه الصلة تتطلب مراجعة علمية قبل الاعتماد عليها.',
+    en: 'This relation requires scholarly review before it can be relied upon.',
+  },
+  similarity_kg_needs_review_detail: {
+    ar: 'هذه الصلات مقترحة من البيانات المتاحة وتنتظر المراجعة العلمية.',
+    en: 'These relations are suggested from available data and await scholarly review.',
+  },
+  similarity_kg_experimental_detail: {
+    ar: 'بعض هذه الصلات تجريبية مبنية على التشابه الدلالي فقط.',
+    en: 'Some relations are experimental, based on semantic similarity only.',
+  },
+  similarity_kg_searching: {
+    ar: 'جاري البحث في الرسم المعرفي...',
+    en: 'Searching knowledge graph...',
+  },
+  similarity_kg_load_error: {
+    ar: 'تعذّر تحميل الروابط المعرفية',
+    en: 'Failed to load knowledge graph relations',
+  },
+  similarity_kg_relation_count: {
+    ar: 'صلة',
+    en: 'relations',
+  },
+  // Relation type labels
+  similarity_rt_same_story_segment: {
+    ar: 'نفس مقطع القصة',
+    en: 'Same Story Segment',
+  },
+  similarity_rt_same_story: {
+    ar: 'نفس القصة',
+    en: 'Same Story',
+  },
+  similarity_rt_same_prophet: {
+    ar: 'نفس النبي / الشخص',
+    en: 'Same Prophet/Person',
+  },
+  similarity_rt_same_theme: {
+    ar: 'نفس الموضوع',
+    en: 'Same Theme',
+  },
+  similarity_rt_same_concept: {
+    ar: 'نفس المفهوم',
+    en: 'Same Concept',
+  },
+  similarity_rt_shared_moral: {
+    ar: 'درس أخلاقي مشترك',
+    en: 'Shared Moral Lesson',
+  },
+  similarity_rt_parallel_event: {
+    ar: 'نمط حدث متوازٍ',
+    en: 'Parallel Event Pattern',
+  },
+  similarity_rt_semantic: {
+    ar: 'تشابه دلالي',
+    en: 'Semantic Similarity',
+  },
+  similarity_rt_tafsir_supported: {
+    ar: 'تفسير يؤكد الصلة',
+    en: 'Tafsir-Supported',
+  },
+  // Under review label
+  similarity_under_review: {
+    ar: 'تحت المراجعة',
+    en: 'Under Review',
+  },
+  similarity_relation_label: {
+    ar: 'ارتباط',
+    en: 'relation',
+  },
+  // Evidence detail labels
+  similarity_evidence_story: {
+    ar: 'القصة',
+    en: 'Story',
+  },
+  similarity_evidence_concept: {
+    ar: 'المفهوم',
+    en: 'Concept',
+  },
+  similarity_evidence_theme: {
+    ar: 'الموضوع',
+    en: 'Theme',
+  },
+  similarity_evidence_tafsir_ref: {
+    ar: 'مرجع التفسير',
+    en: 'Tafsir Ref',
+  },
+
   // =============================================================================
   // Tasmeeʿ (Memorization) Page - صفحة التسميع
   // =============================================================================
@@ -1692,6 +1877,19 @@ export const aspectTranslations: Record<string, { ar: string; en: string }> = {
   // =============================================================================
   ai_assistant: { ar: 'اسأل الذكاء الاصطناعي', en: 'Ask AI' },
   ai_summary: { ar: 'التلخيص', en: 'Summary' },
+  // Phase E — answer mode labels
+  rag_mode_simple_explanation: { ar: 'شرح مبسَّط', en: 'Simple Explanation' },
+  rag_mode_tafsir_summary: { ar: 'ملخص تفسيري', en: 'Tafsir Summary' },
+  rag_mode_tafsir_comparison: { ar: 'مقارنة التفاسير', en: 'Comparing Tafsir Sources' },
+  rag_mode_vocabulary: { ar: 'شرح مفردة', en: 'Vocabulary' },
+  rag_mode_thematic: { ar: 'تفسير موضوعي', en: 'Thematic' },
+  rag_mode_needs_scholar_review: { ar: 'يحتاج مراجعة علمية', en: 'Needs Scholar Review' },
+  // Phase E — disclaimer and disagreement
+  rag_ai_disclaimer: {
+    ar: 'ملخص بمساعدة الذكاء الاصطناعي من المصادر الموثوقة — وليس تفسيراً مستقلاً',
+    en: 'AI-assisted summary from verified sources — not independent tafsir',
+  },
+  rag_disagreement_title: { ar: 'تنبيه: خلاف علمي', en: 'Note: Scholarly Disagreement' },
   ai_explain: { ar: 'الشرح', en: 'Explain' },
   ai_qa: { ar: 'سؤال وجواب', en: 'Q&A' },
   ai_generate_summary: { ar: 'لخّص التفسير', en: 'Summarize Tafsir' },
@@ -1815,6 +2013,121 @@ export const aspectTranslations: Record<string, { ar: string; en: string }> = {
   tools_books: { ar: 'كتب إسلامية', en: 'Islamic Books' },
   tools_hajj: { ar: 'دليل الحج والعمرة', en: 'Hajj & Umrah Guide' },
   tools_search: { ar: 'البحث الإسلامي', en: 'Islamic Web Search' },
+
+  // =============================================================================
+  // Phase 6 — Review Workflow (لوحة مراجعة المحتوى)
+  // =============================================================================
+
+  // Dashboard
+  review_dashboard_title: { ar: 'لوحة مراجعة المحتوى القرآني', en: 'Quran Content Review Dashboard' },
+  review_dashboard_subtitle: { ar: 'مراجعة وإقرار المحتوى القرآني الحساس', en: 'Review and approve Quran-sensitive content' },
+  review_not_approved_notice: {
+    ar: 'لا يعتمد هذا المحتوى إلا بعد مراجعة علمية موثقة.',
+    en: 'This content is not approved until documented scholarly review is completed.',
+  },
+
+  // Status labels
+  review_status_pending: { ar: 'قيد الانتظار', en: 'Pending' },
+  review_status_approved: { ar: 'معتمد', en: 'Approved' },
+  review_status_rejected: { ar: 'مرفوض', en: 'Rejected' },
+  review_status_changes_requested: { ar: 'يحتاج تعديلات', en: 'Changes Requested' },
+
+  // Content types
+  review_type_story_segment: { ar: 'مقطع القصة', en: 'Story Segment' },
+  review_type_related_story: { ar: 'قصة مرتبطة', en: 'Related Story' },
+  review_type_kg_relation: { ar: 'صلة المعرفة', en: 'KG Relation' },
+  review_type_source_evidence: { ar: 'دليل المصدر', en: 'Source Evidence' },
+  review_type_disagreement_note: { ar: 'ملاحظة خلاف علمي', en: 'Disagreement Note' },
+
+  // Priority
+  review_priority_high: { ar: 'أولوية عالية', en: 'High Priority' },
+  review_priority_medium: { ar: 'أولوية متوسطة', en: 'Medium Priority' },
+  review_priority_low: { ar: 'أولوية منخفضة', en: 'Low Priority' },
+
+  // Decision form
+  review_decision_approve: { ar: 'اعتماد', en: 'Approve' },
+  review_decision_reject: { ar: 'رفض', en: 'Reject' },
+  review_decision_request_changes: { ar: 'طلب تعديلات', en: 'Request Changes' },
+  review_reviewer_id: { ar: 'معرّف المراجع', en: 'Reviewer ID' },
+  review_reviewer_name: { ar: 'اسم المراجع', en: 'Reviewer Name' },
+  review_decision_notes: { ar: 'ملاحظات القرار', en: 'Decision Notes' },
+  review_decision_notes_required: { ar: 'ملاحظات القرار مطلوبة', en: 'Decision notes are required' },
+  review_decision_notes_placeholder: {
+    ar: 'أدخل ملاحظات المراجعة (10 أحرف كحد أدنى)...',
+    en: 'Enter review notes (min 10 characters)...',
+  },
+  review_submit_decision: { ar: 'تقديم القرار', en: 'Submit Decision' },
+  review_submitting: { ar: 'جارٍ التقديم...', en: 'Submitting…' },
+  review_decision_submitted: { ar: 'تم تقديم القرار بنجاح', en: 'Decision submitted successfully' },
+
+  // Task list
+  review_tasks: { ar: 'مهام المراجعة', en: 'Review Tasks' },
+  review_task_detail: { ar: 'تفاصيل المهمة', en: 'Task Detail' },
+  review_content_id: { ar: 'معرّف المحتوى', en: 'Content ID' },
+  review_content_type: { ar: 'نوع المحتوى', en: 'Content Type' },
+  review_quran_references: { ar: 'المراجع القرآنية', en: 'Quran References' },
+  review_source_ids: { ar: 'معرّفات المصادر', en: 'Source IDs' },
+  review_source_evidence: { ar: 'دليل المصدر', en: 'Source Evidence' },
+  review_warnings: { ar: 'تحذيرات', en: 'Warnings' },
+  review_disagreement_notes: { ar: 'ملاحظات الخلاف العلمي', en: 'Scholarly Disagreement Notes' },
+  review_human_review_required: { ar: 'يتطلب مراجعة بشرية', en: 'Human Review Required' },
+  review_reviewer: { ar: 'المراجع', en: 'Reviewer' },
+  review_reviewed_at: { ar: 'تمت المراجعة في', en: 'Reviewed At' },
+  review_no_tasks_found: { ar: 'لا توجد مهام مراجعة', en: 'No review tasks found' },
+  review_load_error: { ar: 'تعذر تحميل مهام المراجعة', en: 'Failed to load review tasks' },
+  review_task_not_found: { ar: 'المهمة غير موجودة', en: 'Task not found' },
+
+  // Filters
+  review_filter_status: { ar: 'تصفية حسب الحالة', en: 'Filter by Status' },
+  review_filter_type: { ar: 'تصفية حسب النوع', en: 'Filter by Content Type' },
+  review_filter_priority: { ar: 'تصفية حسب الأولوية', en: 'Filter by Priority' },
+  review_filter_source: { ar: 'تصفية حسب المصدر', en: 'Filter by Source' },
+  review_filter_disagreement: { ar: 'ملاحظات الخلاف فقط', en: 'Disagreement Notes Only' },
+  review_filter_human_review: { ar: 'يتطلب مراجعة بشرية فقط', en: 'Requires Human Review Only' },
+  review_all_statuses: { ar: 'جميع الحالات', en: 'All Statuses' },
+  review_all_types: { ar: 'جميع الأنواع', en: 'All Types' },
+  review_all_priorities: { ar: 'جميع الأولويات', en: 'All Priorities' },
+
+  // Stats
+  review_stats_total: { ar: 'إجمالي المهام', en: 'Total Tasks' },
+  review_stats_pending: { ar: 'قيد الانتظار', en: 'Pending' },
+  review_stats_approved: { ar: 'معتمد', en: 'Approved' },
+  review_stats_rejected: { ar: 'مرفوض', en: 'Rejected' },
+  review_stats_high_priority: { ar: 'أولوية عالية', en: 'High Priority' },
+  review_stats_disagreement: { ar: 'خلاف علمي', en: 'Scholarly Disagreements' },
+  review_stats_human_review: { ar: 'مراجعة بشرية', en: 'Requires Human Review' },
+
+  // Phase F — Vocabulary module
+  vocab_page_title: { ar: 'غريب القرآن', en: 'Quranic Vocabulary' },
+  vocab_page_subtitle: {
+    ar: 'البحث في معاني المفردات القرآنية من مصادر موثوقة',
+    en: 'Look up Quranic word meanings from verified classical sources',
+  },
+  vocab_search_placeholder: { ar: 'أدخل كلمة قرآنية...', en: 'Enter a Quranic word...' },
+  vocab_search_button: { ar: 'بحث', en: 'Search' },
+  vocab_no_source_title: { ar: 'المصدر غير متوفر حالياً', en: 'Source Not Yet Available' },
+  vocab_planned_label: { ar: 'مخطط — قريباً', en: 'Planned — Coming Soon' },
+  vocab_planned_sources_label: { ar: 'المصادر المخططة:', en: 'Planned sources:' },
+  vocab_tool_name: { ar: 'غريب القرآن', en: 'Quranic Vocabulary' },
+  vocab_tool_description: {
+    ar: 'البحث في معاني الكلمات القرآنية من المعاجم الكلاسيكية الموثوقة',
+    en: 'Look up Quranic word meanings from verified classical Arabic lexicons',
+  },
+
+  // Phase 6.5 – Review status propagation overlay
+  review_overlay_approved: { ar: 'معتمد', en: 'Approved' },
+  review_overlay_partially_reviewed: { ar: 'مراجعة جزئية', en: 'Partially Reviewed' },
+  review_overlay_needs_review: { ar: 'بانتظار المراجعة', en: 'Needs Review' },
+  review_overlay_changes_requested: { ar: 'يحتاج تعديلات', en: 'Changes Requested' },
+  review_overlay_rejected: { ar: 'مرفوض', en: 'Rejected' },
+  review_overlay_reviewed_by: { ar: 'راجعه:', en: 'Reviewed by:' },
+  review_overlay_reviewed_at: { ar: 'تاريخ المراجعة:', en: 'Reviewed:' },
+  review_overlay_notes_summary: { ar: 'ملاحظات المراجع:', en: 'Reviewer notes:' },
+  review_overlay_partial_segments: { ar: 'مقاطع تمت مراجعتها', en: 'segments reviewed' },
+  review_overlay_freshness_label: { ar: 'آخر تحديث للطبقة:', en: 'Overlay last updated:' },
+  review_overlay_stale_warning: { ar: 'طبقة الحالة قد تكون قديمة — أعِد التوليد بعد القرارات الجديدة.', en: 'Status overlay may be stale — regenerate after new decisions.' },
+  review_overlay_not_generated: { ar: 'طبقة الحالة غير موجودة — أعِد تشغيل سكريبت التوليد', en: 'Status overlay not generated — run propagate-review-status.ts' },
+  review_overlay_all_pending: { ar: 'جميع المهام قيد الانتظار — لا توجد قرارات بعد.', en: 'All tasks pending — no decisions submitted yet.' },
 };
 
 export function t(key: string, language: Language): string {

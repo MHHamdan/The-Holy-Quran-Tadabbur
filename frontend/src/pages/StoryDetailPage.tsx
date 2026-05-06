@@ -10,6 +10,12 @@ import { NarrativeInsights } from '../components/stories/NarrativeInsights';
 import { RelatedStories } from '../components/stories/RelatedStories';
 import { getStoryById } from '../data/quranStories';
 import type { AudienceLevel, QuranStory } from '../types/quranStory';
+import {
+  getReviewStatus,
+  getApprovalMetadata,
+  getStoryApprovalStatus,
+  mergeBaseStatusWithOverlay,
+} from '../utils/reviewStatus';
 import clsx from 'clsx';
 
 type ViewMode = 'list' | 'graph' | 'themes' | 'insights';
@@ -245,18 +251,41 @@ export function StoryDetailPage() {
       {/* Rich story segments — shown when first-batch data is available */}
       {richStory && viewMode === 'list' && (
         <div className="space-y-4 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {language === 'ar' ? 'مقاطع القصة' : 'Story Segments'}
-            <span className="text-sm font-normal text-gray-500 ml-2">
-              ({richStory.storySegments.length})
-            </span>
-          </h2>
+          {(() => {
+            const segIds = richStory.storySegments.map(s => s.segmentId);
+            const storyAggregate = getStoryApprovalStatus(segIds);
+            return (
+              <div className="flex items-center gap-3 flex-wrap">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {language === 'ar' ? 'مقاطع القصة' : 'Story Segments'}
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    ({richStory.storySegments.length})
+                  </span>
+                </h2>
+                {storyAggregate.status === 'approved' && (
+                  <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 border border-green-200">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    {language === 'ar' ? 'جميع المقاطع معتمدة' : 'All segments approved'}
+                  </span>
+                )}
+                {storyAggregate.status === 'partially_reviewed' && (
+                  <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                    <Clock className="w-3.5 h-3.5" />
+                    {storyAggregate.approvedCount}/{storyAggregate.totalCount}{' '}
+                    {language === 'ar' ? 'مقاطع معتمدة' : 'segments approved'}
+                  </span>
+                )}
+              </div>
+            );
+          })()}
 
           {richStory.storySegments
             .sort((a, b) => a.sequenceOrder - b.sequenceOrder)
             .map((segment) => {
+              // Base safety checks (always evaluated first, never weakened by overlay)
+              const baseStatus = segment.sunniReview.status;
               const isRejected = segment.sunniReview.status === 'rejected';
-              const needsReview = segment.sunniReview.status === 'needs_review';
+              const needsReview = baseStatus === 'needs_review';
               const humanReviewReq = segment.sunniReview.humanReviewRequired;
               const missingEvidence = (needsReview || humanReviewReq) && segment.sunniReview.matchedEvidence.length === 0;
 
@@ -269,9 +298,20 @@ export function StoryDetailPage() {
               const lessons = language === 'ar' ? segment.lessonsArabic : segment.lessonsEnglish;
               const ref = `${segment.surahNumber}:${segment.ayahStart}${segment.ayahEnd !== segment.ayahStart ? `–${segment.ayahEnd}` : ''}`;
 
+              // Phase 6.5: overlay-aware status (additive — never weakens base safety checks above)
+              const overlaySegmentStatus = getReviewStatus('story_segment', segment.segmentId);
+              const effectiveStatus = mergeBaseStatusWithOverlay(baseStatus, overlaySegmentStatus);
+              const segmentIsApproved = effectiveStatus === 'approved';
+              const isPartiallyReviewed = effectiveStatus === 'partially_reviewed';
+              const approvalMeta = segmentIsApproved
+                ? getApprovalMetadata('story_segment', segment.segmentId)
+                : null;
+
               return (
                 <div key={segment.segmentId} className={clsx(
                   'card border-l-4',
+                  segmentIsApproved ? 'border-l-green-500' :
+                  isPartiallyReviewed ? 'border-l-blue-400' :
                   (needsReview || humanReviewReq) ? 'border-l-yellow-400' : 'border-l-primary-500'
                 )}>
                   {/* Segment Header */}
@@ -290,12 +330,35 @@ export function StoryDetailPage() {
                         >
                           {ref}
                         </Link>
+                        {/* Overlay-approved badge — only shown when overlay confirms approval */}
+                        {segmentIsApproved && (
+                          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">
+                            <CheckCircle className="w-3 h-3" />
+                            {language === 'ar' ? 'معتمد' : 'Approved'}
+                          </span>
+                        )}
+                        {isPartiallyReviewed && (
+                          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                            <Clock className="w-3 h-3" />
+                            {language === 'ar' ? 'مراجعة جزئية' : 'Partially Reviewed'}
+                          </span>
+                        )}
                       </div>
+                      {/* Approval metadata (reviewer name + date) */}
+                      {approvalMeta && (
+                        <div className="flex items-center gap-3 text-xs text-green-700 mt-1">
+                          <span dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                            {language === 'ar' ? 'راجعه:' : 'Reviewed by:'}{' '}
+                            <span className="font-medium">{approvalMeta.reviewerName}</span>
+                          </span>
+                          <span>{new Date(approvalMeta.reviewedAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Review Status Warning — shown for needs_review or humanReviewRequired; NOT hidden by audience level */}
-                  {(needsReview || humanReviewReq) && (
+                  {/* Review Status Warning — shown for needs_review or humanReviewRequired; suppressed when overlay-approved */}
+                  {(needsReview || humanReviewReq) && !segmentIsApproved && (
                     <div
                       role="alert"
                       aria-label={language === 'ar' ? 'تحذير: مراجعة معلقة' : 'Warning: Pending Review'}

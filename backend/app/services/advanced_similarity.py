@@ -37,6 +37,7 @@ from app.services.quran_text_utils import (
     is_bismillah_verse,
     is_first_verse_with_bismillah,
 )
+from app.services.verse_embedding_service import get_verse_embedding_service
 
 logger = logging.getLogger(__name__)
 
@@ -1453,6 +1454,23 @@ class AdvancedSimilarityService:
         result = await self.session.execute(query)
         candidates = result.scalars().all()
 
+        # Pre-fetch semantic similarity scores from Qdrant (graceful fallback)
+        semantic_scores: Dict[Tuple[int, int], float] = {}
+        if source_verse:
+            try:
+                embedding_service = get_verse_embedding_service()
+                semantic_results = await embedding_service.find_similar_to_verse(
+                    sura_no=source_verse.sura_no,
+                    aya_no=source_verse.aya_no,
+                    limit=top_k * 3,
+                    min_score=0.40,
+                    exclude_same_sura=exclude_same_sura,
+                )
+                for sem_result in semantic_results:
+                    semantic_scores[(sem_result.sura_no, sem_result.aya_no)] = sem_result.similarity_score
+            except Exception as e:
+                logger.debug(f"Semantic similarity unavailable (Qdrant not populated): {e}")
+
         # Score all candidates
         scored_matches = []
         theme_dist = defaultdict(int)
@@ -1527,26 +1545,41 @@ class AdvancedSimilarityService:
                 candidate.aya_no
             )
 
-            # Semantic score placeholder (would need embeddings for full implementation)
-            semantic_score = 0.0
-
-            # Compute combined score with enhanced weighting
-            combined = (
-                self.WEIGHTS["jaccard"] * jacc +
-                self.WEIGHTS["contextual_jaccard"] * ctx_jacc +
-                self.WEIGHTS["cosine"] * cos +
-                self.WEIGHTS["contextual_cosine"] * ctx_cos +
-                self.WEIGHTS["concept_overlap"] * concept +
-                self.WEIGHTS["grammatical"] * gram +
-                self.WEIGHTS["semantic"] * semantic_score +
-                self.WEIGHTS["root_based"] * root +
-                self.WEIGHTS["prophetic"] * prophetic_score +
-                self.WEIGHTS["narrative"] * narrative_score
+            # Semantic embedding score from Qdrant (0.0 when not available)
+            semantic_score = semantic_scores.get(
+                (candidate.sura_no, candidate.aya_no), 0.0
             )
 
-            # Normalize combined score
-            active_weights = sum(v for k, v in self.WEIGHTS.items() if k != "semantic")
-            combined = combined / active_weights if active_weights > 0 else 0
+            # Compute combined score; if semantic unavailable, redistribute its weight
+            if semantic_score > 0:
+                combined = (
+                    self.WEIGHTS["jaccard"] * jacc +
+                    self.WEIGHTS["contextual_jaccard"] * ctx_jacc +
+                    self.WEIGHTS["cosine"] * cos +
+                    self.WEIGHTS["contextual_cosine"] * ctx_cos +
+                    self.WEIGHTS["concept_overlap"] * concept +
+                    self.WEIGHTS["grammatical"] * gram +
+                    self.WEIGHTS["semantic"] * semantic_score +
+                    self.WEIGHTS["root_based"] * root +
+                    self.WEIGHTS["prophetic"] * prophetic_score +
+                    self.WEIGHTS["narrative"] * narrative_score
+                )
+                combined = combined / sum(self.WEIGHTS.values())
+            else:
+                # Normalize excluding the unused semantic weight
+                active_weights = sum(v for k, v in self.WEIGHTS.items() if k != "semantic")
+                combined = (
+                    self.WEIGHTS["jaccard"] * jacc +
+                    self.WEIGHTS["contextual_jaccard"] * ctx_jacc +
+                    self.WEIGHTS["cosine"] * cos +
+                    self.WEIGHTS["contextual_cosine"] * ctx_cos +
+                    self.WEIGHTS["concept_overlap"] * concept +
+                    self.WEIGHTS["grammatical"] * gram +
+                    self.WEIGHTS["root_based"] * root +
+                    self.WEIGHTS["prophetic"] * prophetic_score +
+                    self.WEIGHTS["narrative"] * narrative_score
+                )
+                combined = combined / active_weights if active_weights > 0 else 0
 
             if combined < min_score:
                 continue

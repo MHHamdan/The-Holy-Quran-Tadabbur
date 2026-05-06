@@ -182,6 +182,15 @@ class GroundedResponse:
     # API version for client compatibility checking
     api_version: str = "1.0.0"
 
+    # === Phase E — Tafsir Assistant fields ===
+    # Interaction mode (determines UI labeling and retrieval strategy)
+    answer_mode: str = "tafsir_summary"
+    # AI-summary disclaimer — always True; displayed to users so they know this
+    # is a retrieval-based summary, not independent scholarly tafsir.
+    ai_summary_disclaimer: bool = True
+    # Set when two or more retrieved sources present differing scholarly views.
+    disagreement_warning: Optional[str] = None
+
     def to_dict(self) -> dict:
         """Convert to dictionary for API response."""
         return {
@@ -254,6 +263,10 @@ class GroundedResponse:
             "follow_up_suggestions": self.follow_up_suggestions,
             # API version for contract compatibility
             "api_version": self.api_version,
+            # === Phase E — Tafsir Assistant ===
+            "answer_mode": self.answer_mode,
+            "ai_summary_disclaimer": self.ai_summary_disclaimer,
+            "disagreement_warning": self.disagreement_warning,
         }
 
 
@@ -296,6 +309,24 @@ SAFE_REFUSAL_FIQH = (
     "Note: This information is provided for educational purposes only and "
     "should not be taken as a religious ruling (fatwa). Please consult "
     "qualified scholars for personal religious guidance."
+)
+
+# Phase C — pre-generation classifier refusal messages
+SAFE_REFUSAL_FATWA_EN = (
+    "I cannot issue a fatwa. I can only show documented information from "
+    "available sources. Please consult qualified scholars for religious rulings."
+)
+SAFE_REFUSAL_FATWA_AR = (
+    "لا أستطيع إصدار فتوى. يمكنني فقط عرض معلومات موثقة من المصادر المتاحة، "
+    "وينبغي الرجوع إلى أهل العلم في مسائل الفتوى."
+)
+SAFE_REFUSAL_UNSUPPORTED_EN = "No verified source available for this answer."
+SAFE_REFUSAL_UNSUPPORTED_AR = "لا يوجد مصدر موثوق متاح لهذه الإجابة."
+SAFE_REFUSAL_CLARIFICATION_EN = (
+    "Please specify the ayah or topic more clearly so I can search the verified sources."
+)
+SAFE_REFUSAL_CLARIFICATION_AR = (
+    "يرجى تحديد الآية أو الموضوع بشكل أوضح حتى أستطيع البحث في المصادر الموثوقة."
 )
 
 # Reliability level mapping from source_reliability float → string label

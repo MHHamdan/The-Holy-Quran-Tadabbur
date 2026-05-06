@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Video, Newspaper, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar } from 'lucide-react';
+import { Video, Newspaper, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar, Library } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import clsx from 'clsx';
 
@@ -104,6 +104,16 @@ const TOOL_MODULES: ToolModule[] = [
     icon: Globe,
     path: '/tools/web',
     color: 'indigo',
+  },
+  {
+    id: 'vocabulary',
+    name_en: 'Quranic Vocabulary',
+    name_ar: 'غريب القرآن',
+    description_en: 'Look up Quranic word meanings from verified classical Arabic lexicons (coming soon)',
+    description_ar: 'البحث في معاني الكلمات القرآنية من المعاجم الكلاسيكية الموثوقة (قريباً)',
+    icon: Library,
+    path: '/tools/vocabulary',
+    color: 'teal',
   },
 ];
 

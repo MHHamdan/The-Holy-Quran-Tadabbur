@@ -112,3 +112,35 @@ After each search in the browser, verify:
 | Relevance percentage shown on each card | Always visible |
 | Arabic verse text has `dir="rtl"` | Yes |
 | Verse references (2:255) stay LTR in Arabic mode | Yes (uses `verse-ref` CSS class) |
+
+---
+
+## 5. Alias Layer — Verse/Surah Metadata Names
+
+These queries test the curated alias map. Each should return `match_type: "alias"` as the
+top result, `relevance_score: 1.0`, and the correct surah:ayah as the first verse.
+
+| Query | Expected top result | match_type |
+|-------|---------------------|------------|
+| `آية الكرسي` | 2:255 | alias |
+| `اية الكرسي` | 2:255 (no hamza variant) | alias |
+| `Ayat al-Kursi` | 2:255 | alias |
+| `Ayatul Kursi` | 2:255 | alias |
+| `سورة الفاتحة` | 1:1 (range 1–7) | alias |
+| `الفاتحة` | 1:1 | alias |
+| `Al-Fatihah` | 1:1 | alias |
+| `Fatiha` | 1:1 | alias |
+| `أصحاب الكهف` | 18:9 (range 9–26) | alias |
+| `People of the Cave` | 18:9 | alias |
+| `Companions of the Cave` | 18:9 | alias |
+| `ذو القرنين` | 18:83 (range 83–98) | alias |
+| `Dhul-Qarnayn` | 18:83 | alias |
+| `Dhul Qarnayn` | 18:83 | alias |
+
+### Negative cases (must NOT return alias results)
+
+| Query | Expected behavior |
+|-------|------------------|
+| `الكرسي` | 0 alias results; may return concept results |
+| `prophet` | 0 alias results; concept expansion only |
+| `2:255` | 0 alias results (direct reference — different flow) |

@@ -136,3 +136,88 @@ display output. It is for query-side matching only.
 | Hamza DB column gap | Medium | Same as above for ؤ/ئ variants. |
 | `match_type` for intelligent/semantic search | Low | Intelligent search result converter sets `match_type='semantic'` — this is correct but coarse. A future improvement would derive the type from the grounding explanation. |
 | English search not tested | Medium | All normalization is Arabic-only. English queries go through as-is. |
+
+---
+
+## Phase 4 Update — Alias Layer (2026-04-26)
+
+### Problem
+Queries for well-known verse/surah *names* (metadata labels) returned 0 results because
+those names do not appear as literal text inside any Quran verse.
+Examples: "آية الكرسي", "Ayat al-Kursi", "الفاتحة", "People of the Cave".
+
+### Solution: Curated Alias Layer
+
+**New file:** `backend/app/services/quran_aliases.py`
+
+A hand-curated `ALIAS_MAP` maps well-known names to their canonical `AliasTarget`
+(sura_no, aya_start, aya_end). Matching is case-insensitive and diacritic-insensitive.
+
+#### Rules for the alias map
+
+1. Every entry is explicitly verified against the mushaf.
+2. No model-generated aliases — human curation only.
+3. No speculative aliases (e.g., "do not add 'Night of Power' if unsure of exact range").
+4. Alias targets store only `(sura_no, aya_start, aya_end)` — never Quran text strings.
+5. Aliases rank above concept-expansion results but below a future direct `surah:ayah`
+   reference endpoint.
+
+#### Alias entries (2026-04-26)
+
+| Alias (representative) | Target | Range |
+|---|---|---|
+| آية الكرسي / Ayat al-Kursi | Surah 2 | 2:255 (single verse) |
+| الفاتحة / Al-Fatihah | Surah 1 | 1:1–1:7 (full surah) |
+| سورة الكهف / Al-Kahf | Surah 18 | anchor 18:1 |
+| أصحاب الكهف / People of the Cave | Surah 18 | 18:9–18:26 |
+| ذو القرنين / Dhul-Qarnayn | Surah 18 | 18:83–18:98 |
+| المعوذتان / Al-Mu'awwidhatayn | Surah 113 | 113:1 anchor |
+| الإخلاص / Al-Ikhlas | Surah 112 | 112:1–112:4 |
+| يس / Surah Yasin | Surah 36 | anchor 36:1 |
+| الملك / Al-Mulk | Surah 67 | anchor 67:1 |
+| الرحمن / Ar-Rahman | Surah 55 | anchor 55:1 |
+
+#### Intentionally excluded
+
+- Any name whose canonical reference is disputed among scholars.
+- Names that are also common Arabic words searched for in Quran text (e.g. "العلق" could
+  be searched as text or as "Surah Al-Alaq" — currently excluded to avoid ambiguity).
+- Translated/paraphrased names that don't have a unique canonical reference.
+
+#### How to add a new alias safely
+
+1. Confirm the canonical surah:ayah in an authoritative mushaf.
+2. Add all common spelling variants to `_RAW` in `quran_aliases.py`.
+3. Add test cases to `tests/unit/test_quran_aliases.py`.
+4. The import-time collision check will fail if two spellings resolve to different targets.
+
+### Integration
+
+`intelligent_search` in `quran.py` now:
+1. Calls `resolve_alias(query)` before concept expansion.
+2. If an alias is found, fetches the target verse(s) from the DB (exact surah:ayah query).
+3. Prepends alias results (with `match_type="alias"`, `relevance_score=1.0`) to the output.
+4. Fills remaining slots with full-text results, deduplicating by verse_id.
+5. Summary prefixes the alias label when an alias hit occurred.
+
+### New field on GroundedVerseResponse
+
+`match_type: str = "normalized"` — values: `"alias"` | `"normalized"` | `"concept_expansion"`.
+
+### Tests
+
+`tests/unit/test_quran_aliases.py` — 36 assertions across:
+- Specific alias resolutions (Ayat al-Kursi, Fatihah, Cave, Dhul-Qarnayn)
+- Case/diacritic insensitivity
+- Non-alias queries return None
+- No Quran-text mutation
+- `match_type` field correctness
+- `ALIAS_MAP` integrity (sura range, label non-empty, no collisions)
+
+### Remaining Risks / Items for Human Review
+
+| Risk | Severity | Notes |
+|------|----------|-------|
+| Alias map completeness | Low | Only the most frequently searched verse names are covered in the first batch. Additional aliases should be added by a qualified reviewer. |
+| Surah-level aliases return first verse as anchor | Low | When `aya_end` is None and `aya_start=1`, the full surah is fetched up to `limit`. Consumers should check `aya_end` to know whether more verses exist. |
+| Alias collision at import | Low (guarded) | The `_RAW` loop raises `ValueError` at import if two spellings of the same form resolve to different targets — caught at startup, not at runtime. |

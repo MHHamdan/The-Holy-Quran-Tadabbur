@@ -342,6 +342,14 @@ export interface TafsirExplanation {
 
 export type RAGStatus = 'answered' | 'no_verified_source' | 'needs_clarification' | 'error';
 
+export type RAGAnswerMode =
+  | 'simple_explanation'
+  | 'tafsir_summary'
+  | 'tafsir_comparison'
+  | 'vocabulary'
+  | 'thematic'
+  | 'needs_scholar_review';
+
 export interface RAGResponse {
   answer: string;
   citations: Citation[];
@@ -365,6 +373,10 @@ export interface RAGResponse {
   related_verses?: RelatedVerse[];
   tafsir_by_source?: Record<string, TafsirExplanation[]>;
   follow_up_suggestions?: string[];
+  // Phase E — Tafsir Assistant fields
+  answer_mode?: RAGAnswerMode;
+  ai_summary_disclaimer?: boolean;
+  disagreement_warning?: string | null;
 }
 
 // Chat session types
@@ -613,7 +625,82 @@ export const quranApi = {
     max_verses_per_name?: number;
   }) =>
     api.get<AllahNamesListResponse>('/quran/allah-names', { params }),
+
+  // KG Similarity (Phase 5)
+  getKGSimilarity: (suraNo: number, ayaNo: number, params?: {
+    top_k?: number;
+    min_score?: number;
+    include_experimental?: boolean;
+  }) =>
+    api.get<KGSimilarityApiResponse>(`/quran/similarity/kg/${suraNo}/${ayaNo}`, { params }),
 };
+
+// =============================================================================
+// KG Similarity Types (Phase 5)
+// =============================================================================
+
+export type KGRelationStatus = 'approved' | 'needs_review' | 'experimental';
+
+export interface KGEvidenceItem {
+  sourceId: string;
+  sourceTitleArabic?: string;
+  sourceTitleEnglish?: string;
+  storyId?: string;
+  segmentId?: string;
+  conceptId?: string;
+  themeId?: string;
+  tafsirReference?: string;
+  relationStatus: KGRelationStatus;
+}
+
+export interface KGPathNode {
+  id: string;
+  type: string;
+  labelArabic?: string;
+  labelEnglish?: string;
+  surahNumber?: number;
+  ayahNumber?: number;
+}
+
+export interface KGPathEdge {
+  sourceNodeId: string;
+  targetNodeId: string;
+  edgeType: string;
+  relationStatus: KGRelationStatus;
+  humanReviewRequired: boolean;
+}
+
+export interface KGPathExplanation {
+  nodes: KGPathNode[];
+  edges: KGPathEdge[];
+  explanationArabic: string;
+  explanationEnglish: string;
+  warnings: string[];
+}
+
+export interface KGRelatedAyah {
+  surahNumber: number;
+  ayahNumber: number;
+  score: number;
+  relationTypes: string[];
+  explanationArabic: string;
+  explanationEnglish: string;
+  evidence: KGEvidenceItem[];
+  warnings: string[];
+  humanReviewRequired: boolean;
+  pathExplanation?: KGPathExplanation;
+}
+
+export interface KGSimilarityApiResponse {
+  sourceAyah: {
+    surahNumber: number;
+    ayahNumber: number;
+  };
+  relatedAyahs: KGRelatedAyah[];
+  totalRelated: number;
+  allNeedsReview: boolean;
+  searchTimeMs: number;
+}
 
 // Advanced Similarity Types
 export interface SimilarityScores {
@@ -2245,4 +2332,140 @@ export const themesApi = {
    */
   getBySura: (suraNo: number) =>
     api.get<{ themes: QuranicTheme[] }>(`/themes/by-sura/${suraNo}`),
+};
+
+// =============================================================================
+// Phase 6 — Review Task Types
+// =============================================================================
+
+export type ReviewContentType =
+  | 'story_segment'
+  | 'related_story'
+  | 'kg_relation'
+  | 'source_evidence'
+  | 'disagreement_note';
+
+export type ReviewStatus = 'pending' | 'approved' | 'rejected' | 'changes_requested';
+export type ReviewPriority = 'low' | 'medium' | 'high';
+
+export interface ReviewQuranRef {
+  surahNumber: number;
+  ayahStart: number;
+  ayahEnd?: number;
+}
+
+export interface ReviewDecision {
+  status: ReviewStatus;
+  notes: string;
+  reviewerId: string;
+  reviewerName?: string;
+  reviewedAt: string;
+}
+
+export interface ReviewTask {
+  id: string;
+  contentType: ReviewContentType;
+  contentId: string;
+  status: ReviewStatus;
+  priority: ReviewPriority;
+  language: 'ar' | 'en' | 'both';
+  reviewerId?: string;
+  reviewerName?: string;
+  createdAt: string;
+  updatedAt: string;
+  reviewedAt?: string;
+  sourceIds: string[];
+  quranReferences: ReviewQuranRef[];
+  decision?: ReviewDecision;
+  warnings: string[];
+  humanReviewRequired: boolean;
+  summaryEnglish?: string;
+  storyId?: string;
+  segmentId?: string;
+  disagreementNotes?: string[];
+}
+
+export interface ReviewTaskListResponse {
+  tasks: ReviewTask[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
+export interface ReviewStatsResponse {
+  total: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  changes_requested: number;
+  by_content_type: Record<string, number>;
+  by_priority: Record<string, number>;
+  high_priority: number;
+  with_disagreement_notes: number;
+  human_review_required: number;
+}
+
+export interface SubmitDecisionRequest {
+  status: 'approved' | 'rejected' | 'changes_requested';
+  notes: string;
+  reviewerId: string;
+  reviewerName?: string;
+}
+
+// =============================================================================
+// Vocabulary API — Phase F (safe placeholder)
+// =============================================================================
+
+export interface VocabularyResponse {
+  word: string;
+  /** "no_verified_source" | "found" */
+  status: string;
+  message_en: string;
+  message_ar: string;
+  source_id?: string | null;
+  root?: string | null;
+  meaning_en?: string | null;
+  meaning_ar?: string | null;
+  example_verses: string[];
+}
+
+export interface VocabularyStatusResponse {
+  module: string;
+  available: boolean;
+  reason: string;
+  planned_sources: string[];
+  message_en: string;
+  message_ar: string;
+}
+
+export const vocabularyApi = {
+  lookup: (word: string) =>
+    api.get<VocabularyResponse>('/vocabulary/lookup', { params: { word } }),
+
+  status: () =>
+    api.get<VocabularyStatusResponse>('/vocabulary/status'),
+};
+
+export const reviewApi = {
+  listTasks: (params?: {
+    content_type?: ReviewContentType;
+    status?: ReviewStatus;
+    priority?: ReviewPriority;
+    source_id?: string;
+    has_disagreement?: boolean;
+    human_review_required?: boolean;
+    story_id?: string;
+    limit?: number;
+    offset?: number;
+  }) =>
+    api.get<ReviewTaskListResponse>('/admin/review/tasks', { params }),
+
+  getTask: (taskId: string) =>
+    api.get<ReviewTask>(`/admin/review/tasks/${taskId}`),
+
+  submitDecision: (taskId: string, body: SubmitDecisionRequest) =>
+    api.post<ReviewTask>(`/admin/review/tasks/${taskId}/decision`, body),
+
+  getStats: () =>
+    api.get<ReviewStatsResponse>('/admin/review/stats'),
 };

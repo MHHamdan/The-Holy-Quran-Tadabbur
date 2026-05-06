@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
-import { User, Bot, Clock, AlertTriangle, CheckCircle, Sparkles, Info, BookOpen, ExternalLink, Copy, Check, Share2, ThumbsUp, ThumbsDown, HelpCircle, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
+import { User, Bot, Clock, AlertTriangle, CheckCircle, Sparkles, Info, BookOpen, ExternalLink, Copy, Check, Share2, ThumbsUp, ThumbsDown, HelpCircle, ShieldCheck, ShieldAlert, ShieldX, Scale, FileText, GitCompare, BookMarked, Layers, GraduationCap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
+import { t } from '../../i18n/translations';
+import type { RAGAnswerMode } from '../../lib/api';
 import { RAGResponse, Citation } from '../../lib/api';
 import { VersesSection } from './VersesSection';
 import { TafsirAccordion } from './TafsirAccordion';
@@ -124,6 +126,11 @@ function AssistantMessage({
             {/* Tafsir explanations - accordion */}
             {hasTafsir && !isNoSource && (
               <TafsirAccordion tafsirBySources={response.tafsir_by_source!} language={language} />
+            )}
+
+            {/* Phase E — scholarly disagreement warning */}
+            {response.disagreement_warning && (
+              <DisagreementWarning warning={response.disagreement_warning} language={language} />
             )}
 
             {/* Main answer — always show (safe refusal text when no_verified_source) */}
@@ -413,10 +420,15 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
       {/* Header */}
       <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-primary-50 to-blue-50 border-b border-gray-100 flex items-center justify-between gap-2">
-        <h4 className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-1.5 sm:gap-2">
-          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-500" />
-          {language === 'ar' ? 'ملخص الإجابة' : 'Answer Summary'}
-        </h4>
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-500 flex-shrink-0" />
+          <h4 className="text-xs sm:text-sm font-semibold text-gray-700 truncate">
+            {language === 'ar' ? 'ملخص الإجابة' : 'Answer Summary'}
+          </h4>
+          {response.answer_mode && (
+            <AnswerModeBadge mode={response.answer_mode} language={language} />
+          )}
+        </div>
         <ConfidenceBadge confidence={response.confidence} language={language} />
       </div>
 
@@ -438,6 +450,11 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
               {response.scholarly_consensus}
             </span>
           </div>
+        )}
+
+        {/* Phase E — AI summary disclaimer (always shown for RAG answers) */}
+        {response.ai_summary_disclaimer !== false && (
+          <AISummaryDisclaimer language={language} />
         )}
       </div>
 
@@ -501,6 +518,73 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
               <ThumbsDown className="w-4 h-4" />
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Phase E — Tafsir Assistant UI components
+// ---------------------------------------------------------------------------
+
+const MODE_CONFIG: Record<string, { Icon: React.ElementType; colorClass: string; }> = {
+  simple_explanation:  { Icon: FileText,    colorClass: 'bg-gray-100 text-gray-600' },
+  tafsir_summary:      { Icon: BookMarked,  colorClass: 'bg-blue-50 text-blue-600' },
+  tafsir_comparison:   { Icon: GitCompare,  colorClass: 'bg-indigo-50 text-indigo-600' },
+  vocabulary:          { Icon: BookOpen,    colorClass: 'bg-emerald-50 text-emerald-600' },
+  thematic:            { Icon: Layers,      colorClass: 'bg-violet-50 text-violet-600' },
+  needs_scholar_review:{ Icon: GraduationCap, colorClass: 'bg-amber-50 text-amber-600' },
+};
+
+const MODE_TRANSLATION_KEY: Record<string, string> = {
+  simple_explanation:   'rag_mode_simple_explanation',
+  tafsir_summary:       'rag_mode_tafsir_summary',
+  tafsir_comparison:    'rag_mode_tafsir_comparison',
+  vocabulary:           'rag_mode_vocabulary',
+  thematic:             'rag_mode_thematic',
+  needs_scholar_review: 'rag_mode_needs_scholar_review',
+};
+
+function AnswerModeBadge({ mode, language }: { mode: RAGAnswerMode; language: 'ar' | 'en' }) {
+  const cfg = MODE_CONFIG[mode] ?? MODE_CONFIG.simple_explanation;
+  const Icon = cfg.Icon;
+  const label = t(MODE_TRANSLATION_KEY[mode] ?? 'rag_mode_tafsir_summary', language);
+  return (
+    <span className={clsx('inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium flex-shrink-0', cfg.colorClass)}>
+      <Icon className="w-3 h-3" />
+      {label}
+    </span>
+  );
+}
+
+function AISummaryDisclaimer({ language }: { language: 'ar' | 'en' }) {
+  return (
+    <div
+      className="mt-3 pt-3 border-t border-gray-100 flex items-start gap-1.5"
+      dir={language === 'ar' ? 'rtl' : 'ltr'}
+    >
+      <Info className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
+      <p className="text-[11px] text-gray-400 leading-relaxed">
+        {t('rag_ai_disclaimer', language)}
+      </p>
+    </div>
+  );
+}
+
+function DisagreementWarning({ warning, language }: { warning: string; language: 'ar' | 'en' }) {
+  // The warning string contains both EN and AR parts separated by " — "
+  const parts = warning.split(' — ');
+  const displayText = language === 'ar' && parts.length > 1 ? parts[1] : parts[0];
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="flex items-start gap-2">
+        <Scale className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-xs font-semibold text-amber-800 mb-0.5">
+            {t('rag_disagreement_title', language)}
+          </p>
+          <p className="text-xs text-amber-700">{displayText}</p>
         </div>
       </div>
     </div>

@@ -137,6 +137,88 @@ These properties are verified by:
 
 ---
 
+---
+
+## Batch 2 Methodology (added 2026-04-25)
+
+### Stories added
+Hud (story_hud), Salih (story_salih), Lut (story_lut), Ayyub (story_ayyub),
+Yunus (story_yunus), Dawud (story_dawud), Talut/Jalut (story_talut_jalut), Qarun (story_qarun).
+
+### How related stories were connected
+Every cross-story connection added in Batch 2 requires:
+1. A specific Quran verse range as `evidenceReferences`
+2. A directional relationship only from a Batch 2 story **toward** a story that precedes it in the array
+   — this keeps the validator warning count from increasing
+3. A bilingual explanation that summarizes only what the Quran itself establishes
+
+Examples:
+- `salih → story_hud` (same_event_pattern): Both prophets' communities rejected them in Surah Al-Araf 7:65-79 — the same surah narrates both patterns adjacently.
+- `lut → story_ibrahim` (same_surah): Surah Hud 11:69-83 narrates the angel guests visiting Ibrahim then going on to Lut — the same group of angels connects both episodes.
+- `yunus → story_nuh` (contrast): Quran 10:98 explicitly singles out the people of Yunus as the exceptional case of a community that believed — implicitly contrasting with Nuh's people who rejected for centuries (71:5-6).
+- `qarun → story_musa` (shared_character): Quran 28:76 explicitly states "Qarun was from the people of Musa."
+
+### How uncertain details were avoided
+- No extra-Quranic narrative was added to any segment
+- Where tafsir sources disagree (Ayyub's oath in 38:44; Dawud's trial in 38:21-26), a `disagreementNotes` entry was added and no interpretation was asserted
+- The nature of the destruction (flood, wind, stones, earth-swallowing) is taken directly from the Quran verse, never embellished
+- Wife/family details are limited to what the Quran explicitly states (e.g., "Lut's wife was among those who remained" from 15:60)
+
+### How needs_review status remains active
+All 51 segments across all 16 stories carry:
+- `sunniReview.status = 'needs_review'`
+- `sunniReview.humanReviewRequired = true`
+- `sunniReview.matchedEvidence = []`
+
+No segment was promoted to `approved`. The UI will show the Pending Scholarly Review banner for every segment in both Batch 1 and Batch 2.
+
+### Validator warning reduction
+Before Batch 2: 7 warnings, 0 errors
+After Batch 2: 5 warnings, 0 errors
+
+Resolved warnings: `story_yusuf → story_ayyub` and `story_nuh → story_hud`
+Remaining 5 warnings are resolvable only in Batch 3+ (3 within-batch ordering cycles, 2 missing stories).
+
+---
+
+## Batch 3 Methodology (added 2026-04-26)
+
+### Stories added
+Dhul-Qarnayn (story_dhulqarnayn), Zakariyya/Yahya (story_zakariyya_yahya),
+Two Gardens (story_two_gardens), Garden Owners (story_garden_owners),
+Baqarah Cow (story_baqarah_cow), Elephant (story_elephant),
+Sabbath Breakers (story_sabbath_breakers), Table Spread (story_table_spread).
+
+### Special content categories in Batch 3
+1. **Parables (amthal)** — story_two_gardens (18:32) and story_garden_owners (68:17) are explicitly introduced with the word مَثَل in the Quran. Summaries note this distinction: these are parabolic narratives, not identified historical figures.
+2. **Unidentified actors** — story_dhulqarnayn (identity not given in Quran) and story_elephant (army commander not named) — no identification is asserted from cultural knowledge or Isra'iliyyat.
+3. **Short surah narratives** — story_elephant covers a complete surah (105) in one segment. Summary length is proportional to verse count.
+
+### How missing-story warnings were resolved
+- `story_bilqis → story_dhulqarnayn`: resolved by placing story_dhulqarnayn at position 10 (before bilqis at position 11)
+- `story_maryam → story_zakariyya_yahya`: resolved by placing story_zakariyya_yahya at position 12 (before maryam at position 13)
+
+### Disagreement notes added in Batch 3
+Three new scholarly disagreement entries were added:
+- story_elephant: identity of army commander (Quran is intentionally sparse)
+- story_sabbath_breakers: specific nature of the transformation in 2:65 / 7:166
+- story_table_spread: whether the table actually descended after 5:115 (conditional divine response)
+
+### Needs_review status
+All 72 segments across all 24 stories carry:
+- `sunniReview.status = 'needs_review'`
+- `sunniReview.humanReviewRequired = true`
+- `sunniReview.matchedEvidence = []`
+
+### Validator warning reduction
+Before Batch 3: 5 warnings, 0 errors
+After Batch 3: 3 warnings, 0 errors
+
+Resolved warnings: `story_bilqis → story_dhulqarnayn` and `story_maryam → story_zakariyya_yahya`
+Remaining 3 warnings are irreducible ordering cycles within Batch 1 (yusuf→musa, musa→ibrahim, kahf→ibrahim).
+
+---
+
 ## What This Module Does Not Do
 
 - Does not generate tafsir — all explanations are authored and source-attributed

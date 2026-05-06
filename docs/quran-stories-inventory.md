@@ -1,6 +1,6 @@
 # Quran Stories Inventory
 _Tadabbur Al-Quran — Verified Story Index_
-_Date: 2026-04-25_
+_Date: 2026-04-26_
 
 ---
 
@@ -25,6 +25,305 @@ This inventory catalogs all Quranic stories currently in the platform manifest
 | ⚠️ | Present but needs review |
 | ❌ | Missing — requires addition |
 | 🔍 | Needs human verification before production |
+
+---
+
+## Implementation Status: Batch 1 + Batch 2 + Batch 3 Complete (24 stories)
+
+**24 stories now implemented in `QURAN_STORIES_FIRST_BATCH`.**
+All carry `needs_review` / `humanReviewRequired: true`. No segment is approved.
+Validator: 3 warnings remaining (irreducible ordering cycles within Batch 1 — cannot be resolved by reordering).
+
+---
+
+## Batch 2 Stories (8 stories — added 2026-04-25)
+
+### 9. Story of Ayyub عليه السلام
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_ayyub` |
+| Arabic title | قصة أيوب عليه السلام ✅ |
+| English title | Story of Prophet Ayyub (Job) ✅ |
+| Main characters | Ayyub, His wife, His family ✅ |
+| Quran references | 21:83-84 (Al-Anbiya), 38:41-44 (Sad) ✅ |
+| Segments | 2 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review — disagreement note on 38:44 (oath context) |
+| resolves warning | `story_yusuf → story_ayyub` now resolved ✅ |
+
+---
+
+### 10. Story of Hud عليه السلام and Aad
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_hud` |
+| Arabic title | قصة هود عليه السلام ✅ |
+| English title | Story of Prophet Hud and the People of Aad ✅ |
+| Main characters | Hud, Chiefs of Aad, Believers ✅ |
+| Quran references | 7:65-72, 11:50-60, 26:123-140, 46:21-26 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review |
+| Resolves warning | `story_nuh → story_hud` now resolved ✅ |
+
+---
+
+### 11. Story of Salih عليه السلام and Thamud
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_salih` |
+| Arabic title | قصة صالح عليه السلام ✅ |
+| English title | Story of Prophet Salih and Thamud ✅ |
+| Main characters | Salih, Chiefs of Thamud, She-camel (sign) ✅ |
+| Quran references | 7:73-79, 11:61-68, 26:141-159, 54:23-31 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review |
+| Related | `story_hud` (same_event_pattern) ✅ |
+
+---
+
+### 12. Story of Lut عليه السلام
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_lut` |
+| Arabic title | قصة لوط عليه السلام ✅ |
+| English title | Story of Prophet Lut (Lot) ✅ |
+| Main characters | Lut, Angel guests, His wife ✅ |
+| Quran references | 7:80-84, 11:77-83, 15:61-77, 26:160-175 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review |
+| Related | `story_ibrahim` (same_surah — Surah Hud 11:69-83) ✅ |
+
+---
+
+### 13. Story of Yunus عليه السلام
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_yunus` |
+| Arabic title | قصة يونس عليه السلام ✅ |
+| English title | Story of Prophet Yunus (Jonah) ✅ |
+| Main characters | Yunus, The great fish, His people ✅ |
+| Quran references | 37:139-148, 21:87-88, 10:98, 68:48-50 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review |
+| Related | `story_nuh` (contrast — people's response) ✅ |
+
+---
+
+### 14. Story of Dawud عليه السلام
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_dawud` |
+| Arabic title | قصة داود عليه السلام ✅ |
+| English title | Story of Prophet Dawud (David) ✅ |
+| Main characters | Dawud, Two litigants ✅ |
+| Quran references | 2:251, 34:10-11, 21:78-80, 38:17-26 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review — disagreement note on 38:21-26 (nature of test) |
+| Related | `story_bilqis` (chronological — Sulayman is Dawud's successor, 34:10-12) ✅ |
+
+---
+
+### 15. Story of Talut and Jalut
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_talut_jalut` |
+| Arabic title | قصة طالوت وجالوت ✅ |
+| English title | Story of Talut and Jalut ✅ |
+| Main characters | Talut, Jalut, Dawud, Bani Israel ✅ |
+| Quran references | 2:246-251 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review |
+| Related | `story_dawud` (shared_character), `story_musa` (same_theme) ✅ |
+
+---
+
+### 16. Story of Qarun
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_qarun` |
+| Arabic title | قصة قارون ✅ |
+| English title | Story of Qarun (Korah) ✅ |
+| Main characters | Qarun, Musa's people ✅ |
+| Quran references | 28:76-82, 29:39, 40:24 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review |
+| Related | `story_musa` (shared_character — 28:76 explicit) ✅ |
+
+---
+
+## Batch 3 Stories (8 stories — added 2026-04-26)
+
+### 17. Story of Dhul-Qarnayn (`story_dhulqarnayn`)
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_dhulqarnayn` |
+| Arabic title | قصة ذي القرنين ✅ |
+| English title | Story of Dhul-Qarnayn ✅ |
+| Main characters | Dhul-Qarnayn ✅ |
+| Quran references | 18:83-98 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review |
+| Resolves warning | `story_bilqis → story_dhulqarnayn` now resolved ✅ |
+| Notes | The Quran does not name or identify Dhul-Qarnayn — no identity is asserted |
+
+---
+
+### 18. Story of Zakariyya and Yahya (`story_zakariyya_yahya`)
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_zakariyya_yahya` |
+| Arabic title | قصة زكريا ويحيى عليهما السلام ✅ |
+| English title | Story of Zakariyya and Yahya ✅ |
+| Main characters | Zakariyya, Yahya, Zakariyya's wife ✅ |
+| Quran references | 19:2-15, 3:37-41, 21:89-90 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review |
+| Resolves warning | `story_maryam → story_zakariyya_yahya` now resolved ✅ |
+
+---
+
+### 19. Parable of the Two Gardens (`story_two_gardens`)
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_two_gardens` |
+| Arabic title | مثل صاحبي الجنتين ✅ |
+| English title | Parable of the Two Gardens ✅ |
+| Main characters | The wealthy man, his believing companion ✅ |
+| Quran references | 18:32-44 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review |
+| Notes | Explicitly labeled as مَثَل (parable) in 18:32 — not a named historical figure |
+
+---
+
+### 20. Parable of the Garden Owners (`story_garden_owners`)
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_garden_owners` |
+| Arabic title | مثل أصحاب الجنة ✅ |
+| English title | Parable of the Owners of the Garden ✅ |
+| Main characters | The owners of the garden ✅ |
+| Quran references | 68:17-33 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review |
+
+---
+
+### 21. Story of the Cow (Baqarah) (`story_baqarah_cow`)
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_baqarah_cow` |
+| Arabic title | قصة البقرة ✅ |
+| English title | Story of the Cow (Al-Baqarah) ✅ |
+| Main characters | Bani Israel, Musa ✅ |
+| Quran references | 2:67-74 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review |
+
+---
+
+### 22. Story of the People of the Elephant (`story_elephant`)
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_elephant` |
+| Arabic title | قصة أصحاب الفيل ✅ |
+| English title | Story of the People of the Elephant ✅ |
+| Main characters | The army with the elephant, the birds ✅ |
+| Quran references | 105:1-5 ✅ |
+| Segments | 1 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review — disagreement note on identity of the commander |
+| Notes | The Quran does not name the commander or the city targeted; no identification is asserted |
+
+---
+
+### 23. Story of the Sabbath Breakers (`story_sabbath_breakers`)
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_sabbath_breakers` |
+| Arabic title | قصة أصحاب السبت ✅ |
+| English title | Story of the Sabbath Breakers ✅ |
+| Main characters | The community who violated the Sabbath ✅ |
+| Quran references | 2:65, 7:163-166 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review — disagreement note on the nature of transformation |
+| Notes | Classical scholars differ on the specific nature of the transformation in 2:65 and 7:166 |
+
+---
+
+### 24. Story of the Table Spread (`story_table_spread`)
+
+| Field | Status |
+|-------|--------|
+| Story ID | `story_table_spread` |
+| Arabic title | قصة المائدة ✅ |
+| English title | Story of the Table Spread ✅ |
+| Main characters | Isa, the Disciples (Hawariyyun) ✅ |
+| Quran references | 5:112-115 ✅ |
+| Segments | 3 ✅ |
+| Sources | ibn_kathir, tabari, qurtubi ⚠️ (needs_review) |
+| Kids summary | ✅ Present |
+| Adult summary | ✅ Present |
+| Sunni review | ⚠️ needs_review — disagreement note on whether table actually descended |
+| Notes | Classical scholars differ on whether the table descended after 5:115 — no interpretation asserted |
 
 ---
 

@@ -77,6 +77,12 @@ from app.rag.types import (
     NEEDS_CLARIFICATION_EN,
     NEEDS_CLARIFICATION_AR,
     SAFE_REFUSAL_FIQH,
+    SAFE_REFUSAL_FATWA_EN,
+    SAFE_REFUSAL_FATWA_AR,
+    SAFE_REFUSAL_UNSUPPORTED_EN,
+    SAFE_REFUSAL_UNSUPPORTED_AR,
+    SAFE_REFUSAL_CLARIFICATION_EN,
+    SAFE_REFUSAL_CLARIFICATION_AR,
     RAG_SUPPORTED_LANGUAGES,
     reliability_float_to_level,
 )
@@ -87,6 +93,15 @@ from app.rag.confidence import confidence_scorer, get_confidence_message, Confid
 from app.validators.citation_validator import CitationValidator
 from app.rag.llm_provider import get_llm, LLMProvider, BaseLLM
 from app.rag.source_validator import source_validator
+from app.safety.quran_question_classifier import (
+    quran_question_classifier,
+    classifier_intent_to_query_intent,
+    INTENT_FATWA_LIKE,
+    INTENT_NEEDS_CLARIFICATION,
+    INTENT_UNSUPPORTED,
+    ROUTE_REFUSAL,
+    ROUTE_CLARIFICATION,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -343,6 +358,12 @@ class RAGPipeline:
         if language not in RAG_SUPPORTED_LANGUAGES:
             language = "en"  # Coerce to English (validation logged in retriever)
 
+        # Phase C: Pre-generation classifier — defense layer 1
+        # Blocks fatwa, unsupported, and clarification requests before LLM is called.
+        pre_block = self._pre_classify(question, language, session_id)
+        if pre_block is not None:
+            return pre_block
+
         # FAST-PATH: Try direct verse lookup first (skips LLM entirely)
         # This is much faster and avoids hallucination for famous verse queries
         fast_response = await self._try_fast_path_verse_query(
@@ -438,6 +459,16 @@ class RAGPipeline:
         validated.follow_up_suggestions = follow_up_suggestions
         validated.answer_language = language
 
+        # Phase E — Tafsir Assistant: mode + disclaimer + disagreement
+        answer_mode, disagreement_warning = self._determine_answer_mode(
+            question=question,
+            scholarly_consensus=validated.scholarly_consensus,
+            tafsir_by_source=tafsir_by_source,
+        )
+        validated.answer_mode = answer_mode
+        validated.ai_summary_disclaimer = True  # immutable rule — always set
+        validated.disagreement_warning = disagreement_warning
+
         # Determine status based on citations and question
         if not validated.citations:
             validated.status = "no_verified_source"
@@ -503,6 +534,140 @@ class RAGPipeline:
 
         # Return top results
         return [chunk for score, chunk in scored_chunks[:max_results]]
+
+    def _pre_classify(
+        self,
+        question: str,
+        language: str,
+        session_id: Optional[str],
+    ) -> Optional[GroundedResponse]:
+        """
+        Phase C: Pre-generation classifier — defense layer 1.
+
+        Runs the QuranQuestionClassifier before any retrieval or LLM call.
+        Returns a GroundedResponse (safe refusal / clarification) if the
+        question must not reach the LLM, or None to let the pipeline proceed.
+        """
+        classification = quran_question_classifier.classify(question)
+
+        logger.info(
+            f"[PRE-CLASSIFY] intent={classification.intent} "
+            f"risk={classification.risk_level} "
+            f"allowed={classification.allowed_to_generate} "
+            f"route={classification.route_to}"
+        )
+
+        if classification.allowed_to_generate:
+            return None  # Proceed normally
+
+        # Hard block — return appropriate safe response
+        if classification.intent == INTENT_FATWA_LIKE:
+            msg = SAFE_REFUSAL_FATWA_AR if language == "ar" else SAFE_REFUSAL_FATWA_EN
+            return GroundedResponse(
+                answer=msg,
+                citations=[],
+                status="no_verified_source",
+                answer_language=language,
+                confidence=0.0,
+                intent=classification.intent,
+                warnings=classification.warnings,
+                session_id=session_id,
+                api_version=settings.api_version,
+            )
+
+        if classification.route_to == ROUTE_CLARIFICATION:
+            msg = SAFE_REFUSAL_CLARIFICATION_AR if language == "ar" else SAFE_REFUSAL_CLARIFICATION_EN
+            return GroundedResponse(
+                answer=msg,
+                citations=[],
+                status="needs_clarification",
+                answer_language=language,
+                confidence=0.0,
+                intent=classification.intent,
+                warnings=classification.warnings,
+                session_id=session_id,
+                api_version=settings.api_version,
+            )
+
+        # Unsupported / other hard blocks
+        msg = SAFE_REFUSAL_UNSUPPORTED_AR if language == "ar" else SAFE_REFUSAL_UNSUPPORTED_EN
+        return GroundedResponse(
+            answer=msg,
+            citations=[],
+            status="no_verified_source",
+            answer_language=language,
+            confidence=0.0,
+            intent=classification.intent,
+            warnings=classification.warnings,
+            session_id=session_id,
+            api_version=settings.api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Phase E — Answer mode determination
+    # -------------------------------------------------------------------------
+
+    _CLASSIFIER_INTENT_TO_MODE: dict = {
+        "scientific_miracle_claim": "needs_scholar_review",
+        "thematic_tafsir":          "thematic",
+        "vocabulary_meaning":       "vocabulary",
+        "munasabah":                "thematic",
+        "tafsir_summary":           "tafsir_summary",
+        "irab":                     "simple_explanation",
+        "morphology":               "simple_explanation",
+        "qiraat":                   "simple_explanation",
+        "story":                    "tafsir_summary",
+        "similarity":               "simple_explanation",
+        "general_question":         "simple_explanation",
+        "fatwa_like":               "needs_scholar_review",
+        "unsupported":              "simple_explanation",
+        "needs_clarification":      "simple_explanation",
+    }
+
+    _DISAGREEMENT_SIGNALS = frozenset({
+        "dispute", "differ", "disagree", "varied", "divided",
+        "خلاف", "اختلف", "اختلاف",
+    })
+
+    def _determine_answer_mode(
+        self,
+        question: str,
+        scholarly_consensus: Optional[str],
+        tafsir_by_source: dict,
+    ) -> tuple:
+        """
+        Return (answer_mode, disagreement_warning) for Phase E labeling.
+
+        answer_mode values:
+          simple_explanation | tafsir_summary | tafsir_comparison |
+          vocabulary | thematic | needs_scholar_review
+        """
+        clf_intent = quran_question_classifier.classify(question).intent
+        base_mode = self._CLASSIFIER_INTENT_TO_MODE.get(clf_intent, "tafsir_summary")
+
+        # Upgrade to comparison when multiple tafsir source families retrieved
+        # Applies to explanation-type modes; specialist modes (irab, morphology, etc.)
+        # are not upgraded since multiple sources there don't constitute a comparison.
+        _UPGRADEABLE_TO_COMPARISON = {"tafsir_summary", "simple_explanation"}
+        _NON_COMPARISON_INTENTS = {"irab", "morphology", "qiraat", "similarity",
+                                   "unsupported", "needs_clarification"}
+        if (base_mode in _UPGRADEABLE_TO_COMPARISON
+                and clf_intent not in _NON_COMPARISON_INTENTS
+                and len(tafsir_by_source) >= 2):
+            base_mode = "tafsir_comparison"
+
+        # Detect scholarly disagreement from consensus field
+        disagreement_warning: Optional[str] = None
+        if scholarly_consensus:
+            sc_lower = scholarly_consensus.lower()
+            if any(sig in sc_lower for sig in self._DISAGREEMENT_SIGNALS):
+                disagreement_warning = (
+                    "Scholars have differing views on this topic. Both perspectives are "
+                    "presented without endorsing one over another. — "
+                    "اختلف العلماء في هذه المسألة، وقد عُرضت الآراء المختلفة دون ترجيح لأي منها."
+                )
+
+        return base_mode, disagreement_warning
 
     async def _classify_intent(self, question: str) -> QueryIntent:
         """

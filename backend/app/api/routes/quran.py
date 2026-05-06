@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -750,12 +750,34 @@ async def search_quran(
     """
     # Normalize query for diacritic-free search
     from app.services.quran_search import normalize_arabic
+    from sqlalchemy import func as _func
     q_normalized = normalize_arabic(q)
 
-    # Simple LIKE search on normalized text (no diacritics)
+    # Search both text_normalized (Uthmanic) and normalized text_imlaei (standard spelling)
+    _dc = (
+        ''.join(chr(i) for i in range(0x0610, 0x061B))
+        + ''.join(chr(i) for i in range(0x064B, 0x0660))
+        + chr(0x0670)
+        + ''.join(chr(i) for i in range(0x06D6, 0x06DD))
+        + ''.join(chr(i) for i in range(0x06DF, 0x06E5))
+        + chr(0x06E7) + chr(0x06E8)
+        + ''.join(chr(i) for i in range(0x06EA, 0x06EE))
+    )
+    _norm_imlaei = _func.replace(
+        _func.translate(
+            _func.regexp_replace(QuranVerse.text_imlaei, '[' + _dc + ']', '', 'g'),
+            'آأإٱ', chr(0x0627) * 4
+        ),
+        'ى', 'ي'
+    )
     query = (
         select(QuranVerse)
-        .where(QuranVerse.text_normalized.ilike(f"%{q_normalized}%"))
+        .where(
+            or_(
+                QuranVerse.text_normalized.ilike(f"%{q_normalized}%"),
+                _norm_imlaei.ilike(f"%{q_normalized}%"),
+            )
+        )
         .limit(limit)
     )
 
@@ -1940,6 +1962,182 @@ async def advanced_similarity_search(
         search_time_ms=result.search_time_ms,
         theme_colors=THEME_COLORS,
         connection_types=connection_type_info,
+    )
+
+
+# =============================================================================
+# KG SIMILARITY ENDPOINT (Phase 5)
+# =============================================================================
+
+class KGEvidenceItemResponse(BaseModel):
+    """Evidence item for a KG-based similarity relation."""
+    sourceId: str
+    sourceTitleArabic: Optional[str] = None
+    sourceTitleEnglish: Optional[str] = None
+    storyId: Optional[str] = None
+    segmentId: Optional[str] = None
+    conceptId: Optional[str] = None
+    themeId: Optional[str] = None
+    tafsirReference: Optional[str] = None
+    relationStatus: str  # "approved" | "needs_review" | "experimental"
+
+
+class KGPathNodeResponse(BaseModel):
+    """A node in a KG path explanation."""
+    id: str
+    type: str  # "ayah" | "story" | "story_segment" | "concept" | "theme"
+    labelArabic: Optional[str] = None
+    labelEnglish: Optional[str] = None
+    surahNumber: Optional[int] = None
+    ayahNumber: Optional[int] = None
+
+
+class KGPathEdgeResponse(BaseModel):
+    """An edge in a KG path explanation."""
+    sourceNodeId: str
+    targetNodeId: str
+    edgeType: str
+    relationStatus: str = "needs_review"
+    humanReviewRequired: bool = True
+
+
+class KGPathExplanationResponse(BaseModel):
+    """Structured path between two ayahs through the KG."""
+    nodes: List[KGPathNodeResponse]
+    edges: List[KGPathEdgeResponse]
+    explanationArabic: str
+    explanationEnglish: str
+    warnings: List[str]
+
+
+class KGRelatedAyahResponse(BaseModel):
+    """A related ayah found via the KG similarity service."""
+    surahNumber: int
+    ayahNumber: int
+    score: float
+    relationTypes: List[str]
+    explanationArabic: str
+    explanationEnglish: str
+    evidence: List[KGEvidenceItemResponse]
+    warnings: List[str]
+    humanReviewRequired: bool
+    pathExplanation: Optional[KGPathExplanationResponse] = None
+
+
+class KGSimilaritySearchResponse(BaseModel):
+    """Response for KG-based verse similarity search."""
+    sourceAyah: Dict[str, int]
+    relatedAyahs: List[KGRelatedAyahResponse]
+    totalRelated: int
+    allNeedsReview: bool
+    searchTimeMs: float
+
+
+@router.get("/similarity/kg/{sura_no}/{aya_no}")
+async def kg_similarity_search(
+    sura_no: int = Path(..., ge=1, le=114, description="Surah number (1-114)"),
+    aya_no: int = Path(..., ge=1, description="Ayah number"),
+    top_k: int = Query(20, ge=1, le=50, description="Maximum results"),
+    min_score: float = Query(0.10, ge=0.0, le=1.0, description="Minimum relation score"),
+    include_experimental: bool = Query(False, description="Include semantic-only (experimental) relations"),
+) -> KGSimilaritySearchResponse:
+    """
+    Knowledge Graph-aware verse similarity (Phase 5).
+
+    Returns related ayahs grounded in story, concept, theme, and person overlap
+    from the Quran Knowledge Graph index.
+
+    Arabic: بحث الآيات المترابطة عبر الرسم البياني للمعرفة القرآنية
+
+    All returned relations are marked needs_review and require scholarly
+    verification before being presented as authoritative tafsir or meaning.
+
+    Safety guarantees:
+    - Never returns relations with approved status unless explicitly set
+    - Semantic-only relations hidden unless include_experimental=True
+    - All results carry humanReviewRequired=True and warnings
+    """
+    import time
+    _start = time.time()
+
+    from app.services.verse_similarity import get_verse_similarity_service
+
+    service = get_verse_similarity_service(include_experimental=include_experimental)
+
+    response = await service.find_similar(
+        sura_no=sura_no,
+        aya_no=aya_no,
+        top_k=top_k,
+        min_score=min_score,
+        require_evidence=True,
+    )
+
+    elapsed_ms = round((time.time() - _start) * 1000, 1)
+
+    related: List[KGRelatedAyahResponse] = []
+    for r in response.relatedAyahs:
+        evidence_items = [
+            KGEvidenceItemResponse(
+                sourceId=e.sourceId,
+                sourceTitleArabic=e.sourceTitleArabic,
+                sourceTitleEnglish=e.sourceTitleEnglish,
+                storyId=e.storyId,
+                segmentId=e.segmentId,
+                conceptId=e.conceptId,
+                themeId=e.themeId,
+                tafsirReference=e.tafsirReference,
+                relationStatus=e.relationStatus,
+            )
+            for e in r.evidence
+        ]
+        path_resp: Optional[KGPathExplanationResponse] = None
+        if r.pathExplanation is not None:
+            pe = r.pathExplanation
+            path_resp = KGPathExplanationResponse(
+                nodes=[
+                    KGPathNodeResponse(
+                        id=n.id,
+                        type=n.type,
+                        labelArabic=n.labelArabic,
+                        labelEnglish=n.labelEnglish,
+                        surahNumber=n.surahNumber,
+                        ayahNumber=n.ayahNumber,
+                    )
+                    for n in pe.nodes
+                ],
+                edges=[
+                    KGPathEdgeResponse(
+                        sourceNodeId=e.sourceNodeId,
+                        targetNodeId=e.targetNodeId,
+                        edgeType=e.edgeType,
+                        relationStatus=e.relationStatus,
+                        humanReviewRequired=e.humanReviewRequired,
+                    )
+                    for e in pe.edges
+                ],
+                explanationArabic=pe.explanationArabic,
+                explanationEnglish=pe.explanationEnglish,
+                warnings=pe.warnings,
+            )
+        related.append(KGRelatedAyahResponse(
+            surahNumber=r.surahNumber,
+            ayahNumber=r.ayahNumber,
+            score=r.score,
+            relationTypes=r.relationTypes,
+            explanationArabic=r.explanationArabic,
+            explanationEnglish=r.explanationEnglish,
+            evidence=evidence_items,
+            warnings=r.warnings,
+            humanReviewRequired=r.humanReviewRequired,
+            pathExplanation=path_resp,
+        ))
+
+    return KGSimilaritySearchResponse(
+        sourceAyah=response.sourceAyah,
+        relatedAyahs=related,
+        totalRelated=len(related),
+        allNeedsReview=True,
+        searchTimeMs=elapsed_ms,
     )
 
 
@@ -13387,6 +13585,7 @@ class GroundedVerseResponse(BaseModel):
     grounding: str  # Explanation of why this verse is relevant
     matched_concepts: List[str]  # Which search concepts matched
     highlighted_terms: List[str]  # Terms that were matched
+    match_type: str = "normalized"  # "alias" | "normalized" | "concept_expansion"
 
 
 class SemanticSearchResponse(BaseModel):
@@ -13435,10 +13634,80 @@ async def intelligent_search_with_grounding(
         BILINGUAL_CONCEPTS,
     )
     from app.services.quran_search import QuranSearchService, normalize_arabic
+    from app.services.quran_aliases import resolve_alias
+    from sqlalchemy import select as _select
 
     start_time = time.time()
 
-    # Parse and understand the query
+    # ── Alias resolution (highest priority) ─────────────────────────────────
+    # Queries like "آية الكرسي" or "Ayat al-Kursi" are verse/surah metadata
+    # labels that do not appear as literal Quran text. Resolve them to their
+    # canonical surah:ayah reference before running the full-text search.
+    alias_verses: list[GroundedVerseResponse] = []
+    alias_target = resolve_alias(query)
+    if alias_target:
+        from app.models.quran import QuranVerse as _QV
+        if alias_target.aya_end is not None:
+            # Fetch the verse range (capped at limit)
+            _alias_stmt = (
+                _select(_QV)
+                .where(
+                    _QV.sura_no == alias_target.sura_no,
+                    _QV.aya_no >= alias_target.aya_start,
+                    _QV.aya_no <= alias_target.aya_end,
+                )
+                .order_by(_QV.aya_no)
+                .limit(limit)
+            )
+        elif alias_target.aya_start is not None:
+            # Single verse
+            _alias_stmt = _select(_QV).where(
+                _QV.sura_no == alias_target.sura_no,
+                _QV.aya_no == alias_target.aya_start,
+            )
+        else:
+            # Whole surah — first verse as anchor
+            _alias_stmt = (
+                _select(_QV)
+                .where(_QV.sura_no == alias_target.sura_no)
+                .order_by(_QV.aya_no)
+                .limit(limit)
+            )
+
+        _alias_result = await session.execute(_alias_stmt)
+        _alias_rows = _alias_result.scalars().all()
+
+        for _av in _alias_rows:
+            _range_note = (
+                f" ({alias_target.label_ar} — {_av.sura_no}:{alias_target.aya_start}"
+                + (f"–{alias_target.aya_end}" if alias_target.aya_end else "")
+                + ")"
+            )
+            if lang == 'ar':
+                _grounding = f"تطابق مباشر: {alias_target.label_ar}{_range_note}"
+            else:
+                _grounding = f"Direct alias: {alias_target.label_en}{_range_note}"
+
+            alias_verses.append(GroundedVerseResponse(
+                verse_id=_av.id,
+                sura_no=_av.sura_no,
+                sura_name_ar=_av.sura_name_ar,
+                sura_name_en=_av.sura_name_en,
+                aya_no=_av.aya_no,
+                reference=f"{_av.sura_no}:{_av.aya_no}",
+                text_uthmani=_av.text_uthmani,
+                text_imlaei=_av.text_imlaei,
+                page_no=_av.page_no,
+                juz_no=_av.juz_no,
+                relevance_score=1.0,
+                highlighted_text=_av.text_uthmani,
+                grounding=_grounding,
+                matched_concepts=[alias_target.label_ar, alias_target.label_en],
+                highlighted_terms=[query],
+                match_type="alias",
+            ))
+
+    # ── Parse and understand the query ───────────────────────────────────────
     parsed = parse_multi_concept_query(query)
 
     # Expand query with bilingual synonyms
@@ -13468,15 +13737,49 @@ async def intelligent_search_with_grounding(
 
     if valid_terms:
         # Build a single batched query with all terms OR'd together
-        from sqlalchemy import select, or_
+        from sqlalchemy import select, or_, func
         from app.models.quran import QuranVerse
 
         normalized_terms = [normalize_arabic(t) for t in valid_terms]
 
-        conditions = [
-            QuranVerse.text_normalized.ilike(f'%{nt}%')
-            for nt in normalized_terms
-        ]
+        # text_normalized is derived from Uthmanic text (uses special orthography,
+        # e.g. "إبراهيم" → "ابرهۦم" with U+06E6 small yeh). To catch standard Arabic
+        # spellings typed by users (e.g. "ابراهيم"), we ALSO search text_imlaei with
+        # diacritics stripped at the DB level using regexp_replace.
+        # Precise diacritic ranges (excludes Arabic-Indic digits U+0660-U+0669):
+        # U+0610-U+061A, U+064B-U+065F, U+0670, U+06D6-U+06DC, U+06DF-U+06E4,
+        # U+06E7-U+06E8, U+06EA-U+06ED
+        _diacritic_chars = (
+            ''.join(chr(i) for i in range(0x0610, 0x061B))
+            + ''.join(chr(i) for i in range(0x064B, 0x0660))
+            + chr(0x0670)
+            + ''.join(chr(i) for i in range(0x06D6, 0x06DD))
+            + ''.join(chr(i) for i in range(0x06DF, 0x06E5))
+            + chr(0x06E7) + chr(0x06E8)
+            + ''.join(chr(i) for i in range(0x06EA, 0x06EE))
+        )
+        _DIACRITIC_RE = '[' + _diacritic_chars + ']'
+
+        def _pg_normalize_imlaei(col):
+            """Strip diacritics and normalize alef/ya in text_imlaei (PostgreSQL)."""
+            stripped = func.regexp_replace(col, _DIACRITIC_RE, '', 'g')
+            # Normalize alef variants: آأإٱ → ا
+            stripped = func.translate(
+                stripped,
+                'آأإٱ',
+                'اااا',
+            )
+            # Normalize alef maqsura: ى → ي
+            stripped = func.replace(stripped, 'ى', 'ي')
+            return stripped
+
+        conditions = []
+        for nt in normalized_terms:
+            # Primary: Uthmanic-based text_normalized column
+            conditions.append(QuranVerse.text_normalized.ilike(f'%{nt}%'))
+            # Secondary: text_imlaei with diacritics stripped (standard Arabic spelling)
+            conditions.append(_pg_normalize_imlaei(QuranVerse.text_imlaei).ilike(f'%{nt}%'))
+
         stmt = select(QuranVerse).where(
             or_(*conditions)
         ).order_by(QuranVerse.sura_no, QuranVerse.aya_no).limit(500)
@@ -13487,9 +13790,10 @@ async def intelligent_search_with_grounding(
         # For each verse, determine which terms matched and build highlights
         for verse in verses:
             verse_normalized = normalize_arabic(verse.text_uthmani)
+            verse_normalized_imlaei = normalize_arabic(verse.text_imlaei)
             matched_terms = []
             for nt, orig_term in zip(normalized_terms, valid_terms):
-                if nt in verse_normalized:
+                if nt in verse_normalized or nt in verse_normalized_imlaei:
                     matched_terms.append(orig_term)
 
             if not matched_terms:
@@ -13545,16 +13849,24 @@ async def intelligent_search_with_grounding(
         verse_matches.values(),
         key=lambda x: (len(x['concepts']), x['max_score']),
         reverse=True
-    )[:limit]
+    )
 
-    # Generate grounding explanations
-    grounded_verses = []
+    # ── Merge alias results (top) + full-text results (deduped, up to limit) ─
+    # Alias verses rank first; full-text results fill remaining slots.
+    alias_ids = {v.verse_id for v in alias_verses}
+    remaining_slots = max(0, limit - len(alias_verses))
+
+    full_text_verses: list[GroundedVerseResponse] = []
     for v in sorted_verses:
+        if len(full_text_verses) >= remaining_slots:
+            break
         match = v['match']
+        if match.verse_id in alias_ids:
+            continue  # already in alias results — skip to avoid duplicate
+
         concepts = list(v['concepts'])
         terms = list(v['terms'])
 
-        # Generate grounding explanation
         if concepts:
             concept_names = ', '.join(concepts[:3])
             if lang == 'ar':
@@ -13575,7 +13887,7 @@ async def intelligent_search_with_grounding(
             else:
                 grounding = f"Contains search term(s): {', '.join(terms[:3])}."
 
-        grounded_verses.append(GroundedVerseResponse(
+        full_text_verses.append(GroundedVerseResponse(
             verse_id=match.verse_id,
             sura_no=match.sura_no,
             sura_name_ar=match.sura_name_ar,
@@ -13591,34 +13903,39 @@ async def intelligent_search_with_grounding(
             grounding=grounding,
             matched_concepts=concepts,
             highlighted_terms=terms[:10],
+            match_type="concept_expansion" if concepts else "normalized",
         ))
+
+    grounded_verses = alias_verses + full_text_verses
 
     # Generate summary
     total = len(grounded_verses)
+    _alias_prefix_ar = f"تطابق مباشر: {alias_target.label_ar}. " if alias_target else ""
+    _alias_prefix_en = f"Direct alias: {alias_target.label_en}. " if alias_target else ""
     if lang == 'ar':
         if total == 0:
             summary = f"لم يتم العثور على آيات لـ '{query}'. جرّب استخدام مصطلحات عربية أو كلمات مختلفة."
         elif total == 1:
-            summary = f"تم العثور على آية واحدة متعلقة بـ '{query}'."
+            summary = f"{_alias_prefix_ar}تم العثور على آية واحدة متعلقة بـ '{query}'."
         else:
             top_concepts = sorted(concept_counts.items(), key=lambda x: x[1], reverse=True)[:3]
             if top_concepts:
                 concept_summary = ', '.join([f"{c[0]} ({c[1]} آية)" for c in top_concepts])
-                summary = f"تم العثور على {total} آية. المواضيع الرئيسية: {concept_summary}."
+                summary = f"{_alias_prefix_ar}تم العثور على {total} آية. المواضيع الرئيسية: {concept_summary}."
             else:
-                summary = f"تم العثور على {total} آية مطابقة لـ '{query}'."
+                summary = f"{_alias_prefix_ar}تم العثور على {total} آية مطابقة لـ '{query}'."
     else:
         if total == 0:
             summary = f"No verses found for '{query}'. Try using Arabic terms or different keywords."
         elif total == 1:
-            summary = f"Found 1 verse related to '{query}'."
+            summary = f"{_alias_prefix_en}Found 1 verse related to '{query}'."
         else:
             top_concepts = sorted(concept_counts.items(), key=lambda x: x[1], reverse=True)[:3]
             if top_concepts:
                 concept_summary = ', '.join([f"{c[0]} ({c[1]} verses)" for c in top_concepts])
-                summary = f"Found {total} verses. Main topics: {concept_summary}."
+                summary = f"{_alias_prefix_en}Found {total} verses. Main topics: {concept_summary}."
             else:
-                summary = f"Found {total} verses matching '{query}'."
+                summary = f"{_alias_prefix_en}Found {total} verses matching '{query}'."
 
     # Generate related searches
     related_searches = []

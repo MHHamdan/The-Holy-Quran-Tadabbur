@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 # Qdrant collection name for verses
 VERSE_COLLECTION = "quran_verses"
 
-# Embedding dimension for the multilingual model
-EMBEDDING_DIMENSION = 384  # MiniLM-L12 has 384 dimensions
+# Embedding dimension for the multilingual model (intfloat/multilingual-e5-large = 1024)
+EMBEDDING_DIMENSION = 1024
 
 
 @dataclass
