@@ -193,10 +193,27 @@ Features:
 
 ---
 
-## 12. Limitations
+## 12. Authentication (Phase Security — updated 2026-05-06)
+
+All admin routes are now protected by `X-Admin-API-Key` header authentication.
+
+| Header | Value |
+|---|---|
+| `X-Admin-API-Key` | Value of `ADMIN_API_KEY` environment variable |
+
+**Reviewers accessing the dashboard in staging** must:
+1. Obtain the `ADMIN_API_KEY` value from the platform administrator (never shared publicly).
+2. Set `VITE_ADMIN_API_KEY` in the frontend `.env` to the same value before building.
+3. Alternatively, use `curl -H "X-Admin-API-Key: <key>"` for direct API access.
+
+See `docs/admin-authentication-implementation.md` for full setup instructions.
+
+---
+
+## 13. Limitations
 
 1. **File-backed decisions** — not suitable for multi-reviewer concurrent access at scale
 2. **Phase 6.5 propagation deferred** — approved tasks don't yet update KG/stories data files
-3. **No authentication gate** — review API endpoints do not require admin token (extend existing `require_admin` when auth is ready)
+3. **Shared admin key** — all reviewers use the same key; replace with per-reviewer JWT before production
 4. **Decisions file grows unbounded** — add periodic archival in production
 5. **isa_table appears in multiple stories** — `story_isa` and `story_isa_miracles` both have `isa_table` segment → two review tasks generated (this is correct — each story+segment combo is a separate task)

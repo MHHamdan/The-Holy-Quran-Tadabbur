@@ -2097,6 +2097,25 @@ export const aspectTranslations: Record<string, { ar: string; en: string }> = {
   review_stats_disagreement: { ar: 'خلاف علمي', en: 'Scholarly Disagreements' },
   review_stats_human_review: { ar: 'مراجعة بشرية', en: 'Requires Human Review' },
 
+  // Phase Security — Admin authentication errors
+  admin_auth_required_title: {
+    ar: 'يتطلب صلاحية إدارية',
+    en: 'Admin Authorization Required',
+  },
+  admin_auth_required_body: {
+    ar: 'يتطلب الوصول إلى لوحة المراجعة صلاحية إدارية.',
+    en: 'Access to the review dashboard requires admin authorization.',
+  },
+  admin_auth_not_configured: {
+    ar: 'لم يتم تهيئة مفتاح المصادقة الإدارية. قم بتعيين متغير البيئة VITE_ADMIN_API_KEY.',
+    en: 'Admin API key is not configured. Set the VITE_ADMIN_API_KEY environment variable.',
+  },
+  admin_auth_invalid_key: {
+    ar: 'مفتاح API الإداري غير صالح. تحقق من قيمة VITE_ADMIN_API_KEY.',
+    en: 'Invalid admin API key. Check the VITE_ADMIN_API_KEY value.',
+  },
+  admin_auth_retry: { ar: 'إعادة المحاولة', en: 'Retry' },
+
   // Phase F — Vocabulary module
   vocab_page_title: { ar: 'غريب القرآن', en: 'Quranic Vocabulary' },
   vocab_page_subtitle: {

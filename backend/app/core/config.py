@@ -81,7 +81,8 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 30
 
     # Admin
-    admin_token: Optional[str] = None  # Set via ADMIN_TOKEN env var
+    admin_token: Optional[str] = None   # Set via ADMIN_TOKEN env var (Bearer auth, auth.py)
+    admin_api_key: Optional[str] = None  # Set via ADMIN_API_KEY env var (X-Admin-API-Key, admin_auth.py)
 
     # NLP Provider Configuration
     # Primary NLP provider for grammar analysis: farasa, camel, stanza, llm

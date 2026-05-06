@@ -31,12 +31,14 @@ from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Query, Path as FPath
+from fastapi import APIRouter, Depends, HTTPException, Query, Path as FPath
 from pydantic import BaseModel, Field, field_validator
+
+from app.core.admin_auth import require_admin_api_key
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_admin_api_key)])
 
 # ---------------------------------------------------------------------------
 # File paths

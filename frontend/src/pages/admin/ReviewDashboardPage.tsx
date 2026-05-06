@@ -29,6 +29,7 @@ import {
   BarChart3,
   RefreshCw,
   Info,
+  Lock,
 } from 'lucide-react';
 import clsx from 'clsx';
 import {
@@ -500,15 +501,32 @@ export function ReviewDashboardPage() {
   const [loading, setLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<'missing_key' | 'unauthorized' | 'forbidden' | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
   const LIMIT = 25;
+
+  // Detect whether the frontend key env var is configured at all
+  const hasAdminKey = !!(import.meta.env.VITE_ADMIN_API_KEY as string | undefined);
 
   // Filters
   const [filterStatus, setFilterStatus] = useState<ReviewStatus | ''>('');
   const [filterType, setFilterType] = useState<ReviewContentType | ''>('');
   const [filterPriority, setFilterPriority] = useState<ReviewPriority | ''>('');
   const [filterDisagreement, setFilterDisagreement] = useState(false);
+
+  function _handleAuthError(err: unknown) {
+    const status = (err as { response?: { status?: number } })?.response?.status;
+    if (status === 401) {
+      setAuthError(hasAdminKey ? 'unauthorized' : 'missing_key');
+      return true;
+    }
+    if (status === 403) {
+      setAuthError('forbidden');
+      return true;
+    }
+    return false;
+  }
 
   const loadTasks = useCallback(async () => {
     setLoading(true);
@@ -522,14 +540,17 @@ export function ReviewDashboardPage() {
         limit: LIMIT,
         offset,
       });
+      setAuthError(null);
       setTasks(resp.data.tasks);
       setTotal(resp.data.total);
-    } catch {
-      setError(t('review_load_error', language));
+    } catch (err) {
+      if (!_handleAuthError(err)) {
+        setError(t('review_load_error', language));
+      }
     } finally {
       setLoading(false);
     }
-  }, [filterStatus, filterType, filterPriority, filterDisagreement, offset, language]);
+  }, [filterStatus, filterType, filterPriority, filterDisagreement, offset, language, hasAdminKey]);
 
   const loadStats = useCallback(async () => {
     setStatsLoading(true);
@@ -598,6 +619,35 @@ export function ReviewDashboardPage() {
             </p>
           </div>
         </div>
+
+        {/* Auth error panel */}
+        {authError && (
+          <div className="flex items-start gap-3 p-5 bg-red-50 border-2 border-red-300 rounded-xl">
+            <Lock className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 space-y-2">
+              <p className="font-semibold text-red-800" dir={isArabic ? 'rtl' : 'ltr'}>
+                {t('admin_auth_required_title', language)}
+              </p>
+              <p className="text-sm text-red-700" dir={isArabic ? 'rtl' : 'ltr'}>
+                {t('admin_auth_required_body', language)}
+              </p>
+              <p className="text-xs text-red-600 font-mono" dir="ltr">
+                {authError === 'missing_key'
+                  ? t('admin_auth_not_configured', language)
+                  : authError === 'forbidden'
+                  ? t('admin_auth_invalid_key', language)
+                  : t('admin_auth_not_configured', language)}
+              </p>
+              <button
+                type="button"
+                onClick={() => { setAuthError(null); loadTasks(); loadStats(); }}
+                className="text-xs text-red-700 underline hover:text-red-900"
+              >
+                {t('admin_auth_retry', language)}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Phase 6.5 — Overlay freshness indicator */}
         {(() => {
@@ -746,8 +796,8 @@ export function ReviewDashboardPage() {
             </div>
           )}
 
-          {/* Error */}
-          {error && !loading && (
+          {/* Generic error (auth errors shown above the task list) */}
+          {error && !loading && !authError && (
             <div className="flex items-start gap-2 p-4 bg-red-50 border border-red-200 rounded-xl">
               <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-700" dir={isArabic ? 'rtl' : 'ltr'}>{error}</p>

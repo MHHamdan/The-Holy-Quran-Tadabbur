@@ -2446,6 +2446,22 @@ export const vocabularyApi = {
     api.get<VocabularyStatusResponse>('/vocabulary/status'),
 };
 
+// =============================================================================
+// Admin API client — includes X-Admin-API-Key header
+// =============================================================================
+
+// SECURITY: VITE_ADMIN_API_KEY is only for dev/staging. Never embed a
+// production admin key in frontend source or CI artifacts visible to the public.
+// Production deployments should use server-side authentication instead.
+const _ADMIN_KEY = import.meta.env.VITE_ADMIN_API_KEY as string | undefined;
+
+function _adminHeaders(): Record<string, string> {
+  if (_ADMIN_KEY) {
+    return { 'X-Admin-API-Key': _ADMIN_KEY };
+  }
+  return {};
+}
+
 export const reviewApi = {
   listTasks: (params?: {
     content_type?: ReviewContentType;
@@ -2458,14 +2474,23 @@ export const reviewApi = {
     limit?: number;
     offset?: number;
   }) =>
-    api.get<ReviewTaskListResponse>('/admin/review/tasks', { params }),
+    api.get<ReviewTaskListResponse>('/admin/review/tasks', {
+      params,
+      headers: _adminHeaders(),
+    }),
 
   getTask: (taskId: string) =>
-    api.get<ReviewTask>(`/admin/review/tasks/${taskId}`),
+    api.get<ReviewTask>(`/admin/review/tasks/${taskId}`, {
+      headers: _adminHeaders(),
+    }),
 
   submitDecision: (taskId: string, body: SubmitDecisionRequest) =>
-    api.post<ReviewTask>(`/admin/review/tasks/${taskId}/decision`, body),
+    api.post<ReviewTask>(`/admin/review/tasks/${taskId}/decision`, body, {
+      headers: _adminHeaders(),
+    }),
 
   getStats: () =>
-    api.get<ReviewStatsResponse>('/admin/review/stats'),
+    api.get<ReviewStatsResponse>('/admin/review/stats', {
+      headers: _adminHeaders(),
+    }),
 };
