@@ -289,7 +289,7 @@ class TestAdminTokenProtection:
 
         Arabic: POST /kg/import-stories يجب أن يتطلب رأس X-Admin-Token
         """
-        from app.api.routes.kg import verify_admin_token, ADMIN_TOKEN
+        from app.api.routes.kg import verify_admin_token, _KG_ADMIN_TOKEN
         from fastapi import HTTPException
 
         # Test missing token
@@ -305,7 +305,7 @@ class TestAdminTokenProtection:
         assert exc_info.value.detail['error_code'] == 'invalid_admin_token'
 
         # Test valid token
-        result = verify_admin_token(ADMIN_TOKEN)
+        result = verify_admin_token(_KG_ADMIN_TOKEN)
         assert result is True
 
     def test_admin_token_from_environment(self):
@@ -313,17 +313,17 @@ class TestAdminTokenProtection:
         Admin token should be configurable via environment variable.
         """
         import os
-        from app.api.routes.kg import ADMIN_TOKEN
+        from app.api.routes.kg import _KG_ADMIN_TOKEN
 
         # Default dev token exists
-        assert ADMIN_TOKEN is not None
-        assert len(ADMIN_TOKEN) > 10, "Admin token should be reasonably long"
+        assert _KG_ADMIN_TOKEN is not None
+        assert len(_KG_ADMIN_TOKEN) > 10, "Admin token should be reasonably long"
 
         # In production, KG_ADMIN_TOKEN env var should be set
         # This test documents the expected behavior
         env_token = os.environ.get("KG_ADMIN_TOKEN")
         if env_token:
-            assert ADMIN_TOKEN == env_token
+            assert _KG_ADMIN_TOKEN == env_token
 
 
 # =============================================================================
