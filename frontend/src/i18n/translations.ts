@@ -2107,11 +2107,11 @@ export const aspectTranslations: Record<string, { ar: string; en: string }> = {
     en: 'Access to the review dashboard requires admin authorization.',
   },
   admin_auth_not_configured: {
-    ar: 'لم يتم تهيئة مفتاح المصادقة الإدارية. قم بتعيين متغير البيئة VITE_ADMIN_API_KEY.',
+    ar: 'لم يتم تهيئة مفتاح المصادقة الإدارية. تواصل مع مسؤول النظام.',
     en: 'Admin API key is not configured. Set the VITE_ADMIN_API_KEY environment variable.',
   },
   admin_auth_invalid_key: {
-    ar: 'مفتاح API الإداري غير صالح. تحقق من قيمة VITE_ADMIN_API_KEY.',
+    ar: 'مفتاح المصادقة الإدارية غير صالح. تواصل مع مسؤول النظام.',
     en: 'Invalid admin API key. Check the VITE_ADMIN_API_KEY value.',
   },
   admin_auth_retry: { ar: 'إعادة المحاولة', en: 'Retry' },
