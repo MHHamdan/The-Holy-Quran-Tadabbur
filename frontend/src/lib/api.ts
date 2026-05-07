@@ -377,6 +377,8 @@ export interface RAGResponse {
   answer_mode?: RAGAnswerMode;
   ai_summary_disclaimer?: boolean;
   disagreement_warning?: string | null;
+  // Phase K — scientific miracle safety labels (from QuranAnswerGuard)
+  required_labels?: string[];
 }
 
 // Chat session types

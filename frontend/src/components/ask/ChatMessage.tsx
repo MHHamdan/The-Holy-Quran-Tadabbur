@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { User, Bot, Clock, AlertTriangle, CheckCircle, Sparkles, Info, BookOpen, ExternalLink, Copy, Check, Share2, ThumbsUp, ThumbsDown, HelpCircle, ShieldCheck, ShieldAlert, ShieldX, Scale, FileText, GitCompare, BookMarked, Layers, GraduationCap } from 'lucide-react';
+import { User, Bot, Clock, AlertTriangle, CheckCircle, Sparkles, Info, BookOpen, ExternalLink, Copy, Check, Share2, ThumbsUp, ThumbsDown, HelpCircle, ShieldCheck, ShieldAlert, ShieldX, Scale, FileText, GitCompare, BookMarked, Layers, GraduationCap, FlaskConical } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { t } from '../../i18n/translations';
@@ -74,6 +74,18 @@ function AssistantMessage({
   const isNoSource = status === 'no_verified_source';
   const isNeedsClarity = status === 'needs_clarification';
 
+  // Phase K — scientific miracle safety detection
+  const isScientificMiracle =
+    response?.intent === 'scientific_miracle_claim' ||
+    response?.required_labels?.includes('scientific_reflection_needs_review') ||
+    response?.required_labels?.includes('needs_scholarly_and_scientific_review') ||
+    false;
+
+  // Warnings: split scientific caution out so generic amber box doesn't duplicate it
+  const SCIENTIFIC_CAUTION_MARKER = 'specialized scholarly and scientific review';
+  const scientificWarnings = response?.warnings?.filter(w => w.includes(SCIENTIFIC_CAUTION_MARKER)) ?? [];
+  const otherWarnings = response?.warnings?.filter(w => !w.includes(SCIENTIFIC_CAUTION_MARKER)) ?? [];
+
   // Check if we have meaningful data
   const hasVerses = response?.related_verses && response.related_verses.length > 0;
   const hasTafsir = response?.tafsir_by_source && Object.keys(response.tafsir_by_source).length > 0;
@@ -101,10 +113,15 @@ function AssistantMessage({
               <NeedsClarificationNotice language={language} />
             )}
 
-            {/* Warnings */}
-            {response.warnings && response.warnings.length > 0 && (
+            {/* Phase K — scientific miracle caution card (always visible, distinct from generic warnings) */}
+            {(isScientificMiracle || scientificWarnings.length > 0) && (
+              <ScientificCautionCard language={language} />
+            )}
+
+            {/* Generic warnings (excluding scientific caution) */}
+            {otherWarnings.length > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
-                {response.warnings.map((warning, i) => (
+                {otherWarnings.map((warning, i) => (
                   <p key={i} className="text-amber-800 text-sm flex items-start gap-2">
                     <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     {warning}
@@ -585,6 +602,35 @@ function DisagreementWarning({ warning, language }: { warning: string; language:
             {t('rag_disagreement_title', language)}
           </p>
           <p className="text-xs text-amber-700">{displayText}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Phase K — Scientific Miracle Caution Card
+// Always visible, cannot be collapsed. Per platform policy: asserting a
+// definitive link between a verse and a modern scientific theory requires
+// specialized scholarly and scientific review.
+// ---------------------------------------------------------------------------
+
+function ScientificCautionCard({ language }: { language: 'ar' | 'en' }) {
+  return (
+    <div
+      className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4"
+      dir={language === 'ar' ? 'rtl' : 'ltr'}
+      role="alert"
+    >
+      <div className="flex items-start gap-3">
+        <FlaskConical className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-orange-800 text-sm">
+            {t('scientific_caution_title', language)}
+          </p>
+          <p className="text-orange-700 text-sm mt-1 leading-relaxed">
+            {t('scientific_caution_body', language)}
+          </p>
         </div>
       </div>
     </div>

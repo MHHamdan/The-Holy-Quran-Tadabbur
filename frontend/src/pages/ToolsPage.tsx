@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Video, Newspaper, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar, Library } from 'lucide-react';
+import { Video, Newspaper, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar, Library, ShieldCheck } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import clsx from 'clsx';
 
@@ -114,6 +114,16 @@ const TOOL_MODULES: ToolModule[] = [
     icon: Library,
     path: '/tools/vocabulary',
     color: 'teal',
+  },
+  {
+    id: 'prompt-guide',
+    name_en: 'Safe AI Prompting Guide',
+    name_ar: 'دليل الأسئلة الآمنة للذكاء الاصطناعي',
+    description_en: 'Learn how to ask precise, source-backed Quranic questions and understand what AI can and cannot answer',
+    description_ar: 'تعلّم كيف تسأل أسئلة قرآنية دقيقة ومستندة، وافهم ما يستطيع الذكاء الاصطناعي الإجابة عنه وما لا يستطيع',
+    icon: ShieldCheck,
+    path: '/tools/prompt-guide',
+    color: 'emerald',
   },
 ];
 

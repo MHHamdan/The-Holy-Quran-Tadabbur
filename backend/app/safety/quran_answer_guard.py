@@ -64,9 +64,31 @@ _FATWA_KEYWORDS = frozenset({
 # Keywords that indicate a scientific miracle claim
 _SCIENTIFIC_MIRACLE_KEYWORDS = frozenset({
     "scientific miracle", "science proves", "quran predicted", "modern science",
-    "big bang", "embryology", "astronomy", "إعجاز علمي", "العلم يثبت",
-    "أثبت العلم", "الإعجاز العلمي", "النظرية العلمية", "علميًا",
+    "big bang", "embryology", "astronomy", "expanding universe",
+    "mountains as pegs", "إعجاز علمي", "العلم يثبت", "أثبت العلم",
+    "الإعجاز العلمي", "النظرية العلمية", "علميًا", "توسع الكون",
+    "الجبال أوتاد", "علم الأجنة",
     "scientifically proven", "scientific proof", "science confirms",
+})
+
+# Phrases that assert a definitive link between a verse and a modern theory.
+# Any answer containing these in a scientific context must be hard-blocked.
+_DEFINITIVE_SCIENTIFIC_CLAIM_PHRASES = frozenset({
+    "this verse proves modern science",
+    "the quran definitively refers to",
+    "the quran definitively means",
+    "science has confirmed the tafsir",
+    "proves the big bang",
+    "proves the theory",
+    "definitively proves",
+    "quran has proven",
+    "proves modern",
+    # Arabic equivalents
+    "تثبت هذه الآية نظرية",
+    "يثبت القرآن نظرية",
+    "أثبت العلم صحة تفسير",
+    "هذه الآية تثبت",
+    "القرآن يثبت نظرية",
 })
 
 # ---------------------------------------------------------------------------
@@ -203,6 +225,13 @@ class QuranAnswerGuard:
 
         # Rule 5: scientific miracle claims → mandatory caution label + warning
         if self._is_scientific_miracle(answer_text, intent):
+            # 5a. Hard-block if answer makes a definitive scientific claim
+            definitive_block = self._check_definitive_scientific_claim(answer_text)
+            if definitive_block:
+                return GuardResult(
+                    passed=False,
+                    hard_block_reason=definitive_block,
+                )
             caution_en = (
                 "Connecting an ayah to scientific theories requires specialized "
                 "scholarly and scientific review. This is presented as a "
@@ -214,6 +243,7 @@ class QuranAnswerGuard:
             )
             warnings.append(caution_en)
             warnings.append(caution_ar)
+            labels.append("scientific_reflection_needs_review")
             labels.append("needs_scholarly_and_scientific_review")
             labels.append("contemporary_reflection_not_tafsir")
 
@@ -284,6 +314,28 @@ class QuranAnswerGuard:
             return True
         text_lower = text.lower()
         return any(kw.lower() in text_lower for kw in _SCIENTIFIC_MIRACLE_KEYWORDS)
+
+    def _check_definitive_scientific_claim(self, text: str) -> Optional[str]:
+        """
+        Return a hard-block reason if the answer asserts a definitive link
+        between a Quranic verse and a modern scientific theory.
+
+        Per the scientific-miracle-claims-policy.md: phrases like
+        "this verse proves modern science" or "science has confirmed the tafsir"
+        present a scientific theory as definitive tafsir, which is prohibited
+        without specialized scholarly and scientific review.
+        """
+        text_lower = text.lower()
+        for phrase in _DEFINITIVE_SCIENTIFIC_CLAIM_PHRASES:
+            if phrase.lower() in text_lower:
+                return (
+                    f"Answer contains a definitive scientific claim: '{phrase}'. "
+                    "Scientific theories must not be presented as definitive tafsir. "
+                    "Per the platform's scientific-miracle-claims-policy: this requires "
+                    "specialized scholarly and scientific review before display. "
+                    "— الربط القطعي بين الآيات والنظريات العلمية ممنوع بدون مراجعة علمية وشرعية متخصصة."
+                )
+        return None
 
 
 # Module-level singleton

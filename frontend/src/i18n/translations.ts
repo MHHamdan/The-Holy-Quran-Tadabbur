@@ -2147,6 +2147,99 @@ export const aspectTranslations: Record<string, { ar: string; en: string }> = {
   review_overlay_stale_warning: { ar: 'طبقة الحالة قد تكون قديمة — أعِد التوليد بعد القرارات الجديدة.', en: 'Status overlay may be stale — regenerate after new decisions.' },
   review_overlay_not_generated: { ar: 'طبقة الحالة غير موجودة — أعِد تشغيل سكريبت التوليد', en: 'Status overlay not generated — run propagate-review-status.ts' },
   review_overlay_all_pending: { ar: 'جميع المهام قيد الانتظار — لا توجد قرارات بعد.', en: 'All tasks pending — no decisions submitted yet.' },
+
+  // Phase K — Scientific miracle safety caution card
+  scientific_caution_title: {
+    ar: 'تنبيه: ادعاء علمي يحتاج إلى مراجعة',
+    en: 'Note: Scientific Claim Requires Review',
+  },
+  scientific_caution_body: {
+    ar: 'تنبيه: الربط بين الآيات والنظريات العلمية يحتاج إلى مراجعة علمية وشرعية متخصصة، ولا يُعرض هنا كتفسير معتمد.',
+    en: 'Note: Connecting ayahs to scientific theories requires specialized scholarly and scientific review. It is not shown here as approved tafsir.',
+  },
+  scientific_caution_reflection_label: {
+    ar: 'تأمل معاصر — ليس تفسيرًا معتمدًا',
+    en: 'Contemporary reflection — not approved tafsir',
+  },
+
+  // Phase L — Safe Quran AI Prompting Guide
+  prompt_guide_tool_name: {
+    ar: 'دليل الأسئلة الآمنة',
+    en: 'Safe Prompting Guide',
+  },
+  prompt_guide_tool_description: {
+    ar: 'تعرّف على كيفية طرح أسئلة آمنة ودقيقة حول القرآن الكريم في هذه المنصة',
+    en: 'Learn how to ask safe, precise Quranic questions on this AI-assisted platform',
+  },
+  prompt_guide_title: {
+    ar: 'دليل الأسئلة الآمنة للذكاء الاصطناعي القرآني',
+    en: 'Safe Quran AI Prompting Guide',
+  },
+  prompt_guide_subtitle: {
+    ar: 'كيفية طرح أسئلة آمنة ودقيقة حول القرآن الكريم في منصة مدعومة بالذكاء الاصطناعي',
+    en: 'How to ask safe, precise Quranic questions on an AI-assisted platform',
+  },
+  prompt_guide_purpose_title: { ar: 'الهدف', en: 'Purpose' },
+  prompt_guide_purpose_body: {
+    ar: 'الذكاء الاصطناعي مساعد، ليس عالمًا. هذا الدليل يساعدك على طرح أسئلة دقيقة موثوقة المصدر تحترم ضوابط العلم الشرعي.',
+    en: 'AI is a helper, not a scholar. This guide helps you ask precise, source-backed questions that respect the discipline of Quranic scholarship.',
+  },
+  prompt_guide_principles_title: { ar: 'المبادئ الأساسية', en: 'Core Principles' },
+  prompt_guide_good_examples_title: { ar: 'أمثلة على الأسئلة الجيدة', en: 'Good Prompt Examples' },
+  prompt_guide_unsafe_examples_title: { ar: 'أمثلة على الأسئلة غير الآمنة', en: 'Unsafe Prompt Examples' },
+  prompt_guide_protection_title: { ar: 'كيف تحميك المنصة', en: 'How the Platform Protects You' },
+  prompt_guide_ask_sources: {
+    ar: 'اطلب المصادر — دائمًا اسأل عن المصدر والمؤلف',
+    en: 'Ask for sources — always request the source and author',
+  },
+  prompt_guide_ask_ayah: {
+    ar: 'اذكر الآية — حدد رقم السورة والآية بدقة',
+    en: 'Specify the ayah — include surah and ayah number',
+  },
+  prompt_guide_ask_tafsir_source: {
+    ar: 'اذكر كتاب التفسير — مثلاً: ابن كثير، الطبري، السعدي',
+    en: 'Name the tafsir — e.g. Ibn Kathir, Al-Tabari, Al-Saadi',
+  },
+  prompt_guide_ask_comparison: {
+    ar: 'اطلب المقارنة عند الخلاف — قل: ما الذي قاله العلماء في هذه المسألة؟',
+    en: 'Ask for comparison when scholars differ — say: what do scholars say?',
+  },
+  prompt_guide_no_unsourced: {
+    ar: 'لا تطلب تفسيرًا بدون مصادر',
+    en: 'Do not ask for tafsir without sources',
+  },
+  prompt_guide_no_fatwa: {
+    ar: 'لا تطلب فتوى — الذكاء الاصطناعي لا يُفتي',
+    en: 'Do not ask for a fatwa — AI does not issue religious rulings',
+  },
+  prompt_guide_no_prove_science: {
+    ar: 'لا تطلب إثبات نظريات علمية من القرآن',
+    en: 'Do not ask AI to prove scientific theories from the Quran',
+  },
+  prompt_guide_no_hidden_meaning: {
+    ar: 'لا تطلب المعنى الخفي أو الباطني للآيات',
+    en: 'Do not ask for hidden or esoteric meanings of verses',
+  },
+  prompt_guide_consult_scholars: {
+    ar: 'ارجع إلى العلماء للأحكام الشرعية',
+    en: 'Consult qualified scholars for religious rulings',
+  },
+  prompt_guide_ai_not_scholar: {
+    ar: 'الذكاء الاصطناعي مساعد، ليس عالمًا',
+    en: 'AI is an assistant, not a scholar',
+  },
+  prompt_guide_fatwa_warning: {
+    ar: 'تحذير: المنصة لا تصدر فتاوى — يُرجى الرجوع إلى عالم مؤهل',
+    en: 'Warning: This platform does not issue fatwas — please consult a qualified scholar',
+  },
+  prompt_guide_scientific_warning: {
+    ar: 'تحذير: الربط بين الآيات والنظريات العلمية يحتاج إلى مراجعة علمية وشرعية متخصصة',
+    en: 'Warning: Connecting ayahs to scientific theories requires specialized scholarly and scientific review',
+  },
+  prompt_guide_no_verified_source: {
+    ar: 'لا يوجد مصدر موثوق متاح لهذه الإجابة.',
+    en: 'No verified source available for this answer.',
+  },
 };
 
 export function t(key: string, language: Language): string {

@@ -140,14 +140,15 @@ _FATWA_EN = frozenset({
 
 # 2. Scientific miracle claims
 _SCIENTIFIC_AR = frozenset({
-    "الإعجاز العلمي", "إعجاز علمي", "هل هذه الآية تثبت", "الانفجار الكبير",
-    "نظرية علمية", "الطب الحديث", "الفيزياء", "الجيولوجيا",
-    "الفلك", "علم الأحياء", "يثبت العلم", "أثبت العلم", "العلم يثبت",
-    "علميًا ثبت", "دليل علمي",
+    "الإعجاز العلمي", "إعجاز علمي", "هل هذه الآية تثبت", "هل القرآن يثبت",
+    "الانفجار الكبير", "نظرية علمية", "الطب الحديث", "الفيزياء", "الجيولوجيا",
+    "الفلك", "علم الأحياء", "علم الأجنة", "توسع الكون", "الجبال أوتاد",
+    "يثبت العلم", "أثبت العلم", "العلم يثبت", "علميًا ثبت", "دليل علمي",
 })
 _SCIENTIFIC_EN = frozenset({
-    "scientific miracle", "does this verse prove", "big bang", "modern science",
-    "physics", "geology", "biology", "embryology", "astronomy",
+    "scientific miracle", "does this verse prove", "does the quran prove",
+    "big bang", "modern science", "physics", "geology", "biology",
+    "embryology", "astronomy", "expanding universe", "mountains as pegs",
     "science proves", "science confirms", "scientifically proven",
     "scientific proof", "scientific evidence", "proven by science",
     "quran predicted", "quran mentions",
