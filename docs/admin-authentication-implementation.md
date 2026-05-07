@@ -166,3 +166,35 @@ The current implementation uses a **shared static API key**. This means:
 | `docs/admin-authentication-audit.md` | Created — pre-auth state audit |
 | `docs/admin-authentication-implementation.md` | Created (this file) |
 | `backend/tests/unit/test_admin_auth_phase_security.py` | Created — 33 auth tests |
+
+---
+
+## Phase S Additions (2026-05-07)
+
+### Timing-attack fix in rag.py and kg.py
+
+The inline `verify_admin_token` functions in `rag.py` and `kg.py` previously used
+direct string equality (`!=`) to compare tokens, which is vulnerable to timing attacks.
+
+**Phase S fix:** Replaced with SHA-256 hash + `hmac.compare_digest` (constant-time).
+See `docs/phase-s-security-hardening.md` for full details.
+
+### Rate limiting on review decision endpoint
+
+`POST /api/v1/admin/review/tasks/{id}/decision` now has a rate limit of **10 req/min per IP**.
+Auth check (`require_admin_api_key`) runs first; rate limit applies to authenticated requests.
+
+### Admin decision endpoints are protected
+
+All decision endpoints require admin authorization. Reviewers must:
+1. Provide a valid `X-Admin-API-Key` header
+2. Supply `reviewerId` and `notes` (minimum 10 characters) in the request body
+
+Auto-approval is not possible — every approval is a human decision with an audit trail.
+
+### New test files
+
+| File | Tests |
+|---|---|
+| `backend/tests/unit/test_admin_authentication_phase_s.py` | 27 |
+| `backend/tests/unit/test_rate_limiting_phase_s.py` | 22 |

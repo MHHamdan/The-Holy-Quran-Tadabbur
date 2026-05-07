@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_async_session
 from app.core.config import settings
+from app.core.rate_limit import rag_rate_limit
 from app.core.errors import (
     ErrorCode,
     RAGError,
@@ -252,6 +253,7 @@ class ErrorResponse(BaseModel):
 async def ask_question(
     request: AskRequest,
     session: AsyncSession = Depends(get_async_session),
+    _rate: None = Depends(rag_rate_limit),
 ):
     """
     Ask a question about the Quran with grounded, cited response.
@@ -472,6 +474,7 @@ async def ask_question(
 async def ask_followup_question(
     request: FollowUpRequest,
     session: AsyncSession = Depends(get_async_session),
+    _rate: None = Depends(rag_rate_limit),
 ):
     """
     Ask a follow-up question within an existing conversation session.
@@ -555,6 +558,7 @@ async def ask_followup_question(
 async def expand_topic(
     request: ExpandRequest,
     session: AsyncSession = Depends(get_async_session),
+    _rate: None = Depends(rag_rate_limit),
 ):
     """
     Get expanded explanation on a specific topic or verse.
@@ -1179,23 +1183,26 @@ class ToggleSourceResponse(BaseModel):
     message: str
 
 
-def verify_admin_token(x_admin_token: str = Header(..., description="Admin token for authentication")):
+def verify_admin_token(x_admin_token: str = Header(..., alias="X-Admin-Token", description="Admin token")):
     """
-    Verify admin token from X-Admin-Token header.
+    Verify admin token from X-Admin-Token header using constant-time comparison.
 
-    SECURITY: Admin token MUST be sent via header, never via query parameter.
-    Query parameters leak in browser history, server logs, and Referer headers.
+    SECURITY:
+    - Uses hmac.compare_digest to prevent timing attacks.
+    - Token MUST be sent via header, never via query parameter.
+    - Fail-closed: if ADMIN_TOKEN is not configured, returns 503.
     """
+    import hashlib
+    import hmac
     if not settings.admin_token:
         raise HTTPException(
             status_code=503,
             detail="Admin token not configured. Set ADMIN_TOKEN environment variable."
         )
-    if x_admin_token != settings.admin_token:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid admin token"
-        )
+    provided_hash = hashlib.sha256(x_admin_token.encode()).hexdigest()
+    configured_hash = hashlib.sha256(settings.admin_token.encode()).hexdigest()
+    if not hmac.compare_digest(provided_hash, configured_hash):
+        raise HTTPException(status_code=403, detail="Invalid admin token")
     return True
 
 

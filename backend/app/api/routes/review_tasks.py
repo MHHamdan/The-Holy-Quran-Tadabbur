@@ -31,10 +31,11 @@ from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Path as FPath
+from fastapi import APIRouter, Depends, HTTPException, Query, Path as FPath, Request
 from pydantic import BaseModel, Field, field_validator
 
 from app.core.admin_auth import require_admin_api_key
+from app.core.rate_limit import admin_decision_rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -461,6 +462,7 @@ async def get_review_task(
 async def submit_task_decision(
     task_id: str = FPath(..., description="Review task ID"),
     body: SubmitDecisionRequest = ...,
+    _rate: None = Depends(admin_decision_rate_limit),
 ):
     """
     Submit a review decision for a task.

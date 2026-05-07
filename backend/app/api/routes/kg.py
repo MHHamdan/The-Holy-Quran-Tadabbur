@@ -18,16 +18,21 @@ from fastapi import APIRouter, HTTPException, Query, Header, Depends
 
 from app.kg.client import get_kg_client
 
-# Admin token from environment (default for dev only)
-ADMIN_TOKEN = os.environ.get("KG_ADMIN_TOKEN", "tadabbur-admin-dev-token")
+# Admin token from environment (default for dev only — change in production)
+_KG_ADMIN_TOKEN = os.environ.get("KG_ADMIN_TOKEN", "tadabbur-admin-dev-token")
 
 
 def verify_admin_token(x_admin_token: str = Header(None, alias="X-Admin-Token")):
     """
-    Verify admin token for protected endpoints.
+    Verify admin token for KG admin endpoints using constant-time comparison.
 
-    Required header: X-Admin-Token
+    SECURITY:
+    - Uses hmac.compare_digest to prevent timing attacks.
+    - Token sent via header only, never via query param.
+    - In production, set KG_ADMIN_TOKEN to a strong random value.
     """
+    import hashlib
+    import hmac as _hmac
     if not x_admin_token:
         raise HTTPException(
             status_code=401,
@@ -37,7 +42,9 @@ def verify_admin_token(x_admin_token: str = Header(None, alias="X-Admin-Token"))
                 "message_en": "Admin token required. Set X-Admin-Token header.",
             },
         )
-    if x_admin_token != ADMIN_TOKEN:
+    provided_hash = hashlib.sha256(x_admin_token.encode()).hexdigest()
+    configured_hash = hashlib.sha256(_KG_ADMIN_TOKEN.encode()).hexdigest()
+    if not _hmac.compare_digest(provided_hash, configured_hash):
         raise HTTPException(
             status_code=403,
             detail={
