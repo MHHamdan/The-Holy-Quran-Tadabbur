@@ -22,6 +22,7 @@ import { GrammarAnalysisView } from '../components/quran/GrammarAnalysis';
 import { SimilarVersesPanel } from '../components/quran/SimilarVersesPanel';
 import { QuranAudioPlayer } from '../components/quran/QuranAudioPlayer';
 import { TafsirPanel } from '../components/quran/TafsirPanel';
+import { VerseText } from '../components/quran/WordMeaningPopover';
 import clsx from 'clsx';
 
 type ViewMode = 'mushaf' | 'list' | 'page';
@@ -554,7 +555,7 @@ export function QuranPage() {
                       isConceptHighlighted && !isHighlighted && 'bg-amber-100 rounded px-1 py-0.5 border-b-2 border-amber-400'
                     )}
                   >
-                    {verse.text_uthmani}
+                    <VerseText text={verse.text_uthmani} sura={verse.sura_no} aya={verse.aya_no} />
                   </span>
                   <span className="inline-flex items-center justify-center w-8 h-8 mx-1 text-sm bg-amber-100 text-amber-800 rounded-full border border-amber-300 font-semibold">
                     {toArabicNum(verse.aya_no)}
@@ -612,7 +613,7 @@ export function QuranPage() {
                     </span>
                     <div className="flex-1">
                       <p className="text-xl leading-loose font-arabic text-gray-900 mb-3">
-                        {verse.text_uthmani}
+                        <VerseText text={verse.text_uthmani} sura={verse.sura_no} aya={verse.aya_no} />
                       </p>
                       {verse.translations && verse.translations.length > 0 && (
                         <p className="text-sm text-gray-600 leading-relaxed" dir={language === 'ar' ? 'rtl' : 'ltr'}>

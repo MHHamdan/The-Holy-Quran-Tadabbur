@@ -404,13 +404,17 @@ class TestReviewSafetyAcceptance:
 
     @pytest.fixture
     def story_detail_tsx(self):
-        path = (
-            Path(__file__).parent.parent.parent.parent
-            / "frontend" / "src" / "pages" / "StoryDetailPage.tsx"
-        )
-        if not path.exists():
-            pytest.skip(f"StoryDetailPage.tsx not found: {path}")
-        return path.read_text(encoding='utf-8')
+        base = Path(__file__).parent.parent.parent.parent / "frontend" / "src"
+        page_path = base / "pages" / "StoryDetailPage.tsx"
+        panel_path = base / "components" / "stories" / "StoryReadingPanel.tsx"
+        if not page_path.exists():
+            pytest.skip(f"StoryDetailPage.tsx not found: {page_path}")
+        # Combine both files: StoryDetailPage delegates segment rendering to
+        # StoryReadingPanel, so safety checks must pass across both files.
+        content = page_path.read_text(encoding='utf-8')
+        if panel_path.exists():
+            content += "\n" + panel_path.read_text(encoding='utf-8')
+        return content
 
     def test_ac_needs_review_warning_visible(self, story_detail_tsx):
         """AC: needs_review content shows a warning that cannot be confused with approved content."""
@@ -459,18 +463,19 @@ class TestReviewSafetyAcceptance:
     def test_ac_kids_and_adults_see_warning(self, story_detail_tsx):
         """AC: Warning block appears before the segment summary <p> in the JSX return."""
         import re
-        # The segment summary paragraph uses class 'text-gray-700 text-sm leading-relaxed mb-3'.
-        # The warning block must appear before it in the JSX source so both audience levels see it.
+        # The warning block must appear before the segment summary paragraph in the source.
         # Phase 6.5: the conditional may include '!segmentIsApproved' for overlay-aware suppression.
+        # Phase F: rendering moved to StoryReadingPanel — check combined source.
         warning_block_pos = story_detail_tsx.find('(needsReview || humanReviewReq) &&')
-        # Use the segment summary paragraph's class as an anchor (unique to the segment card)
+        # Use the segment summary paragraph's leading-relaxed class as an anchor.
+        # Phase F: SegmentCard uses clsx so 'text-gray-700 leading-relaxed mb-3' is the static part.
         segment_summary_match = re.search(
-            r'text-gray-700 text-sm leading-relaxed mb-3',
+            r'text-gray-700.*leading-relaxed.*mb-3',
             story_detail_tsx,
         )
         assert warning_block_pos != -1, "Warning conditional block must be present"
         assert segment_summary_match is not None, \
-            "Segment summary paragraph (text-gray-700 text-sm leading-relaxed mb-3) must be present"
+            "Segment summary paragraph (text-gray-700 leading-relaxed mb-3) must be present"
         segment_summary_pos = segment_summary_match.start()
         assert warning_block_pos < segment_summary_pos, \
             "AC FAIL: Warning block must appear before the segment summary paragraph in the JSX"

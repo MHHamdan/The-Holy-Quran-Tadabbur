@@ -10,12 +10,14 @@ import { NarrativeInsights } from '../components/stories/NarrativeInsights';
 import { RelatedStories } from '../components/stories/RelatedStories';
 import { getStoryById } from '../data/quranStories';
 import type { AudienceLevel, QuranStory } from '../types/quranStory';
+import { getStoryApprovalStatus } from '../utils/reviewStatus';
 import {
-  getReviewStatus,
-  getApprovalMetadata,
-  getStoryApprovalStatus,
-  mergeBaseStatusWithOverlay,
-} from '../utils/reviewStatus';
+  StoryOverviewCard,
+  StorySummaryCard,
+  KidsQuizWidget,
+  AdultsReflectionPanel,
+  GroupedSegmentList,
+} from '../components/stories/StoryReadingPanel';
 import clsx from 'clsx';
 
 type ViewMode = 'list' | 'graph' | 'themes' | 'insights';
@@ -248,9 +250,14 @@ export function StoryDetailPage() {
         </div>
       )}
 
-      {/* Rich story segments — shown when first-batch data is available */}
+      {/* Rich story reading panel — shown when first-batch data is available */}
       {richStory && viewMode === 'list' && (
         <div className="space-y-4 mb-8">
+
+          {/* Story overview intro card */}
+          <StoryOverviewCard story={richStory} level={audienceLevel} language={language} />
+
+          {/* Segment header with aggregate approval status */}
           {(() => {
             const segIds = richStory.storySegments.map(s => s.segmentId);
             const storyAggregate = getStoryApprovalStatus(segIds);
@@ -279,183 +286,20 @@ export function StoryDetailPage() {
             );
           })()}
 
-          {richStory.storySegments
-            .sort((a, b) => a.sequenceOrder - b.sequenceOrder)
-            .map((segment) => {
-              // Base safety checks (always evaluated first, never weakened by overlay)
-              const baseStatus = segment.sunniReview.status;
-              const isRejected = segment.sunniReview.status === 'rejected';
-              const needsReview = baseStatus === 'needs_review';
-              const humanReviewReq = segment.sunniReview.humanReviewRequired;
-              const missingEvidence = (needsReview || humanReviewReq) && segment.sunniReview.matchedEvidence.length === 0;
+          {/* Grouped segments by section type */}
+          <GroupedSegmentList story={richStory} level={audienceLevel} language={language} />
 
-              if (isRejected) return null;
+          {/* Story summary card */}
+          <StorySummaryCard story={richStory} level={audienceLevel} language={language} />
 
-              const summary = audienceLevel === 'kids'
-                ? (language === 'ar' ? segment.summaryKidsArabic : segment.summaryKidsEnglish)
-                : (language === 'ar' ? segment.summaryAdultsArabic : segment.summaryAdultsEnglish);
+          {/* Audience-specific enrichment */}
+          {audienceLevel === 'kids' && (
+            <KidsQuizWidget story={richStory} language={language} />
+          )}
+          {audienceLevel === 'adults' && (
+            <AdultsReflectionPanel story={richStory} language={language} />
+          )}
 
-              const lessons = language === 'ar' ? segment.lessonsArabic : segment.lessonsEnglish;
-              const ref = `${segment.surahNumber}:${segment.ayahStart}${segment.ayahEnd !== segment.ayahStart ? `–${segment.ayahEnd}` : ''}`;
-
-              // Phase 6.5: overlay-aware status (additive — never weakens base safety checks above)
-              const overlaySegmentStatus = getReviewStatus('story_segment', segment.segmentId);
-              const effectiveStatus = mergeBaseStatusWithOverlay(baseStatus, overlaySegmentStatus);
-              const segmentIsApproved = effectiveStatus === 'approved';
-              const isPartiallyReviewed = effectiveStatus === 'partially_reviewed';
-              const approvalMeta = segmentIsApproved
-                ? getApprovalMetadata('story_segment', segment.segmentId)
-                : null;
-
-              return (
-                <div key={segment.segmentId} className={clsx(
-                  'card border-l-4',
-                  segmentIsApproved ? 'border-l-green-500' :
-                  isPartiallyReviewed ? 'border-l-blue-400' :
-                  (needsReview || humanReviewReq) ? 'border-l-yellow-400' : 'border-l-primary-500'
-                )}>
-                  {/* Segment Header */}
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="w-7 h-7 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
-                      {segment.sequenceOrder}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h3 className="font-semibold text-gray-900">
-                          {language === 'ar' ? segment.titleArabic : segment.titleEnglish}
-                        </h3>
-                        <Link
-                          to={`/quran/${segment.surahNumber}?aya=${segment.ayahStart}`}
-                          className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full hover:bg-primary-100 transition-colors"
-                        >
-                          {ref}
-                        </Link>
-                        {/* Overlay-approved badge — only shown when overlay confirms approval */}
-                        {segmentIsApproved && (
-                          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">
-                            <CheckCircle className="w-3 h-3" />
-                            {language === 'ar' ? 'معتمد' : 'Approved'}
-                          </span>
-                        )}
-                        {isPartiallyReviewed && (
-                          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
-                            <Clock className="w-3 h-3" />
-                            {language === 'ar' ? 'مراجعة جزئية' : 'Partially Reviewed'}
-                          </span>
-                        )}
-                      </div>
-                      {/* Approval metadata (reviewer name + date) */}
-                      {approvalMeta && (
-                        <div className="flex items-center gap-3 text-xs text-green-700 mt-1">
-                          <span dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                            {language === 'ar' ? 'راجعه:' : 'Reviewed by:'}{' '}
-                            <span className="font-medium">{approvalMeta.reviewerName}</span>
-                          </span>
-                          <span>{new Date(approvalMeta.reviewedAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Review Status Warning — shown for needs_review or humanReviewRequired; suppressed when overlay-approved */}
-                  {(needsReview || humanReviewReq) && !segmentIsApproved && (
-                    <div
-                      role="alert"
-                      aria-label={language === 'ar' ? 'تحذير: مراجعة معلقة' : 'Warning: Pending Review'}
-                      className="flex items-start gap-2 p-3 bg-yellow-50 rounded-lg border-2 border-yellow-300 mb-3"
-                    >
-                      <AlertTriangle className="w-4 h-4 text-yellow-700 flex-shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-xs font-bold text-yellow-900 mb-0.5">
-                          {language === 'ar' ? 'بانتظار المراجعة العلمية' : 'Pending Scholarly Review'}
-                        </p>
-                        <p className="text-xs text-yellow-800">
-                          {language === 'ar'
-                            ? 'هذا الشرح لم يُراجَع علمياً بعد ولا يُعدّ محتوىً معتمداً.'
-                            : 'This explanation has not been scholarly reviewed and is not approved content.'}
-                        </p>
-                        {humanReviewReq && (
-                          <p className="text-xs text-yellow-700 mt-1 font-medium">
-                            {language === 'ar' ? '⚠ مطلوب مراجعة بشرية قبل النشر' : '⚠ Human review required before publishing'}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Missing source evidence warning */}
-                  {missingEvidence && (
-                    <div className="flex items-center gap-2 p-2 bg-orange-50 rounded border border-orange-200 mb-3">
-                      <AlertTriangle className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
-                      <p className="text-xs text-orange-700">
-                        {language === 'ar'
-                          ? 'لم تُربط الأدلة المصدرية بعد.'
-                          : 'Source evidence not yet linked.'}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Summary */}
-                  <p
-                    className="text-gray-700 text-sm leading-relaxed mb-3"
-                    dir={language === 'ar' ? 'rtl' : 'ltr'}
-                  >
-                    {summary}
-                  </p>
-
-                  {/* Lessons */}
-                  {lessons.length > 0 && (
-                    <div className="mt-3">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                        {language === 'ar' ? 'الدروس المستفادة' : 'Lessons'}
-                      </p>
-                      <ul className="space-y-1">
-                        {lessons.map((lesson, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                            <CheckCircle className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
-                            <span dir={language === 'ar' ? 'rtl' : 'ltr'}>{lesson}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Source attribution */}
-                  {segment.sourceIds.length > 0 ? (
-                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2 flex-wrap">
-                      <Book className="w-3.5 h-3.5 text-gray-400" />
-                      <span className="text-xs text-gray-500">
-                        {language === 'ar' ? 'المصادر: ' : 'Sources: '}
-                        {segment.sourceIds.join(', ')}
-                      </span>
-                      {segment.sunniReview.disagreementNotes.length > 0 && (
-                        <span className="text-xs text-orange-600 ml-2">
-                          ⚠ {language === 'ar' ? 'خلاف علمي' : 'Scholarly disagreement noted'}
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
-                      <AlertTriangle className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
-                      <span className="text-xs text-orange-600">
-                        {language === 'ar' ? 'لم تُحدَّد مصادر لهذا المقطع بعد' : 'No sources identified for this segment yet'}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* View in Quran link */}
-                  <div className="mt-2">
-                    <Link
-                      to={`/quran/${segment.surahNumber}?aya=${segment.ayahStart}`}
-                      className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 transition-colors"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      {language === 'ar' ? 'عرض في المصحف' : 'View in Quran'}
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
 
           {/* Rich related stories with evidence references */}
           {richStory.relatedStories.length > 0 && (

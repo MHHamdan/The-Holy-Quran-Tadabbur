@@ -2334,6 +2334,24 @@ export const themesApi = {
    */
   getBySura: (suraNo: number) =>
     api.get<{ themes: QuranicTheme[] }>(`/themes/by-sura/${suraNo}`),
+
+  /**
+   * Thematic Tafsir — Phase I
+   * Returns segments enriched with verse texts and classical tafsir entries.
+   */
+  getTafsir: (themeId: string, params?: {
+    verified_only?: boolean;
+    source_id?: string;
+    limit?: number;
+  }) =>
+    api.get<ThematicTafsirResponse>(`/themes/${themeId}/tafsir`, { params }),
+
+  /**
+   * Related Stories — Phase I
+   * Returns Quranic stories whose themes overlap with this theme's keywords.
+   */
+  getStories: (themeId: string) =>
+    api.get<ThemeStoriesResponse>(`/themes/${themeId}/stories`),
 };
 
 // =============================================================================
@@ -2415,17 +2433,20 @@ export interface SubmitDecisionRequest {
 }
 
 // =============================================================================
-// Vocabulary API — Phase F (safe placeholder)
+// Vocabulary API — Phase H (live QAC data)
 // =============================================================================
 
 export interface VocabularyResponse {
   word: string;
-  /** "no_verified_source" | "found" */
+  /** "found" | "no_verified_source" */
   status: string;
   message_en: string;
   message_ar: string;
   source_id?: string | null;
+  source_title_en?: string | null;
   root?: string | null;
+  pattern?: string | null;
+  pos_tag?: string | null;
   meaning_en?: string | null;
   meaning_ar?: string | null;
   example_verses: string[];
@@ -2435,6 +2456,7 @@ export interface VocabularyStatusResponse {
   module: string;
   available: boolean;
   reason: string;
+  entry_count: number;
   planned_sources: string[];
   message_en: string;
   message_ar: string;
@@ -2443,6 +2465,9 @@ export interface VocabularyStatusResponse {
 export const vocabularyApi = {
   lookup: (word: string) =>
     api.get<VocabularyResponse>('/vocabulary/lookup', { params: { word } }),
+
+  byRef: (sura: number, aya: number, pos: number) =>
+    api.get<VocabularyResponse>('/vocabulary/by-ref', { params: { sura, aya, pos } }),
 
   status: () =>
     api.get<VocabularyStatusResponse>('/vocabulary/status'),
@@ -2495,4 +2520,213 @@ export const reviewApi = {
     api.get<ReviewStatsResponse>('/admin/review/stats', {
       headers: _adminHeaders(),
     }),
+};
+
+// =============================================================================
+// Thematic Tafsir — Phase I types
+// =============================================================================
+
+export interface TafsirEntry {
+  source_id: string;
+  author_ar: string;
+  author_en: string;
+  source_name_ar: string;
+  source_name_en: string;
+  language: string;
+  content_ar: string | null;
+  content_en: string | null;
+  aya_start: number;
+  aya_end: number;
+}
+
+export interface ThematicVerse {
+  aya_no: number;
+  text_uthmani: string;
+  text_imlaei: string | null;
+  sura_name_ar: string | null;
+  sura_name_en: string | null;
+}
+
+export interface ThematicTafsirSegment {
+  segment_id: string;
+  segment_order: number;
+  sura_no: number;
+  ayah_start: number;
+  ayah_end: number;
+  verse_reference: string;
+  title_ar: string | null;
+  title_en: string | null;
+  summary_ar: string;
+  summary_en: string;
+  is_verified: boolean;
+  is_core: boolean;
+  confidence: number | null;
+  source_confidence: 'source_backed' | 'partial_coverage' | 'needs_review';
+  verses: ThematicVerse[];
+  tafsir_entries: TafsirEntry[];
+  sources_present: string[];
+}
+
+export interface ThematicTafsirResponse {
+  ok: boolean;
+  theme_id: string;
+  title_ar: string;
+  title_en: string;
+  description_ar: string | null;
+  description_en: string | null;
+  total_segments: number;
+  segments: ThematicTafsirSegment[];
+  sources_used: string[];
+}
+
+export interface ThemeStoryItem {
+  id: string;
+  name_ar: string;
+  name_en: string;
+  category: string;
+  summary_ar: string | null;
+  summary_en: string | null;
+  lessons_ar: string[] | null;
+  lessons_en: string[] | null;
+  shared_themes: string[];
+}
+
+export interface ThemeStoriesResponse {
+  ok: boolean;
+  theme_id: string;
+  title_ar: string;
+  title_en: string;
+  total: number;
+  stories: ThemeStoryItem[];
+}
+
+// =============================================================================
+// Feedback API (Phase G)
+// =============================================================================
+
+export type FeedbackCategory =
+  | 'translation_issue'
+  | 'source_missing'
+  | 'tafsir_error'
+  | 'quran_ref_error'
+  | 'ui_feedback'
+  | 'inappropriate'
+  | 'other';
+
+export type FeedbackStatus = 'open' | 'in_review' | 'resolved' | 'dismissed';
+
+export interface SubmitFeedbackRequest {
+  category: FeedbackCategory;
+  message: string;
+  entity_type?: string;
+  entity_id?: string;
+  page_url?: string;
+}
+
+export interface FeedbackSubmitResponse {
+  ok: boolean;
+  id: number;
+  category: string;
+  status: string;
+  priority: number;
+  message_en: string;
+  message_ar: string;
+}
+
+export interface FeedbackItem {
+  id: number;
+  category: string;
+  category_label_en: string;
+  category_label_ar: string;
+  entity_type: string | null;
+  entity_id: string | null;
+  page_url: string | null;
+  message: string;
+  status: FeedbackStatus;
+  priority: number;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+}
+
+export interface FeedbackListResponse {
+  ok: boolean;
+  items: FeedbackItem[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface FeedbackStatsResponse {
+  ok: boolean;
+  total: number;
+  by_status: Record<string, number>;
+  by_category: Record<string, number>;
+  open_high_priority: number;
+}
+
+export const feedbackApi = {
+  submit: (body: SubmitFeedbackRequest) =>
+    api.post<FeedbackSubmitResponse>('/feedback', body),
+
+  adminList: (params?: {
+    status?: FeedbackStatus;
+    category?: FeedbackCategory;
+    page?: number;
+    page_size?: number;
+  }) =>
+    api.get<FeedbackListResponse>('/feedback/admin', {
+      params,
+      headers: _adminHeaders(),
+    }),
+
+  adminStats: () =>
+    api.get<FeedbackStatsResponse>('/feedback/admin/stats', {
+      headers: _adminHeaders(),
+    }),
+
+  adminUpdate: (id: number, body: { status?: FeedbackStatus; admin_notes?: string }) =>
+    api.patch<FeedbackItem>(`/feedback/admin/${id}`, body, {
+      headers: _adminHeaders(),
+    }),
+};
+
+// =============================================================================
+// Spiritual Guidance / Therapy API — Phase T / T2
+// =============================================================================
+
+import type {
+  AskRequest,
+  SpiritualGuidanceResponse,
+  ThemesResponse,
+  ThemeDetailResponse,
+  EmotionsResponse,
+  ChatRequest,
+  ChatResponse,
+  InsightsResponse,
+} from '../types/therapy';
+
+export const therapyApi = {
+  ask: (body: AskRequest) =>
+    api.post<SpiritualGuidanceResponse>('/therapy/ask', body).then(r => r.data),
+
+  getThemes: () =>
+    api.get<ThemesResponse>('/therapy/themes').then(r => r.data),
+
+  getTheme: (themeName: string) =>
+    api.get<ThemeDetailResponse>(`/therapy/theme/${themeName}`).then(r => r.data),
+
+  getEmotions: () =>
+    api.get<EmotionsResponse>('/therapy/emotions').then(r => r.data),
+
+  saveReflection: (body: { session_id: string; reflection: string }) =>
+    api.post('/therapy/reflect', body).then(r => r.data),
+
+  // Phase T2
+  chat: (body: ChatRequest) =>
+    api.post<ChatResponse>('/therapy/chat', body).then(r => r.data),
+
+  getInsights: (sessionIds: string[], language = 'en') =>
+    api.post<InsightsResponse>('/therapy/insights', { session_ids: sessionIds, language }).then(r => r.data),
 };

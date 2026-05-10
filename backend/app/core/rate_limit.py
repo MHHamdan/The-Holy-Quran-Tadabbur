@@ -122,6 +122,8 @@ _rag_limiter = InMemoryRateLimiter(max_requests=20, window_seconds=60)
 _search_limiter = InMemoryRateLimiter(max_requests=60, window_seconds=60)
 _vocab_limiter = InMemoryRateLimiter(max_requests=60, window_seconds=60)
 _admin_decision_limiter = InMemoryRateLimiter(max_requests=10, window_seconds=60)
+_feedback_limiter = InMemoryRateLimiter(max_requests=10, window_seconds=60)
+_therapy_limiter = InMemoryRateLimiter(max_requests=20, window_seconds=60)
 
 
 def _make_429_response(request: Request) -> HTTPException:
@@ -184,6 +186,32 @@ async def vocab_rate_limit(request: Request) -> None:
     allowed, remaining = _vocab_limiter.is_allowed(ip)
     if not allowed:
         logger.warning("Vocab rate limit exceeded for IP %s", ip)
+        raise _make_429_response(request)
+
+
+async def feedback_rate_limit(request: Request) -> None:
+    """
+    Dependency: limit feedback submissions to 10 requests/min per IP.
+
+    Prevents spam submissions while staying generous enough for legitimate use.
+    """
+    ip = _get_client_ip(request)
+    allowed, remaining = _feedback_limiter.is_allowed(ip)
+    if not allowed:
+        logger.warning("Feedback rate limit exceeded for IP %s", ip)
+        raise _make_429_response(request)
+
+
+async def therapy_rate_limit(request: Request) -> None:
+    """
+    Dependency: limit therapy/emotional-support endpoints to 20 requests/min per IP.
+
+    Matches RAG limit — each call may involve DB queries and session writes.
+    """
+    ip = _get_client_ip(request)
+    allowed, remaining = _therapy_limiter.is_allowed(ip)
+    if not allowed:
+        logger.warning("Therapy rate limit exceeded for IP %s", ip)
         raise _make_429_response(request)
 
 

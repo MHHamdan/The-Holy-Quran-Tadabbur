@@ -63,6 +63,10 @@ const MiraclesPage = lazy(() => import('./pages/MiraclesPage').then(m => ({ defa
 const SimilarityPage = lazy(() => import('./pages/SimilarityPage').then(m => ({ default: m.SimilarityPage })));
 const SourcesPage = lazy(() => import('./pages/SourcesPage').then(m => ({ default: m.SourcesPage })));
 
+// Story Atlas (narrative clusters)
+const StoryAtlasPage = lazy(() => import('./pages/StoryAtlasPage').then(m => ({ default: m.StoryAtlasPage })));
+const StoryAtlasDetailPage = lazy(() => import('./pages/StoryAtlasDetailPage').then(m => ({ default: m.StoryAtlasDetailPage })));
+
 // Tasmeeʿ (Memorization) - Audio recording with STT
 const TasmeePage = lazy(() => import('./pages/TasmeePage'));
 
@@ -86,6 +90,12 @@ const StatusDashboardPage = lazy(() => import('./pages/admin/StatusDashboardPage
 // Admin / Review Workflow (Phase 6)
 const ReviewDashboardPage = lazy(() => import('./pages/admin/ReviewDashboardPage').then(m => ({ default: m.ReviewDashboardPage })));
 
+// Admin / Feedback (Phase G)
+const AdminFeedbackPage = lazy(() => import('./pages/admin/AdminFeedbackPage').then(m => ({ default: m.AdminFeedbackPage })));
+
+// Spiritual Guidance / Heart Care (Phase T)
+const TherapyPage = lazy(() => import('./pages/TherapyPage').then(m => ({ default: m.TherapyPage })));
+
 // =============================================================================
 // Preloading - Predictive loading for common navigation paths
 // =============================================================================
@@ -103,6 +113,10 @@ const preloadRoutes: Record<string, () => void> = {
   },
   '/stories': () => {
     import('./pages/StoryDetailPage');
+    import('./pages/StoryAtlasPage');
+  },
+  '/story-atlas': () => {
+    import('./pages/StoryAtlasDetailPage');
   },
   '/concepts': () => {
     import('./pages/ConceptDetailPage');
@@ -176,6 +190,10 @@ function App() {
           <Route path="/similarity" element={<SimilarityPage />} />
           <Route path="/sources" element={<SourcesPage />} />
 
+          {/* Story Atlas (narrative clusters) */}
+          <Route path="/story-atlas" element={<StoryAtlasPage />} />
+          <Route path="/story-atlas/:clusterId" element={<StoryAtlasDetailPage />} />
+
           {/* Tasmeeʿ (Memorization) */}
           <Route path="/tasmee" element={<TasmeePage />} />
 
@@ -198,6 +216,10 @@ function App() {
 
           {/* Admin / Review Workflow (Phase 6) */}
           <Route path="/admin/review" element={<ReviewDashboardPage />} />
+          <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
+
+          {/* Spiritual Guidance / Heart Care (Phase T) */}
+          <Route path="/therapy" element={<TherapyPage />} />
         </Routes>
       </Suspense>
     </Layout>

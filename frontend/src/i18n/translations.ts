@@ -1359,6 +1359,82 @@ export const themeTranslations: Record<string, { ar: string; en: string }> = {
   trials: { ar: 'الابتلاءات', en: 'trials' },
   anger: { ar: 'الغضب', en: 'anger' },
   disbelief: { ar: 'الكفر', en: 'disbelief' },
+
+  // ============================================================
+  // Spiritual Guidance / Emotional Support — Phase T
+  // ============================================================
+  nav_therapy: { ar: 'رعاية القلب', en: 'Heart Care' },
+  therapy_title: { ar: 'رعاية القلب', en: 'Heart Care' },
+  therapy_subtitle: {
+    ar: 'دعم روحي من القرآن الكريم لكل حالة يمر بها القلب',
+    en: 'Quranic spiritual support for every state of the heart',
+  },
+  therapy_themes_title: { ar: 'مواضيع الشفاء', en: 'Healing Themes' },
+  therapy_themes_subtitle: {
+    ar: 'استكشف مواضيع القرآن العلاجية أو شارك ما تشعر به',
+    en: 'Explore Quranic healing themes or share what you feel',
+  },
+  therapy_share_prompt: {
+    ar: 'شارك ما يعتمل في قلبك',
+    en: 'Share what is in your heart',
+  },
+  therapy_input_placeholder: {
+    ar: 'صِف ما تشعر به... القرآن يتحدث إلى كل حالة',
+    en: 'Describe what you are feeling… The Quran speaks to every state',
+  },
+  therapy_ctrl_enter: {
+    ar: 'اضغط للإرسال',
+    en: 'Ctrl + Enter to send',
+  },
+  therapy_seek_guidance: { ar: 'اطلب التوجيه', en: 'Seek Guidance' },
+  therapy_seeking: { ar: 'جارٍ البحث...', en: 'Seeking…' },
+  therapy_examples: { ar: 'أمثلة للمشاعر:', en: 'Example feelings:' },
+  therapy_guidance_title: { ar: 'توجيه روحي', en: 'Spiritual Guidance' },
+  therapy_emotion_detected: { ar: 'الحالة المشعورة:', en: 'Emotion detected:' },
+  therapy_verse: { ar: 'الآية الكريمة', en: 'Quranic Verse' },
+  therapy_lesson: { ar: 'الدرس والمعنى', en: 'Lesson & Meaning' },
+  therapy_reflection: { ar: 'تأمل واستفسر', en: 'Reflect & Explore' },
+  therapy_dua_suggested: { ar: 'دعاء مقترح', en: 'Suggested Du\'a' },
+  therapy_follow_up: { ar: 'لمزيد من التدبر', en: 'Explore Further' },
+  therapy_recommended_themes: { ar: 'مواضيع مقترحة لحالتك', en: 'Recommended themes for you' },
+  therapy_explore_theme: { ar: 'استكشف الموضوع', en: 'Explore theme' },
+  therapy_disclaimer_title: { ar: 'تنبيه مهم', en: 'Important Note' },
+  therapy_reflection_log: { ar: 'سجل التأمل', en: 'Reflection Log' },
+  therapy_write_reflection: { ar: 'دوّن تأملك حول هذه الجلسة:', en: 'Write your reflection on this session:' },
+  therapy_reflection_placeholder: {
+    ar: 'ما الذي لفت انتباهك؟ كيف أثّرت فيك الآيات؟',
+    en: 'What stood out to you? How did the verses affect you?',
+  },
+  therapy_save_reflection: { ar: 'حفظ التأمل', en: 'Save Reflection' },
+  therapy_saving: { ar: 'جارٍ الحفظ...', en: 'Saving…' },
+  therapy_no_reflections: { ar: 'لا توجد تأملات محفوظة بعد', en: 'No saved reflections yet' },
+  therapy_session_saved: { ar: 'تم حفظ الجلسة', en: 'Session saved' },
+  therapy_no_cards: {
+    ar: 'لا توجد آيات متاحة حالياً. يرجى التحقق من قاعدة البيانات.',
+    en: 'No verses available right now. Please check the database.',
+  },
+  therapy_cards_count: { ar: 'توجيهات قرآنية', en: 'Quranic Guidances' },
+  therapy_theme_page_title: { ar: 'استكشاف الموضوع', en: 'Theme Exploration' },
+  therapy_back: { ar: 'العودة', en: 'Back' },
+  therapy_reinforcement: { ar: 'تشجيع', en: 'Encouragement' },
+  therapy_chat_mode: { ar: 'نمط المحادثة', en: 'Chat Mode' },
+  therapy_guidance_mode: { ar: 'نمط التوجيه', en: 'Guidance Mode' },
+  therapy_chat_tab: { ar: 'محادثة القرآن', en: 'QuranGPT Chat' },
+  therapy_guidance_tab: { ar: 'بطاقات التوجيه', en: 'Guidance Cards' },
+  therapy_insights_tab: { ar: 'رحلتي', en: 'My Journey' },
+  // Chat UI
+  chat_intro: { ar: 'شاركني ما تشعر به وسأرشدك بالقرآن الكريم.', en: 'Share what you are feeling and I will guide you with the Quran.' },
+  chat_placeholder: { ar: 'اكتب رسالتك هنا...', en: 'Type your message here…' },
+  chat_error: { ar: 'حدث خطأ. يُرجى المحاولة مرة أخرى.', en: 'Something went wrong. Please try again.' },
+  // Insights
+  insights_title: { ar: 'رحلتي العاطفية', en: 'My Emotional Journey' },
+  insights_sessions: { ar: 'جلسات', en: 'Sessions' },
+  insights_top_theme: { ar: 'الموضوع الأكثر زيارة', en: 'Top Theme' },
+  insights_top_emotion: { ar: 'أكثر المشاعر حضوراً', en: 'Most Present Emotion' },
+  insights_distribution: { ar: 'توزيع المشاعر', en: 'Emotion Distribution' },
+  insights_growth_prompt: { ar: 'اقتراح للنمو', en: 'Growth Suggestion' },
+  // Phase T3 — personalization & suggested theme
+  therapy_suggested_theme: { ar: 'موضوع مقترح:', en: 'Suggested theme:' },
 };
 
 // Main figures translations
@@ -2116,21 +2192,88 @@ export const aspectTranslations: Record<string, { ar: string; en: string }> = {
   },
   admin_auth_retry: { ar: 'إعادة المحاولة', en: 'Retry' },
 
+  // Miracles page
+  miracles_page_title: { ar: 'الآيات والمعجزات', en: 'Signs & Miracles' },
+  miracles_page_subtitle: { ar: 'آيات القرآن الكريم', en: 'Quranic Signs (Ayāt)' },
+  miracles_page_description: {
+    ar: 'استكشف الآيات والمعجزات المذكورة في القرآن الكريم — من معجزات الأنبياء إلى الآيات الكونية. كل آية موثقة بمراجع قرآنية.',
+    en: 'Explore the signs and miracles mentioned in the Holy Quran — from prophetic miracles to cosmic signs. Each is grounded in Quranic verse references.',
+  },
+  miracles_stat_total: { ar: 'آية ومعجزة', en: 'Signs & Miracles' },
+  miracles_stat_prophetic: { ar: 'معجزات مرتبطة بأنبياء', en: 'Prophet-linked Miracles' },
+  miracles_stat_occurrences: { ar: 'إجمالي المواضع', en: 'Total Occurrences' },
+  miracles_section_prophetic: { ar: 'معجزات الأنبياء', en: 'Prophetic Miracles' },
+  miracles_section_other: { ar: 'آيات أخرى', en: 'Other Signs' },
+  miracles_empty: {
+    ar: 'لم يتم العثور على آيات. يرجى تشغيل سكريبت بذر المفاهيم.',
+    en: 'No miracles found. Please run the concept seeding script.',
+  },
+  miracles_related_figures: { ar: 'الشخصيات المرتبطة', en: 'Related Figures' },
+  miracles_related_stories: { ar: 'القصص المرتبطة', en: 'Related Stories' },
+  miracles_view_prophet: { ar: 'عرض النبي المرتبط', en: 'View Related Prophet' },
+  miracles_explore_more: { ar: 'استكشف المزيد', en: 'Explore More' },
+  miracles_all_concepts: { ar: 'جميع المفاهيم', en: 'All Concepts' },
+  miracles_story_atlas: { ar: 'أطلس القصص', en: 'Story Atlas' },
+  miracles_refs_label: { ar: 'موضع', en: 'refs' },
+  miracles_safety_title: {
+    ar: 'ملاحظة: الآيات القرآنية والادعاءات العلمية',
+    en: 'Note: Quranic Signs vs. Scientific Miracle Claims',
+  },
+  miracles_safety_body: {
+    ar: 'هذه الصفحة تعرض الآيات والمعجزات المذكورة صراحةً في القرآن الكريم (معجزات الأنبياء، والآيات الكونية). أما ربط الآيات بالنظريات العلمية الحديثة فيحتاج إلى مراجعة علمية وشرعية متخصصة — ولا يُعرض هنا كتفسير معتمد.',
+    en: 'This page shows signs and miracles explicitly mentioned in the Quran (prophetic miracles, cosmic signs). Linking verses to modern scientific theories requires specialized scholarly and scientific review — it is not presented here as approved tafsir.',
+  },
+  miracles_safety_label: {
+    ar: 'سياسة الآيات العلمية',
+    en: 'Scientific-Claims Policy',
+  },
+
   // Phase F — Vocabulary module
   vocab_page_title: { ar: 'غريب القرآن', en: 'Quranic Vocabulary' },
   vocab_page_subtitle: {
-    ar: 'البحث في معاني المفردات القرآنية من مصادر موثوقة',
-    en: 'Look up Quranic word meanings from verified classical sources',
+    ar: 'ابحث في معاني مفردات القرآن الكريم من أمهات المعاجم العربية الكلاسيكية',
+    en: 'Look up Quranic word meanings from the great classical Arabic lexicons',
   },
-  vocab_search_placeholder: { ar: 'أدخل كلمة قرآنية...', en: 'Enter a Quranic word...' },
+  vocab_about_gharib: {
+    ar: 'علم «غريب القرآن» يُعنى بشرح الكلمات النادرة والدقيقة في القرآن الكريم التي تحتاج إلى الرجوع إلى المعاجم العربية الكلاسيكية الموثوقة — لا يُولَّد المعنى من الذكاء الاصطناعي وحده.',
+    en: '"Gharib Al-Quran" (غريب القرآن) is the classical science of explaining rare and precise Quranic words. Every meaning must be traced to a verified classical lexicon — never AI-generated alone.',
+  },
+  vocab_search_placeholder: {
+    ar: 'أدخل كلمة قرآنية، مثل: رحمة، صمد، تقوى...',
+    en: 'Enter a Quranic word, e.g. رحمة, صمد, تقوى...',
+  },
   vocab_search_button: { ar: 'بحث', en: 'Search' },
-  vocab_no_source_title: { ar: 'المصدر غير متوفر حالياً', en: 'Source Not Yet Available' },
-  vocab_planned_label: { ar: 'مخطط — قريباً', en: 'Planned — Coming Soon' },
-  vocab_planned_sources_label: { ar: 'المصادر المخططة:', en: 'Planned sources:' },
+  vocab_try_examples: { ar: 'جرّب هذه الكلمات:', en: 'Try these words:' },
+  vocab_no_source_title: { ar: 'لا يتوفر مصدر موثوق لهذه المفردة بعد', en: 'No Verified Source Available Yet' },
+  vocab_planned_label: { ar: 'قيد التطوير — قريبًا', en: 'Under Development — Coming Soon' },
+  vocab_planned_sources_label: {
+    ar: 'المصادر الموثوقة المخطط دمجها:',
+    en: 'Verified classical sources to be integrated:',
+  },
+  vocab_sources_classical_ar_label: {
+    ar: 'المعاجم العربية الكلاسيكية',
+    en: 'Classical Arabic Lexicons',
+  },
+  vocab_sources_english_digital_label: {
+    ar: 'المعاجم الإنجليزية والرقمية',
+    en: 'English & Digital Lexicons',
+  },
+  vocab_source_era_label: { ar: 'العصر:', en: 'Era:' },
+  vocab_source_focus_label: { ar: 'التخصص:', en: 'Focus:' },
+  vocab_source_volumes_label: { ar: 'الأجزاء:', en: 'Vols.' },
+  vocab_source_status_planned: { ar: 'مخطط للتكامل', en: 'Planned' },
+  vocab_refusal_try_tafsir: {
+    ar: 'للاستفسار عن معنى الآية، يمكنك استخدام مساعد التدبر.',
+    en: "To explore a verse's meaning, try the Tafsir Assistant.",
+  },
+  vocab_policy_note: {
+    ar: 'لا يُولَّد معنى المفردة من الذكاء الاصطناعي وحده — يجب أن يصدر كل شرح من مصدر موثوق.',
+    en: 'Word meanings are never AI-generated alone — every entry must come from a verified classical source.',
+  },
   vocab_tool_name: { ar: 'غريب القرآن', en: 'Quranic Vocabulary' },
   vocab_tool_description: {
-    ar: 'البحث في معاني الكلمات القرآنية من المعاجم الكلاسيكية الموثوقة',
-    en: 'Look up Quranic word meanings from verified classical Arabic lexicons',
+    ar: 'ابحث في معاني مفردات القرآن الكريم من أمهات المعاجم العربية الكلاسيكية الموثوقة',
+    en: 'Look up Quranic word meanings from the great verified classical Arabic lexicons',
   },
 
   // Phase 6.5 – Review status propagation overlay
@@ -2240,6 +2383,63 @@ export const aspectTranslations: Record<string, { ar: string; en: string }> = {
     ar: 'لا يوجد مصدر موثوق متاح لهذه الإجابة.',
     en: 'No verified source available for this answer.',
   },
+
+  // Feedback system (Phase G)
+  feedback_button_label: { ar: 'أبلغ عن مشكلة', en: 'Report an Issue' },
+  feedback_dialog_title: { ar: 'أبلِغنا عن مشكلة', en: 'Report an Issue' },
+  feedback_dialog_subtitle: {
+    ar: 'ساعدنا في تحسين جودة المحتوى من خلال الإبلاغ عن أي أخطاء أو مشكلات.',
+    en: 'Help us improve content quality by reporting errors or issues.',
+  },
+  feedback_category_label: { ar: 'نوع المشكلة', en: 'Issue Type' },
+  feedback_message_label: { ar: 'تفاصيل المشكلة', en: 'Issue Details' },
+  feedback_message_placeholder: {
+    ar: 'صِف المشكلة بإيجاز (10 أحرف على الأقل)…',
+    en: 'Describe the issue briefly (at least 10 characters)…',
+  },
+  feedback_submit: { ar: 'إرسال', en: 'Submit' },
+  feedback_submitting: { ar: 'جارٍ الإرسال…', en: 'Submitting…' },
+  feedback_success: { ar: 'شكراً! تم استلام تقريرك.', en: 'Thank you! Your report has been received.' },
+  feedback_error: { ar: 'حدث خطأ. يرجى المحاولة مجدداً.', en: 'Something went wrong. Please try again.' },
+  feedback_cancel: { ar: 'إلغاء', en: 'Cancel' },
+  feedback_cat_translation_issue: { ar: 'مشكلة في الترجمة', en: 'Translation Issue' },
+  feedback_cat_source_missing: { ar: 'مصدر مفقود', en: 'Source Missing' },
+  feedback_cat_tafsir_error: { ar: 'خطأ في التفسير', en: 'Tafsir Error' },
+  feedback_cat_quran_ref_error: { ar: 'خطأ في المرجع القرآني', en: 'Quran Reference Error' },
+  feedback_cat_ui_feedback: { ar: 'ملاحظة على الواجهة', en: 'UI / UX Feedback' },
+  feedback_cat_inappropriate: { ar: 'محتوى غير لائق', en: 'Inappropriate Content' },
+  feedback_cat_other: { ar: 'أخرى', en: 'Other' },
+
+  // Admin feedback dashboard (Phase G)
+  admin_feedback_title: { ar: 'لوحة تقارير المستخدمين', en: 'User Feedback Dashboard' },
+  admin_feedback_total: { ar: 'إجمالي التقارير', en: 'Total Reports' },
+  admin_feedback_open_high: { ar: 'ذات أولوية عالية', en: 'High Priority Open' },
+  admin_feedback_status_open: { ar: 'مفتوح', en: 'Open' },
+  admin_feedback_status_in_review: { ar: 'قيد المراجعة', en: 'In Review' },
+  admin_feedback_status_resolved: { ar: 'محلول', en: 'Resolved' },
+  admin_feedback_status_dismissed: { ar: 'مُغلق', en: 'Dismissed' },
+  admin_feedback_notes_label: { ar: 'ملاحظات المراجع', en: 'Admin Notes' },
+  admin_feedback_save: { ar: 'حفظ', en: 'Save' },
+  admin_feedback_no_items: { ar: 'لا توجد تقارير حالياً.', en: 'No feedback reports yet.' },
+  admin_feedback_filter_all: { ar: 'الكل', en: 'All' },
+
+  // Phase I — Thematic Tafsir tab
+  theme_tafsir_tab: { ar: 'التفسير الموضوعي', en: 'Tafsir' },
+  theme_stories_tab: { ar: 'القصص المرتبطة', en: 'Related Stories' },
+  theme_tafsir_loading: { ar: 'جارٍ تحميل التفسير…', en: 'Loading tafsir…' },
+  theme_tafsir_empty: { ar: 'لا يوجد تفسير متاح لهذا المحور', en: 'No tafsir available for this theme' },
+  theme_stories_empty: { ar: 'لا توجد قصص مرتبطة بهذا المحور', en: 'No related stories found' },
+  theme_tafsir_sources_used: { ar: 'المصادر المستخدمة', en: 'Sources used' },
+  theme_tafsir_source_backed: { ar: 'موثق بالمصادر', en: 'Source-backed' },
+  theme_tafsir_partial_coverage: { ar: 'تغطية جزئية', en: 'Partial coverage' },
+  theme_tafsir_needs_review: { ar: 'يحتاج مراجعة', en: 'Needs review' },
+  theme_tafsir_verified: { ar: 'موثق', en: 'Verified' },
+  theme_tafsir_show_tafsir: { ar: 'عرض التفسير', en: 'Show tafsir' },
+  theme_tafsir_hide_tafsir: { ar: 'إخفاء التفسير', en: 'Hide tafsir' },
+  theme_tafsir_filter_source: { ar: 'تصفية حسب المصدر', en: 'Filter by source' },
+  theme_tafsir_filter_verified: { ar: 'المقاطع الموثقة فقط', en: 'Verified segments only' },
+  theme_stories_shared_themes: { ar: 'المحاور المشتركة', en: 'Shared themes' },
+  theme_stories_view: { ar: 'عرض القصة', en: 'View story' },
 };
 
 export function t(key: string, language: Language): string {

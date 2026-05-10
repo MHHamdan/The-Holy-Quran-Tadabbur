@@ -1,9 +1,10 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity } from 'lucide-react';
+import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Map, Heart } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import clsx from 'clsx';
+import { FeedbackButton } from '../feedback/FeedbackButton';
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,12 +18,15 @@ export function Layout({ children }: LayoutProps) {
     { path: '/', label: 'nav_home', icon: Home },
     { path: '/mushaf', label: 'nav_mushaf', icon: BookOpenCheck },
     { path: '/stories', label: 'nav_stories', icon: Book },
+    { path: '/story-atlas', label: 'nav_atlas', icon: Map },
     { path: '/concepts', label: 'nav_concepts', icon: Network },
     { path: '/themes', label: 'nav_themes', icon: Compass },
+    { path: '/miracles', label: 'nav_miracles', icon: Sparkles },
     { path: '/similarity', label: 'nav_similarity', icon: Link2 },
     { path: '/search', label: 'nav_search', icon: Search },
     { path: '/ask', label: 'nav_ask', icon: MessageCircle },
     { path: '/tasmee', label: 'nav_tasmee', icon: Mic },
+    { path: '/therapy', label: 'nav_therapy', icon: Heart },
     { path: '/sources', label: 'nav_sources', icon: BookOpen },
     { path: '/tools', label: 'nav_tools', icon: Wrench },
     { path: '/status', label: 'nav_status', icon: Activity },
@@ -121,6 +125,9 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1">{children}</main>
+
+      {/* Floating feedback button — available on every page */}
+      <FeedbackButton />
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-100 mt-auto">

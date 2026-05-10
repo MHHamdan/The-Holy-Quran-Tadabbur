@@ -20,6 +20,74 @@
 export type AudienceLevel = 'kids' | 'adults';
 
 // ---------------------------------------------------------------------------
+// Section Type — categorises each segment in the reading flow
+// ---------------------------------------------------------------------------
+
+export type SegmentSectionType = 'introduction' | 'key_event' | 'moral' | 'endnote';
+
+export const SECTION_TYPE_META: Record<SegmentSectionType, {
+  labelAr: string;
+  labelEn: string;
+  colorClass: string;
+  bgClass: string;
+}> = {
+  introduction: { labelAr: 'المقدمة', labelEn: 'Introduction', colorClass: 'text-blue-700', bgClass: 'bg-blue-50 border-blue-200' },
+  key_event: { labelAr: 'أحداث رئيسية', labelEn: 'Key Events', colorClass: 'text-primary-700', bgClass: 'bg-primary-50 border-primary-200' },
+  moral: { labelAr: 'الدروس والعبر', labelEn: 'Morals & Lessons', colorClass: 'text-emerald-700', bgClass: 'bg-emerald-50 border-emerald-200' },
+  endnote: { labelAr: 'تأمل ختامي', labelEn: 'Endnote', colorClass: 'text-amber-700', bgClass: 'bg-amber-50 border-amber-200' },
+};
+
+// ---------------------------------------------------------------------------
+// Story Overview — bilingual intro + summary per audience
+// ---------------------------------------------------------------------------
+
+export interface StoryOverview {
+  introKidsArabic: string;
+  introKidsEnglish: string;
+  introAdultsArabic: string;
+  introAdultsEnglish: string;
+  summaryKidsArabic: string;
+  summaryKidsEnglish: string;
+  summaryAdultsArabic: string;
+  summaryAdultsEnglish: string;
+  coreThemeArabic: string;
+  coreThemeEnglish: string;
+}
+
+// ---------------------------------------------------------------------------
+// Kids Quiz
+// ---------------------------------------------------------------------------
+
+export interface KidsQuizQuestion {
+  questionId: string;
+  questionArabic: string;
+  questionEnglish: string;
+  optionsArabic: string[];
+  optionsEnglish: string[];
+  correctOptionIndex: number;
+  explanationArabic: string;
+  explanationEnglish: string;
+}
+
+// ---------------------------------------------------------------------------
+// Adults Reflection
+// ---------------------------------------------------------------------------
+
+export interface AdultsReflectionPrompt {
+  promptId: string;
+  promptArabic: string;
+  promptEnglish: string;
+  themeArabic: string;
+  themeEnglish: string;
+}
+
+export interface AdultsReflection {
+  prompts: AdultsReflectionPrompt[];
+  thematicConnectionsArabic: string;
+  thematicConnectionsEnglish: string;
+}
+
+// ---------------------------------------------------------------------------
 // Source Validation
 // ---------------------------------------------------------------------------
 
@@ -69,6 +137,7 @@ export interface StorySegment {
   ayahStart: number;
   ayahEnd: number;
   sequenceOrder: number;
+  sectionType?: SegmentSectionType;
   summaryKidsArabic: string;
   summaryKidsEnglish: string;
   summaryAdultsArabic: string;
@@ -137,6 +206,9 @@ export interface QuranStory {
   sourceIds: string[];
   reliabilityLevel: StoryReliabilityLevel;
   lastReviewedAt: string;
+  overview?: StoryOverview;
+  kidsQuiz?: KidsQuizQuestion[];
+  adultsReflection?: AdultsReflection;
 }
 
 // ---------------------------------------------------------------------------

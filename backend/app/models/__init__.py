@@ -8,6 +8,9 @@ from app.models.story_atlas import StoryCluster, StoryEvent, EventConnection, Cl
 from app.models.concept import Concept, Occurrence, Association
 from app.models.audit import AuditLog
 from app.models.verification import VerificationQueue
+from app.models.feedback import UserFeedback
+from app.models.vocabulary import VocabEntry
+from app.models.therapy import TherapySession
 
 __all__ = [
     "QuranVerse",
@@ -28,4 +31,7 @@ __all__ = [
     "Association",
     "AuditLog",
     "VerificationQueue",
+    "UserFeedback",
+    "VocabEntry",
+    "TherapySession",
 ]

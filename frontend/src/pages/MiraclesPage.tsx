@@ -8,21 +8,22 @@ import {
   ArrowRight,
   Sparkles,
   ChevronRight,
+  AlertTriangle,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
+import { t } from '../i18n/translations';
 import { conceptsApi, MiracleWithAssociations, ConceptSummary } from '../lib/api';
 import { ErrorPanel, parseAPIError, APIErrorData, MiracleGridSkeleton } from '../components/common';
 import clsx from 'clsx';
 
 export function MiraclesPage() {
   const { language } = useLanguageStore();
+  const isRtl = language === 'ar';
   const [miracles, setMiracles] = useState<MiracleWithAssociations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<APIErrorData | null>(null);
   const [expandedMiracle, setExpandedMiracle] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-
-  const isArabic = language === 'ar';
 
   const loadMiracles = useCallback(async () => {
     setLoading(true);
@@ -31,11 +32,8 @@ export function MiraclesPage() {
       const response = await conceptsApi.getAllMiracles();
       setMiracles(response.data);
     } catch (err) {
-      console.error('Failed to load miracles:', err);
       const parsedError = parseAPIError(err);
       setError(parsedError);
-
-      // Auto-retry once on network errors with exponential backoff
       if (retryCount < 2 && parsedError?.code === 'network_error') {
         setRetryCount((c) => c + 1);
         const delay = Math.pow(2, retryCount) * 1000;
@@ -55,90 +53,113 @@ export function MiraclesPage() {
     loadMiracles();
   };
 
-  const handleReport = () => {
-    console.log('Report issue with request_id:', error?.request_id);
-  };
-
-  // Group miracles by whether they have related persons
-  const miraclesWithPersons = miracles.filter(m => m.related_persons.length > 0);
-  const otherMiracles = miracles.filter(m => m.related_persons.length === 0);
+  const miraclesWithPersons = miracles.filter((m) => m.related_persons.length > 0);
+  const otherMiracles = miracles.filter((m) => m.related_persons.length === 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={isRtl ? 'rtl' : 'ltr'}>
+
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
+      <div className="mb-6">
+        <div className={clsx('flex items-center gap-3 mb-2', isRtl && 'flex-row-reverse')}>
           <div className="p-2 bg-amber-100 rounded-lg">
             <Sparkles className="w-8 h-8 text-amber-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {isArabic ? 'الآيات والمعجزات' : 'Signs & Miracles'}
+            <h1 className={clsx('text-3xl font-bold text-gray-900', isRtl && 'font-arabic')}>
+              {t('miracles_page_title', language)}
             </h1>
-            <p className="text-gray-500 text-sm">
-              {isArabic ? 'آيات القرآن الكريم' : 'Quranic Signs (Ayat)'}
+            <p className={clsx('text-gray-500 text-sm', isRtl && 'font-arabic')}>
+              {t('miracles_page_subtitle', language)}
             </p>
           </div>
         </div>
-        <p className="text-gray-600 mt-3 max-w-3xl">
-          {isArabic
-            ? 'استكشف الآيات والمعجزات المذكورة في القرآن الكريم، من معجزات الأنبياء إلى الآيات الكونية. كل آية موثقة بمراجع قرآنية.'
-            : 'Explore the signs and miracles mentioned in the Holy Quran, from prophetic miracles to cosmic signs. Each is grounded in Quranic references.'}
+        <p className={clsx('text-gray-600 mt-3 max-w-3xl', isRtl && 'text-right font-arabic')}
+           dir={isRtl ? 'rtl' : 'ltr'}>
+          {t('miracles_page_description', language)}
         </p>
       </div>
 
-      {/* Stats Bar */}
-      <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 mb-8 border border-amber-200">
-        <div className="flex flex-wrap gap-6 justify-center text-center">
-          <div>
-            <div className="text-2xl font-bold text-amber-700">{miracles.length}</div>
-            <div className="text-sm text-gray-600">
-              {isArabic ? 'آية ومعجزة' : 'Signs & Miracles'}
-            </div>
-          </div>
-          <div className="border-l border-amber-200 pl-6">
-            <div className="text-2xl font-bold text-amber-700">{miraclesWithPersons.length}</div>
-            <div className="text-sm text-gray-600">
-              {isArabic ? 'معجزات مرتبطة بأنبياء' : 'Prophet-linked Miracles'}
-            </div>
-          </div>
-          <div className="border-l border-amber-200 pl-6">
-            <div className="text-2xl font-bold text-amber-700">
-              {miracles.reduce((sum, m) => sum + m.occurrence_count, 0)}
-            </div>
-            <div className="text-sm text-gray-600">
-              {isArabic ? 'إجمالي المواضع' : 'Total Occurrences'}
-            </div>
-          </div>
+      {/* Phase K — Scientific safety notice */}
+      <div className={clsx(
+        'rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 mb-6 flex gap-3',
+        isRtl && 'flex-row-reverse'
+      )}>
+        <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <p className={clsx('text-sm font-semibold text-amber-900 mb-1', isRtl && 'text-right font-arabic')}>
+            {t('miracles_safety_title', language)}
+          </p>
+          <p className={clsx('text-sm text-amber-800 leading-relaxed', isRtl && 'text-right font-arabic')}
+             dir={isRtl ? 'rtl' : 'ltr'}>
+            {t('miracles_safety_body', language)}
+          </p>
+          <Link
+            to="/ask"
+            className={clsx(
+              'mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-700',
+              'hover:text-amber-900 transition-colors',
+              isRtl && 'flex-row-reverse font-arabic'
+            )}
+          >
+            {t('miracles_safety_label', language)}
+            <ArrowRight className={clsx('w-3.5 h-3.5', isRtl && 'rotate-180')} />
+          </Link>
         </div>
       </div>
 
-      {/* Loading State */}
+      {/* Stats Bar */}
+      {!loading && !error && miracles.length > 0 && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 mb-8 border border-amber-200">
+          <div className="flex flex-wrap gap-6 justify-center text-center">
+            <div>
+              <div className="text-2xl font-bold text-amber-700">{miracles.length}</div>
+              <div className={clsx('text-sm text-gray-600', isRtl && 'font-arabic')}>
+                {t('miracles_stat_total', language)}
+              </div>
+            </div>
+            <div className="border-l border-amber-200 pl-6">
+              <div className="text-2xl font-bold text-amber-700">{miraclesWithPersons.length}</div>
+              <div className={clsx('text-sm text-gray-600', isRtl && 'font-arabic')}>
+                {t('miracles_stat_prophetic', language)}
+              </div>
+            </div>
+            <div className="border-l border-amber-200 pl-6">
+              <div className="text-2xl font-bold text-amber-700">
+                {miracles.reduce((sum, m) => sum + m.occurrence_count, 0)}
+              </div>
+              <div className={clsx('text-sm text-gray-600', isRtl && 'font-arabic')}>
+                {t('miracles_stat_occurrences', language)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading / Error / Empty */}
       {loading ? (
         <MiracleGridSkeleton count={6} />
       ) : error ? (
-        <ErrorPanel
-          error={error}
-          onRetry={handleRetry}
-          onReport={handleReport}
-        />
+        <ErrorPanel error={error} onRetry={handleRetry} onReport={() => {}} />
       ) : miracles.length === 0 ? (
         <div className="text-center py-12 card">
           <Zap className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">
-            {isArabic
-              ? 'لم يتم العثور على آيات. يرجى تشغيل سكريبت بذر المفاهيم.'
-              : 'No miracles found. Please run the concept seeding script.'}
+          <p className={clsx('text-gray-500', isRtl && 'font-arabic')}>
+            {t('miracles_empty', language)}
           </p>
         </div>
       ) : (
         <div className="space-y-8">
-          {/* Miracles with Prophet Links */}
+
+          {/* Prophetic Miracles */}
           {miraclesWithPersons.length > 0 && (
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <User className="w-5 h-5 text-blue-600" />
-                {isArabic ? 'معجزات الأنبياء' : 'Prophetic Miracles'}
+              <h2 className={clsx(
+                'text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2',
+                isRtl && 'flex-row-reverse font-arabic'
+              )}>
+                <User className="w-5 h-5 text-blue-600 shrink-0" />
+                {t('miracles_section_prophetic', language)}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {miraclesWithPersons.map((miracle) => (
@@ -146,10 +167,11 @@ export function MiraclesPage() {
                     key={miracle.id}
                     miracle={miracle}
                     language={language}
+                    isRtl={isRtl}
                     expanded={expandedMiracle === miracle.id}
-                    onToggle={() => setExpandedMiracle(
-                      expandedMiracle === miracle.id ? null : miracle.id
-                    )}
+                    onToggle={() =>
+                      setExpandedMiracle(expandedMiracle === miracle.id ? null : miracle.id)
+                    }
                   />
                 ))}
               </div>
@@ -159,9 +181,12 @@ export function MiraclesPage() {
           {/* Other Signs */}
           {otherMiracles.length > 0 && (
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-600" />
-                {isArabic ? 'آيات أخرى' : 'Other Signs'}
+              <h2 className={clsx(
+                'text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2',
+                isRtl && 'flex-row-reverse font-arabic'
+              )}>
+                <Sparkles className="w-5 h-5 text-amber-600 shrink-0" />
+                {t('miracles_section_other', language)}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {otherMiracles.map((miracle) => (
@@ -169,10 +194,11 @@ export function MiraclesPage() {
                     key={miracle.id}
                     miracle={miracle}
                     language={language}
+                    isRtl={isRtl}
                     expanded={expandedMiracle === miracle.id}
-                    onToggle={() => setExpandedMiracle(
-                      expandedMiracle === miracle.id ? null : miracle.id
-                    )}
+                    onToggle={() =>
+                      setExpandedMiracle(expandedMiracle === miracle.id ? null : miracle.id)
+                    }
                   />
                 ))}
               </div>
@@ -183,25 +209,31 @@ export function MiraclesPage() {
 
       {/* Navigation links */}
       <div className="mt-12 pt-8 border-t border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          {isArabic ? 'استكشف المزيد' : 'Explore More'}
+        <h3 className={clsx('text-lg font-semibold text-gray-900 mb-4', isRtl && 'text-right font-arabic')}>
+          {t('miracles_explore_more', language)}
         </h3>
-        <div className="flex flex-wrap gap-4">
+        <div className={clsx('flex flex-wrap gap-4', isRtl && 'flex-row-reverse')}>
           <Link
             to="/concepts"
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className={clsx(
+              'flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors',
+              isRtl && 'flex-row-reverse font-arabic'
+            )}
           >
             <BookOpen className="w-4 h-4" />
-            {isArabic ? 'جميع المفاهيم' : 'All Concepts'}
-            <ArrowRight className="w-4 h-4" />
+            {t('miracles_all_concepts', language)}
+            <ArrowRight className={clsx('w-4 h-4', isRtl && 'rotate-180')} />
           </Link>
           <Link
             to="/story-atlas"
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className={clsx(
+              'flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors',
+              isRtl && 'flex-row-reverse font-arabic'
+            )}
           >
             <MapPin className="w-4 h-4" />
-            {isArabic ? 'أطلس القصص' : 'Story Atlas'}
-            <ArrowRight className="w-4 h-4" />
+            {t('miracles_story_atlas', language)}
+            <ArrowRight className={clsx('w-4 h-4', isRtl && 'rotate-180')} />
           </Link>
         </div>
       </div>
@@ -209,42 +241,43 @@ export function MiraclesPage() {
   );
 }
 
-// Miracle Card Component
+// ---------------------------------------------------------------------------
+// Miracle Card
+// ---------------------------------------------------------------------------
+
 function MiracleCard({
   miracle,
   language,
+  isRtl,
   expanded,
   onToggle,
 }: {
   miracle: MiracleWithAssociations;
   language: 'ar' | 'en';
+  isRtl: boolean;
   expanded: boolean;
   onToggle: () => void;
 }) {
-  const isArabic = language === 'ar';
-
   return (
     <div
       className={clsx(
         'bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200 overflow-hidden transition-all duration-300',
         expanded ? 'shadow-lg' : 'shadow-sm hover:shadow-md'
       )}
+      dir={isRtl ? 'rtl' : 'ltr'}
     >
-      {/* Header */}
-      <div
-        className="p-4 cursor-pointer"
-        onClick={onToggle}
-      >
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-200 rounded-lg">
+      {/* Card header — clickable */}
+      <div className="p-4 cursor-pointer" onClick={onToggle}>
+        <div className={clsx('flex items-start justify-between', isRtl && 'flex-row-reverse')}>
+          <div className={clsx('flex items-center gap-3', isRtl && 'flex-row-reverse')}>
+            <div className="p-2 bg-amber-200 rounded-lg shrink-0">
               <Zap className="w-5 h-5 text-amber-700" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">
-                {isArabic ? miracle.label_ar : miracle.label_en}
+              <h3 className={clsx('font-semibold text-gray-900', isRtl && 'font-arabic text-right')}>
+                {isRtl ? miracle.label_ar : miracle.label_en}
               </h3>
-              {!isArabic && miracle.label_ar && (
+              {!isRtl && miracle.label_ar && (
                 <p className="text-sm text-gray-500 font-arabic" dir="rtl">
                   {miracle.label_ar}
                 </p>
@@ -253,14 +286,15 @@ function MiracleCard({
           </div>
           <ChevronRight
             className={clsx(
-              'w-5 h-5 text-gray-400 transition-transform',
-              expanded && 'rotate-90'
+              'w-5 h-5 text-gray-400 shrink-0 transition-transform',
+              expanded && 'rotate-90',
+              isRtl && 'rotate-180'
             )}
           />
         </div>
 
         {/* Quick Stats */}
-        <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
+        <div className={clsx('flex items-center gap-4 mt-3 text-sm text-gray-600', isRtl && 'flex-row-reverse')}>
           {miracle.related_persons.length > 0 && (
             <span className="flex items-center gap-1">
               <User className="w-4 h-4" />
@@ -276,39 +310,46 @@ function MiracleCard({
           {miracle.occurrence_count > 0 && (
             <span className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
-              {miracle.occurrence_count} {isArabic ? 'موضع' : 'refs'}
+              {miracle.occurrence_count}{' '}
+              <span className={isRtl ? 'font-arabic' : ''}>
+                {t('miracles_refs_label', language)}
+              </span>
             </span>
           )}
         </div>
       </div>
 
-      {/* Expanded Content */}
+      {/* Expanded detail */}
       {expanded && (
         <div className="px-4 pb-4 border-t border-amber-200 pt-4 space-y-4">
           {/* Description */}
           {(miracle.description_en || miracle.description_ar) && (
-            <p className="text-sm text-gray-700">
-              {isArabic
+            <p className={clsx('text-sm text-gray-700', isRtl && 'text-right font-arabic')}
+               dir={isRtl ? 'rtl' : 'ltr'}>
+              {isRtl
                 ? miracle.description_ar || miracle.description_en
                 : miracle.description_en || miracle.description_ar}
             </p>
           )}
 
-          {/* Related Persons */}
+          {/* Related Figures */}
           {miracle.related_persons.length > 0 && (
             <div>
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                {isArabic ? 'الشخصيات المرتبطة' : 'Related Figures'}
+              <h4 className={clsx('text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2', isRtl && 'text-right font-arabic')}>
+                {t('miracles_related_figures', language)}
               </h4>
-              <div className="flex flex-wrap gap-2">
+              <div className={clsx('flex flex-wrap gap-2', isRtl && 'flex-row-reverse')}>
                 {miracle.related_persons.map((person: ConceptSummary) => (
                   <Link
                     key={person.id}
                     to={`/concepts/${person.id}`}
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
+                    className={clsx(
+                      'inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors',
+                      isRtl && 'flex-row-reverse font-arabic'
+                    )}
                   >
-                    <User className="w-3 h-3" />
-                    {isArabic ? person.label_ar : person.label_en}
+                    <User className="w-3 h-3 shrink-0" />
+                    {isRtl ? person.label_ar : person.label_en}
                   </Link>
                 ))}
               </div>
@@ -318,32 +359,38 @@ function MiracleCard({
           {/* Related Stories */}
           {miracle.related_stories.length > 0 && (
             <div>
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                {isArabic ? 'القصص المرتبطة' : 'Related Stories'}
+              <h4 className={clsx('text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2', isRtl && 'text-right font-arabic')}>
+                {t('miracles_related_stories', language)}
               </h4>
-              <div className="flex flex-wrap gap-2">
+              <div className={clsx('flex flex-wrap gap-2', isRtl && 'flex-row-reverse')}>
                 {miracle.related_stories.map((storyId: string) => (
                   <Link
                     key={storyId}
                     to={`/stories/${storyId}`}
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm hover:bg-green-200 transition-colors"
+                    className={clsx(
+                      'inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm hover:bg-green-200 transition-colors',
+                      isRtl && 'flex-row-reverse'
+                    )}
                   >
-                    <BookOpen className="w-3 h-3" />
-                    {storyId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                    <BookOpen className="w-3 h-3 shrink-0" />
+                    {storyId.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                   </Link>
                 ))}
               </div>
             </div>
           )}
 
-          {/* View Related Prophet Link - only if has related persons */}
+          {/* View related prophet */}
           {miracle.related_persons.length > 0 && (
             <Link
               to={`/concepts/${miracle.related_persons[0].id}`}
-              className="inline-flex items-center gap-2 text-amber-700 hover:text-amber-800 text-sm font-medium"
+              className={clsx(
+                'inline-flex items-center gap-2 text-amber-700 hover:text-amber-800 text-sm font-medium',
+                isRtl && 'flex-row-reverse font-arabic'
+              )}
             >
-              {isArabic ? 'عرض النبي المرتبط' : 'View Related Prophet'}
-              <ArrowRight className="w-4 h-4" />
+              {t('miracles_view_prophet', language)}
+              <ArrowRight className={clsx('w-4 h-4 shrink-0', isRtl && 'rotate-180')} />
             </Link>
           )}
         </div>

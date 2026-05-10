@@ -17,7 +17,7 @@ from pydantic import ValidationError
 
 from app.core.config import settings
 from app.core.responses import APIError, ErrorCode, error_response, ErrorDetail
-from app.api.routes import quran, stories, rag, health, translation, story_atlas, concepts, grammar, kg, tafseer, search, admin, graph, streaming, performance, rhetoric, themes, tasmee, review_tasks, vocabulary
+from app.api.routes import quran, stories, rag, health, translation, story_atlas, concepts, grammar, kg, tafseer, search, admin, graph, streaming, performance, rhetoric, themes, tasmee, review_tasks, vocabulary, feedback, therapy
 
 # Configure structured logging
 logging.basicConfig(
@@ -55,6 +55,25 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     # Run initialization in background task
     import asyncio
     asyncio.create_task(init_fast_similarity())
+
+    # Warm up the NLI emotion classifier in a background thread so the first
+    # HTTP request does not pay the model-loading latency (~5–30 s on first run).
+    if settings.emotion_classifier_enabled:
+        from app.services.emotion_classifier import get_classifier
+
+        async def _warmup_emotion_classifier() -> None:
+            try:
+                clf = get_classifier(
+                    model_name=settings.emotion_model_name,
+                    confidence_threshold=settings.emotion_confidence_threshold,
+                )
+                ok = await asyncio.to_thread(clf.warmup)
+                status_str = "ready" if ok else "keyword-fallback (model unavailable)"
+                print(f"Emotion classifier: {status_str}")
+            except Exception as exc:
+                print(f"Warning: Emotion classifier warmup failed: {exc}")
+
+        asyncio.create_task(_warmup_emotion_classifier())
 
     yield
 
@@ -205,6 +224,8 @@ app.include_router(themes.router, prefix="/api/v1/themes", tags=["Quranic Themes
 app.include_router(tasmee.router, prefix="/api/v1/tasmee", tags=["Tasmee (Memorization)"])
 app.include_router(review_tasks.router, prefix="/api/v1/admin", tags=["Review Workflow (Phase 6)"])
 app.include_router(vocabulary.router, prefix="/api/v1/vocabulary", tags=["Vocabulary (Phase F)"])
+app.include_router(feedback.router, prefix="/api/v1/feedback", tags=["User Feedback (Phase G)"])
+app.include_router(therapy.router, prefix="/api/v1/therapy", tags=["Spiritual Guidance (Phase T)"])
 
 
 @app.get("/")

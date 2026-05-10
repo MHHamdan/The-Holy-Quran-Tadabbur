@@ -114,6 +114,15 @@ class Settings(BaseSettings):
     feature_ai_verification: bool = True  # Enable AI verification assistant
     feature_cache_warming: bool = True  # Enable cache warming service
 
+    # Emotion Classifier — Phase T4
+    # NLI model used for transformer-based emotion classification (English).
+    # Set emotion_classifier_enabled=false to force keyword-only mode.
+    emotion_model_name: str = "facebook/bart-large-mnli"
+    emotion_classifier_enabled: bool = True
+    # Minimum entailment probability to accept the NLI prediction.
+    # Below this threshold the keyword classifier is used as fallback.
+    emotion_confidence_threshold: float = 0.40
+
 
 @lru_cache
 def get_settings() -> Settings:

@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[4]
 STORY_TS = ROOT / "frontend" / "src" / "data" / "quranStories.ts"
 SOURCE_REGISTRY_TS = ROOT / "frontend" / "src" / "data" / "sourceRegistry.ts"
 STORY_DETAIL_TSX = ROOT / "frontend" / "src" / "pages" / "StoryDetailPage.tsx"
+STORY_READING_PANEL_TSX = ROOT / "frontend" / "src" / "components" / "stories" / "StoryReadingPanel.tsx"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -147,7 +148,11 @@ def story_ts_content():
 def story_detail_tsx_content():
     if not STORY_DETAIL_TSX.exists():
         pytest.skip(f"StoryDetailPage not found: {STORY_DETAIL_TSX}")
-    return STORY_DETAIL_TSX.read_text(encoding='utf-8')
+    # Phase F: segment rendering moved to StoryReadingPanel — combine both files.
+    content = STORY_DETAIL_TSX.read_text(encoding='utf-8')
+    if STORY_READING_PANEL_TSX.exists():
+        content += "\n" + STORY_READING_PANEL_TSX.read_text(encoding='utf-8')
+    return content
 
 
 # ---------------------------------------------------------------------------

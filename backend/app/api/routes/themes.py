@@ -29,6 +29,7 @@ from typing import List, Optional, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from pydantic import BaseModel, Field
+from sqlalchemy import text, bindparam, ARRAY, String
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_async_session
@@ -1217,3 +1218,409 @@ async def get_cross_theme_connections(
         CrossThemeConnectionResponse(**c)
         for c in connections
     ]
+
+
+# =============================================================================
+# Phase I — Thematic Tafsir Endpoints
+# =============================================================================
+
+# ---- Response schemas -------------------------------------------------------
+
+class TafsirEntryResponse(BaseModel):
+    """One tafsir chunk from a classical source."""
+    source_id: str
+    author_ar: str
+    author_en: str
+    source_name_ar: str
+    source_name_en: str
+    language: str  # 'ar' | 'en'
+    content_ar: Optional[str] = None
+    content_en: Optional[str] = None
+    aya_start: int
+    aya_end: int
+
+
+class VerseResponse(BaseModel):
+    """A single Quranic verse with text."""
+    aya_no: int
+    text_uthmani: str
+    text_imlaei: Optional[str] = None
+    sura_name_ar: Optional[str] = None
+    sura_name_en: Optional[str] = None
+
+
+class ThematicTafsirSegment(BaseModel):
+    """One theme segment enriched with verses and their tafsir."""
+    segment_id: str
+    segment_order: int
+    sura_no: int
+    ayah_start: int
+    ayah_end: int
+    verse_reference: str
+    title_ar: Optional[str] = None
+    title_en: Optional[str] = None
+    summary_ar: str
+    summary_en: str
+    is_verified: bool
+    is_core: bool = False
+    confidence: Optional[float] = None
+    source_confidence: str  # 'source_backed' | 'partial_coverage' | 'needs_review'
+    verses: List[VerseResponse] = []
+    tafsir_entries: List[TafsirEntryResponse] = []
+    sources_present: List[str] = []
+
+
+class ThematicTafsirResponse(BaseModel):
+    """Thematic tafsir for a theme — all segments with verses and tafsir."""
+    ok: bool = True
+    theme_id: str
+    title_ar: str
+    title_en: str
+    description_ar: Optional[str] = None
+    description_en: Optional[str] = None
+    total_segments: int
+    segments: List[ThematicTafsirSegment]
+    sources_used: List[str] = []
+
+
+class ThemeStoryResponse(BaseModel):
+    """A Quranic story related to a theme."""
+    id: str
+    name_ar: str
+    name_en: str
+    category: str
+    summary_ar: Optional[str] = None
+    summary_en: Optional[str] = None
+    lessons_ar: Optional[List[str]] = None
+    lessons_en: Optional[List[str]] = None
+    shared_themes: List[str] = []
+
+
+class ThemeStoriesResponse(BaseModel):
+    """Stories related to a theme."""
+    ok: bool = True
+    theme_id: str
+    title_ar: str
+    title_en: str
+    total: int
+    stories: List[ThemeStoryResponse]
+
+
+# ---- Helpers ----------------------------------------------------------------
+
+# Maps theme slug → story theme keywords used in stories.themes arrays.
+# Extended as new themes are added. Unknown slugs fall back to title_en parsing.
+_SLUG_TO_STORY_KEYWORDS: Dict[str, List[str]] = {
+    "sabr": ["patience", "steadfastness", "perseverance", "trials", "trial"],
+    "adl": ["justice", "righteousness", "equality"],
+    "rahmah": ["mercy", "divine_mercy", "compassion"],
+    "tawbah": ["repentance", "forgiveness"],
+    "tawakkul": ["trust", "trust_in_allah", "reliance"],
+    "ikhlas": ["sincerity", "purity"],
+    "tawadu": ["humility"],
+    "shukr": ["gratitude", "blessings"],
+    "ihsan": ["righteousness", "worship", "excellence"],
+    "tawheed": ["monotheism", "divine_attributes", "divine_unity"],
+    "tawheed-rububiyyah": ["monotheism", "divine_power", "divine_attributes"],
+    "tawheed-uluhiyyah": ["worship", "monotheism", "submission"],
+    "shirk": ["idolatry", "disbelief", "polytheism"],
+    "sidq": ["honesty", "truth", "sincerity"],
+    "zulm": ["tyranny", "injustice", "corruption", "oppression"],
+    "kidhb": ["falsehood", "deception", "fraud"],
+    "ghish": ["fraud", "corruption", "deception"],
+    "riba": ["wealth", "greed"],
+    "hajj": ["hajj", "kaaba", "submission"],
+    "salah": ["prayer", "worship", "submission"],
+    "zakah": ["charity", "wealth", "justice"],
+    "siyam": ["worship", "patience"],
+    "ihsan": ["righteousness", "excellence"],
+    "iman-billah": ["faith", "belief", "submission"],
+    "iman-malaika": ["unseen", "divine_attributes"],
+    "iman-rusul": ["prophethood", "revelation", "guidance"],
+    "iman-kutub": ["revelation", "guidance"],
+    "iman-yawm-akhir": ["hereafter", "resurrection", "accountability"],
+    "birr-walidayn": ["parenting", "family"],
+    "silat-rahim": ["family"],
+    "sunnah-nasr": ["victory", "divine_support", "divine_plan"],
+    "sunnah-ihlak": ["divine_punishment", "destruction", "warning"],
+    "sunnah-istidraj": ["punishment", "divine_plan"],
+    "sunnah-taghyir": ["transformation", "guidance"],
+}
+
+
+def _source_confidence(is_verified: bool, tafsir_count: int, confidence: Optional[float]) -> str:
+    """Classify source confidence into three tiers."""
+    if is_verified and tafsir_count >= 2:
+        return "source_backed"
+    if tafsir_count >= 1 or (confidence is not None and confidence >= 0.7):
+        return "partial_coverage"
+    return "needs_review"
+
+
+def _story_search_keywords(slug: str, title_en: str, key_concepts: List[str]) -> List[str]:
+    """Build the keyword list used to find related stories."""
+    keywords = list(_SLUG_TO_STORY_KEYWORDS.get(slug, []))
+    # Fallback: extract first word of English title, lowercase
+    if title_en:
+        first_word = title_en.split("(")[0].strip().split()[0].lower() if title_en else ""
+        if first_word and first_word not in keywords:
+            keywords.append(first_word)
+    return list(dict.fromkeys(keywords))  # deduplicate, preserve order
+
+
+# ---- Endpoints --------------------------------------------------------------
+
+@router.get("/{theme_id}/tafsir", response_model=ThematicTafsirResponse)
+async def get_theme_tafsir(
+    theme_id: str = Path(..., description="Theme ID"),
+    verified_only: bool = Query(False, description="Only include verified segments"),
+    source_id: Optional[str] = Query(None, description="Filter tafsir by source (e.g. ibn_kathir_en)"),
+    limit: int = Query(20, ge=1, le=50, description="Maximum number of segments to return"),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    Thematic Tafsir — Phase I endpoint.
+
+    Returns every theme segment for the given theme, enriched with:
+    - The Quranic verse texts (Uthmani rasm) for each segment's verse range
+    - All matching tafsir chunks from tafseer_chunks, joined with source metadata
+    - A source_confidence indicator per segment: source_backed / partial_coverage / needs_review
+
+    Tafsir chunks are overlapping-range matched: a chunk is included if its
+    (sura_no, aya_start, aya_end) range overlaps with the segment's (sura_no,
+    ayah_start, ayah_end) range.
+
+    SAFETY: Quran text is read-only from quran_verses (never modified).
+    All tafsir is retrieved from tafseer_chunks which holds pre-ingested,
+    source-attributed classical scholarship.
+    """
+    # 1. Verify the theme exists
+    theme_result = await session.execute(
+        text("""
+            SELECT id, title_ar, title_en, description_ar, description_en, slug, key_concepts
+            FROM quranic_themes WHERE id = :tid
+        """),
+        {"tid": theme_id},
+    )
+    theme_row = theme_result.mappings().first()
+    if not theme_row:
+        raise HTTPException(status_code=404, detail=f"Theme not found: {theme_id}")
+
+    # 2. Fetch theme segments
+    seg_query = """
+        SELECT id, segment_order, sura_no, ayah_start, ayah_end,
+               title_ar, title_en, summary_ar, summary_en,
+               is_verified, is_core, confidence
+        FROM theme_segments
+        WHERE theme_id = :tid
+        {verified_clause}
+        ORDER BY segment_order ASC
+        LIMIT :lim
+    """
+    verified_clause = "AND is_verified = TRUE" if verified_only else ""
+    seg_result = await session.execute(
+        text(seg_query.format(verified_clause=verified_clause)),
+        {"tid": theme_id, "lim": limit},
+    )
+    segments_raw = seg_result.mappings().all()
+
+    # 3. For each segment fetch verses + tafsir in parallel-style batches
+    result_segments: List[ThematicTafsirSegment] = []
+    all_sources_used: set = set()
+
+    for seg in segments_raw:
+        sura = seg["sura_no"]
+        a_start = seg["ayah_start"]
+        a_end = seg["ayah_end"]
+        seg_id = seg["id"]
+
+        # 3a. Verse texts
+        verse_result = await session.execute(
+            text("""
+                SELECT aya_no, text_uthmani, text_imlaei, sura_name_ar, sura_name_en
+                FROM quran_verses
+                WHERE sura_no = :sura AND aya_no BETWEEN :a1 AND :a2
+                ORDER BY aya_no ASC
+            """),
+            {"sura": sura, "a1": a_start, "a2": a_end},
+        )
+        verses = [
+            VerseResponse(
+                aya_no=v["aya_no"],
+                text_uthmani=v["text_uthmani"],
+                text_imlaei=v["text_imlaei"],
+                sura_name_ar=v["sura_name_ar"],
+                sura_name_en=v["sura_name_en"],
+            )
+            for v in verse_result.mappings()
+        ]
+
+        # 3b. Tafsir chunks (overlapping range match)
+        tafsir_query = """
+            SELECT tc.source_id, tc.content_ar, tc.content_en, tc.aya_start, tc.aya_end,
+                   ts.author_ar, ts.author_en, ts.name_ar, ts.name_en, ts.language
+            FROM tafseer_chunks tc
+            JOIN tafseer_sources ts ON tc.source_id = ts.id
+            WHERE tc.sura_no = :sura
+              AND tc.aya_start <= :a2
+              AND tc.aya_end   >= :a1
+              {source_clause}
+            ORDER BY tc.source_id, tc.aya_start
+        """
+        source_clause = "AND tc.source_id = :src" if source_id else ""
+        params: Dict[str, Any] = {"sura": sura, "a1": a_start, "a2": a_end}
+        if source_id:
+            params["src"] = source_id
+
+        tafsir_result = await session.execute(
+            text(tafsir_query.format(source_clause=source_clause)),
+            params,
+        )
+        tafsir_entries = [
+            TafsirEntryResponse(
+                source_id=t["source_id"],
+                author_ar=t["author_ar"] or "",
+                author_en=t["author_en"] or "",
+                source_name_ar=t["name_ar"] or "",
+                source_name_en=t["name_en"] or "",
+                language=t["language"] or "ar",
+                content_ar=t["content_ar"],
+                content_en=t["content_en"],
+                aya_start=t["aya_start"],
+                aya_end=t["aya_end"],
+            )
+            for t in tafsir_result.mappings()
+        ]
+        sources_present = list({e.source_id for e in tafsir_entries})
+        all_sources_used.update(sources_present)
+
+        # 3c. Compute verse reference string
+        if a_start == a_end:
+            verse_ref = f"{sura}:{a_start}"
+        else:
+            verse_ref = f"{sura}:{a_start}-{a_end}"
+
+        result_segments.append(
+            ThematicTafsirSegment(
+                segment_id=seg_id,
+                segment_order=seg["segment_order"],
+                sura_no=sura,
+                ayah_start=a_start,
+                ayah_end=a_end,
+                verse_reference=verse_ref,
+                title_ar=seg["title_ar"],
+                title_en=seg["title_en"],
+                summary_ar=seg["summary_ar"] or "",
+                summary_en=seg["summary_en"] or "",
+                is_verified=bool(seg["is_verified"]),
+                is_core=bool(seg["is_core"]),
+                confidence=seg["confidence"],
+                source_confidence=_source_confidence(
+                    bool(seg["is_verified"]), len(tafsir_entries), seg["confidence"]
+                ),
+                verses=verses,
+                tafsir_entries=tafsir_entries,
+                sources_present=sources_present,
+            )
+        )
+
+    return ThematicTafsirResponse(
+        theme_id=theme_id,
+        title_ar=theme_row["title_ar"],
+        title_en=theme_row["title_en"],
+        description_ar=theme_row["description_ar"],
+        description_en=theme_row["description_en"],
+        total_segments=len(result_segments),
+        segments=result_segments,
+        sources_used=sorted(all_sources_used),
+    )
+
+
+@router.get("/{theme_id}/stories", response_model=ThemeStoriesResponse)
+async def get_theme_stories(
+    theme_id: str = Path(..., description="Theme ID"),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    Related Stories — Phase I endpoint.
+
+    Returns Quranic stories whose themes array overlaps with this theme's
+    slug-derived keyword list.  Stories are sorted by shared-keyword count
+    (most overlapping first).
+
+    Matching uses the slug-to-keyword mapping (see _SLUG_TO_STORY_KEYWORDS)
+    with an English title fallback.  Stories that share no overlapping keyword
+    are excluded.
+    """
+    # 1. Get the theme
+    theme_result = await session.execute(
+        text("""
+            SELECT id, title_ar, title_en, slug, key_concepts
+            FROM quranic_themes WHERE id = :tid
+        """),
+        {"tid": theme_id},
+    )
+    theme_row = theme_result.mappings().first()
+    if not theme_row:
+        raise HTTPException(status_code=404, detail=f"Theme not found: {theme_id}")
+
+    slug = theme_row["slug"] or ""
+    title_en = theme_row["title_en"] or ""
+    key_concepts = list(theme_row["key_concepts"] or [])
+    keywords = _story_search_keywords(slug, title_en, key_concepts)
+
+    if not keywords:
+        return ThemeStoriesResponse(
+            theme_id=theme_id,
+            title_ar=theme_row["title_ar"],
+            title_en=theme_row["title_en"],
+            total=0,
+            stories=[],
+        )
+
+    # 2. Fetch stories whose themes array overlaps with our keywords.
+    # bindparam with ARRAY(String()) tells SQLAlchemy/asyncpg to serialize the
+    # Python list as a PostgreSQL varchar[] without needing a '::' cast literal,
+    # which breaks text() parameter substitution.
+    stories_result = await session.execute(
+        text("""
+            SELECT id, name_ar, name_en, category,
+                   summary_ar, summary_en,
+                   lessons_ar, lessons_en,
+                   themes
+            FROM stories
+            WHERE themes && :keywords
+            ORDER BY name_en ASC
+        """).bindparams(bindparam("keywords", type_=ARRAY(String()))),
+        {"keywords": keywords},
+    )
+    rows = stories_result.mappings().all()
+
+    story_list: List[ThemeStoryResponse] = []
+    for row in rows:
+        story_themes = list(row["themes"] or [])
+        shared = [k for k in keywords if k in story_themes]
+        story_list.append(
+            ThemeStoryResponse(
+                id=row["id"],
+                name_ar=row["name_ar"],
+                name_en=row["name_en"],
+                category=row["category"] or "",
+                summary_ar=row["summary_ar"],
+                summary_en=row["summary_en"],
+                lessons_ar=list(row["lessons_ar"]) if row["lessons_ar"] else None,
+                lessons_en=list(row["lessons_en"]) if row["lessons_en"] else None,
+                shared_themes=shared,
+            )
+        )
+
+    # Sort by shared keyword count descending
+    story_list.sort(key=lambda s: len(s.shared_themes), reverse=True)
+
+    return ThemeStoriesResponse(
+        theme_id=theme_id,
+        title_ar=theme_row["title_ar"],
+        title_en=theme_row["title_en"],
+        total=len(story_list),
+        stories=story_list,
+    )

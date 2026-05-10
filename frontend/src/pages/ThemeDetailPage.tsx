@@ -3,11 +3,15 @@ import { useParams, Link } from 'react-router-dom';
 import {
   BookOpen, ArrowLeft, Tag, Layers, BookMarked, CheckCircle,
   AlertCircle, ChevronRight, ExternalLink, Moon, Sun, Filter,
-  BarChart3, HelpCircle, X
+  BarChart3, HelpCircle, X, BookText, ScrollText, Loader2, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
-import { themesApi, quranApi, ThemeDetail, ThemeSegment, ThemeConsequence, QuranicTheme, ThemeCoverage, SegmentEvidence, Verse } from '../lib/api';
+import {
+  themesApi, quranApi,
+  ThemeDetail, ThemeSegment, ThemeConsequence, QuranicTheme, ThemeCoverage, SegmentEvidence, Verse,
+  ThematicTafsirResponse, ThematicTafsirSegment, ThemeStoriesResponse, ThemeStoryItem,
+} from '../lib/api';
 import clsx from 'clsx';
 
 // Sura names mapping (Arabic)
@@ -98,10 +102,20 @@ export function ThemeDetailPage() {
   const [relatedThemes, setRelatedThemes] = useState<QuranicTheme[]>([]);
   const [coverage, setCoverage] = useState<ThemeCoverage | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'segments' | 'consequences' | 'related'>('segments');
+  const [activeTab, setActiveTab] = useState<'segments' | 'consequences' | 'related' | 'tafsir' | 'stories'>('segments');
 
   // Verse texts map: segment_id -> verse text(s)
   const [verseTexts, setVerseTexts] = useState<Map<string, string>>(new Map());
+
+  // Thematic Tafsir (Phase I)
+  const [tafsirData, setTafsirData] = useState<ThematicTafsirResponse | null>(null);
+  const [tafsirLoading, setTafsirLoading] = useState(false);
+  const [tafsirSourceFilter, setTafsirSourceFilter] = useState<string>('');
+  const [tafsirVerifiedOnly, setTafsirVerifiedOnly] = useState(false);
+
+  // Related Stories (Phase I)
+  const [storiesData, setStoriesData] = useState<ThemeStoriesResponse | null>(null);
+  const [storiesLoading, setStoriesLoading] = useState(false);
 
   // Segment filters
   const [matchTypeFilter, setMatchTypeFilter] = useState<string | undefined>();
@@ -201,6 +215,50 @@ export function ThemeDetailPage() {
       loadVerseTexts(segments);
     }
   }, [segments]);
+
+  async function loadTafsir(id: string) {
+    setTafsirLoading(true);
+    try {
+      const res = await themesApi.getTafsir(id, {
+        verified_only: tafsirVerifiedOnly || undefined,
+        source_id: tafsirSourceFilter || undefined,
+      });
+      setTafsirData(res.data);
+    } catch (error) {
+      console.error('Failed to load thematic tafsir:', error);
+    } finally {
+      setTafsirLoading(false);
+    }
+  }
+
+  async function loadStories(id: string) {
+    setStoriesLoading(true);
+    try {
+      const res = await themesApi.getStories(id);
+      setStoriesData(res.data);
+    } catch (error) {
+      console.error('Failed to load related stories:', error);
+    } finally {
+      setStoriesLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'tafsir' && themeId && !tafsirData) {
+      loadTafsir(themeId);
+    }
+    if (activeTab === 'stories' && themeId && !storiesData) {
+      loadStories(themeId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, themeId]);
+
+  useEffect(() => {
+    if (activeTab === 'tafsir' && themeId) {
+      loadTafsir(themeId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tafsirSourceFilter, tafsirVerifiedOnly]);
 
   if (loading) {
     return (
@@ -559,6 +617,31 @@ export function ThemeDetailPage() {
           <BookOpen className="w-4 h-4 inline-block mr-1" />
           {language === 'ar' ? 'محاور متصلة' : 'Related'} ({relatedThemes.length})
         </button>
+        <button
+          onClick={() => setActiveTab('tafsir')}
+          className={clsx(
+            'px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors',
+            activeTab === 'tafsir'
+              ? 'border-emerald-600 text-emerald-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          )}
+        >
+          <BookText className="w-4 h-4 inline-block mr-1" />
+          {t('theme_tafsir_tab', language)}
+        </button>
+        <button
+          onClick={() => setActiveTab('stories')}
+          className={clsx(
+            'px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors',
+            activeTab === 'stories'
+              ? 'border-amber-600 text-amber-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          )}
+        >
+          <ScrollText className="w-4 h-4 inline-block mr-1" />
+          {t('theme_stories_tab', language)}
+          {storiesData && ` (${storiesData.total})`}
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -706,6 +789,28 @@ export function ThemeDetailPage() {
             ))
           )}
         </div>
+      )}
+
+      {/* Thematic Tafsir Tab */}
+      {activeTab === 'tafsir' && (
+        <ThematicTafsirTab
+          data={tafsirData}
+          loading={tafsirLoading}
+          language={language}
+          sourceFilter={tafsirSourceFilter}
+          onSourceFilterChange={setTafsirSourceFilter}
+          verifiedOnly={tafsirVerifiedOnly}
+          onVerifiedOnlyChange={setTafsirVerifiedOnly}
+        />
+      )}
+
+      {/* Related Stories Tab */}
+      {activeTab === 'stories' && (
+        <RelatedStoriesTab
+          data={storiesData}
+          loading={storiesLoading}
+          language={language}
+        />
       )}
     </div>
   );
@@ -969,6 +1074,300 @@ function ConsequenceCard({ consequence, language }: { consequence: ThemeConseque
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// Phase I — Thematic Tafsir Tab
+// =============================================================================
+
+const SOURCE_CONFIDENCE_CONFIG = {
+  source_backed: { color: 'bg-emerald-100 text-emerald-700', key: 'theme_tafsir_source_backed' },
+  partial_coverage: { color: 'bg-amber-100 text-amber-700', key: 'theme_tafsir_partial_coverage' },
+  needs_review: { color: 'bg-red-100 text-red-700', key: 'theme_tafsir_needs_review' },
+} as const;
+
+function TafsirSegmentCard({
+  seg,
+  language,
+}: {
+  seg: ThematicTafsirSegment;
+  language: 'ar' | 'en';
+}) {
+  const [showTafsir, setShowTafsir] = useState(false);
+  const confidenceConf = SOURCE_CONFIDENCE_CONFIG[seg.source_confidence] ?? SOURCE_CONFIDENCE_CONFIG.needs_review;
+
+  return (
+    <div className="border border-zinc-200 rounded-xl overflow-hidden bg-white">
+      {/* Segment header */}
+      <div className="p-4">
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <Link
+            to={`/quran/${seg.sura_no}?aya=${seg.ayah_start}`}
+            className="inline-flex items-center gap-1 text-primary-600 hover:underline text-sm font-semibold"
+          >
+            <BookMarked className="w-4 h-4" />
+            {seg.verse_reference}
+            <ExternalLink className="w-3 h-3" />
+          </Link>
+          <span className={clsx('text-xs px-2 py-0.5 rounded-full font-medium', confidenceConf.color)}>
+            {t(confidenceConf.key, language)}
+          </span>
+          {seg.is_verified && (
+            <span className="flex items-center gap-1 text-green-600 text-xs">
+              <CheckCircle className="w-3 h-3" />
+              {t('theme_tafsir_verified', language)}
+            </span>
+          )}
+        </div>
+
+        {/* Title */}
+        {(language === 'ar' ? seg.title_ar : seg.title_en) && (
+          <h4 className="font-semibold text-gray-800 mb-2">
+            {language === 'ar' ? seg.title_ar : seg.title_en}
+          </h4>
+        )}
+
+        {/* Verse texts */}
+        {seg.verses.length > 0 && (
+          <div className="my-3 p-4 bg-amber-50 rounded-lg border border-amber-200" dir="rtl">
+            <p className="text-xl leading-loose font-arabic text-gray-900 text-center">
+              {seg.verses.map((v) => v.text_uthmani).join(' ۝ ')}
+            </p>
+          </div>
+        )}
+
+        {/* Summary */}
+        <p className="text-sm text-gray-600">
+          {language === 'ar' ? seg.summary_ar : seg.summary_en}
+        </p>
+
+        {/* Toggle tafsir */}
+        {seg.tafsir_entries.length > 0 && (
+          <button
+            onClick={() => setShowTafsir((v) => !v)}
+            className="mt-3 inline-flex items-center gap-1 text-xs text-emerald-700 hover:text-emerald-900 font-medium"
+          >
+            {showTafsir ? (
+              <><ChevronUp className="w-3.5 h-3.5" />{t('theme_tafsir_hide_tafsir', language)}</>
+            ) : (
+              <><ChevronDown className="w-3.5 h-3.5" />{t('theme_tafsir_show_tafsir', language)} ({seg.tafsir_entries.length})</>
+            )}
+          </button>
+        )}
+      </div>
+
+      {/* Tafsir entries */}
+      {showTafsir && seg.tafsir_entries.length > 0 && (
+        <div className="border-t border-zinc-100 divide-y divide-zinc-100 bg-zinc-50">
+          {seg.tafsir_entries.map((entry, i) => (
+            <div key={`${entry.source_id}-${i}`} className="p-4" dir={entry.language === 'ar' ? 'rtl' : 'ltr'}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                  {language === 'ar' ? entry.source_name_ar || entry.source_id : entry.source_name_en || entry.source_id}
+                </span>
+                <span className="text-xs text-zinc-400">
+                  {language === 'ar' ? entry.author_ar : entry.author_en}
+                </span>
+                <span className="text-xs text-zinc-300">
+                  {entry.aya_start === entry.aya_end
+                    ? `آية ${entry.aya_start}`
+                    : `آيات ${entry.aya_start}–${entry.aya_end}`}
+                </span>
+              </div>
+              {entry.language === 'ar' && entry.content_ar && (
+                <p className="text-sm leading-relaxed text-gray-800 font-arabic">{entry.content_ar}</p>
+              )}
+              {entry.language !== 'ar' && entry.content_en && (
+                <p className="text-sm leading-relaxed text-gray-800">{entry.content_en}</p>
+              )}
+              {entry.language === 'ar' && !entry.content_ar && entry.content_en && (
+                <p className="text-sm leading-relaxed text-gray-800">{entry.content_en}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ThematicTafsirTab({
+  data,
+  loading,
+  language,
+  sourceFilter,
+  onSourceFilterChange,
+  verifiedOnly,
+  onVerifiedOnlyChange,
+}: {
+  data: ThematicTafsirResponse | null;
+  loading: boolean;
+  language: 'ar' | 'en';
+  sourceFilter: string;
+  onSourceFilterChange: (v: string) => void;
+  verifiedOnly: boolean;
+  onVerifiedOnlyChange: (v: boolean) => void;
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16 text-zinc-400">
+        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+        {t('theme_tafsir_loading', language)}
+      </div>
+    );
+  }
+
+  if (!data || data.segments.length === 0) {
+    return (
+      <div className="text-center py-16 text-zinc-400">
+        <BookText className="h-10 w-10 mx-auto mb-3 opacity-40" />
+        {t('theme_tafsir_empty', language)}
+      </div>
+    );
+  }
+
+  const allSources = Array.from(new Set(data.sources_used));
+
+  return (
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 items-center">
+        {allSources.length > 0 && (
+          <select
+            value={sourceFilter}
+            onChange={(e) => onSourceFilterChange(e.target.value)}
+            className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="">{t('theme_tafsir_filter_source', language)} ({language === 'ar' ? 'الكل' : 'All'})</option>
+            {allSources.map((src) => (
+              <option key={src} value={src}>{src.replace('_ar', '').replace('_en', '').replace('_', ' ')}</option>
+            ))}
+          </select>
+        )}
+        <label className="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={verifiedOnly}
+            onChange={(e) => onVerifiedOnlyChange(e.target.checked)}
+            className="rounded"
+          />
+          {t('theme_tafsir_filter_verified', language)}
+        </label>
+        <span className="text-xs text-zinc-400 ml-auto">
+          {data.total_segments} {t('theme_tafsir_tab', language)}
+        </span>
+      </div>
+
+      {/* Sources used badge row */}
+      {allSources.length > 0 && (
+        <div className="flex flex-wrap gap-1 items-center">
+          <span className="text-xs text-zinc-500">{t('theme_tafsir_sources_used', language)}:</span>
+          {allSources.map((src) => (
+            <span key={src} className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
+              {src.replace('_ar', '').replace('_en', '')}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Segment cards */}
+      {data.segments.map((seg) => (
+        <TafsirSegmentCard key={seg.segment_id} seg={seg} language={language} />
+      ))}
+    </div>
+  );
+}
+
+// =============================================================================
+// Phase I — Related Stories Tab
+// =============================================================================
+
+function RelatedStoriesTab({
+  data,
+  loading,
+  language,
+}: {
+  data: ThemeStoriesResponse | null;
+  loading: boolean;
+  language: 'ar' | 'en';
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16 text-zinc-400">
+        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+        {t('loading', language)}
+      </div>
+    );
+  }
+
+  if (!data || data.stories.length === 0) {
+    return (
+      <div className="text-center py-16 text-zinc-400">
+        <ScrollText className="h-10 w-10 mx-auto mb-3 opacity-40" />
+        {t('theme_stories_empty', language)}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid md:grid-cols-2 gap-4">
+      {data.stories.map((story) => (
+        <StoryCard key={story.id} story={story} language={language} />
+      ))}
+    </div>
+  );
+}
+
+function StoryCard({ story, language }: { story: ThemeStoryItem; language: 'ar' | 'en' }) {
+  const name = language === 'ar' ? story.name_ar : story.name_en;
+  const summary = language === 'ar' ? story.summary_ar : story.summary_en;
+  const lessons = language === 'ar' ? story.lessons_ar : story.lessons_en;
+
+  return (
+    <div className="card hover:shadow-md transition-shadow flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h4 className="font-semibold text-gray-800">{name}</h4>
+          {story.category && (
+            <span className="text-xs text-zinc-500 bg-zinc-100 rounded-full px-2 py-0.5 mt-1 inline-block capitalize">
+              {story.category.replace('_', ' ')}
+            </span>
+          )}
+        </div>
+        <Link
+          to={`/stories/${story.id}`}
+          className="flex-shrink-0 inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded-lg transition-colors"
+        >
+          <ExternalLink className="w-3 h-3" />
+          {t('theme_stories_view', language)}
+        </Link>
+      </div>
+
+      {summary && (
+        <p className="text-sm text-gray-600 line-clamp-3" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          {summary}
+        </p>
+      )}
+
+      {lessons && lessons.length > 0 && (
+        <ul className="space-y-1" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          {lessons.slice(0, 2).map((lesson, i) => (
+            <li key={i} className="text-xs text-zinc-500 flex items-start gap-1">
+              <span className="text-amber-500 mt-0.5">•</span>
+              {lesson}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {story.shared_themes.length > 0 && (
+        <div>
+          <span className="text-xs text-zinc-400">{t('theme_stories_shared_themes', language)}: </span>
+          <span className="text-xs text-zinc-500">{story.shared_themes.join(', ')}</span>
+        </div>
+      )}
     </div>
   );
 }
