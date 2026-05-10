@@ -4,6 +4,7 @@ import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import { therapyApi } from '../../lib/api';
 import type { InsightsResponse } from '../../types/therapy';
+import { EmotionGrowthMap } from './EmotionGrowthMap';
 import clsx from 'clsx';
 
 interface InsightsDashboardProps {
@@ -142,6 +143,18 @@ export function InsightsDashboard({ sessionIds }: InsightsDashboardProps) {
                   </span>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Phase T5-B — Emotional Growth Map */}
+          {insights.emotion_timeline && insights.emotion_timeline.length > 0 && (
+            <div className="border-t border-gray-100 pt-4">
+              <EmotionGrowthMap
+                timeline={insights.emotion_timeline}
+                trend={insights.trend ?? 'stable'}
+                streakDays={insights.streak_days ?? 0}
+                lang={language as 'ar' | 'en'}
+              />
             </div>
           )}
         </div>

@@ -254,6 +254,16 @@ class EmotionCount(BaseModel):
     count: int
 
 
+class EmotionPoint(BaseModel):
+    """One session entry in the ordered emotion timeline."""
+    session_id: str
+    emotion: str
+    label_en: str
+    label_ar: str
+    theme: Optional[str] = None
+    timestamp: str   # ISO-8601 datetime string
+
+
 class InsightsResponse(BaseModel):
     ok: bool = True
     total_sessions: int
@@ -267,6 +277,9 @@ class InsightsResponse(BaseModel):
     suggested_next_theme: Optional[str] = None
     growth_prompt_en: Optional[str] = None
     growth_prompt_ar: Optional[str] = None
+    # Phase T5-B — emotional growth map
+    emotion_timeline: List[EmotionPoint] = []
+    trend: str = "stable"   # "improving" | "stable" | "challenging"
 
 
 class ThemeInfo(BaseModel):
@@ -804,6 +817,66 @@ def _follow_ups_for(emotion: str) -> dict[str, list[str]]:
 
 
 # ---------------------------------------------------------------------------
+# Phase T5-B — growth map helpers
+# ---------------------------------------------------------------------------
+
+# Wellbeing score per emotion (higher = more at peace / positive)
+_EMOTION_SCORE: Dict[str, float] = {
+    "hopelessness": 0.0,
+    "grief":        1.0,
+    "fear":         1.5,
+    "anger":        2.0,
+    "guilt":        2.0,
+    "loneliness":   2.0,
+    "sadness":      2.0,
+    "stress":       2.5,
+    "anxiety":      2.5,
+    "doubt":        3.0,
+    "general":      3.5,
+    "gratitude":    5.0,
+}
+
+
+def _compute_trend(timeline: List[EmotionPoint]) -> str:
+    """
+    Compare the last 3 sessions against the 3 before them.
+    Returns 'improving', 'stable', or 'challenging'.
+    """
+    if len(timeline) < 4:
+        return "stable"
+    scores = [_EMOTION_SCORE.get(ep.emotion, 3.0) for ep in timeline]
+    recent = scores[-3:]
+    prior = scores[-6:-3] if len(scores) >= 6 else scores[:-3]
+    if not prior:
+        return "stable"
+    avg_recent = sum(recent) / len(recent)
+    avg_prior = sum(prior) / len(prior)
+    if avg_recent > avg_prior + 0.4:
+        return "improving"
+    if avg_recent < avg_prior - 0.4:
+        return "challenging"
+    return "stable"
+
+
+def _compute_streak(session_dates: list) -> int:
+    """Count consecutive days (ending at today or yesterday) with at least one session."""
+    from datetime import date, timedelta
+    if not session_dates:
+        return 0
+    unique = sorted(set(session_dates), reverse=True)
+    today = date.today()
+    if unique[0] < today - timedelta(days=1):
+        return 0
+    streak = 1
+    for i in range(1, len(unique)):
+        if unique[i] == unique[i - 1] - timedelta(days=1):
+            streak += 1
+        else:
+            break
+    return streak
+
+
+# ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
@@ -1224,14 +1297,52 @@ async def get_insights(
         growth_prompt_ar = gp.get("ar")
         suggested_next_theme = _EMOTION_SUGGESTED_THEME.get(top.emotion)
 
+    # Phase T5-B — ordered timeline for growth map
+    from sqlalchemy import select as sa_select_t, asc as sa_asc
+    timeline_result = await db.execute(
+        sa_select(
+            TherapySession.session_id,
+            TherapySession.emotion,
+            TherapySession.theme,
+            TherapySession.created_at,
+        )
+        .where(TherapySession.session_id.in_(ids))
+        .order_by(sa_asc(TherapySession.created_at))
+        .limit(50)
+    )
+    timeline_rows = timeline_result.all()
+
+    emotion_timeline: List[EmotionPoint] = []
+    session_dates = []
+    for row in timeline_rows:
+        lbl = EMOTION_LABELS.get(row.emotion, {"en": row.emotion, "ar": row.emotion})
+        emotion_timeline.append(
+            EmotionPoint(
+                session_id=row.session_id,
+                emotion=row.emotion,
+                label_en=lbl["en"],
+                label_ar=lbl["ar"],
+                theme=row.theme,
+                timestamp=row.created_at.isoformat() if row.created_at else "",
+            )
+        )
+        if row.created_at:
+            session_dates.append(row.created_at.date())
+
+    streak = _compute_streak(session_dates)
+    trend = _compute_trend(emotion_timeline)
+
     return InsightsResponse(
         total_sessions=total,
         emotion_distribution=distribution,
         most_visited_theme=theme_row.theme if theme_row else None,
+        streak_days=streak,
         top_emotion=top.emotion if top else None,
         top_emotion_label_en=top.label_en if top else None,
         top_emotion_label_ar=top.label_ar if top else None,
         suggested_next_theme=suggested_next_theme,
         growth_prompt_en=growth_prompt_en,
         growth_prompt_ar=growth_prompt_ar,
+        emotion_timeline=emotion_timeline,
+        trend=trend,
     )

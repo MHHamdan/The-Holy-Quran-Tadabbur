@@ -122,6 +122,15 @@ export interface EmotionCount {
   count: number;
 }
 
+export interface EmotionPoint {
+  session_id: string;
+  emotion: string;
+  label_en: string;
+  label_ar: string;
+  theme?: string;
+  timestamp: string;
+}
+
 export interface InsightsResponse {
   ok: boolean;
   total_sessions: number;
@@ -135,6 +144,9 @@ export interface InsightsResponse {
   suggested_next_theme?: string;
   growth_prompt_en?: string;
   growth_prompt_ar?: string;
+  // Phase T5-B
+  emotion_timeline: EmotionPoint[];
+  trend: string;
 }
 
 export interface HealingTheme {
