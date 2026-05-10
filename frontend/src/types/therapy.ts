@@ -71,8 +71,28 @@ export interface SpiritualGuidanceResponse {
   emotion_confidence?: number;
   // Phase T5-C — adaptive tone profile label
   tone_profile?: string;
+  // Phase T5-D — reflection journal prompt
+  reflection_prompt_en?: string;
+  reflection_prompt_ar?: string;
   disclaimer_en: string;
   disclaimer_ar: string;
+}
+
+// Phase T5-D — Reflection Journal
+export interface ReflectionRecord {
+  session_id: string;
+  emotion: string;
+  label_en: string;
+  label_ar: string;
+  theme?: string;
+  reflection: string;
+  verses: string[];
+  timestamp: string;
+}
+
+export interface ReflectionsResponse {
+  ok: boolean;
+  reflections: ReflectionRecord[];
 }
 
 // ============================================================================
@@ -147,6 +167,7 @@ export interface InsightsResponse {
   // Phase T5-B
   emotion_timeline: EmotionPoint[];
   trend: string;
+  weekly_change?: number;
 }
 
 export interface HealingTheme {

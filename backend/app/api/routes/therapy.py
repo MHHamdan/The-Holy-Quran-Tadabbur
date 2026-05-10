@@ -170,6 +170,9 @@ class AskResponse(BaseModel):
     emotion_confidence: float = 0.0
     # Phase T5-C — adaptive tone profile label
     tone_profile: str = "mild"
+    # Phase T5-D — personalised reflection journal prompt
+    reflection_prompt_en: str = ""
+    reflection_prompt_ar: str = ""
     disclaimer_en: str = _DISCLAIMER_EN
     disclaimer_ar: str = _DISCLAIMER_AR
 
@@ -280,6 +283,8 @@ class InsightsResponse(BaseModel):
     # Phase T5-B — emotional growth map
     emotion_timeline: List[EmotionPoint] = []
     trend: str = "stable"   # "improving" | "stable" | "challenging"
+    # Phase T5-B improvement — weekly wellbeing delta
+    weekly_change: Optional[float] = None  # positive = improving, negative = declining
 
 
 class ThemeInfo(BaseModel):
@@ -314,6 +319,27 @@ class ReflectResponse(BaseModel):
     ok: bool = True
     message_en: str = "Your reflection has been saved."
     message_ar: str = "تم حفظ تأملك."
+
+
+# Phase T5-D — Reflection Journal retrieval schemas
+class ReflectionRecord(BaseModel):
+    session_id: str
+    emotion: str
+    label_en: str
+    label_ar: str
+    theme: Optional[str] = None
+    reflection: str
+    verses: List[str] = []
+    timestamp: str
+
+
+class ReflectionsRequest(BaseModel):
+    session_ids: List[str] = Field(..., min_length=1, max_length=200)
+
+
+class ReflectionsResponse(BaseModel):
+    ok: bool = True
+    reflections: List[ReflectionRecord] = []
 
 
 # ---------------------------------------------------------------------------
@@ -659,6 +685,75 @@ _GROWTH_PROMPTS: Dict[str, Dict[str, str]] = {
 }
 
 
+# Phase T5-C — deeper empathy variants for DISTRESS-tier emotions
+_EMPATHY_DISTRESS: dict[str, dict[str, str]] = {
+    EmotionCategory.HOPELESSNESS: {
+        "en": "I hear you. When everything feels pointless, even the smallest step takes enormous courage — and you took it by coming here. You are not beyond Allah's mercy. Not even close.",
+        "ar": "أسمعك. حين يبدو كل شيء بلا معنى، حتى أصغر خطوة تتطلب شجاعة هائلة — وأنت اتخذتها بمجيئك هنا. أنت لست بعيداً عن رحمة الله. ولا حتى قريباً من ذلك.",
+    },
+    EmotionCategory.GRIEF: {
+        "en": "What you carry is heavy, and I want you to know — you don't have to carry it alone right now. Grief is the price of deep love. The Quran honours that love and holds space for your pain.",
+        "ar": "ما تحمله ثقيل، وأريدك أن تعلم — لا يجب أن تحمله وحدك الآن. الحزن هو ثمن الحب العميق. يُكرّم القرآن ذلك الحب ويُفسح المجال لألمك.",
+    },
+    EmotionCategory.FEAR: {
+        "en": "Fear at this level is exhausting. Please know that what you're feeling is valid — and the Quran was revealed precisely for moments when the ground feels like it's moving beneath your feet.",
+        "ar": "الخوف بهذا المستوى مرهق. اعلم أن ما تشعر به مشروع — ونُزّل القرآن تحديداً للحظات حين تشعر أن الأرض تتحرك من تحت قدميك.",
+    },
+}
+
+# Phase T5-D — personalised reflection prompts per emotion (bilingual journal triggers)
+_REFLECTION_PROMPTS: dict[str, dict[str, str]] = {
+    EmotionCategory.ANXIETY: {
+        "en": "What is one specific fear or worry that is heaviest right now? Write it out — giving it words can loosen its hold.",
+        "ar": "ما الخوف أو القلق المحدد الأثقل عليك الآن؟ اكتبه — إعطاؤه كلمات قد يُخفف وطأته.",
+    },
+    EmotionCategory.SADNESS: {
+        "en": "What do you miss most right now, or what do you wish were different? Let yourself name it fully.",
+        "ar": "ما الذي تفتقده أكثر الآن، أو ما الذي تتمنى أن يكون مختلفاً؟ دع نفسك تُسمّيه بالكامل.",
+    },
+    EmotionCategory.GRIEF: {
+        "en": "What would you want the person or thing you've lost to know? Write it here, for yourself.",
+        "ar": "ماذا تريد أن يعرف الشخص أو الشيء الذي فقدته؟ اكتبه هنا، لنفسك.",
+    },
+    EmotionCategory.FEAR: {
+        "en": "What is the worst thing you imagine happening? And then — what is one small thing that is still OK right now?",
+        "ar": "ما أسوأ شيء تتخيل حدوثه؟ ثم — ما الشيء الصغير الواحد الذي لا يزال على ما يرام الآن؟",
+    },
+    EmotionCategory.LONELINESS: {
+        "en": "Describe a moment — recent or from memory — when you felt truly seen or connected. What made it feel that way?",
+        "ar": "صف لحظة — حديثة أو من الذاكرة — شعرت فيها بأنك مرئي ومرتبط حقاً. ما الذي جعلها تبدو كذلك؟",
+    },
+    EmotionCategory.HOPELESSNESS: {
+        "en": "What is one very small thing that used to bring you comfort, even briefly? You don't have to do it — just name it.",
+        "ar": "ما الشيء الصغير جداً الذي اعتاد أن يُريحك، ولو للحظة؟ لا داعي لفعله — فقط سمّه.",
+    },
+    EmotionCategory.ANGER: {
+        "en": "What was the trigger — and underneath the anger, what is the hurt or unmet need that's actually there?",
+        "ar": "ما الذي أشعل الغضب؟ وتحت الغضب، ما الألم أو الحاجة غير المُلباة الموجودة فعلاً؟",
+    },
+    EmotionCategory.STRESS: {
+        "en": "List everything that is on your mind right now — every task, worry, obligation. Getting it out of your head can help you breathe.",
+        "ar": "اذكر كل ما في ذهنك الآن — كل مهمة وقلق والتزام. إخراجه من رأسك قد يساعدك على التنفس.",
+    },
+    EmotionCategory.GUILT: {
+        "en": "If a close friend came to you carrying this same guilt, what would you say to them? Now write those words to yourself.",
+        "ar": "لو جاءك صديق مقرب يحمل نفس هذا الذنب، ماذا ستقول له؟ الآن اكتب تلك الكلمات لنفسك.",
+    },
+    EmotionCategory.DOUBT: {
+        "en": "Write out your question or doubt in full — don't soften it. The Quran invites your most honest questions.",
+        "ar": "اكتب سؤالك أو شكّك بالكامل — لا تُليّنه. القرآن يدعو أصدق تساؤلاتك.",
+    },
+    EmotionCategory.GRATITUDE: {
+        "en": "Name three things you are grateful for today — then describe the smallest one in detail. Why does it matter?",
+        "ar": "اذكر ثلاثة أشياء تشكر عليها اليوم — ثم صف أصغرها بالتفصيل. لماذا تهمك؟",
+    },
+    EmotionCategory.GENERAL: {
+        "en": "What brought you here today? Write without censoring yourself — whatever is true is worth putting into words.",
+        "ar": "ما الذي أحضرك إلى هنا اليوم؟ اكتب دون رقابة ذاتية — كل ما هو حقيقي يستحق أن يُقال بكلمات.",
+    },
+}
+
+
 def _pick_reinforcement(emotion: str, index: int) -> Dict[str, str]:
     bank = _REINFORCEMENT_BANK.get(emotion, _REINFORCEMENT_BANK[EmotionCategory.GENERAL])
     return bank[index % len(bank)]
@@ -904,9 +999,16 @@ async def ask(
     cards_data = await build_guidance_cards(emotion, db, max_cards=3)
 
     labels = EMOTION_LABELS.get(emotion, {"en": emotion, "ar": emotion})
-    empathy = _EMPATHY.get(emotion, _EMPATHY[EmotionCategory.GENERAL])
+    # T5-C: use deeper empathy variant for DISTRESS-tier emotions
+    from app.services.tone_adapter import EmotionSeverity
+    if tone.severity == EmotionSeverity.DISTRESS:
+        empathy = _EMPATHY_DISTRESS.get(emotion, _EMPATHY.get(emotion, _EMPATHY[EmotionCategory.GENERAL]))
+    else:
+        empathy = _EMPATHY.get(emotion, _EMPATHY[EmotionCategory.GENERAL])
     reinforcement = _pick_reinforcement(emotion, body.reinforcement_index)
     follow_up = _follow_ups_for(emotion)
+    # T5-D: reflection journal prompt
+    rp = _REFLECTION_PROMPTS.get(emotion, _REFLECTION_PROMPTS[EmotionCategory.GENERAL])
 
     # Phase T3 — personalization note when returning with the same emotion
     personalization_note_en: Optional[str] = None
@@ -961,6 +1063,8 @@ async def ask(
         personalization_note_ar=personalization_note_ar,
         emotion_confidence=emotion_confidence,
         tone_profile=tone.label,
+        reflection_prompt_en=rp["en"],
+        reflection_prompt_ar=rp["ar"],
     )
 
 
@@ -1332,6 +1436,29 @@ async def get_insights(
     streak = _compute_streak(session_dates)
     trend = _compute_trend(emotion_timeline)
 
+    # Phase T5-B improvement — weekly wellbeing delta
+    weekly_change: Optional[float] = None
+    if len(emotion_timeline) >= 2:
+        from datetime import date as _date, timedelta as _td
+        _today = _date.today()
+        _week_start = _today - _td(days=7)
+        _prev_week_start = _today - _td(days=14)
+        this_week = [
+            _EMOTION_SCORE.get(ep.emotion, 3.0)
+            for ep in emotion_timeline
+            if ep.timestamp and ep.timestamp[:10] >= _week_start.isoformat()
+        ]
+        last_week = [
+            _EMOTION_SCORE.get(ep.emotion, 3.0)
+            for ep in emotion_timeline
+            if ep.timestamp and _prev_week_start.isoformat() <= ep.timestamp[:10] < _week_start.isoformat()
+        ]
+        if this_week and last_week:
+            weekly_change = round(
+                (sum(this_week) / len(this_week)) - (sum(last_week) / len(last_week)),
+                2,
+            )
+
     return InsightsResponse(
         total_sessions=total,
         emotion_distribution=distribution,
@@ -1345,4 +1472,60 @@ async def get_insights(
         growth_prompt_ar=growth_prompt_ar,
         emotion_timeline=emotion_timeline,
         trend=trend,
+        weekly_change=weekly_change,
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase T5-D: Reflection Journal retrieval
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/reflections",
+    response_model=ReflectionsResponse,
+    summary="Retrieve saved reflections for a set of session IDs",
+    dependencies=[Depends(therapy_rate_limit)],
+)
+async def get_reflections(
+    body: ReflectionsRequest,
+    db: AsyncSession = Depends(get_async_session),
+) -> ReflectionsResponse:
+    """
+    Return all therapy sessions that have a saved reflection, ordered by
+    created_at descending.  Privacy-preserving — session IDs are client-generated.
+    """
+    import json as _json
+    from sqlalchemy import select as sa_select, asc as sa_asc
+
+    ids = body.session_ids[:200]
+    result = await db.execute(
+        sa_select(TherapySession)
+        .where(
+            TherapySession.session_id.in_(ids),
+            TherapySession.reflection_logged.is_not(None),
+        )
+        .order_by(sa_asc(TherapySession.created_at))
+    )
+    sessions = result.scalars().all()
+
+    records: List[ReflectionRecord] = []
+    for s in sessions:
+        lbl = EMOTION_LABELS.get(s.emotion, {"en": s.emotion, "ar": s.emotion})
+        try:
+            verses = _json.loads(s.verses_shown or "[]")
+        except Exception:
+            verses = []
+        records.append(
+            ReflectionRecord(
+                session_id=s.session_id,
+                emotion=s.emotion,
+                label_en=lbl["en"],
+                label_ar=lbl["ar"],
+                theme=s.theme,
+                reflection=s.reflection_logged or "",
+                verses=verses,
+                timestamp=s.created_at.isoformat() if s.created_at else "",
+            )
+        )
+
+    return ReflectionsResponse(reflections=records)

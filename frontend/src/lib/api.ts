@@ -2705,6 +2705,7 @@ import type {
   ChatRequest,
   ChatResponse,
   InsightsResponse,
+  ReflectionsResponse,
 } from '../types/therapy';
 
 export const therapyApi = {
@@ -2729,4 +2730,8 @@ export const therapyApi = {
 
   getInsights: (sessionIds: string[], language = 'en') =>
     api.post<InsightsResponse>('/therapy/insights', { session_ids: sessionIds, language }).then(r => r.data),
+
+  // Phase T5-D — fetch saved reflections from the database
+  getReflections: (sessionIds: string[]) =>
+    api.post<ReflectionsResponse>('/therapy/reflections', { session_ids: sessionIds }).then(r => r.data),
 };

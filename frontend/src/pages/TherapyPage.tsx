@@ -462,6 +462,12 @@ export function TherapyPage() {
             currentSessionId={guidance?.session_id ?? null}
             onSaveReflection={handleSaveReflection}
             onDeleteEntry={handleDeleteReflection}
+            reflectionPrompt={
+              guidance
+                ? (isRtl ? guidance.reflection_prompt_ar : guidance.reflection_prompt_en)
+                : undefined
+            }
+            allSessionIds={allSessionIds}
           />
         </>
       )}

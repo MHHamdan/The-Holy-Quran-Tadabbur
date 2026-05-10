@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BarChart2, TrendingUp, Heart, Star, Sprout } from 'lucide-react';
+import { BarChart2, TrendingUp, TrendingDown, Minus, Heart, Star, Sprout } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import { therapyApi } from '../../lib/api';
@@ -75,6 +75,41 @@ export function InsightsDashboard({ sessionIds }: InsightsDashboardProps) {
               </div>
             )}
           </div>
+
+          {/* Weekly wellbeing change */}
+          {insights.weekly_change !== undefined && insights.weekly_change !== null && (
+            <div className={clsx(
+              'flex items-center gap-2 rounded-xl px-3 py-2.5',
+              insights.weekly_change > 0.1
+                ? 'bg-emerald-50 border border-emerald-100'
+                : insights.weekly_change < -0.1
+                  ? 'bg-rose-50 border border-rose-100'
+                  : 'bg-gray-50 border border-gray-100',
+              isRtl && 'flex-row-reverse',
+            )}>
+              {insights.weekly_change > 0.1
+                ? <TrendingUp className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                : insights.weekly_change < -0.1
+                  ? <TrendingDown className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                  : <Minus className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              }
+              <div>
+                <p className={clsx(
+                  'text-xs font-medium',
+                  insights.weekly_change > 0.1 ? 'text-emerald-700' : insights.weekly_change < -0.1 ? 'text-rose-700' : 'text-gray-600',
+                  isRtl && 'font-arabic',
+                )}>
+                  {isRtl
+                    ? insights.weekly_change > 0.1 ? 'تحسّن هذا الأسبوع' : insights.weekly_change < -0.1 ? 'يحتاج اهتماماً هذا الأسبوع' : 'مستقر هذا الأسبوع'
+                    : insights.weekly_change > 0.1 ? 'Improving this week' : insights.weekly_change < -0.1 ? 'Needs support this week' : 'Stable this week'
+                  }
+                </p>
+                <p className={clsx('text-[10px] text-gray-400', isRtl && 'font-arabic')}>
+                  {isRtl ? 'مقارنةً بالأسبوع الماضي' : 'vs. last week'}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Top emotion */}
           {insights.top_emotion && (

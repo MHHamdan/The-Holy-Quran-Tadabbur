@@ -31,59 +31,137 @@ from app.models.therapy import EmotionCategory
 
 _EMOTION_KEYWORDS: Dict[str, List[str]] = {
     EmotionCategory.ANXIETY: [
+        # English
         "anxious", "anxiety", "worry", "worried", "nervous", "panic", "uneasy",
         "restless", "overwhelmed", "tense", "dread", "apprehensive", "overthinking",
+        "on edge", "jittery", "scared of future", "what if", "can't relax",
+        # Arabic — standard
         "قلق", "توتر", "خوف", "وسواس", "تعب", "ضيق",
+        # Arabic — expanded colloquial & literary
+        "قلقان", "متوتر", "أفكر كثيراً", "مش قادر أرتاح", "خايف",
+        "تعبان نفسياً", "الوسواس", "مرهق ذهنياً", "خوف من المستقبل",
+        "قلق على", "مش عارف شو يصير", "تعبت من التفكير",
     ],
     EmotionCategory.SADNESS: [
+        # English
         "sad", "sadness", "unhappy", "miserable", "gloomy", "depressed", "crying",
         "tears", "melancholy", "down", "heartbroken", "blue", "despondent",
-        "حزين", "حزن", "كئيب", "بكاء", "مكتئب", "دموع", "يائس",
+        "broken", "weeping", "grief-stricken", "heavy heart",
+        # Arabic — standard
+        "حزين", "حزن", "كئيب", "بكاء", "مكتئب", "دموع",
+        # Arabic — expanded
+        "حزنان", "زهقت", "مو بخير", "قلبي تعبان", "ما في فايدة",
+        "تعبت", "بكيت", "ما لقيت راحة", "وجعت", "مجروح",
+        "أشعر بالفراغ", "صدري ضيق", "ثقيل قلبي", "تعب الروح",
     ],
     EmotionCategory.GRIEF: [
+        # English
         "grief", "grieving", "loss", "bereaved", "mourning", "died", "death",
         "passed away", "losing someone", "bereavement", "devastating",
+        "lost someone", "funeral", "widow", "orphan",
+        # Arabic — standard
         "فقد", "فقدان", "وفاة", "حداد", "مصيبة", "رحل", "توفي",
+        # Arabic — expanded
+        "فقدت", "مات", "ماتت", "توفي", "توفيت", "ابكي على",
+        "فارقني", "غيابه", "غيابها", "الله يرحمه", "الله يرحمها",
+        "اشتياق", "وجع الفراق", "الفراق", "لن أراه", "لن أراها",
     ],
     EmotionCategory.FEAR: [
+        # English
         "fear", "afraid", "scared", "terrified", "frightened", "phobia",
-        "terror", "horror", "dread", "fright",
+        "terror", "horror", "dread", "fright", "petrified", "panicking",
+        # Arabic — standard
         "خائف", "خوف", "رعب", "فزع", "مرعوب", "هلع",
+        # Arabic — expanded
+        "خايف", "مرعوب", "مذعور", "الخوف يأكلني", "أخشى",
+        "أخاف من", "خوفان", "وجل", "فزعان", "الرهبة",
+        "أفزعني", "هلعت", "رهبة", "ذعر",
     ],
     EmotionCategory.LONELINESS: [
+        # English
         "lonely", "loneliness", "alone", "isolated", "abandoned", "no one",
         "disconnected", "left out", "forgotten", "friendless", "unwanted",
+        "no friends", "nobody cares", "invisible",
+        # Arabic — standard
         "وحيد", "وحدة", "عزلة", "مهجور", "منعزل", "متروك", "لا أحد",
+        # Arabic — expanded
+        "وحداني", "ما عندي أحد", "الناس نسيتني", "محد يسألعني",
+        "بوحدتي", "لوحدي", "ما في أحد", "مش مهم لأحد",
+        "محد يهتم", "الوحدة تقتلني", "منبوذ", "منبوذة",
     ],
     EmotionCategory.HOPELESSNESS: [
+        # English
         "hopeless", "hopelessness", "no hope", "giving up", "pointless",
         "meaningless", "futile", "no reason", "lost", "despair", "desperate",
+        "can't go on", "what's the point", "nothing matters",
+        # Arabic — standard
         "يأس", "قنوط", "لا أمل", "استسلام", "ضايع", "بلا معنى",
+        # Arabic — expanded
+        "يائس", "مش شايف أمل", "ما في فايدة", "تعبت من الحياة",
+        "مستحيل يتحسن", "ما راح يتغير شي", "انتهيت", "قنطت",
+        "استسلمت", "كل شي سواد", "لا حياة بعد", "ما أبي أكمل",
     ],
     EmotionCategory.ANGER: [
+        # English
         "angry", "anger", "furious", "rage", "frustrated", "irritated",
         "resentful", "bitter", "enraged", "mad", "annoyed",
+        "livid", "seething", "outraged", "fuming",
+        # Arabic — standard
         "غاضب", "غضب", "حقد", "ضغينة", "نقمة", "محبط", "منزعج",
+        # Arabic — expanded
+        "زعلان", "عصبي", "مجنون من الزعل", "غضبان", "انفجرت",
+        "ما تحملت", "كرهت", "نفذ صبري", "اشتعل", "ثرت",
+        "بالغيظ", "كظم الغيظ", "الحقد", "الكراهية", "ضايقني",
     ],
     EmotionCategory.STRESS: [
+        # English
         "stress", "stressed", "pressure", "exhausted", "burnout",
         "overwhelmed", "burden", "overloaded", "too much", "can't cope",
+        "no energy", "drained", "fatigued", "worn out",
+        # Arabic — standard
         "ضغط", "إجهاد", "إرهاق", "محمل", "مرهق", "تعب نفسي",
+        # Arabic — expanded
+        "مضغوط", "تحت ضغط", "تعبان", "ما قادر أكمل", "خلص طاقتي",
+        "منهك", "محروق", "ما قدرت", "فوق طاقتي", "كل شي على",
+        "الأعباء كثيرة", "زهقت من الضغط", "لازم أرتاح",
     ],
     EmotionCategory.GUILT: [
+        # English
         "guilt", "guilty", "ashamed", "shame", "regret", "remorse",
         "sinned", "wrong", "mistake", "bad person", "forgive me",
+        "i did wrong", "can't forgive myself", "confession",
+        # Arabic — standard
         "ذنب", "خطيئة", "ندم", "خجل", "أنا مذنب", "تبت", "اعتذار",
+        # Arabic — expanded
+        "نادم", "أندم", "أشعر بالذنب", "خطأت", "أخطأت",
+        "ذنوبي كثيرة", "عملت حاجة غلط", "عيب", "ما أسامح نفسي",
+        "الاستغفار", "أستغفر", "تائب", "أتوب", "ذنوب",
+        "ارتكبت", "أشكو من نفسي",
     ],
     EmotionCategory.DOUBT: [
+        # English
         "doubt", "doubting", "confused", "faith", "uncertain", "questioning",
         "don't understand", "why", "lost faith", "skeptical",
+        "not sure", "confused about religion", "questioning belief",
+        # Arabic — standard
         "شك", "تشكيك", "حيرة", "ارتباك", "لماذا", "فقدت الإيمان",
+        # Arabic — expanded
+        "شاك", "مش واثق", "في شك", "مش فاهم", "لماذا يحدث هذا",
+        "ما أفهم حكمة الله", "تساؤلات دينية", "الإيمان ضعيف",
+        "حيران", "ما متأكد", "الشك في", "تشككت", "الحيرة",
     ],
     EmotionCategory.GRATITUDE: [
+        # English
         "grateful", "gratitude", "thankful", "blessed", "appreciate",
-        "alhamdulillah", "thankfulness",
+        "alhamdulillah", "thankfulness", "content", "joyful", "happy",
+        "peace", "peaceful", "fulfilled",
+        # Arabic — standard
         "شاكر", "شكر", "الحمد لله", "ممتنن", "نعمة",
+        # Arabic — expanded
+        "ممتنة", "شاكرة", "نعم الله", "الحمدلله", "سعيد",
+        "سعيدة", "بخير", "الله يبارك", "ربي كريم",
+        "أشكر الله", "الرضا", "راضي", "راضية", "بركة",
+        "الحمد لله على كل شيء", "شكراً لله", "منعم عليّ",
     ],
 }
 
