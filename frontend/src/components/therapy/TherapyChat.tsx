@@ -1,11 +1,33 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, Bot, User, BookOpen, AlertCircle } from 'lucide-react';
+import { Send, Loader2, Bot, User, BookOpen, AlertCircle, Heart, Shield, Sparkles, Compass } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
-import { t } from '../../i18n/translations';
+import { t, type Language } from '../../i18n/translations';
 import { therapyApi } from '../../lib/api';
 import type { ChatResponse, GuidanceCard as GuidanceCardType } from '../../types/therapy';
 import { SpiritualGuidanceCard } from './SpiritualGuidanceCard';
 import clsx from 'clsx';
+
+const TONE_CONFIG: Record<string, { icon: React.ElementType; color: string; labelKey: string }> = {
+  gentle:      { icon: Heart,    color: 'text-rose-500 bg-rose-50 border-rose-200',    labelKey: 'tone_gentle' },
+  supportive:  { icon: Shield,   color: 'text-indigo-500 bg-indigo-50 border-indigo-200', labelKey: 'tone_supportive' },
+  celebratory: { icon: Sparkles, color: 'text-amber-500 bg-amber-50 border-amber-200', labelKey: 'tone_celebratory' },
+  welcoming:   { icon: Compass,  color: 'text-emerald-500 bg-emerald-50 border-emerald-200', labelKey: 'tone_welcoming' },
+};
+
+function ToneBadge({ profile, lang }: { profile: string; lang: Language }) {
+  const cfg = TONE_CONFIG[profile];
+  if (!cfg) return null;
+  const Icon = cfg.icon;
+  return (
+    <span className={clsx(
+      'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full border',
+      cfg.color,
+    )}>
+      <Icon className="w-2.5 h-2.5" />
+      {t(cfg.labelKey as any, lang)}
+    </span>
+  );
+}
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -118,6 +140,13 @@ export function TherapyChat({ initialEmotion, onSessionCreated }: TherapyChatPro
                   )}>
                     {msg.content}
                   </div>
+
+                  {/* Tone profile badge */}
+                  {msg.response?.tone_profile && (
+                    <div className={clsx('mt-1.5', isRtl ? 'text-right' : 'text-left')}>
+                      <ToneBadge profile={msg.response.tone_profile} lang={language} />
+                    </div>
+                  )}
 
                   {/* Citations */}
                   {msg.response?.citations && msg.response.citations.length > 0 && (

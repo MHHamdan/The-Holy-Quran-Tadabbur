@@ -1435,6 +1435,11 @@ export const themeTranslations: Record<string, { ar: string; en: string }> = {
   insights_growth_prompt: { ar: 'اقتراح للنمو', en: 'Growth Suggestion' },
   // Phase T3 — personalization & suggested theme
   therapy_suggested_theme: { ar: 'موضوع مقترح:', en: 'Suggested theme:' },
+  // Phase T5-C — adaptive tone profile labels
+  tone_gentle:      { ar: 'لطيف',    en: 'Gentle' },
+  tone_supportive:  { ar: 'داعم',    en: 'Supportive' },
+  tone_celebratory: { ar: 'احتفالي', en: 'Celebratory' },
+  tone_welcoming:   { ar: 'مرحّب',   en: 'Welcoming' },
 };
 
 // Main figures translations

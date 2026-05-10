@@ -333,6 +333,7 @@ class RAGPipeline:
         max_sources: int = 5,
         session_id: Optional[str] = None,
         conversation_context: Optional[str] = None,
+        tone_directive: str = "",
     ) -> GroundedResponse:
         """
         Process a question and return a grounded response.
@@ -428,6 +429,7 @@ class RAGPipeline:
             intent=intent,
             language=language,
             include_scholarly_debate=include_scholarly_debate,
+            tone_directive=tone_directive,
         )
 
         # 8. Parse and validate response with enhanced confidence scoring
@@ -939,6 +941,7 @@ class RAGPipeline:
         intent: QueryIntent,
         language: str,
         include_scholarly_debate: bool,
+        tone_directive: str = "",
     ) -> tuple[str, int]:
         """
         Generate response using the configured LLM provider.
@@ -956,6 +959,7 @@ class RAGPipeline:
             language=language,
             include_scholarly_debate=include_scholarly_debate,
             is_fiqh=intent == QueryIntent.RULING,
+            tone_directive=tone_directive,
         )
 
         try:

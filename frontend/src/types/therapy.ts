@@ -69,6 +69,8 @@ export interface SpiritualGuidanceResponse {
   personalization_note_ar?: string;
   // Phase T4 — NLI classifier confidence (0.0 = keyword fallback was used)
   emotion_confidence?: number;
+  // Phase T5-C — adaptive tone profile label
+  tone_profile?: string;
   disclaimer_en: string;
   disclaimer_ar: string;
 }
@@ -107,6 +109,8 @@ export interface ChatResponse {
   used_rag: boolean;
   // Phase T4
   emotion_confidence?: number;
+  // Phase T5-C
+  tone_profile?: string;
   disclaimer_en: string;
   disclaimer_ar: string;
 }

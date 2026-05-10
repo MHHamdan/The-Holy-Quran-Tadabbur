@@ -38,6 +38,7 @@ from app.services.spiritual_guidance_service import (
     get_recommended_themes,
     get_theme_cards,
 )
+from app.services.tone_adapter import get_tone_profile, tone_directive as build_tone_directive
 
 
 def _classify_with_confidence(message: str) -> tuple[str, float]:
@@ -167,6 +168,8 @@ class AskResponse(BaseModel):
     personalization_note_ar: Optional[str] = None
     # Phase T4 — NLI classifier confidence (0.0 = keyword fallback was used)
     emotion_confidence: float = 0.0
+    # Phase T5-C — adaptive tone profile label
+    tone_profile: str = "mild"
     disclaimer_en: str = _DISCLAIMER_EN
     disclaimer_ar: str = _DISCLAIMER_AR
 
@@ -222,6 +225,8 @@ class ChatResponse(BaseModel):
     used_rag: bool = False
     # Phase T4
     emotion_confidence: float = 0.0
+    # Phase T5-C
+    tone_profile: str = "mild"
     disclaimer_en: str = _DISCLAIMER_EN
     disclaimer_ar: str = _DISCLAIMER_AR
 
@@ -821,6 +826,8 @@ async def ask(
         emotion, emotion_confidence = body.emotion_override, 1.0
     else:
         emotion, emotion_confidence = _classify_with_confidence(body.message)
+
+    tone = get_tone_profile(emotion, emotion_confidence)
     cards_data = await build_guidance_cards(emotion, db, max_cards=3)
 
     labels = EMOTION_LABELS.get(emotion, {"en": emotion, "ar": emotion})
@@ -880,6 +887,7 @@ async def ask(
         personalization_note_en=personalization_note_en,
         personalization_note_ar=personalization_note_ar,
         emotion_confidence=emotion_confidence,
+        tone_profile=tone.label,
     )
 
 
@@ -1018,6 +1026,10 @@ async def chat(
         emotion, emotion_confidence = body.emotion_override, 1.0
     else:
         emotion, emotion_confidence = _classify_with_confidence(body.message)
+
+    tone = get_tone_profile(emotion, emotion_confidence)
+    directive = build_tone_directive(emotion, emotion_confidence, body.language)
+
     labels = EMOTION_LABELS.get(emotion, {"en": emotion, "ar": emotion})
     session_id = body.session_id or str(uuid.uuid4())
 
@@ -1060,6 +1072,7 @@ async def chat(
                 max_sources=3,
                 session_id=session_id,
                 conversation_context=body.conversation_context,
+                tone_directive=directive,
             )
 
             citations = [
@@ -1098,6 +1111,7 @@ async def chat(
                 follow_up_suggestions=follow_ups,
                 used_rag=True,
                 emotion_confidence=emotion_confidence,
+                tone_profile=tone.label,
             )
 
         except Exception as exc:  # noqa: BLE001
@@ -1129,6 +1143,7 @@ async def chat(
         fallback_cards=[GuidanceCard(**c) for c in cards_data],
         used_rag=False,
         emotion_confidence=emotion_confidence,
+        tone_profile=tone.label,
     )
 
 

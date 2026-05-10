@@ -65,6 +65,7 @@ def build_user_prompt(
     language: str,
     include_scholarly_debate: bool,
     is_fiqh: bool,
+    tone_directive: str = "",
 ) -> str:
     """
     Build the user prompt with context and instructions.
@@ -110,6 +111,8 @@ Be especially careful to:
 - Note any conditions or contexts mentioned
 - Highlight any scholarly disagreement"""
 
+    tone_section = f"\n{tone_directive}" if tone_directive else ""
+
     return f"""## RETRIEVED SOURCES:
 {context}
 
@@ -120,7 +123,7 @@ Be especially careful to:
 {language_instruction}
 {debate_instruction}
 {fiqh_warning}
-
+{tone_section}
 Remember:
 - Every claim needs a citation [Source, Verse]
 - If sources don't cover something, say so explicitly
