@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Video, Newspaper, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar, Library, ShieldCheck } from 'lucide-react';
+import { Video, Newspaper, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar, Library, ShieldCheck, LayoutGrid } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import clsx from 'clsx';
 
@@ -125,6 +125,16 @@ const TOOL_MODULES: ToolModule[] = [
     path: '/tools/prompt-guide',
     color: 'emerald',
   },
+  {
+    id: 'surah-memory-atlas',
+    name_en: 'Surah Memory Atlas',
+    name_ar: 'تذكّر ترتيب السور',
+    description_en: 'Learn all 114 surah names, their order, Makki/Madani status, ayah counts, page ranges, and memory clues',
+    description_ar: 'تعلّم أسماء السور الـ١١٤ وترتيبها وتصنيفها المكي/المدني وعدد آياتها ومفاتيح الحفظ',
+    icon: LayoutGrid,
+    path: '/tools/surah-memory-atlas',
+    color: 'violet',
+  },
 ];
 
 export function ToolsPage() {
@@ -174,6 +184,7 @@ function ToolCard({ tool, language }: ToolCardProps) {
     emerald: { bg: 'bg-emerald-50', icon: 'text-emerald-600', border: 'border-emerald-200', hover: 'hover:border-emerald-400' },
     indigo: { bg: 'bg-indigo-50', icon: 'text-indigo-600', border: 'border-indigo-200', hover: 'hover:border-indigo-400' },
     cyan: { bg: 'bg-cyan-50', icon: 'text-cyan-600', border: 'border-cyan-200', hover: 'hover:border-cyan-400' },
+    violet: { bg: 'bg-violet-50', icon: 'text-violet-600', border: 'border-violet-200', hover: 'hover:border-violet-400' },
   };
 
   const colors = colorClasses[tool.color] || colorClasses.blue;

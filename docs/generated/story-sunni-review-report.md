@@ -1,5 +1,5 @@
 # Quran Stories — Sunni Source Review Report
-_Generated: 2026-05-07_
+_Generated: 2026-05-11_
 
 ---
 

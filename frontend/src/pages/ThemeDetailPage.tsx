@@ -250,14 +250,12 @@ export function ThemeDetailPage() {
     if (activeTab === 'stories' && themeId && !storiesData) {
       loadStories(themeId);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, themeId]);
 
   useEffect(() => {
     if (activeTab === 'tafsir' && themeId) {
       loadTafsir(themeId);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tafsirSourceFilter, tafsirVerifiedOnly]);
 
   if (loading) {

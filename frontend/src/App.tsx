@@ -83,6 +83,7 @@ const PrayerTimesPage = lazy(() => import('./pages/tools/PrayerTimesPage').then(
 const HijriCalendarPage = lazy(() => import('./pages/tools/HijriCalendarPage').then(m => ({ default: m.HijriCalendarPage })));
 const VocabularyPage = lazy(() => import('./pages/tools/VocabularyPage').then(m => ({ default: m.VocabularyPage })));
 const PromptGuidePage = lazy(() => import('./pages/tools/PromptGuidePage').then(m => ({ default: m.PromptGuidePage })));
+const SurahMemoryAtlasPage = lazy(() => import('./pages/tools/SurahMemoryAtlasPage').then(m => ({ default: m.SurahMemoryAtlasPage })));
 
 // Admin / Status
 const StatusDashboardPage = lazy(() => import('./pages/admin/StatusDashboardPage').then(m => ({ default: m.StatusDashboardPage })));
@@ -210,6 +211,7 @@ function App() {
           <Route path="/tools/web" element={<IslamicWebSearchPage />} />
           <Route path="/tools/vocabulary" element={<VocabularyPage />} />
           <Route path="/tools/prompt-guide" element={<PromptGuidePage />} />
+          <Route path="/tools/surah-memory-atlas" element={<SurahMemoryAtlasPage />} />
 
           {/* Admin / Status Dashboard */}
           <Route path="/status" element={<StatusDashboardPage />} />
