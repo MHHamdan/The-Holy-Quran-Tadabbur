@@ -1205,7 +1205,7 @@ export function SurahMemoryAtlasPage() {
           {/* Stats strip */}
           <div className="flex flex-wrap gap-3 mt-3">
             <span className="text-xs bg-white border border-gray-200 px-2.5 py-1 rounded-full text-gray-600">
-              {displayNum(114, lang)} {t('sma_all_114', lang).split(' ').pop()}
+              {displayNum(114, lang)} {t('sma_surah_word', lang)}
             </span>
             <span className="text-xs bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full text-amber-700">
               {displayNum(stats.makki, lang)} {t('sma_makki_label', lang)}
