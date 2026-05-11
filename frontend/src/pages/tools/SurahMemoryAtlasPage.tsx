@@ -708,7 +708,7 @@ function SurahDetailPanel({
                 {t('sma_opening_verses', language)}
               </div>
               <AyahBlock
-                text={surah.firstAyahPreview ?? ''}
+                text={stripBasmala(surah.firstAyahPreview ?? '', surah.surahNumber)}
                 ref_={surah.firstAyahRef}
                 aya={1}
                 surahNumber={surah.surahNumber}
