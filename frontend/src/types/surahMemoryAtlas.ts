@@ -29,9 +29,17 @@ export interface SurahMemoryItem {
   pageStart: number;
   pageEnd: number;
   firstAyahRef: string;
+  secondAyahRef?: string;
+  midAyah1Ref?: string;
+  midAyah2Ref?: string;
+  prevLastAyahRef?: string;
   lastAyahRef: string;
-  firstAyahPreview?: string;
-  lastAyahPreview?: string;
+  firstAyahPreview?: string;       // ayah 1 — from quran_uthmani.json (includes Bismillah prefix for surahs 2-114)
+  secondAyahPreview?: string;      // ayah 2 — from quran_uthmani.json
+  midAyah1Preview?: string;        // ayah ~40% through — from quran_uthmani.json
+  midAyah2Preview?: string;        // ayah ~60% through — from quran_uthmani.json
+  prevLastAyahPreview?: string;    // second-to-last ayah — from quran_uthmani.json
+  lastAyahPreview?: string;        // last ayah — from quran_uthmani.json
   mainTopicsArabic: string[];
   mainTopicsEnglish: string[];
   memoryClueArabic?: string;
@@ -40,6 +48,15 @@ export interface SurahMemoryItem {
   relatedThemes: string[];
   sourceIds: string[];
   reviewStatus: ReviewStatus;
+}
+
+export interface StoryName {
+  ar: string;
+  en: string;
+}
+
+export interface SurahMemoryAtlasWithStories extends SurahMemoryAtlas {
+  storyNames: Record<string, StoryName>;
 }
 
 export interface SurahMemoryAtlas {

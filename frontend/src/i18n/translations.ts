@@ -2556,6 +2556,12 @@ export const aspectTranslations: Record<string, { ar: string; en: string }> = {
   sma_after_surah: { ar: 'بعدها', en: 'After' },
   sma_first_surah: { ar: 'أول سورة', en: 'First surah' },
   sma_last_surah: { ar: 'آخر سورة', en: 'Last surah' },
+  sma_opening_verses: { ar: 'مطلع السورة', en: 'Opening Verses' },
+  sma_middle_passage: { ar: 'من وسط السورة', en: 'Middle Passage' },
+  sma_closing_verses: { ar: 'خاتمة السورة', en: 'Closing Verses' },
+  sma_related_stories: { ar: 'قصص مرتبطة', en: 'Related Stories' },
+  sma_view_story: { ar: 'اقرأ القصة', en: 'Read Story' },
+  sma_story_in_surah: { ar: 'تتضمن السورة', en: 'This surah contains' },
 };
 
 export function t(key: string, language: Language): string {

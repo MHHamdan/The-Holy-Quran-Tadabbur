@@ -23,7 +23,7 @@ import { t } from '../../i18n/translations';
 import clsx from 'clsx';
 import atlasData from '../../data/generated/surahMemoryAtlas.json';
 import type {
-  SurahMemoryItem, RevelationType, LengthCategory, QuranPosition,
+  SurahMemoryItem, RevelationType, LengthCategory, QuranPosition, StoryName,
 } from '../../types/surahMemoryAtlas';
 
 // ---------------------------------------------------------------------------
@@ -45,8 +45,30 @@ interface QuizQuestion {
 // Data
 // ---------------------------------------------------------------------------
 
-const SURAHS: SurahMemoryItem[] = (atlasData as { surahs: SurahMemoryItem[] }).surahs;
+const ATLAS = atlasData as {
+  surahs: SurahMemoryItem[];
+  storyNames: Record<string, StoryName>;
+};
+const SURAHS: SurahMemoryItem[] = ATLAS.surahs;
+const STORY_NAMES: Record<string, StoryName> = ATLAS.storyNames ?? {};
 const MAX_AYAHS = 286; // Al-Baqara — used for relative length bar
+
+/**
+ * Strips the Bismillah prefix from ayah text for display.
+ * The quran_uthmani.json stores Bismillah as a prefix in ayah 1 of surahs 2-114.
+ * For Al-Fatiha (surah 1), Bismillah IS ayah 1:1 — never strip it.
+ * For At-Tawba (surah 9), no Bismillah prefix exists — function is a no-op.
+ *
+ * This is a display-only transformation; the stored data is never modified.
+ */
+function stripBasmala(text: string, surahNumber: number): string {
+  if (surahNumber === 1) return text; // Bismillah is Al-Fatiha's first ayah
+  const RAHEEM = 'ٱلرَّحِيمِ';
+  const idx = text.indexOf(RAHEEM);
+  if (idx === -1) return text; // Surah 9 and any without prefix
+  const rest = text.slice(idx + RAHEEM.length).trimStart();
+  return rest || text; // guard against edge case where nothing follows
+}
 
 // ---------------------------------------------------------------------------
 // Pure helpers (no UI)
@@ -252,7 +274,7 @@ function SurahCard({
           aria-hidden="true"
         >
           <p className="font-mushaf text-white text-xs leading-relaxed text-center line-clamp-4" dir="rtl">
-            {surah.firstAyahPreview}
+            {stripBasmala(surah.firstAyahPreview, surah.surahNumber)}
           </p>
           <Link
             to={`/quran/${surah.surahNumber}`}
@@ -265,6 +287,37 @@ function SurahCard({
           </Link>
         </div>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AyahBlock — single ayah display with ref and link
+// ---------------------------------------------------------------------------
+
+function AyahBlock({
+  text, ref_, aya, surahNumber,
+}: {
+  text: string;
+  ref_: string;
+  aya: number;
+  surahNumber: number;
+}) {
+  return (
+    <div className="group relative">
+      <div
+        className="font-mushaf text-gray-800 text-base leading-loose bg-gray-50 rounded-lg px-3 pt-2 pb-6 border border-gray-100"
+        dir="rtl"
+      >
+        {text}
+      </div>
+      <Link
+        to={`/quran/${surahNumber}?aya=${aya}`}
+        className="absolute bottom-1.5 start-2 inline-flex items-center gap-1 text-[10px] text-indigo-400 hover:text-indigo-700 transition-colors opacity-70 group-hover:opacity-100"
+      >
+        <BookOpen className="w-2.5 h-2.5" />
+        {ref_}
+      </Link>
     </div>
   );
 }
@@ -411,64 +464,86 @@ function SurahDetailPanel({
             </div>
           </div>
 
-          {/* Opening verse */}
+          {/* ── Opening verses (ayahs 1 & 2) ─────────────────────── */}
           {surah.firstAyahPreview && (
-            <div>
-              <div className="text-xs font-medium text-gray-600 mb-2">
-                {t('sma_first_preview', language)}
-                <span className="text-gray-400 ms-1.5 font-normal">{surah.firstAyahRef}</span>
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                {t('sma_opening_verses', language)}
               </div>
-              <div
-                className="font-mushaf text-gray-800 text-lg leading-loose bg-gray-50 rounded-lg p-3 border border-gray-100"
-                dir="rtl"
+              {/* Ayah 1 — Bismillah stripped for display clarity */}
+              <AyahBlock
+                text={stripBasmala(surah.firstAyahPreview, surah.surahNumber)}
+                ref_={surah.firstAyahRef}
+                aya={1}
+                surahNumber={surah.surahNumber}
+              />
+              {/* Mushaf link on first ayah only */}
+              <Link
+                to={`/mushaf?page=${surah.pageStart}`}
+                className="inline-flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700 transition-colors"
               >
-                {surah.firstAyahPreview}
-              </div>
-              <div className="flex gap-2 mt-2 flex-wrap">
-                <Link
-                  to={`/quran/${surah.surahNumber}?aya=1`}
-                  className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 transition-colors"
-                >
-                  <BookOpen className="w-3 h-3" />
-                  {t('sma_read_verse', language)}
-                </Link>
-                <Link
-                  to={`/mushaf?page=${surah.pageStart}`}
-                  className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 transition-colors"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  {t('sma_open_in_mushaf', language)} ({t('sma_pages_abbr', language)}{displayNum(surah.pageStart, language)})
-                </Link>
-              </div>
+                <ExternalLink className="w-3 h-3" />
+                {t('sma_open_in_mushaf', language)} ({t('sma_pages_abbr', language)}{displayNum(surah.pageStart, language)})
+              </Link>
+              {/* Ayah 2 */}
+              {surah.secondAyahPreview && (
+                <AyahBlock
+                  text={surah.secondAyahPreview}
+                  ref_={surah.secondAyahRef ?? `${surah.surahNumber}:2`}
+                  aya={2}
+                  surahNumber={surah.surahNumber}
+                />
+              )}
             </div>
           )}
 
-          {/* Closing verse */}
+          {/* ── Middle passage (ayahs ~40% and ~60%) ──────────────── */}
+          {surah.midAyah1Preview && (
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                {t('sma_middle_passage', language)}
+              </div>
+              <AyahBlock
+                text={surah.midAyah1Preview}
+                ref_={surah.midAyah1Ref ?? ''}
+                aya={parseInt((surah.midAyah1Ref ?? ':0').split(':')[1])}
+                surahNumber={surah.surahNumber}
+              />
+              {surah.midAyah2Preview && (
+                <AyahBlock
+                  text={surah.midAyah2Preview}
+                  ref_={surah.midAyah2Ref ?? ''}
+                  aya={parseInt((surah.midAyah2Ref ?? ':0').split(':')[1])}
+                  surahNumber={surah.surahNumber}
+                />
+              )}
+            </div>
+          )}
+
+          {/* ── Closing verses (ayahs N-1 and N) ─────────────────── */}
           {surah.lastAyahPreview && (
-            <div>
-              <div className="text-xs font-medium text-gray-600 mb-2">
-                {t('sma_last_preview', language)}
-                <span className="text-gray-400 ms-1.5 font-normal">{surah.lastAyahRef}</span>
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                {t('sma_closing_verses', language)}
               </div>
-              <div
-                className="font-mushaf text-gray-800 text-lg leading-loose bg-gray-50 rounded-lg p-3 border border-gray-100"
-                dir="rtl"
-              >
-                {surah.lastAyahPreview}
-              </div>
-              <div className="flex gap-2 mt-2">
-                <Link
-                  to={`/quran/${surah.surahNumber}?aya=${surah.ayahCount}`}
-                  className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 transition-colors"
-                >
-                  <BookOpen className="w-3 h-3" />
-                  {t('sma_read_verse', language)}
-                </Link>
-              </div>
+              {surah.prevLastAyahPreview && (
+                <AyahBlock
+                  text={surah.prevLastAyahPreview}
+                  ref_={surah.prevLastAyahRef ?? ''}
+                  aya={surah.ayahCount - 1}
+                  surahNumber={surah.surahNumber}
+                />
+              )}
+              <AyahBlock
+                text={surah.lastAyahPreview}
+                ref_={surah.lastAyahRef}
+                aya={surah.ayahCount}
+                surahNumber={surah.surahNumber}
+              />
             </div>
           )}
 
-          {/* Memory aid */}
+          {/* ── Memory aid ────────────────────────────────────────── */}
           {clue && (
             <div className="bg-amber-50 border border-amber-100 rounded-lg p-3">
               <div className="flex items-center gap-1.5 mb-1.5">
@@ -481,6 +556,33 @@ function SurahDetailPanel({
               >
                 {clue}
               </p>
+            </div>
+          )}
+
+          {/* ── Related stories ───────────────────────────────────── */}
+          {surah.relatedStories.length > 0 && (
+            <div>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                {t('sma_related_stories', language)}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {surah.relatedStories.map(storyId => {
+                  const name = STORY_NAMES[storyId];
+                  if (!name) return null;
+                  return (
+                    <Link
+                      key={storyId}
+                      to={`/stories/${storyId}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs rounded-full border border-indigo-100 transition-colors"
+                    >
+                      <BookOpen className="w-2.5 h-2.5 shrink-0" />
+                      <span dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                        {language === 'ar' ? name.ar : name.en}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           )}
 

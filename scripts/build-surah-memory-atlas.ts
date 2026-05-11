@@ -3,6 +3,7 @@
  *
  * Generates frontend/src/data/generated/surahMemoryAtlas.json
  * from data/raw/quran_uthmani.json (the only trusted Quran text source).
+ * Also loads data/manifests/stories.json to populate relatedStories per surah.
  *
  * Safety rules:
  * - All ayah text is loaded from quran_uthmani.json only — never hardcoded
@@ -10,6 +11,7 @@
  * - English meanings are from curated scholarly metadata — marked needs_review
  * - Topics and memory clues are NOT generated — marked missing_metadata
  * - Page/juz data is from quran_uthmani.json — trusted
+ * - Story IDs and names are from stories.json — factual manifest data
  *
  * Usage:
  *   npx tsx scripts/build-surah-memory-atlas.ts
@@ -20,6 +22,7 @@ import { resolve, join } from 'path';
 
 const ROOT = resolve(__dirname, '..');
 const QURAN_PATH = join(ROOT, 'data/raw/quran_uthmani.json');
+const STORIES_PATH = join(ROOT, 'data/manifests/stories.json');
 const OUTPUT_JSON = join(ROOT, 'frontend/src/data/generated/surahMemoryAtlas.json');
 const OUTPUT_MD = join(ROOT, 'docs/generated/surah-memory-atlas-summary.md');
 
@@ -46,8 +49,16 @@ interface SurahMemoryItem {
   pageStart: number;
   pageEnd: number;
   firstAyahRef: string;
+  secondAyahRef?: string;
+  midAyah1Ref?: string;
+  midAyah2Ref?: string;
+  prevLastAyahRef?: string;
   lastAyahRef: string;
   firstAyahPreview?: string;
+  secondAyahPreview?: string;
+  midAyah1Preview?: string;
+  midAyah2Preview?: string;
+  prevLastAyahPreview?: string;
   lastAyahPreview?: string;
   mainTopicsArabic: string[];
   mainTopicsEnglish: string[];
@@ -73,10 +84,18 @@ interface QuranAyah {
   line_end: number | null;
 }
 
+interface StoryEntry {
+  id: string;
+  name_ar?: string;
+  name_en?: string;
+  suras_mentioned?: number[];
+  segments?: Array<{ sura_no?: number }>;
+}
+
 // ---------------------------------------------------------------------------
 // Curated Makki/Madani classification
 // Source: Al-Itqan fi Ulum al-Quran (Al-Suyuti, d. 911 AH)
-// Standard scholarly consensus — 7 disputed surahs marked unknown
+// Standard scholarly consensus — disputed surahs marked unknown
 // All marked needs_review — requires human scholarly verification
 // ---------------------------------------------------------------------------
 
@@ -106,10 +125,6 @@ const REVELATION_TYPE: Record<number, RevelationType> = {
   66: 'madani', 98: 'madani', 110: 'madani',
 
   // Disputed surahs — marked unknown (scholars differ)
-  // 13: Al-Ra'd, 16: An-Nahl (mostly Makki), 22: Al-Hajj, 29: Al-Ankabut,
-  // 30: Ar-Rum (mostly Makki), 31: Luqman, 32: As-Sajda, 39: Az-Zumar,
-  // 42: Ash-Shura, 55: Ar-Rahman, 73: Al-Muzzammil, 76: Al-Insan,
-  // 97: Al-Qadr, 99: Az-Zalzala, 107: Al-Ma'un, 108: Al-Kawthar
   13: 'unknown', 16: 'makki', 22: 'unknown', 29: 'unknown', 30: 'makki',
   31: 'makki', 32: 'makki', 39: 'makki', 42: 'makki', 55: 'unknown',
   73: 'makki', 76: 'unknown', 97: 'unknown', 99: 'unknown', 107: 'makki',
@@ -191,6 +206,47 @@ function main() {
   const raw = JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as QuranAyah[];
   console.log(`Loaded ${raw.length} ayahs from Quran data`);
 
+  // Load stories manifest for surah->story relationships
+  console.log('Reading stories manifest from:', STORIES_PATH);
+  const surahStoriesMap: Record<number, string[]> = {};
+  const storyNames: Record<string, { ar: string; en: string }> = {};
+
+  if (existsSync(STORIES_PATH)) {
+    const storiesManifest = JSON.parse(readFileSync(STORIES_PATH, 'utf-8')) as { stories: StoryEntry[] };
+    const stories = storiesManifest.stories ?? [];
+    console.log(`Loaded ${stories.length} stories from manifest`);
+
+    for (const story of stories) {
+      // Build story name lookup
+      if (story.name_ar || story.name_en) {
+        storyNames[story.id] = {
+          ar: story.name_ar ?? story.id,
+          en: story.name_en ?? story.id,
+        };
+      }
+
+      // Build surah -> story mapping
+      const suras: number[] = [...(story.suras_mentioned ?? [])];
+      if (suras.length === 0) {
+        const segSuras = new Set<number>();
+        for (const seg of story.segments ?? []) {
+          if (seg.sura_no) segSuras.add(seg.sura_no);
+        }
+        suras.push(...segSuras);
+      }
+
+      for (const sura of suras) {
+        if (!surahStoriesMap[sura]) surahStoriesMap[sura] = [];
+        if (!surahStoriesMap[sura].includes(story.id)) {
+          surahStoriesMap[sura].push(story.id);
+        }
+      }
+    }
+    console.log(`Built story mappings for ${Object.keys(surahStoriesMap).length} surahs`);
+  } else {
+    console.warn('Stories manifest not found — relatedStories will be empty');
+  }
+
   // Group ayahs by surah
   const surahMap: Record<number, QuranAyah[]> = {};
   for (const ayah of raw) {
@@ -205,9 +261,7 @@ function main() {
   }
 
   const surahs: SurahMemoryItem[] = [];
-  let missingMetadataCount = 0;
   let needsReviewCount = 0;
-  let verifiedCount = 0;
 
   for (const surahNo of surahNumbers) {
     const ayahs = surahMap[surahNo].sort((a, b) => a.aya_no - b.aya_no);
@@ -220,21 +274,28 @@ function main() {
 
     const revelationType: RevelationType = REVELATION_TYPE[surahNo] ?? 'unknown';
     const nameEnglish = ENGLISH_MEANINGS[surahNo];
-
-    // All entries have at minimum: verified Quran data (name, ayahs, page, juz)
-    // Makki/Madani and English meanings are from curated metadata → needs_review
     const reviewStatus: ReviewStatus = 'needs_review';
     needsReviewCount++;
 
-    // Strip the "سُورَةُ " prefix from the Arabic name for display
-    const rawNameAr = firstAyah.sura_name_ar;
-    const nameArabic = rawNameAr.replace(/^سُورَةُ\s+/, '').replace(/^سورة\s+/, '').trim();
+    // Additional ayah previews: 2nd ayah, two middle ayahs, second-to-last
+    const getAyah = (no: number): QuranAyah | undefined => ayahs.find(a => a.aya_no === no);
+
+    const second = ayahCount >= 3 ? getAyah(2) : undefined;
+    // Middle: ~40% and ~60% through (distinct from first/second and last two)
+    const midIdx1 = Math.max(3, Math.round(ayahCount * 0.40));
+    const midIdx2 = Math.min(ayahCount - 2, Math.round(ayahCount * 0.60));
+    const mid1 = ayahCount >= 8 && midIdx1 >= 3 ? getAyah(midIdx1) : undefined;
+    const mid2 = ayahCount >= 9 && midIdx2 > midIdx1 ? getAyah(midIdx2) : undefined;
+    const prevLast = ayahCount >= 3 ? getAyah(ayahCount - 1) : undefined;
+
+    // Related stories (up to 5 per surah, from stories manifest)
+    const relatedStories = (surahStoriesMap[surahNo] ?? []).slice(0, 5);
 
     const item: SurahMemoryItem = {
       surahNumber: surahNo,
-      nameArabic: rawNameAr,
+      nameArabic: firstAyah.sura_name_ar,
       nameTransliteration: firstAyah.sura_name_en,
-      nameEnglish: nameEnglish,
+      nameEnglish,
       revelationType,
       ayahCount,
       lengthCategory: lengthCategory(ayahCount),
@@ -244,12 +305,20 @@ function main() {
       pageStart: Math.min(...pages),
       pageEnd: Math.max(...pages),
       firstAyahRef: `${surahNo}:1`,
+      secondAyahRef: second ? `${surahNo}:2` : undefined,
+      midAyah1Ref: mid1 ? `${surahNo}:${midIdx1}` : undefined,
+      midAyah2Ref: mid2 ? `${surahNo}:${midIdx2}` : undefined,
+      prevLastAyahRef: prevLast ? `${surahNo}:${ayahCount - 1}` : undefined,
       lastAyahRef: `${surahNo}:${ayahCount}`,
       firstAyahPreview: firstAyah.aya_text,
+      secondAyahPreview: second?.aya_text,
+      midAyah1Preview: mid1?.aya_text,
+      midAyah2Preview: mid2?.aya_text,
+      prevLastAyahPreview: prevLast?.aya_text,
       lastAyahPreview: lastAyah.aya_text,
       mainTopicsArabic: [],
       mainTopicsEnglish: [],
-      relatedStories: [],
+      relatedStories,
       relatedThemes: [],
       sourceIds: ['quran_hafs_local', 'surah_atlas_metadata'],
       reviewStatus,
@@ -258,16 +327,16 @@ function main() {
     surahs.push(item);
   }
 
-  // Counters for summary
   const makkiCount = surahs.filter(s => s.revelationType === 'makki').length;
   const madaniCount = surahs.filter(s => s.revelationType === 'madani').length;
   const unknownRevelationCount = surahs.filter(s => s.revelationType === 'unknown').length;
 
   const atlas = {
-    version: '1.0.0',
+    version: '1.1.0',
     generatedAt: new Date().toISOString(),
     totalSurahs: surahs.length,
-    sourceNote: 'Ayah text from quran_uthmani.json (canonical). Makki/Madani and English meanings from curated scholarly metadata (needs_review). Topics/clues not yet available.',
+    sourceNote: 'Ayah text from quran_uthmani.json (canonical). Makki/Madani and English meanings from curated scholarly metadata (needs_review). Story links from stories.json manifest. Topics/clues not yet available.',
+    storyNames,
     surahs,
   };
 
@@ -276,6 +345,7 @@ function main() {
   if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
   writeFileSync(OUTPUT_JSON, JSON.stringify(atlas, null, 2), 'utf-8');
   console.log(`\nWrote ${surahs.length} surah entries to: ${OUTPUT_JSON}`);
+  console.log(`Story names embedded: ${Object.keys(storyNames).length}`);
 
   // Write summary markdown
   const docsGenDir = join(ROOT, 'docs/generated');
@@ -293,6 +363,7 @@ function main() {
     `- Madani: ${madaniCount}`,
     `- Unknown/disputed revelation type: ${unknownRevelationCount}`,
     `- All entries: needs_review (Makki/Madani and English meanings require human verification)`,
+    `- Story names embedded: ${Object.keys(storyNames).length}`,
     '',
     '## Length Distribution',
     '',
@@ -319,18 +390,18 @@ function main() {
     '| Ayah count | ✓ verified (from quran_uthmani.json) |',
     '| Page range | ✓ verified (from quran_uthmani.json) |',
     '| Juz range | ✓ verified (from quran_uthmani.json) |',
-    '| First ayah preview | ✓ verified (from quran_uthmani.json) |',
-    '| Last ayah preview | ✓ verified (from quran_uthmani.json) |',
+    '| Ayah previews (6 per surah) | ✓ verified (from quran_uthmani.json) |',
     '| Makki/Madani | needs_review (curated from Al-Suyuti) |',
+    '| Related stories | from stories.json manifest |',
     '| Main topics | missing — not yet available |',
     '| Memory clues | missing — not yet available |',
     '',
     '## Surah List',
     '',
-    '| # | Arabic Name | Transliteration | Type | Ayahs | Juz | Pages |',
-    '|---|---|---|---|---|---|---|',
+    '| # | Arabic Name | Transliteration | Type | Ayahs | Juz | Pages | Stories |',
+    '|---|---|---|---|---|---|---|---|',
     ...surahs.map(s =>
-      `| ${s.surahNumber} | ${s.nameArabic} | ${s.nameTransliteration} | ${s.revelationType} | ${s.ayahCount} | ${s.juzStart}–${s.juzEnd} | ${s.pageStart}–${s.pageEnd} |`
+      `| ${s.surahNumber} | ${s.nameArabic} | ${s.nameTransliteration} | ${s.revelationType} | ${s.ayahCount} | ${s.juzStart}–${s.juzEnd} | ${s.pageStart}–${s.pageEnd} | ${s.relatedStories.length} |`
     ),
   ];
 
