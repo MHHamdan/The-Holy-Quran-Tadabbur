@@ -95,8 +95,9 @@ const RECITERS: ReciterOption[] = [
 
 const ARABIC_NUMS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 
-// Surahs where ayah 1 starts a new surah at the top of the page
-// (no hardcoded Bismillah — text_uthmani from quran_uthmani.json already contains it)
+// Surah 1 (Al-Fatiha): ayah 1:1 IS the Bismillah — show as first verse, no separate header
+// Surah 9 (At-Tawba): has no Bismillah at all
+const SURAHS_WITHOUT_BISMILLAH_HEADER = [1, 9];
 
 // =============================================================================
 // Utility Functions
@@ -104,6 +105,23 @@ const ARABIC_NUMS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩']
 
 function toArabicNumber(num: number): string {
   return num.toString().split('').map(d => ARABIC_NUMS[parseInt(d)]).join('');
+}
+
+/**
+ * Extracts the Bismillah prefix from text_uthmani for display as a separate
+ * header element. The verified Quran data (quran_uthmani.json / hafs_smart_v8.json)
+ * stores Bismillah as a prefix in aya_text for ayah 1 of surahs 2–114.
+ *
+ * Uses the Alef Wasla form (ٱ U+0671) as the marker — matches the Uthmani rasm.
+ * Returns null if no Bismillah prefix is found (surah 9, or unexpected data).
+ */
+function extractBismillah(text: string): { bismillah: string | null; verseText: string } {
+  const RAHEEM = 'ٱلرَّحِيمِ'; // end of Bismillah in Uthmani script
+  const idx = text.indexOf(RAHEEM);
+  if (idx === -1) return { bismillah: null, verseText: text };
+  const bismillah = text.slice(0, idx + RAHEEM.length).trim();
+  const verseText = text.slice(idx + RAHEEM.length).trimStart();
+  return { bismillah, verseText: verseText || text };
 }
 
 // =============================================================================
@@ -182,29 +200,36 @@ function useTafsir(
 
 interface SurahHeaderProps {
   suraNo: number;
-  suraNameAr: string;
+  suraNameAr: string;  // already includes سُورَةُ prefix from quran_uthmani.json
   suraNameEn: string;
+  bismillahText: string | null; // extracted from text_uthmani — never hardcoded
 }
 
 const SurahHeader = memo(function SurahHeader({
   suraNo,
   suraNameAr,
   suraNameEn,
+  bismillahText,
 }: SurahHeaderProps) {
   return (
     <div className="my-6 text-center">
-      {/* Surah Name Banner */}
+      {/* Surah Name Banner — suraNameAr already includes the سُورَةُ prefix */}
       <div className="inline-block bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 px-8 py-3 rounded-lg border-2 border-amber-400 shadow-md">
-        <div className="font-mushaf text-2xl text-amber-900 font-bold">
-          سُورَةُ {suraNameAr}
+        <div className="font-mushaf text-2xl text-amber-900 font-bold" dir="rtl">
+          {suraNameAr}
         </div>
-        <div className="text-sm text-amber-700 mt-1">
+        <div className="text-sm text-amber-700 mt-1" dir="ltr">
           {suraNameEn} ({suraNo})
         </div>
       </div>
-      {/* Bismillah is NOT hardcoded here — it is carried in text_uthmani
-          for ayah 1 of every surah (except Al-Fatiha where it IS ayah 1:1,
-          and At-Tawbah which has no Bismillah). Source: quran_uthmani.json */}
+
+      {/* Bismillah header — text extracted from verified quran_uthmani.json,
+          never hardcoded. Only shown for surahs 2–114 except At-Tawba (9). */}
+      {bismillahText && (
+        <div className="mt-4 font-mushaf text-2xl text-gray-800" dir="rtl">
+          {bismillahText}
+        </div>
+      )}
     </div>
   );
 });
@@ -718,17 +743,32 @@ export function MushafPage() {
     verses.forEach((verse) => {
       // Check if we need a surah header
       if (verse.sura_no !== lastSuraNo && verse.aya_no === 1) {
+        // Extract Bismillah from verified text_uthmani — never hardcoded
+        const needsBismillah = !SURAHS_WITHOUT_BISMILLAH_HEADER.includes(verse.sura_no);
+        const { bismillah } = needsBismillah
+          ? extractBismillah(verse.text_uthmani)
+          : { bismillah: null };
+
         result.push({
           type: 'header',
           data: {
             suraNo: verse.sura_no,
             suraNameAr: verse.sura_name_ar,
             suraNameEn: verse.sura_name_en,
+            bismillahText: bismillah,
           },
         });
         lastSuraNo = verse.sura_no;
       }
-      result.push({ type: 'verse', data: verse });
+
+      // For ayah 1 of surahs with a Bismillah header, strip the prefix from
+      // the flowing verse text so it is not shown twice
+      const needsStrip = verse.aya_no === 1 && !SURAHS_WITHOUT_BISMILLAH_HEADER.includes(verse.sura_no);
+      const displayText = needsStrip
+        ? extractBismillah(verse.text_uthmani).verseText
+        : verse.text_uthmani;
+
+      result.push({ type: 'verse', data: { ...verse, _displayText: displayText } });
     });
 
     return result;
@@ -926,11 +966,12 @@ export function MushafPage() {
                           suraNo={item.data.suraNo}
                           suraNameAr={item.data.suraNameAr}
                           suraNameEn={item.data.suraNameEn}
+                          bismillahText={item.data.bismillahText ?? null}
                         />
                       );
                     }
 
-                    const verse = item.data as Verse;
+                    const verse = item.data as Verse & { _displayText: string };
                     const isSelected = selectedVerse?.id === verse.id;
                     const isPlaying = playingVerseId === verse.id;
 
@@ -953,7 +994,7 @@ export function MushafPage() {
                             letterSpacing: '0.01em',
                           }}
                         >
-                          {verse.text_uthmani}
+                          {verse._displayText}
                         </span>
                         {/* Verse Number Marker */}
                         <span
