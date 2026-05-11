@@ -95,8 +95,8 @@ const RECITERS: ReciterOption[] = [
 
 const ARABIC_NUMS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 
-// Surah data for Bismillah display
-const SURAHS_WITHOUT_BISMILLAH = [1, 9]; // Al-Fatiha (included in text), At-Tawbah (no Bismillah)
+// Surahs where ayah 1 starts a new surah at the top of the page
+// (no hardcoded Bismillah — text_uthmani from quran_uthmani.json already contains it)
 
 // =============================================================================
 // Utility Functions
@@ -184,14 +184,12 @@ interface SurahHeaderProps {
   suraNo: number;
   suraNameAr: string;
   suraNameEn: string;
-  showBismillah: boolean;
 }
 
 const SurahHeader = memo(function SurahHeader({
   suraNo,
   suraNameAr,
   suraNameEn,
-  showBismillah,
 }: SurahHeaderProps) {
   return (
     <div className="my-6 text-center">
@@ -204,13 +202,9 @@ const SurahHeader = memo(function SurahHeader({
           {suraNameEn} ({suraNo})
         </div>
       </div>
-
-      {/* Bismillah */}
-      {showBismillah && (
-        <div className="mt-4 font-mushaf text-2xl text-gray-800">
-          بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-        </div>
-      )}
+      {/* Bismillah is NOT hardcoded here — it is carried in text_uthmani
+          for ayah 1 of every surah (except Al-Fatiha where it IS ayah 1:1,
+          and At-Tawbah which has no Bismillah). Source: quran_uthmani.json */}
     </div>
   );
 });
@@ -730,7 +724,6 @@ export function MushafPage() {
             suraNo: verse.sura_no,
             suraNameAr: verse.sura_name_ar,
             suraNameEn: verse.sura_name_en,
-            showBismillah: !SURAHS_WITHOUT_BISMILLAH.includes(verse.sura_no),
           },
         });
         lastSuraNo = verse.sura_no;
@@ -933,7 +926,6 @@ export function MushafPage() {
                           suraNo={item.data.suraNo}
                           suraNameAr={item.data.suraNameAr}
                           suraNameEn={item.data.suraNameEn}
-                          showBismillah={item.data.showBismillah}
                         />
                       );
                     }
