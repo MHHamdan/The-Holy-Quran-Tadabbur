@@ -66,6 +66,7 @@ interface SurahMemoryItem {
   memoryClueEnglish?: string;
   relatedStories: string[];
   relatedThemes: string[];
+  mainFigures: string[];
   sourceIds: string[];
   reviewStatus: ReviewStatus;
 }
@@ -88,6 +89,8 @@ interface StoryEntry {
   id: string;
   name_ar?: string;
   name_en?: string;
+  themes?: string[];
+  main_figures?: string[];
   suras_mentioned?: number[];
   segments?: Array<{ sura_no?: number }>;
 }
@@ -206,9 +209,11 @@ function main() {
   const raw = JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as QuranAyah[];
   console.log(`Loaded ${raw.length} ayahs from Quran data`);
 
-  // Load stories manifest for surah->story relationships
+  // Load stories manifest for surah->story/theme/figure relationships
   console.log('Reading stories manifest from:', STORIES_PATH);
   const surahStoriesMap: Record<number, string[]> = {};
+  const surahThemesMap: Record<number, Set<string>> = {};
+  const surahFiguresMap: Record<number, Set<string>> = {};
   const storyNames: Record<string, { ar: string; en: string }> = {};
 
   if (existsSync(STORIES_PATH)) {
@@ -225,7 +230,7 @@ function main() {
         };
       }
 
-      // Build surah -> story mapping
+      // Resolve surahs this story touches
       const suras: number[] = [...(story.suras_mentioned ?? [])];
       if (suras.length === 0) {
         const segSuras = new Set<number>();
@@ -236,13 +241,29 @@ function main() {
       }
 
       for (const sura of suras) {
+        // Story IDs
         if (!surahStoriesMap[sura]) surahStoriesMap[sura] = [];
         if (!surahStoriesMap[sura].includes(story.id)) {
           surahStoriesMap[sura].push(story.id);
         }
+        // Themes
+        if (!surahThemesMap[sura]) surahThemesMap[sura] = new Set();
+        for (const theme of story.themes ?? []) {
+          surahThemesMap[sura].add(theme);
+        }
+        // Figures
+        if (!surahFiguresMap[sura]) surahFiguresMap[sura] = new Set();
+        for (const fig of story.main_figures ?? []) {
+          // Skip generic/group labels
+          if (!['His son', 'His wife', 'His people', 'His daughters', 'Their dog', 'His army'].includes(fig)) {
+            surahFiguresMap[sura].add(fig);
+          }
+        }
       }
     }
     console.log(`Built story mappings for ${Object.keys(surahStoriesMap).length} surahs`);
+    console.log(`Built theme mappings for ${Object.keys(surahThemesMap).length} surahs`);
+    console.log(`Built figure mappings for ${Object.keys(surahFiguresMap).length} surahs`);
   } else {
     console.warn('Stories manifest not found — relatedStories will be empty');
   }
@@ -290,6 +311,10 @@ function main() {
 
     // Related stories (up to 5 per surah, from stories manifest)
     const relatedStories = (surahStoriesMap[surahNo] ?? []).slice(0, 5);
+    // Themes: up to 6 per surah, sorted by specificity (longer = more specific first)
+    const relatedThemes = [...(surahThemesMap[surahNo] ?? [])].slice(0, 6);
+    // Figures: up to 6 per surah
+    const mainFigures = [...(surahFiguresMap[surahNo] ?? [])].slice(0, 6);
 
     const item: SurahMemoryItem = {
       surahNumber: surahNo,
@@ -319,7 +344,8 @@ function main() {
       mainTopicsArabic: [],
       mainTopicsEnglish: [],
       relatedStories,
-      relatedThemes: [],
+      relatedThemes,
+      mainFigures,
       sourceIds: ['quran_hafs_local', 'surah_atlas_metadata'],
       reviewStatus,
     };

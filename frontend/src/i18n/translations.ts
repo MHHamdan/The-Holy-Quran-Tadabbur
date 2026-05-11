@@ -2562,6 +2562,8 @@ export const aspectTranslations: Record<string, { ar: string; en: string }> = {
   sma_related_stories: { ar: 'قصص مرتبطة', en: 'Related Stories' },
   sma_view_story: { ar: 'اقرأ القصة', en: 'Read Story' },
   sma_story_in_surah: { ar: 'تتضمن السورة', en: 'This surah contains' },
+  sma_themes: { ar: 'الموضوعات', en: 'Themes' },
+  sma_key_figures: { ar: 'الشخصيات', en: 'Key Figures' },
 };
 
 export function t(key: string, language: Language): string {

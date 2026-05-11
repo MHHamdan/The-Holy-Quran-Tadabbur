@@ -71,6 +71,195 @@ function stripBasmala(text: string, surahNumber: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// Theme & figure bilingual lookup maps
+// ---------------------------------------------------------------------------
+
+const THEME_LABELS: Record<string, { ar: string; en: string }> = {
+  patience:            { ar: 'صبر', en: 'Patience' },
+  divine_punishment:   { ar: 'عذاب', en: 'Divine Punishment' },
+  arrogance:           { ar: 'كبر', en: 'Arrogance' },
+  faith:               { ar: 'إيمان', en: 'Faith' },
+  repentance:          { ar: 'توبة', en: 'Repentance' },
+  warning:             { ar: 'تحذير', en: 'Warning' },
+  "da'wah":            { ar: 'دعوة', en: 'Da\'wah' },
+  dawah:               { ar: 'دعوة', en: 'Da\'wah' },
+  justice:             { ar: 'عدل', en: 'Justice' },
+  trial:               { ar: 'ابتلاء', en: 'Trial' },
+  sacrifice:           { ar: 'تضحية', en: 'Sacrifice' },
+  miracle:             { ar: 'معجزة', en: 'Miracle' },
+  miracles:            { ar: 'معجزات', en: 'Miracles' },
+  wisdom:              { ar: 'حكمة', en: 'Wisdom' },
+  gratitude:           { ar: 'شكر', en: 'Gratitude' },
+  disobedience:        { ar: 'عصيان', en: 'Disobedience' },
+  destruction:         { ar: 'هلاك', en: 'Destruction' },
+  obedience:           { ar: 'طاعة', en: 'Obedience' },
+  monotheism:          { ar: 'توحيد', en: 'Monotheism' },
+  divine_power:        { ar: 'قدرة إلهية', en: 'Divine Power' },
+  rejection:           { ar: 'رفض', en: 'Rejection' },
+  trust_in_allah:      { ar: 'توكل', en: 'Trust in Allah' },
+  eschatology:         { ar: 'الآخرة', en: 'The Hereafter' },
+  divine_plan:         { ar: 'تدبير إلهي', en: 'Divine Plan' },
+  divine_planning:     { ar: 'تدبير إلهي', en: 'Divine Planning' },
+  righteousness:       { ar: 'بر', en: 'Righteousness' },
+  power:               { ar: 'قوة', en: 'Power' },
+  courage:             { ar: 'شجاعة', en: 'Courage' },
+  signs:               { ar: 'آيات', en: 'Signs' },
+  humility:            { ar: 'تواضع', en: 'Humility' },
+  resurrection:        { ar: 'بعث', en: 'Resurrection' },
+  guidance:            { ar: 'هداية', en: 'Guidance' },
+  idolatry:            { ar: 'شرك', en: 'Idolatry' },
+  hereafter:           { ar: 'آخرة', en: 'Hereafter' },
+  victory:             { ar: 'نصر', en: 'Victory' },
+  creation:            { ar: 'خلق', en: 'Creation' },
+  salvation:           { ar: 'نجاة', en: 'Salvation' },
+  forgiveness:         { ar: 'مغفرة', en: 'Forgiveness' },
+  devotion:            { ar: 'عبادة', en: 'Devotion' },
+  punishment:          { ar: 'عقوبة', en: 'Punishment' },
+  jealousy:            { ar: 'حسد', en: 'Jealousy' },
+  revelation:          { ar: 'وحي', en: 'Revelation' },
+  martyrdom:           { ar: 'شهادة', en: 'Martyrdom' },
+  tyranny:             { ar: 'طغيان', en: 'Tyranny' },
+  misguidance:         { ar: 'ضلال', en: 'Misguidance' },
+  worldliness:         { ar: 'دنيا', en: 'Worldliness' },
+  truth:               { ar: 'حق', en: 'Truth' },
+  prophecy:            { ar: 'نبوة', en: 'Prophecy' },
+  chastity:            { ar: 'عفة', en: 'Chastity' },
+  miraculous_birth:    { ar: 'ولادة معجزية', en: 'Miraculous Birth' },
+  purity:              { ar: 'طهارة', en: 'Purity' },
+  divine_mercy:        { ar: 'رحمة إلهية', en: 'Divine Mercy' },
+  divine_protection:   { ar: 'حفظ إلهي', en: 'Divine Protection' },
+  protection:          { ar: 'حماية', en: 'Protection' },
+  hypocrisy:           { ar: 'نفاق', en: 'Hypocrisy' },
+  hope:                { ar: 'أمل', en: 'Hope' },
+  covenant:            { ar: 'ميثاق', en: 'Covenant' },
+  betrayal:            { ar: 'خيانة', en: 'Betrayal' },
+  disbelief:           { ar: 'كفر', en: 'Disbelief' },
+  divine_care:         { ar: 'رعاية إلهية', en: 'Divine Care' },
+  divine_support:      { ar: 'نصر إلهي', en: 'Divine Support' },
+  confronting_tyranny: { ar: 'مواجهة الطغيان', en: 'Confronting Tyranny' },
+  reconciliation:      { ar: 'مصالحة', en: 'Reconciliation' },
+  ascension:           { ar: 'رفع', en: 'Ascension' },
+  answered_prayer:     { ar: 'استجابة دعاء', en: 'Answered Prayer' },
+  kingdom:             { ar: 'ملك', en: 'Kingdom' },
+  worship:             { ar: 'عبادة', en: 'Worship' },
+  healing:             { ar: 'شفاء', en: 'Healing' },
+  trust:               { ar: 'توكل', en: 'Trust' },
+  father_of_prophets:  { ar: 'أبو الأنبياء', en: 'Father of Prophets' },
+  hajj:                { ar: 'حج', en: 'Hajj' },
+  liberation:          { ar: 'تحرر', en: 'Liberation' },
+  divine_encounter:    { ar: 'لقاء إلهي', en: 'Divine Encounter' },
+  divine_knowledge:    { ar: 'علم إلهي', en: 'Divine Knowledge' },
+  perseverance:        { ar: 'مثابرة', en: 'Perseverance' },
+  charity:             { ar: 'صدقة', en: 'Charity' },
+  divine_kingdom:      { ar: 'ملكوت إلهي', en: 'Divine Kingdom' },
+  blessings:           { ar: 'نعم', en: 'Blessings' },
+  first_murder:        { ar: 'القتل الأول', en: 'The First Murder' },
+  acceptance:          { ar: 'قبول', en: 'Acceptance' },
+  kaaba:               { ar: 'الكعبة', en: 'The Ka\'bah' },
+  building_kaaba:      { ar: 'بناء الكعبة', en: 'Building the Ka\'bah' },
+  leadership:          { ar: 'قيادة', en: 'Leadership' },
+  sincerity:           { ar: 'إخلاص', en: 'Sincerity' },
+  prayer:              { ar: 'صلاة', en: 'Prayer' },
+  migration:           { ar: 'هجرة', en: 'Migration' },
+  divine_aid:          { ar: 'نصر إلهي', en: 'Divine Aid' },
+  steadfastness:       { ar: 'ثبات', en: 'Steadfastness' },
+  ingratitude:         { ar: 'كفر النعمة', en: 'Ingratitude' },
+  flood:               { ar: 'الطوفان', en: 'The Flood' },
+  magic:               { ar: 'سحر', en: 'Magic' },
+  loyalty:             { ar: 'وفاء', en: 'Loyalty' },
+  dream_interpretation: { ar: 'تفسير الأحلام', en: 'Dream Interpretation' },
+  prophethood:         { ar: 'نبوة', en: 'Prophethood' },
+  divine_admonition:   { ar: 'موعظة إلهية', en: 'Divine Admonition' },
+  end_times:           { ar: 'نهاية الزمان', en: 'End Times' },
+  accountability:      { ar: 'محاسبة', en: 'Accountability' },
+  maternal_love:       { ar: 'حب الأم', en: 'Maternal Love' },
+  divine_wisdom:       { ar: 'حكمة إلهية', en: 'Divine Wisdom' },
+  hidden_knowledge:    { ar: 'علم الغيب', en: 'Hidden Knowledge' },
+};
+
+const FIGURE_LABELS: Record<string, { ar: string; en: string }> = {
+  Adam: { ar: 'آدم', en: 'Adam' },
+  Hawwa: { ar: 'حواء', en: 'Eve (Hawwa)' },
+  Iblis: { ar: 'إبليس', en: 'Iblis' },
+  Nuh: { ar: 'نوح', en: 'Prophet Nuh' },
+  Ibrahim: { ar: 'إبراهيم', en: 'Prophet Ibrahim' },
+  Ismail: { ar: 'إسماعيل', en: 'Prophet Ismail' },
+  Ishaq: { ar: 'إسحاق', en: 'Prophet Ishaq' },
+  Sara: { ar: 'سارة', en: 'Sara' },
+  Hajar: { ar: 'هاجر', en: 'Hajar' },
+  Namrud: { ar: 'نمرود', en: 'Nimrod' },
+  Nimrod: { ar: 'نمرود', en: 'Nimrod' },
+  Musa: { ar: 'موسى', en: 'Prophet Musa' },
+  Harun: { ar: 'هارون', en: 'Prophet Harun' },
+  "Fir'awn": { ar: 'فرعون', en: "Fir'awn" },
+  Firawn: { ar: 'فرعون', en: "Fir'awn" },
+  'Bani Israel': { ar: 'بنو إسرائيل', en: 'Bani Israel' },
+  Asiya: { ar: 'آسية', en: 'Asiya' },
+  Yusuf: { ar: 'يوسف', en: 'Prophet Yusuf' },
+  Yaqub: { ar: 'يعقوب', en: 'Prophet Yaqub' },
+  "Ya'qub": { ar: 'يعقوب', en: 'Prophet Yaqub' },
+  Brothers: { ar: 'الإخوة', en: 'The Brothers' },
+  Aziz: { ar: 'العزيز', en: 'Al-Aziz' },
+  Zulaykha: { ar: 'زليخا', en: 'Zulaykha' },
+  Isa: { ar: 'عيسى', en: 'Prophet Isa' },
+  Maryam: { ar: 'مريم', en: 'Maryam' },
+  Disciples: { ar: 'الحواريون', en: 'The Disciples' },
+  Zakariyya: { ar: 'زكريا', en: 'Prophet Zakariyya' },
+  Yahya: { ar: 'يحيى', en: 'Prophet Yahya' },
+  'Wife of Zakariyya': { ar: 'زوجة زكريا', en: 'Wife of Zakariyya' },
+  Sulayman: { ar: 'سليمان', en: 'Prophet Sulayman' },
+  'Queen of Sheba': { ar: 'ملكة سبأ', en: 'Queen of Sheba' },
+  Bilqis: { ar: 'بلقيس', en: 'Bilqis' },
+  Jinn: { ar: 'الجن', en: 'The Jinn' },
+  Hoopoe: { ar: 'الهدهد', en: 'The Hoopoe' },
+  'Jalut (Goliath)': { ar: 'جالوت', en: 'Goliath' },
+  'Talut (Saul)': { ar: 'طالوت', en: 'Saul' },
+  Ayyub: { ar: 'أيوب', en: 'Prophet Ayyub' },
+  Yunus: { ar: 'يونس', en: 'Prophet Yunus' },
+  'People of Madyan': { ar: 'أهل مدين', en: 'People of Madyan' },
+  Thamud: { ar: 'ثمود', en: 'Thamud' },
+  'People of \'Ad': { ar: 'قوم عاد', en: 'People of \'Ad' },
+  'Youth of the Cave': { ar: 'أصحاب الكهف', en: 'People of the Cave' },
+  'Dhul-Qarnayn': { ar: 'ذو القرنين', en: 'Dhul-Qarnayn' },
+  'Yajuj and Majuj': { ar: 'يأجوج ومأجوج', en: 'Gog and Magog' },
+  Luqman: { ar: 'لقمان', en: 'Luqman' },
+  Qarun: { ar: 'قارون', en: 'Qarun' },
+  'Habil (Abel)': { ar: 'هابيل', en: 'Abel' },
+  'Qabil (Cain)': { ar: 'قابيل', en: 'Cain' },
+  Dawud: { ar: 'داود', en: 'Prophet Dawud' },
+  Lut: { ar: 'لوط', en: 'Prophet Lut' },
+  Salih: { ar: 'صالح', en: 'Prophet Salih' },
+  Hud: { ar: 'هود', en: 'Prophet Hud' },
+  Samiri: { ar: 'السامري', en: 'Al-Samiri' },
+  "Shu'ayb": { ar: 'شعيب', en: "Prophet Shu'ayb" },
+  Muhammad: { ar: 'محمد ﷺ', en: 'Prophet Muhammad ﷺ' },
+  'Abu Bakr': { ar: 'أبو بكر', en: 'Abu Bakr' },
+  Khidr: { ar: 'الخضر', en: 'Al-Khidr' },
+  Idris: { ar: 'إدريس', en: 'Prophet Idris' },
+  'Dhul-Kifl': { ar: 'ذو الكفل', en: 'Dhul-Kifl' },
+  Ilyas: { ar: 'إلياس', en: 'Prophet Ilyas' },
+  'Al-Yasa': { ar: 'اليسع', en: 'Al-Yasa\'' },
+  Haman: { ar: 'هامان', en: 'Haman' },
+  Jibril: { ar: 'جبريل', en: 'Jibril' },
+  'Mother of Musa': { ar: 'أم موسى', en: 'Mother of Musa' },
+  'Believer of Fir\'awn': { ar: 'مؤمن آل فرعون', en: "The Believer of Fir'awn" },
+  'Ibn Umm Maktum': { ar: 'ابن أم مكتوم', en: 'Ibn Umm Maktum' },
+  'Abu Lahab': { ar: 'أبو لهب', en: 'Abu Lahab' },
+};
+
+function themeLabel(key: string, lang: 'ar' | 'en'): string {
+  const entry = THEME_LABELS[key];
+  if (!entry) return key.replace(/_/g, ' ');
+  return lang === 'ar' ? entry.ar : entry.en;
+}
+
+function figureLabel(name: string, lang: 'ar' | 'en'): string {
+  const entry = FIGURE_LABELS[name];
+  if (!entry) return name;
+  return lang === 'ar' ? entry.ar : entry.en;
+}
+
+// ---------------------------------------------------------------------------
 // Pure helpers (no UI)
 // ---------------------------------------------------------------------------
 
@@ -139,11 +328,59 @@ function generateIntelligentClue(s: SurahMemoryItem, lang: 'ar' | 'en'): string 
   const specials: Record<number, { ar: string; en: string }> = {
     1:   { ar: 'أم الكتاب — أول سورة في المصحف الشريف', en: 'Umm Al-Kitab — the very first surah of the Quran' },
     2:   { ar: `أطول سورة في القرآن الكريم بـ${toArabicIndic(286)} آية`, en: 'Longest surah in the Quran with 286 ayahs' },
+    3:   { ar: 'الزهراوان: البقرة وآل عمران — تأتيان معاً في الجزء الأول', en: 'Al-Zahrawaan: paired with Al-Baqara — both in Juz 1–3' },
+    4:   { ar: 'من أطول السور المدنية — نزلت في الجزء الرابع والخامس', en: 'One of the longest Madani surahs — spans Juz 4–5' },
+    5:   { ar: 'آخر سورة كبيرة نزلت في حياة النبي ﷺ', en: 'Among the last major surahs revealed in the Prophet\'s ﷺ lifetime' },
     9:   { ar: 'السورة الوحيدة التي لم تُفتتح بالبسملة', en: 'The only surah not prefaced by Bismillah' },
-    18:  { ar: 'السورة الوسطى في ترتيب المصحف', en: 'Situated near the middle of the Quran by order' },
-    36:  { ar: 'السورة الـ٣٦ — في منتصف المصحف الورقي تقريباً', en: 'Surah 36 — approximately the midpoint of the Mushaf' },
-    112: { ar: `${toArabicIndic(4)} آيات فقط — أقصر سورة من حيث الحجم`, en: 'Only 4 ayahs — one of the shortest surahs by size' },
-    113: { ar: 'الأولى من المعوذتين (الفلق والناس)', en: 'First of the two refuge surahs (Al-Mu\'awwidhatan)' },
+    12:  { ar: 'أحسن القصص — قصة يوسف عليه السلام كاملة في سورة واحدة', en: 'Ahsan Al-Qasas — the complete story of Prophet Yusuf in one surah' },
+    13:  { ar: 'ختمها بذكر التسبيح: وَإِن مِّن شَيْءٍ إِلَّا يُسَبِّحُ بِحَمْدِهِ', en: 'Named after Thunder (Ra\'d) — opens Juz 13' },
+    17:  { ar: 'افتتحت بقصة الإسراء والمعراج — السورة الأولى في الجزء ١٥', en: 'Opens with the night journey — first surah of Juz 15' },
+    18:  { ar: 'يُستحب قراءتها كل جمعة — تقع في منتصف المصحف', en: 'Recommended every Friday — located near the midpoint of the Quran' },
+    24:  { ar: 'سورة النور — نزلت في حادثة الإفك وأحكام الستر', en: 'Revealed following the incident of the Ifk — legislation on modesty' },
+    29:  { ar: 'مطلعها بحروف مقطعة: الم — تبدأ الجزء العشرين', en: 'Opens with Alif-Lam-Mim — begins Juz 20' },
+    32:  { ar: 'تُقرأ في صلاة فجر يوم الجمعة — سورة مكية موجزة', en: 'Read in Fajr on Fridays — a concise Makki surah' },
+    36:  { ar: 'يس — قلب القرآن، في منتصف المصحف الورقي تقريباً', en: 'Ya-Sin — heart of the Quran, near the midpoint of the Mushaf' },
+    42:  { ar: 'الشورى — من الحواميم السبع في المصحف', en: 'Al-Shura — one of the seven Ha-Mim surahs in the Quran' },
+    45:  { ar: 'الجاثية — تبدأ بالحواميم، في الجزء الخامس والعشرين', en: 'Al-Jathiyah — Ha-Mim series, in Juz 25' },
+    49:  { ar: 'الحجرات — آداب الإسلام وأخلاق المجتمع المؤمن', en: 'Al-Hujurat — Islamic etiquette and community ethics' },
+    52:  { ar: 'الطور — أقسام ربانية بالطور والكتاب والبيت المعمور', en: 'Al-Tur — divine oaths by the Mount, the Book, and the Inhabited House' },
+    55:  { ar: 'الرحمن — تتكرر فيها: فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ ١٣ مرة', en: 'Al-Rahman — refrain "Which of your Lord\'s favors will you deny?" repeated 31 times' },
+    58:  { ar: 'المجادلة — نزلت في قضية الظهار والمرأة التي شكت إلى الله', en: 'Al-Mujadila — revealed about the woman who disputed to Allah' },
+    59:  { ar: 'الحشر — تُختم بأسماء الله الحسنى: هو الله الذي لا إله إلا هو', en: 'Al-Hashr — concludes with the beautiful names of Allah' },
+    63:  { ar: 'المنافقون — كُشف فيها نفاق بعض المنافقين في عهد النبي ﷺ', en: 'Al-Munafiqun — exposed hypocrites in the Prophet\'s ﷺ time' },
+    64:  { ar: 'التغابن — من سور الجزء الثامن والعشرين', en: 'Al-Taghabun — in Juz 28, paired with Al-Hashr and Al-Munafiqun' },
+    65:  { ar: 'الطلاق — أحكام فقهية دقيقة في الطلاق والعدة', en: 'Al-Talaq — precise rulings on divorce and waiting periods' },
+    67:  { ar: 'تبارك — يُستحب قراءتها كل ليلة، تشفع لصاحبها', en: 'Tabarak — recommended nightly; said to intercede for its reader' },
+    70:  { ar: 'المعارج — تصف صعود الملائكة في يوم كان مقداره خمسين ألف سنة', en: 'Al-Ma\'arij — describes ascent of angels in a day of fifty thousand years' },
+    73:  { ar: 'المزمل — نزلت في بداية الوحي وأمرت بقيام الليل', en: 'Al-Muzzammil — early revelation; commanded night prayer (Tahajjud)' },
+    74:  { ar: 'المدثر — أول ما نزل بعد فترة الوحي: قُمْ فَأَنذِرْ', en: 'Al-Muddathir — among the earliest revelations after the pause' },
+    75:  { ar: 'القيامة — تبدأ بالقسم بيوم القيامة والنفس اللوامة', en: 'Al-Qiyamah — opens with oaths by the Day of Judgment and the self-reproaching soul' },
+    77:  { ar: 'المرسلات — تتكرر فيها: وَيْلٌ يَوْمَئِذٍ لِّلْمُكَذِّبِينَ عشر مرات', en: 'Al-Mursalat — "Woe that Day to the deniers!" repeated 10 times' },
+    81:  { ar: 'التكوير — تصوير مذهل ليوم القيامة في صورة كونية', en: 'Al-Takwir — vivid cosmic imagery of the Day of Judgment' },
+    82:  { ar: 'الانفطار — يوم تنشق السماء وتتناثر الكواكب', en: 'Al-Infitar — the sky cracks and planets scatter on Judgment Day' },
+    83:  { ar: 'المطففين — وعيد شديد للمطففين في الكيل والميزان', en: 'Al-Mutaffifin — stern warning for those who cheat in weight and measure' },
+    84:  { ar: 'الانشقاق — السماء تنشق والأرض تمد', en: 'Al-Inshiqaq — the sky splits and earth stretches out' },
+    86:  { ar: 'الطارق — القسم بالنجم الثاقب', en: 'Al-Tariq — oath by the piercing star' },
+    87:  { ar: 'الأعلى — أول سورة جاء فيها: سَبِّحِ ٱسْمَ رَبِّكَ ٱلْأَعْلَى', en: 'Al-A\'la — "Exalt the name of your Lord, the Most High" — first of three surahs with this opening' },
+    88:  { ar: 'الغاشية — هل أتاك حديث الغاشية؟ — تصف أهوال يوم القيامة', en: 'Al-Ghashiyah — "Has there come to you the account of the Overwhelming?" — vivid Day of Judgment' },
+    90:  { ar: 'البلد — القسم بهذا البلد (مكة المكرمة)', en: 'Al-Balad — oath by this city (Makkah)' },
+    92:  { ar: 'الليل — والنهار إذا تجلى — تصف طريقين متعاكسين', en: 'Al-Layl — contrasts two opposing paths: generosity and miserliness' },
+    95:  { ar: 'التين — والتين والزيتون وطور سينين — قسم بأربعة شواهد', en: 'Al-Tin — oaths by the fig, the olive, Mount Sinai, and Makkah' },
+    96:  { ar: 'العلق — أول ما نزل من القرآن الكريم: اقرأ بسم ربك', en: 'Al-Alaq — the very first Quranic revelation: "Read in the name of your Lord"' },
+    97:  { ar: 'القدر — ليلة القدر خير من ألف شهر', en: 'Al-Qadr — the Night of Power is better than a thousand months' },
+    99:  { ar: 'الزلزلة — إذا زلزلت الأرض زلزالها — تصف يوم الحساب', en: 'Al-Zalzalah — the earth shakes its final earthquake; every atom of deeds is shown' },
+    100: { ar: 'العاديات — القسم بالخيل العادية والموريات قدحاً', en: 'Al-Adiyat — oaths by war horses charging and sparking fire' },
+    101: { ar: 'القارعة — يوم الناس كالفراش المبثوث', en: 'Al-Qari\'ah — "The Calamity!" — people are like scattered moths' },
+    102: { ar: 'التكاثر — ألهاكم التكاثر حتى زرتم المقابر', en: 'Al-Takathur — rivalry for worldly gain until you visit the graves' },
+    103: { ar: 'العصر — إن الإنسان لفي خسر — استثناء أربعة صفات', en: 'Al-Asr — mankind is in loss, except those with four qualities' },
+    106: { ar: 'قريش — لإيلاف قريش رحلتي الشتاء والصيف', en: 'Quraysh — the two trading journeys of winter and summer' },
+    107: { ar: 'الماعون — وصف المكذب بالدين بسبع صفات', en: 'Al-Ma\'un — describes the denier of the faith with seven traits' },
+    108: { ar: 'الكوثر — أقصر سورة في القرآن: ثلاث آيات', en: 'Al-Kawthar — shortest surah in the Quran: only 3 ayahs' },
+    109: { ar: 'الكافرون — براءة من الشرك والمشركين', en: 'Al-Kafirun — a clear declaration of disavowal from polytheism' },
+    110: { ar: 'النصر — من آخر ما نزل — آذنت بوفاة النبي ﷺ', en: 'Al-Nasr — among the last revelations; heralded the Prophet\'s ﷺ passing' },
+    111: { ar: 'المسد — نزلت في أبي لهب وامرأته حمالة الحطب', en: 'Al-Masad — revealed specifically about Abu Lahab and his wife' },
+    112: { ar: `${toArabicIndic(4)} آيات — تعدل ثلث القرآن في الثواب`, en: '4 ayahs — said to equal one-third of the Quran in reward' },
+    113: { ar: 'الأولى من المعوذتين — التعوذ من شرور الخلق والحسد', en: 'First of the two refuge surahs — seeking refuge from created evils' },
     114: { ar: 'خاتمة المصحف الشريف — آخر سورة في القرآن', en: 'Final surah — the seal of the Holy Quran' },
   };
   if (specials[n]) return lang === 'ar' ? specials[n].ar : specials[n].en;
@@ -582,6 +819,46 @@ function SurahDetailPanel({
                     </Link>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Themes ────────────────────────────────────────────── */}
+          {surah.relatedThemes.length > 0 && (
+            <div>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                {t('sma_themes', language)}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {surah.relatedThemes.map(theme => (
+                  <span
+                    key={theme}
+                    className="inline-flex items-center px-2.5 py-0.5 bg-violet-50 text-violet-700 text-xs rounded-full border border-violet-100"
+                    dir={language === 'ar' ? 'rtl' : 'ltr'}
+                  >
+                    {themeLabel(theme, language)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Key Figures ───────────────────────────────────────── */}
+          {surah.mainFigures.length > 0 && (
+            <div>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                {t('sma_key_figures', language)}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {surah.mainFigures.map(fig => (
+                  <span
+                    key={fig}
+                    className="inline-flex items-center px-2.5 py-0.5 bg-sky-50 text-sky-700 text-xs rounded-full border border-sky-100"
+                    dir={language === 'ar' ? 'rtl' : 'ltr'}
+                  >
+                    {figureLabel(fig, language)}
+                  </span>
+                ))}
               </div>
             </div>
           )}

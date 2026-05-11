@@ -46,6 +46,7 @@ export interface SurahMemoryItem {
   memoryClueEnglish?: string;
   relatedStories: string[];
   relatedThemes: string[];
+  mainFigures: string[];
   sourceIds: string[];
   reviewStatus: ReviewStatus;
 }
