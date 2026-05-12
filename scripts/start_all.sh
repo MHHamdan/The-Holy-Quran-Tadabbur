@@ -264,18 +264,22 @@ else
     echo -e "  ${GREEN}✓${NC} backend started (PID $_pid)"
 fi
 
-# Frontend (Vite dev server — host/port set in vite.config.ts)
+# Frontend (Vite dev server) — always kill stale process and start fresh
+# so that every 'make start' delivers the latest code, not a cached version.
 existing=$(port_pid "$FRONTEND_PORT")
 if [[ -n "$existing" ]]; then
-    echo -e "  ${YELLOW}~${NC} frontend already on :${FRONTEND_PORT} (PID ${existing}) — updating PID file"
-    write_pid "frontend" "$existing"
-else
-    cd "$PROJECT_DIR/frontend"
-    npm run dev >> "$LOG_DIR/frontend.log" 2>&1 &
-    _pid=$!
-    write_pid "frontend" "$_pid"
-    echo -e "  ${GREEN}✓${NC} frontend started (PID $_pid)"
+    echo -e "  ${YELLOW}~${NC} killing stale frontend on :${FRONTEND_PORT} (PID ${existing})"
+    kill "$existing" 2>/dev/null || true
+    sleep 1
+    kill -9 "$existing" 2>/dev/null || true
 fi
+# Wipe Vite's module-transform cache so the browser gets genuinely new assets.
+rm -rf "$PROJECT_DIR/frontend/node_modules/.vite"
+cd "$PROJECT_DIR/frontend"
+npm run dev >> "$LOG_DIR/frontend.log" 2>&1 &
+_pid=$!
+write_pid "frontend" "$_pid"
+echo -e "  ${GREEN}✓${NC} frontend started fresh (PID $_pid)"
 
 # RQ worker — PYTHONPATH already exported; Redis is process-to-process (localhost ok)
 existing=$(pgrep -f "rq.cli worker" 2>/dev/null | head -1 || true)

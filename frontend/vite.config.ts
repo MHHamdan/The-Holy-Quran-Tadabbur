@@ -23,6 +23,13 @@ export default defineConfig({
   server: {
     port: 3000,
     host: '0.0.0.0',
+    // Tell the browser never to cache dev assets — ensures every page
+    // load after 'make start' gets the latest code, not a stale copy.
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
     // Enable HTTPS if HTTPS=true environment variable is set
     // This is required for microphone access over LAN
     https: process.env.HTTPS === 'true' ? {
