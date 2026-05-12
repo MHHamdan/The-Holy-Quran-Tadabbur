@@ -849,10 +849,10 @@ export function SearchPage() {
               <div className="flex items-start gap-3">
                 <Sparkles className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-emerald-800 mb-1">
+                  <h3 className={clsx('font-semibold text-emerald-800 mb-1', language === 'ar' && 'font-arabic')}>
                     {language === 'ar' ? 'ملخص البحث الذكي' : 'Intelligent Search Summary'}
                   </h3>
-                  <p className="text-emerald-700 text-sm">{intelligentSearchData.summary}</p>
+                  <p className={clsx('text-emerald-700 text-sm', language === 'ar' && 'font-arabic')}>{intelligentSearchData.summary}</p>
 
                   {/* Query Language Badge */}
                   <span className={clsx(
@@ -955,7 +955,7 @@ export function SearchPage() {
             {/* Related Searches */}
             {intelligentSearchData?.related_searches && intelligentSearchData.related_searches.length > 0 && (
               <div className="mt-3 pt-3 border-t border-primary-100">
-                <span className="text-xs text-gray-500 mr-2 flex items-center gap-1 inline-flex">
+                <span className={clsx('text-xs text-gray-500 me-2 flex items-center gap-1 inline-flex', language === 'ar' && 'font-arabic')}>
                   <Sparkles className="w-3 h-3" />
                   {language === 'ar' ? 'بحث ذو صلة:' : 'Related searches:'}
                 </span>
@@ -1015,7 +1015,7 @@ export function SearchPage() {
 
           {/* Search Results */}
           <div className="card">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <h2 className={clsx('text-lg font-semibold mb-4 flex items-center gap-2', language === 'ar' && 'font-arabic')}>
               <Search className="w-5 h-5 text-primary-600" />
               {t('search_results', language)}
             </h2>
@@ -1046,7 +1046,7 @@ export function SearchPage() {
                   ) : (
                     <>
                       {t('search_load_more', language)}
-                      <span className="text-xs text-gray-500 ml-2">
+                      <span className={clsx('text-xs text-gray-500 ms-2', language === 'ar' && 'font-arabic')}>
                         ({results.matches.length}/{results.total_matches})
                       </span>
                     </>
@@ -1179,7 +1179,7 @@ function SearchMatchCard({
       {/* Tafsir Links Panel */}
       {showTafsirLink && (
         <div className="mb-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
-          <p className="text-sm font-medium text-amber-800 mb-2">
+          <p className={clsx('text-sm font-medium text-amber-800 mb-2', language === 'ar' && 'font-arabic')}>
             {language === 'ar' ? 'روابط التفسير:' : 'Tafsir Links:'}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -1329,7 +1329,7 @@ function AnalyticsPanel({
   return (
     <div className="card">
       <div className="flex items-start justify-between mb-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
+        <h3 className={clsx('text-lg font-semibold flex items-center gap-2', language === 'ar' && 'font-arabic')}>
           <BarChart3 className="w-5 h-5 text-primary-600" />
           {t('search_analytics', language)}: <span className="text-primary-600">{analytics.word}</span>
           <span className="text-sm font-normal text-gray-500">

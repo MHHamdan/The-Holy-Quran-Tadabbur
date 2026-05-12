@@ -658,7 +658,7 @@ function CandidateSelectionModal({
         <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-yellow-50">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className={clsx('text-xl font-bold text-gray-900', isArabic && 'font-arabic')}>
                 {isArabic ? 'اختر الآية الصحيحة' : 'Select the Correct Verse'}
               </h2>
               <p className="text-sm text-gray-600 mt-1">
@@ -1125,7 +1125,7 @@ export function SimilarityPage() {
 
         {/* Popular verses */}
         <div className="mt-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-3">
+          <h3 className={clsx('text-sm font-medium text-gray-500 mb-3', isArabic && 'font-arabic')}>
             {t('similarity_popular_verses', language)}
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -1137,7 +1137,7 @@ export function SimilarityPage() {
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm transition-colors"
               >
                 <span className="font-medium">{verse.sura}:{verse.aya}</span>
-                <span className="text-gray-500 ml-2">
+                <span className={clsx('text-gray-500 ms-2', isArabic && 'font-arabic')}>
                   {isArabic ? verse.label_ar : verse.label_en}
                 </span>
               </button>
@@ -1221,7 +1221,7 @@ export function SimilarityPage() {
                 <span className="text-gray-500">{t('similarity_results_count', language)}</span>
               </div>
               <span className="text-sm text-gray-400">|</span>
-              <span className="text-sm text-gray-500">
+              <span className={clsx('text-sm text-gray-500', isArabic && 'font-arabic')}>
                 {isArabic ? 'وقت البحث:' : 'Search time:'} {data.search_time_ms}ms
               </span>
             </div>
@@ -1327,7 +1327,7 @@ export function SimilarityPage() {
               {/* Grouping options */}
               <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
                 <Layers className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">
+                <span className={clsx('text-sm text-gray-600', isArabic && 'font-arabic')}>
                   {isArabic ? 'تجميع حسب:' : 'Group by:'}
                 </span>
                 <select
@@ -1381,7 +1381,7 @@ export function SimilarityPage() {
                         ? (CONNECTION_TYPES[group]?.color.split(' ')[0] || 'bg-gray-500')
                         : 'bg-primary-500'
                     )} />
-                    <h3 className="font-semibold text-gray-700">
+                    <h3 className={clsx('font-semibold text-gray-700', isArabic && 'font-arabic')}>
                       {groupBy === 'theme'
                         ? group
                         : CONNECTION_TYPES[group]?.[`label_${language}`] || group}
