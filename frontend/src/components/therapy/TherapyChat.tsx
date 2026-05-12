@@ -104,7 +104,7 @@ export function TherapyChat({ initialEmotion, onSessionCreated }: TherapyChatPro
   }
 
   return (
-    <div className="flex flex-col h-full min-h-[500px]">
+    <div className="flex flex-col h-full min-h-[500px]" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Message list */}
       <div className="flex-1 overflow-y-auto space-y-4 pb-4">
         {messages.length === 0 && (

@@ -33,8 +33,8 @@ export function InsightsDashboard({ sessionIds }: InsightsDashboardProps) {
   if (sessionIds.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5" dir={isRtl ? 'rtl' : 'ltr'}>
+      <div className={clsx('flex items-center gap-2 mb-4', isRtl && 'flex-row-reverse')}>
         <BarChart2 className="w-5 h-5 text-indigo-500" />
         <h3 className={clsx('font-semibold text-gray-800', isRtl && 'font-arabic')}>
           {t('insights_title', language)}
@@ -173,8 +173,8 @@ export function InsightsDashboard({ sessionIds }: InsightsDashboardProps) {
                   {isRtl ? insights.growth_prompt_ar : insights.growth_prompt_en}
                 </p>
                 {insights.suggested_next_theme && (
-                  <span className="inline-block mt-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full capitalize">
-                    {insights.suggested_next_theme}
+                  <span className={clsx('inline-block mt-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full capitalize', isRtl && 'font-arabic')}>
+                    {translateTheme(insights.suggested_next_theme, language)}
                   </span>
                 )}
               </div>

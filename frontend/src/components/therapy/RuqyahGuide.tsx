@@ -171,10 +171,10 @@ function RuqyahChapterCard({ chapter }: RuqyahChapterCardProps) {
           <span className={isRtl ? 'font-arabic' : ''}>
             {isRtl ? 'الدليل من الحديث' : 'Prophetic Authority'}
           </span>
-          <span className="text-[10px] text-emerald-500 ml-0.5">({chapter.source})</span>
+          <span className="text-[10px] text-emerald-500 ms-0.5">({chapter.source})</span>
           {hadithOpen
-            ? <ChevronUp className="w-3 h-3 ml-auto" />
-            : <ChevronDown className="w-3 h-3 ml-auto" />}
+            ? <ChevronUp className="w-3 h-3 ms-auto" />
+            : <ChevronDown className="w-3 h-3 ms-auto" />}
         </button>
         {hadithOpen && (
           <div className="mt-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">

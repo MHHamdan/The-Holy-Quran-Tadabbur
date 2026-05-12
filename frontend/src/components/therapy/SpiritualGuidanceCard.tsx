@@ -33,13 +33,13 @@ export function SpiritualGuidanceCard({ card, index }: SpiritualGuidanceCardProp
     <div
       className={clsx(
         'bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden',
-        'border-l-4',
-        `border-l-${THEME_COLORS[card.theme] ?? 'emerald'}-400`,
+        isRtl ? 'border-r-4' : 'border-l-4',
+        `${isRtl ? 'border-r' : 'border-l'}-${THEME_COLORS[card.theme] ?? 'emerald'}-400`,
       )}
     >
       {/* Card header */}
-      <div className={clsx('px-5 py-3 flex items-center justify-between', `bg-${THEME_COLORS[card.theme] ?? 'emerald'}-50`)}>
-        <div className="flex items-center gap-2">
+      <div className={clsx('px-5 py-3 flex items-center justify-between', `bg-${THEME_COLORS[card.theme] ?? 'emerald'}-50`, isRtl && 'flex-row-reverse')}>
+        <div className={clsx('flex items-center gap-2', isRtl && 'flex-row-reverse')}>
           <span className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-xs font-bold text-gray-500 shadow-sm">
             {index + 1}
           </span>
@@ -71,8 +71,8 @@ export function SpiritualGuidanceCard({ card, index }: SpiritualGuidanceCardProp
         >
           {card.text_uthmani}
         </p>
-        <p dir="ltr" className="text-sm text-gray-500 italic mb-3">
-          {card.surah_name_en} ({card.reference})
+        <p dir={isRtl ? 'rtl' : 'ltr'} className={clsx('text-sm text-gray-500 italic mb-3', isRtl && 'font-arabic')}>
+          {isRtl ? card.surah_name_ar : card.surah_name_en} ({card.reference})
         </p>
         {/* Compact audio player for verse recitation */}
         <QuranAudioPlayer
@@ -127,7 +127,7 @@ export function SpiritualGuidanceCard({ card, index }: SpiritualGuidanceCardProp
         >
           <Star className="w-3.5 h-3.5" />
           {t('therapy_dua_suggested', language)}
-          {duaOpen ? <ChevronUp className="w-3.5 h-3.5 ml-auto" /> : <ChevronDown className="w-3.5 h-3.5 ml-auto" />}
+          {duaOpen ? <ChevronUp className="w-3.5 h-3.5 ms-auto" /> : <ChevronDown className="w-3.5 h-3.5 ms-auto" />}
         </button>
 
         {duaOpen && (
