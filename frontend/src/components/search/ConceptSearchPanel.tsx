@@ -459,7 +459,7 @@ export function ConceptSearchPanel({
                   {concept?.label_ar || id}
                   <button
                     onClick={() => handleConceptToggle(id)}
-                    className="ml-1 text-amber-600 hover:text-amber-800"
+                    className="ms-1 text-amber-600 hover:text-amber-800"
                   >
                     ×
                   </button>
@@ -516,7 +516,7 @@ export function ConceptSearchPanel({
                       <span className="font-medium">Aliases: </span>
                       {result.aliases.ar.slice(0, 3).join('، ')}
                       {result.aliases.en.length > 0 && (
-                        <span className="ml-2">
+                        <span className="ms-2">
                           {result.aliases.en.slice(0, 3).join(', ')}
                         </span>
                       )}

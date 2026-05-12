@@ -38,14 +38,14 @@ export function StoryOverviewCard({
     )}>
       <div className="flex items-center gap-2 mb-3">
         <BookOpen className={`w-5 h-5 ${level === 'kids' ? 'text-amber-600' : 'text-blue-600'}`} />
-        <h3 className={`font-semibold text-sm uppercase tracking-wide ${level === 'kids' ? 'text-amber-700' : 'text-blue-700'}`}>
+        <h3 className={`font-semibold text-sm uppercase tracking-wide ${level === 'kids' ? 'text-amber-700' : 'text-blue-700'}${language === 'ar' ? ' font-arabic' : ''}`}>
           {language === 'ar' ? 'نظرة عامة على القصة' : 'Story Overview'}
         </h3>
         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${level === 'kids' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
           {theme}
         </span>
       </div>
-      <p className="text-gray-800 leading-relaxed" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <p className={`text-gray-800 leading-relaxed${language === 'ar' ? ' font-arabic' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         {intro}
       </p>
     </div>
@@ -76,11 +76,11 @@ export function StorySummaryCard({
     )}>
       <div className="flex items-center gap-2 mb-3">
         <Star className={`w-5 h-5 ${level === 'kids' ? 'text-emerald-600' : 'text-primary-600'}`} />
-        <h3 className={`font-semibold text-sm uppercase tracking-wide ${level === 'kids' ? 'text-emerald-700' : 'text-primary-700'}`}>
+        <h3 className={`font-semibold text-sm uppercase tracking-wide ${level === 'kids' ? 'text-emerald-700' : 'text-primary-700'}${language === 'ar' ? ' font-arabic' : ''}`}>
           {language === 'ar' ? 'خلاصة القصة' : 'Story Summary'}
         </h3>
       </div>
-      <p className="text-gray-800 leading-relaxed" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <p className={`text-gray-800 leading-relaxed${language === 'ar' ? ' font-arabic' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         {summary}
       </p>
     </div>

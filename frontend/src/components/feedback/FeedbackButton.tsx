@@ -113,7 +113,7 @@ export function FeedbackButton() {
               </div>
               <button
                 onClick={close}
-                className="ml-4 p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400"
+                className="ms-4 p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400"
               >
                 <X className="h-5 w-5" />
               </button>

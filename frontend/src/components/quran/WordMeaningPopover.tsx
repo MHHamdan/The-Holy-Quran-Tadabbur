@@ -179,7 +179,7 @@ export function WordMeaningPopover({
           <div className="p-4 space-y-3 text-sm">
             {state === 'loading' && (
               <div className="flex items-center justify-center py-3 text-gray-400">
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                <Loader2 className="w-4 h-4 animate-spin me-2" />
                 <span>Loading…</span>
               </div>
             )}

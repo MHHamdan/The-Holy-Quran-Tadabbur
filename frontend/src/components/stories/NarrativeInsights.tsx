@@ -170,7 +170,7 @@ export function NarrativeInsights({ segments, language, storyName: _storyName }:
         {!narrativeAnalysis.hasCompleteArc && (
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-700">
-              <AlertTriangle className="w-4 h-4 inline mr-1" />
+              <AlertTriangle className="w-4 h-4 inline me-1" />
               {isArabic
                 ? 'هذه القصة لا تتبع البنية السردية الكاملة - وهذا أمر طبيعي في القرآن حيث تُقدم القصص للعبرة لا للترفيه'
                 : 'This story doesn\'t follow the complete narrative arc - this is normal in the Quran where stories serve lessons, not entertainment'}
