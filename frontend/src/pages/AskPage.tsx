@@ -309,7 +309,7 @@ export function AskPage() {
   }, [sessionId, messages.length, language, selectedSources]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto">
+    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="flex-shrink-0 px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
         <div className="flex items-center justify-between gap-2">
@@ -318,8 +318,8 @@ export function AskPage() {
               <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{t('ask_title', language)}</h1>
-              <p className="text-xs sm:text-sm text-gray-500 truncate hidden xs:block">{t('ask_subtitle', language)}</p>
+              <h1 className={clsx('text-lg sm:text-xl font-bold text-gray-900 truncate', language === 'ar' && 'font-arabic')}>{t('ask_title', language)}</h1>
+              <p className={clsx('text-xs sm:text-sm text-gray-500 truncate hidden xs:block', language === 'ar' && 'font-arabic')}>{t('ask_subtitle', language)}</p>
             </div>
           </div>
 
@@ -330,7 +330,7 @@ export function AskPage() {
               aria-label={language === 'ar' ? 'مسح المحادثة' : 'Clear chat'}
             >
               <Trash2 className="w-4 h-4" />
-              <span className="hidden sm:inline">{language === 'ar' ? 'مسح المحادثة' : 'Clear chat'}</span>
+              <span className={clsx('hidden sm:inline', language === 'ar' && 'font-arabic')}>{language === 'ar' ? 'مسح المحادثة' : 'Clear chat'}</span>
             </button>
           )}
         </div>
@@ -343,7 +343,7 @@ export function AskPage() {
           >
             <div className="flex items-center gap-2">
               <Settings2 className="w-4 h-4 text-primary-600" />
-              <span className="text-sm font-medium">
+              <span className={clsx('text-sm font-medium', language === 'ar' && 'font-arabic')}>
                 {language === 'ar' ? 'مصادر التفسير' : 'Tafseer Sources'}
               </span>
               <span className="text-xs text-gray-500">
@@ -362,13 +362,13 @@ export function AskPage() {
               <div className="flex gap-2 mb-3">
                 <button
                   onClick={selectAllSources}
-                  className="text-xs px-2 py-1 bg-primary-100 text-primary-700 rounded hover:bg-primary-200 transition-colors"
+                  className={clsx('text-xs px-2 py-1 bg-primary-100 text-primary-700 rounded hover:bg-primary-200 transition-colors', language === 'ar' && 'font-arabic')}
                 >
                   {language === 'ar' ? 'اختر الكل' : 'Select All'}
                 </button>
                 <button
                   onClick={clearAllSources}
-                  className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                  className={clsx('text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors', language === 'ar' && 'font-arabic')}
                 >
                   {language === 'ar' ? 'إلغاء الكل' : 'Clear All'}
                 </button>
@@ -396,7 +396,7 @@ export function AskPage() {
                         onChange={() => toggleSource(source.id)}
                         className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                       />
-                      <span className="truncate">
+                      <span className={clsx('truncate', language === 'ar' && 'font-arabic')}>
                         {language === 'ar' ? source.name_ar : source.name_en}
                       </span>
                     </label>
@@ -713,10 +713,10 @@ const EmptyState = memo(function EmptyState({
           </div>
           <Sparkles className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 text-amber-500 animate-pulse" />
         </div>
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">
+        <h2 className={clsx('text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3', language === 'ar' && 'font-arabic')}>
           {language === 'ar' ? 'اسأل عن القرآن الكريم' : 'Ask About the Quran'}
         </h2>
-        <p className="text-sm sm:text-base text-gray-500 max-w-lg mx-auto leading-relaxed px-2">
+        <p className={clsx('text-sm sm:text-base text-gray-500 max-w-lg mx-auto leading-relaxed px-2', language === 'ar' && 'font-arabic')}>
           {language === 'ar'
             ? 'اكتشف معاني الآيات وقصص الأنبياء والحكمة القرآنية من خلال مصادر التفسير الموثوقة'
             : 'Discover verse meanings, prophet stories, and Quranic wisdom from trusted tafsir sources'}
@@ -736,6 +736,7 @@ const EmptyState = memo(function EmptyState({
                 onClick={() => setActiveCategory(isActive ? null : cat.id)}
                 className={clsx(
                   'flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 min-h-[40px] rounded-full border-2 transition-all duration-300 text-xs sm:text-sm font-medium',
+                  language === 'ar' && 'font-arabic',
                   isActive
                     ? `${colors.bg} ${colors.text} ${colors.border} shadow-sm`
                     : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 active:scale-95'

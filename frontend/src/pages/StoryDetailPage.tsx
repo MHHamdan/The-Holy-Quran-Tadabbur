@@ -141,7 +141,7 @@ export function StoryDetailPage() {
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-bold">{name}</h1>
+              <h1 className={clsx('text-2xl font-bold', language === 'ar' && 'font-arabic')}>{name}</h1>
               <span className="text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded">
                 {translateCategory(story.category, language)}
               </span>

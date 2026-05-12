@@ -318,7 +318,7 @@ export function ThemeDetailPage() {
             <div className={clsx('inline-block text-sm font-medium px-3 py-1 rounded-full mb-3 border', colorClass)}>
               {categoryLabel}
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
+            <h1 className={clsx('text-3xl font-bold text-gray-900 mb-2', language === 'ar' && 'font-arabic')}>{title}</h1>
             {description && (
               <p className="text-gray-600 text-lg">{description}</p>
             )}

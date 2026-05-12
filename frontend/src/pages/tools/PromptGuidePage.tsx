@@ -118,10 +118,10 @@ export function PromptGuidePage() {
             <ShieldCheck className="w-8 h-8 text-emerald-600" />
           </div>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className={clsx('text-3xl font-bold text-gray-900', isArabic && 'font-arabic')}>
           {t('prompt_guide_title', language)}
         </h1>
-        <p className="text-gray-600 max-w-2xl mx-auto text-sm leading-relaxed">
+        <p className={clsx('text-gray-600 max-w-2xl mx-auto text-sm leading-relaxed', isArabic && 'font-arabic')}>
           {t('prompt_guide_subtitle', language)}
         </p>
       </div>

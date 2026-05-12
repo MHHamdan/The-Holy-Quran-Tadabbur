@@ -139,16 +139,17 @@ const TOOL_MODULES: ToolModule[] = [
 
 export function ToolsPage() {
   const { language } = useLanguageStore();
+  const isRtl = language === 'ar';
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {language === 'ar' ? 'الأدوات الإسلامية' : 'Islamic Tools'}
+        <h1 className={clsx('text-3xl font-bold text-gray-900 mb-2', isRtl && 'font-arabic')}>
+          {isRtl ? 'الأدوات الإسلامية' : 'Islamic Tools'}
         </h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          {language === 'ar'
+        <p className={clsx('text-gray-600 max-w-2xl mx-auto', isRtl && 'font-arabic')}>
+          {isRtl
             ? 'مجموعة من الأدوات المفيدة للمسلمين - حاسبة الزكاة، البحث عن المساجد، والمزيد'
             : 'A collection of helpful tools for Muslims - Zakat calculator, mosque finder, and more'}
         </p>
@@ -204,10 +205,10 @@ function ToolCard({ tool, language }: ToolCardProps) {
           <Icon className={clsx('w-6 h-6', colors.icon)} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 mb-1">
+          <h3 className={clsx('text-lg font-semibold text-gray-900 group-hover:text-primary-600 mb-1', language === 'ar' && 'font-arabic')}>
             {name}
           </h3>
-          <p className="text-sm text-gray-600">{description}</p>
+          <p className={clsx('text-sm text-gray-600', language === 'ar' && 'font-arabic')}>{description}</p>
         </div>
       </div>
     </Link>

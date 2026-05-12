@@ -739,10 +739,10 @@ function HijriCalendarPageContent() {
             <Calendar className="w-8 h-8 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className={clsx('text-2xl font-bold text-gray-900', isArabic && 'font-arabic')}>
               {isArabic ? 'التقويم الهجري' : 'Hijri Calendar'}
             </h1>
-            <p className="text-gray-600">
+            <p className={clsx('text-gray-600', isArabic && 'font-arabic')}>
               {isArabic
                 ? 'التقويم الإسلامي ومحول التاريخ'
                 : 'Islamic calendar and date converter'}

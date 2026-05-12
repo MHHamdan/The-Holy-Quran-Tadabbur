@@ -213,12 +213,12 @@ export function ConceptsPage() {
             </div>
 
             {/* Title */}
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3">
+            <h1 className={clsx('text-2xl sm:text-3xl lg:text-4xl font-bold mb-3', isArabic && 'font-arabic')}>
               {isArabic ? 'مستكشف المفاهيم القرآنية' : 'Quranic Concept Explorer'}
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base sm:text-lg text-emerald-100 max-w-2xl mx-auto mb-6 sm:mb-8 px-4">
+            <p className={clsx('text-base sm:text-lg text-emerald-100 max-w-2xl mx-auto mb-6 sm:mb-8 px-4', isArabic && 'font-arabic')}>
               {isArabic
                 ? 'استكشف الشخصيات والأمم والأماكن والمعجزات والموضوعات في القرآن الكريم'
                 : 'Explore persons, nations, places, miracles, and themes in the Holy Quran'}
@@ -262,19 +262,19 @@ export function ConceptsPage() {
             <div className="flex justify-center gap-6 sm:gap-10 mt-6 sm:mt-8">
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold">{totalStats.total}</div>
-                <div className="text-emerald-200 text-xs sm:text-sm">
+                <div className={clsx('text-emerald-200 text-xs sm:text-sm', isArabic && 'font-arabic')}>
                   {isArabic ? 'مفهوم' : 'Concepts'}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold">{typeFacets.length}</div>
-                <div className="text-emerald-200 text-xs sm:text-sm">
+                <div className={clsx('text-emerald-200 text-xs sm:text-sm', isArabic && 'font-arabic')}>
                   {isArabic ? 'تصنيف' : 'Categories'}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold">{curatedConcepts.length}+</div>
-                <div className="text-emerald-200 text-xs sm:text-sm">
+                <div className={clsx('text-emerald-200 text-xs sm:text-sm', isArabic && 'font-arabic')}>
                   {isArabic ? 'محقق' : 'Verified'}
                 </div>
               </div>
@@ -304,7 +304,7 @@ export function ConceptsPage() {
               )}>
                 <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <span className="font-medium text-xs sm:text-sm">{isArabic ? 'الكل' : 'All'}</span>
+              <span className={clsx('font-medium text-xs sm:text-sm', isArabic && 'font-arabic')}>{isArabic ? 'الكل' : 'All'}</span>
               <span className="text-[10px] sm:text-xs opacity-60">{totalStats.total}</span>
             </button>
 
@@ -332,7 +332,7 @@ export function ConceptsPage() {
                   )}>
                     {config.icon}
                   </div>
-                  <span className="font-medium text-xs sm:text-sm whitespace-nowrap">
+                  <span className={clsx('font-medium text-xs sm:text-sm whitespace-nowrap', isArabic && 'font-arabic')}>
                     {isArabic ? config.label.ar : config.label.en}
                   </span>
                   <span className="text-[10px] sm:text-xs opacity-60">{facet.count}</span>
@@ -355,10 +355,10 @@ export function ConceptsPage() {
                 <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-amber-900 text-sm sm:text-base">
+                <h3 className={clsx('font-bold text-amber-900 text-sm sm:text-base', isArabic && 'font-arabic')}>
                   {isArabic ? 'عدسة المعجزات' : 'Miracles Lens'}
                 </h3>
-                <p className="text-xs sm:text-sm text-amber-700 truncate">
+                <p className={clsx('text-xs sm:text-sm text-amber-700 truncate', isArabic && 'font-arabic')}>
                   {isArabic ? 'استكشف الآيات والمعجزات' : 'Explore divine signs'}
                 </p>
               </div>
@@ -378,10 +378,10 @@ export function ConceptsPage() {
                 <BookMarked className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-purple-900 text-sm sm:text-base">
+                <h3 className={clsx('font-bold text-purple-900 text-sm sm:text-base', isArabic && 'font-arabic')}>
                   {isArabic ? 'قصص الأنبياء' : 'Prophet Stories'}
                 </h3>
-                <p className="text-xs sm:text-sm text-purple-700 truncate">
+                <p className={clsx('text-xs sm:text-sm text-purple-700 truncate', isArabic && 'font-arabic')}>
                   {isArabic ? 'تصفح قصص الأنبياء والأمم' : 'Browse prophets & nations'}
                 </p>
               </div>
@@ -423,14 +423,14 @@ export function ConceptsPage() {
           {/* Results Header */}
           <div className="flex items-center justify-between mb-4 sm:mb-5">
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              <h2 className={clsx('text-lg sm:text-xl font-bold text-gray-900', isArabic && 'font-arabic')}>
                 {selectedType
                   ? (isArabic ? TYPE_CONFIG[selectedType]?.label.ar : TYPE_CONFIG[selectedType]?.label.en)
                   : searchQuery
                     ? (isArabic ? 'نتائج البحث' : 'Search Results')
                     : (isArabic ? 'جميع المفاهيم' : 'All Concepts')}
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+              <p className={clsx('text-xs sm:text-sm text-gray-500 mt-0.5', isArabic && 'font-arabic')}>
                 {isArabic ? `${total} مفهوم` : `${total} concepts`}
               </p>
             </div>
@@ -496,10 +496,10 @@ export function ConceptsPage() {
                           {config.icon}
                         </div>
                         <div>
-                          <h3 className="text-base sm:text-lg font-bold text-gray-900">
+                          <h3 className={clsx('text-base sm:text-lg font-bold text-gray-900', isArabic && 'font-arabic')}>
                             {isArabic ? config.label.ar : config.label.en}
                           </h3>
-                          <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                          <p className={clsx('text-xs sm:text-sm text-gray-500 hidden sm:block', isArabic && 'font-arabic')}>
                             {isArabic ? config.description.ar : config.description.en}
                           </p>
                         </div>
@@ -511,7 +511,8 @@ export function ConceptsPage() {
                           'transition-colors',
                           config.color,
                           config.lightBg,
-                          'hover:opacity-80'
+                          'hover:opacity-80',
+                          isArabic && 'font-arabic flex-row-reverse'
                         )}
                       >
                         {isArabic ? 'عرض الكل' : 'View all'}

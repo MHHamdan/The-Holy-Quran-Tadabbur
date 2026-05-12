@@ -13,7 +13,7 @@ export function ThemesPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('themes');
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Tab Bar */}
       <div className="flex gap-2 mb-8 border-b border-gray-200">
         <button
@@ -22,7 +22,8 @@ export function ThemesPage() {
             'px-6 py-3 text-lg font-semibold transition-colors border-b-2 -mb-px',
             activeTab === 'themes'
               ? 'border-primary-600 text-primary-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              : 'border-transparent text-gray-500 hover:text-gray-700',
+            language === 'ar' && 'font-arabic'
           )}
         >
           {t('themes_tab', language)}
@@ -33,7 +34,8 @@ export function ThemesPage() {
             'px-6 py-3 text-lg font-semibold transition-colors border-b-2 -mb-px flex items-center gap-2',
             activeTab === 'allah-names'
               ? 'border-primary-600 text-primary-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              : 'border-transparent text-gray-500 hover:text-gray-700',
+            language === 'ar' && 'font-arabic'
           )}
         >
           <Star className="w-5 h-5" />
@@ -106,10 +108,10 @@ function ThemesTab({ language }: { language: 'ar' | 'en' }) {
     <>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className={clsx('text-3xl font-bold text-gray-900 mb-2', language === 'ar' && 'font-arabic')}>
           {t('themes_title', language)}
         </h1>
-        <p className="text-gray-600">
+        <p className={clsx('text-gray-600', language === 'ar' && 'font-arabic')}>
           {t('themes_subtitle', language)}
         </p>
       </div>
@@ -124,7 +126,8 @@ function ThemesTab({ language }: { language: 'ar' | 'en' }) {
               'px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2',
               selectedCategory === cat.category
                 ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+              language === 'ar' && 'font-arabic'
             )}
           >
             <span>{language === 'ar' ? cat.label_ar : cat.label_en}</span>
@@ -215,11 +218,11 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
     <>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+        <h1 className={clsx('text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3', language === 'ar' && 'font-arabic')}>
           <Star className="w-8 h-8 text-primary-600" />
           {t('allah_names_title', language)}
         </h1>
-        <p className="text-gray-600">
+        <p className={clsx('text-gray-600', language === 'ar' && 'font-arabic')}>
           {t('allah_names_subtitle', language)}
         </p>
       </div>
@@ -238,7 +241,8 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
                 'px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2',
                 selectedCategory === cat.key
                   ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                language === 'ar' && 'font-arabic'
               )}
             >
               <span>{cat.label}</span>

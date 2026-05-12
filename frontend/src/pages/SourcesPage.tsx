@@ -144,33 +144,35 @@ export function SourcesPage() {
     );
   }
 
+  const isRtl = language === 'ar';
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Admin Mode Controls */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className={clsx('mb-4 flex items-center justify-between', isRtl && 'flex-row-reverse')}>
         {isAdminMode ? (
-          <div className="flex-1 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className={clsx('flex-1 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between', isRtl && 'flex-row-reverse')}>
+            <div className={clsx('flex items-center gap-2', isRtl && 'flex-row-reverse')}>
               <Lock className="w-5 h-5 text-amber-600" />
-              <span className="text-sm text-amber-800 font-medium">
-                {language === 'ar' ? 'وضع المسؤول - يمكنك تفعيل/تعطيل المصادر' : 'Admin Mode - You can enable/disable sources'}
+              <span className={clsx('text-sm text-amber-800 font-medium', isRtl && 'font-arabic')}>
+                {isRtl ? 'وضع المسؤول - يمكنك تفعيل/تعطيل المصادر' : 'Admin Mode - You can enable/disable sources'}
               </span>
             </div>
             <button
               onClick={handleExitAdminMode}
-              className="text-sm text-amber-700 hover:text-amber-900 flex items-center gap-1"
+              className={clsx('text-sm text-amber-700 hover:text-amber-900 flex items-center gap-1', isRtl && 'flex-row-reverse font-arabic')}
             >
               <X className="w-4 h-4" />
-              {language === 'ar' ? 'خروج' : 'Exit'}
+              {isRtl ? 'خروج' : 'Exit'}
             </button>
           </div>
         ) : (
           <button
             onClick={() => setShowAdminModal(true)}
-            className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+            className={clsx('text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1', isRtl && 'flex-row-reverse font-arabic')}
           >
             <Key className="w-4 h-4" />
-            {language === 'ar' ? 'وضع المسؤول' : 'Admin Mode'}
+            {isRtl ? 'وضع المسؤول' : 'Admin Mode'}
           </button>
         )}
       </div>
@@ -178,10 +180,10 @@ export function SourcesPage() {
       {/* Admin Token Modal */}
       {showAdminModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {language === 'ar' ? 'دخول وضع المسؤول' : 'Enter Admin Mode'}
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl" dir={isRtl ? 'rtl' : 'ltr'}>
+            <div className={clsx('flex items-center justify-between mb-4', isRtl && 'flex-row-reverse')}>
+              <h3 className={clsx('text-lg font-semibold text-gray-900', isRtl && 'font-arabic')}>
+                {isRtl ? 'دخول وضع المسؤول' : 'Enter Admin Mode'}
               </h3>
               <button
                 onClick={() => { setShowAdminModal(false); setTokenInput(''); setAdminError(null); }}
@@ -190,8 +192,8 @@ export function SourcesPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
-              {language === 'ar'
+            <p className={clsx('text-sm text-gray-600 mb-4', isRtl && 'font-arabic text-right')}>
+              {isRtl
                 ? 'أدخل رمز المسؤول لتفعيل/تعطيل المصادر'
                 : 'Enter admin token to enable/disable sources'}
             </p>
@@ -207,19 +209,19 @@ export function SourcesPage() {
             {adminError && (
               <p className="text-sm text-red-600 mt-2">{adminError}</p>
             )}
-            <div className="flex justify-end gap-2 mt-4">
+            <div className={clsx('flex gap-2 mt-4', isRtl ? 'justify-start flex-row-reverse' : 'justify-end')}>
               <button
                 onClick={() => { setShowAdminModal(false); setTokenInput(''); setAdminError(null); }}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+                className={clsx('px-4 py-2 text-sm text-gray-600 hover:text-gray-800', isRtl && 'font-arabic')}
               >
-                {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                {isRtl ? 'إلغاء' : 'Cancel'}
               </button>
               <button
                 onClick={handleEnterAdminMode}
                 disabled={!tokenInput.trim()}
-                className="px-4 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                className={clsx('px-4 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50', isRtl && 'font-arabic')}
               >
-                {language === 'ar' ? 'دخول' : 'Enter'}
+                {isRtl ? 'دخول' : 'Enter'}
               </button>
             </div>
           </div>
@@ -228,12 +230,12 @@ export function SourcesPage() {
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+        <h1 className={clsx('text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3', isRtl && 'font-arabic flex-row-reverse')}>
           <BookOpen className="w-8 h-8 text-primary-600" />
-          {language === 'ar' ? 'مصادر التفسير' : 'Tafseer Sources'}
+          {isRtl ? 'مصادر التفسير' : 'Tafseer Sources'}
         </h1>
-        <p className="text-gray-600">
-          {language === 'ar'
+        <p className={clsx('text-gray-600', isRtl && 'font-arabic text-right')}>
+          {isRtl
             ? 'المصادر المتاحة للتفسير القرآني مع بيانات المصدر والتحقق'
             : 'Available sources for Quranic tafseer with provenance data and verification status'}
         </p>
@@ -243,22 +245,22 @@ export function SourcesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="card text-center">
           <div className="text-3xl font-bold text-primary-600">{sources.length}</div>
-          <div className="text-sm text-gray-500">
-            {language === 'ar' ? 'مصادر متاحة' : 'Available Sources'}
+          <div className={clsx('text-sm text-gray-500', isRtl && 'font-arabic')}>
+            {isRtl ? 'مصادر متاحة' : 'Available Sources'}
           </div>
         </div>
         <div className="card text-center">
           <div className="text-3xl font-bold text-green-600">{provenanceVerified}</div>
-          <div className="text-sm text-gray-500">
-            {language === 'ar' ? 'تم التحقق' : 'Verified Provenance'}
+          <div className={clsx('text-sm text-gray-500', isRtl && 'font-arabic')}>
+            {isRtl ? 'تم التحقق' : 'Verified Provenance'}
           </div>
         </div>
         <div className="card text-center">
           <div className="text-3xl font-bold text-amber-600">
             {sources.filter(s => s.era === 'classical').length}
           </div>
-          <div className="text-sm text-gray-500">
-            {language === 'ar' ? 'تفاسير تراثية' : 'Classical Tafseers'}
+          <div className={clsx('text-sm text-gray-500', isRtl && 'font-arabic')}>
+            {isRtl ? 'تفاسير تراثية' : 'Classical Tafseers'}
           </div>
         </div>
       </div>
@@ -283,14 +285,15 @@ export function SourcesPage() {
 
       {/* Provenance Notice */}
       <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <div className="flex items-start gap-3">
+        <div className={clsx('flex items-start gap-3', isRtl && 'flex-row-reverse')}>
           <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div>
-            <h3 className="font-medium text-blue-900 mb-1">
-              {language === 'ar' ? 'حول التحقق من المصادر' : 'About Source Verification'}
+            <h3 className={clsx('font-medium text-blue-900 mb-1', isRtl && 'font-arabic text-right')}>
+              {isRtl ? 'حول التحقق من المصادر' : 'About Source Verification'}
             </h3>
-            <p className="text-sm text-blue-700">
-              {language === 'ar'
+            <p className={clsx('text-sm text-blue-700', isRtl && 'font-arabic text-right')}
+               dir={isRtl ? 'rtl' : 'ltr'}>
+              {isRtl
                 ? 'نحن ملتزمون بالشفافية الكاملة حول مصادر بياناتنا. كل مصدر مدرج أدناه يتضمن معلومات حول أصله وترخيصه وحالة التحقق منه. المصادر التي تم التحقق منها قد تمت مراجعتها للتأكد من دقتها وصحة ترخيصها.'
                 : 'We are committed to full transparency about our data sources. Each source listed below includes information about its origin, license, and verification status. Verified sources have been reviewed for accuracy and proper licensing.'}
             </p>

@@ -1070,10 +1070,10 @@ export function SimilarityPage() {
             <Link2 className="w-8 h-8 text-primary-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className={clsx('text-3xl font-bold text-gray-900', isArabic && 'font-arabic')}>
               {t('similarity_title', language)}
             </h1>
-            <p className="text-gray-500 text-sm">
+            <p className={clsx('text-gray-500 text-sm', isArabic && 'font-arabic')}>
               {t('similarity_subtitle', language)}
             </p>
           </div>

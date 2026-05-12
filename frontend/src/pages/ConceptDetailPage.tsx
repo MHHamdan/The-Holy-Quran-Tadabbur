@@ -310,7 +310,7 @@ export function ConceptDetailPage() {
             {/* Title and Info */}
             <div className="flex-1 text-white">
               <div className="flex items-center flex-wrap gap-3 mb-2">
-                <h1 className="text-3xl md:text-4xl font-bold">
+                <h1 className={clsx('text-3xl md:text-4xl font-bold', isArabic && 'font-arabic')}>
                   {isArabic ? concept.label_ar : concept.label_en}
                 </h1>
               </div>

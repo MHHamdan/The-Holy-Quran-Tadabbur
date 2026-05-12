@@ -746,10 +746,10 @@ function ZakatCalculatorPageContent() {
             <Calculator className="w-8 h-8 text-emerald-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className={clsx('text-2xl font-bold text-gray-900', isArabic && 'font-arabic')}>
               {isArabic ? 'حاسبة الزكاة' : 'Zakat Calculator'}
             </h1>
-            <p className="text-gray-600">
+            <p className={clsx('text-gray-600', isArabic && 'font-arabic')}>
               {isArabic
                 ? 'احسب زكاة مالك بدقة مع أسعار الذهب والفضة الحالية'
                 : 'Calculate your Zakat accurately with current gold and silver prices'}

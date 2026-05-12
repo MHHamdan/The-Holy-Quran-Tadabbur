@@ -465,7 +465,7 @@ function IslamicNewsPageContent() {
               <Newspaper className="w-8 h-8 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className={clsx('text-2xl font-bold text-gray-900', isArabic && 'font-arabic')}>
                 {isArabic ? 'الأخبار الإسلامية' : 'Islamic News'}
               </h1>
               <p className="text-gray-600">

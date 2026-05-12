@@ -643,13 +643,13 @@ export function SearchPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className={clsx('text-3xl font-bold text-gray-900 mb-2', language === 'ar' && 'font-arabic')}>
           {t('search_title', language)}
         </h1>
-        <p className="text-gray-600">{t('search_subtitle', language)}</p>
+        <p className={clsx('text-gray-600', language === 'ar' && 'font-arabic')}>{t('search_subtitle', language)}</p>
       </div>
 
       {/* Search Form */}

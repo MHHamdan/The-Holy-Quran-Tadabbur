@@ -144,17 +144,19 @@ export function StoriesPage() {
 
   const showGroupedView = selectedCategory === 'all' && !searchQuery.trim() && audienceFilter === 'all';
 
+  const isRtl = language === 'ar';
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className={clsx('text-3xl font-bold text-gray-900 mb-2', isRtl && 'font-arabic')}>
           {t('stories_title', language)}
         </h1>
-        <p className="text-gray-600">
+        <p className={clsx('text-gray-600', isRtl && 'font-arabic')}>
           {t('stories_subtitle', language)}
           {!loading && (
-            <span className="text-gray-400 ml-2">
+            <span className={clsx('text-gray-400', isRtl ? 'mr-2' : 'ml-2')}>
               ({allStories.length} {t('stories_count', language)})
             </span>
           )}
@@ -163,20 +165,21 @@ export function StoriesPage() {
 
       {/* Search Bar */}
       <div className="relative mb-6">
-        <Search className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 ${language === 'ar' ? 'right-3' : 'left-3'}`} />
+        <Search className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 ${isRtl ? 'right-3' : 'left-3'}`} />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={t('stories_search_placeholder', language)}
-          className={`w-full py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${language === 'ar' ? 'pr-10 pl-4' : 'pl-10 pr-4'}`}
+          className={`w-full py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'}`}
+          dir={isRtl ? 'rtl' : 'ltr'}
         />
       </div>
 
       {/* Audience Level Filter */}
-      <div className="flex items-center gap-3 mb-4">
-        <span className="text-sm font-medium text-gray-500">
-          {language === 'ar' ? 'المستوى:' : 'Level:'}
+      <div className={clsx('flex items-center gap-3 mb-4', isRtl && 'flex-row-reverse')}>
+        <span className={clsx('text-sm font-medium text-gray-500', isRtl && 'font-arabic')}>
+          {isRtl ? 'المستوى:' : 'Level:'}
         </span>
         <div className="flex rounded-lg border border-gray-200 overflow-hidden">
           {(
@@ -282,10 +285,10 @@ export function StoriesPage() {
                       <Icon className={`w-5 h-5 ${meta?.color}`} />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900">
-                        {language === 'ar' ? cat.labelAr : cat.labelEn}
+                      <h2 className={clsx('text-xl font-bold text-gray-900', isRtl && 'font-arabic')}>
+                        {isRtl ? cat.labelAr : cat.labelEn}
                       </h2>
-                      <p className="text-sm text-gray-500">
+                      <p className={clsx('text-sm text-gray-500', isRtl && 'font-arabic')}>
                         {t(meta?.descKey || '', language)}
                         <span className="mx-1">·</span>
                         {stories.length} {t('stories_count', language)}
@@ -294,10 +297,10 @@ export function StoriesPage() {
                   </div>
                   <button
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`flex items-center gap-1 text-sm font-medium ${meta?.color} hover:underline`}
+                    className={clsx(`flex items-center gap-1 text-sm font-medium ${meta?.color} hover:underline`, isRtl && 'flex-row-reverse font-arabic')}
                   >
                     {t('stories_view_all', language)}
-                    <ChevronRight className={`w-4 h-4 ${language === 'ar' ? 'rotate-180' : ''}`} />
+                    <ChevronRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />
                   </button>
                 </div>
 
@@ -339,8 +342,9 @@ export function StoriesPage() {
 }
 
 function StoryCard({ story, language, isRich }: { story: Story; language: 'ar' | 'en'; isRich?: boolean }) {
-  const name = language === 'ar' ? story.name_ar : story.name_en;
-  const summary = language === 'ar' ? story.summary_ar : story.summary_en;
+  const isRtl = language === 'ar';
+  const name = isRtl ? story.name_ar : story.name_en;
+  const summary = isRtl ? story.summary_ar : story.summary_en;
   const meta = CATEGORY_META[story.category];
   const Icon = meta?.icon || Book;
 
@@ -348,6 +352,7 @@ function StoryCard({ story, language, isRich }: { story: Story; language: 'ar' |
     <Link
       to={`/stories/${story.id}`}
       className="card hover:shadow-lg transition-all group h-full flex flex-col"
+      dir={isRtl ? 'rtl' : 'ltr'}
     >
       <div className="flex items-start justify-between mb-3">
         <div className={`w-10 h-10 ${meta?.bgColor || 'bg-primary-100'} rounded-lg flex items-center justify-center`}>
@@ -366,12 +371,12 @@ function StoryCard({ story, language, isRich }: { story: Story; language: 'ar' |
         </div>
       </div>
 
-      <h3 className="text-lg font-semibold mb-2 group-hover:text-primary-600 transition-colors">
+      <h3 className={clsx('text-lg font-semibold mb-2 group-hover:text-primary-600 transition-colors', isRtl && 'font-arabic text-right')}>
         {name}
       </h3>
 
       {summary && (
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2 flex-grow">{summary}</p>
+        <p className={clsx('text-gray-600 text-sm mb-3 line-clamp-2 flex-grow', isRtl && 'font-arabic text-right')}>{summary}</p>
       )}
 
       {/* Figures */}
@@ -408,13 +413,13 @@ function StoryCard({ story, language, isRich }: { story: Story; language: 'ar' |
       {/* Footer stats */}
       <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
         {story.suras_mentioned && story.suras_mentioned.length > 0 && (
-          <span className="text-xs text-gray-400">
+          <span className={clsx('text-xs text-gray-400', isRtl && 'font-arabic')}>
             {story.suras_mentioned.length} {t('stories_surahs', language)}
           </span>
         )}
-        <div className="flex items-center text-primary-600 text-sm font-medium">
-          {language === 'ar' ? 'عرض القصة' : 'View Story'}
-          <ArrowRight className={`w-4 h-4 ${language === 'ar' ? 'mr-1 group-hover:-translate-x-1' : 'ml-1 group-hover:translate-x-1'} transition-transform`} />
+        <div className={clsx('flex items-center text-primary-600 text-sm font-medium', isRtl && 'flex-row-reverse font-arabic')}>
+          {isRtl ? 'عرض القصة' : 'View Story'}
+          <ArrowRight className={`w-4 h-4 ${isRtl ? 'mr-1 group-hover:-translate-x-1 rotate-180' : 'ml-1 group-hover:translate-x-1'} transition-transform`} />
         </div>
       </div>
     </Link>

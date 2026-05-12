@@ -315,9 +315,9 @@ export default function TasmeePage() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex items-center gap-3 mb-2">
             <BookOpen className="w-8 h-8" />
-            <h1 className="text-3xl font-bold">{t('tasmee_title', language)}</h1>
+            <h1 className={clsx('text-3xl font-bold', isArabic && 'font-arabic')}>{t('tasmee_title', language)}</h1>
           </div>
-          <p className="text-emerald-100">{t('tasmee_subtitle', language)}</p>
+          <p className={clsx('text-emerald-100', isArabic && 'font-arabic')}>{t('tasmee_subtitle', language)}</p>
         </div>
       </div>
 
@@ -325,7 +325,7 @@ export default function TasmeePage() {
         {/* Selection Panel (shown when no active session) */}
         {!session && (
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            <h2 className={clsx('text-xl font-semibold text-gray-800 mb-4', isArabic && 'font-arabic')}>
               {t('tasmee_select_range', language)}
             </h2>
 

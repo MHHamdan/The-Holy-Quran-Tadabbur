@@ -271,7 +271,7 @@ export function MosqueFinderPage() {
             <MapPin className="w-8 h-8 text-teal-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className={clsx('text-2xl font-bold text-gray-900', isArabic && 'font-arabic')}>
               {isArabic ? 'الخرائط الإسلامية' : 'Islamic Places Finder'}
             </h1>
             <p className="text-gray-600">
