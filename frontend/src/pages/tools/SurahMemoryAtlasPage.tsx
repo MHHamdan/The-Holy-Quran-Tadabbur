@@ -56,18 +56,48 @@ const MAX_AYAHS = 286; // Al-Baqara — used for relative length bar
 /**
  * Strips the Bismillah prefix from ayah text for display.
  * The quran_uthmani.json stores Bismillah as a prefix in ayah 1 of surahs 2-114.
- * For Al-Fatiha (surah 1), Bismillah IS ayah 1:1 — never strip it.
- * For At-Tawba (surah 9), no Bismillah prefix exists — function is a no-op.
+ * For Al-Fatiha (surah 1), Bismillah IS ayah 1:1 — never strip it (only strip BOM).
+ * For At-Tawba (surah 9), no Bismillah prefix exists — returns text unchanged.
+ *
+ * Uses the 3-Alef-Wasla (ٱ U+0671) scan to locate the end of the Bismillah,
+ * which is robust against different SHADDA/FATHAH ordering in Uthmani Unicode.
  *
  * This is a display-only transformation; the stored data is never modified.
  */
 function stripBasmala(text: string, surahNumber: number): string {
-  if (surahNumber === 1) return text; // Bismillah is Al-Fatiha's first ayah
-  const RAHEEM = 'ٱلرَّحِيمِ';
-  const idx = text.indexOf(RAHEEM);
-  if (idx === -1) return text; // Surah 9 and any without prefix
-  const rest = text.slice(idx + RAHEEM.length).trimStart();
-  return rest || text; // guard against edge case where nothing follows
+  // Strip BOM that may appear on the very first verse in the data file
+  const clean = text.replace(/^﻿/, '');
+  if (surahNumber === 1) return clean; // Bismillah IS Al-Fatiha verse 1
+  if (surahNumber === 9) return clean; // At-Tawba has no Bismillah prefix
+  const ALEF_WASLA = 'ٱ'; // ٱ — distinctive in Uthmani script
+  const MIM = 'م';        // م — last base letter of ٱلرَّحِيمِ
+  // Find the 3rd Alef Wasla: ٱللَّهِ, ٱلرَّحْمَٰنِ, ٱلرَّحِيمِ
+  // Guard: if the first ٱ appears too far in (>15 chars), text has no Bismillah prefix
+  let count = 0;
+  let pos = 0;
+  for (let i = 0; i < clean.length; i++) {
+    if (clean[i] === ALEF_WASLA) {
+      if (count === 0 && i > 15) return clean; // first ٱ too far in — no prefix
+      count++;
+      if (count === 3) { pos = i; break; }
+    }
+  }
+  if (count < 3) return clean; // fewer than 3 Alef Wasla — no full Bismillah
+  // Scan forward past ٱلرَّحِيمِ to the م, then consume trailing diacritics
+  pos++; // skip ٱ itself
+  while (pos < clean.length) {
+    if (clean[pos] === MIM) {
+      pos++;
+      while (pos < clean.length) {
+        const cp = clean.codePointAt(pos)!;
+        if (cp >= 0x064B && cp <= 0x065F) pos++; // diacritics range
+        else break;
+      }
+      break;
+    }
+    pos++;
+  }
+  return clean.slice(pos).trimStart() || clean;
 }
 
 // ---------------------------------------------------------------------------
