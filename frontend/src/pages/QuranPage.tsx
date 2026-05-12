@@ -49,6 +49,45 @@ const BISMILLAH_PATTERNS = [
 ];
 
 /**
+ * Splits the Bismillah prefix from text_uthmani for display.
+ * Surahs 2–114 (except At-Tawba, 9) store the Bismillah as a prefix on verse 1.
+ * Al-Fatiha (1): Bismillah IS verse 1:1 — caller should never strip it.
+ * Uses 3-Alef-Wasla scan to avoid depending on diacritic character order.
+ */
+function splitBismillah(text: string): { bismillah: string; verseText: string } | null {
+  const ALEF_WASLA = 'ٱ'; // U+0671
+  const MIM = 'م';        // U+0645
+  let count = 0;
+  let pos = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === ALEF_WASLA) {
+      // If first ٱ is too far in, text doesn't start with Bismillah
+      if (count === 0 && i > 15) return null;
+      count++;
+      if (count === 3) { pos = i; break; }
+    }
+  }
+  if (count < 3) return null; // At-Tawba (9) or no Bismillah
+  pos++;
+  while (pos < text.length) {
+    if (text[pos] === MIM) {
+      pos++;
+      while (pos < text.length) {
+        const cp = text.codePointAt(pos)!;
+        if (cp >= 0x064B && cp <= 0x065F) pos++;
+        else break;
+      }
+      break;
+    }
+    pos++;
+  }
+  const bismillah = text.slice(0, pos).trim();
+  const verseText = text.slice(pos).trimStart();
+  if (!verseText) return null;
+  return { bismillah, verseText };
+}
+
+/**
  * Check if a verse is primarily the Bismillah phrase.
  * Used to exclude from concept highlighting to avoid redundant matches.
  */
@@ -276,13 +315,13 @@ export function QuranPage() {
   }, {} as Record<number, Verse[]>);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Back Link */}
       <Link
         to="/stories"
-        className="inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-6"
+        className={clsx('inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-6', language === 'ar' && 'font-arabic')}
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className={clsx('w-4 h-4', language === 'ar' && 'rotate-180')} />
         {language === 'ar' ? 'العودة للقصص' : 'Back to Stories'}
       </Link>
 
@@ -296,8 +335,8 @@ export function QuranPage() {
             <div>
               {navMode === 'surah' ? (
                 <>
-                  <h1 className="text-2xl font-bold font-arabic">{suraName}</h1>
-                  <p className="text-sm text-gray-500">
+                  <h1 className={clsx('text-2xl font-bold', language === 'ar' && 'font-arabic')}>{suraName}</h1>
+                  <p className={clsx('text-sm text-gray-500', language === 'ar' && 'font-arabic')}>
                     {language === 'ar' ? `السورة ${toArabicNum(currentSura)}` : `Surah ${currentSura}`}
                     {' - '}
                     {language === 'ar' ? `${toArabicNum(verses.length)} آية` : `${verses.length} verses`}
@@ -305,10 +344,10 @@ export function QuranPage() {
                 </>
               ) : (
                 <>
-                  <h1 className="text-2xl font-bold">
+                  <h1 className={clsx('text-2xl font-bold', language === 'ar' && 'font-arabic')}>
                     {language === 'ar' ? `الصفحة ${toArabicNum(currentPage)}` : `Page ${currentPage}`}
                   </h1>
-                  <p className="text-sm text-gray-500">
+                  <p className={clsx('text-sm text-gray-500', language === 'ar' && 'font-arabic')}>
                     {language === 'ar' ? `الجزء ${toArabicNum(pageInfo?.juz || 1)}` : `Juz ${pageInfo?.juz || 1}`}
                   </p>
                 </>
@@ -325,7 +364,8 @@ export function QuranPage() {
                   'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
                   navMode === 'surah'
                     ? 'bg-white shadow text-primary-600'
-                    : 'text-gray-600 hover:text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900',
+                  language === 'ar' && 'font-arabic'
                 )}
               >
                 <FileText className="w-4 h-4" />
@@ -337,7 +377,8 @@ export function QuranPage() {
                   'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
                   navMode === 'page'
                     ? 'bg-white shadow text-primary-600'
-                    : 'text-gray-600 hover:text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900',
+                  language === 'ar' && 'font-arabic'
                 )}
               >
                 <BookOpen className="w-4 h-4" />
@@ -353,7 +394,8 @@ export function QuranPage() {
                   'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
                   viewMode === 'mushaf'
                     ? 'bg-white shadow text-primary-600'
-                    : 'text-gray-600 hover:text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900',
+                  language === 'ar' && 'font-arabic'
                 )}
               >
                 {language === 'ar' ? 'المصحف' : 'Mushaf'}
@@ -364,7 +406,8 @@ export function QuranPage() {
                   'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
                   viewMode === 'list'
                     ? 'bg-white shadow text-primary-600'
-                    : 'text-gray-600 hover:text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900',
+                  language === 'ar' && 'font-arabic'
                 )}
               >
                 {language === 'ar' ? 'قائمة' : 'List'}
@@ -378,7 +421,8 @@ export function QuranPage() {
                 'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors',
                 showAudioPlayer
                   ? 'bg-primary-100 text-primary-700'
-                  : 'bg-gray-100 text-gray-600 hover:text-gray-900'
+                  : 'bg-gray-100 text-gray-600 hover:text-gray-900',
+                language === 'ar' && 'font-arabic'
               )}
             >
               <Headphones className="w-5 h-5" />
@@ -506,15 +550,6 @@ export function QuranPage() {
             </div>
           </div>
 
-          {/* Bismillah (for surah mode, except for Surah 9) */}
-          {navMode === 'surah' && currentSura !== 9 && currentSura !== 1 && (
-            <div className="text-center mb-6">
-              <span className="text-xl font-arabic text-amber-800">
-                بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-              </span>
-            </div>
-          )}
-
           {/* Verses in Mushaf Style */}
           <div className="text-center leading-[3] font-arabic text-2xl text-gray-900" dir="rtl">
             {verses.map((verse, idx) => {
@@ -527,24 +562,33 @@ export function QuranPage() {
                                     parseInt(highlightAya, 10) === verse.aya_no &&
                                     verse.sura_no === currentSura) ||
                                    (currentPlayingAya === verse.aya_no && verse.sura_no === currentSura);
-              const showBismillah = navMode === 'page' &&
-                                   verse.aya_no === 1 &&
-                                   verse.sura_no !== 9 &&
-                                   verse.sura_no !== 1 &&
-                                   (idx === 0 || verses[idx - 1]?.sura_no !== verse.sura_no);
+
+              // Extract Bismillah from verse 1 for surahs that have it as a prefix
+              const isFirstVerse = verse.aya_no === 1;
+              const hasBismillahPrefix = isFirstVerse && verse.sura_no !== 1 && verse.sura_no !== 9;
+              const bismillahSplit = hasBismillahPrefix ? splitBismillah(verse.text_uthmani) : null;
+              // Strip BOM (appears only on 1:1 in source data) and Bismillah prefix for display
+              const displayText = bismillahSplit
+                ? bismillahSplit.verseText
+                : verse.text_uthmani.replace(/^﻿/, '');
+              // Show Bismillah block for: page mode (when surah starts on page) or surah mode
+              const showBismillahBlock = bismillahSplit !== null && (
+                navMode === 'surah' ||
+                (navMode === 'page' && (idx === 0 || verses[idx - 1]?.sura_no !== verse.sura_no))
+              );
 
               return (
                 <span key={verse.id}>
                   {/* Surah header for page view */}
-                  {navMode === 'page' && verse.aya_no === 1 && (idx === 0 || verses[idx - 1]?.sura_no !== verse.sura_no) && (
+                  {navMode === 'page' && isFirstVerse && (idx === 0 || verses[idx - 1]?.sura_no !== verse.sura_no) && (
                     <div className="block text-center my-4 py-2 border-y border-amber-300">
                       <span className="text-lg text-amber-900 font-bold">{verse.sura_name_ar}</span>
                     </div>
                   )}
-                  {/* Bismillah */}
-                  {showBismillah && (
-                    <div className="block text-center mb-4">
-                      <span className="text-lg text-amber-800">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</span>
+                  {/* Bismillah — text extracted from verse 1, never hardcoded */}
+                  {showBismillahBlock && bismillahSplit && (
+                    <div className="block text-center mb-4" dir="rtl">
+                      <span className="text-xl font-arabic text-amber-800">{bismillahSplit.bismillah}</span>
                     </div>
                   )}
                   <span
@@ -555,7 +599,7 @@ export function QuranPage() {
                       isConceptHighlighted && !isHighlighted && 'bg-amber-100 rounded px-1 py-0.5 border-b-2 border-amber-400'
                     )}
                   >
-                    <VerseText text={verse.text_uthmani} sura={verse.sura_no} aya={verse.aya_no} />
+                    <VerseText text={displayText} sura={verse.sura_no} aya={verse.aya_no} />
                   </span>
                   <span className="inline-flex items-center justify-center w-8 h-8 mx-1 text-sm bg-amber-100 text-amber-800 rounded-full border border-amber-300 font-semibold">
                     {toArabicNum(verse.aya_no)}
@@ -567,7 +611,7 @@ export function QuranPage() {
           </div>
 
           {/* Decorative Footer */}
-          <div className="mt-6 pt-4 border-t-2 border-amber-300 flex justify-center gap-4 text-sm text-amber-700">
+          <div className={clsx('mt-6 pt-4 border-t-2 border-amber-300 flex justify-center gap-4 text-sm text-amber-700', language === 'ar' && 'font-arabic')}>
             <span>{language === 'ar' ? 'الصفحة' : 'Page'}: {toArabicNum(firstVerse?.page_no || currentPage)}</span>
             <span>•</span>
             <span>{language === 'ar' ? 'الجزء' : 'Juz'}: {toArabicNum(firstVerse?.juz_no || 1)}</span>
@@ -591,6 +635,13 @@ export function QuranPage() {
               const showSimilar = similarVerseNo === verse.aya_no;
               const showTafsir = tafsirVerseNo === verse.aya_no;
 
+              // Strip Bismillah prefix from verse 1 (surahs 2-114 except 9)
+              const hasBismillahPrefixList = verse.aya_no === 1 && verse.sura_no !== 1 && verse.sura_no !== 9;
+              const listBismillahSplit = hasBismillahPrefixList ? splitBismillah(verse.text_uthmani) : null;
+              const listDisplayText = listBismillahSplit
+                ? listBismillahSplit.verseText
+                : verse.text_uthmani.replace(/^﻿/, '');
+
               return (
                 <div
                   key={verse.id}
@@ -600,6 +651,12 @@ export function QuranPage() {
                     isConceptHighlighted ? 'bg-amber-50 ring-2 ring-amber-300' : 'hover:bg-gray-50'
                   )}
                 >
+                  {/* Bismillah header for verse 1 — text from verse data, never hardcoded */}
+                  {listBismillahSplit && (
+                    <div className="text-center mb-3 py-2 border-y border-amber-200" dir="rtl">
+                      <span className="text-xl font-arabic text-amber-800">{listBismillahSplit.bismillah}</span>
+                    </div>
+                  )}
                   <div className="flex items-start gap-4" dir="rtl">
                     <span
                       ref={isHighlighted ? highlightRef : null}
@@ -613,10 +670,10 @@ export function QuranPage() {
                     </span>
                     <div className="flex-1">
                       <p className="text-xl leading-loose font-arabic text-gray-900 mb-3">
-                        <VerseText text={verse.text_uthmani} sura={verse.sura_no} aya={verse.aya_no} />
+                        <VerseText text={listDisplayText} sura={verse.sura_no} aya={verse.aya_no} />
                       </p>
                       {verse.translations && verse.translations.length > 0 && (
-                        <p className="text-sm text-gray-600 leading-relaxed" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                        <p className={clsx('text-sm text-gray-600 leading-relaxed', language === 'ar' && 'font-arabic')} dir={language === 'ar' ? 'rtl' : 'ltr'}>
                           {verse.translations.find(t => t.language === (language === 'ar' ? 'ar' : 'en'))?.text ||
                            verse.translations[0]?.text}
                         </p>
@@ -629,7 +686,8 @@ export function QuranPage() {
                             'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors',
                             showGrammar
                               ? 'bg-primary-100 text-primary-700 hover:bg-primary-200'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+                            language === 'ar' && 'font-arabic'
                           )}
                         >
                           <Languages className="w-4 h-4" />
@@ -641,7 +699,8 @@ export function QuranPage() {
                             'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors',
                             showSimilar
                               ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+                            language === 'ar' && 'font-arabic'
                           )}
                         >
                           <GitBranch className="w-4 h-4" />
@@ -653,7 +712,8 @@ export function QuranPage() {
                             'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors',
                             showTafsir
                               ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+                            language === 'ar' && 'font-arabic'
                           )}
                         >
                           <BookOpen className="w-4 h-4" />

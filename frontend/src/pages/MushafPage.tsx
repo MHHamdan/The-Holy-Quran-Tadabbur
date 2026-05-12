@@ -404,7 +404,7 @@ const VersePanel = memo(function VersePanel({
           <div className="bg-gray-50 rounded-lg p-4">
             {tafsirLoading ? (
               <div className="flex items-center justify-center py-4 text-gray-500">
-                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                <Loader2 className="w-5 h-5 animate-spin me-2" />
                 {t('tafseer_loading')}
               </div>
             ) : tafsirData?.text ? (
@@ -847,7 +847,7 @@ export function MushafPage() {
 
       // Ayah 1 of surahs that have a Bismillah header: strip it from the flowing text
       const shouldStrip = verse.aya_no === 1 && !SURAHS_WITHOUT_BISMILLAH_HEADER.has(verse.sura_no);
-      let displayText = verse.text_uthmani;
+      let displayText = verse.text_uthmani.replace(/^﻿/, ''); // strip BOM (only 1:1 has it)
       if (shouldStrip) {
         const split = splitBismillah(verse.text_uthmani);
         if (split) displayText = split.verseText;
@@ -910,7 +910,7 @@ export function MushafPage() {
           {/* Sura Title */}
           <div className="text-center">
             {currentSura && (
-              <h1 className="font-arabic text-xl font-bold">
+              <h1 className={clsx('text-xl font-bold', language === 'ar' && 'font-arabic')}>
                 {language === 'ar' ? currentSura.sura_name_ar : currentSura.sura_name_en}
               </h1>
             )}
@@ -964,7 +964,7 @@ export function MushafPage() {
         {showSettings && (
           <div className="bg-emerald-700/50 px-4 py-3 flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-white/80">{t('mushaf_tafsir')}:</label>
+              <label className={clsx('text-sm text-white/80', language === 'ar' && 'font-arabic')}>{t('mushaf_tafsir')}:</label>
               <select
                 value={selectedTafsir}
                 onChange={(e) => setSelectedTafsir(e.target.value)}
@@ -979,7 +979,7 @@ export function MushafPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm text-white/80">{t('mushaf_reciter')}:</label>
+              <label className={clsx('text-sm text-white/80', language === 'ar' && 'font-arabic')}>{t('mushaf_reciter')}:</label>
               <select
                 value={selectedReciter}
                 onChange={(e) => setSelectedReciter(e.target.value)}
@@ -1107,7 +1107,7 @@ export function MushafPage() {
           </div>
 
           {/* Instructions */}
-          <p className="text-center text-sm text-gray-500 mt-4">
+          <p className={clsx('text-center text-sm text-gray-500 mt-4', language === 'ar' && 'font-arabic')}>
             {t('mushaf_click_verse_hint') || 'Click on any verse to view tafseer and listen to recitation'}
           </p>
         </div>
