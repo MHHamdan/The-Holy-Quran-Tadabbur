@@ -220,7 +220,7 @@ export function TherapyPage() {
   ];
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="text-center">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-rose-100 mb-4">
@@ -253,7 +253,7 @@ export function TherapyPage() {
       </div>
 
       {/* Mode tabs */}
-      <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+      <div className={clsx('flex rounded-xl overflow-hidden border border-gray-200 bg-gray-50', isRtl && 'flex-row-reverse')}>
         {tabs.map(tab => (
           <button
             key={tab.key}
@@ -279,9 +279,14 @@ export function TherapyPage() {
           {/* Healing Theme Selector */}
           <div>
             <div className={clsx('flex items-center justify-between mb-3', isRtl && 'flex-row-reverse')}>
-              <h2 className={clsx('font-semibold text-gray-700 text-sm', isRtl && 'font-arabic')}>
-                {t('therapy_themes_title', language)}
-              </h2>
+              <div>
+                <h2 className={clsx('font-semibold text-gray-700 text-sm', isRtl && 'font-arabic')}>
+                  {t('therapy_themes_title', language)}
+                </h2>
+                <p className={clsx('text-xs text-gray-400 mt-0.5', isRtl && 'font-arabic text-right')}>
+                  {t('therapy_themes_subtitle', language)}
+                </p>
+              </div>
               {selectedTheme && (
                 <button
                   onClick={() => { setSelectedTheme(null); setThemeData(null); }}
@@ -370,7 +375,7 @@ export function TherapyPage() {
             <div className="space-y-4">
               <h2 className={clsx('font-semibold text-gray-700 text-sm', isRtl && 'font-arabic')}>
                 {t('therapy_guidance_title', language)}
-                <span className="ml-2 text-xs text-gray-400 font-normal">
+                <span className={clsx('text-xs text-gray-400 font-normal', isRtl ? 'mr-2' : 'ml-2')}>
                   ({activeCards.length} {t('therapy_cards_count', language)})
                 </span>
               </h2>

@@ -9,6 +9,7 @@ interface Practice {
   translation_en: string;
   translation_ar: string;
   count: string;
+  count_ar: string;
   benefit_en: string;
   benefit_ar: string;
 }
@@ -20,6 +21,7 @@ const MORNING_PRACTICES: Practice[] = [
     translation_en: 'We have entered the morning, and the dominion belongs to Allah. All praise is due to Allah. There is no deity but Allah, alone without partner.',
     translation_ar: 'أصبحنا وأصبح الملك لله والحمد لله لا إله إلا الله وحده لا شريك له.',
     count: '1×',
+    count_ar: '١×',
     benefit_en: 'Begins the day with divine sovereignty — a reminder that your day is held in Allah\'s hands.',
     benefit_ar: 'يبدأ اليوم بالسيادة الإلهية — تذكّر أن يومك محمول في يد الله.',
   },
@@ -29,6 +31,7 @@ const MORNING_PRACTICES: Practice[] = [
     translation_en: 'Glory be to Allah and praise be to Him.',
     translation_ar: 'سبحان الله وبحمده.',
     count: '100×',
+    count_ar: '١٠٠×',
     benefit_en: 'The Prophet ﷺ said: "Whoever says this 100 times in the morning, his sins are erased even if they were like the foam of the sea." (Bukhari & Muslim)',
     benefit_ar: 'قال النبي ﷺ: "من قالها مائة مرة حين يصبح حُطّت خطاياه وإن كانت مثل زبد البحر." (البخاري ومسلم)',
   },
@@ -38,6 +41,7 @@ const MORNING_PRACTICES: Practice[] = [
     translation_en: 'O Allah, by You we enter the morning, by You we enter the evening, by You we live, by You we die, and to You is the resurrection.',
     translation_ar: 'اللهم بك أصبحنا وبك أمسينا وبك نحيا وبك نموت وإليك النشور.',
     count: '1×',
+    count_ar: '١×',
     benefit_en: 'Complete surrender of the day to Allah — roots your entire being in divine dependence from the first moment.',
     benefit_ar: 'تسليم كامل لليوم لله — يُجذّر كيانك كله في الاتكال الإلهي منذ اللحظة الأولى.',
   },
@@ -50,6 +54,7 @@ const EVENING_PRACTICES: Practice[] = [
     translation_en: 'We have entered the evening, and the dominion belongs to Allah. All praise is due to Allah.',
     translation_ar: 'أمسينا وأمسى الملك لله والحمد لله.',
     count: '1×',
+    count_ar: '١×',
     benefit_en: 'Closes the day with gratitude and surrender — the evening counterpart to the morning opening.',
     benefit_ar: 'يُختم اليوم بالشكر والاستسلام — المقابل المسائي للافتتاح الصباحي.',
   },
@@ -59,6 +64,7 @@ const EVENING_PRACTICES: Practice[] = [
     translation_en: 'I seek forgiveness from Allah and repent to Him.',
     translation_ar: 'أستغفر الله وأتوب إليه.',
     count: '100×',
+    count_ar: '١٠٠×',
     benefit_en: 'The Prophet ﷺ used to say this 100 times per day. Evening is the time to release the day\'s accumulations and approach the night clean.',
     benefit_ar: 'كان النبي ﷺ يقولها مائة مرة يومياً. المساء هو وقت إطلاق تراكمات اليوم والاقتراب من الليل نقياً.',
   },
@@ -68,6 +74,7 @@ const EVENING_PRACTICES: Practice[] = [
     translation_en: 'In Your name, O Allah, I die and I live.',
     translation_ar: 'باسمك اللهم أموت وأحيا.',
     count: '1× (before sleep)',
+    count_ar: '١× (قبل النوم)',
     benefit_en: 'Said before sleeping. Treats sleep as a minor death and waking as a resurrection — framing every night as a return to Allah.',
     benefit_ar: 'يُقال قبل النوم. يعامل النوم كموتة صغرى واليقظة كبعث — يُؤطّر كل ليلة كعودة إلى الله.',
   },
@@ -80,6 +87,7 @@ const ANYTIME_DHIKR: Practice[] = [
     translation_en: 'There is no deity but Allah alone, with no partner. His is the dominion and His is the praise, and He is over all things powerful.',
     translation_ar: 'لا إله إلا الله وحده لا شريك له له الملك وله الحمد وهو على كل شيء قدير.',
     count: '10×',
+    count_ar: '١٠× (بعد الفجر)',
     benefit_en: 'Said 10 times after Fajr before speaking — equivalent to freeing 4 slaves, 10 good deeds, 10 sins erased, protected from Satan until evening. (Bukhari)',
     benefit_ar: 'يُقال 10 مرات بعد الفجر قبل الكلام — يعادل عتق 4 رقاب، 10 حسنات، 10 سيئات محواة، حماية من الشيطان حتى المساء. (البخاري)',
   },
@@ -89,6 +97,7 @@ const ANYTIME_DHIKR: Practice[] = [
     translation_en: 'Glory be to Allah. Praise be to Allah. There is no deity but Allah. Allah is the Greatest.',
     translation_ar: 'سبحان الله والحمد لله ولا إله إلا الله والله أكبر.',
     count: '33× each (after prayer)',
+    count_ar: '٣٣× لكل منها (بعد الصلاة)',
     benefit_en: 'The Prophet ﷺ called these "the four most beloved phrases to Allah." Said 33 times each after every prayer — fills what remains to 100 with Lā ilāha illallāh.',
     benefit_ar: 'سمّاها النبي ﷺ "أحب الكلام إلى الله الأربع." تُقال 33 مرة لكل منها بعد كل صلاة — ويكمل المئة بـ"لا إله إلا الله".',
   },
@@ -98,6 +107,7 @@ const ANYTIME_DHIKR: Practice[] = [
     translation_en: 'There is no power and no strength except with Allah.',
     translation_ar: 'لا حول ولا قوة إلا بالله.',
     count: 'Frequently',
+    count_ar: 'باستمرار',
     benefit_en: 'Called "a treasure from the treasures of Paradise" by the Prophet ﷺ. Especially powerful when feeling overwhelmed, helpless, or burdened beyond your capacity.',
     benefit_ar: 'سمّاها النبي ﷺ "كنزاً من كنوز الجنة". قوية بشكل خاص حين تشعر بالإرهاق أو العجز أو الثقل فوق طاقتك.',
   },
@@ -118,8 +128,8 @@ export function DailyPracticesPanel() {
             <p dir="rtl" className="font-arabic text-right text-base leading-loose text-gray-900 flex-1">
               {p.arabic}
             </p>
-            <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 mt-1">
-              {p.count}
+            <span className={clsx('text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 mt-1', isRtl && 'font-arabic')}>
+              {isRtl ? p.count_ar : p.count}
             </span>
           </div>
           <p dir="ltr" className="text-xs text-gray-400 italic">{p.transliteration}</p>

@@ -1370,7 +1370,7 @@ export const themeTranslations: Record<string, { ar: string; en: string }> = {
   nav_therapy: { ar: 'رعاية القلب', en: 'Heart Care' },
   therapy_title: { ar: 'رعاية القلب', en: 'Heart Care' },
   therapy_subtitle: {
-    ar: 'دعم روحي من القرآن الكريم لكل حالة يمر بها القلب',
+    ar: 'دعم روحاني قرآني لكل حالة يمر بها القلب — تأمّل، اسأل، واشفَ',
     en: 'Quranic spiritual support for every state of the heart',
   },
   therapy_themes_title: { ar: 'مواضيع الشفاء', en: 'Healing Themes' },
@@ -1430,8 +1430,8 @@ export const themeTranslations: Record<string, { ar: string; en: string }> = {
   therapy_duas_tab:     { ar: 'أدعية نبوية', en: "Prophetic Du'as" },
   therapy_daily_tab:    { ar: 'ممارسات يومية', en: 'Daily Practices' },
   therapy_intro_title:  { ar: 'القرآن شفاء للقلوب', en: 'The Quran — Healing for the Heart' },
-  therapy_intro_verse:  { ar: 'القرآن شفاء ورحمة للمؤمنين — الإسراء ١٧:٨٢', en: '"We send down of the Quran what is a healing and a mercy to those who believe" — Al-Isra 17:82' },
-  therapy_intro_ref:    { ar: 'الإسراء ١٧:٨٢', en: 'Al-Isra 17:82' },
+  therapy_intro_verse:  { ar: 'القرآن شفاءٌ ورحمةٌ للمؤمنين', en: '"We send down of the Quran what is a healing and a mercy to those who believe"' },
+  therapy_intro_ref:    { ar: 'سورة الإسراء، الآية ٨٢', en: 'Al-Isra 17:82' },
   // Chat UI
   chat_intro: { ar: 'شاركني ما تشعر به وسأرشدك بالقرآن الكريم.', en: 'Share what you are feeling and I will guide you with the Quran.' },
   chat_placeholder: { ar: 'اكتب رسالتك هنا...', en: 'Type your message here…' },

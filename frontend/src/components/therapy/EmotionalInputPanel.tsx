@@ -36,8 +36,8 @@ export function EmotionalInputPanel({ onSubmit, loading }: EmotionalInputPanelPr
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-rose-100 p-6">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="bg-white rounded-2xl shadow-sm border border-rose-100 p-6" dir={isRtl ? 'rtl' : 'ltr'}>
+      <div className={clsx('flex items-center gap-2 mb-4', isRtl && 'flex-row-reverse')}>
         <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center">
           <Heart className="w-4 h-4 text-rose-500" />
         </div>
@@ -85,7 +85,7 @@ export function EmotionalInputPanel({ onSubmit, loading }: EmotionalInputPanelPr
         <p className={clsx('text-xs text-gray-500 mb-2', isRtl && 'font-arabic text-right')}>
           {t('therapy_examples', language)}
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className={clsx('flex flex-wrap gap-2', isRtl && 'flex-row-reverse')}>
           {EXAMPLE_PROMPTS.map((prompt, i) => (
             <button
               key={i}
