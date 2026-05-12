@@ -375,7 +375,7 @@ export function TherapyPage() {
             <div className="space-y-4">
               <h2 className={clsx('font-semibold text-gray-700 text-sm', isRtl && 'font-arabic')}>
                 {t('therapy_guidance_title', language)}
-                <span className={clsx('text-xs text-gray-400 font-normal', isRtl ? 'mr-2' : 'ml-2')}>
+                <span className="text-xs text-gray-400 font-normal ms-2">
                   ({activeCards.length} {t('therapy_cards_count', language)})
                 </span>
               </h2>
@@ -463,7 +463,7 @@ export function TherapyPage() {
               <div>
                 <p className={clsx('text-xs font-medium text-sky-700 mb-0.5', isRtl && 'font-arabic')}>
                   {t('therapy_suggested_theme', language)}
-                  <span className={clsx('px-1.5 py-0.5 bg-sky-100 rounded text-sky-600', isRtl ? 'mr-1.5 font-arabic' : 'ml-1.5 capitalize')}>
+                  <span className={clsx('px-1.5 py-0.5 bg-sky-100 rounded text-sky-600 ms-1.5', isRtl ? 'font-arabic' : 'capitalize')}>
                     {isRtl
                       ? (themes.find(th => th.key === guidance.suggested_theme)?.ar ?? guidance.suggested_theme)
                       : (themes.find(th => th.key === guidance.suggested_theme)?.en ?? guidance.suggested_theme)}

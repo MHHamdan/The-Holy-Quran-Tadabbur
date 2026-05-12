@@ -285,7 +285,7 @@ export function StoryAtlasDetailPage() {
               )}
               {useKG && (
                 <span className="text-xs bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full">
-                  <Database className="w-3 h-3 inline mr-1" />
+                  <Database className="w-3 h-3 inline me-1" />
                   KG
                 </span>
               )}

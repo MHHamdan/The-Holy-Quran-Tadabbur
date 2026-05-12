@@ -251,7 +251,7 @@ function ClusterCard({ cluster, language }: { cluster: StoryCluster; language: '
 
       <div className="flex items-center text-primary-600 text-sm font-medium">
         {t('atlas_explore', language)}
-        <ArrowRight className={`w-4 h-4 ${isArabic ? 'mr-1 group-hover:-translate-x-1' : 'ml-1 group-hover:translate-x-1'} transition-transform`} />
+        <ArrowRight className={clsx('w-4 h-4 ms-1 transition-transform', isArabic ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1')} />
       </div>
     </Link>
   );

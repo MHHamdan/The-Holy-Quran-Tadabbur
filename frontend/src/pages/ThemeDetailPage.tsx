@@ -301,13 +301,13 @@ export function ThemeDetailPage() {
   const colorClass = categoryColors[theme.category] || 'bg-gray-100 text-gray-700 border-gray-200';
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Back Link */}
       <Link
         to="/themes"
         className="inline-flex items-center text-gray-600 hover:text-primary-600 mb-6"
       >
-        <ArrowLeft className={`w-4 h-4 ${language === 'ar' ? 'rotate-180 mr-2' : 'mr-2'}`} />
+        <ArrowLeft className={clsx('w-4 h-4 me-2', language === 'ar' && 'rotate-180')} />
         {language === 'ar' ? 'العودة للمحاور' : 'Back to Themes'}
       </Link>
 
@@ -588,7 +588,7 @@ export function ThemeDetailPage() {
               : 'border-transparent text-gray-600 hover:text-gray-900'
           )}
         >
-          <Layers className="w-4 h-4 inline-block mr-1" />
+          <Layers className="w-4 h-4 inline-block me-1" />
           {language === 'ar' ? 'المقاطع' : 'Segments'} ({segments.length})
         </button>
         <button
@@ -600,7 +600,7 @@ export function ThemeDetailPage() {
               : 'border-transparent text-gray-600 hover:text-gray-900'
           )}
         >
-          <Tag className="w-4 h-4 inline-block mr-1" />
+          <Tag className="w-4 h-4 inline-block me-1" />
           {language === 'ar' ? 'الجزاء والعاقبة' : 'Consequences'} ({consequences.length})
         </button>
         <button
@@ -612,7 +612,7 @@ export function ThemeDetailPage() {
               : 'border-transparent text-gray-600 hover:text-gray-900'
           )}
         >
-          <BookOpen className="w-4 h-4 inline-block mr-1" />
+          <BookOpen className="w-4 h-4 inline-block me-1" />
           {language === 'ar' ? 'محاور متصلة' : 'Related'} ({relatedThemes.length})
         </button>
         <button
@@ -624,7 +624,7 @@ export function ThemeDetailPage() {
               : 'border-transparent text-gray-600 hover:text-gray-900'
           )}
         >
-          <BookText className="w-4 h-4 inline-block mr-1" />
+          <BookText className="w-4 h-4 inline-block me-1" />
           {t('theme_tafsir_tab', language)}
         </button>
         <button
@@ -636,7 +636,7 @@ export function ThemeDetailPage() {
               : 'border-transparent text-gray-600 hover:text-gray-900'
           )}
         >
-          <ScrollText className="w-4 h-4 inline-block mr-1" />
+          <ScrollText className="w-4 h-4 inline-block me-1" />
           {t('theme_stories_tab', language)}
           {storiesData && ` (${storiesData.total})`}
         </button>
@@ -1211,7 +1211,7 @@ function ThematicTafsirTab({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16 text-zinc-400">
-        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+        <Loader2 className="h-6 w-6 animate-spin me-2" />
         {t('theme_tafsir_loading', language)}
       </div>
     );
@@ -1253,7 +1253,7 @@ function ThematicTafsirTab({
           />
           {t('theme_tafsir_filter_verified', language)}
         </label>
-        <span className="text-xs text-zinc-400 ml-auto">
+        <span className="text-xs text-zinc-400 ms-auto">
           {data.total_segments} {t('theme_tafsir_tab', language)}
         </span>
       </div>
@@ -1294,7 +1294,7 @@ function RelatedStoriesTab({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16 text-zinc-400">
-        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+        <Loader2 className="h-6 w-6 animate-spin me-2" />
         {t('loading', language)}
       </div>
     );
