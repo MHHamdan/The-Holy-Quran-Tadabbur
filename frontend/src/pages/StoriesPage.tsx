@@ -156,7 +156,7 @@ export function StoriesPage() {
         <p className={clsx('text-gray-600', isRtl && 'font-arabic')}>
           {t('stories_subtitle', language)}
           {!loading && (
-            <span className={clsx('text-gray-400', isRtl ? 'mr-2' : 'ml-2')}>
+            <span className="text-gray-400 ms-2">
               ({allStories.length} {t('stories_count', language)})
             </span>
           )}
@@ -419,7 +419,7 @@ function StoryCard({ story, language, isRich }: { story: Story; language: 'ar' |
         )}
         <div className={clsx('flex items-center text-primary-600 text-sm font-medium', isRtl && 'flex-row-reverse font-arabic')}>
           {isRtl ? 'عرض القصة' : 'View Story'}
-          <ArrowRight className={`w-4 h-4 ${isRtl ? 'mr-1 group-hover:-translate-x-1 rotate-180' : 'ml-1 group-hover:translate-x-1'} transition-transform`} />
+          <ArrowRight className={clsx('w-4 h-4 ms-1 transition-transform', isRtl ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1')} />
         </div>
       </div>
     </Link>

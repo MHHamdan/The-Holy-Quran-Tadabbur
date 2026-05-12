@@ -1780,7 +1780,7 @@ function ConceptEvolutionPanel({
               <div>
                 <span className="text-xl font-arabic font-bold text-indigo-700">{data.concept}</span>
                 {data.concept_normalized !== data.concept && (
-                  <span className="text-sm text-gray-500 mr-2">({data.concept_normalized})</span>
+                  <span className="text-sm text-gray-500 me-2">({data.concept_normalized})</span>
                 )}
               </div>
               <span className="text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">
