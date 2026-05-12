@@ -19,6 +19,10 @@ data/
 # But INCLUDE streamlit_data for cloud deployment
 !streamlit_data/
 
+# INCLUDE frontend/src/data (TypeScript source, not raw data)
+!frontend/src/data/
+!frontend/src/data/**
+
 # OS
 .DS_Store
 # Node (frontend)
