@@ -506,7 +506,7 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
 
         {/* Feedback buttons */}
         <div className="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-end">
-          <span className="text-xs text-gray-400 mr-1 sm:mr-2">
+          <span className="text-xs text-gray-400 me-1 sm:me-2">
             {language === 'ar' ? 'مفيدة؟' : 'Helpful?'}
           </span>
           <div className="flex items-center gap-1">

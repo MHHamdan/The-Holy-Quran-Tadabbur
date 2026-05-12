@@ -258,7 +258,7 @@ function SegmentCard({
             {segment.sourceIds.join(', ')}
           </span>
           {segment.sunniReview.disagreementNotes.length > 0 && (
-            <span className="text-xs text-orange-600 ml-2">
+            <span className="text-xs text-orange-600 ms-2">
               ⚠ {language === 'ar' ? 'خلاف علمي' : 'Scholarly disagreement noted'}
             </span>
           )}
