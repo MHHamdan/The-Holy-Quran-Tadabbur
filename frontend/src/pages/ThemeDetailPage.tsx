@@ -307,7 +307,7 @@ export function ThemeDetailPage() {
         to="/themes"
         className="inline-flex items-center text-gray-600 hover:text-primary-600 mb-6"
       >
-        <ArrowLeft className={`w-4 h-4 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+        <ArrowLeft className={`w-4 h-4 ${language === 'ar' ? 'rotate-180 mr-2' : 'mr-2'}`} />
         {language === 'ar' ? 'العودة للمحاور' : 'Back to Themes'}
       </Link>
 

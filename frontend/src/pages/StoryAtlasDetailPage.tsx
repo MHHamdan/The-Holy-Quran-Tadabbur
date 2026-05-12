@@ -235,14 +235,14 @@ export function StoryAtlasDetailPage() {
   const places = cluster?.places || [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Back Link and KG Toggle */}
       <div className="flex items-center justify-between mb-6">
         <Link
           to="/story-atlas"
           className="inline-flex items-center gap-2 text-gray-600 hover:text-primary-600"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className={clsx('w-4 h-4', isArabic && 'rotate-180')} />
           {isArabic ? 'العودة للأطلس' : 'Back to Atlas'}
         </Link>
 
@@ -272,7 +272,7 @@ export function StoryAtlasDetailPage() {
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2 flex-wrap">
-              <h1 className="text-2xl font-bold">{title}</h1>
+              <h1 className={clsx('text-2xl font-bold', isArabic && 'font-arabic')}>{title}</h1>
               {category && (
                 <span className="text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded">
                   {translateCategory(category, language)}
