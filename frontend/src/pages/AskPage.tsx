@@ -527,18 +527,18 @@ export function AskPage() {
                     ))}
                   </div>
                   {/* Keyboard hint - hidden on mobile (touch doesn't use keyboard nav) */}
-                  <div className="hidden sm:flex px-3 py-2 bg-gray-50 border-t border-gray-100 items-center gap-4 text-xs text-gray-400">
+                  <div className={clsx('hidden sm:flex px-3 py-2 bg-gray-50 border-t border-gray-100 items-center gap-4 text-xs text-gray-400', language === 'ar' && 'flex-row-reverse')}>
                     <span className="flex items-center gap-1">
                       <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-gray-600">↑↓</kbd>
-                      {language === 'ar' ? 'للتنقل' : 'navigate'}
+                      <span className={clsx(language === 'ar' && 'font-arabic')}>{language === 'ar' ? 'للتنقل' : 'navigate'}</span>
                     </span>
                     <span className="flex items-center gap-1">
                       <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-gray-600">↵</kbd>
-                      {language === 'ar' ? 'للاختيار' : 'select'}
+                      <span className={clsx(language === 'ar' && 'font-arabic')}>{language === 'ar' ? 'للاختيار' : 'select'}</span>
                     </span>
                     <span className="flex items-center gap-1">
                       <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-gray-600">Esc</kbd>
-                      {language === 'ar' ? 'للإغلاق' : 'close'}
+                      <span className={clsx(language === 'ar' && 'font-arabic')}>{language === 'ar' ? 'للإغلاق' : 'close'}</span>
                     </span>
                   </div>
                 </div>
@@ -565,12 +565,12 @@ export function AskPage() {
               ) : (
                 <Send className="w-5 h-5" />
               )}
-              <span className="hidden sm:inline">{t('ask_button', language)}</span>
+              <span className={clsx('hidden sm:inline', language === 'ar' && 'font-arabic')}>{t('ask_button', language)}</span>
             </button>
           </div>
 
           {selectedSources.length === 0 && (
-            <p className="text-sm text-red-500 mt-2 flex items-center gap-2">
+            <p className={clsx('text-sm text-red-500 mt-2 flex items-center gap-2', language === 'ar' && 'font-arabic')}>
               {language === 'ar' ? 'يرجى اختيار مصدر تفسير واحد على الأقل' : 'Please select at least one tafseer source'}
             </p>
           )}
@@ -799,10 +799,10 @@ const EmptyState = memo(function EmptyState({
             <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
           </div>
           <div className="min-w-0">
-            <h4 className="font-semibold text-gray-900 mb-0.5 sm:mb-1 text-sm sm:text-base">
+            <h4 className={clsx('font-semibold text-gray-900 mb-0.5 sm:mb-1 text-sm sm:text-base', language === 'ar' && 'font-arabic')}>
               {language === 'ar' ? 'نصيحة سريعة' : 'Quick Tip'}
             </h4>
-            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+            <p className={clsx('text-xs sm:text-sm text-gray-600 leading-relaxed', language === 'ar' && 'font-arabic')}>
               {language === 'ar'
                 ? 'جرب أسئلة مثل "ما معنى آية الكرسي؟" للحصول على إجابات سريعة ودقيقة من التفاسير المعتمدة'
                 : 'Try questions like "What is Ayat al-Kursi?" for fast, accurate answers from trusted tafsir sources'}

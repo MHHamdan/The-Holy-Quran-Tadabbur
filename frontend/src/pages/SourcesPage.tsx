@@ -333,13 +333,14 @@ function SourceCard({ source, language, isExpanded, onToggle, isAdminMode, isTog
       <div className="flex items-start justify-between gap-4">
         <button
           onClick={onToggle}
-          className="flex-1 text-left flex items-start justify-between gap-4"
+          className="flex-1 text-start flex items-start justify-between gap-4"
         >
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <h3 className={clsx(
-                "text-lg font-semibold",
-                isEnabled ? "text-gray-900" : "text-gray-500"
+                'text-lg font-semibold',
+                isEnabled ? 'text-gray-900' : 'text-gray-500',
+                language === 'ar' && 'font-arabic'
               )}>{name}</h3>
               <SourceBadge reliabilityLevel={scoreToReliability(source.reliability_score)} compact />
               {!isEnabled && (
