@@ -124,7 +124,7 @@ export const ButtonContent = memo(function ButtonContent({
   if (loading) {
     return (
       <>
-        <LoadingSpinner size="sm" variant="white" className="mr-2" />
+        <LoadingSpinner size="sm" variant="white" className="me-2" />
         {loadingText || children}
       </>
     );

@@ -251,7 +251,7 @@ function NodeDetailPanel({ node, language, onClose }: NodeDetailPanelProps) {
                     title={needsTranslation ? 'ترجمة عربية ناقصة' : undefined}
                   >
                     {translatedTag}
-                    {needsTranslation && <span className="text-amber-500 mr-1">*</span>}
+                    {needsTranslation && <span className="text-amber-500 me-1">*</span>}
                   </span>
                 );
               })}
