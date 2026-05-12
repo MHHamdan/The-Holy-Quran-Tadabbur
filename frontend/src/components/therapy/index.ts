@@ -4,3 +4,7 @@ export { HealingThemeSelector } from './HealingThemeSelector';
 export { ReflectionLog } from './ReflectionLog';
 export { TherapyChat } from './TherapyChat';
 export { InsightsDashboard } from './InsightsDashboard';
+export { RuqyahGuide } from './RuqyahGuide';
+export { PropheticDuasPanel } from './PropheticDuasPanel';
+export { DailyPracticesPanel } from './DailyPracticesPanel';
+export { TopicKnowledgePanel } from './TopicKnowledgePanel';

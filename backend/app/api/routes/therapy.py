@@ -39,6 +39,7 @@ from app.services.spiritual_guidance_service import (
     get_theme_cards,
 )
 from app.services.tone_adapter import get_tone_profile, tone_directive as build_tone_directive
+from app.services.topic_knowledge_service import get_topic_resources, get_topics_for_emotion
 
 
 def _classify_with_confidence(message: str) -> tuple[str, float]:
@@ -340,6 +341,39 @@ class ReflectionsRequest(BaseModel):
 class ReflectionsResponse(BaseModel):
     ok: bool = True
     reflections: List[ReflectionRecord] = []
+
+
+# ---------------------------------------------------------------------------
+# Topic Knowledge schemas (Phase T-Adaptive)
+# ---------------------------------------------------------------------------
+
+class TopicHadithItem(BaseModel):
+    arabic: str
+    transliteration: str
+    translation_en: str
+    translation_ar: str
+    source_en: str
+    source_ar: str
+
+
+class TopicWisePhraseItem(BaseModel):
+    text_en: str
+    text_ar: str
+    scholar_en: str
+    scholar_ar: str
+    source_en: str
+    source_ar: str
+
+
+class TopicResourcesResponse(BaseModel):
+    ok: bool = True
+    topic_key: str
+    topic_en: str
+    topic_ar: str
+    intro_en: str
+    intro_ar: str
+    hadith: List[TopicHadithItem]
+    wise_phrases: List[TopicWisePhraseItem]
 
 
 # ---------------------------------------------------------------------------
@@ -1529,3 +1563,42 @@ async def get_reflections(
         )
 
     return ReflectionsResponse(reflections=records)
+
+
+# ---------------------------------------------------------------------------
+# Phase T-Adaptive: Topic Knowledge (hadith + wise phrases by topic/emotion)
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/topic/{topic_key}",
+    response_model=TopicResourcesResponse,
+    summary="Get hadith and wise phrases for a spiritual topic",
+)
+async def get_topic(
+    topic_key: str = Path(..., description="Topic key, e.g. 'patience', 'hope', 'gratitude'"),
+) -> TopicResourcesResponse:
+    """
+    Return authenticated hadith and classical scholar wisdom phrases for a
+    given spiritual topic.  The topic_key may be a direct topic name or an
+    emotion — if the emotion maps to multiple topics the primary topic is used.
+    """
+    block = get_topic_resources(topic_key)
+    if block is None:
+        # Try resolving via emotion → topic mapping
+        mapped = get_topics_for_emotion(topic_key)
+        if mapped:
+            block = get_topic_resources(mapped[0])
+    if block is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No topic resources found for '{topic_key}'.",
+        )
+    return TopicResourcesResponse(
+        topic_key=block["key"],
+        topic_en=block["topic_en"],
+        topic_ar=block["topic_ar"],
+        intro_en=block["intro_en"],
+        intro_ar=block["intro_ar"],
+        hadith=[TopicHadithItem(**h) for h in block["hadith"]],
+        wise_phrases=[TopicWisePhraseItem(**w) for w in block["wise_phrases"]],
+    )

@@ -234,6 +234,38 @@ HEALING_THEMES: Dict[str, Dict[str, Any]] = {
         "icon": "zap",
         "color": "violet",
     },
+    "ruqyah": {
+        "ar": "رقية شرعية",
+        "en": "Quranic Healing",
+        "desc_en": "Healing through authentic Quranic recitations — as taught by the Prophet ﷺ",
+        "desc_ar": "الشفاء بتلاوة القرآن الكريم — كما علّمنا النبي ﷺ",
+        "icon": "book-open",
+        "color": "emerald",
+    },
+    "tawbah": {
+        "ar": "توبة واستغفار",
+        "en": "Repentance & Renewal",
+        "desc_en": "Turning back to Allah with sincere repentance — the gateway to inner peace",
+        "desc_ar": "العودة إلى الله بتوبة صادقة — بوابة السلام الداخلي",
+        "icon": "refresh-cw",
+        "color": "lime",
+    },
+    "dhikr": {
+        "ar": "ذكر ودعاء",
+        "en": "Remembrance & Supplication",
+        "desc_en": "Daily dhikr and du'a as spiritual nourishment and emotional healing",
+        "desc_ar": "الذكر والدعاء اليومي غذاءً روحياً وشفاءً عاطفياً",
+        "icon": "mic",
+        "color": "cyan",
+    },
+    "contentment": {
+        "ar": "قناعة ورضا",
+        "en": "Contentment & Acceptance",
+        "desc_en": "Finding peace through rida (acceptance of Allah's decree) and qana'a (spiritual contentment)",
+        "desc_ar": "إيجاد السلام من خلال الرضا بقضاء الله والقناعة الروحية",
+        "icon": "feather",
+        "color": "sky",
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -587,24 +619,163 @@ _VERSE_GUIDANCE: Dict[str, List[Dict[str, Any]]] = {
             "dua_en": "O Allah, I come to You as I am. Let Your remembrance be the rest my heart cannot find anywhere else.",
             "dua_ar": "اللهم أقبل إليك كما أنا. اجعل ذكرك الراحة التي لا يجدها قلبي في أي مكان آخر.",
         },
+        {
+            "surah": 10, "ayah_start": 57, "theme": "ruqyah",
+            "lesson_en": "This verse is the Quran's own declaration of its healing power — a 'healing for what is in the breasts (chests).' The Arabic word 'shifa'' (شِفَاء) refers to complete removal of illness. Scholars note this healing is both spiritual (diseases of the heart like doubt, grief, and fear) and physical when approached with sincere faith.",
+            "lesson_ar": "هذه الآية هي إعلان القرآن عن قدرته الشافية — 'شفاء لما في الصدور'. كلمة 'شفاء' العربية تشير إلى الإزالة الكاملة للمرض. يرى العلماء أن هذا الشفاء روحي (أمراض القلب كالشك والحزن والخوف) وجسدي أيضاً بصدق الإيمان.",
+            "reflection_en": "What 'illness of the heart' — doubt, fear, grief, anger — are you bringing to the Quran to be healed today?",
+            "reflection_ar": "ما 'مرض القلب' — شك، خوف، حزن، غضب — الذي تحضره إلى القرآن لشفائه اليوم؟",
+            "dua_en": "O Allah, make the Quran the spring of my heart, the light of my chest, a departure for my sorrow, and a release for my anxiety.",
+            "dua_ar": "اللهم اجعل القرآن ربيع قلبي ونور صدري وجلاء حزني وذهاب همي وغمي.",
+        },
+    ],
+    # -----------------------------------------------------------------------
+    # Additional verses for new Ruqyah, Tawbah, Dhikr, and Contentment themes.
+    # These entries are tagged with the new theme keys so get_theme_cards()
+    # can surface them when a user explores those themes directly.
+    # -----------------------------------------------------------------------
+    # Repurpose anxiety entries for ruqyah exploration
+    "_ruqyah_extra": [
+        {
+            "surah": 17, "ayah_start": 82, "theme": "ruqyah",
+            "lesson_en": "Allah describes the Quran itself as 'a healing and a mercy for the believers.' Ibn Qayyim al-Jawziyyah taught that the Quran heals both physical and spiritual ailments — when the heart of the reciter has sincere faith and reliance on Allah. The key is to recite with presence, reflection (tadabbur), and belief in its healing power.",
+            "lesson_ar": "يصف الله القرآن بأنه 'شفاء ورحمة للمؤمنين'. علّم ابن قيم الجوزية أن القرآن يشفي الأمراض الجسدية والروحية — حين يتمتع قلب القارئ بالإيمان الصادق والتوكل على الله. المفتاح هو التلاوة بحضور وتدبر وإيمان بقدرة الشفاء.",
+            "reflection_en": "When you recite the Quran, do you experience it as healing? What would it mean to approach each verse as medicine for your heart?",
+            "reflection_ar": "حين تتلو القرآن، هل تختبره كشفاء؟ ماذا سيعني أن تتناول كل آية كدواء لقلبك؟",
+            "dua_en": "O Allah, make the Quran the spring of my heart, the light of my chest, the departure of my grief, and the release of my anxiety, as Your Prophet ﷺ taught us to ask.",
+            "dua_ar": "اللهم اجعل القرآن ربيع قلبي ونور صدري وجلاء حزني وذهاب همي كما علّمنا نبيّك ﷺ أن نسأل.",
+        },
+        {
+            "surah": 2, "ayah_start": 255, "theme": "ruqyah",
+            "lesson_en": "Ayat al-Kursi — the Throne Verse — is the greatest verse in the Quran (confirmed by hadith in Sahih Muslim). The Prophet ﷺ taught: 'Whoever recites Ayat al-Kursi after every obligatory prayer, nothing stands between him and entering Paradise except death.' Reciting it before sleep causes an angel to guard you all night and prevents Satan from approaching you (Bukhari). Its healing power comes from its declaration of Allah's absolute sovereignty over all creation.",
+            "lesson_ar": "آية الكرسي هي أعظم آية في القرآن (كما ثبت في حديث صحيح مسلم). علّم النبي ﷺ: 'من قرأ آية الكرسي دبر كل صلاة مكتوبة لم يحل بينه وبين دخول الجنة إلا الموت.' قراءتها قبل النوم تجعل ملاكاً يحرسك طوال الليل ويمنع الشيطان من الاقتراب (البخاري). قوتها الشافية تأتي من إعلانها السيادة المطلقة لله على جميع الخلق.",
+            "reflection_en": "Have you made Ayat al-Kursi a daily habit? Morning and night, it is one of the most powerful spiritual protections and heart-strengthening practices in the Sunnah.",
+            "reflection_ar": "هل جعلت آية الكرسي عادة يومية؟ صباحاً ومساءً، هي من أقوى الحمايات الروحية وممارسات تقوية القلب في السنة.",
+            "dua_en": "O Allah, You are Al-Hayy (the Ever-Living) and Al-Qayyum (the Self-Sustaining). There is no deity but You. I seek Your protection through the greatest verse of Your Book.",
+            "dua_ar": "اللهم أنت الحي القيوم لا إله إلا أنت. أطلب حمايتك من خلال أعظم آية في كتابك.",
+        },
+        {
+            "surah": 2, "ayah_start": 286, "theme": "ruqyah",
+            "lesson_en": "This verse — one of the last two verses of Surah Al-Baqarah — contains a built-in du'a: 'Our Lord, do not burden us beyond what we can bear.' The Prophet ﷺ said these verses were given to him as a special gift on the Night of Isra, and 'whoever recites the last two verses of Surah al-Baqarah at night, they will be sufficient for him' (Bukhari). Scholars interpret 'sufficient' to mean sufficient protection from harm, from Satan, and as reward.",
+            "lesson_ar": "تحتوي هذه الآية — إحدى آخر آيتين في سورة البقرة — على دعاء متضمّن: 'ربنا لا تحملنا ما لا طاقة لنا به.' قال النبي ﷺ إن هاتين الآيتين أُعطيتا له هدية في ليلة الإسراء، و'من قرأ الآيتين الأخيرتين من سورة البقرة في ليلة كفتاه' (البخاري). يفسر العلماء 'كفتاه' بأنه يكفيه حمايةً من الأذى ومن الشيطان وثواباً.",
+            "reflection_en": "Do you recite the last two verses of Surah Al-Baqarah before sleep? This is among the most authenticated nighttime protections in the Sunnah.",
+            "reflection_ar": "هل تتلو آخر آيتين من سورة البقرة قبل النوم؟ هذا من أكثر أعمال الحماية الليلية ثبوتاً في السنة.",
+            "dua_en": "Our Lord, do not burden us beyond what we can bear. Pardon us, forgive us, and have mercy on us. You are our Protector — so grant us victory over the disbelieving people.",
+            "dua_ar": "ربنا لا تحملنا ما لا طاقة لنا به واعف عنا واغفر لنا وارحمنا أنت مولانا فانصرنا على القوم الكافرين.",
+        },
+    ],
+    "_tawbah_extra": [
+        {
+            "surah": 2, "ayah_start": 222, "theme": "tawbah",
+            "lesson_en": "Allah loves those who repent. The Arabic verb 'tawwab' (توّاب) is in the intensive form — meaning Allah turns again and again in forgiveness to those who turn again and again to Him. Tawbah is not a one-time act; it is a continuous relationship of returning. No matter how many times you have strayed, Allah's love for those who repent is constant and intense.",
+            "lesson_ar": "الله يحب التوابين. الفعل 'توّاب' عربياً يأتي على صيغة المبالغة — يعني أن الله يتوب مراراً وتكراراً على من يعودون إليه مراراً وتكراراً. التوبة ليست فعلاً واحداً؛ بل هي علاقة مستمرة من العودة. مهما ابتعدت، محبة الله للتوابين ثابتة وعميقة.",
+            "reflection_en": "Tawbah means 'to return.' What would it mean for you to 'return' to Allah today — not as a one-time act, but as a daily orientation of the heart?",
+            "reflection_ar": "التوبة تعني 'العودة'. ماذا ستعني 'العودة' إلى الله اليوم — ليس فعلاً واحداً بل توجهاً يومياً للقلب؟",
+            "dua_en": "O Allah, You love those who turn back to You repeatedly. I am returning to You now. Receive my tawbah and envelope me in Your love.",
+            "dua_ar": "اللهم أنت تحب التوابين. أنا أعود إليك الآن. تقبّل توبتي وأحطني بمحبتك.",
+        },
+        {
+            "surah": 25, "ayah_start": 70, "theme": "tawbah",
+            "lesson_en": "This verse promises something extraordinary: that for those who repent sincerely, Allah does not just forgive — He actively converts their bad deeds into good deeds. Ibn Kathir explained this means Allah transforms the very record of evil into a record of good through His mercy. This is the transformative power of sincere tawbah.",
+            "lesson_ar": "تعد هذه الآية بشيء استثنائي: أن من يتوب توبةً صادقة، الله لا يغفر فقط — بل يُبدّل سيئاته حسنات فعلاً. وضّح ابن كثير أن هذا يعني أن الله يحوّل سجل الشر إلى سجل خير من خلال رحمته. هذه هي القوة التحويلية للتوبة الصادقة.",
+            "reflection_en": "If Allah can literally transform your past wrongs into good deeds through sincere repentance, what does that mean for how you see your history?",
+            "reflection_ar": "إذا كان الله قادراً على تحويل ماضيك من شر إلى حسنات بتوبة صادقة، فماذا يعني ذلك لنظرتك إلى تاريخك؟",
+            "dua_en": "O Allah, transform my regret into resolve, and my past mistakes into the foundation of a better future. You are Al-Tawwab, the Ever-Accepting of repentance.",
+            "dua_ar": "اللهم حوّل ندمي إلى عزم وأخطاء ماضيّ إلى أساس لمستقبل أفضل. أنت التواب.",
+        },
+        {
+            "surah": 110, "ayah_start": 3, "theme": "tawbah",
+            "lesson_en": "This final revelation to the Prophet ﷺ came near the end of his life and contains the essence of Islamic renewal: glorify, praise, and seek forgiveness. The Prophet ﷺ, despite having all his sins forgiven, still increased in istighfar after this verse. It teaches that seeking forgiveness is not just for sinners — it is the highest form of worship and the most purifying act for any soul.",
+            "lesson_ar": "نزل هذا الوحي الأخير على النبي ﷺ قرب نهاية حياته ويحمل جوهر التجديد الإسلامي: سبّح واحمد واستغفر. النبي ﷺ رغم مغفرة ذنوبه كلها، ازداد في الاستغفار بعد هذه الآية. هذا يعلّمنا أن طلب المغفرة ليس فقط للمذنبين — بل هو أرقى أشكال العبادة وأطهر فعل لأي روح.",
+            "reflection_en": "The Prophet ﷺ made istighfar 100 times per day — not out of sin-consciousness but as a form of love and closeness to Allah. How might you integrate this practice?",
+            "reflection_ar": "كان النبي ﷺ يستغفر 100 مرة يومياً — ليس بسبب وعي بالذنب بل كشكل من أشكال الحب والقرب من الله. كيف يمكنك تضمين هذه الممارسة في حياتك؟",
+            "dua_en": "O Allah, I glorify You with praise. I turn to You seeking Your forgiveness. You are Al-Ghafoor (the Truly Forgiving) Al-Wadood (the Most Loving) Al-Tawwab (the Ever-Accepting of repentance).",
+            "dua_ar": "اللهم سبحانك بحمدك. أتوجه إليك طالباً مغفرتك. أنت الغفور الودود التواب.",
+        },
+    ],
+    "_dhikr_extra": [
+        {
+            "surah": 33, "ayah_start": 41, "theme": "dhikr",
+            "lesson_en": "Allah directly commands 'abundant remembrance' (dhikran kathira — ذِكْراً كَثِيرًا). The word 'kathira' means much, frequent, plentiful. This is not a gentle suggestion — it is a divine directive. Ibn Qayyim al-Jawziyyah wrote that the heart is revived by dhikr the way a dead land is revived by rain. Daily, systematic dhikr is preventive medicine for the soul.",
+            "lesson_ar": "يأمر الله مباشرةً بالذكر الكثير (ذكراً كثيراً). كلمة 'كثيراً' تعني وفيراً متكرراً غزيراً. هذا ليس اقتراحاً لطيفاً — بل توجيه إلهي. كتب ابن قيم الجوزية أن القلب يُحيا بالذكر كما تُحيا الأرض الميتة بالمطر. الذكر اليومي المنتظم دواء وقائي للروح.",
+            "reflection_en": "Ibn Qayyim listed over 70 benefits of dhikr for the heart and soul. What dhikr practice — even 5 minutes daily — could you commit to starting today?",
+            "reflection_ar": "ذكر ابن القيم أكثر من 70 فائدة للذكر للقلب والروح. ما ممارسة ذكر — حتى 5 دقائق يومياً — يمكنك الالتزام بالبدء بها اليوم؟",
+            "dua_en": "O Allah, make me among those who remember You abundantly — in the morning, in the evening, and in every moment between.",
+            "dua_ar": "اللهم اجعلني من الذاكرين لك كثيراً في الصباح والمساء وفي كل لحظة بينهما.",
+        },
+        {
+            "surah": 2, "ayah_start": 152, "theme": "dhikr",
+            "lesson_en": "This verse contains a divine reciprocal promise: 'Remember Me, and I will remember you.' The word 'adhkurukum' means Allah will mention you — to His angels, in His highest company. When you remember Allah, Allah remembers you. This transforms dhikr from a religious obligation into an intimate, mutual exchange between the servant and the Lord of all worlds.",
+            "lesson_ar": "تتضمن هذه الآية وعداً إلهياً متبادلاً: 'اذكروني أذكركم'. كلمة 'أذكركم' تعني أن الله سيذكرك — لملائكته في أعلى ملأ. حين تذكر الله يذكرك الله. هذا يحوّل الذكر من التزام ديني إلى تبادل حميم متبادل بين العبد ورب العالمين.",
+            "reflection_en": "If you truly believed that every time you say 'Subhanallah' Allah speaks of you among His angels, how would that change your dhikr practice?",
+            "reflection_ar": "لو آمنت حقاً بأن في كل مرة تقول 'سبحان الله' يذكرك الله بين ملائكته، كيف سيغير ذلك ممارسة ذكرك؟",
+            "dua_en": "O Allah, I remember You now. Be my witness. Remember me as You promised — with forgiveness, with mercy, with Your most beautiful names.",
+            "dua_ar": "اللهم أذكرك الآن. كن شاهداً. اذكرني كما وعدت — بالمغفرة والرحمة وأسمائك الحسنى.",
+        },
+        {
+            "surah": 29, "ayah_start": 45, "theme": "dhikr",
+            "lesson_en": "This verse teaches that salah (prayer) prevents wrongdoing — but it then adds 'and the remembrance of Allah is greater.' The scholars explain that salah is itself a form of dhikr, but dhikr that continues beyond salah — in daily life, in the heart — is even more powerful as a preventive and healing force. The most comprehensive dhikr practice is a life lived in awareness of Allah.",
+            "lesson_ar": "تعلّمنا هذه الآية أن الصلاة تنهى عن الفحشاء والمنكر — لكنها تضيف 'ولذكر الله أكبر'. يوضح العلماء أن الصلاة في حد ذاتها شكل من أشكال الذكر، لكن الذكر المستمر بعد الصلاة — في الحياة اليومية وفي القلب — أقوى كقوة وقائية وشافية. أشمل ممارسة للذكر هي حياة تُعاش بوعي بالله.",
+            "reflection_en": "Salah is your five structured meetings with Allah each day. How might you carry that awareness of His presence into the moments between your prayers?",
+            "reflection_ar": "الصلاة هي لقاءاتك الخمس المنظمة مع الله كل يوم. كيف تحمل وعي حضوره إلى اللحظات بين صلواتك؟",
+            "dua_en": "O Allah, let my prayer be the peak of my remembrance, and let every moment between prayers be its continuation. Make dhikr the rhythm of my life.",
+            "dua_ar": "اللهم اجعل صلاتي ذروة ذكري وكل لحظة بين الصلوات امتداداً له. اجعل الذكر إيقاع حياتي.",
+        },
+    ],
+    "_contentment_extra": [
+        {
+            "surah": 89, "ayah_start": 27, "theme": "contentment",
+            "lesson_en": "The soul described as 'mutma'inna' (مطمئنة) — the tranquil, settled soul — is called to return to its Lord in a state of rida (mutual contentment). Note: this is called 'al-nafs al-mutma'inna' — a Quranic term for the highest state of the soul, at peace with itself and with Allah. This state is achievable in this life through sustained tawakkul, gratitude, and acceptance of Allah's decree.",
+            "lesson_ar": "النفس الموصوفة بـ'المطمئنة' — النفس الهادئة المستقرة — مدعوة للعودة إلى ربها في حالة رضا متبادل. لاحظ: تُسمى 'النفس المطمئنة' — مصطلح قرآني لأعلى حالات النفس، المتصالحة مع ذاتها ومع الله. هذه الحالة قابلة للتحقيق في هذه الحياة من خلال التوكل المستمر والشكر والرضا بقضاء الله.",
+            "reflection_en": "The nafs mutma'inna is not achieved by circumstances improving — it is achieved when the heart finds peace with Allah regardless of circumstances. What would that look like for you?",
+            "reflection_ar": "النفس المطمئنة لا تتحقق بتحسّن الظروف — بل تتحقق حين يجد القلب السلام مع الله بصرف النظر عن الظروف. كيف سيبدو ذلك بالنسبة لك؟",
+            "dua_en": "O Allah, make me of those whose souls are at rest — returning to You content with You and You content with them.",
+            "dua_ar": "اللهم اجعلني من أصحاب النفوس المطمئنة — الراجعة إليك راضيةً مرضية.",
+        },
+        {
+            "surah": 16, "ayah_start": 97, "theme": "contentment",
+            "lesson_en": "Allah promises a 'good life' (hayatan tayyibah — حياةً طيبةً) to those who do righteous deeds with faith, regardless of their gender. Ibn Kathir explained that this 'good life' is not material wealth — it is contentment (qana'a), peace of heart, and sufficiency in whatever one has. True contentment is a divine gift that transforms any circumstances into a blessed life.",
+            "lesson_ar": "يعد الله بـ'حياة طيبة' لمن يعمل صالحاً مع الإيمان بصرف النظر عن جنسه. أوضح ابن كثير أن هذه 'الحياة الطيبة' ليست ثروة مادية — بل هي القناعة وسلام القلب والاكتفاء بما لديه. القناعة الحقيقية هبة إلهية تحوّل أي ظروف إلى حياة مباركة.",
+            "reflection_en": "The Quran promises a 'good life' based on faith and righteous action — not on changing circumstances. What would it feel like to live that promise today, exactly as things are?",
+            "reflection_ar": "يعد القرآن بـ'حياة طيبة' مبنية على الإيمان والعمل الصالح — لا على تغيّر الظروف. كيف سيبدو عيش ذلك الوعد اليوم بالضبط كما هي الأمور؟",
+            "dua_en": "O Allah, grant me qana'a (spiritual contentment) — to find abundance in what I have, peace in what You have written, and beauty in the life You have given me.",
+            "dua_ar": "اللهم ارزقني القناعة — أن أجد الغنى فيما عندي والسلام فيما كتبت والجمال في الحياة التي وهبتني.",
+        },
+        {
+            "surah": 9, "ayah_start": 59, "theme": "contentment",
+            "lesson_en": "This verse describes those who say 'Hasbiyallah' (حسبي الله — Allah is sufficient for me) with full faith. Ibn Qayyim called this phrase one of the most powerful for healing discontentment. It is not resignation but a declaration that Allah's provision, wisdom, and care are truly sufficient. The one who truly believes this finds freedom from comparison, envy, and anxious striving.",
+            "lesson_ar": "تصف هذه الآية من يقول 'حسبي الله' بإيمان كامل. أطلق ابن القيم على هذه العبارة أنها من أقوى العبارات لشفاء الاستياء. إنها ليست استسلاماً بل إعلان بأن رزق الله وحكمته ورعايته كافية حقاً. من يؤمن بذلك حقاً يجد حرية من المقارنة والحسد والسعي القلق.",
+            "reflection_en": "Say 'Hasbiyallah' right now — slowly and with full meaning. What happens in your heart when you truly hand your sufficiency over to Allah?",
+            "reflection_ar": "قل 'حسبي الله' الآن — ببطء ومعنى كامل. ما الذي يحدث في قلبك حين تُسلّم اكتفاءك حقاً إلى الله؟",
+            "dua_en": "O Allah, You are sufficient for me. I release what I cannot control. I accept what You have given me. You are my Lord and You are enough.",
+            "dua_ar": "اللهم أنت حسبي. أُطلق ما لا أستطيع السيطرة عليه. أقبل ما أعطيتني. أنت ربي وأنت كافٍ.",
+        },
     ],
 }
 
 # Emotion → primary recommended themes
 _EMOTION_THEMES: Dict[str, List[str]] = {
-    EmotionCategory.ANXIETY:     ["trust", "hope", "healing"],
-    EmotionCategory.SADNESS:     ["hope", "mercy", "patience"],
-    EmotionCategory.GRIEF:       ["patience", "mercy", "trust"],
-    EmotionCategory.FEAR:        ["trust", "mercy", "strength"],
-    EmotionCategory.LONELINESS:  ["mercy", "hope", "trust"],
-    EmotionCategory.HOPELESSNESS:["hope", "mercy", "forgiveness"],
-    EmotionCategory.ANGER:       ["patience", "strength", "forgiveness"],
-    EmotionCategory.STRESS:      ["healing", "trust", "hope"],
-    EmotionCategory.GUILT:       ["forgiveness", "mercy", "hope"],
-    EmotionCategory.DOUBT:       ["trust", "healing", "patience"],
-    EmotionCategory.GRATITUDE:   ["gratitude", "mercy", "hope"],
-    EmotionCategory.GENERAL:     ["mercy", "hope", "healing"],
+    EmotionCategory.ANXIETY:     ["trust", "hope", "dhikr", "ruqyah"],
+    EmotionCategory.SADNESS:     ["hope", "mercy", "patience", "ruqyah"],
+    EmotionCategory.GRIEF:       ["patience", "mercy", "trust", "ruqyah"],
+    EmotionCategory.FEAR:        ["trust", "mercy", "strength", "ruqyah"],
+    EmotionCategory.LONELINESS:  ["mercy", "hope", "trust", "dhikr"],
+    EmotionCategory.HOPELESSNESS:["hope", "mercy", "forgiveness", "ruqyah"],
+    EmotionCategory.ANGER:       ["patience", "strength", "forgiveness", "dhikr"],
+    EmotionCategory.STRESS:      ["healing", "trust", "hope", "dhikr"],
+    EmotionCategory.GUILT:       ["forgiveness", "mercy", "tawbah", "hope"],
+    EmotionCategory.DOUBT:       ["trust", "healing", "patience", "ruqyah"],
+    EmotionCategory.GRATITUDE:   ["gratitude", "mercy", "contentment", "hope"],
+    EmotionCategory.GENERAL:     ["mercy", "hope", "ruqyah", "dhikr"],
 }
+
+# Flat list of all extra-theme verse entries (not bound to a single emotion)
+_EXTRA_THEME_VERSES: List[Dict[str, Any]] = (
+    _VERSE_GUIDANCE.pop("_ruqyah_extra", [])
+    + _VERSE_GUIDANCE.pop("_tawbah_extra", [])
+    + _VERSE_GUIDANCE.pop("_dhikr_extra", [])
+    + _VERSE_GUIDANCE.pop("_contentment_extra", [])
+)
 
 # ---------------------------------------------------------------------------
 # Emotion classifier
@@ -733,61 +904,63 @@ async def get_theme_cards(
 ) -> List[Dict[str, Any]]:
     """
     Retrieve guidance cards for a specific healing theme, pulling from
-    all emotions that have an entry with that theme.
+    all emotions that have an entry with that theme, plus the dedicated
+    extra-theme verse bank (_EXTRA_THEME_VERSES).
     """
     seen_refs: set[str] = set()
     cards: List[Dict[str, Any]] = []
 
-    for emotion_entries in _VERSE_GUIDANCE.values():
-        for entry in emotion_entries:
-            if len(cards) >= max_cards:
-                break
-            if entry["theme"] != theme:
-                continue
-            ref = f"{entry['surah']}:{entry['ayah_start']}"
-            if ref in seen_refs:
-                continue
-            seen_refs.add(ref)
+    # Prioritise dedicated theme verses first (ruqyah, tawbah, dhikr, contentment)
+    all_entries: List[Dict[str, Any]] = list(_EXTRA_THEME_VERSES) + [
+        e for entries in _VERSE_GUIDANCE.values() for e in entries
+    ]
 
-            result = await db.execute(
-                select(QuranVerse).where(
-                    QuranVerse.sura_no == entry["surah"],
-                    QuranVerse.aya_no == entry["ayah_start"],
-                )
-            )
-            verse = result.scalar_one_or_none()
-            if verse is None:
-                continue
-
-            ayah_end = entry.get("ayah_end", entry["ayah_start"])
-            reference = (
-                f"{entry['surah']}:{entry['ayah_start']}"
-                if entry["ayah_start"] == ayah_end
-                else f"{entry['surah']}:{entry['ayah_start']}-{ayah_end}"
-            )
-
-            cards.append({
-                "reference": reference,
-                "surah": entry["surah"],
-                "ayah_start": entry["ayah_start"],
-                "ayah_end": ayah_end,
-                "surah_name_ar": verse.sura_name_ar,
-                "surah_name_en": verse.sura_name_en,
-                "text_uthmani": verse.text_uthmani,
-                "text_imlaei": verse.text_imlaei,
-                "theme": theme,
-                "theme_ar": HEALING_THEMES.get(theme, {}).get("ar", theme),
-                "theme_en": HEALING_THEMES.get(theme, {}).get("en", theme),
-                "lesson_en": entry["lesson_en"],
-                "lesson_ar": entry["lesson_ar"],
-                "reflection_en": entry["reflection_en"],
-                "reflection_ar": entry["reflection_ar"],
-                "dua_en": entry["dua_en"],
-                "dua_ar": entry["dua_ar"],
-                "prophet_story": entry.get("prophet_story"),
-            })
-
+    for entry in all_entries:
         if len(cards) >= max_cards:
             break
+        if entry["theme"] != theme:
+            continue
+        ref = f"{entry['surah']}:{entry['ayah_start']}"
+        if ref in seen_refs:
+            continue
+        seen_refs.add(ref)
+
+        result = await db.execute(
+            select(QuranVerse).where(
+                QuranVerse.sura_no == entry["surah"],
+                QuranVerse.aya_no == entry["ayah_start"],
+            )
+        )
+        verse = result.scalar_one_or_none()
+        if verse is None:
+            continue
+
+        ayah_end = entry.get("ayah_end", entry["ayah_start"])
+        reference = (
+            f"{entry['surah']}:{entry['ayah_start']}"
+            if entry["ayah_start"] == ayah_end
+            else f"{entry['surah']}:{entry['ayah_start']}-{ayah_end}"
+        )
+
+        cards.append({
+            "reference": reference,
+            "surah": entry["surah"],
+            "ayah_start": entry["ayah_start"],
+            "ayah_end": ayah_end,
+            "surah_name_ar": verse.sura_name_ar,
+            "surah_name_en": verse.sura_name_en,
+            "text_uthmani": verse.text_uthmani,
+            "text_imlaei": verse.text_imlaei,
+            "theme": theme,
+            "theme_ar": HEALING_THEMES.get(theme, {}).get("ar", theme),
+            "theme_en": HEALING_THEMES.get(theme, {}).get("en", theme),
+            "lesson_en": entry["lesson_en"],
+            "lesson_ar": entry["lesson_ar"],
+            "reflection_en": entry["reflection_en"],
+            "reflection_ar": entry["reflection_ar"],
+            "dua_en": entry["dua_en"],
+            "dua_ar": entry["dua_ar"],
+            "prophet_story": entry.get("prophet_story"),
+        })
 
     return cards

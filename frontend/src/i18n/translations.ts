@@ -871,6 +871,10 @@ export const themeTranslations: Record<string, { ar: string; en: string }> = {
   submission: { ar: 'الاستسلام', en: 'submission' },
   healing: { ar: 'الشفاء', en: 'healing' },
   worship: { ar: 'العبادة', en: 'worship' },
+  // Therapy healing themes
+  strength: { ar: 'القوة', en: 'strength' },
+  ruqyah: { ar: 'الرقية الشرعية', en: 'ruqyah' },
+  contentment: { ar: 'القناعة', en: 'contentment' },
   // Additional themes from database
   acceptance: { ar: 'القبول', en: 'acceptance' },
   answered_prayer: { ar: 'استجابة الدعاء', en: 'answered_prayer' },
@@ -1422,6 +1426,12 @@ export const themeTranslations: Record<string, { ar: string; en: string }> = {
   therapy_chat_tab: { ar: 'محادثة القرآن', en: 'QuranGPT Chat' },
   therapy_guidance_tab: { ar: 'بطاقات التوجيه', en: 'Guidance Cards' },
   therapy_insights_tab: { ar: 'رحلتي', en: 'My Journey' },
+  therapy_ruqyah_tab:   { ar: 'رقية وذكر', en: 'Ruqyah & Dhikr' },
+  therapy_duas_tab:     { ar: 'أدعية نبوية', en: "Prophetic Du'as" },
+  therapy_daily_tab:    { ar: 'ممارسات يومية', en: 'Daily Practices' },
+  therapy_intro_title:  { ar: 'القرآن شفاء للقلوب', en: 'The Quran — Healing for the Heart' },
+  therapy_intro_verse:  { ar: 'القرآن شفاء ورحمة للمؤمنين — الإسراء ١٧:٨٢', en: '"We send down of the Quran what is a healing and a mercy to those who believe" — Al-Isra 17:82' },
+  therapy_intro_ref:    { ar: 'الإسراء ١٧:٨٢', en: 'Al-Isra 17:82' },
   // Chat UI
   chat_intro: { ar: 'شاركني ما تشعر به وسأرشدك بالقرآن الكريم.', en: 'Share what you are feeling and I will guide you with the Quran.' },
   chat_placeholder: { ar: 'اكتب رسالتك هنا...', en: 'Type your message here…' },

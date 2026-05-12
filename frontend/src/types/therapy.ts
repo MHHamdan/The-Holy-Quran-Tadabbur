@@ -211,3 +211,36 @@ export interface ReflectionEntry {
   emotion: EmotionCategory;
   verses: string[];
 }
+
+// ============================================================================
+// Phase T-Adaptive — Topic Knowledge (hadith + wise phrases)
+// ============================================================================
+
+export interface TopicHadith {
+  arabic: string;
+  transliteration: string;
+  translation_en: string;
+  translation_ar: string;
+  source_en: string;
+  source_ar: string;
+}
+
+export interface TopicWisePhrase {
+  text_en: string;
+  text_ar: string;
+  scholar_en: string;
+  scholar_ar: string;
+  source_en: string;
+  source_ar: string;
+}
+
+export interface TopicResourcesResponse {
+  ok: boolean;
+  topic_key: string;
+  topic_en: string;
+  topic_ar: string;
+  intro_en: string;
+  intro_ar: string;
+  hadith: TopicHadith[];
+  wise_phrases: TopicWisePhrase[];
+}

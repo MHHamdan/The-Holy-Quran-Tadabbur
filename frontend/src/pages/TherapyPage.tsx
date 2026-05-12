@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Heart, AlertTriangle, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
+import { Heart, AlertTriangle, ArrowLeft, Loader2, Sparkles, BookOpen } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import { therapyApi } from '../lib/api';
@@ -10,6 +10,10 @@ import {
   ReflectionLog,
   TherapyChat,
   InsightsDashboard,
+  RuqyahGuide,
+  PropheticDuasPanel,
+  DailyPracticesPanel,
+  TopicKnowledgePanel,
 } from '../components/therapy';
 import type {
   SpiritualGuidanceResponse,
@@ -65,7 +69,7 @@ function saveReflections(entries: ReflectionEntry[]): void {
   }
 }
 
-type TabKey = 'guidance' | 'chat' | 'insights';
+type TabKey = 'guidance' | 'chat' | 'insights' | 'ruqyah';
 
 // ---------------------------------------------------------------------------
 // Component
@@ -210,6 +214,7 @@ export function TherapyPage() {
 
   const tabs: Array<{ key: TabKey; label: string }> = [
     { key: 'guidance', label: t('therapy_guidance_tab', language) },
+    { key: 'ruqyah',   label: t('therapy_ruqyah_tab', language) },
     { key: 'chat',     label: t('therapy_chat_tab', language) },
     { key: 'insights', label: t('therapy_insights_tab', language) },
   ];
@@ -227,6 +232,24 @@ export function TherapyPage() {
         <p className={clsx('mt-1 text-gray-500 text-sm', isRtl && 'font-arabic')}>
           {t('therapy_subtitle', language)}
         </p>
+      </div>
+
+      {/* Islamic intro banner — key healing verse */}
+      <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100">
+        <div className={clsx('flex items-start gap-3', isRtl && 'flex-row-reverse')}>
+          <BookOpen className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p
+              dir={isRtl ? 'rtl' : 'ltr'}
+              className={clsx('text-base leading-loose text-emerald-900 font-medium', isRtl ? 'font-arabic text-right' : 'text-left')}
+            >
+              {t('therapy_intro_verse', language)}
+            </p>
+            <p dir={isRtl ? 'rtl' : 'ltr'} className={clsx('text-xs text-emerald-600', isRtl && 'text-right font-arabic')}>
+              {t('therapy_intro_ref', language)}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Mode tabs */}
@@ -262,7 +285,7 @@ export function TherapyPage() {
               {selectedTheme && (
                 <button
                   onClick={() => { setSelectedTheme(null); setThemeData(null); }}
-                  className={clsx('flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700', isRtl && 'flex-row-reverse')}
+                  className={clsx('flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700', isRtl && 'flex-row-reverse font-arabic')}
                 >
                   <ArrowLeft className={clsx('w-3 h-3', isRtl && 'rotate-180')} />
                   {t('therapy_back', language)}
@@ -435,8 +458,10 @@ export function TherapyPage() {
               <div>
                 <p className={clsx('text-xs font-medium text-sky-700 mb-0.5', isRtl && 'font-arabic')}>
                   {t('therapy_suggested_theme', language)}
-                  <span className="ml-1.5 px-1.5 py-0.5 bg-sky-100 rounded text-sky-600 capitalize">
-                    {guidance.suggested_theme}
+                  <span className={clsx('px-1.5 py-0.5 bg-sky-100 rounded text-sky-600', isRtl ? 'mr-1.5 font-arabic' : 'ml-1.5 capitalize')}>
+                    {isRtl
+                      ? (themes.find(th => th.key === guidance.suggested_theme)?.ar ?? guidance.suggested_theme)
+                      : (themes.find(th => th.key === guidance.suggested_theme)?.en ?? guidance.suggested_theme)}
                   </span>
                 </p>
                 <p className={clsx('text-xs text-sky-600 leading-relaxed', isRtl && 'font-arabic text-right')}>
@@ -456,6 +481,19 @@ export function TherapyPage() {
             </div>
           )}
 
+          {/* Prophetic Du'as — shown when guidance was returned */}
+          {guidance && !asking && (
+            <PropheticDuasPanel emotion={guidance.emotion} />
+          )}
+
+          {/* Topic Knowledge — adaptive hadith + wise phrases based on detected emotion */}
+          {guidance && !asking && (
+            <TopicKnowledgePanel topicKey={guidance.emotion} />
+          )}
+
+          {/* Daily Practices — always shown at bottom of guidance tab */}
+          <DailyPracticesPanel />
+
           {/* Reflection Log */}
           <ReflectionLog
             entries={reflections}
@@ -470,6 +508,15 @@ export function TherapyPage() {
             allSessionIds={allSessionIds}
           />
         </>
+      )}
+
+      {/* ================================================================ */}
+      {/* TAB: Ruqyah & Dhikr                                              */}
+      {/* ================================================================ */}
+      {activeTab === 'ruqyah' && (
+        <div className="space-y-4">
+          <RuqyahGuide />
+        </div>
       )}
 
       {/* ================================================================ */}

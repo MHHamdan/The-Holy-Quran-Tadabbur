@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BarChart2, TrendingUp, TrendingDown, Minus, Heart, Star, Sprout } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
-import { t } from '../../i18n/translations';
+import { t, translateTheme } from '../../i18n/translations';
 import { therapyApi } from '../../lib/api';
 import type { InsightsResponse } from '../../types/therapy';
 import { EmotionGrowthMap } from './EmotionGrowthMap';
@@ -66,8 +66,8 @@ export function InsightsDashboard({ sessionIds }: InsightsDashboardProps) {
                 <div className="flex justify-center mb-1">
                   <Star className="w-5 h-5 text-emerald-600" />
                 </div>
-                <p className={clsx('text-sm font-semibold text-emerald-700 capitalize', isRtl && 'font-arabic')}>
-                  {insights.most_visited_theme}
+                <p className={clsx('text-sm font-semibold text-emerald-700', isRtl ? 'font-arabic' : 'capitalize')}>
+                  {translateTheme(insights.most_visited_theme, language)}
                 </p>
                 <p className={clsx('text-xs text-emerald-500', isRtl && 'font-arabic')}>
                   {t('insights_top_theme', language)}
