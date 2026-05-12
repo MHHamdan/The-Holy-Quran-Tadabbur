@@ -196,14 +196,14 @@ export function HomePage() {
           <div className={clsx('flex flex-col sm:flex-row gap-4 justify-center', isRtl && 'sm:flex-row-reverse')}>
             <Link
               to="/mushaf"
-              className="btn-primary bg-white text-primary-700 hover:bg-primary-50 px-8 py-3 text-lg inline-flex items-center gap-2"
+              className={clsx('btn-primary bg-white text-primary-700 hover:bg-primary-50 px-8 py-3 text-lg inline-flex items-center gap-2', isRtl && 'font-arabic')}
             >
               {t('nav_mushaf', language)}
               <ArrowRight className={clsx('w-5 h-5', isRtl && 'rotate-180')} />
             </Link>
             <Link
               to="/ask"
-              className="btn-secondary border-2 border-white text-white hover:bg-white/10 px-8 py-3 text-lg"
+              className={clsx('btn-secondary border-2 border-white text-white hover:bg-white/10 px-8 py-3 text-lg', isRtl && 'font-arabic')}
             >
               {t('nav_ask', language)}
             </Link>

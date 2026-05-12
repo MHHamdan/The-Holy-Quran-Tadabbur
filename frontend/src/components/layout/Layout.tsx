@@ -56,7 +56,7 @@ export function Layout({ children }: LayoutProps) {
               <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center">
                 <Book className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-lg font-bold text-gray-900 hidden sm:block">
+              <h1 className={clsx('text-lg font-bold text-gray-900 hidden sm:block', language === 'ar' && 'font-arabic')}>
                 {t('app_title', language)}
               </h1>
             </Link>
@@ -80,7 +80,7 @@ export function Layout({ children }: LayoutProps) {
                     title={t(item.label, language)}
                   >
                     <Icon className="w-4 h-4" />
-                    <span className="font-medium text-sm hidden xl:inline">{t(item.label, language)}</span>
+                    <span className={clsx('font-medium text-sm hidden xl:inline', language === 'ar' && 'font-arabic')}>{t(item.label, language)}</span>
                   </Link>
                 );
               })}
@@ -92,7 +92,7 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             {/* Mobile: language toggle always in top-right */}
-            <div className="md:hidden ml-auto">
+            <div className="md:hidden ms-auto">
               <LangToggle />
             </div>
           </div>
@@ -115,7 +115,7 @@ export function Layout({ children }: LayoutProps) {
                   )}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="text-xs whitespace-nowrap">{t(item.label, language)}</span>
+                  <span className={clsx('text-xs whitespace-nowrap', language === 'ar' && 'font-arabic')}>{t(item.label, language)}</span>
                 </Link>
               );
             })}
@@ -132,7 +132,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Footer */}
       <footer className="bg-white border-t border-gray-100 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-center text-sm text-gray-500">
+          <p className={clsx('text-center text-sm text-gray-500', language === 'ar' && 'font-arabic')}>
             {t('footer_disclaimer', language)}
           </p>
         </div>
