@@ -433,7 +433,7 @@ function ThemeCard({ theme, language }: { theme: QuranicTheme; language: 'ar' | 
         </span>
       </div>
 
-      <h3 className="text-lg font-semibold mb-2 group-hover:text-primary-600 transition-colors">
+      <h3 className={clsx('text-lg font-semibold mb-2 group-hover:text-primary-600 transition-colors', language === 'ar' && 'font-arabic')}>
         {title}
       </h3>
 
@@ -474,9 +474,9 @@ function ThemeCard({ theme, language }: { theme: QuranicTheme; language: 'ar' | 
         </div>
       )}
 
-      <div className="flex items-center text-primary-600 text-sm font-medium">
+      <div className={clsx('flex items-center text-primary-600 text-sm font-medium', language === 'ar' && 'font-arabic')}>
         {t('themes_explore', language)}
-        <ArrowRight className={`w-4 h-4 ${language === 'ar' ? 'mr-1 group-hover:-translate-x-1' : 'ml-1 group-hover:translate-x-1'} transition-transform`} />
+        <ArrowRight className={clsx('w-4 h-4 transition-transform', language === 'ar' ? 'ms-1 rotate-180 group-hover:-translate-x-1' : 'ms-1 group-hover:translate-x-1')} />
       </div>
     </Link>
   );

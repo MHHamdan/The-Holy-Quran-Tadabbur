@@ -123,13 +123,13 @@ export function StoryDetailPage() {
   const summary = language === 'ar' ? story.summary_ar : story.summary_en;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Back Link */}
       <Link
         to="/stories"
-        className="inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-6"
+        className={clsx('inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-6', language === 'ar' && 'font-arabic')}
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className={clsx('w-4 h-4', language === 'ar' && 'rotate-180')} />
         {language === 'ar' ? 'العودة للقصص' : 'Back to Stories'}
       </Link>
 
@@ -146,7 +146,7 @@ export function StoryDetailPage() {
                 {translateCategory(story.category, language)}
               </span>
             </div>
-            {summary && <p className="text-gray-600">{summary}</p>}
+            {summary && <p className={clsx('text-gray-600', language === 'ar' && 'font-arabic')}>{summary}</p>}
           </div>
         </div>
 
@@ -183,10 +183,10 @@ export function StoryDetailPage() {
         <div className="card mb-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-1">
+              <h3 className={clsx('font-semibold text-gray-900 mb-1', language === 'ar' && 'font-arabic')}>
                 {language === 'ar' ? 'مستوى العرض' : 'Reading Level'}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className={clsx('text-sm text-gray-500', language === 'ar' && 'font-arabic')}>
                 {language === 'ar'
                   ? 'اختر المستوى المناسب لك'
                   : 'Choose the level that suits you'}
@@ -263,9 +263,9 @@ export function StoryDetailPage() {
             const storyAggregate = getStoryApprovalStatus(segIds);
             return (
               <div className="flex items-center gap-3 flex-wrap">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className={clsx('text-lg font-semibold text-gray-900', language === 'ar' && 'font-arabic')}>
                   {language === 'ar' ? 'مقاطع القصة' : 'Story Segments'}
-                  <span className="text-sm font-normal text-gray-500 ml-2">
+                  <span className="text-sm font-normal text-gray-500 ms-2">
                     ({richStory.storySegments.length})
                   </span>
                 </h2>

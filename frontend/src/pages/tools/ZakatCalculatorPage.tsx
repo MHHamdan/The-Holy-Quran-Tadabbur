@@ -613,7 +613,7 @@ const ZakatSummary = memo(function ZakatSummary({
           className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800"
           role="status"
         >
-          <Info className="w-4 h-4 inline mr-1" aria-hidden="true" />
+          <Info className="w-4 h-4 inline me-1" aria-hidden="true" />
           {isArabic
             ? 'ثروتك أقل من النصاب. الزكاة ليست واجبة عليك هذا العام.'
             : 'Your wealth is below the Nisab threshold. Zakat is not obligatory for you this year.'}

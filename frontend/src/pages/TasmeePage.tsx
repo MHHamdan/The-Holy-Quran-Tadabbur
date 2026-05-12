@@ -309,7 +309,7 @@ export default function TasmeePage() {
   const progress = ws.totalWords > 0 ? (ws.pointer / ws.totalWords) * 100 : 0;
 
   return (
-    <div className={clsx('min-h-screen bg-gray-50', isArabic && 'rtl')}>
+    <div className="min-h-screen bg-gray-50" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-8">
         <div className="max-w-4xl mx-auto px-4">
@@ -452,9 +452,9 @@ export default function TasmeePage() {
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         )}
                       >
-                        {mode === 'auto' && <Zap className="w-3 h-3 inline mr-1" />}
-                        {mode === 'smart_tap' && <Hand className="w-3 h-3 inline mr-1" />}
-                        {mode === 'hybrid' && <Settings2 className="w-3 h-3 inline mr-1" />}
+                        {mode === 'auto' && <Zap className="w-3 h-3 inline me-1" />}
+                        {mode === 'smart_tap' && <Hand className="w-3 h-3 inline me-1" />}
+                        {mode === 'hybrid' && <Settings2 className="w-3 h-3 inline me-1" />}
                         {getRevealModeLabel(mode)}
                       </button>
                     ))}

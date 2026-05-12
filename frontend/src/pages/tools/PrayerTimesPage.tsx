@@ -572,7 +572,7 @@ const SettingsPanel = memo(function SettingsPanel({
         />
         <label
           htmlFor="use-24-hour"
-          className="ml-2 text-sm text-gray-700 cursor-pointer"
+          className="ms-2 text-sm text-gray-700 cursor-pointer"
         >
           {isArabic ? 'صيغة 24 ساعة' : '24-hour format'}
         </label>
