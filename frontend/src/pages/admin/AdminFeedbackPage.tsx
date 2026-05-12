@@ -312,11 +312,11 @@ export function AdminFeedbackPage() {
   }, [load]);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">
+          <h1 className={clsx('text-2xl font-bold text-zinc-900', language === 'ar' && 'font-arabic')}>
             {t('admin_feedback_title', language)}
           </h1>
           <p className="text-sm text-zinc-500 mt-0.5">
@@ -372,7 +372,7 @@ export function AdminFeedbackPage() {
 
       {loading && !error && (
         <div className="flex items-center justify-center py-16 text-zinc-400">
-          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          <Loader2 className="h-6 w-6 animate-spin me-2" />
           Loading…
         </div>
       )}

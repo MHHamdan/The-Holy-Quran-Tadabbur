@@ -670,12 +670,12 @@ export function ReviewDashboardPage() {
                     : t('review_overlay_not_generated', language)}
                 </span>
                 {approvedCount > 0 && (
-                  <span className="ml-3 text-green-700 font-medium">
+                  <span className={clsx('ms-3 text-green-700 font-medium', language === 'ar' && 'font-arabic')}>
                     {approvedCount} {language === 'ar' ? 'قرار معتمد مُنشر' : 'approved decision(s) reflected in public UI'}
                   </span>
                 )}
                 {isAllPending && isOverlayGenerated && (
-                  <span className="ml-2 text-gray-400">
+                  <span className="ms-2 text-gray-400">
                     — {t('review_overlay_all_pending', language)}
                   </span>
                 )}
