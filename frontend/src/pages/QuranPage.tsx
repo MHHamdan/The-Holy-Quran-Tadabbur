@@ -18,10 +18,12 @@ import {
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
-import { GrammarAnalysisView } from '../components/quran/GrammarAnalysis';
 import { VerseText } from '../components/quran/WordMeaningPopover';
 import clsx from 'clsx';
 
+const GrammarAnalysisView = lazy(() =>
+  import('../components/quran/GrammarAnalysis').then(m => ({ default: m.GrammarAnalysisView }))
+);
 const SimilarVersesPanel = lazy(() =>
   import('../components/quran/SimilarVersesPanel').then(m => ({ default: m.SimilarVersesPanel }))
 );
@@ -728,11 +730,13 @@ export function QuranPage() {
                       {/* Grammar analysis panel */}
                       {showGrammar && (
                         <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <GrammarAnalysisView
-                            suraNo={verse.sura_no}
-                            ayaNo={verse.aya_no}
-                            verseText={verse.text_uthmani}
-                          />
+                          <Suspense fallback={<div className="h-24 animate-pulse bg-gray-100 rounded-lg" />}>
+                            <GrammarAnalysisView
+                              suraNo={verse.sura_no}
+                              ayaNo={verse.aya_no}
+                              verseText={verse.text_uthmani}
+                            />
+                          </Suspense>
                         </div>
                       )}
                       {/* Similar verses panel */}
