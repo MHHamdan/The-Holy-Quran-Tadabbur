@@ -19,7 +19,7 @@ FALLBACK STRATEGY:
 import logging
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Depends, Request
+from fastapi import APIRouter, HTTPException, Query, Depends, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -447,7 +447,7 @@ async def analyze_ayah(
 
 
 @router.get("/labels", response_model=LabelsResponse)
-async def get_grammar_labels():
+async def get_grammar_labels(http_response: Response):
     """
     Get all valid grammar labels.
 
@@ -457,6 +457,7 @@ async def get_grammar_labels():
     - Validating output
     - Understanding the label vocabulary
     """
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     return LabelsResponse(
         pos_tags=sorted(VALID_POS_TAGS),
         roles=sorted(VALID_ROLES),

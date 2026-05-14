@@ -13,7 +13,7 @@ Every entry in vocabulary_entries requires a verified source_id.
 from __future__ import annotations
 
 from functools import lru_cache
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel
 from sqlalchemy import select, func, case, or_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -360,8 +360,9 @@ async def vocabulary_status(
 
 
 @router.get('/sources', response_model=LexiconSourcesResponse)
-async def vocabulary_sources() -> LexiconSourcesResponse:
+async def vocabulary_sources(http_response: Response) -> LexiconSourcesResponse:
     """Return the full catalogue of authenticated Sunni lexicographic sources."""
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     return LexiconSourcesResponse(
         sources=_LEXICON_SOURCES,
         total=len(_LEXICON_SOURCES),

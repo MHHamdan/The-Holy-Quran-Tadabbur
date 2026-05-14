@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
+import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Book, Users, MapPin, Clock, Network, List, Tag, ChevronDown, ChevronUp, Database, Lightbulb } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
@@ -426,9 +427,11 @@ export function StoryAtlasDetailPage() {
               </div>
             </div>
           ) : (graphData || kgGraphData) ? (
-            <Suspense fallback={<div className="flex items-center justify-center h-full"><p className="text-gray-500">{isArabic ? 'جاري تحميل الرسم البياني...' : 'Loading graph...'}</p></div>}>
-              <StoryGraphView graph={(useKG ? kgGraphData : graphData) as AtlasGraphResponse} language={language} />
-            </Suspense>
+            <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-amber-600">{isArabic ? 'تعذّر تحميل الرسم البياني' : 'Graph view unavailable'}</div>}>
+              <Suspense fallback={<div className="flex items-center justify-center h-full"><p className="text-gray-500">{isArabic ? 'جاري تحميل الرسم البياني...' : 'Loading graph...'}</p></div>}>
+                <StoryGraphView graph={(useKG ? kgGraphData : graphData) as AtlasGraphResponse} language={language} />
+              </Suspense>
+            </ErrorBoundary>
           ) : (
             <div className="flex items-center justify-center h-full bg-gray-50">
               <div className="text-center">
