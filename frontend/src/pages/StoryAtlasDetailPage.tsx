@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Book, Users, MapPin, Clock, Network, List, Tag, ChevronDown, ChevronUp, Database, Lightbulb } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { storyAtlasApi, kgApi, StoryClusterDetail, StoryAtlasEvent, AtlasGraphResponse, RelatedCluster, KGClusterResponse, KGStoryGraphResponse, KGEventSummary } from '../lib/api';
 import { translateTag, translateFigure, Language } from '../i18n/translations';
-import { StoryGraphView } from '../components/stories/StoryGraphView';
 import clsx from 'clsx';
+
+const StoryGraphView = lazy(() => import('../components/stories/StoryGraphView'));
 
 // Narrative role translations
 const NARRATIVE_ROLE_TRANSLATIONS: Record<string, { ar: string; en: string }> = {
@@ -425,7 +426,9 @@ export function StoryAtlasDetailPage() {
               </div>
             </div>
           ) : (graphData || kgGraphData) ? (
-            <StoryGraphView graph={(useKG ? kgGraphData : graphData) as AtlasGraphResponse} language={language} />
+            <Suspense fallback={<div className="flex items-center justify-center h-full"><p className="text-gray-500">{isArabic ? 'جاري تحميل الرسم البياني...' : 'Loading graph...'}</p></div>}>
+              <StoryGraphView graph={(useKG ? kgGraphData : graphData) as AtlasGraphResponse} language={language} />
+            </Suspense>
           ) : (
             <div className="flex items-center justify-center h-full bg-gray-50">
               <div className="text-center">

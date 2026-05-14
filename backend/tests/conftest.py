@@ -22,6 +22,8 @@ Running tests:
 import os
 import pytest
 from pathlib import Path
+from sqlalchemy.pool import NullPool
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 
 # =============================================================================
@@ -75,6 +77,66 @@ def pytest_collection_modifyitems(config, items):
         # Auto-mark tests in integration/ directory
         elif "integration" in str(item.fspath):
             item.add_marker(pytest.mark.integration)
+
+
+# =============================================================================
+# NullPool DB Engine — prevents asyncpg "Future attached to different loop" errors
+# =============================================================================
+# Using NullPool means every DB request gets a fresh connection (no pooling).
+# This eliminates event-loop binding issues that occur when connections created
+# in one module's event loop are reused in another module's loop, or when
+# synchronous TestClient requests share a pool with async AsyncClient requests.
+#
+# Recommendation from SQLAlchemy docs for testing: use NullPool or StaticPool.
+
+@pytest.fixture(scope="session", autouse=True)
+def _patch_db_nullpool():
+    """Replace the async engine with NullPool for test isolation."""
+    try:
+        from app.db import database
+        from app.core.config import settings
+
+        db_url_async = settings.database_url.replace(
+            "postgresql://", "postgresql+asyncpg://"
+        )
+        test_engine = create_async_engine(db_url_async, poolclass=NullPool)
+        test_session_factory = async_sessionmaker(
+            bind=test_engine,
+            class_=AsyncSession,
+            expire_on_commit=False,
+        )
+
+        original_engine = database.async_engine
+        original_session = database.AsyncSessionLocal
+        database.async_engine = test_engine
+        database.AsyncSessionLocal = test_session_factory
+
+        yield
+
+        database.async_engine = original_engine
+        database.AsyncSessionLocal = original_session
+    except Exception:
+        yield
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _reset_rate_limiters():
+    """Reset in-memory rate limiters before each test module.
+
+    Rate limiters are module-level singletons. Without reset, accumulated
+    request counts from earlier modules can exhaust the limit for later tests.
+    """
+    try:
+        from app.core.rate_limit import (
+            _rag_limiter, _search_limiter, _vocab_limiter,
+            _admin_decision_limiter, _feedback_limiter, _therapy_limiter,
+        )
+        for lim in (_rag_limiter, _search_limiter, _vocab_limiter,
+                    _admin_decision_limiter, _feedback_limiter, _therapy_limiter):
+            lim.reset()
+    except Exception:
+        pass
+    yield
 
 
 # =============================================================================

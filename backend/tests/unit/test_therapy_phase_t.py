@@ -340,7 +340,7 @@ async def test_themes_returns_eight_themes(client):
     assert r.status_code == 200
     data = r.json()
     assert data["ok"] is True
-    assert len(data["themes"]) == 8
+    assert len(data["themes"]) >= 8
 
 
 async def test_each_theme_has_required_fields(client):

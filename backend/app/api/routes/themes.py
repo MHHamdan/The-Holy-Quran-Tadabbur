@@ -911,7 +911,7 @@ async def get_theme_segments(
     source: Optional[str] = Query(None, description="Filter by tafsir source (e.g., ibn_kathir_ar)"),
     sort: str = Query(
         "segment_order",
-        regex="^(segment_order|confidence_desc|confidence_asc|sura_asc|sura_desc)$",
+        pattern="^(segment_order|confidence_desc|confidence_asc|sura_asc|sura_desc)$",
         description="Sort order: segment_order, confidence_desc, confidence_asc, sura_asc, sura_desc"
     ),
     limit: int = Query(50, ge=1, le=200),
@@ -1033,8 +1033,8 @@ async def get_segment_evidence(
 @router.get("/{theme_id}/graph", response_model=ThemeGraphResponse)
 async def get_theme_graph(
     theme_id: str = Path(...),
-    language: str = Query("en", regex="^(en|ar)$"),
-    layout_mode: str = Query("sequential", regex="^(sequential|revelation|thematic)$"),
+    language: str = Query("en", pattern="^(en|ar)$"),
+    layout_mode: str = Query("sequential", pattern="^(sequential|revelation|thematic)$"),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -1095,8 +1095,8 @@ async def get_theme_graph(
 @router.get("/{theme_id}/timeline", response_model=List[TimelineNodeResponse])
 async def get_theme_timeline(
     theme_id: str = Path(...),
-    language: str = Query("en", regex="^(en|ar)$"),
-    order_by: str = Query("segment_order", regex="^(segment_order|chronological|revelation)$"),
+    language: str = Query("en", pattern="^(en|ar)$"),
+    order_by: str = Query("segment_order", pattern="^(segment_order|chronological|revelation)$"),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -1140,7 +1140,7 @@ async def get_theme_consequences(
     theme_id: str = Path(...),
     consequence_type: Optional[str] = Query(
         None,
-        regex="^(reward|punishment|blessing|warning|promise)$",
+        pattern="^(reward|punishment|blessing|warning|promise)$",
         description="Filter by consequence type"
     ),
     session: AsyncSession = Depends(get_async_session),

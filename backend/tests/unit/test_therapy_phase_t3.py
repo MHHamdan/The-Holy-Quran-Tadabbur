@@ -8,6 +8,7 @@ Covers:
 
 Test count: 27 tests
 """
+import asyncio
 import uuid
 from unittest.mock import patch
 

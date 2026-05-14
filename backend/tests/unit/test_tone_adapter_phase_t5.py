@@ -14,6 +14,8 @@ Test groups:
 
 Test count: 26 tests
 """
+import asyncio
+
 import pytest
 import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock, patch

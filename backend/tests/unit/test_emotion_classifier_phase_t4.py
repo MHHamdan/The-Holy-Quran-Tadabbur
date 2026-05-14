@@ -13,6 +13,7 @@ Test groups:
 
 Test count: 32 tests
 """
+import asyncio
 import os
 from typing import Tuple
 from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
