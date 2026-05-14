@@ -228,7 +228,7 @@ def compute_highlight_spans(query_normalized: str, verse_normalized: str) -> lis
 # Routes
 @router.get("/resolve")
 async def resolve_verse_text(
-    text: str = Query(..., description="Verse text to resolve"),
+    text: str = Query(..., max_length=500, description="Verse text to resolve"),
     session: AsyncSession = Depends(get_async_session),
     request: "Request" = None,  # type: ignore
 ):
@@ -2525,7 +2525,7 @@ class RecordClickRequest(BaseModel):
 @router.post("/history/search")
 async def record_search(
     request: RecordSearchRequest,
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Record a search query in the user's history.
@@ -2545,7 +2545,7 @@ async def record_search(
 @router.post("/history/click")
 async def record_verse_click(
     request: RecordClickRequest,
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Record a verse click/view in the user's history.
@@ -2563,7 +2563,7 @@ async def record_verse_click(
 
 @router.get("/history", response_model=List[SearchHistoryEntryResponse])
 async def get_search_history(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     limit: int = Query(20, ge=1, le=100),
     query_type: Optional[str] = Query(None),
 ):
@@ -2592,7 +2592,7 @@ async def get_search_history(
 
 @router.get("/history/suggestions", response_model=List[SearchSuggestionResponse])
 async def get_search_suggestions(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     prefix: Optional[str] = Query(None, description="Search prefix for filtering"),
     limit: int = Query(10, ge=1, le=50),
 ):
@@ -2620,7 +2620,7 @@ async def get_search_suggestions(
 
 @router.get("/history/recommendations", response_model=List[VerseRecommendationResponse])
 async def get_personalized_recommendations(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     limit: int = Query(10, ge=1, le=50),
     session: AsyncSession = Depends(get_async_session),
 ):
@@ -2653,7 +2653,7 @@ async def get_personalized_recommendations(
 
 @router.get("/history/interests")
 async def get_theme_interests(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Get user's theme interests based on search history.
@@ -2670,7 +2670,7 @@ async def get_theme_interests(
 
 @router.delete("/history")
 async def clear_search_history(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Clear user's search history.
@@ -2720,7 +2720,7 @@ class SimilarityFeedbackResponse(BaseModel):
 @router.post("/similarity/feedback")
 async def record_similarity_feedback(
     request: SimilarityFeedbackRequest,
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Record user feedback on a similarity search result.
@@ -2783,7 +2783,7 @@ async def get_similarity_relevance_score(
 
 @router.get("/similarity/feedback/history", response_model=List[SimilarityFeedbackResponse])
 async def get_session_similarity_feedback(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     limit: int = Query(50, ge=1, le=200),
 ):
     """
@@ -3019,7 +3019,7 @@ class StudyGoalRequest(BaseModel):
 @router.post("/bookmarks")
 async def add_bookmark(
     request: BookmarkRequest,
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Add a verse bookmark.
@@ -3044,7 +3044,7 @@ async def add_bookmark(
 async def remove_bookmark(
     sura_no: int,
     aya_no: int,
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """Remove a verse bookmark."""
     result = await search_history_service.remove_bookmark(
@@ -3057,7 +3057,7 @@ async def remove_bookmark(
 
 @router.get("/bookmarks")
 async def get_bookmarks(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     collection: Optional[str] = Query(None, description="Filter by collection"),
     tags: Optional[List[str]] = Query(None, description="Filter by tags"),
 ):
@@ -3076,7 +3076,7 @@ async def get_bookmarks(
 
 @router.get("/bookmarks/collections")
 async def get_bookmark_collections(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """Get user's bookmark collections with counts."""
     collections = await search_history_service.get_bookmark_collections(session_id)
@@ -3086,7 +3086,7 @@ async def get_bookmark_collections(
 @router.post("/personalization/study-goal")
 async def set_study_goal(
     request: StudyGoalRequest,
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Set user's study goal for personalized results.
@@ -3111,7 +3111,7 @@ async def set_study_goal(
 
 @router.get("/personalization/study-goal")
 async def get_study_goal(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """Get user's current study goal."""
     goal = await search_history_service.get_study_goal(session_id)
@@ -3120,7 +3120,7 @@ async def get_study_goal(
 
 @router.get("/personalization/filters")
 async def get_personalized_filters(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Get personalized search filters based on user's history and goals.
@@ -3135,7 +3135,7 @@ async def get_personalized_filters(
 
 @router.get("/personalization/topic-clusters")
 async def get_topic_clusters(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Get topic clusters based on user's search history.
@@ -3385,7 +3385,7 @@ async def get_embedding_model_info():
 @router.post("/progress/session/start")
 async def start_study_session(
     goal_type: str = Query(..., description="memorization, comprehension, research, or reflection"),
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Start a new study session.
@@ -3409,7 +3409,7 @@ async def start_study_session(
 
 @router.post("/progress/session/end")
 async def end_study_session(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     verses_studied: Optional[List[str]] = Query(None),
     themes_explored: Optional[List[str]] = Query(None),
     prophets_studied: Optional[List[str]] = Query(None),
@@ -3447,7 +3447,7 @@ async def end_study_session(
 
 @router.post("/progress/memorization")
 async def record_memorization_attempt(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     sura_no: int = Query(...),
     aya_no: int = Query(...),
     confidence_level: int = Query(..., ge=0, le=5, description="0-5 confidence scale"),
@@ -3485,7 +3485,7 @@ async def record_memorization_attempt(
 
 @router.get("/progress/memorization")
 async def get_memorization_progress(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     sura_no: Optional[int] = Query(None, description="Filter by sura"),
 ):
     """
@@ -3520,7 +3520,7 @@ async def get_memorization_progress(
 
 @router.get("/progress/memorization/due")
 async def get_verses_due_for_review(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     limit: int = Query(20, ge=1, le=100),
 ):
     """
@@ -3552,7 +3552,7 @@ async def get_verses_due_for_review(
 
 @router.get("/progress/memorization/stats")
 async def get_memorization_stats(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Get memorization statistics.
@@ -3565,7 +3565,7 @@ async def get_memorization_stats(
 
 @router.post("/progress/reflection")
 async def add_reflection(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     verse_reference: str = Query(..., description="e.g., '2:255'"),
     reflection_text: str = Query(..., description="Personal reflection"),
     theme: Optional[str] = Query(None),
@@ -3596,7 +3596,7 @@ async def add_reflection(
 
 @router.get("/progress/reflections")
 async def get_reflections(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     verse_reference: Optional[str] = Query(None),
     theme: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
@@ -3633,7 +3633,7 @@ async def get_reflections(
 
 @router.get("/progress/overall")
 async def get_overall_progress(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Get comprehensive progress overview.
@@ -3646,7 +3646,7 @@ async def get_overall_progress(
 
 @router.get("/progress/daily-stats")
 async def get_daily_stats(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     days: int = Query(7, ge=1, le=30),
 ):
     """
@@ -3660,7 +3660,7 @@ async def get_daily_stats(
 
 @router.get("/progress/recommendations")
 async def get_study_recommendations(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Get personalized study recommendations.
@@ -3678,7 +3678,7 @@ async def get_study_recommendations(
 
 @router.get("/recommendations/themes")
 async def get_theme_recommendations(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     limit: int = Query(5, ge=1, le=20),
 ):
     """
@@ -3723,7 +3723,7 @@ async def get_theme_recommendations(
 
 @router.get("/recommendations/prophets")
 async def get_prophet_recommendations(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     limit: int = Query(3, ge=1, le=10),
 ):
     """
@@ -3786,7 +3786,7 @@ async def get_theme_exploration_path(
 @router.get("/recommendations/journey/{theme}")
 async def get_thematic_journey(
     theme: str,
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Generate a personalized thematic journey through the Quran.
@@ -4729,7 +4729,7 @@ async def get_all_tafsir_scholars():
 
 @router.get("/personalization/adaptive-recommendations")
 async def get_adaptive_recommendations(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     context: str = Query("general", description="Context: general, memorization, research, reflection"),
     limit: int = Query(10, ge=1, le=30),
 ):
@@ -4804,7 +4804,7 @@ async def get_adaptive_recommendations(
 
 @router.post("/personalization/learn-from-interaction")
 async def learn_from_user_interaction(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
     interaction_type: str = Query(..., description="view, search, bookmark, feedback"),
     target_type: str = Query(..., description="verse, theme, prophet, tafsir"),
     target_id: str = Query(..., description="ID of the target item"),
@@ -4845,7 +4845,7 @@ async def learn_from_user_interaction(
 
 @router.get("/personalization/learning-insights")
 async def get_learning_insights(
-    session_id: str = Query(..., description="User session ID"),
+    session_id: str = Query(..., max_length=64, description="User session ID"),
 ):
     """
     Get insights about user's learning patterns.
