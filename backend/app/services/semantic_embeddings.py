@@ -83,6 +83,7 @@ class SemanticEmbeddingService:
         self._model = None
         self._model_name = None
         self._embedding_cache: Dict[str, np.ndarray] = {}
+        self._embedding_cache_max = 1024  # prevent unbounded growth
         self._initialized = False
 
     async def initialize(self) -> bool:
@@ -144,7 +145,8 @@ class SemanticEmbeddingService:
             # Use TF-IDF fallback
             embedding = self._compute_tfidf_embedding(text)
 
-        self._embedding_cache[cache_key] = embedding
+        if len(self._embedding_cache) < self._embedding_cache_max:
+            self._embedding_cache[cache_key] = embedding
         return embedding
 
     async def compute_embeddings_batch(self, texts: List[str]) -> List[np.ndarray]:
@@ -186,7 +188,8 @@ class SemanticEmbeddingService:
             for idx, (orig_idx, text) in enumerate(zip(indices_to_compute, texts_to_compute)):
                 embedding = new_embeddings[idx] if isinstance(new_embeddings, list) else new_embeddings[idx]
                 cache_key = self._get_cache_key(text)
-                self._embedding_cache[cache_key] = embedding
+                if len(self._embedding_cache) < self._embedding_cache_max:
+                    self._embedding_cache[cache_key] = embedding
                 results.append((orig_idx, embedding))
 
         # Sort by original index and return embeddings

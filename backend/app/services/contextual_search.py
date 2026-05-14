@@ -256,6 +256,7 @@ class ContextualSearchService:
         self._model_name = None
         self._initialized = False
         self._embedding_cache: Dict[str, np.ndarray] = {}
+        self._embedding_cache_max = 512  # prevent unbounded growth
         self._bilingual_concepts = BILINGUAL_CONCEPTS
 
     async def initialize(self) -> bool:
@@ -418,7 +419,8 @@ class ContextualSearchService:
             # Fallback embedding
             embedding = self._compute_fallback_embedding(text)
 
-        self._embedding_cache[cache_key] = embedding
+        if len(self._embedding_cache) < self._embedding_cache_max:
+            self._embedding_cache[cache_key] = embedding
         return embedding
 
     def _compute_fallback_embedding(self, text: str) -> np.ndarray:

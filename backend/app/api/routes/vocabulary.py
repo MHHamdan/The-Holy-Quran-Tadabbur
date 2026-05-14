@@ -12,6 +12,7 @@ Every entry in vocabulary_entries requires a verified source_id.
 """
 from __future__ import annotations
 
+from functools import lru_cache
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy import select, func, case, or_
@@ -21,6 +22,12 @@ from typing import Optional
 from app.core.rate_limit import vocab_rate_limit
 from app.db.database import get_async_session
 from app.models.vocabulary import VocabEntry
+
+# In-process LRU cache for by-ref lookups (sura:aya:pos → serialised response).
+# The vocabulary table is immutable between restarts, so staleness is not a concern.
+# Max 2048 entries ≈ ~2 full Quranic pages worth of words cached in memory.
+_BY_REF_CACHE: dict[tuple[int, int, int], "VocabularyResponse"] = {}
+_BY_REF_CACHE_MAX = 2048
 
 router = APIRouter()
 
@@ -294,6 +301,11 @@ async def vocabulary_by_ref(
 
     This endpoint powers the inline hover-to-reveal feature in verse displays.
     """
+    cache_key = (sura, aya, pos)
+    cached = _BY_REF_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     result = await db.execute(
         select(VocabEntry)
         .where(
@@ -306,14 +318,19 @@ async def vocabulary_by_ref(
     entry = result.scalar_one_or_none()
 
     if entry is None:
-        return VocabularyResponse(
+        response = VocabularyResponse(
             word='',
             status='no_verified_source',
             message_en=_SAFE_REFUSAL_EN,
             message_ar=_SAFE_REFUSAL_AR,
         )
+    else:
+        response = _entry_to_response(entry)
 
-    return _entry_to_response(entry)
+    if len(_BY_REF_CACHE) < _BY_REF_CACHE_MAX:
+        _BY_REF_CACHE[cache_key] = response
+
+    return response
 
 
 @router.get('/status', response_model=VocabularyStatusResponse)
