@@ -3324,13 +3324,16 @@ async def get_semantic_similarity(
         min_similarity=min_similarity,
     )
 
-    # Get full verse data for results
+    # Batch-fetch all similar verses in one query (not N+1)
+    sim_id_list = [vid for vid, _ in similar_ids]
+    batch_result = await session.execute(
+        select(QuranVerse).where(QuranVerse.id.in_(sim_id_list))
+    )
+    verse_map = {v.id: v for v in batch_result.scalars().all()}
+
     results = []
     for verse_id, sim_score in similar_ids:
-        verse_result = await session.execute(
-            select(QuranVerse).where(QuranVerse.id == verse_id)
-        )
-        verse = verse_result.scalar_one_or_none()
+        verse = verse_map.get(verse_id)
         if verse:
             # Get enhanced analysis
             enhanced = await contextual_enhancer.compute_enhanced_similarity(
@@ -5220,24 +5223,28 @@ async def get_side_by_side_tafsir(
         raise HTTPException(status_code=404, detail="Verse not found")
 
     catalog = modern_tafsir_service._catalog
-    comparisons = []
 
+    # Batch-fetch all source chunks in one query (not N+1)
+    all_sids = [sid for src in source_ids for sid in (src, f"{src}_ar", f"{src}_en")]
+    chunks_result = await session.execute(
+        select(TafseerChunk).where(
+            TafseerChunk.source_id.in_(all_sids),
+            TafseerChunk.verse_start_id <= verse.id,
+            TafseerChunk.verse_end_id >= verse.id,
+        )
+    )
+    chunk_by_sid: dict[str, TafseerChunk] = {}
+    for c in chunks_result.scalars().all():
+        chunk_by_sid.setdefault(c.source_id, c)
+
+    comparisons = []
     for source_id in source_ids:
         source_info = catalog.get(source_id, {})
-
-        # Try to find chunk
-        chunk = None
-        for sid in [source_id, f"{source_id}_ar", f"{source_id}_en"]:
-            chunk_result = await session.execute(
-                select(TafseerChunk).where(
-                    TafseerChunk.source_id == sid,
-                    TafseerChunk.verse_start_id <= verse.id,
-                    TafseerChunk.verse_end_id >= verse.id,
-                )
-            )
-            chunk = chunk_result.scalar_one_or_none()
-            if chunk:
-                break
+        chunk = (
+            chunk_by_sid.get(source_id)
+            or chunk_by_sid.get(f"{source_id}_ar")
+            or chunk_by_sid.get(f"{source_id}_en")
+        )
 
         comparisons.append({
             "source_id": source_id,
@@ -5553,46 +5560,41 @@ async def get_life_lesson_verses(
             detail={"error": "Life lesson not found"},
         )
 
-    verses = []
+    # Collect all (sura_no, aya_no) pairs first, then batch-fetch
+    wanted: list[tuple[int, int]] = []
     for verse_ref in lesson.get("key_verses", []):
-        if ":" in verse_ref:
-            parts = verse_ref.split(":")
-            if "-" in parts[1]:
-                # Range: e.g., "2:155-156"
-                sura_no = int(parts[0])
-                aya_range = parts[1].split("-")
-                for aya_no in range(int(aya_range[0]), int(aya_range[1]) + 1):
-                    result = await session.execute(
-                        select(QuranVerse).where(
-                            QuranVerse.sura_no == sura_no,
-                            QuranVerse.aya_no == aya_no,
-                        )
-                    )
-                    verse = result.scalar_one_or_none()
-                    if verse:
-                        verses.append({
-                            "reference": f"{sura_no}:{aya_no}",
-                            "text_uthmani": verse.text_uthmani,
-                            "sura_no": verse.sura_no,
-                            "aya_no": verse.aya_no,
-                        })
-            else:
-                sura_no = int(parts[0])
-                aya_no = int(parts[1])
-                result = await session.execute(
-                    select(QuranVerse).where(
-                        QuranVerse.sura_no == sura_no,
-                        QuranVerse.aya_no == aya_no,
-                    )
-                )
-                verse = result.scalar_one_or_none()
-                if verse:
-                    verses.append({
-                        "reference": f"{sura_no}:{aya_no}",
-                        "text_uthmani": verse.text_uthmani,
-                        "sura_no": verse.sura_no,
-                        "aya_no": verse.aya_no,
-                    })
+        if ":" not in verse_ref:
+            continue
+        parts = verse_ref.split(":")
+        sura_no = int(parts[0])
+        if "-" in parts[1]:
+            aya_range = parts[1].split("-")
+            for aya_no in range(int(aya_range[0]), int(aya_range[1]) + 1):
+                wanted.append((sura_no, aya_no))
+        else:
+            wanted.append((sura_no, int(parts[1])))
+
+    verses = []
+    if wanted:
+        from sqlalchemy import or_, and_
+        batch_result = await session.execute(
+            select(QuranVerse).where(
+                or_(*(
+                    and_(QuranVerse.sura_no == s, QuranVerse.aya_no == a)
+                    for s, a in wanted
+                ))
+            )
+        )
+        verse_map = {(v.sura_no, v.aya_no): v for v in batch_result.scalars().all()}
+        for sura_no, aya_no in wanted:
+            verse = verse_map.get((sura_no, aya_no))
+            if verse:
+                verses.append({
+                    "reference": f"{sura_no}:{aya_no}",
+                    "text_uthmani": verse.text_uthmani,
+                    "sura_no": verse.sura_no,
+                    "aya_no": verse.aya_no,
+                })
 
     return {
         "lesson_id": lesson_id,
@@ -7131,13 +7133,12 @@ async def search_by_entity(
 
     matching_verses = []
 
-    for sura_no in key_suras[:5]:  # Limit to first 5 key suras
-        result = await session.execute(
-            select(QuranVerse).where(QuranVerse.sura_no == sura_no)
+    if key_suras:
+        # Batch all suras in one query instead of one query per sura
+        batch_result = await session.execute(
+            select(QuranVerse).where(QuranVerse.sura_no.in_(key_suras[:5]))
         )
-        verses = result.scalars().all()
-
-        for verse in verses:
+        for verse in batch_result.scalars().all():
             for term in search_terms:
                 if term in verse.text_uthmani:
                     matching_verses.append({

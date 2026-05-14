@@ -125,49 +125,58 @@ async def get_surah_translations(
     session: AsyncSession = Depends(get_async_session)
 ):
     """Get all translations for a surah."""
-    # Get all verses in surah
-    result = await session.execute(
-        select(QuranVerse).where(
-            QuranVerse.sura_no == surah
-        ).order_by(QuranVerse.aya_no)
+    # Fetch verses and translations in two queries (not N+1)
+    verses_result = await session.execute(
+        select(QuranVerse).where(QuranVerse.sura_no == surah).order_by(QuranVerse.aya_no)
     )
-    verses = result.scalars().all()
+    verses = verses_result.scalars().all()
 
     if not verses:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Surah {surah} not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Surah {surah} not found")
 
-    service = TranslationService(
-        session=session,
-        mode=TranslationMode.SCHOLARLY
+    verse_ids = [v.id for v in verses]
+
+    trans_query = select(Translation).where(
+        Translation.verse_id.in_(verse_ids),
+        Translation.language == language,
+        Translation.translator != "llm",
+    ).order_by(
+        # sahih_international first, then any other scholarly translator
+        (Translation.translator != "sahih_international"),
     )
+    if translator:
+        trans_query = trans_query.where(Translation.translator == translator)
 
+    trans_result = await session.execute(trans_query)
+    all_trans = trans_result.scalars().all()
+
+    # Keep best translation per verse_id (first row wins after ORDER BY)
+    best: dict[int, Translation] = {}
+    for t in all_trans:
+        if t.verse_id not in best:
+            best[t.verse_id] = t
+
+    verse_map = {v.id: v for v in verses}
     translations = []
     for verse in verses:
-        trans_result = await service.translate_verse(
-            verse=verse,
-            target_language=language
-        )
-        if trans_result.translated_text:
-            translations.append(TranslationResponse(
-                verse_reference=trans_result.verse_reference,
-                source_language=trans_result.source_language,
-                target_language=trans_result.target_language,
-                source_text=trans_result.source_text,
-                translated_text=trans_result.translated_text,
-                translator=trans_result.translator,
-                mode=trans_result.mode.value,
-                confidence=trans_result.confidence,
-                needs_review=trans_result.needs_review,
-                review_notes=trans_result.review_notes
-            ))
+        t = best.get(verse.id)
+        if not t:
+            continue
+        review_notes = ["Flagged for review"] if t.needs_review else []
+        translations.append(TranslationResponse(
+            verse_reference=verse.reference,
+            source_language="ar",
+            target_language=language,
+            source_text=verse.text_uthmani,
+            translated_text=t.text,
+            translator=t.translator,
+            mode=TranslationMode.SCHOLARLY.value,
+            confidence=t.confidence or 100,
+            needs_review=bool(t.needs_review),
+            review_notes=review_notes,
+        ))
 
-    return TranslationListResponse(
-        translations=translations,
-        total=len(translations)
-    )
+    return TranslationListResponse(translations=translations, total=len(translations))
 
 
 @router.get("/review", response_model=TranslationReviewListResponse)
@@ -184,14 +193,19 @@ async def get_translations_needing_review(
     service = TranslationService(session=session)
     translations = await service.get_translations_needing_review(limit=limit)
 
+    if not translations:
+        return TranslationReviewListResponse(items=[], total=0)
+
+    # Batch-fetch all referenced verses in one query (not N+1)
+    verse_ids = [t.verse_id for t in translations]
+    verses_result = await session.execute(
+        select(QuranVerse).where(QuranVerse.id.in_(verse_ids))
+    )
+    verse_map = {v.id: v for v in verses_result.scalars().all()}
+
     items = []
     for trans in translations:
-        # Get the verse for context
-        result = await session.execute(
-            select(QuranVerse).where(QuranVerse.id == trans.verse_id)
-        )
-        verse = result.scalar_one_or_none()
-
+        verse = verse_map.get(trans.verse_id)
         if verse:
             items.append(TranslationReviewItem(
                 translation_id=trans.id,
@@ -203,10 +217,7 @@ async def get_translations_needing_review(
                 created_at=trans.created_at.isoformat() if trans.created_at else ""
             ))
 
-    return TranslationReviewListResponse(
-        items=items,
-        total=len(items)
-    )
+    return TranslationReviewListResponse(items=items, total=len(items))
 
 
 @router.get("/available-translators")
