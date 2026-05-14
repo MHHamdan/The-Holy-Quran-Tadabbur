@@ -100,7 +100,7 @@ class TestNLIClassifierUnit:
         mock_tok.return_value = fake_enc
         return mock_tok
 
-    def test_classify_returns_correct_emotion(self):
+    async def test_classify_returns_correct_emotion(self):
         from app.services.emotion_classifier import NLIEmotionClassifier, EMOTION_LABELS
         clf = NLIEmotionClassifier(confidence_threshold=0.4)
 
@@ -118,7 +118,7 @@ class TestNLIClassifierUnit:
         assert emotion == EMOTION_LABELS[0]
         assert confidence > 0.4
 
-    def test_classify_returns_empty_when_below_threshold(self):
+    async def test_classify_returns_empty_when_below_threshold(self):
         """When all entailment scores are low, returns ('', low_conf)."""
         import torch
         from app.services.emotion_classifier import NLIEmotionClassifier
@@ -145,7 +145,7 @@ class TestNLIClassifierUnit:
 
         assert emotion == ""
 
-    def test_load_failure_returns_empty(self):
+    async def test_load_failure_returns_empty(self):
         """Model load failure must return ('', 0.0) gracefully."""
         from app.services.emotion_classifier import NLIEmotionClassifier
 
@@ -157,7 +157,7 @@ class TestNLIClassifierUnit:
         assert confidence == 0.0
         assert not clf.is_ready
 
-    def test_warmup_returns_true_on_success(self):
+    async def test_warmup_returns_true_on_success(self):
         from app.services.emotion_classifier import NLIEmotionClassifier
 
         clf = NLIEmotionClassifier()
@@ -173,7 +173,7 @@ class TestNLIClassifierUnit:
         assert ok is True
         assert clf.is_ready
 
-    def test_warmup_returns_false_on_failure(self):
+    async def test_warmup_returns_false_on_failure(self):
         from app.services.emotion_classifier import NLIEmotionClassifier
 
         clf = NLIEmotionClassifier(model_name="bad-model")
@@ -183,7 +183,7 @@ class TestNLIClassifierUnit:
         assert ok is False
         assert not clf.is_ready
 
-    def test_double_load_only_calls_from_pretrained_once(self):
+    async def test_double_load_only_calls_from_pretrained_once(self):
         from app.services.emotion_classifier import NLIEmotionClassifier
 
         clf = NLIEmotionClassifier()
@@ -199,7 +199,7 @@ class TestNLIClassifierUnit:
 
         assert mock_tok_call.call_count == 1
 
-    def test_inference_error_returns_empty(self):
+    async def test_inference_error_returns_empty(self):
         from app.services.emotion_classifier import NLIEmotionClassifier
 
         clf = NLIEmotionClassifier()
@@ -225,28 +225,28 @@ class TestNLIClassifierUnit:
 # ===========================================================================
 
 class TestArabicDetection:
-    def test_arabic_text_is_detected(self):
+    async def test_arabic_text_is_detected(self):
         from app.services.emotion_classifier import is_arabic_dominant
         assert is_arabic_dominant("أشعر بالقلق الشديد")
 
-    def test_english_text_not_arabic(self):
+    async def test_english_text_not_arabic(self):
         from app.services.emotion_classifier import is_arabic_dominant
         assert not is_arabic_dominant("I feel very anxious today")
 
-    def test_mixed_text_below_threshold(self):
+    async def test_mixed_text_below_threshold(self):
         from app.services.emotion_classifier import is_arabic_dominant
         # Short Arabic word in mostly English sentence
         assert not is_arabic_dominant("I feel قلق today but mostly English")
 
-    def test_mixed_text_above_threshold(self):
+    async def test_mixed_text_above_threshold(self):
         from app.services.emotion_classifier import is_arabic_dominant
         assert is_arabic_dominant("أشعر بالقلق الشديد وI feel worried")
 
-    def test_empty_string_returns_false(self):
+    async def test_empty_string_returns_false(self):
         from app.services.emotion_classifier import is_arabic_dominant
         assert not is_arabic_dominant("")
 
-    def test_numbers_only_returns_false(self):
+    async def test_numbers_only_returns_false(self):
         from app.services.emotion_classifier import is_arabic_dominant
         assert not is_arabic_dominant("12345 !@#$")
 
@@ -267,13 +267,13 @@ class TestClassifyEmotionIntegration:
             return_value=mock_clf,
         )
 
-    def test_english_uses_nli_when_enabled(self):
+    async def test_english_uses_nli_when_enabled(self):
         from app.services.spiritual_guidance_service import classify_emotion
         with self._mock_nli_result("grief"):
             result = classify_emotion("I am grieving the loss of my father")
         assert result == "grief"
 
-    def test_arabic_bypasses_nli(self):
+    async def test_arabic_bypasses_nli(self):
         """Arabic text routes directly to keyword classifier; NLI is not called."""
         from app.services.spiritual_guidance_service import classify_emotion
         mock_clf = MagicMock()
@@ -282,7 +282,7 @@ class TestClassifyEmotionIntegration:
         mock_clf.classify.assert_not_called()
         assert result in ["anxiety", "general"]
 
-    def test_low_confidence_falls_back_to_keywords(self):
+    async def test_low_confidence_falls_back_to_keywords(self):
         from app.services.spiritual_guidance_service import classify_emotion
         mock_clf = MagicMock()
         mock_clf.classify.return_value = ("", 0.15)  # empty = below threshold
@@ -290,7 +290,7 @@ class TestClassifyEmotionIntegration:
             result = classify_emotion("I feel very anxious and worried")
         assert result == "anxiety"
 
-    def test_disabled_classifier_uses_keywords(self):
+    async def test_disabled_classifier_uses_keywords(self):
         from app.services.spiritual_guidance_service import classify_emotion
         mock_clf = MagicMock()
         mock_settings = MagicMock()
@@ -303,7 +303,7 @@ class TestClassifyEmotionIntegration:
         mock_clf.classify.assert_not_called()
         assert result == "anxiety"
 
-    def test_nli_general_falls_through_to_keywords(self):
+    async def test_nli_general_falls_through_to_keywords(self):
         """NLI returning 'general' with high confidence should be accepted."""
         from app.services.spiritual_guidance_service import classify_emotion
         with self._mock_nli_result("general", 0.95):
@@ -389,7 +389,7 @@ class TestLiveModelSmoke:
         ("I feel so deeply sad about everything in my life", "sadness"),
     ]
 
-    def test_live_accuracy_above_90_percent(self):
+    async def test_live_accuracy_above_90_percent(self):
         from app.services.emotion_classifier import NLIEmotionClassifier
         clf = NLIEmotionClassifier()
         assert clf.warmup(), "Model failed to load"
@@ -404,7 +404,7 @@ class TestLiveModelSmoke:
             f"{correct}/{len(self._CASES)} correct"
         )
 
-    def test_live_high_confidence_on_clear_text(self):
+    async def test_live_high_confidence_on_clear_text(self):
         from app.services.emotion_classifier import NLIEmotionClassifier
         clf = NLIEmotionClassifier()
         clf.warmup()

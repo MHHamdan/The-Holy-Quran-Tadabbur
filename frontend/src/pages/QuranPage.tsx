@@ -10,7 +10,7 @@
  *
  * Arabic: صفحة القرآن الكريم المحسنة
  */
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Book, ChevronLeft, ChevronRight, BookOpen,
@@ -19,11 +19,16 @@ import {
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
 import { GrammarAnalysisView } from '../components/quran/GrammarAnalysis';
-import { SimilarVersesPanel } from '../components/quran/SimilarVersesPanel';
-import { QuranAudioPlayer } from '../components/quran/QuranAudioPlayer';
-import { TafsirPanel } from '../components/quran/TafsirPanel';
 import { VerseText } from '../components/quran/WordMeaningPopover';
 import clsx from 'clsx';
+
+const SimilarVersesPanel = lazy(() =>
+  import('../components/quran/SimilarVersesPanel').then(m => ({ default: m.SimilarVersesPanel }))
+);
+const QuranAudioPlayer = lazy(() => import('../components/quran/QuranAudioPlayer'));
+const TafsirPanel = lazy(() =>
+  import('../components/quran/TafsirPanel').then(m => ({ default: m.TafsirPanel }))
+);
 
 type ViewMode = 'mushaf' | 'list' | 'page';
 type NavigationMode = 'surah' | 'page';
@@ -504,18 +509,18 @@ export function QuranPage() {
       {/* Audio Player */}
       {showAudioPlayer && (
         <div className="mb-6">
-          <QuranAudioPlayer
-            mode={navMode === 'page' ? 'page' : 'surah'}
-            suraNo={navMode === 'surah' ? currentSura : undefined}
-            pageNo={navMode === 'page' ? currentPage : undefined}
-            language={language}
-            onVerseChange={handleVerseChange}
-            // Pass highlighted verse to start audio from that verse
-            startFromAya={highlightAya ? parseInt(highlightAya, 10) : undefined}
-            startFromSura={highlightAya ? currentSura : undefined}
-            // Auto-play when coming from concepts page (when there's a highlighted verse)
-            autoPlay={!!highlightAya && !!conceptParam}
-          />
+          <Suspense fallback={<div className="h-16 animate-pulse bg-gray-100 rounded-lg" />}>
+            <QuranAudioPlayer
+              mode={navMode === 'page' ? 'page' : 'surah'}
+              suraNo={navMode === 'surah' ? currentSura : undefined}
+              pageNo={navMode === 'page' ? currentPage : undefined}
+              language={language}
+              onVerseChange={handleVerseChange}
+              startFromAya={highlightAya ? parseInt(highlightAya, 10) : undefined}
+              startFromSura={highlightAya ? currentSura : undefined}
+              autoPlay={!!highlightAya && !!conceptParam}
+            />
+          </Suspense>
         </div>
       )}
 
@@ -733,25 +738,29 @@ export function QuranPage() {
                       {/* Similar verses panel */}
                       {showSimilar && (
                         <div className="mt-4">
-                          <SimilarVersesPanel
-                            suraNo={verse.sura_no}
-                            ayaNo={verse.aya_no}
-                            verseText={verse.text_uthmani}
-                            onVerseSelect={(sura, aya) => {
-                              navigate(`/quran/${sura}?aya=${aya}`);
-                            }}
-                          />
+                          <Suspense fallback={<div className="h-32 animate-pulse bg-gray-100 rounded-lg" />}>
+                            <SimilarVersesPanel
+                              suraNo={verse.sura_no}
+                              ayaNo={verse.aya_no}
+                              verseText={verse.text_uthmani}
+                              onVerseSelect={(sura, aya) => {
+                                navigate(`/quran/${sura}?aya=${aya}`);
+                              }}
+                            />
+                          </Suspense>
                         </div>
                       )}
                       {/* Tafsir panel */}
                       {showTafsir && (
                         <div className="mt-4">
-                          <TafsirPanel
-                            sura={verse.sura_no}
-                            ayah={verse.aya_no}
-                            verseText={verse.text_uthmani}
-                            isExpanded={true}
-                          />
+                          <Suspense fallback={<div className="h-48 animate-pulse bg-gray-100 rounded-lg" />}>
+                            <TafsirPanel
+                              sura={verse.sura_no}
+                              ayah={verse.aya_no}
+                              verseText={verse.text_uthmani}
+                              isExpanded={true}
+                            />
+                          </Suspense>
                         </div>
                       )}
                     </div>

@@ -71,14 +71,14 @@ class TestReflectionPromptInAskResponse:
     ]
 
     @pytest.mark.parametrize("emotion", EMOTIONS)
-    def test_reflection_prompt_present_for_emotion(self, emotion):
+    async def test_reflection_prompt_present_for_emotion(self, emotion):
         from app.api.routes.therapy import _REFLECTION_PROMPTS, EmotionCategory
         key = getattr(EmotionCategory, emotion.upper(), EmotionCategory.GENERAL)
         prompts = _REFLECTION_PROMPTS.get(key, _REFLECTION_PROMPTS[EmotionCategory.GENERAL])
         assert prompts["en"], f"Missing EN reflection prompt for {emotion}"
         assert prompts["ar"], f"Missing AR reflection prompt for {emotion}"
 
-    def test_all_12_emotions_covered(self):
+    async def test_all_12_emotions_covered(self):
         from app.api.routes.therapy import _REFLECTION_PROMPTS, EmotionCategory
         missing = []
         for emotion in self.EMOTIONS:
@@ -87,7 +87,7 @@ class TestReflectionPromptInAskResponse:
                 missing.append(emotion)
         assert not missing, f"Emotions missing from _REFLECTION_PROMPTS: {missing}"
 
-    def test_reflection_prompts_bilingual(self):
+    async def test_reflection_prompts_bilingual(self):
         from app.api.routes.therapy import _REFLECTION_PROMPTS
         for emotion_key, prompts in _REFLECTION_PROMPTS.items():
             assert "en" in prompts, f"{emotion_key} missing EN prompt"
@@ -103,48 +103,48 @@ class TestReflectionPromptInAskResponse:
 class TestDistressEmpathySelection:
     """Verify severity-aware empathy selection (T5-C improvement)."""
 
-    def test_distress_dict_covers_hopelessness_grief_fear(self):
+    async def test_distress_dict_covers_hopelessness_grief_fear(self):
         from app.api.routes.therapy import _EMPATHY_DISTRESS, EmotionCategory
         for emotion in [EmotionCategory.HOPELESSNESS, EmotionCategory.GRIEF, EmotionCategory.FEAR]:
             assert emotion in _EMPATHY_DISTRESS, f"{emotion} missing from _EMPATHY_DISTRESS"
 
-    def test_distress_empathy_bilingual(self):
+    async def test_distress_empathy_bilingual(self):
         from app.api.routes.therapy import _EMPATHY_DISTRESS
         for emotion_key, texts in _EMPATHY_DISTRESS.items():
             assert "en" in texts and "ar" in texts
             assert len(texts["en"]) > 30, f"{emotion_key} DISTRESS EN empathy too short"
             assert len(texts["ar"]) > 20, f"{emotion_key} DISTRESS AR empathy too short"
 
-    def test_hopelessness_always_distress_severity(self):
+    async def test_hopelessness_always_distress_severity(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("hopelessness", 0.0) == EmotionSeverity.DISTRESS
         assert get_severity("hopelessness", 1.0) == EmotionSeverity.DISTRESS
 
-    def test_grief_distress_above_threshold(self):
+    async def test_grief_distress_above_threshold(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("grief", 0.70) == EmotionSeverity.DISTRESS
 
-    def test_grief_moderate_below_threshold(self):
+    async def test_grief_moderate_below_threshold(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("grief", 0.50) == EmotionSeverity.MODERATE
 
-    def test_fear_distress_above_threshold(self):
+    async def test_fear_distress_above_threshold(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("fear", 0.80) == EmotionSeverity.DISTRESS
 
-    def test_fear_moderate_below_threshold(self):
+    async def test_fear_moderate_below_threshold(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("fear", 0.40) == EmotionSeverity.MODERATE
 
-    def test_anxiety_never_distress(self):
+    async def test_anxiety_never_distress(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("anxiety", 0.99) == EmotionSeverity.MODERATE
 
-    def test_gratitude_always_positive(self):
+    async def test_gratitude_always_positive(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("gratitude", 0.90) == EmotionSeverity.POSITIVE
 
-    def test_general_always_mild(self):
+    async def test_general_always_mild(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("general", 0.99) == EmotionSeverity.MILD
 
@@ -247,76 +247,74 @@ class TestArabicKeywordExpansion:
         from app.services.spiritual_guidance_service import _EMOTION_KEYWORDS
         return _EMOTION_KEYWORDS
 
-    def test_anxiety_has_colloquial_terms(self):
+    async def test_anxiety_has_colloquial_terms(self):
         kw = self._get_keywords()
         anxiety_kws = " ".join(kw.get("anxiety", []))
         assert "قلقان" in anxiety_kws or "متوتر" in anxiety_kws
 
-    def test_anxiety_has_minimum_keywords(self):
+    async def test_anxiety_has_minimum_keywords(self):
         kw = self._get_keywords()
         assert len(kw.get("anxiety", [])) >= 10, "anxiety should have ≥10 Arabic keywords"
 
-    def test_hopelessness_has_minimum_keywords(self):
+    async def test_hopelessness_has_minimum_keywords(self):
         kw = self._get_keywords()
         assert len(kw.get("hopelessness", [])) >= 8
 
-    def test_grief_has_minimum_keywords(self):
+    async def test_grief_has_minimum_keywords(self):
         kw = self._get_keywords()
         assert len(kw.get("grief", [])) >= 8
 
-    def test_sadness_has_minimum_keywords(self):
+    async def test_sadness_has_minimum_keywords(self):
         kw = self._get_keywords()
         assert len(kw.get("sadness", [])) >= 8
 
-    def test_fear_has_minimum_keywords(self):
+    async def test_fear_has_minimum_keywords(self):
         kw = self._get_keywords()
         assert len(kw.get("fear", [])) >= 8
 
-    def test_loneliness_has_minimum_keywords(self):
+    async def test_loneliness_has_minimum_keywords(self):
         kw = self._get_keywords()
         assert len(kw.get("loneliness", [])) >= 8
 
-    def test_anger_has_minimum_keywords(self):
+    async def test_anger_has_minimum_keywords(self):
         kw = self._get_keywords()
         assert len(kw.get("anger", [])) >= 8
 
-    def test_stress_has_minimum_keywords(self):
+    async def test_stress_has_minimum_keywords(self):
         kw = self._get_keywords()
         assert len(kw.get("stress", [])) >= 8
 
-    def test_guilt_has_minimum_keywords(self):
+    async def test_guilt_has_minimum_keywords(self):
         kw = self._get_keywords()
         assert len(kw.get("guilt", [])) >= 8
 
-    def test_doubt_has_minimum_keywords(self):
+    async def test_doubt_has_minimum_keywords(self):
         kw = self._get_keywords()
         assert len(kw.get("doubt", [])) >= 8
 
-    def test_gratitude_has_minimum_keywords(self):
+    async def test_gratitude_has_minimum_keywords(self):
         kw = self._get_keywords()
         assert len(kw.get("gratitude", [])) >= 8
 
-    def test_hopelessness_has_islamic_term(self):
+    async def test_hopelessness_has_islamic_term(self):
         kw = self._get_keywords()
         hopeless_kws = " ".join(kw.get("hopelessness", []))
-        # Should contain يأس or قنوط (classic Islamic term for hopelessness)
         assert "يأس" in hopeless_kws or "قنوط" in hopeless_kws
 
-    def test_gratitude_has_shukr_variant(self):
+    async def test_gratitude_has_shukr_variant(self):
         kw = self._get_keywords()
         gratitude_kws = " ".join(kw.get("gratitude", []))
         assert "شكر" in gratitude_kws or "امتنان" in gratitude_kws
 
-    def test_all_core_emotions_present_in_keywords(self):
+    async def test_all_core_emotions_present_in_keywords(self):
         kw = self._get_keywords()
         core = ["anxiety", "sadness", "grief", "fear", "loneliness",
                 "hopelessness", "anger", "stress", "guilt", "doubt", "gratitude"]
         missing = [e for e in core if e not in kw]
         assert not missing, f"Missing from _EMOTION_KEYWORDS: {missing}"
 
-    def test_each_emotion_has_arabic_terms(self):
+    async def test_each_emotion_has_arabic_terms(self):
         kw = self._get_keywords()
-        # At least half the terms per emotion should be Arabic script
         for emotion, terms in kw.items():
             arabic_count = sum(
                 1 for t in terms if any('؀' <= c <= 'ۿ' for c in t)

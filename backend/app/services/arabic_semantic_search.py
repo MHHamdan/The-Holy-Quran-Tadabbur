@@ -332,7 +332,8 @@ class ArabicSemanticSearchService:
             await self.initialize()
 
         if self._model is not None:
-            embedding = self._model.encode(text, convert_to_numpy=True)
+            import asyncio
+            embedding = await asyncio.to_thread(self._model.encode, text, convert_to_numpy=True)
         else:
             # Fallback: TF-IDF style embedding
             embedding = self._compute_fallback_embedding(text)

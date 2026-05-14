@@ -70,7 +70,6 @@ const CATEGORIES = [
   { id: 'righteous', labelAr: 'الصالحين', labelEn: 'Righteous' },
 ];
 
-import { QURAN_STORIES_FIRST_BATCH } from '../data/quranStories';
 import type { AudienceLevel } from '../types/quranStory';
 
 export function StoriesPage() {
@@ -80,12 +79,13 @@ export function StoriesPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [audienceFilter, setAudienceFilter] = useState<AudienceLevel | 'all'>('all');
-
-  // IDs of stories that have rich Kids/Adults data in the first batch
-  const richStoryIds = new Set(QURAN_STORIES_FIRST_BATCH.map((s) => s.storyId));
+  const [richStoryIds, setRichStoryIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadAllStories();
+    import('../data/quranStories').then(m =>
+      setRichStoryIds(new Set(m.QURAN_STORIES_FIRST_BATCH.map((s) => s.storyId)))
+    );
   }, []);
 
   async function loadAllStories() {

@@ -66,52 +66,51 @@ async def client():
 # ===========================================================================
 
 class TestGetSeverity:
-    def test_hopelessness_always_distress(self):
+    async def test_hopelessness_always_distress(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("hopelessness", 0.0) == EmotionSeverity.DISTRESS
 
-    def test_hopelessness_high_conf_still_distress(self):
+    async def test_hopelessness_high_conf_still_distress(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("hopelessness", 0.99) == EmotionSeverity.DISTRESS
 
-    def test_grief_high_conf_is_distress(self):
+    async def test_grief_high_conf_is_distress(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("grief", 0.70) == EmotionSeverity.DISTRESS
 
-    def test_grief_low_conf_is_moderate(self):
+    async def test_grief_low_conf_is_moderate(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("grief", 0.50) == EmotionSeverity.MODERATE
 
-    def test_fear_high_conf_is_distress(self):
+    async def test_fear_high_conf_is_distress(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("fear", 0.80) == EmotionSeverity.DISTRESS
 
-    def test_fear_keyword_fallback_is_moderate(self):
+    async def test_fear_keyword_fallback_is_moderate(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
-        # confidence == 0.0 means keyword fallback was used
         assert get_severity("fear", 0.0) == EmotionSeverity.MODERATE
 
-    def test_gratitude_is_positive(self):
+    async def test_gratitude_is_positive(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("gratitude", 0.95) == EmotionSeverity.POSITIVE
 
-    def test_general_is_mild(self):
+    async def test_general_is_mild(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("general", 0.0) == EmotionSeverity.MILD
 
-    def test_empty_emotion_is_mild(self):
+    async def test_empty_emotion_is_mild(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("", 0.0) == EmotionSeverity.MILD
 
-    def test_anxiety_is_moderate(self):
+    async def test_anxiety_is_moderate(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("anxiety", 0.92) == EmotionSeverity.MODERATE
 
-    def test_stress_is_moderate(self):
+    async def test_stress_is_moderate(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("stress", 0.85) == EmotionSeverity.MODERATE
 
-    def test_doubt_is_moderate(self):
+    async def test_doubt_is_moderate(self):
         from app.services.tone_adapter import get_severity, EmotionSeverity
         assert get_severity("doubt", 0.78) == EmotionSeverity.MODERATE
 
@@ -121,27 +120,27 @@ class TestGetSeverity:
 # ===========================================================================
 
 class TestGetToneProfile:
-    def test_distress_profile_label(self):
+    async def test_distress_profile_label(self):
         from app.services.tone_adapter import get_tone_profile
         profile = get_tone_profile("hopelessness", 0.0)
         assert profile.label == "gentle"
 
-    def test_moderate_profile_label(self):
+    async def test_moderate_profile_label(self):
         from app.services.tone_adapter import get_tone_profile
         profile = get_tone_profile("anxiety", 0.90)
         assert profile.label == "supportive"
 
-    def test_positive_profile_label(self):
+    async def test_positive_profile_label(self):
         from app.services.tone_adapter import get_tone_profile
         profile = get_tone_profile("gratitude", 0.95)
         assert profile.label == "celebratory"
 
-    def test_mild_profile_label(self):
+    async def test_mild_profile_label(self):
         from app.services.tone_adapter import get_tone_profile
         profile = get_tone_profile("general", 0.0)
         assert profile.label == "welcoming"
 
-    def test_all_profiles_have_both_directives(self):
+    async def test_all_profiles_have_both_directives(self):
         from app.services.tone_adapter import get_tone_profile
         for emotion, conf in [
             ("hopelessness", 0.0), ("grief", 0.80), ("anxiety", 0.85),

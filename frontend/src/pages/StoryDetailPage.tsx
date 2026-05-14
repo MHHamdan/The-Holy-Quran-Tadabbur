@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Book, Network, List, Users, Tag, ChevronDown, ChevronUp, ExternalLink, BarChart3, Lightbulb, Baby, GraduationCap, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t, translateCategory, translateTheme, translateFigure, translateAspect } from '../i18n/translations';
 import { storiesApi, quranApi, StoryDetail, StoryGraph, Verse, StorySegment } from '../lib/api';
-import { StoryGraphView } from '../components/stories/StoryGraphView';
 import { ThematicFlow } from '../components/stories/ThematicFlow';
 import { NarrativeInsights } from '../components/stories/NarrativeInsights';
 import { RelatedStories } from '../components/stories/RelatedStories';
-import { getStoryById } from '../data/quranStories';
 import type { AudienceLevel, QuranStory } from '../types/quranStory';
+
+const StoryGraphView = lazy(() =>
+  import('../components/stories/StoryGraphView').then(m => ({ default: m.StoryGraphView }))
+);
 import { getStoryApprovalStatus } from '../utils/reviewStatus';
 import {
   StoryOverviewCard,
@@ -39,12 +41,13 @@ export function StoryDetailPage() {
   const [expandedSegments, setExpandedSegments] = useState<Set<string>>(new Set());
   const [loadingVerses, setLoadingVerses] = useState<Set<string>>(new Set());
 
-  // Rich story data from local seed (if available)
-  const richStory: QuranStory | undefined = storyId ? getStoryById(storyId) : undefined;
+  // Rich story data from local seed (lazy-loaded)
+  const [richStory, setRichStory] = useState<QuranStory | undefined>(undefined);
 
   useEffect(() => {
     if (storyId) {
       loadStory();
+      import('../data/quranStories').then(m => setRichStory(m.getStoryById(storyId)));
     }
   }, [storyId, language]);
 
@@ -552,7 +555,11 @@ export function StoryDetailPage() {
         </div>
       ) : viewMode === 'graph' ? (
         <div className="card p-0 overflow-hidden" style={{ height: '700px' }}>
-          {graphData && <StoryGraphView graph={graphData} language={language} />}
+          {graphData && (
+            <Suspense fallback={<div className="h-full animate-pulse bg-gray-100" />}>
+              <StoryGraphView graph={graphData} language={language} />
+            </Suspense>
+          )}
         </div>
       ) : viewMode === 'themes' ? (
         <ThematicFlow

@@ -77,31 +77,31 @@ class TestComputeTrend:
             for i, em in enumerate(emotions)
         ]
 
-    def test_improving_when_moving_from_hopeless_to_gratitude(self):
+    async def test_improving_when_moving_from_hopeless_to_gratitude(self):
         from app.api.routes.therapy import _compute_trend
         tl = self._make_timeline(["hopelessness", "grief", "sadness", "anxiety", "doubt", "gratitude"])
         assert _compute_trend(tl) == "improving"
 
-    def test_challenging_when_moving_to_distress(self):
+    async def test_challenging_when_moving_to_distress(self):
         from app.api.routes.therapy import _compute_trend
         tl = self._make_timeline(["gratitude", "general", "doubt", "grief", "hopelessness", "grief"])
         assert _compute_trend(tl) == "challenging"
 
-    def test_stable_when_no_significant_change(self):
+    async def test_stable_when_no_significant_change(self):
         from app.api.routes.therapy import _compute_trend
         tl = self._make_timeline(["anxiety", "stress", "doubt", "anxiety", "stress", "general"])
         assert _compute_trend(tl) == "stable"
 
-    def test_stable_with_fewer_than_4_sessions(self):
+    async def test_stable_with_fewer_than_4_sessions(self):
         from app.api.routes.therapy import _compute_trend
         tl = self._make_timeline(["grief", "anxiety", "sadness"])
         assert _compute_trend(tl) == "stable"
 
-    def test_stable_with_empty_timeline(self):
+    async def test_stable_with_empty_timeline(self):
         from app.api.routes.therapy import _compute_trend
         assert _compute_trend([]) == "stable"
 
-    def test_improving_single_large_jump(self):
+    async def test_improving_single_large_jump(self):
         from app.api.routes.therapy import _compute_trend
         # grief (score 1), hopelessness (0), fear (1.5), then 3 gratitude (5) each
         tl = self._make_timeline(["grief", "hopelessness", "fear", "gratitude", "gratitude", "gratitude"])
@@ -113,40 +113,40 @@ class TestComputeTrend:
 # ===========================================================================
 
 class TestComputeStreak:
-    def test_single_today(self):
+    async def test_single_today(self):
         from app.api.routes.therapy import _compute_streak
         assert _compute_streak([date.today()]) == 1
 
-    def test_consecutive_3_days_ending_today(self):
+    async def test_consecutive_3_days_ending_today(self):
         from app.api.routes.therapy import _compute_streak
         today = date.today()
         dates = [today - timedelta(days=2), today - timedelta(days=1), today]
         assert _compute_streak(dates) == 3
 
-    def test_streak_ending_yesterday(self):
+    async def test_streak_ending_yesterday(self):
         from app.api.routes.therapy import _compute_streak
         yesterday = date.today() - timedelta(days=1)
         dates = [yesterday - timedelta(days=1), yesterday]
         assert _compute_streak(dates) == 2
 
-    def test_gap_breaks_streak(self):
+    async def test_gap_breaks_streak(self):
         from app.api.routes.therapy import _compute_streak
         today = date.today()
         dates = [today - timedelta(days=3), today - timedelta(days=1), today]
         # gap on day -2 breaks the backward streak; only day -1 and today consecutive
         assert _compute_streak(dates) == 2
 
-    def test_old_sessions_no_streak(self):
+    async def test_old_sessions_no_streak(self):
         from app.api.routes.therapy import _compute_streak
         today = date.today()
         dates = [today - timedelta(days=5), today - timedelta(days=4)]
         assert _compute_streak(dates) == 0
 
-    def test_empty_returns_zero(self):
+    async def test_empty_returns_zero(self):
         from app.api.routes.therapy import _compute_streak
         assert _compute_streak([]) == 0
 
-    def test_duplicate_dates_counted_once(self):
+    async def test_duplicate_dates_counted_once(self):
         from app.api.routes.therapy import _compute_streak
         today = date.today()
         yesterday = today - timedelta(days=1)

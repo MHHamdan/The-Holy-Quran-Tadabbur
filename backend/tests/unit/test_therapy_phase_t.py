@@ -447,27 +447,27 @@ async def test_reflect_blank_rejected(client):
 # 34–38. Pure unit tests for emotion classifier
 # ---------------------------------------------------------------------------
 
-def test_classifier_anxious():
+async def test_classifier_anxious():
     result = classify_emotion("I feel anxious and nervous about everything")
     assert result == EmotionCategory.ANXIETY
 
 
-def test_classifier_hopeless():
+async def test_classifier_hopeless():
     result = classify_emotion("I feel hopeless and have given up")
     assert result == EmotionCategory.HOPELESSNESS
 
 
-def test_classifier_lonely():
+async def test_classifier_lonely():
     result = classify_emotion("I feel so lonely and isolated from everyone")
     assert result == EmotionCategory.LONELINESS
 
 
-def test_classifier_arabic_anxiety():
+async def test_classifier_arabic_anxiety():
     result = classify_emotion("أشعر بالقلق والتوتر")
     assert result == EmotionCategory.ANXIETY
 
 
-def test_classifier_unknown_falls_back_to_general():
+async def test_classifier_unknown_falls_back_to_general():
     result = classify_emotion("xyz123 completely unknown text abcdef")
     assert result == EmotionCategory.GENERAL
 
