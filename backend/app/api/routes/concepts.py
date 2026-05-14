@@ -434,44 +434,66 @@ async def get_all_miracles(
         if not miracles:
             return _get_miracles_from_service()
 
+        miracle_ids = [m.id for m in miracles]
+
+        # Batch 1: occurrence counts grouped by concept_id
+        occ_counts_result = await session.execute(
+            select(Occurrence.concept_id, func.count(Occurrence.id))
+            .where(Occurrence.concept_id.in_(miracle_ids))
+            .group_by(Occurrence.concept_id)
+        )
+        occ_count_map: dict[int, int] = {row[0]: row[1] for row in occ_counts_result.all()}
+
+        # Batch 2: story refs grouped by concept_id
+        story_refs_result = await session.execute(
+            select(Occurrence.concept_id, Occurrence.ref_id)
+            .where(
+                Occurrence.concept_id.in_(miracle_ids),
+                Occurrence.ref_type == "story",
+            )
+            .distinct()
+        )
+        story_refs_map: dict[int, list[str]] = {}
+        for cid, ref_id in story_refs_result.all():
+            if ref_id:
+                story_refs_map.setdefault(cid, []).append(ref_id)
+
+        # Batch 3: all relevant associations
+        assoc_result = await session.execute(
+            select(Association)
+            .where(
+                (Association.concept_a_id.in_(miracle_ids) | Association.concept_b_id.in_(miracle_ids)),
+                Association.relation_type.in_(["performed_by", "revealed_to", "cause_effect"]),
+            )
+        )
+        all_assocs = assoc_result.scalars().all()
+
+        # Collect all related person IDs
+        assoc_by_miracle: dict[int, list[int]] = {}
+        for assoc in all_assocs:
+            if assoc.concept_a_id in miracle_ids:
+                assoc_by_miracle.setdefault(assoc.concept_a_id, []).append(assoc.concept_b_id)
+            if assoc.concept_b_id in miracle_ids:
+                assoc_by_miracle.setdefault(assoc.concept_b_id, []).append(assoc.concept_a_id)
+
+        all_person_ids = list({pid for pids in assoc_by_miracle.values() for pid in pids})
+
+        # Batch 4: all related persons in one query
+        persons_map: dict[int, Concept] = {}
+        if all_person_ids:
+            persons_result = await session.execute(
+                select(Concept).where(
+                    Concept.id.in_(all_person_ids),
+                    Concept.concept_type == "person",
+                )
+            )
+            persons_map = {p.id: p for p in persons_result.scalars().all()}
+
         response = []
         for miracle in miracles:
-            # Get occurrence count
-            occ_count_result = await session.execute(
-                select(func.count(Occurrence.id))
-                .where(Occurrence.concept_id == miracle.id)
-            )
-            occ_count = occ_count_result.scalar() or 0
-
-            # Get story refs from occurrences
-            story_refs_result = await session.execute(
-                select(Occurrence.ref_id)
-                .where(
-                    Occurrence.concept_id == miracle.id,
-                    Occurrence.ref_type == "story"
-                )
-                .distinct()
-            )
-            story_refs = [row[0] for row in story_refs_result.all() if row[0]]
-
-            # Get related persons via associations (performed_by relation)
-            assoc_result = await session.execute(
-                select(Association)
-                .where(
-                    ((Association.concept_a_id == miracle.id) | (Association.concept_b_id == miracle.id)),
-                    Association.relation_type.in_(["performed_by", "revealed_to", "cause_effect"])
-                )
-            )
-            associations = assoc_result.scalars().all()
-
             related_persons = []
-            for assoc in associations:
-                # Get the other concept
-                other_id = assoc.concept_b_id if assoc.concept_a_id == miracle.id else assoc.concept_a_id
-                person_result = await session.execute(
-                    select(Concept).where(Concept.id == other_id, Concept.concept_type == "person")
-                )
-                person = person_result.scalar_one_or_none()
+            for pid in assoc_by_miracle.get(miracle.id, []):
+                person = persons_map.get(pid)
                 if person:
                     related_persons.append(ConceptSummaryResponse(
                         id=person.id,
@@ -493,8 +515,8 @@ async def get_all_miracles(
                 description_en=miracle.description_en,
                 icon_hint=miracle.icon_hint,
                 related_persons=related_persons,
-                related_stories=story_refs,
-                occurrence_count=occ_count,
+                related_stories=story_refs_map.get(miracle.id, []),
+                occurrence_count=occ_count_map.get(miracle.id, 0),
             ))
 
         return response
