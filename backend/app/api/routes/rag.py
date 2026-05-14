@@ -366,15 +366,19 @@ async def ask_question(
         if conv_session.messages:
             conversation_context = conv_session.get_context_for_llm(max_messages=4)
 
-        # Process query with session context
-        result = await pipeline.query(
-            question=request.question,
-            language=request.language,
-            include_scholarly_debate=request.include_scholarly_debate,
-            preferred_sources=request.preferred_sources,
-            max_sources=request.max_sources,
-            session_id=conv_session.session_id,
-            conversation_context=conversation_context,
+        # Process query with session context (60s hard timeout)
+        import asyncio as _asyncio
+        result = await _asyncio.wait_for(
+            pipeline.query(
+                question=request.question,
+                language=request.language,
+                include_scholarly_debate=request.include_scholarly_debate,
+                preferred_sources=request.preferred_sources,
+                max_sources=request.max_sources,
+                session_id=conv_session.session_id,
+                conversation_context=conversation_context,
+            ),
+            timeout=60.0,
         )
 
         # Store conversation messages
@@ -438,6 +442,19 @@ async def ask_question(
                 logger.warning(f"RAG cache store failed [{ctx.correlation_id}]: {e}")
 
         return response_dict
+
+    except _asyncio.TimeoutError:
+        error = create_error(
+            ErrorCode.TIMEOUT,
+            ctx.correlation_id,
+            internal_details="RAG pipeline exceeded 60s hard timeout"
+        )
+        error.log(ctx.question_hash)
+        logger.error(f"RAG pipeline timeout [{ctx.correlation_id}]")
+        return JSONResponse(
+            status_code=504,
+            content=error.to_response(request.language)
+        )
 
     except httpx.TimeoutException as e:
         error = create_error(
@@ -505,19 +522,24 @@ async def ask_followup_question(
     # Build conversation context
     conversation_context = conv_session.get_context_for_llm(max_messages=6)
 
+    import asyncio as _asyncio
+
     try:
         # Initialize RAG pipeline
         pipeline = RAGPipeline(session)
 
-        # Process follow-up query with context
-        result = await pipeline.query(
-            question=request.question,
-            language=request.language,
-            include_scholarly_debate=True,
-            preferred_sources=conv_session.preferred_sources,
-            max_sources=5,
-            session_id=conv_session.session_id,
-            conversation_context=conversation_context,
+        # Process follow-up query with context (60s hard timeout)
+        result = await _asyncio.wait_for(
+            pipeline.query(
+                question=request.question,
+                language=request.language,
+                include_scholarly_debate=True,
+                preferred_sources=conv_session.preferred_sources,
+                max_sources=5,
+                session_id=conv_session.session_id,
+                conversation_context=conversation_context,
+            ),
+            timeout=60.0,
         )
 
         # Store follow-up messages
@@ -537,6 +559,20 @@ async def ask_followup_question(
         )
 
         return result.to_dict()
+
+    except _asyncio.TimeoutError:
+        logger.error(f"Follow-up pipeline timeout for session {request.session_id}")
+        return JSONResponse(
+            status_code=504,
+            content={
+                "ok": False,
+                "error_code": "TIMEOUT",
+                "error_id": request.session_id,
+                "message_ar": "استغرق معالجة السؤال وقتاً طويلاً. حاول مرة أخرى.",
+                "message_en": "The request took too long to process. Please try again.",
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.exception(f"Error in follow-up question: {e}")
