@@ -4,7 +4,7 @@ Translation API routes.
 Provides endpoints for verse translation in STRICT LITERAL MODE.
 """
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
@@ -211,10 +211,12 @@ async def get_translations_needing_review(
 
 @router.get("/available-translators")
 async def get_available_translators(
+    http_response: Response,
     language: str = Query("en", description="Language code"),
     session: AsyncSession = Depends(get_async_session)
 ):
     """Get list of available translators for a language."""
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
     result = await session.execute(
         select(Translation.translator)
         .where(Translation.language == language)

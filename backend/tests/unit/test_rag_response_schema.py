@@ -294,3 +294,25 @@ class TestToDictSerialization:
         d = resp.to_dict()
         assert d["status"] == "no_verified_source"
         assert d["citations"] == []
+
+    def test_to_dict_includes_related_queries(self):
+        resp = GroundedResponse(
+            answer="Test", citations=[], confidence=0.8, intent="verse_meaning",
+            related_queries=["الصبر", "patience"],
+        )
+        d = resp.to_dict()
+        assert "related_queries" in d
+        assert d["related_queries"] == ["الصبر", "patience"]
+
+    def test_related_queries_defaults_to_empty_list(self):
+        resp = GroundedResponse(answer="Test", citations=[], confidence=0.8, intent="verse_meaning")
+        assert resp.related_queries == []
+
+    def test_related_queries_populated_from_expansion_terms(self):
+        expansion_terms = ["الصبر", "صَبَرَ", "patience"]
+        resp = GroundedResponse(
+            answer="Test", citations=[], confidence=0.8, intent="verse_meaning",
+            related_queries=expansion_terms,
+        )
+        assert len(resp.related_queries) == 3
+        assert "الصبر" in resp.related_queries
