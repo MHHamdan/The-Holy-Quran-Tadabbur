@@ -370,15 +370,13 @@ function AllahNameCard({ name, language, isExpanded, onToggle, categoryColor }: 
                         <ExternalLink className="w-3 h-3" />
                       </Link>
                     </div>
-                    <p
-                      className="text-lg font-arabic leading-loose text-gray-900 mb-2"
-                      dir="rtl"
-                      dangerouslySetInnerHTML={{
-                        __html: verse.highlighted_text
-                          .replace(/【/g, '<mark class="bg-yellow-200 px-0.5 rounded">')
-                          .replace(/】/g, '</mark>'),
-                      }}
-                    />
+                    <p className="text-lg font-arabic leading-loose text-gray-900 mb-2" dir="rtl">
+                      {verse.highlighted_text.split(/(【[^】]*】)/g).map((part, i) =>
+                        part.startsWith('【') && part.endsWith('】')
+                          ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part.slice(1, -1)}</mark>
+                          : <span key={i}>{part}</span>
+                      )}
+                    </p>
                     {verse.tafseer_snippet && (
                       <div className="mt-3 pt-3 border-t border-gray-200">
                         <p className="text-xs font-semibold text-gray-500 mb-1">

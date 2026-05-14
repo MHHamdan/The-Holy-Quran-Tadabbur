@@ -1216,16 +1216,14 @@ function SearchMatchCard({
         </p>
       )}
 
-      {/* Verse Text with Highlighting */}
-      <p
-        className="text-lg leading-loose font-arabic text-gray-800"
-        dir="rtl"
-        dangerouslySetInnerHTML={{
-          __html: match.highlighted_text
-            .replace(/【/g, '<mark class="bg-yellow-200 px-1 rounded font-semibold">')
-            .replace(/】/g, '</mark>')
-        }}
-      />
+      {/* Verse Text with Highlighting — rendered as React elements, no HTML injection */}
+      <p className="text-lg leading-loose font-arabic text-gray-800" dir="rtl">
+        {match.highlighted_text.split(/(【[^】]*】)/g).map((part, i) =>
+          part.startsWith('【') && part.endsWith('】')
+            ? <mark key={i} className="bg-yellow-200 px-1 rounded font-semibold">{part.slice(1, -1)}</mark>
+            : <span key={i}>{part}</span>
+        )}
+      </p>
 
       {/* Context After (if available) */}
       {match.context_after && (

@@ -131,6 +131,10 @@ async def add_request_headers(request: Request, call_next):
         # Add headers
         response.headers["X-Request-Id"] = request_id
         response.headers["X-Process-Time"] = f"{process_time:.4f}"
+        # Security headers
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
         # Log request completion
         logger.info(
