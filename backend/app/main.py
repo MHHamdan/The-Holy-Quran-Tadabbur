@@ -11,6 +11,7 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
@@ -89,6 +90,9 @@ app = FastAPI(
     docs_url="/docs" if settings.debug else None,
     redoc_url="/redoc" if settings.debug else None,
 )
+
+# Compress JSON responses >= 1KB (verse lists, tafseer chunks, search results)
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 # CORS middleware
 app.add_middleware(
