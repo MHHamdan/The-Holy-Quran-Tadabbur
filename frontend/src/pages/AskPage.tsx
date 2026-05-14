@@ -108,8 +108,10 @@ export function AskPage() {
     }
   }, [sessionId]);
 
-  // Fetch suggestions when debounced question changes
+  // Fetch suggestions when debounced question changes (stale-response guard)
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchSuggestions() {
       if (debouncedQuestion.length < 2) {
         setSuggestions([]);
@@ -119,17 +121,20 @@ export function AskPage() {
       setLoadingSuggestions(true);
       try {
         const result = await ragApi.getSuggestions(debouncedQuestion, language, 6);
-        if (result.data.ok) {
+        if (!cancelled && result.data.ok) {
           setSuggestions(result.data.suggestions);
         }
       } catch (err) {
-        console.error('Failed to fetch suggestions:', err);
-        setSuggestions([]);
+        if (!cancelled) {
+          console.error('Failed to fetch suggestions:', err);
+          setSuggestions([]);
+        }
       } finally {
-        setLoadingSuggestions(false);
+        if (!cancelled) setLoadingSuggestions(false);
       }
     }
     fetchSuggestions();
+    return () => { cancelled = true; };
   }, [debouncedQuestion, language]);
 
   // Close suggestions when clicking outside

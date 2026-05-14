@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { User, Bot, Clock, AlertTriangle, CheckCircle, Sparkles, Info, BookOpen, ExternalLink, Copy, Check, Share2, ThumbsUp, ThumbsDown, HelpCircle, ShieldCheck, ShieldAlert, ShieldX, Scale, FileText, GitCompare, BookMarked, Layers, GraduationCap, FlaskConical } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
@@ -224,13 +224,12 @@ function AssistantMessage({
 function LoadingIndicator({ language }: { language: 'ar' | 'en' }) {
   const [stage, setStage] = useState(0);
 
-  // Cycle through stages for visual interest
-  useState(() => {
+  useEffect(() => {
     const interval = setInterval(() => {
       setStage((s) => (s + 1) % 3);
     }, 2000);
     return () => clearInterval(interval);
-  });
+  }, []);
 
   const stages = language === 'ar'
     ? ['جاري البحث في التفاسير...', 'تحليل الآيات ذات الصلة...', 'إعداد الإجابة...']
