@@ -14,7 +14,8 @@ SECURITY:
 
 import os
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Query, Header, Depends
+import re
+from fastapi import APIRouter, HTTPException, Query, Header, Depends, Path
 
 from app.kg.client import get_kg_client
 
@@ -54,6 +55,18 @@ def verify_admin_token(x_admin_token: str = Header(None, alias="X-Admin-Token"))
             },
         )
     return True
+
+# SurrealDB record IDs: alphanumeric, underscores, hyphens, and colon separators only
+_CLUSTER_ID_RE = re.compile(r'^[a-zA-Z0-9_\-:]+$')
+
+def _validate_cluster_id(cluster_id: str) -> None:
+    if not _CLUSTER_ID_RE.match(cluster_id):
+        raise HTTPException(status_code=400, detail={
+            "error_code": "invalid_cluster_id",
+            "message_ar": "معرّف القصة غير صالح",
+            "message_en": "Invalid cluster_id format",
+        })
+
 from app.kg.bridge import get_vector_graph_bridge, GraphExpansionConfig
 from app.kg.models import (
     GraphNode,
@@ -234,6 +247,7 @@ async def get_story_cluster(
     Returns cluster metadata, events ordered chronologically,
     and NEXT edge relationships.
     """
+    _validate_cluster_id(cluster_id)
     kg = get_kg_client()
 
     # Get cluster
@@ -324,6 +338,7 @@ async def get_story_graph(
     - timeline: Chronological layout with NEXT edges
     - concept: Include thematic links for concept clustering
     """
+    _validate_cluster_id(cluster_id)
     kg = get_kg_client()
 
     full_id = f"story_cluster:{cluster_id}" if ":" not in cluster_id else cluster_id
@@ -464,6 +479,7 @@ async def get_story_timeline(
 
     Returns events in chronological order with localized labels.
     """
+    _validate_cluster_id(cluster_id)
     kg = get_kg_client()
 
     full_id = f"story_cluster:{cluster_id}" if ":" not in cluster_id else cluster_id
@@ -726,6 +742,7 @@ async def get_story_events(
 
     Returns all events with their details and evidence pointers.
     """
+    _validate_cluster_id(cluster_id)
     kg = get_kg_client()
 
     full_id = f"story_cluster:{cluster_id}" if ":" not in cluster_id else cluster_id
