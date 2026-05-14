@@ -12,7 +12,7 @@ Endpoints:
 """
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -170,12 +170,13 @@ async def list_concepts(
 
 @router.get("/types", response_model=List[ConceptTypeFacetResponse])
 async def get_concept_types(
+    http_response: Response,
     session: AsyncSession = Depends(get_async_session),
 ):
     """Get available concept types with counts."""
     service = ConceptGraphService(session)
     facets = await service.get_concept_types()
-
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
     return [
         ConceptTypeFacetResponse(
             type=f.type,

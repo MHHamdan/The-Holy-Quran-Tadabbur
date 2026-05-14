@@ -27,7 +27,7 @@ GROUNDING RULES:
 """
 from typing import List, Optional, Dict, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Path
+from fastapi import APIRouter, Depends, HTTPException, Query, Path, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import text, bindparam, ARRAY, String
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -345,6 +345,7 @@ async def list_themes(
 
 @router.get("/categories", response_model=List[ThemeCategoryResponse])
 async def get_theme_categories(
+    http_response: Response,
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -354,7 +355,7 @@ async def get_theme_categories(
     """
     service = ThemeService(session)
     categories = await service.get_theme_categories()
-
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
     return [
         ThemeCategoryResponse(
             category=c.category,
@@ -1424,38 +1425,38 @@ async def get_theme_tafsir(
     )
     segments_raw = seg_result.mappings().all()
 
-    # 3. For each segment fetch verses + tafsir in parallel-style batches
+    # 3. Batch-fetch verses + tafsir for all segments in 2 queries per sura group
     result_segments: List[ThematicTafsirSegment] = []
     all_sources_used: set = set()
 
+    # Group segments by sura so we can fetch all verses for each sura at once
+    from collections import defaultdict
+    sura_span: Dict[int, tuple] = {}  # sura_no -> (min_start, max_end)
     for seg in segments_raw:
-        sura = seg["sura_no"]
-        a_start = seg["ayah_start"]
-        a_end = seg["ayah_end"]
-        seg_id = seg["id"]
+        s = seg["sura_no"]
+        s_start, s_end = seg["ayah_start"], seg["ayah_end"]
+        if s not in sura_span:
+            sura_span[s] = (s_start, s_end)
+        else:
+            sura_span[s] = (min(sura_span[s][0], s_start), max(sura_span[s][1], s_end))
 
-        # 3a. Verse texts
-        verse_result = await session.execute(
+    # Batch-fetch all verses across all suras
+    verse_rows_by_sura: Dict[int, list] = defaultdict(list)
+    for sura_no, (mn, mx) in sura_span.items():
+        vr = await session.execute(
             text("""
                 SELECT aya_no, text_uthmani, text_imlaei, sura_name_ar, sura_name_en
                 FROM quran_verses
                 WHERE sura_no = :sura AND aya_no BETWEEN :a1 AND :a2
                 ORDER BY aya_no ASC
             """),
-            {"sura": sura, "a1": a_start, "a2": a_end},
+            {"sura": sura_no, "a1": mn, "a2": mx},
         )
-        verses = [
-            VerseResponse(
-                aya_no=v["aya_no"],
-                text_uthmani=v["text_uthmani"],
-                text_imlaei=v["text_imlaei"],
-                sura_name_ar=v["sura_name_ar"],
-                sura_name_en=v["sura_name_en"],
-            )
-            for v in verse_result.mappings()
-        ]
+        verse_rows_by_sura[sura_no] = list(vr.mappings())
 
-        # 3b. Tafsir chunks (overlapping range match)
+    # Batch-fetch all tafsir chunks across all suras
+    tafsir_rows_by_sura: Dict[int, list] = defaultdict(list)
+    for sura_no, (mn, mx) in sura_span.items():
         tafsir_query = """
             SELECT tc.source_id, tc.content_ar, tc.content_en, tc.aya_start, tc.aya_end,
                    ts.author_ar, ts.author_en, ts.name_ar, ts.name_en, ts.language
@@ -1468,14 +1469,32 @@ async def get_theme_tafsir(
             ORDER BY tc.source_id, tc.aya_start
         """
         source_clause = "AND tc.source_id = :src" if source_id else ""
-        params: Dict[str, Any] = {"sura": sura, "a1": a_start, "a2": a_end}
+        tparams: Dict[str, Any] = {"sura": sura_no, "a1": mn, "a2": mx}
         if source_id:
-            params["src"] = source_id
+            tparams["src"] = source_id
+        tr = await session.execute(text(tafsir_query.format(source_clause=source_clause)), tparams)
+        tafsir_rows_by_sura[sura_no] = list(tr.mappings())
 
-        tafsir_result = await session.execute(
-            text(tafsir_query.format(source_clause=source_clause)),
-            params,
-        )
+    for seg in segments_raw:
+        sura = seg["sura_no"]
+        a_start = seg["ayah_start"]
+        a_end = seg["ayah_end"]
+        seg_id = seg["id"]
+
+        # 3a. Filter verses for this segment's range from cached rows
+        verses = [
+            VerseResponse(
+                aya_no=v["aya_no"],
+                text_uthmani=v["text_uthmani"],
+                text_imlaei=v["text_imlaei"],
+                sura_name_ar=v["sura_name_ar"],
+                sura_name_en=v["sura_name_en"],
+            )
+            for v in verse_rows_by_sura[sura]
+            if a_start <= v["aya_no"] <= a_end
+        ]
+
+        # 3b. Filter tafsir chunks with overlapping range from cached rows
         tafsir_entries = [
             TafsirEntryResponse(
                 source_id=t["source_id"],
@@ -1489,7 +1508,8 @@ async def get_theme_tafsir(
                 aya_start=t["aya_start"],
                 aya_end=t["aya_end"],
             )
-            for t in tafsir_result.mappings()
+            for t in tafsir_rows_by_sura[sura]
+            if t["aya_start"] <= a_end and t["aya_end"] >= a_start
         ]
         sources_present = list({e.source_id for e in tafsir_entries})
         all_sources_used.update(sources_present)
