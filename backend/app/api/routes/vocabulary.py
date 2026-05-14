@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
-from sqlalchemy import select, func
+from sqlalchemy import select, func, case, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
@@ -266,21 +266,14 @@ async def vocabulary_lookup(
 
     bare = _strip_diacritics(word)
 
-    # Try exact match first, then bare (diacritic-stripped) match
+    # Single query: exact match preferred over bare-text match
     result = await db.execute(
         select(VocabEntry)
-        .where(VocabEntry.word_ar == word)
+        .where(or_(VocabEntry.word_ar == word, VocabEntry.word_ar_bare == bare))
+        .order_by(case((VocabEntry.word_ar == word, 0), else_=1))
         .limit(1)
     )
     entry = result.scalar_one_or_none()
-
-    if entry is None:
-        result = await db.execute(
-            select(VocabEntry)
-            .where(VocabEntry.word_ar_bare == bare)
-            .limit(1)
-        )
-        entry = result.scalar_one_or_none()
 
     if entry is None:
         return _not_found(word)

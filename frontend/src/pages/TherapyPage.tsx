@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Heart, AlertTriangle, ArrowLeft, Loader2, Sparkles, BookOpen } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
@@ -8,13 +8,20 @@ import {
   SpiritualGuidanceCard,
   HealingThemeSelector,
   ReflectionLog,
-  TherapyChat,
-  InsightsDashboard,
-  RuqyahGuide,
   PropheticDuasPanel,
   DailyPracticesPanel,
   TopicKnowledgePanel,
 } from '../components/therapy';
+
+const RuqyahGuide = lazy(() =>
+  import('../components/therapy/RuqyahGuide').then(m => ({ default: m.RuqyahGuide }))
+);
+const TherapyChat = lazy(() =>
+  import('../components/therapy/TherapyChat').then(m => ({ default: m.TherapyChat }))
+);
+const InsightsDashboard = lazy(() =>
+  import('../components/therapy/InsightsDashboard').then(m => ({ default: m.InsightsDashboard }))
+);
 import type {
   SpiritualGuidanceResponse,
   HealingTheme,
@@ -520,7 +527,9 @@ export function TherapyPage() {
       {/* ================================================================ */}
       {activeTab === 'ruqyah' && (
         <div className="space-y-4">
-          <RuqyahGuide />
+          <Suspense fallback={<div className="h-48 animate-pulse bg-gray-100 rounded-xl" />}>
+            <RuqyahGuide />
+          </Suspense>
         </div>
       )}
 
@@ -529,7 +538,9 @@ export function TherapyPage() {
       {/* ================================================================ */}
       {activeTab === 'chat' && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 min-h-[560px] flex flex-col">
-          <TherapyChat onSessionCreated={handleChatSessionCreated} />
+          <Suspense fallback={<div className="h-full animate-pulse bg-gray-100 rounded-xl" />}>
+            <TherapyChat onSessionCreated={handleChatSessionCreated} />
+          </Suspense>
         </div>
       )}
 
@@ -537,7 +548,9 @@ export function TherapyPage() {
       {/* TAB: My Journey (Insights)                                        */}
       {/* ================================================================ */}
       {activeTab === 'insights' && (
-        <InsightsDashboard sessionIds={allSessionIds} />
+        <Suspense fallback={<div className="h-64 animate-pulse bg-gray-100 rounded-xl" />}>
+          <InsightsDashboard sessionIds={allSessionIds} />
+        </Suspense>
       )}
     </div>
   );
