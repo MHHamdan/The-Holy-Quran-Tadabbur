@@ -243,8 +243,9 @@ class VerseEmbeddingService:
         """
         await self.ensure_collection_exists()
 
-        # Compute query embedding
-        query_embedding = self.compute_embedding(query)
+        # Compute query embedding off the event loop (CPU-bound)
+        import asyncio
+        query_embedding = await asyncio.to_thread(self.compute_embedding, query)
 
         # Build filter conditions
         filter_conditions = []

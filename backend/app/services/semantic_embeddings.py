@@ -138,8 +138,8 @@ class SemanticEmbeddingService:
             await self.initialize()
 
         if self._model is not None:
-            # Use transformer model
-            embedding = self._model.encode(text, convert_to_numpy=True)
+            import asyncio
+            embedding = await asyncio.to_thread(self._model.encode, text, convert_to_numpy=True)
         else:
             # Use TF-IDF fallback
             embedding = self._compute_tfidf_embedding(text)
@@ -168,7 +168,9 @@ class SemanticEmbeddingService:
         # Compute new embeddings
         if texts_to_compute:
             if self._model is not None:
-                new_embeddings = self._model.encode(
+                import asyncio
+                new_embeddings = await asyncio.to_thread(
+                    self._model.encode,
                     texts_to_compute,
                     convert_to_numpy=True,
                     batch_size=EMBEDDING_CONFIG["batch_size"],

@@ -159,19 +159,19 @@ class TestGetToneProfile:
 # ===========================================================================
 
 class TestToneDirective:
-    def test_english_returns_en_directive(self):
+    async def test_english_returns_en_directive(self):
         from app.services.tone_adapter import tone_directive
         d = tone_directive("anxiety", 0.85, "en")
         assert "TONE INSTRUCTION" in d
         assert "تعليمات" not in d
 
-    def test_arabic_returns_ar_directive(self):
+    async def test_arabic_returns_ar_directive(self):
         from app.services.tone_adapter import tone_directive
         d = tone_directive("anxiety", 0.85, "ar")
         assert "تعليمات النبرة" in d
         assert "TONE INSTRUCTION" not in d
 
-    def test_unknown_language_returns_en(self):
+    async def test_unknown_language_returns_en(self):
         from app.services.tone_adapter import tone_directive
         d = tone_directive("anxiety", 0.85, "fr")
         assert "TONE INSTRUCTION" in d
@@ -273,7 +273,7 @@ class TestChatToneProfile:
 # ===========================================================================
 
 class TestBuildUserPromptToneInjection:
-    def test_tone_directive_appears_in_prompt(self):
+    async def test_tone_directive_appears_in_prompt(self):
         from app.rag.prompts import build_user_prompt
         prompt = build_user_prompt(
             question="How does the Quran address grief?",
@@ -285,7 +285,7 @@ class TestBuildUserPromptToneInjection:
         )
         assert "TONE INSTRUCTION: Lead with unconditional presence." in prompt
 
-    def test_empty_tone_directive_leaves_no_artifact(self):
+    async def test_empty_tone_directive_leaves_no_artifact(self):
         from app.rag.prompts import build_user_prompt
         prompt = build_user_prompt(
             question="What is tawakkul?",
@@ -297,7 +297,7 @@ class TestBuildUserPromptToneInjection:
         )
         assert "TONE INSTRUCTION" not in prompt
 
-    def test_arabic_tone_directive_appears_in_arabic_prompt(self):
+    async def test_arabic_tone_directive_appears_in_arabic_prompt(self):
         from app.rag.prompts import build_user_prompt
         arabic_directive = "تعليمات النبرة: ابدأ بالحضور الكامل."
         prompt = build_user_prompt(

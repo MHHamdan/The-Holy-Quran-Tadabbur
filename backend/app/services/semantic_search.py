@@ -1023,17 +1023,16 @@ async def semantic_vector_search(
     embedding = _embedding_cache.get(normalized_query)
 
     if embedding is None:
-        # Compute embedding
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model = SentenceTransformer(settings.embedding_model_multilingual, device=device)
 
-        # Add E5 query prefix
         if "e5" in settings.embedding_model_multilingual.lower():
             normalized_query = f"query: {normalized_query}"
 
-        embedding = model.encode(normalized_query, convert_to_numpy=True).tolist()
-
-        # Cache embedding
+        import asyncio
+        embedding = await asyncio.to_thread(
+            lambda: model.encode(normalized_query, convert_to_numpy=True).tolist()
+        )
         _embedding_cache.set(query, embedding)
 
     # Build Qdrant search request
