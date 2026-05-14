@@ -113,6 +113,23 @@ app.add_middleware(
 )
 
 
+MAX_REQUEST_BODY = 512_000  # 512 KB
+
+@app.middleware("http")
+async def enforce_body_size(request: Request, call_next):
+    """Reject requests whose body exceeds MAX_REQUEST_BODY."""
+    if request.method in ("POST", "PUT", "PATCH"):
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > MAX_REQUEST_BODY:
+            return JSONResponse(
+                status_code=413,
+                content={"ok": False, "error_code": "PAYLOAD_TOO_LARGE",
+                         "message_en": "Request body exceeds 512 KB limit.",
+                         "message_ar": "حجم الطلب يتجاوز الحد المسموح به (512 كيلوبايت)."},
+            )
+    return await call_next(request)
+
+
 @app.middleware("http")
 async def add_request_headers(request: Request, call_next):
     """Add request-id and processing time to response headers."""
