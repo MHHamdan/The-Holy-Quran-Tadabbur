@@ -12,6 +12,7 @@ import type { AudienceLevel, QuranStory } from '../types/quranStory';
 const StoryGraphView = lazy(() =>
   import('../components/stories/StoryGraphView').then(m => ({ default: m.StoryGraphView }))
 );
+import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { getStoryApprovalStatus } from '../utils/reviewStatus';
 import {
   StoryOverviewCard,
@@ -556,9 +557,11 @@ export function StoryDetailPage() {
       ) : viewMode === 'graph' ? (
         <div className="card p-0 overflow-hidden" style={{ height: '700px' }}>
           {graphData && (
-            <Suspense fallback={<div className="h-full animate-pulse bg-gray-100" />}>
-              <StoryGraphView graph={graphData} language={language} />
-            </Suspense>
+            <ErrorBoundary fallback={<div className="h-full flex items-center justify-center text-sm text-amber-600">Graph view unavailable</div>}>
+              <Suspense fallback={<div className="h-full animate-pulse bg-gray-100" />}>
+                <StoryGraphView graph={graphData} language={language} />
+              </Suspense>
+            </ErrorBoundary>
           )}
         </div>
       ) : viewMode === 'themes' ? (

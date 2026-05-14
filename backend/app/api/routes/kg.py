@@ -611,8 +611,10 @@ async def debug_evidence(
             "debug_info": result.debug_info,
         }
 
-    # TODO: Implement request_id lookup from audit log
-    return {"error": "request_id lookup not yet implemented"}
+    raise HTTPException(
+        status_code=501,
+        detail="request_id lookup requires audit log storage (not yet implemented). Use chunk_ids instead.",
+    )
 
 
 @router.get("/health")

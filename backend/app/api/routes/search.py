@@ -11,7 +11,7 @@ Provides endpoints for:
 Arabic: واجهة برمجة تطبيقات البحث
 """
 from typing import List, Optional
-from fastapi import APIRouter, Query, Depends, HTTPException
+from fastapi import APIRouter, Query, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
@@ -277,7 +277,7 @@ async def get_available_filters():
 
 
 @router.get("/surah-list")
-async def get_surah_list():
+async def get_surah_list(http_response: Response):
     """
     Get complete list of Surahs for search/filter UI.
 
@@ -285,6 +285,7 @@ async def get_surah_list():
     """
     from app.services.search_suggestions import SURAH_DATA
 
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     return {
         "ok": True,
         "surahs": [
@@ -301,7 +302,7 @@ async def get_surah_list():
 
 
 @router.get("/prophets-list")
-async def get_prophets_list():
+async def get_prophets_list(http_response: Response):
     """
     Get complete list of Prophets for search/filter UI.
 
@@ -309,6 +310,7 @@ async def get_prophets_list():
     """
     from app.services.search_suggestions import PROPHET_DATA
 
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     return {
         "ok": True,
         "prophets": [
@@ -324,7 +326,7 @@ async def get_prophets_list():
 
 
 @router.get("/themes-list")
-async def get_themes_list():
+async def get_themes_list(http_response: Response):
     """
     Get complete list of Quranic themes for search/filter UI.
 
@@ -332,6 +334,7 @@ async def get_themes_list():
     """
     from app.services.search_suggestions import THEME_DATA
 
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     return {
         "ok": True,
         "themes": [

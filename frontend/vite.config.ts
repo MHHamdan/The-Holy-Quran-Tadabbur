@@ -89,18 +89,9 @@ export default defineConfig({
             './src/pages/StoriesPage.tsx',
             './src/pages/StoryDetailPage.tsx',
           ],
-          'feature-tools': [
-            './src/pages/ToolsPage.tsx',
-            './src/pages/tools/ZakatCalculatorPage.tsx',
-            './src/pages/tools/MosqueFinderPage.tsx',
-            './src/pages/tools/IslamicVideosPage.tsx',
-            './src/pages/tools/IslamicNewsPage.tsx',
-            './src/pages/tools/IslamicBooksPage.tsx',
-            './src/pages/tools/HajjUmrahGuidePage.tsx',
-            './src/pages/tools/IslamicWebSearchPage.tsx',
-            './src/pages/tools/PrayerTimesPage.tsx',
-            './src/pages/tools/HijriCalendarPage.tsx',
-          ],
+          // Tools pages are each separately lazy-loaded in App.tsx router,
+          // so omitting them from manualChunks lets Vite split them per-page.
+          // Users only download the tool they visit, not all 9 tools together.
         },
 
         // Asset file naming for better caching

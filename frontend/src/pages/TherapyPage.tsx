@@ -3,6 +3,7 @@ import { Heart, AlertTriangle, ArrowLeft, Loader2, Sparkles, BookOpen } from 'lu
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import { therapyApi } from '../lib/api';
+import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import {
   EmotionalInputPanel,
   SpiritualGuidanceCard,
@@ -527,9 +528,11 @@ export function TherapyPage() {
       {/* ================================================================ */}
       {activeTab === 'ruqyah' && (
         <div className="space-y-4">
-          <Suspense fallback={<div className="h-48 animate-pulse bg-gray-100 rounded-xl" />}>
-            <RuqyahGuide />
-          </Suspense>
+          <ErrorBoundary fallback={<div className="h-48 flex items-center justify-center text-sm text-amber-600 bg-amber-50 rounded-xl border border-amber-200">Ruqyah guide unavailable</div>}>
+            <Suspense fallback={<div className="h-48 animate-pulse bg-gray-100 rounded-xl" />}>
+              <RuqyahGuide />
+            </Suspense>
+          </ErrorBoundary>
         </div>
       )}
 
@@ -538,9 +541,11 @@ export function TherapyPage() {
       {/* ================================================================ */}
       {activeTab === 'chat' && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 min-h-[560px] flex flex-col">
-          <Suspense fallback={<div className="h-full animate-pulse bg-gray-100 rounded-xl" />}>
-            <TherapyChat onSessionCreated={handleChatSessionCreated} />
-          </Suspense>
+          <ErrorBoundary fallback={<div className="flex-1 flex items-center justify-center text-sm text-amber-600">Chat unavailable. Please refresh.</div>}>
+            <Suspense fallback={<div className="h-full animate-pulse bg-gray-100 rounded-xl" />}>
+              <TherapyChat onSessionCreated={handleChatSessionCreated} />
+            </Suspense>
+          </ErrorBoundary>
         </div>
       )}
 
@@ -548,9 +553,11 @@ export function TherapyPage() {
       {/* TAB: My Journey (Insights)                                        */}
       {/* ================================================================ */}
       {activeTab === 'insights' && (
-        <Suspense fallback={<div className="h-64 animate-pulse bg-gray-100 rounded-xl" />}>
-          <InsightsDashboard sessionIds={allSessionIds} />
-        </Suspense>
+        <ErrorBoundary fallback={<div className="h-64 flex items-center justify-center text-sm text-amber-600 bg-amber-50 rounded-xl border border-amber-200">Insights unavailable</div>}>
+          <Suspense fallback={<div className="h-64 animate-pulse bg-gray-100 rounded-xl" />}>
+            <InsightsDashboard sessionIds={allSessionIds} />
+          </Suspense>
+        </ErrorBoundary>
       )}
     </div>
   );

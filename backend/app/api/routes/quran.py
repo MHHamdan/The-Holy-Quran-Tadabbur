@@ -6,7 +6,7 @@ from typing import List, Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Path
+from fastapi import APIRouter, Depends, HTTPException, Query, Path, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +17,9 @@ from app.models.quran import QuranVerse, Translation
 from app.models.tafseer import TafseerChunk, TafseerSource
 
 router = APIRouter()
+
+# Quran metadata is fully static — cache it after the first DB read.
+_quran_metadata_cache: dict | None = None
 
 
 # =============================================================================
@@ -464,11 +467,17 @@ async def resolve_verse_text(
 
 @router.get("/metadata")
 async def get_quran_metadata(
+    http_response: Response,
     session: AsyncSession = Depends(get_async_session),
 ):
     """
     Get Quran metadata - total verses, suras, etc.
     """
+    global _quran_metadata_cache
+    if _quran_metadata_cache is not None:
+        http_response.headers["Cache-Control"] = "public, max-age=86400"
+        return _quran_metadata_cache
+
     result = await session.execute(
         select(QuranVerse.sura_no, QuranVerse.sura_name_ar, QuranVerse.sura_name_en)
         .distinct()
@@ -485,7 +494,7 @@ async def get_quran_metadata(
         sura_no = row[0]
         verse_count_map[sura_no] = verse_count_map.get(sura_no, 0) + 1
 
-    return {
+    data = {
         "total_verses": sum(verse_count_map.values()),
         "total_suras": len(suras),
         "suras": [
@@ -498,6 +507,9 @@ async def get_quran_metadata(
             for s in suras
         ],
     }
+    _quran_metadata_cache = data
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
+    return data
 
 
 @router.get("/suras/{sura_no}", response_model=List[VerseResponse])
@@ -717,11 +729,13 @@ async def get_verse_tafseer(
 
 @router.get("/tafseer/sources", response_model=List[dict])
 async def get_tafseer_sources(
+    http_response: Response,
     session: AsyncSession = Depends(get_async_session),
 ):
     """
     Get available tafseer sources.
     """
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
     result = await session.execute(select(TafseerSource))
     sources = result.scalars().all()
 
@@ -1384,12 +1398,13 @@ async def analyze_grammar(
 
 
 @router.get("/search/categories")
-async def get_search_categories():
+async def get_search_categories(http_response: Response):
     """
     Get available grammatical categories for filtering search results.
 
     Arabic: الحصول على التصنيفات النحوية المتاحة للتصفية
     """
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     return {
         "grammatical_roles": [
             {"value": role.value, "label_en": role.value.title(), "label_ar": GRAMMATICAL_ROLE_AR[role]}

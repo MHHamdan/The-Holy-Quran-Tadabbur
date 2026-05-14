@@ -19,6 +19,7 @@ import {
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
 import { VerseText } from '../components/quran/WordMeaningPopover';
+import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import clsx from 'clsx';
 
 const GrammarAnalysisView = lazy(() =>
@@ -511,18 +512,20 @@ export function QuranPage() {
       {/* Audio Player */}
       {showAudioPlayer && (
         <div className="mb-6">
-          <Suspense fallback={<div className="h-16 animate-pulse bg-gray-100 rounded-lg" />}>
-            <QuranAudioPlayer
-              mode={navMode === 'page' ? 'page' : 'surah'}
-              suraNo={navMode === 'surah' ? currentSura : undefined}
-              pageNo={navMode === 'page' ? currentPage : undefined}
-              language={language}
-              onVerseChange={handleVerseChange}
-              startFromAya={highlightAya ? parseInt(highlightAya, 10) : undefined}
-              startFromSura={highlightAya ? currentSura : undefined}
-              autoPlay={!!highlightAya && !!conceptParam}
-            />
-          </Suspense>
+          <ErrorBoundary fallback={<div className="h-16 flex items-center justify-center text-sm text-amber-600 bg-amber-50 rounded-lg border border-amber-200">Audio player unavailable</div>}>
+            <Suspense fallback={<div className="h-16 animate-pulse bg-gray-100 rounded-lg" />}>
+              <QuranAudioPlayer
+                mode={navMode === 'page' ? 'page' : 'surah'}
+                suraNo={navMode === 'surah' ? currentSura : undefined}
+                pageNo={navMode === 'page' ? currentPage : undefined}
+                language={language}
+                onVerseChange={handleVerseChange}
+                startFromAya={highlightAya ? parseInt(highlightAya, 10) : undefined}
+                startFromSura={highlightAya ? currentSura : undefined}
+                autoPlay={!!highlightAya && !!conceptParam}
+              />
+            </Suspense>
+          </ErrorBoundary>
         </div>
       )}
 
@@ -730,41 +733,47 @@ export function QuranPage() {
                       {/* Grammar analysis panel */}
                       {showGrammar && (
                         <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <Suspense fallback={<div className="h-24 animate-pulse bg-gray-100 rounded-lg" />}>
-                            <GrammarAnalysisView
-                              suraNo={verse.sura_no}
-                              ayaNo={verse.aya_no}
-                              verseText={verse.text_uthmani}
-                            />
-                          </Suspense>
+                          <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Grammar analysis unavailable</div>}>
+                            <Suspense fallback={<div className="h-24 animate-pulse bg-gray-100 rounded-lg" />}>
+                              <GrammarAnalysisView
+                                suraNo={verse.sura_no}
+                                ayaNo={verse.aya_no}
+                                verseText={verse.text_uthmani}
+                              />
+                            </Suspense>
+                          </ErrorBoundary>
                         </div>
                       )}
                       {/* Similar verses panel */}
                       {showSimilar && (
                         <div className="mt-4">
-                          <Suspense fallback={<div className="h-32 animate-pulse bg-gray-100 rounded-lg" />}>
-                            <SimilarVersesPanel
-                              suraNo={verse.sura_no}
-                              ayaNo={verse.aya_no}
-                              verseText={verse.text_uthmani}
-                              onVerseSelect={(sura, aya) => {
-                                navigate(`/quran/${sura}?aya=${aya}`);
-                              }}
-                            />
-                          </Suspense>
+                          <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Similar verses unavailable</div>}>
+                            <Suspense fallback={<div className="h-32 animate-pulse bg-gray-100 rounded-lg" />}>
+                              <SimilarVersesPanel
+                                suraNo={verse.sura_no}
+                                ayaNo={verse.aya_no}
+                                verseText={verse.text_uthmani}
+                                onVerseSelect={(sura, aya) => {
+                                  navigate(`/quran/${sura}?aya=${aya}`);
+                                }}
+                              />
+                            </Suspense>
+                          </ErrorBoundary>
                         </div>
                       )}
                       {/* Tafsir panel */}
                       {showTafsir && (
                         <div className="mt-4">
-                          <Suspense fallback={<div className="h-48 animate-pulse bg-gray-100 rounded-lg" />}>
-                            <TafsirPanel
-                              sura={verse.sura_no}
-                              ayah={verse.aya_no}
-                              verseText={verse.text_uthmani}
-                              isExpanded={true}
-                            />
-                          </Suspense>
+                          <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Tafsir unavailable</div>}>
+                            <Suspense fallback={<div className="h-48 animate-pulse bg-gray-100 rounded-lg" />}>
+                              <TafsirPanel
+                                sura={verse.sura_no}
+                                ayah={verse.aya_no}
+                                verseText={verse.text_uthmani}
+                                isExpanded={true}
+                              />
+                            </Suspense>
+                          </ErrorBoundary>
                         </div>
                       )}
                     </div>

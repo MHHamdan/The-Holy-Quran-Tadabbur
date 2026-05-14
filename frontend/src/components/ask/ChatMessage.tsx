@@ -184,6 +184,27 @@ function AssistantMessage({
               )}
             </div>
 
+            {/* Related topic chips — expansion terms from the query expander */}
+            {isLatest && response.related_queries && response.related_queries.length > 0 && onFollowUp && (
+              <div className="space-y-1.5">
+                <h4 className="text-xs font-medium text-gray-400 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5" />
+                  {language === 'ar' ? 'مواضيع ذات صلة' : 'Related topics'}
+                </h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {response.related_queries.slice(0, 6).map((term, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => onFollowUp(term)}
+                      className="inline-flex items-center px-2.5 py-1 text-xs bg-gray-50 border border-gray-200 rounded-full text-gray-600 hover:bg-primary-50 hover:border-primary-200 hover:text-primary-700 transition-colors"
+                      dir="auto"
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {/* Follow-up suggestions - only for latest message */}
             {isLatest && response.follow_up_suggestions && response.follow_up_suggestions.length > 0 && onFollowUp && (
               <FollowUpChips

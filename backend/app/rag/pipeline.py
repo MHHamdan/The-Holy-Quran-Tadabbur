@@ -1210,7 +1210,7 @@ class RAGPipeline:
             intent=intent.value,
             query_expansion=query_expansion.expansion_applied if query_expansion else None,
             degradation_reasons=confidence_breakdown.degradation_reasons,
-            related_queries=[],  # TODO: Generate related queries
+            related_queries=query_expansion.expansion_applied if query_expansion else [],
             # Evidence density (for user transparency)
             evidence_chunk_count=confidence_breakdown.evidence_density.distinct_chunks,
             evidence_source_count=confidence_breakdown.evidence_density.distinct_sources,
