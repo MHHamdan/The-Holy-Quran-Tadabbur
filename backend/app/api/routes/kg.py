@@ -87,22 +87,32 @@ async def list_stories(
     """
     kg = get_kg_client()
 
-    # Build WHERE clause
+    # Use parameterized query to prevent SurrealQL injection
     where_parts = []
+    params: dict = {}
     if category:
-        where_parts.append(f"category = '{category}'")
+        where_parts.append("category = $category")
+        params["category"] = category
     if sura:
-        where_parts.append(f"{sura} IN suras_mentioned")
+        where_parts.append("$sura IN suras_mentioned")
+        params["sura"] = sura
 
     where_clause = " AND ".join(where_parts) if where_parts else None
 
-    stories = await kg.select(
-        "story_cluster",
-        where=where_clause,
-        order_by="title_ar",
-        limit=limit,
-        offset=offset,
-    )
+    if params:
+        sql = "SELECT * FROM story_cluster"
+        if where_clause:
+            sql += f" WHERE {where_clause}"
+        sql += f" ORDER BY title_ar LIMIT {limit} START {offset};"
+        stories = await kg.query(sql, params)
+    else:
+        stories = await kg.select(
+            "story_cluster",
+            where=None,
+            order_by="title_ar",
+            limit=limit,
+            offset=offset,
+        )
 
     def localize(obj: dict, field_base: str) -> str:
         ar_field = f"{field_base}_ar"
@@ -523,31 +533,34 @@ async def hybrid_search(
         "concepts": [],
     }
 
-    # Search clusters
+    # Search with parameterized $q to prevent injection and fix missing params bug
     title_field = "title_ar" if lang == "ar" else "title_en"
+    name_field = "name_ar" if lang == "ar" else "name_en"
+    label_field = "label_ar" if lang == "ar" else "label_en"
+    params = {"q": q}
+
     clusters = await kg.query(
         f"SELECT * FROM story_cluster WHERE {title_field} CONTAINS $q LIMIT {limit};",
+        params,
     )
-    # Note: SurrealDB string search - in production use full-text search
     results["clusters"] = clusters[:limit]
 
-    # Search events
     events = await kg.query(
         f"SELECT * FROM story_event WHERE {title_field} CONTAINS $q OR summary_{lang} CONTAINS $q LIMIT {limit};",
+        params,
     )
     results["events"] = events[:limit]
 
-    # Search persons
-    name_field = "name_ar" if lang == "ar" else "name_en"
     persons = await kg.query(
         f"SELECT * FROM person WHERE {name_field} CONTAINS $q LIMIT {limit};",
+        params,
     )
     results["persons"] = persons[:limit]
 
-    # Search concept tags
     label_field = "label_ar" if lang == "ar" else "label_en"
     concepts = await kg.query(
         f"SELECT * FROM concept_tag WHERE {label_field} CONTAINS $q LIMIT {limit};",
+        params,
     )
     results["concepts"] = concepts[:limit]
 
