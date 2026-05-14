@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -1107,8 +1107,9 @@ async def ask(
     response_model=ThemesResponse,
     summary="List all healing themes",
 )
-async def list_themes() -> ThemesResponse:
+async def list_themes(http_response: Response) -> ThemesResponse:
     """Return the catalogue of healing themes (Mercy, Patience, Hope, …)."""
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
     themes = [
         ThemeInfo(
             key=key,
@@ -1195,8 +1196,9 @@ async def save_reflection(
     "/emotions",
     summary="List all supported emotion categories",
 )
-async def list_emotions() -> dict:
+async def list_emotions(http_response: Response) -> dict:
     """Return all emotion categories with bilingual labels."""
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
     return {
         "ok": True,
         "emotions": [

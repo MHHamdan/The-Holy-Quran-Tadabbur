@@ -247,18 +247,20 @@ class RAGPipeline:
             ))
 
         # Generate follow-up suggestions
+        verse_label_ar = verse_name or f"الآية {verse_ref_str}"
+        verse_label_en = verse_name or f"verse {verse_ref_str}"
         follow_ups = []
         if language == "ar":
             follow_ups = [
-                f"ما فضل {verse_name or 'هذه الآية'}؟",
-                f"ما معنى الحي القيوم؟",
-                f"ما هو الكرسي في القرآن؟",
+                f"ما فضل {verse_label_ar}؟",
+                f"ما الدروس المستفادة من {verse_label_ar}؟",
+                f"كيف فسّر العلماء هذه الآية؟",
             ]
         else:
             follow_ups = [
-                f"What are the virtues of {verse_name or 'this verse'}?",
-                "What does Al-Hayy Al-Qayyum mean?",
-                "What is the Kursi (Throne) in the Quran?",
+                f"What are the virtues of {verse_label_en}?",
+                f"What lessons can we learn from {verse_label_en}?",
+                "How did scholars interpret this verse?",
             ]
 
         processing_time = int((time.time() - start_time) * 1000)

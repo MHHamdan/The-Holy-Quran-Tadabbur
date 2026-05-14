@@ -8,7 +8,7 @@ Enhanced API with:
 """
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -195,10 +195,11 @@ async def list_stories(
 
 
 @router.get("/categories")
-async def get_story_categories():
+async def get_story_categories(http_response: Response):
     """
     Get available story categories.
     """
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     return {
         "categories": [
             {"id": "prophet", "name_en": "Prophet Stories", "name_ar": "قصص الأنبياء"},

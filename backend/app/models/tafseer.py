@@ -226,6 +226,9 @@ class TafseerChunk(Base):
         Index("ix_chunk_source", "source_id"),
         Index("ix_chunk_verse_range", "verse_start_id", "verse_end_id"),
         Index("ix_chunk_sura", "sura_no"),
+        # Composite index for direct verse lookup (sura_no, aya_start, aya_end)
+        # — used by _direct_verse_lookup() in the fast-path RAG pipeline.
+        Index("ix_chunk_sura_aya", "sura_no", "aya_start", "aya_end"),
     )
 
     def __repr__(self):
