@@ -10,6 +10,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect, memo } from 'react';
 import { Layout } from './components/layout/Layout';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 import { useLanguageStore } from './stores/languageStore';
 import { t } from './i18n/translations';
@@ -160,6 +161,7 @@ function App() {
 
   return (
     <Layout>
+      <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Home */}
@@ -224,6 +226,7 @@ function App() {
           <Route path="/therapy" element={<TherapyPage />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </Layout>
   );
 }

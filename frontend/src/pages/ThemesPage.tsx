@@ -67,7 +67,16 @@ function ThemesTab({ language }: { language: 'ar' | 'en' }) {
   }, []);
 
   useEffect(() => {
-    loadThemes();
+    let cancelled = false;
+    setLoading(true);
+    const params = selectedCategory === 'all'
+      ? { parent_only: true }
+      : { category: selectedCategory };
+    themesApi.listThemes(params)
+      .then(r => { if (!cancelled) setThemes(r.data.themes); })
+      .catch(error => console.error('Failed to load themes:', error))
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [selectedCategory]);
 
   async function loadCategories() {
@@ -76,21 +85,6 @@ function ThemesTab({ language }: { language: 'ar' | 'en' }) {
       setCategories(response.data);
     } catch (error) {
       console.error('Failed to load categories:', error);
-    }
-  }
-
-  async function loadThemes() {
-    setLoading(true);
-    try {
-      const params = selectedCategory === 'all'
-        ? { parent_only: true }
-        : { category: selectedCategory };
-      const response = await themesApi.listThemes(params);
-      setThemes(response.data.themes);
-    } catch (error) {
-      console.error('Failed to load themes:', error);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -174,24 +168,14 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
   const [expandedName, setExpandedName] = useState<number | null>(null);
 
   useEffect(() => {
-    loadNames();
-  }, [language]);
-
-  async function loadNames() {
+    let cancelled = false;
     setLoading(true);
-    try {
-      const response = await quranApi.getAllahNames({
-        lang: language,
-        include_verses: true,
-        max_verses_per_name: 5,
-      });
-      setNames(response.data.names);
-    } catch (error) {
-      console.error('Failed to load Allah names:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
+    quranApi.getAllahNames({ lang: language, include_verses: true, max_verses_per_name: 5 })
+      .then(r => { if (!cancelled) setNames(r.data.names); })
+      .catch(error => console.error('Failed to load Allah names:', error))
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [language]);
 
   const filteredNames = selectedCategory === 'all'
     ? names

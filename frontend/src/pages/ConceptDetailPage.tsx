@@ -30,6 +30,7 @@ import {
 import { useLanguageStore } from '../stores/languageStore';
 import {
   conceptsApi,
+  feedbackApi,
   ConceptDetail,
   ConceptOccurrence,
   ConceptAssociation
@@ -151,6 +152,7 @@ export function ConceptDetailPage() {
   const [error, setError] = useState<APIErrorData | null>(null);
   const [dataStatus, setDataStatus] = useState<string>('complete');
   const [retryCount, setRetryCount] = useState(0);
+  const [reportState, setReportState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [activeTab, setActiveTab] = useState<'occurrences' | 'associations'>('occurrences');
 
   const isArabic = language === 'ar';
@@ -201,9 +203,21 @@ export function ConceptDetailPage() {
     loadConceptData();
   };
 
-  const handleReport = () => {
-    // TODO: Create verification task / bug report
-    console.log('Report issue with request_id:', error?.request_id);
+  const handleReport = async () => {
+    if (reportState === 'sending' || reportState === 'sent') return;
+    setReportState('sending');
+    try {
+      await feedbackApi.submit({
+        category: 'other',
+        message: `Error on concept detail page. Request ID: ${error?.request_id ?? 'unknown'}. Error: ${error?.message ?? 'unknown'}`,
+        entity_type: 'concept',
+        entity_id: conceptId,
+        page_url: window.location.href,
+      });
+      setReportState('sent');
+    } catch {
+      setReportState('error');
+    }
   };
 
   const handleSearchInQuran = () => {
@@ -247,6 +261,15 @@ export function ConceptDetailPage() {
             onRetry={handleRetry}
             onReport={handleReport}
           />
+          {reportState === 'sending' && (
+            <p className="mt-3 text-sm text-gray-500">{isArabic ? 'جارٍ إرسال التقرير…' : 'Sending report…'}</p>
+          )}
+          {reportState === 'sent' && (
+            <p className="mt-3 text-sm text-emerald-600">{isArabic ? 'تم إرسال التقرير. شكرًا!' : 'Report sent. Thank you!'}</p>
+          )}
+          {reportState === 'error' && (
+            <p className="mt-3 text-sm text-red-600">{isArabic ? 'تعذّر إرسال التقرير. حاول مجددًا.' : 'Could not send report. Please try again.'}</p>
+          )}
         </div>
       </div>
     );
