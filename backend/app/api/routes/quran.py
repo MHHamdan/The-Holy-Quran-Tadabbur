@@ -515,6 +515,7 @@ async def get_quran_metadata(
 @router.get("/suras/{sura_no}", response_model=List[VerseResponse])
 async def get_sura_verses(
     sura_no: int,
+    http_response: Response,
     include_translations: bool = Query(True, description="Include translations"),
     language: Optional[str] = Query(None, description="Filter translations by language"),
     session: AsyncSession = Depends(get_async_session),
@@ -525,6 +526,7 @@ async def get_sura_verses(
     if sura_no < 1 or sura_no > 114:
         raise HTTPException(status_code=400, detail="Sura number must be between 1 and 114")
 
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     query = select(QuranVerse).where(QuranVerse.sura_no == sura_no).order_by(QuranVerse.aya_no)
 
     if include_translations:
@@ -555,12 +557,14 @@ async def get_sura_verses(
 async def get_verse(
     sura_no: int,
     aya_no: int,
+    http_response: Response,
     include_translations: bool = Query(True),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
     Get a specific verse by sura and aya number.
     """
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     query = select(QuranVerse).where(
         QuranVerse.sura_no == sura_no,
         QuranVerse.aya_no == aya_no,

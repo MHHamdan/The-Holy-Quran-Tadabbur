@@ -235,7 +235,7 @@ async def record_search(
 
 
 @router.get("/filters")
-async def get_available_filters():
+async def get_available_filters(http_response: Response):
     """
     Get available search filters and options.
 
@@ -245,6 +245,7 @@ async def get_available_filters():
     - Language options
     - Sort options
     """
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     return {
         "ok": True,
         "filters": {
