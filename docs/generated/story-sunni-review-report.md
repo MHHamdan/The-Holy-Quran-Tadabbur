@@ -1,5 +1,5 @@
 # Quran Stories — Sunni Source Review Report
-_Generated: 2026-05-11_
+_Generated: 2026-05-16_
 
 ---
 
@@ -7,12 +7,12 @@ _Generated: 2026-05-11_
 
 | Metric | Count |
 |--------|-------|
-| Total stories reviewed | 24 |
-| Total segments reviewed | 72 |
+| Total stories reviewed | 33 |
+| Total segments reviewed | 101 |
 | Approved segments | 0 |
-| Needs review segments | 72 |
+| Needs review segments | 101 |
 | Rejected segments | 0 |
-| Segments requiring human review | 72 |
+| Segments requiring human review | 101 |
 | Errors | 0 |
 | Warnings | 0 |
 | Info/Disagreement notes | 7 |
@@ -42,6 +42,11 @@ _Generated: 2026-05-11_
 ---
 
 ## Per-Story Status
+
+### Story of Prophet Adam (the First Human) (`story_adam`)
+- Segments: 6 total — 0 approved, 6 needs review, 0 rejected
+- Sources: ibn_kathir, tabari, qurtubi
+- Reliability: canonical
 
 ### Story of Prophet Ayyub (Job) (`story_ayyub`)
 - Segments: 2 total — 0 approved, 2 needs review, 0 rejected
@@ -163,10 +168,62 @@ _Generated: 2026-05-11_
 - Sources: ibn_kathir, tabari, qurtubi
 - Reliability: supporting
 
+### Story of Prophet Shuayb (`story_shuayb`)
+- Segments: 3 total — 0 approved, 3 needs review, 0 rejected
+- Sources: ibn_kathir, tabari, qurtubi
+- Reliability: canonical
+
+### Story of Habil and Qabil (The First Murder) (`story_habil_qabil`)
+- Segments: 3 total — 0 approved, 3 needs review, 0 rejected
+- Sources: ibn_kathir, tabari, qurtubi
+- Reliability: canonical
+
+### Story of Prophet Idris (`story_idris`)
+- Segments: 2 total — 0 approved, 2 needs review, 0 rejected
+- Sources: ibn_kathir, tabari
+- Reliability: canonical
+
+### Story of Prophet Ismail — The Sacrifice and the Ka'bah (`story_ismail`)
+- Segments: 3 total — 0 approved, 3 needs review, 0 rejected
+- Sources: ibn_kathir, tabari, qurtubi
+- Reliability: canonical
+
+### Story of Musa and Al-Khidr (`story_khidr_musa`)
+- Segments: 3 total — 0 approved, 3 needs review, 0 rejected
+- Sources: ibn_kathir, tabari, qurtubi
+- Reliability: canonical
+
+### Story of Prophet Isa (Jesus) (`story_isa`)
+- Segments: 4 total — 0 approved, 4 needs review, 0 rejected
+- Sources: ibn_kathir, tabari, qurtubi
+- Reliability: canonical
+
+### Story of Ashab Al-Ukhdud (People of the Ditch) (`story_ukhdud`)
+- Segments: 2 total — 0 approved, 2 needs review, 0 rejected
+- Sources: ibn_kathir, tabari
+- Reliability: canonical
+
+### Story of the People of the Town (Ashab Al-Qarya) (`story_qarya`)
+- Segments: 3 total — 0 approved, 3 needs review, 0 rejected
+- Sources: ibn_kathir, tabari, qurtubi
+- Reliability: canonical
+
 ---
 
 ## Segments Needing Review
 
+- **story_adam:adam_creation** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_adam:adam_prostration** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_adam:adam_paradise** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_adam:adam_temptation** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_adam:adam_repentance** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_adam:adam_descent** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
 - **story_ayyub:ayyub_trial** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
   - Warnings: This summary requires scholarly review before production use
 - **story_ayyub:ayyub_relief** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
@@ -318,6 +375,52 @@ _Generated: 2026-05-11_
 - **story_table_spread:table_response** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
   - Disagreement: Classical scholars differ on whether the table actually descended after the divine conditional response in 5:115 — no interpretation is asserted pending scholarly review.
   - Warnings: The Quran does not explicitly state whether the table descended — classical commentators differ; no assertion is made here pending scholarly review.; This summary requires scholarly review before production use
+- **story_shuayb:shuayb_mission** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_shuayb:shuayb_rejection** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_shuayb:shuayb_punishment** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_habil_qabil:habil_qabil_offering** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_habil_qabil:habil_qabil_murder** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_habil_qabil:habil_qabil_crow** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_idris:idris_truthful** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_idris:idris_raised** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_ismail:ismail_birth_prayer** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_ismail:ismail_sacrifice** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_ismail:ismail_kabah** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_khidr_musa:khidr_journey_start** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_khidr_musa:khidr_three_acts** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_khidr_musa:khidr_explanations** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_isa:isa_cradle** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_isa:isa_miracles_mission** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_isa:isa_disciples** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_isa:isa_ascension** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_ukhdud:ukhdud_intro** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_ukhdud:ukhdud_divine_witness** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_qarya:qarya_messengers** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_qarya:qarya_habib** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
+- **story_qarya:qarya_punishment** — reviewedAgainst: [ibn_kathir, tabari, qurtubi] — humanReviewRequired: true
+  - Warnings: This summary requires scholarly review before production use
 
 ## Scholarly Disagreement Notes
 

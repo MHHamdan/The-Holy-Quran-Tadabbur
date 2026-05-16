@@ -67,6 +67,7 @@ const SourcesPage = lazy(() => import('./pages/SourcesPage').then(m => ({ defaul
 // Story Atlas (narrative clusters)
 const StoryAtlasPage = lazy(() => import('./pages/StoryAtlasPage').then(m => ({ default: m.StoryAtlasPage })));
 const StoryAtlasDetailPage = lazy(() => import('./pages/StoryAtlasDetailPage').then(m => ({ default: m.StoryAtlasDetailPage })));
+const StoryAtlasConnectionsPage = lazy(() => import('./pages/StoryAtlasConnectionsPage').then(m => ({ default: m.StoryAtlasConnectionsPage })));
 
 // Tasmeeʿ (Memorization) - Audio recording with STT
 const TasmeePage = lazy(() => import('./pages/TasmeePage'));
@@ -195,6 +196,7 @@ function App() {
 
           {/* Story Atlas (narrative clusters) */}
           <Route path="/story-atlas" element={<StoryAtlasPage />} />
+          <Route path="/story-atlas/connections" element={<StoryAtlasConnectionsPage />} />
           <Route path="/story-atlas/:clusterId" element={<StoryAtlasDetailPage />} />
 
           {/* Tasmeeʿ (Memorization) */}
