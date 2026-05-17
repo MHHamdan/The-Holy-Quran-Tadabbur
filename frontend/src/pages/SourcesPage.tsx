@@ -60,8 +60,9 @@ export function SourcesPage() {
         setProvenanceVerified(data.provenance_verified || 0);
       } catch (err: any) {
         console.error('Failed to load sources:', err);
-        if (err.response?.status === 401) {
-          // Invalid token - clear it
+        const status = err.response?.status;
+        if (status === 401 || status === 403 || status === 422) {
+          // Invalid (or missing) token — clear it and prompt re-entry.
           handleExitAdminMode();
           setError(
             language === 'ar'
@@ -95,7 +96,12 @@ export function SourcesPage() {
       setShowAdminModal(false);
       setTokenInput('');
     } catch (err: any) {
-      if (err.response?.status === 401) {
+      // Backend returns 403 for wrong token, 422 when header is missing or
+      // empty (FastAPI validation), and 401 only via the newer admin_auth
+      // middleware. All three are user-fixable "wrong token" — distinguish
+      // from genuine network errors where err.response is undefined.
+      const status = err.response?.status;
+      if (status === 401 || status === 403 || status === 422) {
         setAdminError(language === 'ar' ? 'رمز غير صالح' : 'Invalid token');
       } else {
         setAdminError(language === 'ar' ? 'خطأ في الاتصال' : 'Connection error');
