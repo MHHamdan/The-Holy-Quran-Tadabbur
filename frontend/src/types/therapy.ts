@@ -76,6 +76,95 @@ export interface SpiritualGuidanceResponse {
   reflection_prompt_ar?: string;
   disclaimer_en: string;
   disclaimer_ar: string;
+  // Crisis-safety layer (Phase T-Crisis)
+  crisis_level?: 'none' | 'elevated' | 'crisis';
+  crisis_banner_en?: string | null;
+  crisis_banner_ar?: string | null;
+  crisis_hotlines?: CrisisHotlineOut[];
+}
+
+export interface CrisisHotlineOut {
+  region_code: string;
+  region_name_en: string;
+  region_name_ar: string;
+  number: string;
+  organisation_en: string;
+  organisation_ar: string;
+  url: string;
+  is_muslim_specific: boolean;
+}
+
+// =============================================================================
+// Phase T-Situations — Situation Atlas
+// =============================================================================
+
+export interface SituationSummary {
+  key: string;
+  label_en: string;
+  label_ar: string;
+  description_en: string;
+  description_ar: string;
+  primary_emotion: string;
+  healing_themes: string[];
+  refer_to_professional: boolean;
+}
+
+export interface SituationHadithRef {
+  collection: string;
+  number: string;
+  narrator_en: string;
+  narrator_ar: string;
+  note_en: string;
+  note_ar: string;
+  url: string;
+}
+
+export interface SituationDua {
+  key: string;
+  arabic: string;
+  transliteration: string;
+  translation_en: string;
+  translation_ar: string;
+}
+
+export interface SituationDetail extends SituationSummary {
+  duas: SituationDua[];
+  hadith_refs: SituationHadithRef[];
+  review_status: string;
+  human_review_required: boolean;
+  disclaimer_en: string;
+  disclaimer_ar: string;
+}
+
+export interface SituationsListResponse {
+  total: number;
+  situations: SituationSummary[];
+  disclaimer_en: string;
+  disclaimer_ar: string;
+}
+
+// =============================================================================
+// Phase T-Ruqyah — Authenticated evidence pack
+// =============================================================================
+
+export interface RuqyahEvidenceItem {
+  kind: 'hadith' | 'ayah';
+  title_en: string;
+  title_ar: string;
+  summary_en: string;
+  summary_ar: string;
+  reference: string;
+  url: string;
+  review_status: string;
+}
+
+export interface RuqyahEvidenceResponse {
+  total: number;
+  items: RuqyahEvidenceItem[];
+  disclaimer_en: string;
+  disclaimer_ar: string;
+  scope_note_en: string;
+  scope_note_ar: string;
 }
 
 // Phase T5-D — Reflection Journal

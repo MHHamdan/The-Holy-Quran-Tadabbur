@@ -12,6 +12,8 @@ import {
   PropheticDuasPanel,
   DailyPracticesPanel,
   TopicKnowledgePanel,
+  CrisisBanner,
+  SituationCatalog,
 } from '../components/therapy';
 
 const RuqyahGuide = lazy(() =>
@@ -340,6 +342,18 @@ export function TherapyPage() {
             </div>
           )}
 
+          {/* Crisis-safety banner — rendered BEFORE any spiritual content
+              whenever the backend flags the message as crisis/elevated. */}
+          {guidance && !asking && (
+            <CrisisBanner
+              level={guidance.crisis_level}
+              bannerEn={guidance.crisis_banner_en}
+              bannerAr={guidance.crisis_banner_ar}
+              hotlines={guidance.crisis_hotlines}
+              language={language}
+            />
+          )}
+
           {/* Empathy message */}
           {guidance && !asking && (
             <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl">
@@ -506,6 +520,14 @@ export function TherapyPage() {
 
           {/* Daily Practices — always shown at bottom of guidance tab */}
           <DailyPracticesPanel />
+
+          {/* Situation Atlas — browse named life situations to find a
+              sourced du'a + hadith. Always available; prefills the
+              emotional-input panel when a situation is picked. */}
+          <SituationCatalog
+            language={language}
+            onSelect={s => handleAsk(language === 'ar' ? s.description_ar : s.description_en)}
+          />
 
           {/* Reflection Log */}
           <ReflectionLog

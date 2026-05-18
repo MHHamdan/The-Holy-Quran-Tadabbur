@@ -2804,6 +2804,9 @@ import type {
   InsightsResponse,
   ReflectionsResponse,
   TopicResourcesResponse,
+  SituationsListResponse,
+  SituationDetail,
+  RuqyahEvidenceResponse,
 } from '../types/therapy';
 
 export const therapyApi = {
@@ -2836,4 +2839,15 @@ export const therapyApi = {
   // Phase T-Adaptive — topic-specific hadith + wise phrases
   getTopicResources: (topicKey: string) =>
     api.get<TopicResourcesResponse>(`/therapy/topic/${encodeURIComponent(topicKey)}`).then(r => r.data),
+
+  // Phase T-Situations — named life situations
+  getSituations: () =>
+    api.get<SituationsListResponse>('/therapy/situations').then(r => r.data),
+
+  getSituation: (key: string) =>
+    api.get<SituationDetail>(`/therapy/situations/${encodeURIComponent(key)}`).then(r => r.data),
+
+  // Phase T-Ruqyah — authenticated ayah + hadith evidence pack
+  getRuqyahEvidence: () =>
+    api.get<RuqyahEvidenceResponse>('/therapy/ruqyah-evidence').then(r => r.data),
 };
