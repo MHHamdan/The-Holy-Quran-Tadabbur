@@ -14021,6 +14021,7 @@ class AllahNamesListResponse(BaseModel):
 
 @router.get("/allah-names", response_model=AllahNamesListResponse)
 async def get_allah_names(
+    response: Response,
     lang: str = Query("ar", description="Language for descriptions (ar/en)"),
     name_number: Optional[int] = Query(None, ge=1, le=99, description="Specific name number (1-99)"),
     category: Optional[str] = Query(None, description="Filter by category (dhat, jamal, jalal, kamal, af'al)"),
@@ -14134,6 +14135,9 @@ async def get_allah_names(
             verses=verses_list,
         ))
 
+    # Names list is effectively immutable per release; cache aggressively at
+    # the browser. Lite mode (include_verses=False) becomes essentially free.
+    response.headers["Cache-Control"] = "public, max-age=3600"
     return AllahNamesListResponse(
         names=result_names,
         total=len(result_names),

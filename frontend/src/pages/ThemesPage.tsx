@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Tag, ArrowRight, Layers, BookMarked, Star, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { BookOpen, Tag, ArrowRight, Layers, BookMarked, Star, ChevronDown, ChevronUp, ExternalLink, Loader2 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import { themesApi, quranApi, QuranicTheme, ThemeCategory, AllahNameResponse, ALLAH_NAME_CATEGORIES } from '../lib/api';
@@ -162,24 +163,33 @@ function ThemesTab({ language }: { language: 'ar' | 'en' }) {
 // =============================================================================
 
 function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
-  const [names, setNames] = useState<AllahNameResponse[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedName, setExpandedName] = useState<number | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    quranApi.getAllahNames({ lang: language, include_verses: true, max_verses_per_name: 5 })
-      .then(r => { if (!cancelled) setNames(r.data.names); })
-      .catch(error => console.error('Failed to load Allah names:', error))
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [language]);
+  // First paint: lite mode (no verses) — 66KB, ~25ms warm.
+  // Names list is effectively static, so cache for an hour.
+  const {
+    data: liteData,
+    isLoading: liteLoading,
+  } = useQuery({
+    queryKey: ['allah-names-lite', language],
+    queryFn: () =>
+      quranApi
+        .getAllahNames({ lang: language, include_verses: false })
+        .then((r) => r.data),
+    staleTime: 60 * 60 * 1000,
+    gcTime: 4 * 60 * 60 * 1000,
+  });
 
-  const filteredNames = selectedCategory === 'all'
-    ? names
-    : names.filter((n) => n.category === selectedCategory);
+  const names = liteData?.names ?? [];
+
+  const filteredNames = useMemo(
+    () =>
+      selectedCategory === 'all'
+        ? names
+        : names.filter((n) => n.category === selectedCategory),
+    [names, selectedCategory],
+  );
 
   const categories: Array<{ key: string; label: string }> = [
     { key: 'all', label: language === 'ar' ? 'الكل' : 'All' },
@@ -189,7 +199,6 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
     })),
   ];
 
-  // Category colors
   const categoryColors: Record<string, string> = {
     dhat: 'bg-purple-100 text-purple-700 border-purple-200',
     jamal: 'bg-emerald-100 text-emerald-700 border-emerald-200',
@@ -200,7 +209,6 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
 
   return (
     <>
-      {/* Header */}
       <div className="mb-8">
         <h1 className={clsx('text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3', language === 'ar' && 'font-arabic')}>
           <Star className="w-8 h-8 text-primary-600" />
@@ -211,12 +219,12 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
         </p>
       </div>
 
-      {/* Category Filter */}
       <div className="flex flex-wrap gap-2 mb-8">
         {categories.map((cat) => {
-          const count = cat.key === 'all'
-            ? names.length
-            : names.filter((n) => n.category === cat.key).length;
+          const count =
+            cat.key === 'all'
+              ? names.length
+              : names.filter((n) => n.category === cat.key).length;
           return (
             <button
               key={cat.key}
@@ -236,18 +244,12 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
         })}
       </div>
 
-      {/* Names Grid */}
-      {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-500">{t('loading', language)}</p>
-        </div>
+      {liteLoading ? (
+        <AllahNamesSkeleton />
       ) : filteredNames.length === 0 ? (
         <div className="text-center py-12 card">
           <Star className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">
-            {t('allah_names_no_results', language)}
-          </p>
+          <p className="text-gray-500">{t('allah_names_no_results', language)}</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -257,13 +259,43 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
               name={name}
               language={language}
               isExpanded={expandedName === name.number}
-              onToggle={() => setExpandedName(expandedName === name.number ? null : name.number)}
+              onToggle={() =>
+                setExpandedName(expandedName === name.number ? null : name.number)
+              }
               categoryColor={categoryColors[name.category] || 'bg-gray-100 text-gray-700'}
             />
           ))}
         </div>
       )}
     </>
+  );
+}
+
+// Skeleton grid shown while the lite list is loading. Lite payload is
+// already small (~66KB, <100ms warm), so users almost never see this on
+// repeat visits — the React Query cache short-circuits the fetch.
+function AllahNamesSkeleton() {
+  return (
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4" aria-hidden="true">
+      {Array.from({ length: 9 }).map((_, i) => (
+        <div
+          key={i}
+          className="card animate-pulse"
+        >
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gray-200" />
+              <div>
+                <div className="h-6 w-24 bg-gray-200 rounded mb-1" />
+                <div className="h-3 w-20 bg-gray-100 rounded" />
+              </div>
+            </div>
+            <div className="h-5 w-12 bg-gray-100 rounded" />
+          </div>
+          <div className="h-3 w-3/4 bg-gray-100 rounded" />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -284,6 +316,30 @@ function AllahNameCard({ name, language, isExpanded, onToggle, categoryColor }: 
   const description = language === 'ar' ? name.description_ar : name.description_en;
   const categoryLabel = language === 'ar' ? name.category_label_ar : name.category_label_en;
 
+  // Verses are NOT included in the lite first paint. Fetch them only when
+  // the user expands this card — at ~4KB / ~400ms cold per name this is
+  // far cheaper than loading all 99×5 verses up front.
+  const {
+    data: detail,
+    isLoading: versesLoading,
+  } = useQuery({
+    queryKey: ['allah-name-verses', name.number, language],
+    queryFn: () =>
+      quranApi
+        .getAllahNames({
+          lang: language,
+          name_number: name.number,
+          include_verses: true,
+          max_verses_per_name: 5,
+        })
+        .then((r) => r.data.names[0] as AllahNameResponse),
+    enabled: isExpanded,
+    staleTime: 60 * 60 * 1000,
+    gcTime: 4 * 60 * 60 * 1000,
+  });
+
+  const verses = detail?.verses ?? name.verses ?? [];
+
   return (
     <div
       className={clsx(
@@ -292,7 +348,6 @@ function AllahNameCard({ name, language, isExpanded, onToggle, categoryColor }: 
       )}
       onClick={onToggle}
     >
-      {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-bold">
@@ -317,29 +372,36 @@ function AllahNameCard({ name, language, isExpanded, onToggle, categoryColor }: 
         </div>
       </div>
 
-      {/* Short Meaning */}
       <p className="text-gray-600 text-sm mb-2">
         <span className="font-semibold">{t('allah_names_meaning', language)}:</span> {meaning}
       </p>
 
-      {/* Expanded Content */}
       {isExpanded && (
         <div className="mt-4 pt-4 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
-          {/* Description */}
           <div className="mb-6">
             <h4 className="font-semibold text-gray-900 mb-2">{t('allah_names_description', language)}</h4>
             <p className="text-gray-700 leading-relaxed">{description}</p>
           </div>
 
-          {/* Verses */}
-          {name.verses && name.verses.length > 0 && (
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <BookOpen className="w-4 h-4" />
-                {t('allah_names_verses', language)} ({name.verses.length})
-              </h4>
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              {t('allah_names_verses', language)}
+              {!versesLoading && verses.length > 0 && (
+                <span className="text-xs font-normal text-gray-500">({verses.length})</span>
+              )}
+            </h4>
+
+            {versesLoading ? (
+              <div className="flex items-center gap-2 text-sm text-gray-500 py-3">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t('loading', language)}
+              </div>
+            ) : verses.length === 0 ? (
+              <p className="text-sm text-gray-400">—</p>
+            ) : (
               <div className="space-y-4">
-                {name.verses.map((verse, idx) => (
+                {verses.map((verse, idx) => (
                   <div key={idx} className="bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-primary-600">
@@ -372,8 +434,8 @@ function AllahNameCard({ name, language, isExpanded, onToggle, categoryColor }: 
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>
