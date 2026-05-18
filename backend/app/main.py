@@ -18,7 +18,7 @@ from pydantic import ValidationError
 
 from app.core.config import settings
 from app.core.responses import APIError, ErrorCode, error_response, ErrorDetail
-from app.api.routes import quran, stories, rag, health, translation, story_atlas, story_atlas_registry, concepts, grammar, kg, tafseer, search, admin, graph, streaming, performance, rhetoric, themes, tasmee, review_tasks, vocabulary, feedback, therapy
+from app.api.routes import quran, stories, rag, rag_verse, health, translation, story_atlas, story_atlas_registry, concepts, grammar, kg, tafseer, search, admin, graph, streaming, performance, rhetoric, themes, tasmee, review_tasks, vocabulary, feedback, therapy
 
 # Configure structured logging
 logging.basicConfig(
@@ -233,6 +233,7 @@ app.include_router(health.router, tags=["Health"])
 app.include_router(quran.router, prefix="/api/v1/quran", tags=["Quran"])
 app.include_router(stories.router, prefix="/api/v1/stories", tags=["Stories"])
 app.include_router(rag.router, prefix="/api/v1/rag", tags=["RAG"])
+app.include_router(rag_verse.router, prefix="/api/v1/rag", tags=["RAG Verse (Phase Y)"])
 app.include_router(translation.router, prefix="/api/v1", tags=["Translation"])
 app.include_router(story_atlas.router, prefix="/api/v1/story-atlas", tags=["Story Atlas"])
 app.include_router(concepts.router, prefix="/api/v1/concepts", tags=["Concepts"])

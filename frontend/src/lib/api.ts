@@ -1005,6 +1005,103 @@ export const ragApi = {
     }),
 };
 
+// =============================================================================
+// Verse Ask AI (Phase Y) — grounded per-verse Q&A
+// =============================================================================
+
+export interface VerseAskAiSuggestedQuestion {
+  id: string;
+  text: string;
+  language: 'ar' | 'en';
+}
+
+export interface VerseAskAiResponse extends RAGResponse {
+  verse: {
+    surah: number;
+    ayah_start: number;
+    ayah_end: number | null;
+    reference: string;
+  };
+  suggested_questions?: VerseAskAiSuggestedQuestion[];
+  word?: string;
+}
+
+export const verseAskAiApi = {
+  ask: (params: {
+    surah: number;
+    ayahStart: number;
+    ayahEnd?: number;
+    question: string;
+    language?: 'ar' | 'en';
+    preferredSources?: string[];
+    maxSources?: number;
+  }) =>
+    api.post<VerseAskAiResponse>('/rag/verse/ask', {
+      surah: params.surah,
+      ayah_start: params.ayahStart,
+      ayah_end: params.ayahEnd,
+      question: params.question,
+      language: params.language ?? 'ar',
+      preferred_sources: params.preferredSources ?? [],
+      max_sources: params.maxSources ?? 5,
+    }),
+
+  summarize: (params: {
+    surah: number;
+    ayahStart: number;
+    ayahEnd?: number;
+    language?: 'ar' | 'en';
+    preferredSources?: string[];
+    maxSources?: number;
+  }) =>
+    api.post<VerseAskAiResponse>('/rag/verse/summarize', {
+      surah: params.surah,
+      ayah_start: params.ayahStart,
+      ayah_end: params.ayahEnd,
+      language: params.language ?? 'ar',
+      preferred_sources: params.preferredSources ?? [],
+      max_sources: params.maxSources ?? 5,
+    }),
+
+  explainWord: (params: {
+    surah: number;
+    ayahStart: number;
+    ayahEnd?: number;
+    word: string;
+    language?: 'ar' | 'en';
+    preferredSources?: string[];
+  }) =>
+    api.post<VerseAskAiResponse>('/rag/verse/explain-word', {
+      surah: params.surah,
+      ayah_start: params.ayahStart,
+      ayah_end: params.ayahEnd,
+      word: params.word,
+      language: params.language ?? 'ar',
+      preferred_sources: params.preferredSources ?? [],
+    }),
+
+  suggestedQuestions: (params: {
+    surah: number;
+    ayahStart: number;
+    ayahEnd?: number;
+    language?: 'ar' | 'en';
+  }) =>
+    api.get<{
+      surah: number;
+      ayah_start: number;
+      ayah_end: number | null;
+      language: 'ar' | 'en';
+      questions: VerseAskAiSuggestedQuestion[];
+    }>('/rag/verse/suggested-questions', {
+      params: {
+        surah: params.surah,
+        ayah_start: params.ayahStart,
+        ayah_end: params.ayahEnd,
+        language: params.language ?? 'ar',
+      },
+    }),
+};
+
 // Concept Graph Types
 export interface ConceptSummary {
   id: string;
