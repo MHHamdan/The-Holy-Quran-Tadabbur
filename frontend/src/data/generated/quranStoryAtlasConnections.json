@@ -1,0 +1,7290 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-05-18T04:04:26.725Z",
+  "totalConnections": 355,
+  "byTargetType": {
+    "prophet": 43,
+    "topic": 15,
+    "entity": 17,
+    "story": 7,
+    "surah": 273
+  },
+  "byRelationType": {
+    "same_prophet": 43,
+    "related_topic": 15,
+    "same_people": 17,
+    "repeated_narrative": 7,
+    "same_place": 273
+  },
+  "connections": [
+    {
+      "sourceStoryId": "story_adam",
+      "targetId": "prophet_adam",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 30,
+          "ayahEnd": 33
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 31,
+          "ayahEnd": 33
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 34,
+          "ayahEnd": 34
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_nuh",
+      "targetId": "prophet_nuh",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 71,
+          "ayahStart": 1,
+          "ayahEnd": 20
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 36,
+          "ayahEnd": 44
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 40,
+          "ayahEnd": 44
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim",
+      "targetId": "prophet_ibrahim",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 74,
+          "ayahEnd": 83
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 41,
+          "ayahEnd": 50
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 51,
+          "ayahEnd": 70
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_musa",
+      "targetId": "prophet_musa",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 7,
+          "ayahEnd": 13
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 14,
+          "ayahEnd": 28
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 9,
+          "ayahEnd": 48
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yusuf",
+      "targetId": "prophet_yusuf",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 4,
+          "ayahEnd": 6
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 7,
+          "ayahEnd": 18
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 19,
+          "ayahEnd": 22
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_isa",
+      "targetId": "prophet_isa",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 45,
+          "ayahEnd": 51
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 16,
+          "ayahEnd": 35
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 29,
+          "ayahEnd": 33
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_zakariyya_yahya",
+      "targetId": "prophet_yahya",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 2,
+          "ayahEnd": 6
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 7,
+          "ayahEnd": 11
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 12,
+          "ayahEnd": 15
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_dawud",
+      "targetId": "prophet_dawud",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 249,
+          "ayahEnd": 252
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 251,
+          "ayahEnd": 251
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 79,
+          "ayahEnd": 80
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ayyub",
+      "targetId": "prophet_ayyub",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 83,
+          "ayahEnd": 84
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 41,
+          "ayahEnd": 44
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 44,
+          "ayahEnd": 44
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yunus",
+      "targetId": "prophet_yunus",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 139,
+          "ayahEnd": 142
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 142,
+          "ayahEnd": 144
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 87,
+          "ayahEnd": 88
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_lut",
+      "targetId": "prophet_lut",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 80,
+          "ayahEnd": 84
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 77,
+          "ayahEnd": 81
+        },
+        {
+          "surahNumber": 15,
+          "ayahStart": 73,
+          "ayahEnd": 77
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_shuayb",
+      "targetId": "prophet_shuayb",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 85,
+          "ayahEnd": 87
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 84,
+          "ayahEnd": 95
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 176,
+          "ayahEnd": 189
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_salih",
+      "targetId": "prophet_salih",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 73,
+          "ayahEnd": 74
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 64,
+          "ayahEnd": 66
+        },
+        {
+          "surahNumber": 91,
+          "ayahStart": 13,
+          "ayahEnd": 14
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_hud",
+      "targetId": "prophet_hud",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 65,
+          "ayahEnd": 72
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 50,
+          "ayahEnd": 60
+        },
+        {
+          "surahNumber": 69,
+          "ayahStart": 6,
+          "ayahEnd": 8
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_idris",
+      "targetId": "prophet_idris",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 56,
+          "ayahEnd": 57
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 85,
+          "ayahEnd": 86
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_bilqis",
+      "targetId": "prophet_sulayman",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 35,
+          "ayahEnd": 37
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 38,
+          "ayahEnd": 42
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 43,
+          "ayahEnd": 44
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "prophet_ishaq",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "prophet_ibrahim",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "prophet_yaqub",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "prophet_yusuf",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "prophet_yaqub",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 132
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "prophet_ishaq",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 132
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "prophet_yusuf",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 132
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "prophet_ibrahim",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 132
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "prophet_harun",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "prophet_musa",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_dhulkifl",
+      "targetId": "prophet_dhulkifl",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_dhulkifl",
+      "targetId": "prophet_ayyub",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_dhulkifl",
+      "targetId": "prophet_alyasa",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ilyas",
+      "targetId": "prophet_ilyas",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 123
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ilyas",
+      "targetId": "prophet_alyasa",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 123
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_alyasa",
+      "targetId": "prophet_alyasa",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 86
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_alyasa",
+      "targetId": "prophet_ilyas",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 86
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_alyasa",
+      "targetId": "prophet_dhulkifl",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 86
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "prophet_sulayman",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "prophet_dawud",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "prophet_muhammad",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 144
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 40
+        },
+        {
+          "surahNumber": 47,
+          "ayahStart": 2
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "prophet_isa",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 144
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 40
+        },
+        {
+          "surahNumber": 47,
+          "ayahStart": 2
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "prophet_musa",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 144
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 40
+        },
+        {
+          "surahNumber": 47,
+          "ayahStart": 2
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "prophet_salih",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 144
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 40
+        },
+        {
+          "surahNumber": 47,
+          "ayahStart": 2
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "prophet_ismail",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 125
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 127
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "prophet_ibrahim",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 125
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 127
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "prophet_ishaq",
+      "targetType": "prophet",
+      "relationType": "same_prophet",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 125
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 127
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        }
+      ],
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "topic_allah",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "topic_revelation",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "topic_allah",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 132
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "topic_revelation",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 132
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "topic_community",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 132
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "topic_allah",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "topic_heavens_earth",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "topic_mercy",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "topic_allah",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "topic_community",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "topic_allah",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 144
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 40
+        },
+        {
+          "surahNumber": 47,
+          "ayahStart": 2
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "topic_iman",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 144
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 40
+        },
+        {
+          "surahNumber": 47,
+          "ayahStart": 2
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "topic_allah",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 125
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 127
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "topic_dua",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 125
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 127
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "topic_revelation",
+      "targetType": "topic",
+      "relationType": "related_topic",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 125
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 127
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "figure_sarah",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "figure_firawn",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "entity_place_sinai",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "entity_people_aad",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "entity_people_aal_firawn",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "entity_people_bani_israel",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "entity_people_madyan",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "entity_people_qawm_nuh",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "entity_people_thamud",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "entity_object_ark",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "entity_object_tablets",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "figure_bilqis",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "entity_people_saba",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "entity_people_thamud",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "figure_maryam",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 144
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 40
+        },
+        {
+          "surahNumber": 47,
+          "ayahStart": 2
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "entity_people_bani_israel",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 144
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 40
+        },
+        {
+          "surahNumber": 47,
+          "ayahStart": 2
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "entity_place_makkah",
+      "targetType": "entity",
+      "relationType": "same_people",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 125
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 127
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_adam",
+      "targetId": "adam_araf_detail",
+      "targetType": "story",
+      "relationType": "repeated_narrative",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 30,
+          "ayahEnd": 33
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 31,
+          "ayahEnd": 33
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 34,
+          "ayahEnd": 34
+        }
+      ],
+      "confidence": 0.4,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Target story not resolved in registry."
+      ]
+    },
+    {
+      "sourceStoryId": "story_nuh",
+      "targetId": "nuh_ark_hud",
+      "targetType": "story",
+      "relationType": "repeated_narrative",
+      "evidenceReferences": [
+        {
+          "surahNumber": 71,
+          "ayahStart": 1,
+          "ayahEnd": 20
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 36,
+          "ayahEnd": 44
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 40,
+          "ayahEnd": 44
+        }
+      ],
+      "confidence": 0.4,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Target story not resolved in registry."
+      ]
+    },
+    {
+      "sourceStoryId": "story_ibrahim",
+      "targetId": "ibrahim_kaaba",
+      "targetType": "story",
+      "relationType": "repeated_narrative",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 74,
+          "ayahEnd": 83
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 41,
+          "ayahEnd": 50
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 51,
+          "ayahEnd": 70
+        }
+      ],
+      "confidence": 0.4,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Target story not resolved in registry."
+      ]
+    },
+    {
+      "sourceStoryId": "story_musa",
+      "targetId": "musa_sinai",
+      "targetType": "story",
+      "relationType": "repeated_narrative",
+      "evidenceReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 7,
+          "ayahEnd": 13
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 14,
+          "ayahEnd": 28
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 9,
+          "ayahEnd": 48
+        }
+      ],
+      "confidence": 0.4,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Target story not resolved in registry."
+      ]
+    },
+    {
+      "sourceStoryId": "story_isa",
+      "targetId": "isa_birth_maryam",
+      "targetType": "story",
+      "relationType": "repeated_narrative",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 45,
+          "ayahEnd": 51
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 16,
+          "ayahEnd": 35
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 29,
+          "ayahEnd": 33
+        }
+      ],
+      "confidence": 0.4,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Target story not resolved in registry."
+      ]
+    },
+    {
+      "sourceStoryId": "story_zakariyya_yahya",
+      "targetId": "zakariyya_imran",
+      "targetType": "story",
+      "relationType": "repeated_narrative",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 2,
+          "ayahEnd": 6
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 7,
+          "ayahEnd": 11
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 12,
+          "ayahEnd": 15
+        }
+      ],
+      "confidence": 0.4,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Target story not resolved in registry."
+      ]
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "story_bilqis",
+      "targetType": "story",
+      "relationType": "repeated_narrative",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_adam",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 30,
+          "ayahEnd": 33
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 31,
+          "ayahEnd": 33
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 34,
+          "ayahEnd": 34
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 35,
+          "ayahEnd": 36
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 37,
+          "ayahEnd": 37
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_adam",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 11,
+          "ayahEnd": 25
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_adam",
+      "targetId": "surah:20",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 115,
+          "ayahEnd": 123
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_adam",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 71,
+          "ayahEnd": 85
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_nuh",
+      "targetId": "surah:71",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 71,
+          "ayahStart": 1,
+          "ayahEnd": 20
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_nuh",
+      "targetId": "surah:11",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 36,
+          "ayahEnd": 44
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 40,
+          "ayahEnd": 44
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 42,
+          "ayahEnd": 47
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 48,
+          "ayahEnd": 49
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_nuh",
+      "targetId": "surah:54",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 54,
+          "ayahStart": 9,
+          "ayahEnd": 15
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim",
+      "targetId": "surah:6",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 74,
+          "ayahEnd": 83
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim",
+      "targetId": "surah:19",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 41,
+          "ayahEnd": 50
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 51,
+          "ayahEnd": 70
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 68,
+          "ayahEnd": 70
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim",
+      "targetId": "surah:11",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 69,
+          "ayahEnd": 76
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim",
+      "targetId": "surah:37",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 100,
+          "ayahEnd": 113
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 125,
+          "ayahEnd": 129
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim",
+      "targetId": "surah:22",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 22,
+          "ayahStart": 26,
+          "ayahEnd": 29
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_musa",
+      "targetId": "surah:28",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 7,
+          "ayahEnd": 13
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 14,
+          "ayahEnd": 28
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_musa",
+      "targetId": "surah:20",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 9,
+          "ayahEnd": 48
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 83,
+          "ayahEnd": 98
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_musa",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 103,
+          "ayahEnd": 137
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 142,
+          "ayahEnd": 156
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_musa",
+      "targetId": "surah:26",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 34,
+          "ayahEnd": 51
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 52,
+          "ayahEnd": 68
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_musa",
+      "targetId": "surah:18",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 60,
+          "ayahEnd": 82
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yusuf",
+      "targetId": "surah:12",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 4,
+          "ayahEnd": 6
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 7,
+          "ayahEnd": 18
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 19,
+          "ayahEnd": 22
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 23,
+          "ayahEnd": 34
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 35,
+          "ayahEnd": 42
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_isa",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 45,
+          "ayahEnd": 51
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_isa",
+      "targetId": "surah:19",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 16,
+          "ayahEnd": 35
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 29,
+          "ayahEnd": 33
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_isa",
+      "targetId": "surah:5",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 110,
+          "ayahEnd": 110
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 112,
+          "ayahEnd": 115
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 116,
+          "ayahEnd": 118
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_isa",
+      "targetId": "surah:4",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 157,
+          "ayahEnd": 159
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_maryam",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 35,
+          "ayahEnd": 37
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 37,
+          "ayahEnd": 37
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 42,
+          "ayahEnd": 44
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_maryam",
+      "targetId": "surah:19",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 16,
+          "ayahEnd": 21
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 22,
+          "ayahEnd": 26
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 27,
+          "ayahEnd": 33
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_zakariyya_yahya",
+      "targetId": "surah:19",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 2,
+          "ayahEnd": 6
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 7,
+          "ayahEnd": 11
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 12,
+          "ayahEnd": 15
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_zakariyya_yahya",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 38,
+          "ayahEnd": 41
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_sulayman",
+      "targetId": "surah:27",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 15,
+          "ayahEnd": 19
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 18,
+          "ayahEnd": 19
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 20,
+          "ayahEnd": 28
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 29,
+          "ayahEnd": 44
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_sulayman",
+      "targetId": "surah:34",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 34,
+          "ayahStart": 14,
+          "ayahEnd": 14
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_sulayman",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 34,
+          "ayahEnd": 40
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_dawud",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 249,
+          "ayahEnd": 252
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 251,
+          "ayahEnd": 251
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_dawud",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 79,
+          "ayahEnd": 80
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_dawud",
+      "targetId": "surah:34",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 34,
+          "ayahStart": 10,
+          "ayahEnd": 11
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_dawud",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 21,
+          "ayahEnd": 25
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ayyub",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 83,
+          "ayahEnd": 84
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ayyub",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 41,
+          "ayahEnd": 44
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 44,
+          "ayahEnd": 44
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yunus",
+      "targetId": "surah:37",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 139,
+          "ayahEnd": 142
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 142,
+          "ayahEnd": 144
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 145,
+          "ayahEnd": 148
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yunus",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 87,
+          "ayahEnd": 88
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yunus",
+      "targetId": "surah:10",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 10,
+          "ayahStart": 98,
+          "ayahEnd": 98
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_lut",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 80,
+          "ayahEnd": 84
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_lut",
+      "targetId": "surah:11",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 77,
+          "ayahEnd": 81
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 81,
+          "ayahEnd": 83
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_lut",
+      "targetId": "surah:15",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 15,
+          "ayahStart": 73,
+          "ayahEnd": 77
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_shuayb",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 85,
+          "ayahEnd": 87
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 91,
+          "ayahEnd": 93
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_shuayb",
+      "targetId": "surah:11",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 84,
+          "ayahEnd": 95
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_shuayb",
+      "targetId": "surah:26",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 176,
+          "ayahEnd": 189
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_salih",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 73,
+          "ayahEnd": 74
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_salih",
+      "targetId": "surah:11",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 64,
+          "ayahEnd": 66
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_salih",
+      "targetId": "surah:91",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 91,
+          "ayahStart": 13,
+          "ayahEnd": 14
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_salih",
+      "targetId": "surah:54",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 54,
+          "ayahStart": 31,
+          "ayahEnd": 31
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_hud",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 65,
+          "ayahEnd": 72
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_hud",
+      "targetId": "surah:11",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 50,
+          "ayahEnd": 60
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 58,
+          "ayahEnd": 58
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_hud",
+      "targetId": "surah:69",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 69,
+          "ayahStart": 6,
+          "ayahEnd": 8
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_kahf",
+      "targetId": "surah:18",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 9,
+          "ayahEnd": 12
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 13,
+          "ayahEnd": 16
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 17,
+          "ayahEnd": 18
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 19,
+          "ayahEnd": 21
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 22,
+          "ayahEnd": 26
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_dhulqarnayn",
+      "targetId": "surah:18",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 83,
+          "ayahEnd": 84
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 85,
+          "ayahEnd": 88
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 89,
+          "ayahEnd": 91
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 92,
+          "ayahEnd": 98
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 98,
+          "ayahEnd": 98
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_luqman",
+      "targetId": "surah:31",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 31,
+          "ayahStart": 12,
+          "ayahEnd": 12
+        },
+        {
+          "surahNumber": 31,
+          "ayahStart": 13,
+          "ayahEnd": 13
+        },
+        {
+          "surahNumber": 31,
+          "ayahStart": 14,
+          "ayahEnd": 15
+        },
+        {
+          "surahNumber": 31,
+          "ayahStart": 16,
+          "ayahEnd": 16
+        },
+        {
+          "surahNumber": 31,
+          "ayahStart": 17,
+          "ayahEnd": 19
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_qarun",
+      "targetId": "surah:28",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 76,
+          "ayahEnd": 77
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 77,
+          "ayahEnd": 77
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 78,
+          "ayahEnd": 79
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 79,
+          "ayahEnd": 80
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 81,
+          "ayahEnd": 82
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_habil_qabil",
+      "targetId": "surah:5",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 27,
+          "ayahEnd": 27
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 27,
+          "ayahEnd": 28
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 28,
+          "ayahEnd": 29
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 30,
+          "ayahEnd": 30
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 31,
+          "ayahEnd": 31
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_elephant",
+      "targetId": "surah:105",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 105,
+          "ayahStart": 1,
+          "ayahEnd": 5
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_baqarah_cow",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 67,
+          "ayahEnd": 67
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 68,
+          "ayahEnd": 71
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 71,
+          "ayahEnd": 71
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 72,
+          "ayahEnd": 73
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_uzair",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 259,
+          "ayahEnd": 259
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 259,
+          "ayahEnd": 259
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 259,
+          "ayahEnd": 259
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_sabbath_breakers",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 163,
+          "ayahEnd": 163
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 163,
+          "ayahEnd": 163
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 164,
+          "ayahEnd": 165
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_sabbath_breakers",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 65,
+          "ayahEnd": 66
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_angels_prostration",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 34,
+          "ayahEnd": 34
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_angels_prostration",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 11,
+          "ayahEnd": 11
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 12,
+          "ayahEnd": 18
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_jinn_quran",
+      "targetId": "surah:46",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 46,
+          "ayahStart": 29,
+          "ayahEnd": 32
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_jinn_quran",
+      "targetId": "surah:72",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 72,
+          "ayahStart": 1,
+          "ayahEnd": 15
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yajuj_majuj",
+      "targetId": "surah:18",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 93,
+          "ayahEnd": 98
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yajuj_majuj",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 96,
+          "ayahEnd": 97
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_two_gardens",
+      "targetId": "surah:18",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 32,
+          "ayahEnd": 34
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 35,
+          "ayahEnd": 36
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 37,
+          "ayahEnd": 41
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 42,
+          "ayahEnd": 44
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_good_word",
+      "targetId": "surah:14",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 14,
+          "ayahStart": 24,
+          "ayahEnd": 27
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_fly",
+      "targetId": "surah:22",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 22,
+          "ayahStart": 73,
+          "ayahEnd": 74
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_spider",
+      "targetId": "surah:29",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 29,
+          "ayahStart": 41,
+          "ayahEnd": 41
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_tubba",
+      "targetId": "surah:44",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 44,
+          "ayahStart": 37,
+          "ayahEnd": 37
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_tubba",
+      "targetId": "surah:50",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 50,
+          "ayahStart": 14,
+          "ayahEnd": 14
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_rass",
+      "targetId": "surah:25",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 25,
+          "ayahStart": 38,
+          "ayahEnd": 38
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_rass",
+      "targetId": "surah:50",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 50,
+          "ayahStart": 12,
+          "ayahEnd": 14
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ayka",
+      "targetId": "surah:26",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 176,
+          "ayahEnd": 189
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 189,
+          "ayahEnd": 191
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_talut_jalut",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 247,
+          "ayahEnd": 248
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 249,
+          "ayahEnd": 249
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 250,
+          "ayahEnd": 251
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ifk",
+      "targetId": "surah:24",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 24,
+          "ayahStart": 11,
+          "ayahEnd": 20
+        },
+        {
+          "surahNumber": 24,
+          "ayahStart": 21,
+          "ayahEnd": 26
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_idris",
+      "targetId": "surah:19",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 56,
+          "ayahEnd": 57
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_idris",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85,
+          "ayahEnd": 86
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ismail",
+      "targetId": "surah:37",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 100,
+          "ayahEnd": 111
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ismail",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 127,
+          "ayahEnd": 129
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ismail",
+      "targetId": "surah:19",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 54,
+          "ayahEnd": 55
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_dhulkifl",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85,
+          "ayahEnd": 86
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_dhulkifl",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "ayahEnd": 48
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ilyas",
+      "targetId": "surah:37",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 123,
+          "ayahEnd": 132
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_alyasa",
+      "targetId": "surah:6",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 86,
+          "ayahEnd": 86
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_alyasa",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "ayahEnd": 48
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_muhammad",
+      "targetId": "surah:68",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 68,
+          "ayahStart": 4,
+          "ayahEnd": 4
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_muhammad",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 107,
+          "ayahEnd": 107
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_muhammad",
+      "targetId": "surah:93",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 93,
+          "ayahStart": 1,
+          "ayahEnd": 11
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_muhammad",
+      "targetId": "surah:94",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 94,
+          "ayahStart": 1,
+          "ayahEnd": 8
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_muhammad",
+      "targetId": "surah:48",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 48,
+          "ayahStart": 1,
+          "ayahEnd": 3
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_garden_owners",
+      "targetId": "surah:68",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 68,
+          "ayahStart": 17,
+          "ayahEnd": 24
+        },
+        {
+          "surahNumber": 68,
+          "ayahStart": 25,
+          "ayahEnd": 33
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ditch",
+      "targetId": "surah:85",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 85,
+          "ayahStart": 4,
+          "ayahEnd": 9
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_donkey_books",
+      "targetId": "surah:62",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 62,
+          "ayahStart": 5,
+          "ayahEnd": 5
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_dog_parable",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 175,
+          "ayahEnd": 176
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ant_hoopoe",
+      "targetId": "surah:27",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 18,
+          "ayahEnd": 19
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 20,
+          "ayahEnd": 28
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_bilqis",
+      "targetId": "surah:27",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 35,
+          "ayahEnd": 37
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 38,
+          "ayahEnd": 42
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 43,
+          "ayahEnd": 44
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_blind_seeing",
+      "targetId": "surah:35",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 35,
+          "ayahStart": 19,
+          "ayahEnd": 22
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_light_parable",
+      "targetId": "surah:24",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 24,
+          "ayahStart": 35,
+          "ayahEnd": 35
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_rain_parable",
+      "targetId": "surah:10",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 10,
+          "ayahStart": 24,
+          "ayahEnd": 24
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_rain_parable",
+      "targetId": "surah:18",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 45,
+          "ayahEnd": 46
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_charity_parable",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 261,
+          "ayahEnd": 262
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 264,
+          "ayahEnd": 266
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_haman",
+      "targetId": "surah:28",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 38,
+          "ayahEnd": 39
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_haman",
+      "targetId": "surah:40",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 40,
+          "ayahStart": 36,
+          "ayahEnd": 37
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_haman",
+      "targetId": "surah:29",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 29,
+          "ayahStart": 39,
+          "ayahEnd": 40
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_empty_village",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 259,
+          "ayahEnd": 259
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim_birds",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 260,
+          "ayahEnd": 260
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_isra_miraj",
+      "targetId": "surah:17",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 17,
+          "ayahStart": 1,
+          "ayahEnd": 1
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_isra_miraj",
+      "targetId": "surah:53",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 53,
+          "ayahStart": 1,
+          "ayahEnd": 18
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_hijrah",
+      "targetId": "surah:9",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 9,
+          "ayahStart": 40,
+          "ayahEnd": 40
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_badr",
+      "targetId": "surah:8",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 8,
+          "ayahStart": 5,
+          "ayahEnd": 14
+        },
+        {
+          "surahNumber": 8,
+          "ayahStart": 9,
+          "ayahEnd": 12
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_badr",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 123,
+          "ayahEnd": 127
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_uhud",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 121,
+          "ayahEnd": 122
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 140,
+          "ayahEnd": 148
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 152,
+          "ayahEnd": 155
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_hudaybiyyah",
+      "targetId": "surah:48",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 48,
+          "ayahStart": 1,
+          "ayahEnd": 7
+        },
+        {
+          "surahNumber": 48,
+          "ayahStart": 18,
+          "ayahEnd": 21
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_conquest_makkah",
+      "targetId": "surah:110",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 110,
+          "ayahStart": 1,
+          "ayahEnd": 3
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_qiblah_change",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 142,
+          "ayahEnd": 145
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 149,
+          "ayahEnd": 150
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_tabuk",
+      "targetId": "surah:9",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 9,
+          "ayahStart": 42,
+          "ayahEnd": 48
+        },
+        {
+          "surahNumber": 9,
+          "ayahStart": 118,
+          "ayahEnd": 119
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_najran",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 59,
+          "ayahEnd": 63
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_romans_persians",
+      "targetId": "surah:30",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 30,
+          "ayahStart": 1,
+          "ayahEnd": 5
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ancient_egypt",
+      "targetId": "surah:10",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 10,
+          "ayahStart": 90,
+          "ayahEnd": 92
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ancient_egypt",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 130,
+          "ayahEnd": 136
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_madyan",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 85,
+          "ayahEnd": 86
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 91,
+          "ayahEnd": 93
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_thamud",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 73,
+          "ayahEnd": 77
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_thamud",
+      "targetId": "surah:11",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 67,
+          "ayahEnd": 68
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_thamud",
+      "targetId": "surah:91",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 91,
+          "ayahStart": 11,
+          "ayahEnd": 15
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_signs_hour",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 1,
+          "ayahEnd": 3
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_signs_hour",
+      "targetId": "surah:44",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 44,
+          "ayahStart": 10,
+          "ayahEnd": 16
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_signs_hour",
+      "targetId": "surah:27",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 82,
+          "ayahEnd": 82
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_trumpet",
+      "targetId": "surah:39",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 39,
+          "ayahStart": 68,
+          "ayahEnd": 68
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_trumpet",
+      "targetId": "surah:36",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 36,
+          "ayahStart": 51,
+          "ayahEnd": 54
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_mizan",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 8,
+          "ayahEnd": 9
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_mizan",
+      "targetId": "surah:101",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 101,
+          "ayahStart": 6,
+          "ayahEnd": 11
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_araf_people",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 46,
+          "ayahEnd": 49
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_paradise",
+      "targetId": "surah:55",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 55,
+          "ayahStart": 46,
+          "ayahEnd": 78
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_paradise",
+      "targetId": "surah:56",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 56,
+          "ayahStart": 10,
+          "ayahEnd": 40
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_paradise",
+      "targetId": "surah:76",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 76,
+          "ayahStart": 12,
+          "ayahEnd": 22
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_hell",
+      "targetId": "surah:56",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 56,
+          "ayahStart": 41,
+          "ayahEnd": 56
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_hell",
+      "targetId": "surah:44",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 44,
+          "ayahStart": 43,
+          "ayahEnd": 50
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_hell",
+      "targetId": "surah:104",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 104,
+          "ayahStart": 1,
+          "ayahEnd": 9
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_covenant_souls",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 172,
+          "ayahEnd": 174
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_iblis_refusal",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 11,
+          "ayahEnd": 18
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_iblis_refusal",
+      "targetId": "surah:15",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 15,
+          "ayahStart": 28,
+          "ayahEnd": 43
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_iblis_refusal",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 71,
+          "ayahEnd": 85
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_samiri",
+      "targetId": "surah:20",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 83,
+          "ayahEnd": 98
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_asiya",
+      "targetId": "surah:66",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 66,
+          "ayahStart": 11,
+          "ayahEnd": 11
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_asiya",
+      "targetId": "surah:28",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 9,
+          "ayahEnd": 9
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_mother_musa",
+      "targetId": "surah:28",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 7,
+          "ayahEnd": 13
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_mother_musa",
+      "targetId": "surah:20",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 38,
+          "ayahEnd": 40
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_zulaykha",
+      "targetId": "surah:12",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 23,
+          "ayahEnd": 29
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 30,
+          "ayahEnd": 34
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 51,
+          "ayahEnd": 53
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_believer_firaun",
+      "targetId": "surah:40",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 40,
+          "ayahStart": 28,
+          "ayahEnd": 35
+        },
+        {
+          "surahNumber": 40,
+          "ayahStart": 38,
+          "ayahEnd": 45
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_khidr",
+      "targetId": "surah:18",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 60,
+          "ayahEnd": 65
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 66,
+          "ayahEnd": 71
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 74,
+          "ayahEnd": 76
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 77,
+          "ayahEnd": 78
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 79,
+          "ayahEnd": 82
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_three_messengers",
+      "targetId": "surah:36",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 36,
+          "ayahStart": 13,
+          "ayahEnd": 19
+        },
+        {
+          "surahNumber": 36,
+          "ayahStart": 20,
+          "ayahEnd": 27
+        },
+        {
+          "surahNumber": 36,
+          "ayahStart": 28,
+          "ayahEnd": 32
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_two_men",
+      "targetId": "surah:18",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 32,
+          "ayahEnd": 36
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 37,
+          "ayahEnd": 41
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 42,
+          "ayahEnd": 44
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_saba",
+      "targetId": "surah:34",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 34,
+          "ayahStart": 15,
+          "ayahEnd": 17
+        },
+        {
+          "surahNumber": 34,
+          "ayahStart": 18,
+          "ayahEnd": 19
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ad",
+      "targetId": "surah:89",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 89,
+          "ayahStart": 6,
+          "ayahEnd": 8
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ad",
+      "targetId": "surah:69",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 69,
+          "ayahStart": 6,
+          "ayahEnd": 8
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ad",
+      "targetId": "surah:46",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 46,
+          "ayahStart": 21,
+          "ayahEnd": 26
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_nuh_people",
+      "targetId": "surah:71",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 71,
+          "ayahStart": 1,
+          "ayahEnd": 20
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_nuh_people",
+      "targetId": "surah:54",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 54,
+          "ayahStart": 9,
+          "ayahEnd": 16
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_intercession",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 255,
+          "ayahEnd": 255
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_intercession",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 28,
+          "ayahEnd": 28
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_creation_heavens_earth",
+      "targetId": "surah:41",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 41,
+          "ayahStart": 9,
+          "ayahEnd": 12
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_creation_heavens_earth",
+      "targetId": "surah:79",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 79,
+          "ayahStart": 27,
+          "ayahEnd": 33
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_village_fish",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 163,
+          "ayahEnd": 166
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_bani_israel",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 57,
+          "ayahEnd": 61
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 60,
+          "ayahEnd": 60
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 63,
+          "ayahEnd": 66
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yaqub",
+      "targetId": "surah:12",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 84,
+          "ayahEnd": 87
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 93,
+          "ayahEnd": 98
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_harut_marut",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102,
+          "ayahEnd": 103
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_sleepers_numbers",
+      "targetId": "surah:18",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 22,
+          "ayahEnd": 26
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_wife_nuh",
+      "targetId": "surah:66",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 66,
+          "ayahStart": 10,
+          "ayahEnd": 10
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_wife_lut",
+      "targetId": "surah:66",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 66,
+          "ayahStart": 10,
+          "ayahEnd": 10
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_son_nuh",
+      "targetId": "surah:11",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 42,
+          "ayahEnd": 43
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 45,
+          "ayahEnd": 47
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_tree_cursed",
+      "targetId": "surah:37",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 62,
+          "ayahEnd": 68
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_tree_cursed",
+      "targetId": "surah:44",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 44,
+          "ayahStart": 43,
+          "ayahEnd": 46
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_seven_sleepers_dog",
+      "targetId": "surah:18",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 18,
+          "ayahEnd": 18
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_musa_firaun_dialogue",
+      "targetId": "surah:26",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 10,
+          "ayahEnd": 33
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_musa_firaun_dialogue",
+      "targetId": "surah:79",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 79,
+          "ayahStart": 17,
+          "ayahEnd": 26
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_magicians",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 113,
+          "ayahEnd": 116
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 117,
+          "ayahEnd": 119
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 120,
+          "ayahEnd": 126
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_magicians",
+      "targetId": "surah:20",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 70,
+          "ayahEnd": 73
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_sea_crossing",
+      "targetId": "surah:26",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 63,
+          "ayahEnd": 66
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_sea_crossing",
+      "targetId": "surah:10",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 10,
+          "ayahStart": 90,
+          "ayahEnd": 92
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_golden_calf",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 148,
+          "ayahEnd": 150
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 150,
+          "ayahEnd": 153
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_golden_calf",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 54,
+          "ayahEnd": 54
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_musa_mountain",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 143,
+          "ayahEnd": 145
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_sulayman_jinn",
+      "targetId": "surah:34",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 34,
+          "ayahStart": 12,
+          "ayahEnd": 13
+        },
+        {
+          "surahNumber": 34,
+          "ayahStart": 14,
+          "ayahEnd": 14
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_dawud_trial",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 21,
+          "ayahEnd": 25
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim_fire",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 57,
+          "ayahEnd": 63
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 68,
+          "ayahEnd": 70
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim_stars",
+      "targetId": "surah:6",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 76,
+          "ayahEnd": 79
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_ibrahim_nimrod",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 258,
+          "ayahEnd": 258
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_musa_midian",
+      "targetId": "surah:28",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 23,
+          "ayahEnd": 25
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 26,
+          "ayahEnd": 28
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_musa_burning_bush",
+      "targetId": "surah:20",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 9,
+          "ayahEnd": 16
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 17,
+          "ayahEnd": 23
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_isa_miracles",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 46,
+          "ayahEnd": 46
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 49,
+          "ayahEnd": 49
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_isa_miracles",
+      "targetId": "surah:5",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 112,
+          "ayahEnd": 115
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_isa_ascension",
+      "targetId": "surah:4",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 157,
+          "ayahEnd": 158
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_isa_ascension",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 55,
+          "ayahEnd": 55
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_maryam_birth",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 35,
+          "ayahEnd": 37
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yusuf_dream",
+      "targetId": "surah:12",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 4,
+          "ayahEnd": 6
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 100,
+          "ayahEnd": 101
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yusuf_prison",
+      "targetId": "surah:12",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 37,
+          "ayahEnd": 40
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 41,
+          "ayahEnd": 42
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 43,
+          "ayahEnd": 49
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_yusuf_brothers",
+      "targetId": "surah:12",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 8,
+          "ayahEnd": 18
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 58,
+          "ayahEnd": 66
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 89,
+          "ayahEnd": 92
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_abasa",
+      "targetId": "surah:80",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 80,
+          "ayahStart": 1,
+          "ayahEnd": 10
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_abu_lahab",
+      "targetId": "surah:111",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 111,
+          "ayahStart": 1,
+          "ayahEnd": 5
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_sulayman_horses",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 31,
+          "ayahEnd": 33
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "story_sulayman_trial",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 34,
+          "ayahEnd": 40
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:4",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:6",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:11",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 71
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:12",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 6
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 38
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:14",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 14,
+          "ayahStart": 39
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:19",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 49
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 72
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:29",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 29,
+          "ayahStart": 27
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:37",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 112
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 113
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ishaq",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 45
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 132
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "surah:4",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "surah:6",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "surah:11",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 71
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "surah:12",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 6
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 38
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 68
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "surah:19",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 6
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 49
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 72
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "surah:29",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 29,
+          "ayahStart": 27
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_yaqub",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 45
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:4",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:6",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:7",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 82
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 122
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 127
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 142
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:10",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 10,
+          "ayahStart": 75
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:19",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 28
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 53
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:20",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 30
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 70
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 90
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 92
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 48
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:23",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 23,
+          "ayahStart": 45
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:25",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 25,
+          "ayahStart": 35
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:26",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 13
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 48
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:27",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 56
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:28",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 34
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:30",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 30,
+          "ayahStart": 18
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:33",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 33,
+          "ayahStart": 4
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:37",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 114
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 120
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:43",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 43,
+          "ayahStart": 33
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:56",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 56,
+          "ayahStart": 79
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_harun",
+      "targetId": "surah:58",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 58,
+          "ayahStart": 2
+        },
+        {
+          "surahNumber": 58,
+          "ayahStart": 3
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_dhulkifl",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_dhulkifl",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 48
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ilyas",
+      "targetId": "surah:6",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 85
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ilyas",
+      "targetId": "surah:37",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 123
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_alyasa",
+      "targetId": "surah:6",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 86
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_alyasa",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 48
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "surah:4",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "surah:6",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 78
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 79
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 81
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "surah:27",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 15
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 16
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 17
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 18
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 30
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "surah:34",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 34,
+          "ayahStart": 12
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_sulayman",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 30
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 34
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 144
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "surah:33",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 33,
+          "ayahStart": 40
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "surah:47",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 47,
+          "ayahStart": 2
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "surah:48",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 48,
+          "ayahStart": 29
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_muhammad",
+      "targetId": "surah:61",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 61,
+          "ayahStart": 6
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "surah:2",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 125
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 127
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "surah:3",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 84
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "surah:4",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 163
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "surah:6",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 86
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "surah:14",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 14,
+          "ayahStart": 39
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "surah:19",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 54
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "surah:21",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "sourceStoryId": "storypage_ismail",
+      "targetId": "surah:38",
+      "targetType": "surah",
+      "relationType": "same_place",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 48
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    }
+  ],
+  "warnings": [
+    "All connections are needs_review until scholarly approval."
+  ]
+}

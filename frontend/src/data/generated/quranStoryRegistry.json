@@ -1,0 +1,5786 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-05-18T03:59:38.500Z",
+  "categories": [
+    "prophet",
+    "prophetic_sirah",
+    "person",
+    "nation",
+    "parable",
+    "historical",
+    "unseen",
+    "compact_profile",
+    "needs_review"
+  ],
+  "coverage": {
+    "totalStories": 131,
+    "authoredStories": 122,
+    "prophetProfiles": 9,
+    "generatedCandidates": 0,
+    "missingMetadataCount": 0,
+    "surahsCovered": 68,
+    "prophetsCovered": 24,
+    "ayahRangesLinked": 365,
+    "reviewPendingCount": 131
+  },
+  "stories": [
+    {
+      "storyId": "story_adam",
+      "titleArabic": "قصة آدم عليه السلام",
+      "titleEnglish": "Story of Prophet Adam",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 30,
+          "ayahEnd": 33,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 31,
+          "ayahEnd": 33,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 34,
+          "ayahEnd": 34,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 35,
+          "ayahEnd": 36,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 37,
+          "ayahEnd": 37,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 11,
+          "ayahEnd": 25,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 115,
+          "ayahEnd": 123,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 71,
+          "ayahEnd": 85,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_adam"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [
+        "adam_araf_detail"
+      ],
+      "segmentCount": 8,
+      "surahCount": 4,
+      "ayahRangeCount": 8,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_adam",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_nuh",
+      "titleArabic": "قصة نوح عليه السلام",
+      "titleEnglish": "Story of Prophet Nuh (Noah)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 71,
+          "ayahStart": 1,
+          "ayahEnd": 20,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 36,
+          "ayahEnd": 44,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 40,
+          "ayahEnd": 44,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 42,
+          "ayahEnd": 47,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 48,
+          "ayahEnd": 49,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 54,
+          "ayahStart": 9,
+          "ayahEnd": 15,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_nuh"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [
+        "nuh_ark_hud"
+      ],
+      "segmentCount": 6,
+      "surahCount": 3,
+      "ayahRangeCount": 6,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_nuh",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ibrahim",
+      "titleArabic": "قصة إبراهيم عليه السلام",
+      "titleEnglish": "Story of Prophet Ibrahim (Abraham)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 74,
+          "ayahEnd": 83,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 41,
+          "ayahEnd": 50,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 51,
+          "ayahEnd": 70,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 68,
+          "ayahEnd": 70,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 69,
+          "ayahEnd": 76,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 100,
+          "ayahEnd": 113,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 125,
+          "ayahEnd": 129,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 22,
+          "ayahStart": 26,
+          "ayahEnd": 29,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_ibrahim"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [
+        "ibrahim_kaaba"
+      ],
+      "segmentCount": 8,
+      "surahCount": 7,
+      "ayahRangeCount": 8,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ibrahim",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_musa",
+      "titleArabic": "قصة موسى عليه السلام",
+      "titleEnglish": "Story of Prophet Musa (Moses)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 7,
+          "ayahEnd": 13,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 14,
+          "ayahEnd": 28,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 9,
+          "ayahEnd": 48,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 103,
+          "ayahEnd": 137,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 34,
+          "ayahEnd": 51,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 52,
+          "ayahEnd": 68,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 142,
+          "ayahEnd": 156,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 83,
+          "ayahEnd": 98,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 60,
+          "ayahEnd": 82,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_musa"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [
+        "musa_sinai"
+      ],
+      "segmentCount": 9,
+      "surahCount": 5,
+      "ayahRangeCount": 9,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_musa",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_yusuf",
+      "titleArabic": "قصة يوسف عليه السلام",
+      "titleEnglish": "Story of Prophet Yusuf (Joseph)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 4,
+          "ayahEnd": 6,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 7,
+          "ayahEnd": 18,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 19,
+          "ayahEnd": 22,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 23,
+          "ayahEnd": 34,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 35,
+          "ayahEnd": 42,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 43,
+          "ayahEnd": 57,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 58,
+          "ayahEnd": 87,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 88,
+          "ayahEnd": 98,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 99,
+          "ayahEnd": 101,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_yusuf"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 9,
+      "surahCount": 1,
+      "ayahRangeCount": 9,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_yusuf",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_isa",
+      "titleArabic": "قصة عيسى عليه السلام",
+      "titleEnglish": "Story of Prophet Isa (Jesus)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 45,
+          "ayahEnd": 51,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 16,
+          "ayahEnd": 35,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 29,
+          "ayahEnd": 33,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 110,
+          "ayahEnd": 110,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 112,
+          "ayahEnd": 115,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 157,
+          "ayahEnd": 159,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 116,
+          "ayahEnd": 118,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_isa"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [
+        "isa_birth_maryam"
+      ],
+      "segmentCount": 7,
+      "surahCount": 4,
+      "ayahRangeCount": 7,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_isa",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_maryam",
+      "titleArabic": "قصة مريم عليها السلام",
+      "titleEnglish": "Story of Maryam (Mary)",
+      "category": "person",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 35,
+          "ayahEnd": 37,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 37,
+          "ayahEnd": 37,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 42,
+          "ayahEnd": 44,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 16,
+          "ayahEnd": 21,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 22,
+          "ayahEnd": 26,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 27,
+          "ayahEnd": 33,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 6,
+      "surahCount": 2,
+      "ayahRangeCount": 6,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_maryam",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_zakariyya_yahya",
+      "titleArabic": "قصة زكريا ويحيى عليهما السلام",
+      "titleEnglish": "Story of Prophets Zakariyya and Yahya",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 2,
+          "ayahEnd": 6,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 7,
+          "ayahEnd": 11,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 12,
+          "ayahEnd": 15,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 38,
+          "ayahEnd": 41,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_yahya"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [
+        "zakariyya_imran"
+      ],
+      "segmentCount": 4,
+      "surahCount": 2,
+      "ayahRangeCount": 4,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_zakariyya_yahya",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_sulayman",
+      "titleArabic": "قصة سليمان عليه السلام",
+      "titleEnglish": "Story of Prophet Sulayman (Solomon)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 15,
+          "ayahEnd": 19,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 18,
+          "ayahEnd": 19,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 20,
+          "ayahEnd": 28,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 29,
+          "ayahEnd": 44,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 34,
+          "ayahStart": 14,
+          "ayahEnd": 14,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 34,
+          "ayahEnd": 40,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 6,
+      "surahCount": 3,
+      "ayahRangeCount": 6,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_sulayman",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_dawud",
+      "titleArabic": "قصة داوود عليه السلام",
+      "titleEnglish": "Story of Prophet Dawud (David)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 249,
+          "ayahEnd": 252,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 251,
+          "ayahEnd": 251,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 79,
+          "ayahEnd": 80,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 34,
+          "ayahStart": 10,
+          "ayahEnd": 11,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 21,
+          "ayahEnd": 25,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_dawud"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 5,
+      "surahCount": 4,
+      "ayahRangeCount": 5,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_dawud",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ayyub",
+      "titleArabic": "قصة أيوب عليه السلام",
+      "titleEnglish": "Story of Prophet Ayyub (Job)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 83,
+          "ayahEnd": 84,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 41,
+          "ayahEnd": 44,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 44,
+          "ayahEnd": 44,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_ayyub"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 2,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ayyub",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_yunus",
+      "titleArabic": "قصة يونس عليه السلام",
+      "titleEnglish": "Story of Prophet Yunus (Jonah)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 139,
+          "ayahEnd": 142,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 142,
+          "ayahEnd": 144,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 87,
+          "ayahEnd": 88,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 145,
+          "ayahEnd": 148,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 10,
+          "ayahStart": 98,
+          "ayahEnd": 98,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_yunus"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 5,
+      "surahCount": 3,
+      "ayahRangeCount": 5,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_yunus",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_lut",
+      "titleArabic": "قصة لوط عليه السلام",
+      "titleEnglish": "Story of Prophet Lut (Lot)",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 80,
+          "ayahEnd": 84,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 77,
+          "ayahEnd": 81,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 15,
+          "ayahStart": 73,
+          "ayahEnd": 77,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 81,
+          "ayahEnd": 83,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_lut"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 4,
+      "surahCount": 3,
+      "ayahRangeCount": 4,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_lut",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_shuayb",
+      "titleArabic": "قصة شعيب عليه السلام",
+      "titleEnglish": "Story of Prophet Shu'ayb",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 85,
+          "ayahEnd": 87,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 84,
+          "ayahEnd": 95,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 176,
+          "ayahEnd": 189,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 91,
+          "ayahEnd": 93,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_shuayb"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 4,
+      "surahCount": 3,
+      "ayahRangeCount": 4,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_shuayb",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_salih",
+      "titleArabic": "قصة صالح عليه السلام",
+      "titleEnglish": "Story of Prophet Salih",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 73,
+          "ayahEnd": 74,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 64,
+          "ayahEnd": 66,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 91,
+          "ayahStart": 13,
+          "ayahEnd": 14,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 54,
+          "ayahStart": 31,
+          "ayahEnd": 31,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_salih"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 4,
+      "surahCount": 4,
+      "ayahRangeCount": 4,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_salih",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_hud",
+      "titleArabic": "قصة هود عليه السلام",
+      "titleEnglish": "Story of Prophet Hud",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 65,
+          "ayahEnd": 72,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 50,
+          "ayahEnd": 60,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 69,
+          "ayahStart": 6,
+          "ayahEnd": 8,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 58,
+          "ayahEnd": 58,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_hud"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 4,
+      "surahCount": 3,
+      "ayahRangeCount": 4,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_hud",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_kahf",
+      "titleArabic": "قصة أصحاب الكهف",
+      "titleEnglish": "Story of the People of the Cave",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 9,
+          "ayahEnd": 12,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 13,
+          "ayahEnd": 16,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 17,
+          "ayahEnd": 18,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 19,
+          "ayahEnd": 21,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 22,
+          "ayahEnd": 26,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 5,
+      "surahCount": 1,
+      "ayahRangeCount": 5,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_kahf",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_dhulqarnayn",
+      "titleArabic": "قصة ذي القرنين",
+      "titleEnglish": "Story of Dhul-Qarnayn",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 83,
+          "ayahEnd": 84,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 85,
+          "ayahEnd": 88,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 89,
+          "ayahEnd": 91,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 92,
+          "ayahEnd": 98,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 98,
+          "ayahEnd": 98,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 5,
+      "surahCount": 1,
+      "ayahRangeCount": 5,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_dhulqarnayn",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_luqman",
+      "titleArabic": "قصة لقمان الحكيم",
+      "titleEnglish": "Story of Luqman the Wise",
+      "category": "person",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 31,
+          "ayahStart": 12,
+          "ayahEnd": 12,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 31,
+          "ayahStart": 13,
+          "ayahEnd": 13,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 31,
+          "ayahStart": 14,
+          "ayahEnd": 15,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 31,
+          "ayahStart": 16,
+          "ayahEnd": 16,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 31,
+          "ayahStart": 17,
+          "ayahEnd": 19,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 5,
+      "surahCount": 1,
+      "ayahRangeCount": 5,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_luqman",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_qarun",
+      "titleArabic": "قصة قارون",
+      "titleEnglish": "Story of Qarun (Korah)",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 76,
+          "ayahEnd": 77,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 77,
+          "ayahEnd": 77,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 78,
+          "ayahEnd": 79,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 79,
+          "ayahEnd": 80,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 81,
+          "ayahEnd": 82,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 5,
+      "surahCount": 1,
+      "ayahRangeCount": 5,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_qarun",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_habil_qabil",
+      "titleArabic": "قصة ابني آدم",
+      "titleEnglish": "Story of the Two Sons of Adam",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 27,
+          "ayahEnd": 27,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 27,
+          "ayahEnd": 28,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 28,
+          "ayahEnd": 29,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 30,
+          "ayahEnd": 30,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 31,
+          "ayahEnd": 31,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 5,
+      "surahCount": 1,
+      "ayahRangeCount": 5,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_habil_qabil",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_elephant",
+      "titleArabic": "قصة أصحاب الفيل",
+      "titleEnglish": "Story of the People of the Elephant",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 105,
+          "ayahStart": 1,
+          "ayahEnd": 5,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_elephant",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_baqarah_cow",
+      "titleArabic": "قصة البقرة",
+      "titleEnglish": "Story of the Cow",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 67,
+          "ayahEnd": 67,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 68,
+          "ayahEnd": 71,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 71,
+          "ayahEnd": 71,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 72,
+          "ayahEnd": 73,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 4,
+      "surahCount": 1,
+      "ayahRangeCount": 4,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_baqarah_cow",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_uzair",
+      "titleArabic": "قصة عزير",
+      "titleEnglish": "Story of Uzair (Ezra)",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 259,
+          "ayahEnd": 259,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 259,
+          "ayahEnd": 259,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 259,
+          "ayahEnd": 259,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 1,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_uzair",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_sabbath_breakers",
+      "titleArabic": "قصة أصحاب السبت",
+      "titleEnglish": "Story of the Sabbath Breakers",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 163,
+          "ayahEnd": 163,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 163,
+          "ayahEnd": 163,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 164,
+          "ayahEnd": 165,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 65,
+          "ayahEnd": 66,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 4,
+      "surahCount": 2,
+      "ayahRangeCount": 4,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_sabbath_breakers",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_angels_prostration",
+      "titleArabic": "سجود الملائكة لآدم",
+      "titleEnglish": "Angels' Prostration to Adam",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 34,
+          "ayahEnd": 34,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 11,
+          "ayahEnd": 11,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 12,
+          "ayahEnd": 18,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 2,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_angels_prostration",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_jinn_quran",
+      "titleArabic": "استماع الجن للقرآن",
+      "titleEnglish": "Jinn Listening to the Quran",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 46,
+          "ayahStart": 29,
+          "ayahEnd": 32,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 72,
+          "ayahStart": 1,
+          "ayahEnd": 15,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_jinn_quran",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_yajuj_majuj",
+      "titleArabic": "يأجوج ومأجوج",
+      "titleEnglish": "Yajuj and Majuj (Gog and Magog)",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 93,
+          "ayahEnd": 98,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 96,
+          "ayahEnd": 97,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_yajuj_majuj",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_two_gardens",
+      "titleArabic": "صاحب الجنتين",
+      "titleEnglish": "The Owner of Two Gardens",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 32,
+          "ayahEnd": 34,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 35,
+          "ayahEnd": 36,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 37,
+          "ayahEnd": 41,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 42,
+          "ayahEnd": 44,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 4,
+      "surahCount": 1,
+      "ayahRangeCount": 4,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_two_gardens",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_good_word",
+      "titleArabic": "مثل الكلمة الطيبة",
+      "titleEnglish": "Parable of the Good Word",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 14,
+          "ayahStart": 24,
+          "ayahEnd": 27,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_good_word",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_fly",
+      "titleArabic": "مثل الذباب",
+      "titleEnglish": "Parable of the Fly",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 22,
+          "ayahStart": 73,
+          "ayahEnd": 74,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_fly",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_spider",
+      "titleArabic": "مثل العنكبوت",
+      "titleEnglish": "Parable of the Spider",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 29,
+          "ayahStart": 41,
+          "ayahEnd": 41,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_spider",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_tubba",
+      "titleArabic": "قوم تُبَّع",
+      "titleEnglish": "People of Tubba",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 44,
+          "ayahStart": 37,
+          "ayahEnd": 37,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 50,
+          "ayahStart": 14,
+          "ayahEnd": 14,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_tubba",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_rass",
+      "titleArabic": "أصحاب الرس",
+      "titleEnglish": "People of Ar-Rass",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 25,
+          "ayahStart": 38,
+          "ayahEnd": 38,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 50,
+          "ayahStart": 12,
+          "ayahEnd": 14,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_rass",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ayka",
+      "titleArabic": "أصحاب الأيكة",
+      "titleEnglish": "People of the Thicket (Al-Ayka)",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 176,
+          "ayahEnd": 189,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 189,
+          "ayahEnd": 191,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ayka",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_talut_jalut",
+      "titleArabic": "طالوت وجالوت",
+      "titleEnglish": "Talut (Saul) and Jalut (Goliath)",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 247,
+          "ayahEnd": 248,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 249,
+          "ayahEnd": 249,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 250,
+          "ayahEnd": 251,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 1,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_talut_jalut",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ifk",
+      "titleArabic": "حادثة الإفك",
+      "titleEnglish": "The Incident of Ifk (Slander)",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 24,
+          "ayahStart": 11,
+          "ayahEnd": 20,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 24,
+          "ayahStart": 21,
+          "ayahEnd": 26,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ifk",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_idris",
+      "titleArabic": "قصة إدريس عليه السلام",
+      "titleEnglish": "Story of Prophet Idris (Enoch)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 56,
+          "ayahEnd": 57,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 85,
+          "ayahEnd": 86,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_idris"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_idris",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ismail",
+      "titleArabic": "قصة إسماعيل عليه السلام",
+      "titleEnglish": "Story of Prophet Ismail (Ishmael)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 100,
+          "ayahEnd": 111,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 127,
+          "ayahEnd": 129,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 54,
+          "ayahEnd": 55,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 3,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ismail",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_dhulkifl",
+      "titleArabic": "قصة ذي الكفل عليه السلام",
+      "titleEnglish": "Story of Prophet Dhul-Kifl",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85,
+          "ayahEnd": 86,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "ayahEnd": 48,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_dhulkifl",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ilyas",
+      "titleArabic": "قصة إلياس عليه السلام",
+      "titleEnglish": "Story of Prophet Ilyas (Elijah)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 123,
+          "ayahEnd": 132,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ilyas",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_alyasa",
+      "titleArabic": "قصة اليسع عليه السلام",
+      "titleEnglish": "Story of Prophet Al-Yasa (Elisha)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 86,
+          "ayahEnd": 86,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "ayahEnd": 48,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_alyasa",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_muhammad",
+      "titleArabic": "قصة النبي محمد ﷺ في القرآن",
+      "titleEnglish": "Story of Prophet Muhammad in the Quran",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 68,
+          "ayahStart": 4,
+          "ayahEnd": 4,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 107,
+          "ayahEnd": 107,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 93,
+          "ayahStart": 1,
+          "ayahEnd": 11,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 94,
+          "ayahStart": 1,
+          "ayahEnd": 8,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 48,
+          "ayahStart": 1,
+          "ayahEnd": 3,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 5,
+      "surahCount": 5,
+      "ayahRangeCount": 5,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_muhammad",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_garden_owners",
+      "titleArabic": "قصة أصحاب الجنة",
+      "titleEnglish": "Story of the People of the Garden",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 68,
+          "ayahStart": 17,
+          "ayahEnd": 24,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 68,
+          "ayahStart": 25,
+          "ayahEnd": 33,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_garden_owners",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ditch",
+      "titleArabic": "قصة أصحاب الأخدود",
+      "titleEnglish": "Story of the People of the Ditch",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 85,
+          "ayahStart": 4,
+          "ayahEnd": 9,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ditch",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_donkey_books",
+      "titleArabic": "مثل الحمار يحمل أسفاراً",
+      "titleEnglish": "Parable of the Donkey Carrying Books",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 62,
+          "ayahStart": 5,
+          "ayahEnd": 5,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_donkey_books",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_dog_parable",
+      "titleArabic": "مثل الذي آتيناه آياتنا فانسلخ منها",
+      "titleEnglish": "Parable of the Man Who Was Given Signs",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 175,
+          "ayahEnd": 176,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_dog_parable",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ant_hoopoe",
+      "titleArabic": "قصة النملة والهدهد مع سليمان",
+      "titleEnglish": "Story of the Ant and the Hoopoe with Sulayman",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 18,
+          "ayahEnd": 19,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 20,
+          "ayahEnd": 28,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ant_hoopoe",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_bilqis",
+      "titleArabic": "قصة بلقيس ملكة سبأ",
+      "titleEnglish": "Story of Bilqis (Queen of Sheba)",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 35,
+          "ayahEnd": 37,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 38,
+          "ayahEnd": 42,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 43,
+          "ayahEnd": 44,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_sulayman"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 1,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_bilqis",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyId": "story_blind_seeing",
+      "titleArabic": "مثل الأعمى والبصير",
+      "titleEnglish": "Parable of the Blind and the Seeing",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 35,
+          "ayahStart": 19,
+          "ayahEnd": 22,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_blind_seeing",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_light_parable",
+      "titleArabic": "مثل نور الله",
+      "titleEnglish": "Parable of the Light of Allah",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 24,
+          "ayahStart": 35,
+          "ayahEnd": 35,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_light_parable",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_rain_parable",
+      "titleArabic": "مثل الحياة الدنيا كالماء",
+      "titleEnglish": "Parable of Worldly Life as Rain",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 10,
+          "ayahStart": 24,
+          "ayahEnd": 24,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 45,
+          "ayahEnd": 46,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_rain_parable",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_charity_parable",
+      "titleArabic": "مثل الإنفاق في سبيل الله",
+      "titleEnglish": "Parable of Charity",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 261,
+          "ayahEnd": 262,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 264,
+          "ayahEnd": 266,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_charity_parable",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_haman",
+      "titleArabic": "قصة هامان",
+      "titleEnglish": "Story of Haman",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 38,
+          "ayahEnd": 39,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 40,
+          "ayahStart": 36,
+          "ayahEnd": 37,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 29,
+          "ayahStart": 39,
+          "ayahEnd": 40,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 3,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_haman",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_empty_village",
+      "titleArabic": "قصة القرية الخاوية",
+      "titleEnglish": "Story of the Man Who Passed by a Ruined Town",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 259,
+          "ayahEnd": 259,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_empty_village",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ibrahim_birds",
+      "titleArabic": "قصة إبراهيم والطيور الأربعة",
+      "titleEnglish": "Ibrahim and the Four Birds",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 260,
+          "ayahEnd": 260,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ibrahim_birds",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_isra_miraj",
+      "titleArabic": "قصة الإسراء والمعراج",
+      "titleEnglish": "The Night Journey and Ascension (Isra and Mi'raj)",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 17,
+          "ayahStart": 1,
+          "ayahEnd": 1,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 53,
+          "ayahStart": 1,
+          "ayahEnd": 18,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_isra_miraj",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_hijrah",
+      "titleArabic": "قصة الهجرة",
+      "titleEnglish": "The Hijrah (Migration to Madinah)",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 9,
+          "ayahStart": 40,
+          "ayahEnd": 40,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_hijrah",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_badr",
+      "titleArabic": "غزوة بدر",
+      "titleEnglish": "The Battle of Badr",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 8,
+          "ayahStart": 5,
+          "ayahEnd": 14,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 8,
+          "ayahStart": 9,
+          "ayahEnd": 12,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 123,
+          "ayahEnd": 127,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 2,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_badr",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_uhud",
+      "titleArabic": "غزوة أحد",
+      "titleEnglish": "The Battle of Uhud",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 121,
+          "ayahEnd": 122,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 140,
+          "ayahEnd": 148,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 152,
+          "ayahEnd": 155,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 1,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_uhud",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_hudaybiyyah",
+      "titleArabic": "صلح الحديبية",
+      "titleEnglish": "The Treaty of Hudaybiyyah",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 48,
+          "ayahStart": 1,
+          "ayahEnd": 7,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 48,
+          "ayahStart": 18,
+          "ayahEnd": 21,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_hudaybiyyah",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_conquest_makkah",
+      "titleArabic": "فتح مكة",
+      "titleEnglish": "The Conquest of Makkah",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 110,
+          "ayahStart": 1,
+          "ayahEnd": 3,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_conquest_makkah",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_qiblah_change",
+      "titleArabic": "تحويل القبلة",
+      "titleEnglish": "The Change of Qiblah",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 142,
+          "ayahEnd": 145,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 149,
+          "ayahEnd": 150,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_qiblah_change",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_tabuk",
+      "titleArabic": "غزوة تبوك",
+      "titleEnglish": "The Expedition of Tabuk",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 9,
+          "ayahStart": 42,
+          "ayahEnd": 48,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 9,
+          "ayahStart": 118,
+          "ayahEnd": 119,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_tabuk",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_najran",
+      "titleArabic": "أهل نجران",
+      "titleEnglish": "The People of Najran",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 59,
+          "ayahEnd": 63,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_najran",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_romans_persians",
+      "titleArabic": "قصة الروم والفرس",
+      "titleEnglish": "The Romans and the Persians",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 30,
+          "ayahStart": 1,
+          "ayahEnd": 5,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_romans_persians",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ancient_egypt",
+      "titleArabic": "مصر القديمة في القرآن",
+      "titleEnglish": "Ancient Egypt in the Quran",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 10,
+          "ayahStart": 90,
+          "ayahEnd": 92,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 130,
+          "ayahEnd": 136,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ancient_egypt",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_madyan",
+      "titleArabic": "قصة أهل مدين",
+      "titleEnglish": "People of Madyan",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 85,
+          "ayahEnd": 86,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 91,
+          "ayahEnd": 93,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_madyan",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_thamud",
+      "titleArabic": "قصة ثمود",
+      "titleEnglish": "People of Thamud (Expanded)",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 73,
+          "ayahEnd": 77,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 67,
+          "ayahEnd": 68,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 91,
+          "ayahStart": 11,
+          "ayahEnd": 15,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 3,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_thamud",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_signs_hour",
+      "titleArabic": "علامات الساعة في القرآن",
+      "titleEnglish": "Signs of the Hour",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 1,
+          "ayahEnd": 3,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 44,
+          "ayahStart": 10,
+          "ayahEnd": 16,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 82,
+          "ayahEnd": 82,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 3,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_signs_hour",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_trumpet",
+      "titleArabic": "النفخ في الصور",
+      "titleEnglish": "The Blowing of the Trumpet",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 39,
+          "ayahStart": 68,
+          "ayahEnd": 68,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 36,
+          "ayahStart": 51,
+          "ayahEnd": 54,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_trumpet",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_mizan",
+      "titleArabic": "الميزان يوم القيامة",
+      "titleEnglish": "The Scale (Al-Mizan)",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 8,
+          "ayahEnd": 9,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 101,
+          "ayahStart": 6,
+          "ayahEnd": 11,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_mizan",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_araf_people",
+      "titleArabic": "أصحاب الأعراف",
+      "titleEnglish": "People of Al-A'raf (The Heights)",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 46,
+          "ayahEnd": 49,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_araf_people",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_paradise",
+      "titleArabic": "وصف الجنة في القرآن",
+      "titleEnglish": "Descriptions of Paradise",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 55,
+          "ayahStart": 46,
+          "ayahEnd": 78,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 56,
+          "ayahStart": 10,
+          "ayahEnd": 40,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 76,
+          "ayahStart": 12,
+          "ayahEnd": 22,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 3,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_paradise",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_hell",
+      "titleArabic": "وصف النار في القرآن",
+      "titleEnglish": "Descriptions of Hell",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 56,
+          "ayahStart": 41,
+          "ayahEnd": 56,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 44,
+          "ayahStart": 43,
+          "ayahEnd": 50,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 104,
+          "ayahStart": 1,
+          "ayahEnd": 9,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 3,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_hell",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_covenant_souls",
+      "titleArabic": "ميثاق الذرية",
+      "titleEnglish": "The Covenant of Souls",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 172,
+          "ayahEnd": 174,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_covenant_souls",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_iblis_refusal",
+      "titleArabic": "قصة إبليس ورفضه السجود",
+      "titleEnglish": "The Story of Iblis's Refusal",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 11,
+          "ayahEnd": 18,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 15,
+          "ayahStart": 28,
+          "ayahEnd": 43,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 71,
+          "ayahEnd": 85,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 3,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_iblis_refusal",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_samiri",
+      "titleArabic": "قصة السامري",
+      "titleEnglish": "Story of As-Samiri",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 83,
+          "ayahEnd": 98,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_samiri",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_asiya",
+      "titleArabic": "قصة آسية زوجة فرعون",
+      "titleEnglish": "Story of Asiya (Wife of Pharaoh)",
+      "category": "person",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 66,
+          "ayahStart": 11,
+          "ayahEnd": 11,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 9,
+          "ayahEnd": 9,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_asiya",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_mother_musa",
+      "titleArabic": "قصة أم موسى",
+      "titleEnglish": "Story of the Mother of Musa",
+      "category": "person",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 7,
+          "ayahEnd": 13,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 38,
+          "ayahEnd": 40,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_mother_musa",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_zulaykha",
+      "titleArabic": "قصة امرأة العزيز (زليخا)",
+      "titleEnglish": "Story of the Wife of Al-Aziz (Zulaykha)",
+      "category": "person",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 23,
+          "ayahEnd": 29,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 30,
+          "ayahEnd": 34,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 51,
+          "ayahEnd": 53,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 1,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_zulaykha",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_believer_firaun",
+      "titleArabic": "قصة مؤمن آل فرعون",
+      "titleEnglish": "The Believer from Pharaoh's Family",
+      "category": "person",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 40,
+          "ayahStart": 28,
+          "ayahEnd": 35,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 40,
+          "ayahStart": 38,
+          "ayahEnd": 45,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_believer_firaun",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_khidr",
+      "titleArabic": "قصة الخضر وموسى",
+      "titleEnglish": "Story of Al-Khidr and Musa",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 60,
+          "ayahEnd": 65,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 66,
+          "ayahEnd": 71,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 74,
+          "ayahEnd": 76,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 77,
+          "ayahEnd": 78,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 79,
+          "ayahEnd": 82,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 5,
+      "surahCount": 1,
+      "ayahRangeCount": 5,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_khidr",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_three_messengers",
+      "titleArabic": "قصة أصحاب القرية والرسل الثلاثة",
+      "titleEnglish": "The Three Messengers and the Town",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 36,
+          "ayahStart": 13,
+          "ayahEnd": 19,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 36,
+          "ayahStart": 20,
+          "ayahEnd": 27,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 36,
+          "ayahStart": 28,
+          "ayahEnd": 32,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 1,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_three_messengers",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_two_men",
+      "titleArabic": "مثل الرجلين",
+      "titleEnglish": "Parable of the Two Men",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 32,
+          "ayahEnd": 36,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 37,
+          "ayahEnd": 41,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 18,
+          "ayahStart": 42,
+          "ayahEnd": 44,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 1,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_two_men",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_saba",
+      "titleArabic": "قصة سبأ",
+      "titleEnglish": "People of Saba (Sheba)",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 34,
+          "ayahStart": 15,
+          "ayahEnd": 17,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 34,
+          "ayahStart": 18,
+          "ayahEnd": 19,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_saba",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ad",
+      "titleArabic": "قصة قوم عاد",
+      "titleEnglish": "People of 'Ad",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 89,
+          "ayahStart": 6,
+          "ayahEnd": 8,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 69,
+          "ayahStart": 6,
+          "ayahEnd": 8,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 46,
+          "ayahStart": 21,
+          "ayahEnd": 26,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 3,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ad",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_nuh_people",
+      "titleArabic": "قصة قوم نوح",
+      "titleEnglish": "People of Nuh (Noah's Nation)",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 71,
+          "ayahStart": 1,
+          "ayahEnd": 20,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 54,
+          "ayahStart": 9,
+          "ayahEnd": 16,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_nuh_people",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_intercession",
+      "titleArabic": "الشفاعة يوم القيامة",
+      "titleEnglish": "Intercession on the Day of Judgment",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 255,
+          "ayahEnd": 255,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 28,
+          "ayahEnd": 28,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_intercession",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_creation_heavens_earth",
+      "titleArabic": "خلق السماوات والأرض",
+      "titleEnglish": "Creation of the Heavens and the Earth",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 41,
+          "ayahStart": 9,
+          "ayahEnd": 12,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 79,
+          "ayahStart": 27,
+          "ayahEnd": 33,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_creation_heavens_earth",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_village_fish",
+      "titleArabic": "قصة أهل القرية والحيتان",
+      "titleEnglish": "The Village and the Fish (Sabbath Detail)",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 163,
+          "ayahEnd": 166,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_village_fish",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_bani_israel",
+      "titleArabic": "بنو إسرائيل في القرآن",
+      "titleEnglish": "Children of Israel in the Quran",
+      "category": "nation",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 57,
+          "ayahEnd": 61,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 60,
+          "ayahEnd": 60,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 63,
+          "ayahEnd": 66,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 1,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_bani_israel",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_yaqub",
+      "titleArabic": "قصة يعقوب عليه السلام",
+      "titleEnglish": "Story of Prophet Ya'qub (Jacob)",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 84,
+          "ayahEnd": 87,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 93,
+          "ayahEnd": 98,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_yaqub",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_harut_marut",
+      "titleArabic": "قصة هاروت وماروت",
+      "titleEnglish": "Story of Harut and Marut",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102,
+          "ayahEnd": 103,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_harut_marut",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_sleepers_numbers",
+      "titleArabic": "الجدال في عدد أصحاب الكهف",
+      "titleEnglish": "The Debate About the Number of Sleepers",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 22,
+          "ayahEnd": 26,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_sleepers_numbers",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_wife_nuh",
+      "titleArabic": "قصة امرأة نوح",
+      "titleEnglish": "Story of the Wife of Nuh",
+      "category": "person",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 66,
+          "ayahStart": 10,
+          "ayahEnd": 10,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_wife_nuh",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_wife_lut",
+      "titleArabic": "قصة امرأة لوط",
+      "titleEnglish": "Story of the Wife of Lut",
+      "category": "person",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 66,
+          "ayahStart": 10,
+          "ayahEnd": 10,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_wife_lut",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_son_nuh",
+      "titleArabic": "قصة ابن نوح",
+      "titleEnglish": "Story of the Son of Nuh",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 42,
+          "ayahEnd": 43,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 45,
+          "ayahEnd": 47,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_son_nuh",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_tree_cursed",
+      "titleArabic": "الشجرة الملعونة في القرآن",
+      "titleEnglish": "The Cursed Tree (Zaqqum)",
+      "category": "unseen",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 62,
+          "ayahEnd": 68,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 44,
+          "ayahStart": 43,
+          "ayahEnd": 46,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_tree_cursed",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_seven_sleepers_dog",
+      "titleArabic": "كلب أصحاب الكهف",
+      "titleEnglish": "The Dog of the People of the Cave",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 18,
+          "ayahEnd": 18,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_seven_sleepers_dog",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_musa_firaun_dialogue",
+      "titleArabic": "حوار موسى وفرعون",
+      "titleEnglish": "Dialogue Between Musa and Pharaoh",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 10,
+          "ayahEnd": 33,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 79,
+          "ayahStart": 17,
+          "ayahEnd": 26,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_musa_firaun_dialogue",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_magicians",
+      "titleArabic": "قصة سحرة فرعون",
+      "titleEnglish": "The Magicians of Pharaoh",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 113,
+          "ayahEnd": 116,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 117,
+          "ayahEnd": 119,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 120,
+          "ayahEnd": 126,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 70,
+          "ayahEnd": 73,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 4,
+      "surahCount": 2,
+      "ayahRangeCount": 4,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_magicians",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_sea_crossing",
+      "titleArabic": "عبور البحر",
+      "titleEnglish": "The Crossing of the Sea",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 63,
+          "ayahEnd": 66,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 10,
+          "ayahStart": 90,
+          "ayahEnd": 92,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_sea_crossing",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_golden_calf",
+      "titleArabic": "قصة العجل الذهبي",
+      "titleEnglish": "The Golden Calf",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 148,
+          "ayahEnd": 150,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 150,
+          "ayahEnd": 153,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 54,
+          "ayahEnd": 54,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 2,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_golden_calf",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_musa_mountain",
+      "titleArabic": "موسى وجبل الطور",
+      "titleEnglish": "Musa at Mount Sinai",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 143,
+          "ayahEnd": 145,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_musa_mountain",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_sulayman_jinn",
+      "titleArabic": "سليمان والجن",
+      "titleEnglish": "Sulayman and the Jinn",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 34,
+          "ayahStart": 12,
+          "ayahEnd": 13,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 34,
+          "ayahStart": 14,
+          "ayahEnd": 14,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_sulayman_jinn",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_dawud_trial",
+      "titleArabic": "محراب داود والخصمان",
+      "titleEnglish": "Dawud's Trial with the Two Litigants",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 21,
+          "ayahEnd": 25,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_dawud_trial",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ibrahim_fire",
+      "titleArabic": "إبراهيم في النار",
+      "titleEnglish": "Ibrahim Thrown into the Fire",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 57,
+          "ayahEnd": 63,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 68,
+          "ayahEnd": 70,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ibrahim_fire",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ibrahim_stars",
+      "titleArabic": "إبراهيم والكواكب",
+      "titleEnglish": "Ibrahim's Search for God",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 76,
+          "ayahEnd": 79,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ibrahim_stars",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_ibrahim_nimrod",
+      "titleArabic": "إبراهيم والنمرود",
+      "titleEnglish": "Ibrahim and Nimrod",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 258,
+          "ayahEnd": 258,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_ibrahim_nimrod",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_musa_midian",
+      "titleArabic": "موسى في مدين",
+      "titleEnglish": "Musa in Midian",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 23,
+          "ayahEnd": 25,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 26,
+          "ayahEnd": 28,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_musa_midian",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_musa_burning_bush",
+      "titleArabic": "موسى والنار في الشجرة",
+      "titleEnglish": "Musa and the Burning Bush",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 9,
+          "ayahEnd": 16,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 17,
+          "ayahEnd": 23,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_musa_burning_bush",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_isa_miracles",
+      "titleArabic": "معجزات عيسى عليه السلام",
+      "titleEnglish": "Miracles of Prophet Isa",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 46,
+          "ayahEnd": 46,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 49,
+          "ayahEnd": 49,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 112,
+          "ayahEnd": 115,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 2,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_isa_miracles",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_isa_ascension",
+      "titleArabic": "رفع عيسى إلى السماء",
+      "titleEnglish": "Ascension of Isa",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 157,
+          "ayahEnd": 158,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 55,
+          "ayahEnd": 55,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_isa_ascension",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_maryam_birth",
+      "titleArabic": "ولادة مريم ونذرها",
+      "titleEnglish": "Birth of Maryam and Her Dedication",
+      "category": "person",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 35,
+          "ayahEnd": 37,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_maryam_birth",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_yusuf_dream",
+      "titleArabic": "رؤيا يوسف",
+      "titleEnglish": "The Dream of Yusuf",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 4,
+          "ayahEnd": 6,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 100,
+          "ayahEnd": 101,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 1,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_yusuf_dream",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_yusuf_prison",
+      "titleArabic": "يوسف في السجن",
+      "titleEnglish": "Yusuf in Prison",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 37,
+          "ayahEnd": 40,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 41,
+          "ayahEnd": 42,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 43,
+          "ayahEnd": 49,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 1,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_yusuf_prison",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_yusuf_brothers",
+      "titleArabic": "يوسف وإخوته",
+      "titleEnglish": "Yusuf and His Brothers",
+      "category": "prophet",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 8,
+          "ayahEnd": 18,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 58,
+          "ayahEnd": 66,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 89,
+          "ayahEnd": 92,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 1,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_yusuf_brothers",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_abasa",
+      "titleArabic": "عبس وتولى",
+      "titleEnglish": "He Frowned ('Abasa)",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 80,
+          "ayahStart": 1,
+          "ayahEnd": 10,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_abasa",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_abu_lahab",
+      "titleArabic": "قصة أبي لهب",
+      "titleEnglish": "Story of Abu Lahab",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 111,
+          "ayahStart": 1,
+          "ayahEnd": 5,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_abu_lahab",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_sulayman_horses",
+      "titleArabic": "سليمان والخيل",
+      "titleEnglish": "Sulayman and the Horses",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 31,
+          "ayahEnd": 33,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_sulayman_horses",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "story_sulayman_trial",
+      "titleArabic": "فتنة سليمان والجسد",
+      "titleEnglish": "Sulayman's Trial with the Body",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 34,
+          "ayahEnd": 40,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_sulayman_trial",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "storyId": "storypage_ishaq",
+      "titleArabic": "إسحاق عليه السلام",
+      "titleEnglish": "Ishaq (Isaac)",
+      "category": "prophet",
+      "sourceType": "prophet_story_page",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 133,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 84,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 71,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 6,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 38,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 14,
+          "ayahStart": 39,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 49,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 72,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 29,
+          "ayahStart": 27,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 112,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 113,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 45,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_ishaq",
+        "prophet_ibrahim",
+        "prophet_yaqub",
+        "prophet_yusuf"
+      ],
+      "relatedEntities": [
+        "figure_sarah"
+      ],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_revelation"
+      ],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 12,
+      "ayahRangeCount": 16,
+      "hasDetailPage": true,
+      "detailRoute": "/prophets/prophet_ishaq",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyId": "storypage_yaqub",
+      "titleArabic": "يعقوب عليه السلام",
+      "titleEnglish": "Yaqub (Jacob)",
+      "category": "prophet",
+      "sourceType": "prophet_story_page",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 132,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 84,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 71,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 6,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 38,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 68,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 6,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 49,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 72,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 29,
+          "ayahStart": 27,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 45,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_yaqub",
+        "prophet_ishaq",
+        "prophet_yusuf",
+        "prophet_ibrahim"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_revelation",
+        "topic_community"
+      ],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 10,
+      "ayahRangeCount": 16,
+      "hasDetailPage": true,
+      "detailRoute": "/prophets/prophet_yaqub",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyId": "storypage_harun",
+      "titleArabic": "هارون عليه السلام",
+      "titleEnglish": "Harun (Aaron)",
+      "category": "prophet",
+      "sourceType": "prophet_story_page",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 82,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 122,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 127,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 142,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 10,
+          "ayahStart": 75,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 28,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 53,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 30,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 70,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 90,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 92,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 48,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 23,
+          "ayahStart": 45,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 25,
+          "ayahStart": 35,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 13,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 48,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 56,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 34,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 30,
+          "ayahStart": 18,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 4,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 114,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 120,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 43,
+          "ayahStart": 33,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 56,
+          "ayahStart": 79,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 58,
+          "ayahStart": 2,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 58,
+          "ayahStart": 3,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_harun",
+        "prophet_musa"
+      ],
+      "relatedEntities": [
+        "figure_firawn",
+        "entity_place_sinai",
+        "entity_people_aad",
+        "entity_people_aal_firawn",
+        "entity_people_bani_israel",
+        "entity_people_madyan",
+        "entity_people_qawm_nuh",
+        "entity_people_thamud",
+        "entity_object_ark",
+        "entity_object_tablets"
+      ],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_heavens_earth",
+        "topic_mercy"
+      ],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 19,
+      "ayahRangeCount": 30,
+      "hasDetailPage": true,
+      "detailRoute": "/prophets/prophet_harun",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyId": "storypage_dhulkifl",
+      "titleArabic": "ذو الكفل عليه السلام",
+      "titleEnglish": "Dhul-Kifl",
+      "category": "compact_profile",
+      "sourceType": "prophet_story_page",
+      "quranReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_dhulkifl",
+        "prophet_ayyub",
+        "prophet_alyasa"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/prophets/prophet_dhulkifl",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "القرآن لا يفصّل قصة هذا النبي؛ هذا ملف موجز.",
+        "The Quran does not narrate this prophet in detail; this is a compact profile.",
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyId": "storypage_ilyas",
+      "titleArabic": "إلياس عليه السلام",
+      "titleEnglish": "Ilyas (Elijah)",
+      "category": "prophet",
+      "sourceType": "prophet_story_page",
+      "quranReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 85,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 123,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_ilyas",
+        "prophet_alyasa"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/prophets/prophet_ilyas",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyId": "storypage_alyasa",
+      "titleArabic": "اليسع عليه السلام",
+      "titleEnglish": "Al-Yasa (Elisha)",
+      "category": "compact_profile",
+      "sourceType": "prophet_story_page",
+      "quranReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 86,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_alyasa",
+        "prophet_ilyas",
+        "prophet_dhulkifl"
+      ],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 2,
+      "ayahRangeCount": 2,
+      "hasDetailPage": true,
+      "detailRoute": "/prophets/prophet_alyasa",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "القرآن لا يفصّل قصة هذا النبي؛ هذا ملف موجز.",
+        "The Quran does not narrate this prophet in detail; this is a compact profile.",
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyId": "storypage_sulayman",
+      "titleArabic": "سليمان عليه السلام",
+      "titleEnglish": "Sulayman (Solomon)",
+      "category": "prophet",
+      "sourceType": "prophet_story_page",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 78,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 79,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 81,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 15,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 16,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 17,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 18,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 30,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 36,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 44,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 34,
+          "ayahStart": 12,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 30,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 34,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_sulayman",
+        "prophet_dawud"
+      ],
+      "relatedEntities": [
+        "figure_bilqis",
+        "entity_people_saba",
+        "entity_people_thamud"
+      ],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_community"
+      ],
+      "relatedStories": [
+        "story_bilqis"
+      ],
+      "segmentCount": 3,
+      "surahCount": 7,
+      "ayahRangeCount": 16,
+      "hasDetailPage": true,
+      "detailRoute": "/prophets/prophet_sulayman",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyId": "storypage_muhammad",
+      "titleArabic": "محمد ﷺ — ملف الرسالة القرآني",
+      "titleEnglish": "Muhammad ﷺ — Quranic mission profile",
+      "category": "prophetic_sirah",
+      "sourceType": "prophet_story_page",
+      "quranReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 144,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 40,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 47,
+          "ayahStart": 2,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 48,
+          "ayahStart": 29,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 61,
+          "ayahStart": 6,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_muhammad",
+        "prophet_isa",
+        "prophet_musa",
+        "prophet_salih"
+      ],
+      "relatedEntities": [
+        "figure_maryam",
+        "entity_people_bani_israel"
+      ],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_iman"
+      ],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 5,
+      "ayahRangeCount": 5,
+      "hasDetailPage": true,
+      "detailRoute": "/prophets/prophet_muhammad",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "هذه الصفحة تعرض الشواهد القرآنية فقط ولا تمثل سيرة كاملة للنبي ﷺ.",
+        "This page presents Quranic evidence only and is not a full biography of the Prophet ﷺ.",
+        "seerah_deferred: detailed biography is deferred to a separate module."
+      ]
+    },
+    {
+      "storyId": "storypage_ismail",
+      "titleArabic": "إسماعيل عليه السلام",
+      "titleEnglish": "Ismail (Ishmael)",
+      "category": "prophet",
+      "sourceType": "prophet_story_page",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 125,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 127,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 84,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 86,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 14,
+          "ayahStart": 39,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 54,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 85,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "linkType": "explicit",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [
+        "prophet_ismail",
+        "prophet_ibrahim",
+        "prophet_ishaq"
+      ],
+      "relatedEntities": [
+        "entity_place_makkah"
+      ],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_dua",
+        "topic_revelation"
+      ],
+      "relatedStories": [],
+      "segmentCount": 2,
+      "surahCount": 8,
+      "ayahRangeCount": 12,
+      "hasDetailPage": true,
+      "detailRoute": "/prophets/prophet_ismail",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    }
+  ],
+  "warnings": [
+    "Generated and contextual links are needs_review until scholarly approval."
+  ]
+}
