@@ -8,9 +8,13 @@ import {
   Users,
   Layers,
   ArrowRight,
+  Network,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import clsx from 'clsx';
+import { ConnectedStoriesPanel } from '../components/stories/ConnectedStoriesPanel';
 
 import {
   getRegistry,
@@ -306,6 +310,7 @@ function RegistryStoryCard({
   story: RegistryStoryEntry;
   isArabic: boolean;
 }) {
+  const [showConnections, setShowConnections] = useState(false);
   const title = isArabic ? story.titleArabic : story.titleEnglish;
   const catLabel = REGISTRY_CATEGORY_LABELS[story.category];
   const needsReview = story.reviewStatus !== 'verified';
@@ -413,13 +418,31 @@ function RegistryStoryCard({
             className={clsx('w-4 h-4 ms-1 transition-transform', isArabic ? 'rotate-180' : '')}
           />
         </Link>
-        <Link
-          to={`/story-atlas/connections?story=${encodeURIComponent(story.storyId)}`}
-          className="text-xs text-gray-500 hover:text-primary-600"
+        <button
+          type="button"
+          onClick={() => setShowConnections(s => !s)}
+          aria-expanded={showConnections}
+          className={clsx(
+            'flex items-center gap-1 text-xs text-gray-600 hover:text-primary-600 transition-colors',
+            isArabic && 'flex-row-reverse font-arabic',
+          )}
         >
+          <Network className="w-3 h-3" />
           {isArabic ? 'الروابط' : 'Connections'}
-        </Link>
+          {showConnections
+            ? <ChevronUp className="w-3 h-3" />
+            : <ChevronDown className="w-3 h-3" />}
+        </button>
       </div>
+
+      {showConnections && (
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <ConnectedStoriesPanel
+            storyId={story.storyId}
+            language={isArabic ? 'ar' : 'en'}
+          />
+        </div>
+      )}
     </div>
   );
 }

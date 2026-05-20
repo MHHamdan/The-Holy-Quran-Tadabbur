@@ -32,6 +32,7 @@ router = APIRouter()
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 _REGISTRY_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quranStoryRegistry.json"
 _CONNECTIONS_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quranStoryAtlasConnections.json"
+_CROSS_REFS_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quranStoryCrossReferences.json"
 
 _STORY_ID_RE = re.compile(r"^[a-zA-Z0-9_:-]+$")
 _CACHE_HEADER = "public, max-age=300"
@@ -60,6 +61,14 @@ def _load_connections() -> Dict[str, Any]:
     return _read_json(
         _CONNECTIONS_FILE,
         "scripts/build-quran-story-atlas-connections.ts",
+    )
+
+
+@lru_cache(maxsize=1)
+def _load_cross_refs() -> Dict[str, Any]:
+    return _read_json(
+        _CROSS_REFS_FILE,
+        "scripts/build-quran-story-cross-references.ts",
     )
 
 
@@ -206,4 +215,58 @@ def get_story_connections(
         "total": len(items),
         "connections": items,
         "warnings": connections.get("warnings", []),
+    }
+
+
+@router.get("/story-atlas/{story_id}/cross-references")
+def get_story_cross_references(
+    response: Response,
+    story_id: str = FPath(..., description="storyId from the registry"),
+) -> Dict[str, Any]:
+    """Return the evidence-backed cross-references for a story.
+
+    Includes the strongest peer storyIds (from the neighbours index) plus
+    the full edge objects with `evidence` so the UI can show *why* two
+    stories are correlated (same prophet, overlapping ayahs, etc.).
+    """
+    _validate_story_id(story_id)
+    registry = _load_registry()
+    if not any(s.get("storyId") == story_id for s in (registry.get("stories", []) or [])):
+        raise HTTPException(status_code=404, detail="Story not found in registry")
+
+    cross = _load_cross_refs()
+    edges_all = cross.get("edges", []) or []
+    edges = [
+        e
+        for e in edges_all
+        if e.get("sourceStoryId") == story_id or e.get("targetStoryId") == story_id
+    ]
+    edges.sort(key=lambda e: e.get("score", 0.0), reverse=True)
+
+    neighbours = (cross.get("neighboursByStory") or {}).get(story_id, [])
+
+    response.headers["Cache-Control"] = _CACHE_HEADER
+    return {
+        "version": cross.get("version"),
+        "generatedAt": cross.get("generatedAt"),
+        "storyId": story_id,
+        "total": len(edges),
+        "neighbours": neighbours,
+        "edges": edges,
+        "warnings": cross.get("warnings", []),
+    }
+
+
+@router.get("/story-atlas/cross-references/overview")
+def get_cross_references_overview(response: Response) -> Dict[str, Any]:
+    """Return registry-wide cross-reference stats for the dashboard."""
+    cross = _load_cross_refs()
+    response.headers["Cache-Control"] = _CACHE_HEADER
+    return {
+        "version": cross.get("version"),
+        "generatedAt": cross.get("generatedAt"),
+        "stats": cross.get("stats", {}),
+        "weights": cross.get("weights", {}),
+        "minScore": cross.get("minScore"),
+        "warnings": cross.get("warnings", []),
     }

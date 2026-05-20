@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-05-18T03:59:38.500Z",
+  "generatedAt": "2026-05-19T17:41:19.725Z",
   "categories": [
     "prophet",
     "prophetic_sirah",
@@ -94,7 +94,10 @@
       "relatedEntities": [],
       "relatedTopics": [],
       "relatedStories": [
-        "adam_araf_detail"
+        "adam_araf_detail",
+        "story_angels_prostration",
+        "story_iblis_refusal",
+        "story_covenant_souls"
       ],
       "segmentCount": 8,
       "surahCount": 4,
@@ -161,7 +164,13 @@
       "relatedEntities": [],
       "relatedTopics": [],
       "relatedStories": [
-        "nuh_ark_hud"
+        "nuh_ark_hud",
+        "story_nuh_people",
+        "story_son_nuh",
+        "story_lut",
+        "story_ayyub",
+        "story_luqman",
+        "story_wife_nuh"
       ],
       "segmentCount": 6,
       "surahCount": 3,
@@ -242,7 +251,15 @@
       "relatedEntities": [],
       "relatedTopics": [],
       "relatedStories": [
-        "ibrahim_kaaba"
+        "ibrahim_kaaba",
+        "storypage_ishaq",
+        "story_ismail",
+        "storypage_yaqub",
+        "storypage_ismail",
+        "story_ibrahim_fire",
+        "story_ibrahim_stars",
+        "story_ibrahim_nimrod",
+        "story_ibrahim_birds"
       ],
       "segmentCount": 8,
       "surahCount": 7,
@@ -330,7 +347,15 @@
       "relatedEntities": [],
       "relatedTopics": [],
       "relatedStories": [
-        "musa_sinai"
+        "musa_sinai",
+        "storypage_harun",
+        "story_khidr",
+        "story_magicians",
+        "story_golden_calf",
+        "story_ancient_egypt",
+        "story_sea_crossing",
+        "story_musa_burning_bush",
+        "story_mother_musa"
       ],
       "segmentCount": 9,
       "surahCount": 5,
@@ -417,7 +442,15 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_zulaykha",
+        "storypage_yaqub",
+        "story_yusuf_prison",
+        "story_yusuf_brothers",
+        "storypage_ishaq",
+        "story_yaqub",
+        "story_yusuf_dream"
+      ],
       "segmentCount": 9,
       "surahCount": 1,
       "ayahRangeCount": 9,
@@ -490,7 +523,13 @@
       "relatedEntities": [],
       "relatedTopics": [],
       "relatedStories": [
-        "isa_birth_maryam"
+        "isa_birth_maryam",
+        "story_maryam",
+        "story_isa_miracles",
+        "story_isa_ascension",
+        "storypage_harun",
+        "storypage_muhammad",
+        "story_maryam_birth"
       ],
       "segmentCount": 7,
       "surahCount": 4,
@@ -554,7 +593,14 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_isa",
+        "story_maryam_birth",
+        "story_zakariyya_yahya",
+        "storypage_harun",
+        "story_isa_miracles",
+        "story_isa_ascension"
+      ],
       "segmentCount": 6,
       "surahCount": 2,
       "ayahRangeCount": 6,
@@ -606,7 +652,10 @@
       "relatedEntities": [],
       "relatedTopics": [],
       "relatedStories": [
-        "zakariyya_imran"
+        "zakariyya_imran",
+        "storypage_yaqub",
+        "story_maryam",
+        "story_maryam_birth"
       ],
       "segmentCount": 4,
       "surahCount": 2,
@@ -670,7 +719,14 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_sulayman",
+        "story_ant_hoopoe",
+        "story_bilqis",
+        "story_sulayman_jinn",
+        "story_sulayman_trial",
+        "story_sulayman_horses"
+      ],
       "segmentCount": 6,
       "surahCount": 3,
       "ayahRangeCount": 6,
@@ -728,7 +784,11 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_sulayman",
+        "story_talut_jalut",
+        "story_dawud_trial"
+      ],
       "segmentCount": 5,
       "surahCount": 4,
       "ayahRangeCount": 5,
@@ -772,7 +832,11 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_dhulkifl",
+        "story_nuh",
+        "story_lut"
+      ],
       "segmentCount": 3,
       "surahCount": 2,
       "ayahRangeCount": 3,
@@ -830,7 +894,9 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_lut"
+      ],
       "segmentCount": 5,
       "surahCount": 3,
       "ayahRangeCount": 5,
@@ -881,7 +947,13 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_nuh",
+        "storypage_harun",
+        "story_yunus",
+        "story_wife_lut",
+        "story_ayyub"
+      ],
       "segmentCount": 4,
       "surahCount": 3,
       "ayahRangeCount": 4,
@@ -932,7 +1004,11 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_madyan",
+        "story_ayka",
+        "story_musa_midian"
+      ],
       "segmentCount": 4,
       "surahCount": 3,
       "ayahRangeCount": 4,
@@ -983,7 +1059,10 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_thamud",
+        "storypage_muhammad"
+      ],
       "segmentCount": 4,
       "surahCount": 4,
       "ayahRangeCount": 4,
@@ -1034,7 +1113,9 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_ad"
+      ],
       "segmentCount": 4,
       "surahCount": 3,
       "ayahRangeCount": 4,
@@ -1090,7 +1171,10 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_sleepers_numbers",
+        "story_seven_sleepers_dog"
+      ],
       "segmentCount": 5,
       "surahCount": 1,
       "ayahRangeCount": 5,
@@ -1146,7 +1230,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_yajuj_majuj"
+      ],
       "segmentCount": 5,
       "surahCount": 1,
       "ayahRangeCount": 5,
@@ -1202,7 +1288,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_nuh"
+      ],
       "segmentCount": 5,
       "surahCount": 1,
       "ayahRangeCount": 5,
@@ -1258,7 +1346,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "story_musa_firaun_dialogue",
+        "story_mother_musa",
+        "story_musa_midian",
+        "story_musa_burning_bush",
+        "story_baqarah_cow",
+        "story_samiri",
+        "story_khidr"
+      ],
       "segmentCount": 5,
       "surahCount": 1,
       "ayahRangeCount": 5,
@@ -1391,7 +1488,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "story_sea_crossing",
+        "story_bani_israel",
+        "story_golden_calf",
+        "story_qarun",
+        "story_samiri",
+        "story_mother_musa",
+        "story_khidr"
+      ],
       "segmentCount": 4,
       "surahCount": 1,
       "ayahRangeCount": 4,
@@ -1433,7 +1539,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_empty_village"
+      ],
       "segmentCount": 3,
       "surahCount": 1,
       "ayahRangeCount": 3,
@@ -1482,7 +1590,10 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_village_fish",
+        "story_bani_israel"
+      ],
       "segmentCount": 4,
       "surahCount": 2,
       "ayahRangeCount": 4,
@@ -1524,7 +1635,10 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_adam",
+        "story_iblis_refusal"
+      ],
       "segmentCount": 3,
       "surahCount": 2,
       "ayahRangeCount": 3,
@@ -1594,7 +1708,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_dhulqarnayn"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -1643,7 +1759,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_two_men"
+      ],
       "segmentCount": 4,
       "surahCount": 1,
       "ayahRangeCount": 4,
@@ -1762,7 +1880,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_rass"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -1797,7 +1917,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_tubba"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -1832,7 +1954,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_shuayb"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -1874,7 +1998,10 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_dawud",
+        "storypage_harun"
+      ],
       "segmentCount": 3,
       "surahCount": 1,
       "ayahRangeCount": 3,
@@ -1946,7 +2073,11 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_dhulkifl",
+        "storypage_ismail",
+        "storypage_dhulkifl"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -1988,7 +2119,14 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_ibrahim",
+        "storypage_ismail",
+        "story_ibrahim_fire",
+        "story_ibrahim_birds",
+        "story_ibrahim_stars",
+        "story_ibrahim_nimrod"
+      ],
       "segmentCount": 3,
       "surahCount": 3,
       "ayahRangeCount": 3,
@@ -2023,7 +2161,13 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_dhulkifl",
+        "storypage_ismail",
+        "story_idris",
+        "story_alyasa",
+        "storypage_alyasa"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -2051,7 +2195,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_ilyas"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -2086,7 +2232,12 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_alyasa",
+        "storypage_ismail",
+        "story_dhulkifl",
+        "storypage_dhulkifl"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -2142,7 +2293,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_hudaybiyyah",
+        "story_uhud",
+        "story_intercession",
+        "story_abasa",
+        "story_hijrah",
+        "story_badr",
+        "story_tabuk",
+        "story_najran"
+      ],
       "segmentCount": 5,
       "surahCount": 5,
       "ayahRangeCount": 5,
@@ -2296,7 +2456,14 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_sulayman",
+        "story_bilqis",
+        "storypage_sulayman",
+        "story_sulayman_jinn",
+        "story_sulayman_trial",
+        "story_sulayman_horses"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -2340,7 +2507,14 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_sulayman",
+        "storypage_sulayman",
+        "story_ant_hoopoe",
+        "story_sulayman_jinn",
+        "story_sulayman_horses",
+        "story_sulayman_trial"
+      ],
       "segmentCount": 3,
       "surahCount": 1,
       "ayahRangeCount": 3,
@@ -2510,7 +2684,13 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_ancient_egypt",
+        "story_musa_firaun_dialogue",
+        "story_sea_crossing",
+        "story_asiya",
+        "story_magicians"
+      ],
       "segmentCount": 3,
       "surahCount": 3,
       "ayahRangeCount": 3,
@@ -2538,7 +2718,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_uzair"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -2566,7 +2748,13 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_ibrahim_fire",
+        "story_ibrahim",
+        "story_ismail",
+        "story_ibrahim_nimrod",
+        "story_ibrahim_stars"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -2601,7 +2789,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_intercession",
+        "story_muhammad",
+        "story_hijrah",
+        "story_badr",
+        "story_uhud",
+        "story_hudaybiyyah",
+        "story_conquest_makkah",
+        "story_qiblah_change"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -2629,7 +2826,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_tabuk",
+        "story_hudaybiyyah",
+        "story_muhammad",
+        "story_isra_miraj",
+        "story_badr",
+        "story_uhud",
+        "story_conquest_makkah",
+        "story_qiblah_change"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -2671,7 +2877,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_hudaybiyyah",
+        "story_conquest_makkah",
+        "story_muhammad",
+        "story_uhud",
+        "story_najran",
+        "story_isra_miraj",
+        "story_hijrah",
+        "story_qiblah_change"
+      ],
       "segmentCount": 3,
       "surahCount": 2,
       "ayahRangeCount": 3,
@@ -2713,7 +2928,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_muhammad",
+        "storypage_muhammad",
+        "story_tabuk",
+        "story_badr",
+        "story_najran",
+        "story_isra_miraj",
+        "story_hijrah",
+        "story_hudaybiyyah"
+      ],
       "segmentCount": 3,
       "surahCount": 1,
       "ayahRangeCount": 3,
@@ -2748,7 +2972,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_muhammad",
+        "story_hijrah",
+        "story_badr",
+        "story_conquest_makkah",
+        "story_isra_miraj",
+        "story_uhud",
+        "story_qiblah_change",
+        "story_tabuk"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -2776,7 +3009,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_badr",
+        "story_hudaybiyyah",
+        "story_muhammad",
+        "story_isra_miraj",
+        "story_hijrah",
+        "story_uhud",
+        "story_qiblah_change",
+        "story_tabuk"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -2811,7 +3053,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_intercession",
+        "story_muhammad",
+        "story_isra_miraj",
+        "story_hijrah",
+        "story_badr",
+        "story_uhud",
+        "story_hudaybiyyah",
+        "story_conquest_makkah"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -2846,7 +3097,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_hijrah",
+        "story_uhud",
+        "story_muhammad",
+        "story_isra_miraj",
+        "story_badr",
+        "story_hudaybiyyah",
+        "story_conquest_makkah",
+        "story_qiblah_change"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -2874,7 +3134,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_muhammad",
+        "story_badr",
+        "story_uhud",
+        "story_isra_miraj",
+        "story_hijrah",
+        "story_hudaybiyyah",
+        "story_conquest_makkah",
+        "story_qiblah_change"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -2937,7 +3206,14 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "story_sea_crossing",
+        "story_haman",
+        "story_musa_firaun_dialogue",
+        "story_magicians",
+        "story_asiya"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -2972,7 +3248,10 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_shuayb",
+        "story_musa_midian"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -3014,7 +3293,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_salih"
+      ],
       "segmentCount": 3,
       "surahCount": 3,
       "ayahRangeCount": 3,
@@ -3238,7 +3519,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_tree_cursed"
+      ],
       "segmentCount": 3,
       "surahCount": 3,
       "ayahRangeCount": 3,
@@ -3266,7 +3549,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_adam"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -3308,7 +3593,10 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_adam",
+        "story_angels_prostration"
+      ],
       "segmentCount": 3,
       "surahCount": 3,
       "ayahRangeCount": 3,
@@ -3336,7 +3624,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_golden_calf",
+        "story_musa",
+        "storypage_harun",
+        "story_bani_israel",
+        "story_musa_firaun_dialogue",
+        "story_magicians",
+        "story_sea_crossing",
+        "story_mother_musa"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -3371,7 +3668,15 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "story_mother_musa",
+        "story_magicians",
+        "story_haman",
+        "story_ancient_egypt",
+        "story_musa_firaun_dialogue",
+        "story_sea_crossing"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -3406,7 +3711,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "story_musa_midian",
+        "story_asiya",
+        "story_musa_burning_bush",
+        "story_qarun",
+        "story_samiri",
+        "story_bani_israel",
+        "story_musa_firaun_dialogue"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -3448,7 +3762,13 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_yusuf",
+        "story_yaqub",
+        "story_yusuf_dream",
+        "story_yusuf_prison",
+        "story_yusuf_brothers"
+      ],
       "segmentCount": 3,
       "surahCount": 1,
       "ayahRangeCount": 3,
@@ -3539,7 +3859,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "story_qarun",
+        "story_baqarah_cow",
+        "story_samiri",
+        "story_mother_musa",
+        "story_bani_israel",
+        "story_musa_firaun_dialogue",
+        "story_magicians"
+      ],
       "segmentCount": 5,
       "surahCount": 1,
       "ayahRangeCount": 5,
@@ -3623,7 +3952,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_two_gardens"
+      ],
       "segmentCount": 3,
       "surahCount": 1,
       "ayahRangeCount": 3,
@@ -3700,7 +4031,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_hud"
+      ],
       "segmentCount": 3,
       "surahCount": 3,
       "ayahRangeCount": 3,
@@ -3735,7 +4068,11 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_nuh",
+        "story_son_nuh",
+        "story_wife_nuh"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -3770,7 +4107,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_muhammad",
+        "story_isra_miraj",
+        "story_qiblah_change",
+        "story_hijrah",
+        "story_badr",
+        "story_uhud",
+        "story_hudaybiyyah",
+        "story_conquest_makkah"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -3833,7 +4179,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_sabbath_breakers"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -3875,7 +4223,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_sabbath_breakers",
+        "story_musa",
+        "story_sea_crossing",
+        "story_golden_calf",
+        "story_samiri",
+        "story_musa_firaun_dialogue",
+        "story_magicians",
+        "story_baqarah_cow"
+      ],
       "segmentCount": 3,
       "surahCount": 1,
       "ayahRangeCount": 3,
@@ -3910,7 +4267,13 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_yusuf",
+        "story_yusuf_dream",
+        "story_yusuf_prison",
+        "story_zulaykha",
+        "story_yusuf_brothers"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -3938,7 +4301,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_sulayman"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -3966,7 +4331,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_kahf"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -3994,7 +4361,12 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_wife_lut",
+        "story_nuh",
+        "story_nuh_people",
+        "story_son_nuh"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -4022,7 +4394,10 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_wife_nuh",
+        "story_lut"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -4057,7 +4432,11 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_nuh",
+        "story_nuh_people",
+        "story_wife_nuh"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -4092,7 +4471,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_hell"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -4120,7 +4501,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_kahf"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -4155,7 +4538,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_magicians",
+        "story_sea_crossing",
+        "story_musa",
+        "storypage_harun",
+        "story_ancient_egypt",
+        "story_samiri",
+        "story_bani_israel",
+        "story_golden_calf"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -4204,7 +4596,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "storypage_harun",
+        "story_musa_firaun_dialogue",
+        "story_sea_crossing",
+        "story_ancient_egypt",
+        "story_samiri",
+        "story_bani_israel",
+        "story_golden_calf"
+      ],
       "segmentCount": 4,
       "surahCount": 2,
       "ayahRangeCount": 4,
@@ -4239,7 +4640,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "story_ancient_egypt",
+        "story_musa_firaun_dialogue",
+        "story_magicians",
+        "story_bani_israel",
+        "story_golden_calf",
+        "story_baqarah_cow",
+        "story_samiri"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -4281,7 +4691,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "story_samiri",
+        "story_bani_israel",
+        "story_sea_crossing",
+        "story_musa_firaun_dialogue",
+        "story_magicians",
+        "story_baqarah_cow",
+        "story_mother_musa"
+      ],
       "segmentCount": 3,
       "surahCount": 2,
       "ayahRangeCount": 3,
@@ -4309,7 +4728,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "story_musa_burning_bush",
+        "story_samiri",
+        "story_bani_israel",
+        "story_musa_firaun_dialogue",
+        "story_magicians",
+        "story_sea_crossing",
+        "story_golden_calf"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -4344,7 +4772,14 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_sulayman",
+        "storypage_sulayman",
+        "story_ant_hoopoe",
+        "story_bilqis",
+        "story_sulayman_horses",
+        "story_sulayman_trial"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -4372,7 +4807,9 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_dawud"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -4407,7 +4844,13 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_ibrahim",
+        "story_ismail",
+        "story_ibrahim_birds",
+        "story_ibrahim_stars",
+        "story_ibrahim_nimrod"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -4435,7 +4878,13 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_ibrahim",
+        "story_ibrahim_nimrod",
+        "story_ismail",
+        "story_ibrahim_birds",
+        "story_ibrahim_fire"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -4463,7 +4912,13 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_ibrahim",
+        "story_ibrahim_stars",
+        "story_ismail",
+        "story_ibrahim_birds",
+        "story_ibrahim_fire"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -4498,7 +4953,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "story_mother_musa",
+        "story_qarun",
+        "story_musa_burning_bush",
+        "story_shuayb",
+        "story_baqarah_cow",
+        "story_madyan",
+        "story_samiri"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -4533,7 +4997,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "story_musa_mountain",
+        "story_mother_musa",
+        "story_qarun",
+        "story_samiri",
+        "story_bani_israel",
+        "story_musa_firaun_dialogue",
+        "story_magicians"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -4575,7 +5048,11 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_isa",
+        "story_maryam",
+        "story_isa_ascension"
+      ],
       "segmentCount": 3,
       "surahCount": 2,
       "ayahRangeCount": 3,
@@ -4610,7 +5087,11 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_isa",
+        "story_maryam",
+        "story_isa_miracles"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -4638,7 +5119,11 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_maryam",
+        "story_isa",
+        "story_zakariyya_yahya"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -4673,7 +5158,15 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_yusuf",
+        "story_yusuf_brothers",
+        "story_yaqub",
+        "storypage_ishaq",
+        "storypage_yaqub",
+        "story_zulaykha",
+        "story_yusuf_prison"
+      ],
       "segmentCount": 2,
       "surahCount": 1,
       "ayahRangeCount": 2,
@@ -4715,7 +5208,15 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_yusuf",
+        "story_yaqub",
+        "storypage_ishaq",
+        "storypage_yaqub",
+        "story_zulaykha",
+        "story_yusuf_dream",
+        "story_yusuf_brothers"
+      ],
       "segmentCount": 3,
       "surahCount": 1,
       "ayahRangeCount": 3,
@@ -4757,7 +5258,13 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_yusuf",
+        "story_yusuf_dream",
+        "story_zulaykha",
+        "story_yaqub",
+        "story_yusuf_prison"
+      ],
       "segmentCount": 3,
       "surahCount": 1,
       "ayahRangeCount": 3,
@@ -4785,7 +5292,16 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_muhammad",
+        "story_isra_miraj",
+        "story_hijrah",
+        "story_badr",
+        "story_uhud",
+        "story_hudaybiyyah",
+        "story_conquest_makkah",
+        "story_qiblah_change"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -4841,7 +5357,13 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_sulayman_trial",
+        "story_sulayman",
+        "story_ant_hoopoe",
+        "story_bilqis",
+        "story_sulayman_jinn"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -4869,7 +5391,14 @@
       "relatedProphets": [],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_sulayman",
+        "story_sulayman_horses",
+        "storypage_sulayman",
+        "story_ant_hoopoe",
+        "story_bilqis",
+        "story_sulayman_jinn"
+      ],
       "segmentCount": 1,
       "surahCount": 1,
       "ayahRangeCount": 1,
@@ -4996,7 +5525,16 @@
         "topic_allah",
         "topic_revelation"
       ],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_yaqub",
+        "storypage_ismail",
+        "story_ibrahim",
+        "storypage_harun",
+        "storypage_sulayman",
+        "story_yusuf",
+        "story_yusuf_dream",
+        "story_yusuf_prison"
+      ],
       "segmentCount": 2,
       "surahCount": 12,
       "ayahRangeCount": 16,
@@ -5124,7 +5662,16 @@
         "topic_revelation",
         "topic_community"
       ],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_ishaq",
+        "storypage_ismail",
+        "story_ibrahim",
+        "story_yusuf",
+        "storypage_sulayman",
+        "storypage_harun",
+        "story_zakariyya_yahya",
+        "story_yusuf_dream"
+      ],
       "segmentCount": 2,
       "surahCount": 10,
       "ayahRangeCount": 16,
@@ -5345,7 +5892,16 @@
         "topic_heavens_earth",
         "topic_mercy"
       ],
-      "relatedStories": [],
+      "relatedStories": [
+        "story_musa",
+        "storypage_ishaq",
+        "storypage_yaqub",
+        "storypage_sulayman",
+        "storypage_ismail",
+        "story_magicians",
+        "story_samiri",
+        "story_lut"
+      ],
       "segmentCount": 3,
       "surahCount": 19,
       "ayahRangeCount": 30,
@@ -5384,7 +5940,15 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_alyasa",
+        "story_dhulkifl",
+        "storypage_ismail",
+        "story_ayyub",
+        "story_idris",
+        "story_alyasa",
+        "storypage_ilyas"
+      ],
       "segmentCount": 1,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -5424,7 +5988,11 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_alyasa",
+        "story_ilyas",
+        "storypage_dhulkifl"
+      ],
       "segmentCount": 2,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -5463,7 +6031,13 @@
       ],
       "relatedEntities": [],
       "relatedTopics": [],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_dhulkifl",
+        "storypage_ilyas",
+        "story_alyasa",
+        "storypage_ismail",
+        "story_dhulkifl"
+      ],
       "segmentCount": 1,
       "surahCount": 2,
       "ayahRangeCount": 2,
@@ -5595,7 +6169,14 @@
         "topic_community"
       ],
       "relatedStories": [
-        "story_bilqis"
+        "story_bilqis",
+        "story_sulayman",
+        "storypage_yaqub",
+        "storypage_ishaq",
+        "storypage_harun",
+        "story_dawud",
+        "storypage_ismail",
+        "story_ant_hoopoe"
       ],
       "segmentCount": 3,
       "surahCount": 7,
@@ -5660,7 +6241,13 @@
         "topic_allah",
         "topic_iman"
       ],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_harun",
+        "story_isa",
+        "story_musa",
+        "story_salih",
+        "story_uhud"
+      ],
       "segmentCount": 2,
       "surahCount": 5,
       "ayahRangeCount": 5,
@@ -5767,7 +6354,16 @@
         "topic_dua",
         "topic_revelation"
       ],
-      "relatedStories": [],
+      "relatedStories": [
+        "storypage_ishaq",
+        "storypage_yaqub",
+        "story_ibrahim",
+        "story_ismail",
+        "storypage_harun",
+        "storypage_sulayman",
+        "story_dhulkifl",
+        "story_alyasa"
+      ],
       "segmentCount": 2,
       "surahCount": 8,
       "ayahRangeCount": 12,

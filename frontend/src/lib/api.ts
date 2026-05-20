@@ -939,6 +939,58 @@ export const storyAtlasApi = {
     api.get<SimilarCluster[]>(`/story-atlas/${clusterId}/similar`, { params: { limit } }),
 };
 
+// ============================================================================
+// Registry-backed Story Atlas (Phase Story Registry)
+// Distinct from the DB-backed storyAtlasApi above — this one is served from
+// the local generated registry / connections / cross-references files.
+// ============================================================================
+
+export type StoryCrossRefRelation =
+  | 'same_prophet'
+  | 'same_figure'
+  | 'same_surah'
+  | 'same_theme'
+  | 'same_topic'
+  | 'overlapping_ayahs';
+
+export interface StoryCrossRefEvidence {
+  relation: StoryCrossRefRelation;
+  values: string[];
+}
+
+export interface StoryCrossRefEdge {
+  sourceStoryId: string;
+  targetStoryId: string;
+  score: number;
+  evidence: StoryCrossRefEvidence[];
+  reviewStatus: 'verified' | 'needs_review';
+  humanReviewRequired: boolean;
+}
+
+export interface StoryCrossRefNeighbour {
+  storyId: string;
+  score: number;
+}
+
+export interface StoryCrossRefsResponse {
+  version: string;
+  generatedAt: string;
+  storyId: string;
+  total: number;
+  neighbours: StoryCrossRefNeighbour[];
+  edges: StoryCrossRefEdge[];
+  warnings: string[];
+}
+
+export const storyAtlasRegistryApi = {
+  getCrossReferences: (storyId: string) =>
+    api.get<StoryCrossRefsResponse>(`/quran/story-atlas/${encodeURIComponent(storyId)}/cross-references`),
+  getCrossReferencesOverview: () =>
+    api.get<{ stats: Record<string, unknown>; weights: Record<string, number>; minScore: number; generatedAt: string }>(
+      '/quran/story-atlas/cross-references/overview',
+    ),
+};
+
 export const ragApi = {
   // Main ask endpoint with session support
   ask: (question: string, language: string = 'en', preferredSources: string[] = [], sessionId?: string) =>

@@ -303,3 +303,61 @@ def test_registry_connections_endpoint() -> None:
     # Connections may be 0 for some stories but the endpoint must exist
     assert "connections" in body
     assert "total" in body
+
+
+# ---------------------------------------------------------------------------
+# Cross-references file (S1/S2)
+# ---------------------------------------------------------------------------
+
+
+CROSS_REFS_PATH = ROOT / "frontend" / "src" / "data" / "generated" / "quranStoryCrossReferences.json"
+
+
+@pytest.fixture(scope="module")
+def cross_refs() -> Dict[str, Any]:
+    assert CROSS_REFS_PATH.exists(), (
+        "Run `npx tsx scripts/build-quran-story-cross-references.ts` first; "
+        f"missing {CROSS_REFS_PATH}"
+    )
+    return json.loads(CROSS_REFS_PATH.read_text(encoding="utf-8"))
+
+
+def test_cross_refs_has_edges(cross_refs: Dict[str, Any]) -> None:
+    assert cross_refs["edges"], "Cross-references file must have edges."
+    assert cross_refs["stats"]["totalPairs"] >= 50
+
+
+def test_cross_refs_all_edges_have_strong_signal(cross_refs: Dict[str, Any]) -> None:
+    strong = {"same_prophet", "same_figure", "overlapping_ayahs"}
+    for e in cross_refs["edges"]:
+        kinds = {ev["relation"] for ev in e["evidence"]}
+        assert kinds & strong, f"{e['sourceStoryId']}<->{e['targetStoryId']} missing strong signal"
+
+
+def test_cross_refs_no_self_loops(cross_refs: Dict[str, Any]) -> None:
+    for e in cross_refs["edges"]:
+        assert e["sourceStoryId"] != e["targetStoryId"]
+
+
+def test_cross_refs_targets_resolve_in_registry(
+    cross_refs: Dict[str, Any], registry: Dict[str, Any]
+) -> None:
+    ids = {s["storyId"] for s in registry["stories"]}
+    for e in cross_refs["edges"]:
+        assert e["sourceStoryId"] in ids
+        assert e["targetStoryId"] in ids
+
+
+def test_registry_neighbours_populated(registry: Dict[str, Any]) -> None:
+    """After cross-references are merged, the average story should have
+    multiple relatedStories — guards against a future regression that
+    accidentally bypasses the neighbours-merge step."""
+    counts = [len(s["relatedStories"]) for s in registry["stories"]]
+    avg = sum(counts) / len(counts)
+    assert avg >= 2.0, f"Average relatedStories count too low: {avg:.2f}"
+
+
+def test_cross_refs_default_needs_review(cross_refs: Dict[str, Any]) -> None:
+    for e in cross_refs["edges"]:
+        assert e["reviewStatus"] == "needs_review"
+        assert e["humanReviewRequired"] is True

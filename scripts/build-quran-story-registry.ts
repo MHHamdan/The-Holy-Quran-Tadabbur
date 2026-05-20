@@ -51,6 +51,9 @@ const ENTITY_MENTIONS = join(GEN, 'quranEntityMentions.json');
 const ENTITY_RELATIONS = join(GEN, 'quranEntityRelations.json');
 const TOPIC_ATLAS = join(GEN, 'quranTopicAtlas.json');
 const KG = join(GEN, 'quranKnowledgeGraph.json');
+// Cross-references file is optional — registry can be built without it.
+// When present, neighboursByStory injects the strongest N peer storyIds.
+const CROSS_REFS = join(GEN, 'quranStoryCrossReferences.json');
 
 const OUT_JSON = join(GEN, 'quranStoryRegistry.json');
 const OUT_MD = join(ROOT, 'docs/generated/quran-story-registry-summary.md');
@@ -147,6 +150,11 @@ const entityMentions = loadJSON<EntityMentionsFile>(ENTITY_MENTIONS, true);
 const entityRelations = loadJSON<EntityRelationsFile>(ENTITY_RELATIONS, true);
 const topicAtlas = loadJSON<TopicAtlasFile>(TOPIC_ATLAS, true);
 const kg = loadJSON<KGFile>(KG, true);
+
+interface CrossRefsFile {
+  neighboursByStory?: Record<string, Array<{ storyId: string; score: number }>>;
+}
+const crossRefs = loadJSON<CrossRefsFile>(CROSS_REFS, true);
 
 // ---------------------------------------------------------------------------
 // Indexes
@@ -345,6 +353,22 @@ for (const entry of entries) {
   if (entityMentions && entry.sourceType === 'authored_story') {
     // No strong story→entity mapping in manifest; rely on prophets & relatedStories only
     // and leave entity enrichment to backend service when DB is available.
+  }
+}
+
+// 4. Inject cross-reference neighbours so each story has a meaningful
+// relatedStories array. We merge with whatever was already in
+// `relatedStories` (from the manifest's `connections` field) so authored
+// links remain authoritative; cross-refs are appended.
+if (crossRefs?.neighboursByStory) {
+  for (const entry of entries) {
+    const peers = crossRefs.neighboursByStory[entry.storyId] || [];
+    if (peers.length === 0) continue;
+    const merged = new Set<string>(entry.relatedStories);
+    for (const p of peers) {
+      if (p.storyId !== entry.storyId) merged.add(p.storyId);
+    }
+    entry.relatedStories = Array.from(merged);
   }
 }
 
