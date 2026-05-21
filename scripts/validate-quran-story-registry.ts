@@ -26,7 +26,11 @@ import type {
   QuranStoryRegistryFile,
   RegistryStoryEntry,
 } from '../frontend/src/types/quranStoryRegistry';
-import { REGISTRY_CATEGORY_ORDER } from '../frontend/src/types/quranStoryRegistry';
+import {
+  REGISTRY_CATEGORY_ORDER,
+  SUBCATEGORY_GROUP_ORDER,
+  parseSubcategory,
+} from '../frontend/src/types/quranStoryRegistry';
 import { PHASE_X2_REQUIRED_PROPHET_IDS } from '../frontend/src/types/quranProphetStoryPage';
 
 const ROOT = resolve(__dirname, '..');
@@ -88,6 +92,23 @@ for (const e of registry.stories) {
 
   if (e.reviewStatus === 'verified' && e.humanReviewRequired !== false) {
     fail(`${e.storyId}: marked verified but humanReviewRequired is still true`);
+  }
+
+  // Subcategory tags must always parse to a known group and contain only
+  // [a-z0-9_] in the tag portion. Malformed tags would silently render as
+  // raw strings in the UI.
+  for (const sc of e.subcategories || []) {
+    const parsed = parseSubcategory(sc);
+    if (!parsed) {
+      fail(`${e.storyId}: malformed subcategory "${sc}" (expected "group:tag")`);
+      continue;
+    }
+    if (!SUBCATEGORY_GROUP_ORDER.includes(parsed.group)) {
+      fail(`${e.storyId}: unknown subcategory group "${parsed.group}"`);
+    }
+    if (!/^[a-z0-9_]+$/.test(parsed.tag)) {
+      fail(`${e.storyId}: subcategory tag "${parsed.tag}" must be lowercase snake_case`);
+    }
   }
 
   // Soft: relatedStories that don't resolve should be flagged in warnings

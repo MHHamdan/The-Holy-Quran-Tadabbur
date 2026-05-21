@@ -361,3 +361,125 @@ def test_cross_refs_default_needs_review(cross_refs: Dict[str, Any]) -> None:
     for e in cross_refs["edges"]:
         assert e["reviewStatus"] == "needs_review"
         assert e["humanReviewRequired"] is True
+
+
+# ---------------------------------------------------------------------------
+# Subcategory taxonomy (animal:cow, animal:bee, …)
+# ---------------------------------------------------------------------------
+
+
+SUBCATEGORY_GROUPS = {
+    "animal",
+    "place",
+    "object",
+    "event",
+    "miracle",
+    "family",
+    "role",
+    "afterlife",
+    "nature",
+    "virtue",
+    "vice",
+}
+
+
+def test_every_story_has_subcategory_array(registry: Dict[str, Any]) -> None:
+    for s in registry["stories"]:
+        assert "subcategories" in s, f"{s['storyId']} missing subcategories field"
+        assert isinstance(s["subcategories"], list)
+
+
+def test_every_authored_story_has_at_least_one_subcategory(
+    registry: Dict[str, Any],
+) -> None:
+    missing = [
+        s["storyId"]
+        for s in registry["stories"]
+        if s["sourceType"] == "authored_story" and not s.get("subcategories")
+    ]
+    assert not missing, (
+        f"Authored stories missing subcategories: {missing[:5]}…"
+    )
+
+
+def test_subcategory_tags_are_well_formed(registry: Dict[str, Any]) -> None:
+    pat = re.compile(r"^[a-z0-9_]+:[a-z0-9_]+$")
+    for s in registry["stories"]:
+        for sc in s.get("subcategories", []):
+            assert pat.match(sc), f"{s['storyId']}: malformed subcategory {sc!r}"
+            group = sc.split(":", 1)[0]
+            assert group in SUBCATEGORY_GROUPS, (
+                f"{s['storyId']}: unknown subcategory group {group!r}"
+            )
+
+
+def test_animal_subcategory_covers_user_examples(registry: Dict[str, Any]) -> None:
+    """User explicitly requested coverage of animal stories (cow, bee, elephant)."""
+    all_tags = {sc for s in registry["stories"] for sc in s.get("subcategories", [])}
+    # bee is only mentioned in surah an-Nahl, no dedicated story in the
+    # authored manifest — but cow and elephant should both be present.
+    for required in ("animal:cow", "animal:elephant", "animal:ant", "animal:spider"):
+        assert required in all_tags, f"Missing required animal tag: {required}"
+
+
+def test_subcategory_filter_endpoint() -> None:
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    # Filter by parent group.
+    r = client.get("/api/v1/quran/story-atlas", params={"subcategory": "animal"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["total"] > 0
+    for s in body["stories"]:
+        assert any(sc.startswith("animal:") for sc in s["subcategories"])
+
+    # Filter by full tag.
+    r = client.get(
+        "/api/v1/quran/story-atlas", params={"subcategory": "animal:cow"}
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["total"] >= 1
+    for s in body["stories"]:
+        assert "animal:cow" in s["subcategories"]
+
+
+def test_subcategory_facets_endpoint() -> None:
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    r = client.get("/api/v1/quran/story-atlas/subcategories")
+    assert r.status_code == 200
+    body = r.json()
+    assert "facets" in body
+    groups = {f["group"] for f in body["facets"]}
+    # At minimum animal/place/event/vice should appear.
+    for required in ("animal", "place", "event", "vice"):
+        assert required in groups
+    # Each facet should expose at least one tag with a non-zero count.
+    for f in body["facets"]:
+        assert f["totalStoryCount"] >= 1
+        assert len(f["tags"]) >= 1
+        assert all(t["storyCount"] >= 1 for t in f["tags"])
+
+
+def test_themes_and_main_figures_propagated(
+    registry: Dict[str, Any], manifest: Dict[str, Any]
+) -> None:
+    """The build script should pass the manifest's themes / main_figures
+    arrays straight through. Without these the registry loses the rich
+    metadata the manifest already carries."""
+    by_id = {s["storyId"]: s for s in registry["stories"]}
+    for m in manifest["stories"]:
+        entry = by_id.get(m["id"])
+        if not entry:
+            continue
+        assert set(m.get("themes", [])).issubset(set(entry.get("themes", []))), (
+            f"{m['id']} dropped themes during registry build"
+        )
+        assert set(m.get("main_figures", [])).issubset(
+            set(entry.get("mainFigures", []))
+        ), f"{m['id']} dropped main_figures during registry build"

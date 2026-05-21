@@ -89,12 +89,29 @@ def _filter_stories(
     category: Optional[str],
     prophet: Optional[str],
     search: Optional[str],
+    subcategory: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     result = stories
     if category and category != "all":
         result = [s for s in result if s.get("category") == category]
     if prophet:
         result = [s for s in result if prophet in (s.get("relatedProphets") or [])]
+    if subcategory and subcategory != "all":
+        # Accept either an exact "group:tag" match or just the parent group.
+        if ":" in subcategory:
+            result = [
+                s for s in result if subcategory in (s.get("subcategories") or [])
+            ]
+        else:
+            prefix = f"{subcategory}:"
+            result = [
+                s
+                for s in result
+                if any(
+                    (sc or "").startswith(prefix)
+                    for sc in (s.get("subcategories") or [])
+                )
+            ]
     if search:
         q = search.strip().lower()
         if q:
@@ -107,6 +124,9 @@ def _filter_stories(
                 or any(q in (p or "").lower() for p in s.get("relatedProphets", []))
                 or any(q in (e or "").lower() for e in s.get("relatedEntities", []))
                 or any(q in (t or "").lower() for t in s.get("relatedTopics", []))
+                or any(q in (th or "").lower() for th in s.get("themes", []))
+                or any(q in (f or "").lower() for f in s.get("mainFigures", []))
+                or any(q in (sc or "").lower() for sc in s.get("subcategories", []))
             ]
     return result
 
@@ -116,6 +136,11 @@ def list_registry(
     response: Response,
     category: Optional[str] = Query(None, description="Registry category filter"),
     prophet: Optional[str] = Query(None, description="Filter by prophetId"),
+    subcategory: Optional[str] = Query(
+        None,
+        description='Subcategory filter — either a full "group:tag" string'
+        ' (e.g. "animal:cow") or just the parent group (e.g. "animal")',
+    ),
     search: Optional[str] = Query(None, description="Search title / id / prophet / entity"),
     limit: int = Query(200, ge=1, le=1000),
     offset: int = Query(0, ge=0),
@@ -123,7 +148,7 @@ def list_registry(
     """List registry entries (canonical, registry-backed)."""
     registry = _load_registry()
     stories = registry.get("stories", []) or []
-    filtered = _filter_stories(stories, category, prophet, search)
+    filtered = _filter_stories(stories, category, prophet, search, subcategory)
     total = len(filtered)
     sliced = filtered[offset : offset + limit]
     response.headers["Cache-Control"] = _CACHE_HEADER
@@ -137,6 +162,67 @@ def list_registry(
         "limit": limit,
         "stories": sliced,
         "warnings": registry.get("warnings", []),
+    }
+
+
+@router.get("/story-atlas/subcategories")
+def get_subcategory_facets(response: Response) -> Dict[str, Any]:
+    """Return the subcategory facet histogram.
+
+    For each subcategory group present in the registry, returns the total
+    number of distinct stories tagged with that group and the per-tag
+    story counts. Groups appear in a stable canonical order.
+    """
+    canonical_order = [
+        "animal",
+        "place",
+        "object",
+        "event",
+        "miracle",
+        "family",
+        "role",
+        "afterlife",
+        "nature",
+        "virtue",
+        "vice",
+    ]
+    registry = _load_registry()
+    tag_story_ids: Dict[str, set] = {}
+    group_story_ids: Dict[str, set] = {}
+    for s in registry.get("stories", []) or []:
+        sid = s.get("storyId")
+        if not sid:
+            continue
+        for sc in s.get("subcategories") or []:
+            if ":" not in sc:
+                continue
+            group = sc.split(":", 1)[0]
+            tag_story_ids.setdefault(sc, set()).add(sid)
+            group_story_ids.setdefault(group, set()).add(sid)
+
+    facets: List[Dict[str, Any]] = []
+    for group in canonical_order:
+        if group not in group_story_ids:
+            continue
+        tags = [
+            {"tag": tag, "storyCount": len(ids)}
+            for tag, ids in tag_story_ids.items()
+            if tag.startswith(f"{group}:")
+        ]
+        tags.sort(key=lambda t: (-t["storyCount"], t["tag"]))
+        facets.append(
+            {
+                "group": group,
+                "totalStoryCount": len(group_story_ids[group]),
+                "tags": tags,
+            }
+        )
+
+    response.headers["Cache-Control"] = _CACHE_HEADER
+    return {
+        "version": registry.get("version"),
+        "generatedAt": registry.get("generatedAt"),
+        "facets": facets,
     }
 
 

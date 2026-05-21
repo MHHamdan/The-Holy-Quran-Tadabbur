@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-05-19T17:41:19.725Z",
+  "generatedAt": "2026-05-21T13:39:38.764Z",
   "categories": [
     "prophet",
     "prophetic_sirah",
@@ -106,7 +106,28 @@
       "detailRoute": "/stories/story_adam",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "creation",
+        "repentance",
+        "obedience",
+        "arrogance"
+      ],
+      "mainFigures": [
+        "Adam",
+        "Hawwa",
+        "Iblis"
+      ],
+      "subcategories": [
+        "place:garden",
+        "event:creation",
+        "event:fall_from_paradise",
+        "family:husband_wife",
+        "family:parent_child",
+        "virtue:repentance",
+        "vice:arrogance",
+        "vice:disobedience"
+      ]
     },
     {
       "storyId": "story_nuh",
@@ -179,7 +200,28 @@
       "detailRoute": "/stories/story_nuh",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "patience",
+        "dawah",
+        "divine_punishment",
+        "salvation"
+      ],
+      "mainFigures": [
+        "Nuh",
+        "His son",
+        "His wife"
+      ],
+      "subcategories": [
+        "place:mount_judi",
+        "object:ship",
+        "event:flood",
+        "family:father",
+        "family:son",
+        "nature:water",
+        "virtue:patience",
+        "vice:disbelief"
+      ]
     },
     {
       "storyId": "story_ibrahim",
@@ -268,7 +310,37 @@
       "detailRoute": "/stories/story_ibrahim",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "monotheism",
+        "sacrifice",
+        "trust",
+        "father_of_prophets",
+        "hajj"
+      ],
+      "mainFigures": [
+        "Ibrahim",
+        "Ismail",
+        "Ishaq",
+        "Sara",
+        "Hajar",
+        "Namrud"
+      ],
+      "subcategories": [
+        "place:makkah",
+        "place:masjid_al_haram",
+        "event:building_kaaba",
+        "event:sacrifice",
+        "miracle:fire_cool",
+        "family:father",
+        "family:son",
+        "role:prophet",
+        "nature:fire",
+        "nature:stars",
+        "virtue:trust_in_allah",
+        "virtue:sincerity",
+        "vice:idolatry"
+      ]
     },
     {
       "storyId": "story_musa",
@@ -364,7 +436,37 @@
       "detailRoute": "/stories/story_musa",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "liberation",
+        "miracles",
+        "patience",
+        "divine_support",
+        "confronting_tyranny"
+      ],
+      "mainFigures": [
+        "Musa",
+        "Harun",
+        "Firawn",
+        "Bani Israel",
+        "Asiya"
+      ],
+      "subcategories": [
+        "place:egypt",
+        "place:mount_sinai",
+        "place:sea",
+        "object:staff",
+        "object:tablets",
+        "object:manna_salwa",
+        "event:exodus",
+        "event:revelation",
+        "miracle:sea_parting",
+        "miracle:staff_to_serpent",
+        "miracle:white_hand",
+        "role:prophet",
+        "virtue:patience",
+        "vice:tyranny"
+      ]
     },
     {
       "storyId": "story_yusuf",
@@ -458,7 +560,37 @@
       "detailRoute": "/stories/story_yusuf",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "patience",
+        "forgiveness",
+        "divine_planning",
+        "chastity",
+        "reconciliation"
+      ],
+      "mainFigures": [
+        "Yusuf",
+        "Yaqub",
+        "Brothers",
+        "Aziz",
+        "Zulaykha"
+      ],
+      "subcategories": [
+        "place:egypt",
+        "place:well",
+        "place:prison",
+        "object:shirt_yusuf",
+        "object:cup",
+        "event:dream",
+        "family:brothers",
+        "family:father",
+        "role:prophet",
+        "role:slave",
+        "virtue:patience",
+        "virtue:chastity",
+        "vice:jealousy",
+        "vice:betrayal"
+      ]
     },
     {
       "storyId": "story_isa",
@@ -538,7 +670,30 @@
       "detailRoute": "/stories/story_isa",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "miraculous_birth",
+        "miracles",
+        "monotheism",
+        "ascension"
+      ],
+      "mainFigures": [
+        "Isa",
+        "Maryam",
+        "Disciples"
+      ],
+      "subcategories": [
+        "object:table_spread",
+        "miracle:talking_baby",
+        "miracle:bird_creation",
+        "miracle:healing_blind",
+        "miracle:healing_leper",
+        "miracle:dead_revived",
+        "family:mother",
+        "role:prophet",
+        "role:messenger",
+        "virtue:mercy"
+      ]
     },
     {
       "storyId": "story_maryam",
@@ -608,7 +763,26 @@
       "detailRoute": "/stories/story_maryam",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "purity",
+        "devotion",
+        "miracle",
+        "patience"
+      ],
+      "mainFigures": [
+        "Maryam",
+        "Zakariyya",
+        "Isa"
+      ],
+      "subcategories": [
+        "place:masjid_al_aqsa",
+        "miracle:talking_baby",
+        "family:mother",
+        "family:daughter",
+        "virtue:chastity",
+        "virtue:sincerity"
+      ]
     },
     {
       "storyId": "story_zakariyya_yahya",
@@ -664,7 +838,24 @@
       "detailRoute": "/stories/story_zakariyya_yahya",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "answered_prayer",
+        "miraculous_birth",
+        "righteousness"
+      ],
+      "mainFigures": [
+        "Zakariyya",
+        "Yahya",
+        "Wife of Zakariyya"
+      ],
+      "subcategories": [
+        "place:masjid_al_aqsa",
+        "family:father",
+        "family:son",
+        "role:prophet",
+        "virtue:patience"
+      ]
     },
     {
       "storyId": "story_sulayman",
@@ -734,7 +925,34 @@
       "detailRoute": "/stories/story_sulayman",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "wisdom",
+        "kingdom",
+        "gratitude",
+        "power"
+      ],
+      "mainFigures": [
+        "Sulayman",
+        "Queen of Sheba",
+        "Jinn",
+        "Hoopoe"
+      ],
+      "subcategories": [
+        "animal:hoopoe",
+        "animal:ant",
+        "animal:horse",
+        "animal:birds",
+        "place:sheba",
+        "object:throne",
+        "object:ring",
+        "miracle:throne_transport",
+        "miracle:ant_speech",
+        "miracle:hoopoe_speech",
+        "role:king",
+        "role:prophet",
+        "nature:wind"
+      ]
     },
     {
       "storyId": "story_dawud",
@@ -796,7 +1014,27 @@
       "detailRoute": "/stories/story_dawud",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "courage",
+        "worship",
+        "justice",
+        "repentance"
+      ],
+      "mainFigures": [
+        "Dawud",
+        "Jalut (Goliath)",
+        "Talut (Saul)"
+      ],
+      "subcategories": [
+        "animal:birds",
+        "event:battle",
+        "event:judgment",
+        "role:king",
+        "role:prophet",
+        "nature:mountain",
+        "virtue:justice"
+      ]
     },
     {
       "storyId": "story_ayyub",
@@ -844,7 +1082,23 @@
       "detailRoute": "/stories/story_ayyub",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "patience",
+        "trial",
+        "healing",
+        "gratitude"
+      ],
+      "mainFigures": [
+        "Ayyub",
+        "His wife"
+      ],
+      "subcategories": [
+        "event:trial",
+        "family:husband_wife",
+        "virtue:patience",
+        "virtue:trust_in_allah"
+      ]
     },
     {
       "storyId": "story_yunus",
@@ -904,7 +1158,23 @@
       "detailRoute": "/stories/story_yunus",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "repentance",
+        "patience",
+        "divine_mercy"
+      ],
+      "mainFigures": [
+        "Yunus",
+        "His people"
+      ],
+      "subcategories": [
+        "animal:whale",
+        "animal:fish",
+        "place:sea",
+        "miracle:fish_swallow",
+        "virtue:repentance"
+      ]
     },
     {
       "storyId": "story_lut",
@@ -961,7 +1231,25 @@
       "detailRoute": "/stories/story_lut",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "morality",
+        "divine_punishment",
+        "patience"
+      ],
+      "mainFigures": [
+        "Lut",
+        "His wife",
+        "His daughters",
+        "His people"
+      ],
+      "subcategories": [
+        "event:flood",
+        "family:husband_wife",
+        "role:prophet",
+        "vice:disobedience",
+        "vice:disbelief"
+      ]
     },
     {
       "storyId": "story_shuayb",
@@ -1016,7 +1304,23 @@
       "detailRoute": "/stories/story_shuayb",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "justice",
+        "honesty",
+        "trade_ethics"
+      ],
+      "mainFigures": [
+        "Shu'ayb",
+        "People of Madyan"
+      ],
+      "subcategories": [
+        "place:madyan",
+        "place:thicket",
+        "role:prophet",
+        "virtue:justice",
+        "vice:greed"
+      ]
     },
     {
       "storyId": "story_salih",
@@ -1070,7 +1374,24 @@
       "detailRoute": "/stories/story_salih",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "signs",
+        "disobedience",
+        "punishment"
+      ],
+      "mainFigures": [
+        "Salih",
+        "Thamud",
+        "The She-camel"
+      ],
+      "subcategories": [
+        "animal:camel",
+        "place:hijr",
+        "miracle:she_camel",
+        "role:prophet",
+        "vice:arrogance"
+      ]
     },
     {
       "storyId": "story_hud",
@@ -1123,7 +1444,22 @@
       "detailRoute": "/stories/story_hud",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "arrogance",
+        "power",
+        "destruction"
+      ],
+      "mainFigures": [
+        "Hud",
+        "People of 'Ad"
+      ],
+      "subcategories": [
+        "place:ad_lands",
+        "role:prophet",
+        "nature:wind",
+        "vice:arrogance"
+      ]
     },
     {
       "storyId": "story_kahf",
@@ -1182,7 +1518,23 @@
       "detailRoute": "/stories/story_kahf",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "faith",
+        "time",
+        "divine_protection"
+      ],
+      "mainFigures": [
+        "Youth of the Cave",
+        "Their dog"
+      ],
+      "subcategories": [
+        "animal:dog",
+        "place:cave",
+        "miracle:cave_sleep",
+        "virtue:patience",
+        "virtue:trust_in_allah"
+      ]
     },
     {
       "storyId": "story_dhulqarnayn",
@@ -1240,7 +1592,23 @@
       "detailRoute": "/stories/story_dhulqarnayn",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "power",
+        "justice",
+        "protection",
+        "travel"
+      ],
+      "mainFigures": [
+        "Dhul-Qarnayn",
+        "Yajuj and Majuj"
+      ],
+      "subcategories": [
+        "object:mountain_lifted",
+        "event:judgment",
+        "role:king",
+        "virtue:justice"
+      ]
     },
     {
       "storyId": "story_luqman",
@@ -1298,7 +1666,23 @@
       "detailRoute": "/stories/story_luqman",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "wisdom",
+        "parenting",
+        "gratitude",
+        "humility"
+      ],
+      "mainFigures": [
+        "Luqman",
+        "His son"
+      ],
+      "subcategories": [
+        "family:father",
+        "family:son",
+        "virtue:wisdom",
+        "virtue:humility"
+      ]
     },
     {
       "storyId": "story_qarun",
@@ -1363,7 +1747,23 @@
       "detailRoute": "/stories/story_qarun",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "wealth",
+        "arrogance",
+        "destruction",
+        "gratitude"
+      ],
+      "mainFigures": [
+        "Qarun",
+        "Musa"
+      ],
+      "subcategories": [
+        "place:egypt",
+        "nature:earthquake",
+        "vice:arrogance",
+        "vice:greed"
+      ]
     },
     {
       "storyId": "story_habil_qabil",
@@ -1419,7 +1819,24 @@
       "detailRoute": "/stories/story_habil_qabil",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "jealousy",
+        "first_murder",
+        "repentance",
+        "acceptance"
+      ],
+      "mainFigures": [
+        "Habil (Abel)",
+        "Qabil (Cain)"
+      ],
+      "subcategories": [
+        "animal:raven",
+        "event:first_murder",
+        "event:sacrifice",
+        "family:brothers",
+        "vice:jealousy"
+      ]
     },
     {
       "storyId": "story_elephant",
@@ -1447,7 +1864,24 @@
       "detailRoute": "/stories/story_elephant",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "divine_protection",
+        "kaaba",
+        "signs"
+      ],
+      "mainFigures": [
+        "Abraha",
+        "His army",
+        "Elephant"
+      ],
+      "subcategories": [
+        "animal:elephant",
+        "animal:birds",
+        "place:makkah",
+        "place:masjid_al_haram",
+        "miracle:elephant_birds"
+      ]
     },
     {
       "storyId": "story_baqarah_cow",
@@ -1505,7 +1939,23 @@
       "detailRoute": "/stories/story_baqarah_cow",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "obedience",
+        "questioning",
+        "miracle"
+      ],
+      "mainFigures": [
+        "Musa",
+        "Bani Israel",
+        "The murdered man"
+      ],
+      "subcategories": [
+        "animal:cow",
+        "event:judgment",
+        "miracle:dead_revived",
+        "vice:disobedience"
+      ]
     },
     {
       "storyId": "story_uzair",
@@ -1549,7 +1999,21 @@
       "detailRoute": "/stories/story_uzair",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "resurrection",
+        "time",
+        "divine_power"
+      ],
+      "mainFigures": [
+        "Uzair",
+        "His donkey"
+      ],
+      "subcategories": [
+        "animal:donkey",
+        "miracle:donkey_revived",
+        "miracle:dead_revived"
+      ]
     },
     {
       "storyId": "story_sabbath_breakers",
@@ -1601,7 +2065,22 @@
       "detailRoute": "/stories/story_sabbath_breakers",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "disobedience",
+        "trickery",
+        "transformation"
+      ],
+      "mainFigures": [
+        "Villagers by the sea"
+      ],
+      "subcategories": [
+        "animal:fish",
+        "animal:monkey",
+        "place:sea",
+        "miracle:transformation_monkeys",
+        "vice:disobedience"
+      ]
     },
     {
       "storyId": "story_angels_prostration",
@@ -1646,7 +2125,21 @@
       "detailRoute": "/stories/story_angels_prostration",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "obedience",
+        "arrogance",
+        "creation"
+      ],
+      "mainFigures": [
+        "الملائكة",
+        "آدم",
+        "إبليس"
+      ],
+      "subcategories": [
+        "event:creation",
+        "vice:arrogance"
+      ]
     },
     {
       "storyId": "story_jinn_quran",
@@ -1681,7 +2174,18 @@
       "detailRoute": "/stories/story_jinn_quran",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "guidance",
+        "belief",
+        "unseen"
+      ],
+      "mainFigures": [
+        "الجن"
+      ],
+      "subcategories": [
+        "event:revelation"
+      ]
     },
     {
       "storyId": "story_yajuj_majuj",
@@ -1718,7 +2222,21 @@
       "detailRoute": "/stories/story_yajuj_majuj",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "corruption",
+        "end_times",
+        "protection"
+      ],
+      "mainFigures": [
+        "يأجوج",
+        "مأجوج",
+        "ذو القرنين"
+      ],
+      "subcategories": [
+        "place:mount_judi",
+        "object:mountain_lifted"
+      ]
     },
     {
       "storyId": "story_two_gardens",
@@ -1769,7 +2287,24 @@
       "detailRoute": "/stories/story_two_gardens",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "arrogance",
+        "wealth",
+        "gratitude",
+        "destruction"
+      ],
+      "mainFigures": [
+        "صاحب الجنتين",
+        "صاحبه المؤمن"
+      ],
+      "subcategories": [
+        "place:two_gardens",
+        "place:garden",
+        "nature:plant",
+        "virtue:gratitude",
+        "vice:arrogance"
+      ]
     },
     {
       "storyId": "story_good_word",
@@ -1797,7 +2332,16 @@
       "detailRoute": "/stories/story_good_word",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "faith",
+        "steadfastness",
+        "guidance"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "nature:plant"
+      ]
     },
     {
       "storyId": "story_fly",
@@ -1825,7 +2369,17 @@
       "detailRoute": "/stories/story_fly",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "weakness",
+        "idolatry",
+        "logic"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "animal:fly",
+        "vice:idolatry"
+      ]
     },
     {
       "storyId": "story_spider",
@@ -1853,7 +2407,16 @@
       "detailRoute": "/stories/story_spider",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "weakness",
+        "idolatry",
+        "falsehood"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "animal:spider"
+      ]
     },
     {
       "storyId": "story_tubba",
@@ -1890,7 +2453,18 @@
       "detailRoute": "/stories/story_tubba",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "destruction",
+        "rejection",
+        "warning"
+      ],
+      "mainFigures": [
+        "تُبَّع"
+      ],
+      "subcategories": [
+        "vice:disbelief"
+      ]
     },
     {
       "storyId": "story_rass",
@@ -1927,7 +2501,18 @@
       "detailRoute": "/stories/story_rass",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "destruction",
+        "rejection"
+      ],
+      "mainFigures": [
+        "أصحاب الرس"
+      ],
+      "subcategories": [
+        "place:rass",
+        "vice:disbelief"
+      ]
     },
     {
       "storyId": "story_ayka",
@@ -1964,7 +2549,20 @@
       "detailRoute": "/stories/story_ayka",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "justice",
+        "trade",
+        "destruction"
+      ],
+      "mainFigures": [
+        "شعيب",
+        "أصحاب الأيكة"
+      ],
+      "subcategories": [
+        "place:thicket",
+        "vice:disbelief"
+      ]
     },
     {
       "storyId": "story_talut_jalut",
@@ -2009,7 +2607,23 @@
       "detailRoute": "/stories/story_talut_jalut",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "leadership",
+        "courage",
+        "faith"
+      ],
+      "mainFigures": [
+        "طالوت",
+        "جالوت",
+        "داوود"
+      ],
+      "subcategories": [
+        "object:ark_covenant",
+        "event:battle",
+        "role:king",
+        "virtue:courage"
+      ]
     },
     {
       "storyId": "story_ifk",
@@ -2044,7 +2658,21 @@
       "detailRoute": "/stories/story_ifk",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "slander",
+        "innocence",
+        "patience"
+      ],
+      "mainFigures": [
+        "عائشة",
+        "المنافقون"
+      ],
+      "subcategories": [
+        "event:slander",
+        "role:companion",
+        "vice:slander"
+      ]
     },
     {
       "storyId": "story_idris",
@@ -2085,7 +2713,18 @@
       "detailRoute": "/stories/story_idris",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "knowledge",
+        "patience",
+        "elevation"
+      ],
+      "mainFigures": [
+        "Idris"
+      ],
+      "subcategories": [
+        "role:prophet"
+      ]
     },
     {
       "storyId": "story_ismail",
@@ -2134,7 +2773,25 @@
       "detailRoute": "/stories/story_ismail",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "sacrifice",
+        "obedience",
+        "building_kaaba"
+      ],
+      "mainFigures": [
+        "Ismail",
+        "Ibrahim"
+      ],
+      "subcategories": [
+        "place:makkah",
+        "place:masjid_al_haram",
+        "event:sacrifice",
+        "event:building_kaaba",
+        "family:father",
+        "family:son",
+        "role:prophet"
+      ]
     },
     {
       "storyId": "story_dhulkifl",
@@ -2175,7 +2832,18 @@
       "detailRoute": "/stories/story_dhulkifl",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "patience",
+        "righteousness"
+      ],
+      "mainFigures": [
+        "Dhul-Kifl"
+      ],
+      "subcategories": [
+        "role:prophet",
+        "virtue:patience"
+      ]
     },
     {
       "storyId": "story_ilyas",
@@ -2205,7 +2873,19 @@
       "detailRoute": "/stories/story_ilyas",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "monotheism",
+        "rejection",
+        "da'wah"
+      ],
+      "mainFigures": [
+        "Ilyas"
+      ],
+      "subcategories": [
+        "role:prophet",
+        "vice:idolatry"
+      ]
     },
     {
       "storyId": "story_alyasa",
@@ -2245,7 +2925,17 @@
       "detailRoute": "/stories/story_alyasa",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "righteousness",
+        "preference"
+      ],
+      "mainFigures": [
+        "Al-Yasa"
+      ],
+      "subcategories": [
+        "role:prophet"
+      ]
     },
     {
       "storyId": "story_muhammad",
@@ -2310,7 +3000,24 @@
       "detailRoute": "/stories/story_muhammad",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "revelation",
+        "mercy",
+        "da'wah",
+        "perseverance"
+      ],
+      "mainFigures": [
+        "Muhammad"
+      ],
+      "subcategories": [
+        "place:makkah",
+        "place:madinah",
+        "event:revelation",
+        "event:hijrah",
+        "role:prophet",
+        "role:messenger"
+      ]
     },
     {
       "storyId": "story_garden_owners",
@@ -2345,7 +3052,19 @@
       "detailRoute": "/stories/story_garden_owners",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "greed",
+        "divine_punishment",
+        "repentance",
+        "charity"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "place:garden",
+        "nature:plant",
+        "vice:arrogance"
+      ]
     },
     {
       "storyId": "story_ditch",
@@ -2373,7 +3092,19 @@
       "detailRoute": "/stories/story_ditch",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "persecution",
+        "faith",
+        "martyrdom",
+        "tyranny"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "place:ditch",
+        "nature:fire",
+        "virtue:sacrifice"
+      ]
     },
     {
       "storyId": "story_donkey_books",
@@ -2401,7 +3132,16 @@
       "detailRoute": "/stories/story_donkey_books",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "knowledge",
+        "hypocrisy",
+        "warning"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "animal:donkey"
+      ]
     },
     {
       "storyId": "story_dog_parable",
@@ -2429,7 +3169,18 @@
       "detailRoute": "/stories/story_dog_parable",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "misguidance",
+        "worldliness",
+        "warning"
+      ],
+      "mainFigures": [
+        "Bal'am ibn Ba'ura"
+      ],
+      "subcategories": [
+        "animal:dog"
+      ]
     },
     {
       "storyId": "story_ant_hoopoe",
@@ -2471,7 +3222,21 @@
       "detailRoute": "/stories/story_ant_hoopoe",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "wisdom",
+        "humility",
+        "divine_kingdom"
+      ],
+      "mainFigures": [
+        "Sulayman"
+      ],
+      "subcategories": [
+        "animal:ant",
+        "animal:hoopoe",
+        "miracle:ant_speech",
+        "miracle:hoopoe_speech"
+      ]
     },
     {
       "storyId": "story_bilqis",
@@ -2524,6 +3289,22 @@
       "humanReviewRequired": true,
       "warnings": [
         "AI-assisted summary; needs scholarly review."
+      ],
+      "themes": [
+        "wisdom",
+        "da'wah",
+        "submission",
+        "kingship"
+      ],
+      "mainFigures": [
+        "Bilqis",
+        "Sulayman"
+      ],
+      "subcategories": [
+        "place:sheba",
+        "object:throne",
+        "miracle:throne_transport",
+        "role:queen"
       ]
     },
     {
@@ -2552,7 +3333,16 @@
       "detailRoute": "/stories/story_blind_seeing",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "guidance",
+        "misguidance",
+        "contrast"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "miracle:healing_blind"
+      ]
     },
     {
       "storyId": "story_light_parable",
@@ -2580,7 +3370,17 @@
       "detailRoute": "/stories/story_light_parable",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "guidance",
+        "light",
+        "divine_attributes"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "object:scripture",
+        "nature:sky"
+      ]
     },
     {
       "storyId": "story_rain_parable",
@@ -2615,7 +3415,18 @@
       "detailRoute": "/stories/story_rain_parable",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "worldliness",
+        "transience",
+        "hereafter"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "nature:rain",
+        "nature:water",
+        "nature:plant"
+      ]
     },
     {
       "storyId": "story_charity_parable",
@@ -2650,7 +3461,17 @@
       "detailRoute": "/stories/story_charity_parable",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "charity",
+        "sincerity",
+        "multiplication"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "nature:plant",
+        "virtue:charity"
+      ]
     },
     {
       "storyId": "story_haman",
@@ -2698,7 +3519,20 @@
       "detailRoute": "/stories/story_haman",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "tyranny",
+        "arrogance",
+        "divine_punishment"
+      ],
+      "mainFigures": [
+        "Haman",
+        "Fir'awn"
+      ],
+      "subcategories": [
+        "place:egypt",
+        "vice:tyranny"
+      ]
     },
     {
       "storyId": "story_empty_village",
@@ -2728,7 +3562,18 @@
       "detailRoute": "/stories/story_empty_village",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "resurrection",
+        "divine_power",
+        "wonder"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "animal:donkey",
+        "place:village",
+        "miracle:dead_revived"
+      ]
     },
     {
       "storyId": "story_ibrahim_birds",
@@ -2762,7 +3607,20 @@
       "detailRoute": "/stories/story_ibrahim_birds",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "resurrection",
+        "faith",
+        "certainty"
+      ],
+      "mainFigures": [
+        "Ibrahim"
+      ],
+      "subcategories": [
+        "animal:birds",
+        "miracle:dead_revived",
+        "miracle:bird_creation"
+      ]
     },
     {
       "storyId": "story_isra_miraj",
@@ -2806,7 +3664,21 @@
       "detailRoute": "/stories/story_isra_miraj",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "miracle",
+        "prayer",
+        "divine_encounter"
+      ],
+      "mainFigures": [
+        "Muhammad",
+        "Jibril"
+      ],
+      "subcategories": [
+        "place:masjid_al_haram",
+        "place:masjid_al_aqsa",
+        "event:isra_miraj"
+      ]
     },
     {
       "storyId": "story_hijrah",
@@ -2843,7 +3715,21 @@
       "detailRoute": "/stories/story_hijrah",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "migration",
+        "trust_in_allah",
+        "sacrifice"
+      ],
+      "mainFigures": [
+        "Muhammad",
+        "Abu Bakr"
+      ],
+      "subcategories": [
+        "place:makkah",
+        "place:madinah",
+        "event:hijrah"
+      ]
     },
     {
       "storyId": "story_badr",
@@ -2894,7 +3780,19 @@
       "detailRoute": "/stories/story_badr",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "victory",
+        "divine_aid",
+        "faith"
+      ],
+      "mainFigures": [
+        "Muhammad"
+      ],
+      "subcategories": [
+        "place:badr",
+        "event:battle"
+      ]
     },
     {
       "storyId": "story_uhud",
@@ -2945,7 +3843,20 @@
       "detailRoute": "/stories/story_uhud",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "trial",
+        "disobedience",
+        "perseverance",
+        "martyrdom"
+      ],
+      "mainFigures": [
+        "Muhammad"
+      ],
+      "subcategories": [
+        "place:uhud",
+        "event:battle"
+      ]
     },
     {
       "storyId": "story_hudaybiyyah",
@@ -2989,7 +3900,20 @@
       "detailRoute": "/stories/story_hudaybiyyah",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "peace",
+        "wisdom",
+        "victory",
+        "trust_in_allah"
+      ],
+      "mainFigures": [
+        "Muhammad"
+      ],
+      "subcategories": [
+        "place:hudaybiyyah",
+        "event:treaty"
+      ]
     },
     {
       "storyId": "story_conquest_makkah",
@@ -3026,7 +3950,19 @@
       "detailRoute": "/stories/story_conquest_makkah",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "victory",
+        "forgiveness",
+        "fulfillment"
+      ],
+      "mainFigures": [
+        "Muhammad"
+      ],
+      "subcategories": [
+        "place:makkah",
+        "event:conquest"
+      ]
     },
     {
       "storyId": "story_qiblah_change",
@@ -3070,7 +4006,20 @@
       "detailRoute": "/stories/story_qiblah_change",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "obedience",
+        "identity",
+        "divine_command"
+      ],
+      "mainFigures": [
+        "Muhammad"
+      ],
+      "subcategories": [
+        "place:makkah",
+        "place:masjid_al_haram",
+        "event:qiblah_change"
+      ]
     },
     {
       "storyId": "story_tabuk",
@@ -3114,7 +4063,20 @@
       "detailRoute": "/stories/story_tabuk",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "trial",
+        "hypocrisy",
+        "repentance",
+        "sacrifice"
+      ],
+      "mainFigures": [
+        "Muhammad"
+      ],
+      "subcategories": [
+        "place:tabuk",
+        "event:expedition"
+      ]
     },
     {
       "storyId": "story_najran",
@@ -3151,7 +4113,19 @@
       "detailRoute": "/stories/story_najran",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "dialogue",
+        "mubahala",
+        "truth"
+      ],
+      "mainFigures": [
+        "Muhammad"
+      ],
+      "subcategories": [
+        "place:najran",
+        "event:mubahala"
+      ]
     },
     {
       "storyId": "story_romans_persians",
@@ -3179,7 +4153,16 @@
       "detailRoute": "/stories/story_romans_persians",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "prophecy",
+        "victory",
+        "divine_knowledge"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "event:battle"
+      ]
     },
     {
       "storyId": "story_ancient_egypt",
@@ -3221,7 +4204,19 @@
       "detailRoute": "/stories/story_ancient_egypt",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "tyranny",
+        "divine_punishment",
+        "signs",
+        "preservation"
+      ],
+      "mainFigures": [
+        "Fir'awn"
+      ],
+      "subcategories": [
+        "place:egypt"
+      ]
     },
     {
       "storyId": "story_madyan",
@@ -3259,7 +4254,19 @@
       "detailRoute": "/stories/story_madyan",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "justice",
+        "fraud",
+        "divine_punishment"
+      ],
+      "mainFigures": [
+        "Shu'ayb"
+      ],
+      "subcategories": [
+        "place:madyan",
+        "place:thicket"
+      ]
     },
     {
       "storyId": "story_thamud",
@@ -3303,7 +4310,21 @@
       "detailRoute": "/stories/story_thamud",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "defiance",
+        "she-camel",
+        "divine_punishment"
+      ],
+      "mainFigures": [
+        "Salih"
+      ],
+      "subcategories": [
+        "animal:camel",
+        "place:hijr",
+        "miracle:she_camel",
+        "vice:arrogance"
+      ]
     },
     {
       "storyId": "story_signs_hour",
@@ -3345,7 +4366,16 @@
       "detailRoute": "/stories/story_signs_hour",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "eschatology",
+        "warning",
+        "hereafter"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "afterlife:hour"
+      ]
     },
     {
       "storyId": "story_trumpet",
@@ -3380,7 +4410,18 @@
       "detailRoute": "/stories/story_trumpet",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "eschatology",
+        "resurrection",
+        "divine_power"
+      ],
+      "mainFigures": [
+        "Israfil"
+      ],
+      "subcategories": [
+        "afterlife:trumpet"
+      ]
     },
     {
       "storyId": "story_mizan",
@@ -3415,7 +4456,16 @@
       "detailRoute": "/stories/story_mizan",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "eschatology",
+        "justice",
+        "accountability"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "afterlife:mizan"
+      ]
     },
     {
       "storyId": "story_araf_people",
@@ -3443,7 +4493,17 @@
       "detailRoute": "/stories/story_araf_people",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "eschatology",
+        "limbo",
+        "hope",
+        "divine_mercy"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "afterlife:araf"
+      ]
     },
     {
       "storyId": "story_paradise",
@@ -3485,7 +4545,16 @@
       "detailRoute": "/stories/story_paradise",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "reward",
+        "paradise",
+        "eternal_bliss"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "afterlife:paradise"
+      ]
     },
     {
       "storyId": "story_hell",
@@ -3529,7 +4598,16 @@
       "detailRoute": "/stories/story_hell",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "punishment",
+        "warning",
+        "hereafter"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "afterlife:hell"
+      ]
     },
     {
       "storyId": "story_covenant_souls",
@@ -3559,7 +4637,18 @@
       "detailRoute": "/stories/story_covenant_souls",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "covenant",
+        "fitrah",
+        "divine_knowledge"
+      ],
+      "mainFigures": [
+        "Adam"
+      ],
+      "subcategories": [
+        "afterlife:covenant_souls"
+      ]
     },
     {
       "storyId": "story_iblis_refusal",
@@ -3604,7 +4693,19 @@
       "detailRoute": "/stories/story_iblis_refusal",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "arrogance",
+        "disobedience",
+        "enmity"
+      ],
+      "mainFigures": [
+        "Iblis"
+      ],
+      "subcategories": [
+        "vice:arrogance",
+        "vice:disobedience"
+      ]
     },
     {
       "storyId": "story_samiri",
@@ -3641,7 +4742,22 @@
       "detailRoute": "/stories/story_samiri",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "idolatry",
+        "trial",
+        "misguidance"
+      ],
+      "mainFigures": [
+        "Samiri",
+        "Musa",
+        "Harun"
+      ],
+      "subcategories": [
+        "animal:calf",
+        "object:calf_gold",
+        "vice:idolatry"
+      ]
     },
     {
       "storyId": "story_asiya",
@@ -3684,7 +4800,21 @@
       "detailRoute": "/stories/story_asiya",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "faith",
+        "sacrifice",
+        "righteousness"
+      ],
+      "mainFigures": [
+        "Asiya",
+        "Fir'awn"
+      ],
+      "subcategories": [
+        "family:husband_wife",
+        "role:wife_of_tyrant",
+        "virtue:patience"
+      ]
     },
     {
       "storyId": "story_mother_musa",
@@ -3728,7 +4858,21 @@
       "detailRoute": "/stories/story_mother_musa",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "trust_in_allah",
+        "maternal_love",
+        "divine_plan"
+      ],
+      "mainFigures": [
+        "Mother of Musa",
+        "Musa"
+      ],
+      "subcategories": [
+        "place:egypt",
+        "family:mother",
+        "nature:water"
+      ]
     },
     {
       "storyId": "story_zulaykha",
@@ -3776,7 +4920,22 @@
       "detailRoute": "/stories/story_zulaykha",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "temptation",
+        "chastity",
+        "repentance",
+        "truth"
+      ],
+      "mainFigures": [
+        "Zulaykha",
+        "Yusuf"
+      ],
+      "subcategories": [
+        "place:egypt",
+        "family:husband_wife",
+        "vice:betrayal"
+      ]
     },
     {
       "storyId": "story_believer_firaun",
@@ -3811,7 +4970,21 @@
       "detailRoute": "/stories/story_believer_firaun",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "courage",
+        "faith",
+        "da'wah",
+        "concealment"
+      ],
+      "mainFigures": [
+        "Believer of Fir'awn"
+      ],
+      "subcategories": [
+        "place:egypt",
+        "role:disbeliever",
+        "virtue:courage"
+      ]
     },
     {
       "storyId": "story_khidr",
@@ -3876,7 +5049,22 @@
       "detailRoute": "/stories/story_khidr",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "divine_wisdom",
+        "patience",
+        "hidden_knowledge"
+      ],
+      "mainFigures": [
+        "Khidr",
+        "Musa"
+      ],
+      "subcategories": [
+        "object:ship",
+        "family:parent_child",
+        "virtue:wisdom",
+        "virtue:patience"
+      ]
     },
     {
       "storyId": "story_three_messengers",
@@ -3918,7 +5106,18 @@
       "detailRoute": "/stories/story_three_messengers",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "rejection",
+        "da'wah",
+        "faith",
+        "martyrdom"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "place:village",
+        "role:messenger"
+      ]
     },
     {
       "storyId": "story_two_men",
@@ -3962,7 +5161,18 @@
       "detailRoute": "/stories/story_two_men",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "worldliness",
+        "arrogance",
+        "gratitude"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "place:two_gardens",
+        "nature:plant",
+        "vice:arrogance"
+      ]
     },
     {
       "storyId": "story_saba",
@@ -3997,7 +5207,19 @@
       "detailRoute": "/stories/story_saba",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "ingratitude",
+        "divine_punishment",
+        "blessings"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "place:sheba",
+        "event:flood",
+        "nature:water",
+        "vice:disbelief"
+      ]
     },
     {
       "storyId": "story_ad",
@@ -4041,7 +5263,20 @@
       "detailRoute": "/stories/story_ad",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "arrogance",
+        "divine_punishment",
+        "power"
+      ],
+      "mainFigures": [
+        "Hud"
+      ],
+      "subcategories": [
+        "place:ad_lands",
+        "nature:wind",
+        "vice:arrogance"
+      ]
     },
     {
       "storyId": "story_nuh_people",
@@ -4080,7 +5315,20 @@
       "detailRoute": "/stories/story_nuh_people",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "rejection",
+        "flood",
+        "divine_punishment",
+        "patience"
+      ],
+      "mainFigures": [
+        "Nuh"
+      ],
+      "subcategories": [
+        "event:flood",
+        "vice:disbelief"
+      ]
     },
     {
       "storyId": "story_intercession",
@@ -4124,7 +5372,19 @@
       "detailRoute": "/stories/story_intercession",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "mercy",
+        "eschatology",
+        "hope"
+      ],
+      "mainFigures": [
+        "Muhammad"
+      ],
+      "subcategories": [
+        "afterlife:intercession",
+        "afterlife:judgment_day"
+      ]
     },
     {
       "storyId": "story_creation_heavens_earth",
@@ -4159,7 +5419,17 @@
       "detailRoute": "/stories/story_creation_heavens_earth",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "creation",
+        "divine_power",
+        "signs"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "event:creation",
+        "nature:sky"
+      ]
     },
     {
       "storyId": "story_village_fish",
@@ -4189,7 +5459,19 @@
       "detailRoute": "/stories/story_village_fish",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "trickery",
+        "divine_punishment",
+        "sabbath"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "animal:fish",
+        "place:sea",
+        "miracle:transformation_monkeys",
+        "vice:disobedience"
+      ]
     },
     {
       "storyId": "story_bani_israel",
@@ -4240,7 +5522,23 @@
       "detailRoute": "/stories/story_bani_israel",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "covenant",
+        "disobedience",
+        "blessings",
+        "trials"
+      ],
+      "mainFigures": [
+        "Musa"
+      ],
+      "subcategories": [
+        "object:tablets",
+        "object:manna_salwa",
+        "event:exodus",
+        "event:revelation",
+        "vice:disobedience"
+      ]
     },
     {
       "storyId": "story_yaqub",
@@ -4281,7 +5579,22 @@
       "detailRoute": "/stories/story_yaqub",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "patience",
+        "grief",
+        "trust_in_allah"
+      ],
+      "mainFigures": [
+        "Ya'qub",
+        "Yusuf"
+      ],
+      "subcategories": [
+        "family:father",
+        "family:son",
+        "role:prophet",
+        "virtue:patience"
+      ]
     },
     {
       "storyId": "story_harut_marut",
@@ -4311,7 +5624,19 @@
       "detailRoute": "/stories/story_harut_marut",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "magic",
+        "trial",
+        "warning"
+      ],
+      "mainFigures": [
+        "Harut",
+        "Marut"
+      ],
+      "subcategories": [
+        "vice:deception"
+      ]
     },
     {
       "storyId": "story_sleepers_numbers",
@@ -4341,7 +5666,16 @@
       "detailRoute": "/stories/story_sleepers_numbers",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "unseen_knowledge",
+        "divine_knowledge"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "place:cave",
+        "miracle:cave_sleep"
+      ]
     },
     {
       "storyId": "story_wife_nuh",
@@ -4374,7 +5708,21 @@
       "detailRoute": "/stories/story_wife_nuh",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "betrayal",
+        "disbelief",
+        "warning"
+      ],
+      "mainFigures": [
+        "Wife of Nuh",
+        "Nuh"
+      ],
+      "subcategories": [
+        "family:husband_wife",
+        "role:wife_of_prophet",
+        "vice:disbelief"
+      ]
     },
     {
       "storyId": "story_wife_lut",
@@ -4405,7 +5753,21 @@
       "detailRoute": "/stories/story_wife_lut",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "betrayal",
+        "disbelief",
+        "warning"
+      ],
+      "mainFigures": [
+        "Wife of Lut",
+        "Lut"
+      ],
+      "subcategories": [
+        "family:husband_wife",
+        "role:wife_of_prophet",
+        "vice:disbelief"
+      ]
     },
     {
       "storyId": "story_son_nuh",
@@ -4444,7 +5806,21 @@
       "detailRoute": "/stories/story_son_nuh",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "disobedience",
+        "divine_decree",
+        "grief"
+      ],
+      "mainFigures": [
+        "Nuh"
+      ],
+      "subcategories": [
+        "event:flood",
+        "family:father",
+        "family:son",
+        "vice:disbelief"
+      ]
     },
     {
       "storyId": "story_tree_cursed",
@@ -4481,7 +5857,18 @@
       "detailRoute": "/stories/story_tree_cursed",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "punishment",
+        "warning",
+        "hereafter"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "object:tree_zaqqum",
+        "afterlife:hell",
+        "nature:plant"
+      ]
     },
     {
       "storyId": "story_seven_sleepers_dog",
@@ -4511,7 +5898,17 @@
       "detailRoute": "/stories/story_seven_sleepers_dog",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "loyalty",
+        "companionship",
+        "divine_care"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "animal:dog",
+        "place:cave"
+      ]
     },
     {
       "storyId": "story_musa_firaun_dialogue",
@@ -4555,7 +5952,21 @@
       "detailRoute": "/stories/story_musa_firaun_dialogue",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "da'wah",
+        "arrogance",
+        "truth_vs_falsehood"
+      ],
+      "mainFigures": [
+        "Musa",
+        "Fir'awn"
+      ],
+      "subcategories": [
+        "place:egypt",
+        "event:dialogue",
+        "vice:tyranny"
+      ]
     },
     {
       "storyId": "story_magicians",
@@ -4613,7 +6024,24 @@
       "detailRoute": "/stories/story_magicians",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "faith",
+        "repentance",
+        "courage",
+        "truth"
+      ],
+      "mainFigures": [
+        "Musa",
+        "Fir'awn"
+      ],
+      "subcategories": [
+        "place:egypt",
+        "object:staff",
+        "miracle:staff_to_serpent",
+        "role:magician",
+        "virtue:repentance"
+      ]
     },
     {
       "storyId": "story_sea_crossing",
@@ -4657,7 +6085,22 @@
       "detailRoute": "/stories/story_sea_crossing",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "miracle",
+        "salvation",
+        "divine_punishment"
+      ],
+      "mainFigures": [
+        "Musa",
+        "Fir'awn"
+      ],
+      "subcategories": [
+        "place:sea",
+        "event:exodus",
+        "miracle:sea_parting",
+        "nature:water"
+      ]
     },
     {
       "storyId": "story_golden_calf",
@@ -4708,7 +6151,22 @@
       "detailRoute": "/stories/story_golden_calf",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "idolatry",
+        "trial",
+        "anger"
+      ],
+      "mainFigures": [
+        "Samiri",
+        "Harun",
+        "Musa"
+      ],
+      "subcategories": [
+        "animal:calf",
+        "object:calf_gold",
+        "vice:idolatry"
+      ]
     },
     {
       "storyId": "story_musa_mountain",
@@ -4745,7 +6203,21 @@
       "detailRoute": "/stories/story_musa_mountain",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "divine_encounter",
+        "revelation",
+        "humility"
+      ],
+      "mainFigures": [
+        "Musa"
+      ],
+      "subcategories": [
+        "place:mount_sinai",
+        "object:tablets",
+        "event:revelation",
+        "nature:mountain"
+      ]
     },
     {
       "storyId": "story_sulayman_jinn",
@@ -4787,7 +6259,18 @@
       "detailRoute": "/stories/story_sulayman_jinn",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "divine_kingdom",
+        "subjugation",
+        "death"
+      ],
+      "mainFigures": [
+        "Sulayman"
+      ],
+      "subcategories": [
+        "role:king"
+      ]
     },
     {
       "storyId": "story_dawud_trial",
@@ -4817,7 +6300,21 @@
       "detailRoute": "/stories/story_dawud_trial",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "justice",
+        "repentance",
+        "wisdom"
+      ],
+      "mainFigures": [
+        "Dawud"
+      ],
+      "subcategories": [
+        "animal:sheep",
+        "event:judgment",
+        "role:king",
+        "virtue:justice"
+      ]
     },
     {
       "storyId": "story_ibrahim_fire",
@@ -4858,7 +6355,20 @@
       "detailRoute": "/stories/story_ibrahim_fire",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "faith",
+        "miracle",
+        "trust_in_allah"
+      ],
+      "mainFigures": [
+        "Ibrahim"
+      ],
+      "subcategories": [
+        "miracle:fire_cool",
+        "nature:fire",
+        "virtue:trust_in_allah"
+      ]
     },
     {
       "storyId": "story_ibrahim_stars",
@@ -4892,7 +6402,20 @@
       "detailRoute": "/stories/story_ibrahim_stars",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "monotheism",
+        "reasoning",
+        "da'wah"
+      ],
+      "mainFigures": [
+        "Ibrahim"
+      ],
+      "subcategories": [
+        "nature:stars",
+        "nature:moon",
+        "nature:sun"
+      ]
     },
     {
       "storyId": "story_ibrahim_nimrod",
@@ -4926,7 +6449,21 @@
       "detailRoute": "/stories/story_ibrahim_nimrod",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "monotheism",
+        "arrogance",
+        "debate"
+      ],
+      "mainFigures": [
+        "Ibrahim",
+        "Nimrod"
+      ],
+      "subcategories": [
+        "event:dialogue",
+        "role:king",
+        "vice:tyranny"
+      ]
     },
     {
       "storyId": "story_musa_midian",
@@ -4970,7 +6507,20 @@
       "detailRoute": "/stories/story_musa_midian",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "exile",
+        "chivalry",
+        "divine_plan"
+      ],
+      "mainFigures": [
+        "Musa",
+        "Shu'ayb"
+      ],
+      "subcategories": [
+        "place:madyan",
+        "family:husband_wife"
+      ]
     },
     {
       "storyId": "story_musa_burning_bush",
@@ -5014,7 +6564,21 @@
       "detailRoute": "/stories/story_musa_burning_bush",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "revelation",
+        "divine_encounter",
+        "prophethood"
+      ],
+      "mainFigures": [
+        "Musa"
+      ],
+      "subcategories": [
+        "place:mount_sinai",
+        "event:revelation",
+        "miracle:staff_to_serpent",
+        "nature:fire"
+      ]
     },
     {
       "storyId": "story_isa_miracles",
@@ -5060,7 +6624,23 @@
       "detailRoute": "/stories/story_isa_miracles",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "miracle",
+        "divine_power",
+        "faith"
+      ],
+      "mainFigures": [
+        "Isa"
+      ],
+      "subcategories": [
+        "animal:birds",
+        "object:table_spread",
+        "miracle:bird_creation",
+        "miracle:dead_revived",
+        "miracle:healing_blind",
+        "miracle:healing_leper"
+      ]
     },
     {
       "storyId": "story_isa_ascension",
@@ -5099,7 +6679,18 @@
       "detailRoute": "/stories/story_isa_ascension",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "divine_plan",
+        "salvation",
+        "prophecy"
+      ],
+      "mainFigures": [
+        "Isa"
+      ],
+      "subcategories": [
+        "nature:sky"
+      ]
     },
     {
       "storyId": "story_maryam_birth",
@@ -5131,7 +6722,22 @@
       "detailRoute": "/stories/story_maryam_birth",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "devotion",
+        "divine_care",
+        "purity"
+      ],
+      "mainFigures": [
+        "Maryam",
+        "Imran's wife",
+        "Zakariyya"
+      ],
+      "subcategories": [
+        "place:masjid_al_aqsa",
+        "family:mother",
+        "family:daughter"
+      ]
     },
     {
       "storyId": "story_yusuf_dream",
@@ -5174,7 +6780,22 @@
       "detailRoute": "/stories/story_yusuf_dream",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "prophecy",
+        "jealousy",
+        "divine_plan"
+      ],
+      "mainFigures": [
+        "Yusuf",
+        "Ya'qub"
+      ],
+      "subcategories": [
+        "event:dream",
+        "nature:stars",
+        "nature:moon",
+        "nature:sun"
+      ]
     },
     {
       "storyId": "story_yusuf_prison",
@@ -5224,7 +6845,19 @@
       "detailRoute": "/stories/story_yusuf_prison",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "patience",
+        "da'wah",
+        "dream_interpretation"
+      ],
+      "mainFigures": [
+        "Yusuf"
+      ],
+      "subcategories": [
+        "place:prison",
+        "event:dream"
+      ]
     },
     {
       "storyId": "story_yusuf_brothers",
@@ -5272,7 +6905,21 @@
       "detailRoute": "/stories/story_yusuf_brothers",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "jealousy",
+        "forgiveness",
+        "divine_plan"
+      ],
+      "mainFigures": [
+        "Yusuf"
+      ],
+      "subcategories": [
+        "object:shirt_yusuf",
+        "object:cup",
+        "family:brothers",
+        "vice:jealousy"
+      ]
     },
     {
       "storyId": "story_abasa",
@@ -5309,7 +6956,19 @@
       "detailRoute": "/stories/story_abasa",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "equality",
+        "da'wah",
+        "divine_admonition"
+      ],
+      "mainFigures": [
+        "Muhammad",
+        "Ibn Umm Maktum"
+      ],
+      "subcategories": [
+        "virtue:humility"
+      ]
     },
     {
       "storyId": "story_abu_lahab",
@@ -5337,7 +6996,19 @@
       "detailRoute": "/stories/story_abu_lahab",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "enmity",
+        "divine_punishment",
+        "arrogance"
+      ],
+      "mainFigures": [
+        "Abu Lahab"
+      ],
+      "subcategories": [
+        "family:husband_wife",
+        "vice:disbelief"
+      ]
     },
     {
       "storyId": "story_sulayman_horses",
@@ -5371,7 +7042,19 @@
       "detailRoute": "/stories/story_sulayman_horses",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "devotion",
+        "sacrifice",
+        "repentance"
+      ],
+      "mainFigures": [
+        "Sulayman"
+      ],
+      "subcategories": [
+        "animal:horse",
+        "role:king"
+      ]
     },
     {
       "storyId": "story_sulayman_trial",
@@ -5406,7 +7089,19 @@
       "detailRoute": "/stories/story_sulayman_trial",
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
-      "warnings": []
+      "warnings": [],
+      "themes": [
+        "trial",
+        "repentance",
+        "humility"
+      ],
+      "mainFigures": [
+        "Sulayman"
+      ],
+      "subcategories": [
+        "event:trial",
+        "role:king"
+      ]
     },
     {
       "storyId": "storypage_ishaq",
@@ -5544,6 +7239,14 @@
       "humanReviewRequired": true,
       "warnings": [
         "AI-assisted summary; needs scholarly review."
+      ],
+      "themes": [],
+      "mainFigures": [
+        "prophet_ishaq",
+        "figure_sarah"
+      ],
+      "subcategories": [
+        "role:prophet"
       ]
     },
     {
@@ -5681,6 +7384,13 @@
       "humanReviewRequired": true,
       "warnings": [
         "AI-assisted summary; needs scholarly review."
+      ],
+      "themes": [],
+      "mainFigures": [
+        "prophet_yaqub"
+      ],
+      "subcategories": [
+        "role:prophet"
       ]
     },
     {
@@ -5911,6 +7621,14 @@
       "humanReviewRequired": true,
       "warnings": [
         "AI-assisted summary; needs scholarly review."
+      ],
+      "themes": [],
+      "mainFigures": [
+        "prophet_harun",
+        "figure_firawn"
+      ],
+      "subcategories": [
+        "role:prophet"
       ]
     },
     {
@@ -5960,6 +7678,13 @@
         "القرآن لا يفصّل قصة هذا النبي؛ هذا ملف موجز.",
         "The Quran does not narrate this prophet in detail; this is a compact profile.",
         "AI-assisted summary; needs scholarly review."
+      ],
+      "themes": [],
+      "mainFigures": [
+        "prophet_dhulkifl"
+      ],
+      "subcategories": [
+        "role:prophet"
       ]
     },
     {
@@ -6002,6 +7727,13 @@
       "humanReviewRequired": true,
       "warnings": [
         "AI-assisted summary; needs scholarly review."
+      ],
+      "themes": [],
+      "mainFigures": [
+        "prophet_ilyas"
+      ],
+      "subcategories": [
+        "role:prophet"
       ]
     },
     {
@@ -6049,6 +7781,13 @@
         "القرآن لا يفصّل قصة هذا النبي؛ هذا ملف موجز.",
         "The Quran does not narrate this prophet in detail; this is a compact profile.",
         "AI-assisted summary; needs scholarly review."
+      ],
+      "themes": [],
+      "mainFigures": [
+        "prophet_alyasa"
+      ],
+      "subcategories": [
+        "role:prophet"
       ]
     },
     {
@@ -6187,6 +7926,14 @@
       "humanReviewRequired": true,
       "warnings": [
         "AI-assisted summary; needs scholarly review."
+      ],
+      "themes": [],
+      "mainFigures": [
+        "prophet_sulayman",
+        "figure_bilqis"
+      ],
+      "subcategories": [
+        "role:prophet"
       ]
     },
     {
@@ -6259,6 +8006,16 @@
         "هذه الصفحة تعرض الشواهد القرآنية فقط ولا تمثل سيرة كاملة للنبي ﷺ.",
         "This page presents Quranic evidence only and is not a full biography of the Prophet ﷺ.",
         "seerah_deferred: detailed biography is deferred to a separate module."
+      ],
+      "themes": [],
+      "mainFigures": [
+        "prophet_muhammad",
+        "figure_maryam"
+      ],
+      "subcategories": [
+        "event:revelation",
+        "role:prophet",
+        "role:messenger"
       ]
     },
     {
@@ -6373,6 +8130,13 @@
       "humanReviewRequired": true,
       "warnings": [
         "AI-assisted summary; needs scholarly review."
+      ],
+      "themes": [],
+      "mainFigures": [
+        "prophet_ismail"
+      ],
+      "subcategories": [
+        "role:prophet"
       ]
     }
   ],

@@ -36,11 +36,15 @@ import type {
   RegistryQuranReferenceLinkType,
   QuranStoryRegistryFile,
   RegistryCoverageSummary,
+  SubcategoryGroup,
 } from '../frontend/src/types/quranStoryRegistry';
 import {
   REGISTRY_CATEGORY_ALIASES,
   REGISTRY_CATEGORY_ORDER,
+  SUBCATEGORY_GROUP_ORDER,
+  parseSubcategory,
 } from '../frontend/src/types/quranStoryRegistry';
+import { STORY_SUBCATEGORY_MAP } from './storySubcategoryMap';
 
 const ROOT = resolve(__dirname, '..');
 const MANIFEST = join(ROOT, 'data/manifests/stories.json');
@@ -243,7 +247,38 @@ function fromManifest(story: ManifestStory): RegistryStoryEntry {
     reviewStatus,
     humanReviewRequired: true,
     warnings,
+    themes: uniq(story.themes || []),
+    mainFigures: uniq(story.main_figures || []),
+    subcategories: resolveSubcategories(story.id),
   };
+}
+
+/**
+ * Resolve and normalise the subcategory tags for a given storyId.
+ *
+ * Rules:
+ *   - Drops malformed entries (no colon, unknown group).
+ *   - Deduplicates while preserving the order from the map.
+ *   - Groups are emitted in SUBCATEGORY_GROUP_ORDER so the UI sees a
+ *     predictable layout.
+ */
+function resolveSubcategories(storyId: string): string[] {
+  const raw = STORY_SUBCATEGORY_MAP[storyId] || [];
+  const seen = new Set<string>();
+  const buckets = new Map<SubcategoryGroup, string[]>();
+  for (const s of raw) {
+    if (seen.has(s)) continue;
+    const parsed = parseSubcategory(s);
+    if (!parsed) continue;
+    seen.add(s);
+    if (!buckets.has(parsed.group)) buckets.set(parsed.group, []);
+    buckets.get(parsed.group)!.push(s);
+  }
+  const ordered: string[] = [];
+  for (const g of SUBCATEGORY_GROUP_ORDER) {
+    for (const s of buckets.get(g) || []) ordered.push(s);
+  }
+  return ordered;
 }
 
 function fromProphetPage(page: ProphetPagesFile['pages'][number]): RegistryStoryEntry {
@@ -281,6 +316,18 @@ function fromProphetPage(page: ProphetPagesFile['pages'][number]): RegistryStory
 
   const warnings = [...(page.warnings || [])];
 
+  // Prophet pages always carry the "role:prophet" subcategory; mission
+  // summaries also pick up "event:revelation" so users can find the sirah
+  // entry from the events facet. Any storyId already present in the
+  // hand-authored map overrides this.
+  const inherited =
+    category === 'prophetic_sirah'
+      ? ['role:prophet', 'role:messenger', 'event:revelation']
+      : ['role:prophet'];
+  const subcats = STORY_SUBCATEGORY_MAP[page.storyPageId]
+    ? resolveSubcategories(page.storyPageId)
+    : resolveSubcategoriesFromList(inherited);
+
   return {
     storyId: page.storyPageId,
     titleArabic: page.titleArabic,
@@ -305,7 +352,33 @@ function fromProphetPage(page: ProphetPagesFile['pages'][number]): RegistryStory
     reviewStatus: page.reviewStatus === 'verified' ? 'verified' : 'needs_review',
     humanReviewRequired: page.humanReviewRequired !== false,
     warnings,
+    themes: [],
+    mainFigures: [page.prophetId, ...(page.relatedFigures || [])],
+    subcategories: subcats,
   };
+}
+
+/**
+ * Variant of resolveSubcategories that takes an arbitrary list of raw
+ * "group:tag" strings instead of looking up by storyId. Used for inherited
+ * defaults (e.g. every prophet page gets "role:prophet").
+ */
+function resolveSubcategoriesFromList(raw: string[]): string[] {
+  const seen = new Set<string>();
+  const buckets = new Map<SubcategoryGroup, string[]>();
+  for (const s of raw) {
+    if (seen.has(s)) continue;
+    const parsed = parseSubcategory(s);
+    if (!parsed) continue;
+    seen.add(s);
+    if (!buckets.has(parsed.group)) buckets.set(parsed.group, []);
+    buckets.get(parsed.group)!.push(s);
+  }
+  const ordered: string[] = [];
+  for (const g of SUBCATEGORY_GROUP_ORDER) {
+    for (const s of buckets.get(g) || []) ordered.push(s);
+  }
+  return ordered;
 }
 
 // ---------------------------------------------------------------------------
@@ -461,6 +534,36 @@ const catCounts: Record<string, number> = {};
 for (const e of entries) catCounts[e.category] = (catCounts[e.category] || 0) + 1;
 for (const c of REGISTRY_CATEGORY_ORDER) {
   md.push(`- ${c}: ${catCounts[c] || 0}`);
+}
+md.push('');
+
+// Subcategory facet histogram so reviewers can spot under-tagged groups
+// at a glance.
+md.push('## Subcategory coverage');
+md.push('');
+const groupStoryIds = new Map<string, Set<string>>();
+const tagStoryIds = new Map<string, Set<string>>();
+for (const e of entries) {
+  for (const sc of e.subcategories || []) {
+    const idx = sc.indexOf(':');
+    if (idx <= 0) continue;
+    const group = sc.slice(0, idx);
+    if (!groupStoryIds.has(group)) groupStoryIds.set(group, new Set());
+    groupStoryIds.get(group)!.add(e.storyId);
+    if (!tagStoryIds.has(sc)) tagStoryIds.set(sc, new Set());
+    tagStoryIds.get(sc)!.add(e.storyId);
+  }
+}
+for (const g of SUBCATEGORY_GROUP_ORDER) {
+  const storyIds = groupStoryIds.get(g);
+  if (!storyIds || storyIds.size === 0) continue;
+  md.push(`- **${g}** — ${storyIds.size} stories`);
+  const tags = Array.from(tagStoryIds.entries())
+    .filter(([k]) => k.startsWith(`${g}:`))
+    .sort((a, b) => b[1].size - a[1].size || a[0].localeCompare(b[0]));
+  for (const [tag, ids] of tags) {
+    md.push(`  - ${tag} (${ids.size})`);
+  }
 }
 md.push('');
 md.push('## Warnings');

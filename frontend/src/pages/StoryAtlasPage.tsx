@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Map,
   Book,
@@ -19,16 +19,21 @@ import { ConnectedStoriesPanel } from '../components/stories/ConnectedStoriesPan
 import {
   getRegistry,
   getStoriesByCategory,
+  getStoriesBySubcategory,
+  getSubcategoryFacets,
   searchStories,
   isRegistryHealthy,
 } from '../utils/storyRegistryAdapter';
 import {
   REGISTRY_CATEGORY_LABELS,
   REGISTRY_CATEGORY_ORDER,
+  SUBCATEGORY_GROUP_LABELS,
+  getSubcategoryLabel,
 } from '../types/quranStoryRegistry';
 import type {
   RegistryStoryCategory,
   RegistryStoryEntry,
+  SubcategoryGroup,
 } from '../types/quranStoryRegistry';
 
 type CategoryFilter = RegistryStoryCategory | 'all';
@@ -56,19 +61,51 @@ export function StoryAtlasPage() {
   const { language } = useLanguageStore();
   const isArabic = language === 'ar';
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  // Selected subcategory filter — either "all", a parent group ("animal"),
+  // or a full "group:tag" string ("animal:cow"). Synced with the URL via
+  // ?subcategory= so StoryDetailPage chips can deep-link into the atlas.
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>(
+    searchParams.get('subcategory') || 'all',
+  );
+
+  useEffect(() => {
+    const next = new URLSearchParams(searchParams);
+    if (selectedSubcategory === 'all') {
+      next.delete('subcategory');
+    } else {
+      next.set('subcategory', selectedSubcategory);
+    }
+    // Avoid pushing a new history entry if nothing changed.
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSubcategory]);
 
   const registry = getRegistry();
   const healthy = isRegistryHealthy();
+  const subcategoryFacets = useMemo(
+    () => (healthy ? getSubcategoryFacets() : []),
+    [healthy],
+  );
 
   const filtered: RegistryStoryEntry[] = useMemo(() => {
     if (!healthy) return [];
-    const base = getStoriesByCategory(selectedCategory);
+    let base = getStoriesByCategory(selectedCategory);
+    if (selectedSubcategory !== 'all') {
+      const subSet = new Set(
+        getStoriesBySubcategory(selectedSubcategory).map((s) => s.storyId),
+      );
+      base = base.filter((s) => subSet.has(s.storyId));
+    }
     if (!searchQuery.trim()) return base;
     const matches = new Set(searchStories(searchQuery).map((s) => s.storyId));
     return base.filter((s) => matches.has(s.storyId));
-  }, [selectedCategory, searchQuery, healthy]);
+  }, [selectedCategory, selectedSubcategory, searchQuery, healthy]);
 
   const counts = useMemo(() => {
     const byCategory: Record<string, number> = {};
@@ -180,6 +217,14 @@ export function StoryAtlasPage() {
               );
             })}
           </div>
+
+          {/* Subcategory facets */}
+          <SubcategoryFacets
+            facets={subcategoryFacets}
+            selected={selectedSubcategory}
+            onSelect={setSelectedSubcategory}
+            isArabic={isArabic}
+          />
 
           {/* Counts */}
           <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
@@ -399,6 +444,33 @@ function RegistryStoryCard({
         </div>
       )}
 
+      {story.subcategories && story.subcategories.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1">
+          {story.subcategories.slice(0, 6).map((sc) => {
+            const label = getSubcategoryLabel(sc);
+            const group = sc.split(':')[0] as SubcategoryGroup;
+            const groupLabel = SUBCATEGORY_GROUP_LABELS[group];
+            const title = isArabic
+              ? `${groupLabel?.ar ?? group}: ${label.ar}`
+              : `${groupLabel?.en ?? group}: ${label.en}`;
+            return (
+              <span
+                key={sc}
+                title={title}
+                className="inline-flex items-center text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded"
+              >
+                {isArabic ? label.ar : label.en}
+              </span>
+            );
+          })}
+          {story.subcategories.length > 6 && (
+            <span className="text-[11px] text-gray-500">
+              +{story.subcategories.length - 6}
+            </span>
+          )}
+        </div>
+      )}
+
       {story.warnings.length > 0 && (
         <div className="text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded mb-3" dir={isArabic ? 'rtl' : 'ltr'}>
           {story.warnings[0]}
@@ -443,6 +515,129 @@ function RegistryStoryCard({
           />
         </div>
       )}
+    </div>
+  );
+}
+
+function SubcategoryFacets({
+  facets,
+  selected,
+  onSelect,
+  isArabic,
+}: {
+  facets: ReturnType<typeof getSubcategoryFacets>;
+  selected: string;
+  onSelect: (next: string) => void;
+  isArabic: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  if (facets.length === 0) return null;
+
+  return (
+    <div className="mb-6 rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
+      <div className={clsx('mb-2 flex items-center justify-between gap-2', isArabic && 'flex-row-reverse')}>
+        <div className={clsx('text-sm font-semibold text-emerald-900', isArabic && 'font-arabic')}>
+          {isArabic ? 'تصنيفات فرعية' : 'Subcategories'}
+        </div>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-xs text-emerald-700 hover:underline"
+        >
+          {expanded
+            ? (isArabic ? 'إخفاء' : 'Hide')
+            : (isArabic ? 'عرض الكل' : 'Show all')}
+        </button>
+      </div>
+      <div className="space-y-2">
+        <div className={clsx('flex flex-wrap gap-1.5', isArabic && 'justify-end')}>
+          <button
+            type="button"
+            onClick={() => onSelect('all')}
+            className={clsx(
+              'text-xs font-medium px-2 py-1 rounded-full',
+              selected === 'all'
+                ? 'bg-emerald-700 text-white'
+                : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-100',
+            )}
+          >
+            {isArabic ? 'الكل' : 'All'}
+          </button>
+          {facets.map((f) => {
+            const label = SUBCATEGORY_GROUP_LABELS[f.group];
+            const isSelectedGroup = selected === f.group;
+            return (
+              <button
+                key={f.group}
+                type="button"
+                onClick={() => onSelect(isSelectedGroup ? 'all' : f.group)}
+                className={clsx(
+                  'text-xs font-medium px-2 py-1 rounded-full inline-flex items-center gap-1',
+                  isSelectedGroup
+                    ? 'bg-emerald-700 text-white'
+                    : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-100',
+                )}
+                title={isArabic ? `${f.totalStoryCount} قصة` : `${f.totalStoryCount} stories`}
+              >
+                <span>{isArabic ? label.ar : label.en}</span>
+                <span
+                  className={clsx(
+                    'text-[10px] px-1 rounded-full',
+                    isSelectedGroup ? 'bg-white/20' : 'bg-emerald-100 text-emerald-900',
+                  )}
+                >
+                  {f.totalStoryCount}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {expanded && (
+          <div className="pt-2 mt-2 border-t border-emerald-100">
+            {facets.map((f) => (
+              <div key={f.group} className="mb-2">
+                <div
+                  className={clsx(
+                    'text-[11px] uppercase tracking-wide text-emerald-700 mb-1',
+                    isArabic && 'text-right font-arabic',
+                  )}
+                >
+                  {isArabic ? SUBCATEGORY_GROUP_LABELS[f.group].ar : SUBCATEGORY_GROUP_LABELS[f.group].en}
+                </div>
+                <div className={clsx('flex flex-wrap gap-1', isArabic && 'justify-end')}>
+                  {f.tags.map((t) => {
+                    const isSelectedTag = selected === t.tag;
+                    const tagLabel = getSubcategoryLabel(t.tag);
+                    return (
+                      <button
+                        key={t.tag}
+                        type="button"
+                        onClick={() => onSelect(isSelectedTag ? 'all' : t.tag)}
+                        className={clsx(
+                          'text-[11px] px-1.5 py-0.5 rounded-full inline-flex items-center gap-1',
+                          isSelectedTag
+                            ? 'bg-emerald-700 text-white'
+                            : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-100',
+                        )}
+                      >
+                        <span>{isArabic ? tagLabel.ar : tagLabel.en}</span>
+                        <span
+                          className={clsx(
+                            'text-[10px] px-1 rounded-full',
+                            isSelectedTag ? 'bg-white/20' : 'bg-emerald-100 text-emerald-900',
+                          )}
+                        >
+                          {t.storyCount}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

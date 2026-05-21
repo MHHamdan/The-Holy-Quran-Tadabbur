@@ -17,6 +17,11 @@ import type {
   QuranStoryRegistryFile,
   RegistryStoryEntry,
   RegistryStoryCategory,
+  SubcategoryGroup,
+} from '../types/quranStoryRegistry';
+import {
+  parseSubcategory,
+  SUBCATEGORY_GROUP_ORDER,
 } from '../types/quranStoryRegistry';
 
 const registry = registryRaw as QuranStoryRegistryFile;
@@ -48,11 +53,71 @@ export function searchStories(query: string): RegistryStoryEntry[] {
     if (s.relatedProphets.some((p) => p.toLowerCase().includes(q))) return true;
     if (s.relatedEntities.some((e) => e.toLowerCase().includes(q))) return true;
     if (s.relatedTopics.some((t) => t.toLowerCase().includes(q))) return true;
+    if (s.themes?.some((t) => t.toLowerCase().includes(q))) return true;
+    if (s.mainFigures?.some((f) => f.toLowerCase().includes(q))) return true;
+    if (s.subcategories?.some((sc) => sc.toLowerCase().includes(q))) return true;
     if (surahMatch !== null && s.quranReferences.some((r) => r.surahNumber === surahMatch)) {
       return true;
     }
     return false;
   });
+}
+
+/**
+ * Filter stories by either a full "group:tag" subcategory string (e.g.
+ * "animal:cow") or by the parent group alone (e.g. "animal" matches every
+ * animal:* tag).
+ */
+export function getStoriesBySubcategory(subcategory: string): RegistryStoryEntry[] {
+  if (!subcategory || subcategory === 'all') return registry.stories;
+  if (subcategory.includes(':')) {
+    return registry.stories.filter((s) => s.subcategories?.includes(subcategory));
+  }
+  const prefix = `${subcategory}:`;
+  return registry.stories.filter((s) =>
+    s.subcategories?.some((sc) => sc.startsWith(prefix)),
+  );
+}
+
+/**
+ * Build a histogram of every subcategory tag that appears across the
+ * registry, grouped by parent group. Sorted by descending count within
+ * each group, with groups returned in canonical SUBCATEGORY_GROUP_ORDER.
+ */
+export function getSubcategoryFacets(): Array<{
+  group: SubcategoryGroup;
+  tags: Array<{ tag: string; storyCount: number }>;
+  totalStoryCount: number;
+}> {
+  const tagCounts = new Map<string, Set<string>>(); // group:tag → storyIds
+  const groupStoryIds = new Map<SubcategoryGroup, Set<string>>();
+  for (const s of registry.stories) {
+    for (const tag of s.subcategories || []) {
+      const parsed = parseSubcategory(tag);
+      if (!parsed) continue;
+      if (!tagCounts.has(tag)) tagCounts.set(tag, new Set());
+      tagCounts.get(tag)!.add(s.storyId);
+      if (!groupStoryIds.has(parsed.group)) groupStoryIds.set(parsed.group, new Set());
+      groupStoryIds.get(parsed.group)!.add(s.storyId);
+    }
+  }
+  const result: ReturnType<typeof getSubcategoryFacets> = [];
+  for (const group of SUBCATEGORY_GROUP_ORDER) {
+    const tags: Array<{ tag: string; storyCount: number }> = [];
+    for (const [tag, ids] of tagCounts.entries()) {
+      if (tag.startsWith(`${group}:`)) {
+        tags.push({ tag, storyCount: ids.size });
+      }
+    }
+    if (tags.length === 0) continue;
+    tags.sort((a, b) => b.storyCount - a.storyCount || a.tag.localeCompare(b.tag));
+    result.push({
+      group,
+      tags,
+      totalStoryCount: groupStoryIds.get(group)?.size ?? 0,
+    });
+  }
+  return result;
 }
 
 export function getStoryDetailRoute(storyId: string): string | undefined {
