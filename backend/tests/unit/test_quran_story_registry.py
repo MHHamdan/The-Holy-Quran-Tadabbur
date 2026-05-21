@@ -642,3 +642,141 @@ def test_person_search_term_matches() -> None:
     r = client.get("/api/v1/quran/story-atlas", params={"search": "firawn"})
     assert r.status_code == 200
     assert r.json()["total"] >= 1
+
+
+# ---------------------------------------------------------------------------
+# Places taxonomy (Makkah, Madinah, Egypt, Mount Sinai, …)
+# ---------------------------------------------------------------------------
+
+
+PLACE_TYPES = {
+    "sanctuary",
+    "city",
+    "region",
+    "mountain",
+    "water_body",
+    "landmark",
+    "battlefield",
+    "structure",
+    "otherworldly",
+}
+
+PLACES_PATH = ROOT / "frontend" / "src" / "data" / "generated" / "quranPlacesIndex.json"
+
+
+@pytest.fixture(scope="module")
+def places_index() -> Dict[str, Any]:
+    assert PLACES_PATH.exists(), (
+        f"Run `npx tsx scripts/build-quran-story-registry.ts` first; missing {PLACES_PATH}"
+    )
+    return json.loads(PLACES_PATH.read_text(encoding="utf-8"))
+
+
+def test_places_index_is_well_formed(places_index: Dict[str, Any]) -> None:
+    assert len(places_index["places"]) >= 40, (
+        "Places index should cover all major Quranic geography (Makkah, "
+        "Madinah, Egypt, Sinai, Madyan, Sheba, …)"
+    )
+    seen = set()
+    for entry in places_index["places"]:
+        pid = entry["placeId"]
+        assert pid not in seen, f"Duplicate placeId: {pid}"
+        seen.add(pid)
+        assert pid.startswith("place_"), f"placeId must be prefixed: {pid}"
+        assert entry["type"] in PLACE_TYPES, (
+            f"{pid}: unknown type {entry['type']!r}"
+        )
+        assert entry["nameArabic"], f"{pid}: missing nameArabic"
+        assert entry["nameEnglish"], f"{pid}: missing nameEnglish"
+
+
+def test_every_story_has_placeids_array(registry: Dict[str, Any]) -> None:
+    for s in registry["stories"]:
+        assert "placeIds" in s, f"{s['storyId']} missing placeIds field"
+        assert isinstance(s["placeIds"], list)
+
+
+def test_canonical_places_appear_in_registry(registry: Dict[str, Any]) -> None:
+    """Major Quranic places must each link to at least one story so the
+    Places facet renders content."""
+    pid_storycount: Dict[str, int] = {}
+    for s in registry["stories"]:
+        for pid in s.get("placeIds", []):
+            pid_storycount[pid] = pid_storycount.get(pid, 0) + 1
+    for required in (
+        "place_makkah",
+        "place_madinah",
+        "place_egypt",
+        "place_mount_sinai",
+        "place_madyan",
+        "place_sheba",
+        "place_cave_kahf",
+        "place_kabah",
+        "place_jerusalem",
+        "place_red_sea",
+        "place_badr",
+        "place_uhud",
+    ):
+        assert pid_storycount.get(required, 0) >= 1, (
+            f"{required} expected in at least one story; found 0"
+        )
+
+
+def test_filter_by_place_endpoint() -> None:
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    # Filter by canonical placeId.
+    r = client.get(
+        "/api/v1/quran/story-atlas", params={"place": "place_makkah"}
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["total"] >= 1
+    for s in body["stories"]:
+        assert "place_makkah" in s["placeIds"]
+
+    # Filter by type bucket.
+    r = client.get(
+        "/api/v1/quran/story-atlas", params={"place": "mountain"}
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["total"] >= 1
+    for s in body["stories"]:
+        assert any(pid.startswith("place_") for pid in s["placeIds"])
+
+
+def test_places_facets_endpoint() -> None:
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    r = client.get("/api/v1/quran/story-atlas/places")
+    assert r.status_code == 200
+    body = r.json()
+    assert "facets" in body
+    types_present = {f["type"] for f in body["facets"]}
+    for required in ("sanctuary", "city", "mountain", "battlefield"):
+        assert required in types_present
+    # City facet should include Makkah, Madinah, Egypt with ≥1 story each.
+    cities = next(f for f in body["facets"] if f["type"] == "city")
+    city_ids = {p["placeId"]: p for p in cities["places"]}
+    for required in ("place_makkah", "place_madinah", "place_egypt"):
+        assert required in city_ids
+        assert city_ids[required]["storyCount"] >= 1
+
+
+def test_place_search_matches() -> None:
+    """Searching for "egypt" or "sinai" should hit relevant stories."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    r = client.get("/api/v1/quran/story-atlas", params={"search": "egypt"})
+    assert r.status_code == 200
+    assert r.json()["total"] >= 1
+    r = client.get("/api/v1/quran/story-atlas", params={"search": "sinai"})
+    assert r.status_code == 200
+    assert r.json()["total"] >= 1

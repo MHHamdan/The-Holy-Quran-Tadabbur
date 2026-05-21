@@ -34,6 +34,7 @@ _REGISTRY_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quran
 _CONNECTIONS_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quranStoryAtlasConnections.json"
 _CROSS_REFS_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quranStoryCrossReferences.json"
 _PEOPLE_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quranPeopleIndex.json"
+_PLACES_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quranPlacesIndex.json"
 
 _PERSON_ROLE_ORDER = [
     "prophet",
@@ -45,6 +46,18 @@ _PERSON_ROLE_ORDER = [
     "angel",
     "unseen_being",
     "collective",
+]
+
+_PLACE_TYPE_ORDER = [
+    "sanctuary",
+    "city",
+    "region",
+    "mountain",
+    "water_body",
+    "landmark",
+    "battlefield",
+    "structure",
+    "otherworldly",
 ]
 
 _STORY_ID_RE = re.compile(r"^[a-zA-Z0-9_:-]+$")
@@ -102,6 +115,17 @@ def _people_by_id() -> Dict[str, Dict[str, Any]]:
     return out
 
 
+@lru_cache(maxsize=1)
+def _load_places_index() -> Dict[str, Any]:
+    return _read_json(_PLACES_FILE, "scripts/build-quran-story-registry.ts")
+
+
+@lru_cache(maxsize=1)
+def _places_by_id() -> Dict[str, Dict[str, Any]]:
+    idx = _load_places_index()
+    return {p["placeId"]: p for p in idx.get("places", []) or []}
+
+
 def _validate_story_id(story_id: str) -> None:
     if not _STORY_ID_RE.match(story_id):
         raise HTTPException(
@@ -121,6 +145,7 @@ def _filter_stories(
     search: Optional[str],
     subcategory: Optional[str] = None,
     person: Optional[str] = None,
+    place: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     result = stories
     if category and category != "all":
@@ -144,6 +169,20 @@ def _filter_stories(
             ]
         else:
             result = []
+    if place and place != "all":
+        # placeId or type bucket.
+        plbi = _places_by_id()
+        if place in plbi:
+            result = [s for s in result if place in (s.get("placeIds") or [])]
+        elif place in _PLACE_TYPE_ORDER:
+            ids_in_type = {pid for pid, p in plbi.items() if p.get("type") == place}
+            result = [
+                s
+                for s in result
+                if any(pid in ids_in_type for pid in (s.get("placeIds") or []))
+            ]
+        else:
+            result = []
     if subcategory and subcategory != "all":
         # Accept either an exact "group:tag" match or just the parent group.
         if ":" in subcategory:
@@ -164,8 +203,18 @@ def _filter_stories(
         q = search.strip().lower()
         if q:
             pbi = _people_by_id()
+            plbi = _places_by_id()
             def _person_matches(pid: str) -> bool:
                 p = pbi.get(pid)
+                if not p:
+                    return False
+                return (
+                    q in pid.lower()
+                    or q in (p.get("nameEnglish", "") or "").lower()
+                    or q in (p.get("nameArabic", "") or "").lower()
+                )
+            def _place_matches(pid: str) -> bool:
+                p = plbi.get(pid)
                 if not p:
                     return False
                 return (
@@ -186,6 +235,7 @@ def _filter_stories(
                 or any(q in (f or "").lower() for f in s.get("mainFigures", []))
                 or any(q in (sc or "").lower() for sc in s.get("subcategories", []))
                 or any(_person_matches(pid) for pid in s.get("peopleIds", []))
+                or any(_place_matches(pid) for pid in s.get("placeIds", []))
             ]
     return result
 
@@ -206,7 +256,13 @@ def list_registry(
         ' (e.g. "person_firawn", "prophet_musa") or a role bucket'
         ' (e.g. "antagonist", "prophet")',
     ),
-    search: Optional[str] = Query(None, description="Search title / id / prophet / entity / person"),
+    place: Optional[str] = Query(
+        None,
+        description='Place filter — either a canonical placeId'
+        ' (e.g. "place_makkah", "place_mount_sinai") or a type bucket'
+        ' (e.g. "city", "mountain")',
+    ),
+    search: Optional[str] = Query(None, description="Search title / id / prophet / entity / person / place"),
     limit: int = Query(200, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ) -> Dict[str, Any]:
@@ -214,7 +270,7 @@ def list_registry(
     registry = _load_registry()
     stories = registry.get("stories", []) or []
     filtered = _filter_stories(
-        stories, category, prophet, search, subcategory, person
+        stories, category, prophet, search, subcategory, person, place
     )
     total = len(filtered)
     sliced = filtered[offset : offset + limit]
@@ -283,6 +339,63 @@ def get_subcategory_facets(response: Response) -> Dict[str, Any]:
                 "totalStoryCount": len(group_story_ids[group]),
                 "tags": tags,
             }
+        )
+
+    response.headers["Cache-Control"] = _CACHE_HEADER
+    return {
+        "version": registry.get("version"),
+        "generatedAt": registry.get("generatedAt"),
+        "facets": facets,
+    }
+
+
+@router.get("/story-atlas/places")
+def get_places_facets(response: Response) -> Dict[str, Any]:
+    """Return the Places facet histogram.
+
+    For each place type bucket present in the registry, returns the
+    total number of distinct stories featuring places of that type and
+    the per-place story counts with bilingual names.
+    """
+    registry = _load_registry()
+    plbi = _places_by_id()
+    place_story_ids: Dict[str, set] = {}
+    type_story_ids: Dict[str, set] = {}
+    for s in registry.get("stories", []) or []:
+        sid = s.get("storyId")
+        if not sid:
+            continue
+        for pid in s.get("placeIds") or []:
+            entry = plbi.get(pid)
+            if not entry:
+                continue
+            place_story_ids.setdefault(pid, set()).add(sid)
+            type_story_ids.setdefault(entry.get("type", ""), set()).add(sid)
+
+    facets: List[Dict[str, Any]] = []
+    for ptype in _PLACE_TYPE_ORDER:
+        sids = type_story_ids.get(ptype)
+        if not sids:
+            continue
+        places: List[Dict[str, Any]] = []
+        for pid, ids in place_story_ids.items():
+            p = plbi.get(pid)
+            if not p or p.get("type") != ptype:
+                continue
+            places.append(
+                {
+                    "placeId": pid,
+                    "nameArabic": p.get("nameArabic"),
+                    "nameEnglish": p.get("nameEnglish"),
+                    "noteArabic": p.get("noteArabic"),
+                    "noteEnglish": p.get("noteEnglish"),
+                    "quranReferences": p.get("quranReferences", []),
+                    "storyCount": len(ids),
+                }
+            )
+        places.sort(key=lambda x: (-x["storyCount"], x["placeId"]))
+        facets.append(
+            {"type": ptype, "totalStoryCount": len(sids), "places": places}
         )
 
     response.headers["Cache-Control"] = _CACHE_HEADER

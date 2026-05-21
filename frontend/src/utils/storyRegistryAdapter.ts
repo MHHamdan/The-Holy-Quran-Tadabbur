@@ -14,6 +14,7 @@
 
 import registryRaw from '../data/generated/quranStoryRegistry.json';
 import peopleRaw from '../data/generated/quranPeopleIndex.json';
+import placesRaw from '../data/generated/quranPlacesIndex.json';
 import type {
   QuranStoryRegistryFile,
   RegistryStoryEntry,
@@ -21,11 +22,14 @@ import type {
   SubcategoryGroup,
   PersonIndexEntry,
   PersonRole,
+  PlaceIndexEntry,
+  PlaceType,
 } from '../types/quranStoryRegistry';
 import {
   parseSubcategory,
   SUBCATEGORY_GROUP_ORDER,
   PERSON_ROLE_ORDER,
+  PLACE_TYPE_ORDER,
 } from '../types/quranStoryRegistry';
 
 const registry = registryRaw as QuranStoryRegistryFile;
@@ -51,6 +55,24 @@ export function getPerson(personId: string): PersonIndexEntry | undefined {
 
 export function getAllPeople(): PersonIndexEntry[] {
   return Array.from(peopleById.values());
+}
+
+interface PlacesIndexFile {
+  version: string;
+  generatedAt: string;
+  places: PlaceIndexEntry[];
+}
+const placesIndex = placesRaw as PlacesIndexFile;
+const placesById = new Map<string, PlaceIndexEntry>(
+  placesIndex.places.map((p) => [p.placeId, p]),
+);
+
+export function getPlace(placeId: string): PlaceIndexEntry | undefined {
+  return placesById.get(placeId);
+}
+
+export function getAllPlaces(): PlaceIndexEntry[] {
+  return Array.from(placesById.values());
 }
 
 export function getRegistry(): QuranStoryRegistryFile {
@@ -85,6 +107,13 @@ export function searchStories(query: string): RegistryStoryEntry[] {
     if (s.subcategories?.some((sc) => sc.toLowerCase().includes(q))) return true;
     if (s.peopleIds?.some((pid) => {
       const p = peopleById.get(pid);
+      if (!p) return false;
+      return pid.toLowerCase().includes(q)
+        || p.nameEnglish.toLowerCase().includes(q)
+        || p.nameArabic.toLowerCase().includes(q);
+    })) return true;
+    if (s.placeIds?.some((pid) => {
+      const p = placesById.get(pid);
       if (!p) return false;
       return pid.toLowerCase().includes(q)
         || p.nameEnglish.toLowerCase().includes(q)
@@ -166,6 +195,76 @@ export function getPeopleFacets(): Array<{
     }
     people.sort((a, b) => b.storyCount - a.storyCount || a.personId.localeCompare(b.personId));
     out.push({ role, people, totalStoryCount: sids.size });
+  }
+  return out;
+}
+
+/**
+ * Filter stories by placeId. Accepts either a canonical placeId
+ * (`place_makkah`, `place_mount_sinai`) or one of the type labels
+ * (`city`, `mountain`, …) which matches every place of that type.
+ */
+export function getStoriesByPlace(place: string): RegistryStoryEntry[] {
+  if (!place || place === 'all') return registry.stories;
+  if (placesById.has(place)) {
+    return registry.stories.filter((s) => s.placeIds?.includes(place));
+  }
+  if ((PLACE_TYPE_ORDER as string[]).includes(place)) {
+    const idsInType = new Set(
+      Array.from(placesById.values())
+        .filter((p) => p.type === (place as PlaceType))
+        .map((p) => p.placeId),
+    );
+    return registry.stories.filter((s) =>
+      (s.placeIds || []).some((id) => idsInType.has(id)),
+    );
+  }
+  return [];
+}
+
+/**
+ * Histogram of every placeId that appears across the registry, grouped
+ * by place type. Types returned in canonical PLACE_TYPE_ORDER.
+ */
+export function getPlaceFacets(): Array<{
+  type: PlaceType;
+  places: Array<{
+    placeId: string;
+    nameArabic: string;
+    nameEnglish: string;
+    storyCount: number;
+  }>;
+  totalStoryCount: number;
+}> {
+  const placeStoryIds = new Map<string, Set<string>>();
+  const typeStoryIds = new Map<PlaceType, Set<string>>();
+  for (const s of registry.stories) {
+    for (const pid of s.placeIds || []) {
+      const entry = placesById.get(pid);
+      if (!entry) continue;
+      if (!placeStoryIds.has(pid)) placeStoryIds.set(pid, new Set());
+      placeStoryIds.get(pid)!.add(s.storyId);
+      if (!typeStoryIds.has(entry.type)) typeStoryIds.set(entry.type, new Set());
+      typeStoryIds.get(entry.type)!.add(s.storyId);
+    }
+  }
+  const out: ReturnType<typeof getPlaceFacets> = [];
+  for (const type of PLACE_TYPE_ORDER) {
+    const sids = typeStoryIds.get(type);
+    if (!sids || sids.size === 0) continue;
+    const places: ReturnType<typeof getPlaceFacets>[number]['places'] = [];
+    for (const [pid, ids] of placeStoryIds.entries()) {
+      const p = placesById.get(pid);
+      if (!p || p.type !== type) continue;
+      places.push({
+        placeId: pid,
+        nameArabic: p.nameArabic,
+        nameEnglish: p.nameEnglish,
+        storyCount: ids.size,
+      });
+    }
+    places.sort((a, b) => b.storyCount - a.storyCount || a.placeId.localeCompare(b.placeId));
+    out.push({ type, places, totalStoryCount: sids.size });
   }
   return out;
 }

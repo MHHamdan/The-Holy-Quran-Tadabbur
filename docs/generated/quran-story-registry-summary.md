@@ -1,7 +1,7 @@
 # Quran Story Registry — Summary
 
 - Version: 1.0.0
-- Generated: 2026-05-21T14:09:49.490Z
+- Generated: 2026-05-21T19:52:49.569Z
 - Total stories: 132
 - Authored stories: 123
 - Prophet profiles: 9
@@ -195,6 +195,67 @@
   - vice:greed (2)
   - vice:deception (1)
   - vice:slander (1)
+
+## Places coverage
+
+- **sanctuary** — 10 stories
+  - place_kabah (7)
+  - place_masjid_al_haram (5)
+  - place_masjid_al_aqsa (4)
+  - place_safa_marwa (1)
+- **city** — 47 stories
+  - place_egypt (16)
+  - place_makkah (11)
+  - place_madinah (10)
+  - place_jerusalem (8)
+  - place_babylon (3)
+  - place_saba_city (3)
+  - place_iram (2)
+- **region** — 23 stories
+  - place_palestine (8)
+  - place_madyan (4)
+  - place_sheba (4)
+  - place_thicket (3)
+  - place_ad_lands (2)
+  - place_thamud_lands (2)
+  - place_najran (1)
+  - place_rass (1)
+- **mountain** — 12 stories
+  - place_mount_sinai (7)
+  - place_mount_judi (3)
+  - place_cave_hira (2)
+- **water_body** — 11 stories
+  - place_red_sea (5)
+  - place_river_nile (3)
+  - place_well_yusuf (2)
+  - place_two_seas (1)
+  - place_well_madyan (1)
+- **landmark** — 13 stories
+  - place_cave_kahf (3)
+  - place_garden (3)
+  - place_prison_egypt (2)
+  - place_two_gardens (2)
+  - place_village_ruined (2)
+  - place_cave_thawr (1)
+  - place_garden_owners_field (1)
+  - place_ukhdud (1)
+  - place_village_yasin (1)
+- **battlefield** — 4 stories
+  - place_badr (1)
+  - place_hudaybiyyah (1)
+  - place_tabuk (1)
+  - place_uhud (1)
+- **structure** — 13 stories
+  - place_palace_firawn (4)
+  - place_ark_nuh (3)
+  - place_palace_sulayman (3)
+  - place_dhulqarnayn_barrier (2)
+  - place_saba_dam (1)
+- **otherworldly** — 8 stories
+  - place_paradise (4)
+  - place_hell (2)
+  - place_araf (1)
+  - place_sidrat_muntaha (1)
 
 ## People coverage
 

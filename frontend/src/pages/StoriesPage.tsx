@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { getRegistry, getPerson } from '../utils/storyRegistryAdapter';
+import { getRegistry, getPerson, getPlace } from '../utils/storyRegistryAdapter';
 import {
   SUBCATEGORY_GROUP_LABELS,
   PERSON_ROLE_LABELS,
+  PLACE_TYPE_LABELS,
   getSubcategoryLabel,
   type SubcategoryGroup,
 } from '../types/quranStoryRegistry';
@@ -423,6 +424,11 @@ function StoryCard({ story, language, isRich }: { story: Story; language: 'ar' |
           detail page. */}
       <StoryCardPeopleChips storyId={story.id} isRtl={isRtl} />
 
+      {/* Place chips — canonical Quranic places (Makkah, Egypt, Mount
+          Sinai, Cave of Hira, Badr, …). Amber-toned to distinguish from
+          people (indigo) and subcategories (emerald). */}
+      <StoryCardPlaceChips storyId={story.id} isRtl={isRtl} />
+
       {/* Subcategory chips — registry-backed thematic facets such as
           "Animals: Cow", "Places: Egypt", "Vices: Idolatry". These deep-link
           into the story atlas with the corresponding filter. */}
@@ -490,6 +496,46 @@ function StoryCardPeopleChips({
       {entry.peopleIds.length > 4 && (
         <span className="text-[11px] text-gray-500 self-center">
           +{entry.peopleIds.length - 4}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Render up to four registry-backed place chips. Amber tone.
+ */
+function StoryCardPlaceChips({
+  storyId,
+  isRtl,
+}: {
+  storyId: string;
+  isRtl: boolean;
+}) {
+  const entry = getRegistry().stories.find((s) => s.storyId === storyId);
+  if (!entry || !entry.placeIds || entry.placeIds.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1 mb-2">
+      {entry.placeIds.slice(0, 4).map((pid) => {
+        const p = getPlace(pid);
+        if (!p) return null;
+        const typeLabel = PLACE_TYPE_LABELS[p.type];
+        const title = isRtl
+          ? `${typeLabel?.ar ?? p.type}: ${p.nameArabic}`
+          : `${typeLabel?.en ?? p.type}: ${p.nameEnglish}`;
+        return (
+          <span
+            key={pid}
+            title={title}
+            className="text-[11px] font-medium text-amber-900 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded"
+          >
+            {isRtl ? p.nameArabic : p.nameEnglish}
+          </span>
+        );
+      })}
+      {entry.placeIds.length > 4 && (
+        <span className="text-[11px] text-gray-500 self-center">
+          +{entry.placeIds.length - 4}
         </span>
       )}
     </div>

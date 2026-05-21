@@ -50,8 +50,21 @@ import {
   PERSON_ALIASES,
   STORY_EXTRA_PEOPLE,
 } from './quranPeopleIndex';
-import type { PersonIndexEntry, PersonRole } from '../frontend/src/types/quranStoryRegistry';
-import { PERSON_ROLE_ORDER } from '../frontend/src/types/quranStoryRegistry';
+import {
+  QURAN_PLACES_INDEX,
+  SUBCATEGORY_TO_PLACE,
+  STORY_EXTRA_PLACES,
+} from './quranPlacesIndex';
+import type {
+  PersonIndexEntry,
+  PersonRole,
+  PlaceIndexEntry,
+  PlaceType,
+} from '../frontend/src/types/quranStoryRegistry';
+import {
+  PERSON_ROLE_ORDER,
+  PLACE_TYPE_ORDER,
+} from '../frontend/src/types/quranStoryRegistry';
 
 const ROOT = resolve(__dirname, '..');
 const MANIFEST = join(ROOT, 'data/manifests/stories.json');
@@ -69,6 +82,7 @@ const CROSS_REFS = join(GEN, 'quranStoryCrossReferences.json');
 const OUT_JSON = join(GEN, 'quranStoryRegistry.json');
 const OUT_MD = join(ROOT, 'docs/generated/quran-story-registry-summary.md');
 const OUT_PEOPLE_JSON = join(GEN, 'quranPeopleIndex.json');
+const OUT_PLACES_JSON = join(GEN, 'quranPlacesIndex.json');
 const VERSION = '1.0.0';
 
 function loadJSON<T = unknown>(p: string, optional = false): T | null {
@@ -285,6 +299,62 @@ function roleOf(id: string): PersonRole | null {
   return entry?.role ?? null;
 }
 
+// ---------------------------------------------------------------------------
+// Places resolution
+// ---------------------------------------------------------------------------
+
+const knownPlaceIds = new Set<string>(QURAN_PLACES_INDEX.map((p) => p.placeId));
+
+/**
+ * Resolve placeIds for a given story from:
+ *   1. its subcategories — every `place:*` tag is looked up in
+ *      SUBCATEGORY_TO_PLACE and expanded to one or more placeIds.
+ *   2. relatedPlaces from the prophet-page input (already canonical
+ *      entity IDs prefixed with `entity_place_` — we keep those as
+ *      hints but only emit them if they match a known placeId).
+ *   3. STORY_EXTRA_PLACES — hand-authored extras the subcategory tags
+ *      don't cover (e.g. Cave of Hira for the Muhammad story).
+ *
+ * Output is deduplicated and sorted by PLACE_TYPE_ORDER then by placeId.
+ */
+function resolvePlaces(
+  storyId: string,
+  subcategories: string[],
+  relatedPlaces: string[],
+): string[] {
+  const out = new Set<string>();
+  for (const sc of subcategories) {
+    const mapped = SUBCATEGORY_TO_PLACE[sc];
+    if (!mapped) continue;
+    for (const pid of mapped) {
+      if (knownPlaceIds.has(pid)) out.add(pid);
+    }
+  }
+  for (const rp of relatedPlaces) {
+    // Prophet-page relatedPlaces use entity-graph IDs like
+    // "entity_place_sinai" — try a trivial normalisation, then trust
+    // the storyId extras to cover misses.
+    const normalised = rp.replace(/^entity_place_/, 'place_');
+    if (knownPlaceIds.has(normalised)) out.add(normalised);
+  }
+  for (const extra of STORY_EXTRA_PLACES[storyId] || []) {
+    if (knownPlaceIds.has(extra)) out.add(extra);
+  }
+  return Array.from(out).sort((a, b) => {
+    const ta = typeOf(a);
+    const tb = typeOf(b);
+    const ti = ta ? PLACE_TYPE_ORDER.indexOf(ta) : 99;
+    const tj = tb ? PLACE_TYPE_ORDER.indexOf(tb) : 99;
+    if (ti !== tj) return ti - tj;
+    return a.localeCompare(b);
+  });
+}
+
+function typeOf(id: string): PlaceType | null {
+  const entry = QURAN_PLACES_INDEX.find((p) => p.placeId === id);
+  return entry?.type ?? null;
+}
+
 function fromManifest(story: ManifestStory): RegistryStoryEntry {
   const refs: RegistryQuranReference[] = (story.segments || [])
     .filter((s) => typeof s.sura_no === 'number' && typeof s.aya_start === 'number')
@@ -336,6 +406,7 @@ function fromManifest(story: ManifestStory): RegistryStoryEntry {
       story.main_figures || [],
       prophetIdByStoryId.has(story.id) ? [prophetIdByStoryId.get(story.id)!] : [],
     ),
+    placeIds: resolvePlaces(story.id, resolveSubcategories(story.id), []),
   };
 }
 
@@ -446,6 +517,7 @@ function fromProphetPage(page: ProphetPagesFile['pages'][number]): RegistryStory
       page.relatedFigures || [],
       uniq([page.prophetId, ...(page.relatedProphets || [])]),
     ),
+    placeIds: resolvePlaces(page.storyPageId, subcats, page.relatedPlaces || []),
   };
 }
 
@@ -657,6 +729,32 @@ for (const g of SUBCATEGORY_GROUP_ORDER) {
   }
 }
 md.push('');
+// Places coverage histogram.
+md.push('## Places coverage');
+md.push('');
+const typeStoryIds = new Map<PlaceType, Set<string>>();
+const placeStoryIds = new Map<string, Set<string>>();
+for (const e of entries) {
+  for (const pid of e.placeIds || []) {
+    const t = typeOf(pid);
+    if (!t) continue;
+    if (!typeStoryIds.has(t)) typeStoryIds.set(t, new Set());
+    typeStoryIds.get(t)!.add(e.storyId);
+    if (!placeStoryIds.has(pid)) placeStoryIds.set(pid, new Set());
+    placeStoryIds.get(pid)!.add(e.storyId);
+  }
+}
+for (const t of PLACE_TYPE_ORDER) {
+  const sids = typeStoryIds.get(t);
+  if (!sids || sids.size === 0) continue;
+  md.push(`- **${t}** — ${sids.size} stories`);
+  const places = Array.from(placeStoryIds.entries())
+    .filter(([pid]) => typeOf(pid) === t)
+    .sort((a, b) => b[1].size - a[1].size || a[0].localeCompare(b[0]));
+  for (const [pid, ids] of places) md.push(`  - ${pid} (${ids.size})`);
+}
+md.push('');
+
 // People coverage histogram (similar shape to subcategory facets).
 md.push('## People coverage');
 md.push('');
@@ -708,3 +806,11 @@ const peopleOut = {
 };
 writeFileSync(OUT_PEOPLE_JSON, JSON.stringify(peopleOut, null, 2));
 console.log(`Wrote ${OUT_PEOPLE_JSON}`);
+
+const placesOut = {
+  version: VERSION,
+  generatedAt: out.generatedAt,
+  places: QURAN_PLACES_INDEX as PlaceIndexEntry[],
+};
+writeFileSync(OUT_PLACES_JSON, JSON.stringify(placesOut, null, 2));
+console.log(`Wrote ${OUT_PLACES_JSON}`);

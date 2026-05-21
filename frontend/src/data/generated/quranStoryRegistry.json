@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-05-21T14:09:49.490Z",
+  "generatedAt": "2026-05-21T19:52:49.569Z",
   "categories": [
     "prophet",
     "prophetic_sirah",
@@ -133,6 +133,10 @@
         "person_iblis",
         "person_hawwa",
         "person_angels_generic"
+      ],
+      "placeIds": [
+        "place_garden",
+        "place_paradise"
       ]
     },
     {
@@ -231,6 +235,10 @@
       "peopleIds": [
         "prophet_nuh",
         "person_son_nuh"
+      ],
+      "placeIds": [
+        "place_mount_judi",
+        "place_ark_nuh"
       ]
     },
     {
@@ -359,6 +367,13 @@
         "person_father_ibrahim",
         "person_hajar",
         "person_sarah"
+      ],
+      "placeIds": [
+        "place_kabah",
+        "place_masjid_al_haram",
+        "place_babylon",
+        "place_makkah",
+        "place_palestine"
       ]
     },
     {
@@ -493,6 +508,13 @@
         "person_firawn",
         "person_haman",
         "person_bani_israel"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_madyan",
+        "place_mount_sinai",
+        "place_red_sea",
+        "place_river_nile"
       ]
     },
     {
@@ -624,6 +646,11 @@
         "person_zulaykha",
         "person_aziz_egypt",
         "person_brothers_yusuf"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_well_yusuf",
+        "place_prison_egypt"
       ]
     },
     {
@@ -732,6 +759,10 @@
         "prophet_isa",
         "person_maryam",
         "person_disciples_isa"
+      ],
+      "placeIds": [
+        "place_jerusalem",
+        "place_palestine"
       ]
     },
     {
@@ -827,6 +858,10 @@
         "prophet_zakariyya",
         "person_imran_wife",
         "person_maryam"
+      ],
+      "placeIds": [
+        "place_masjid_al_aqsa",
+        "place_jerusalem"
       ]
     },
     {
@@ -904,6 +939,10 @@
       "peopleIds": [
         "prophet_yahya",
         "prophet_zakariyya"
+      ],
+      "placeIds": [
+        "place_masjid_al_aqsa",
+        "place_jerusalem"
       ]
     },
     {
@@ -1006,6 +1045,12 @@
         "prophet_sulayman",
         "person_bilqis",
         "person_jinn_generic"
+      ],
+      "placeIds": [
+        "place_jerusalem",
+        "place_saba_city",
+        "place_sheba",
+        "place_palace_sulayman"
       ]
     },
     {
@@ -1093,7 +1138,8 @@
         "prophet_dawud",
         "person_talut",
         "person_jalut"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_ayyub",
@@ -1160,7 +1206,8 @@
       ],
       "peopleIds": [
         "prophet_ayyub"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_yunus",
@@ -1240,6 +1287,9 @@
       "peopleIds": [
         "prophet_yunus",
         "person_bani_israel"
+      ],
+      "placeIds": [
+        "place_red_sea"
       ]
     },
     {
@@ -1320,6 +1370,9 @@
         "prophet_lut",
         "person_bani_israel",
         "person_people_lut"
+      ],
+      "placeIds": [
+        "place_palestine"
       ]
     },
     {
@@ -1395,6 +1448,10 @@
       "peopleIds": [
         "prophet_shuayb",
         "person_people_madyan"
+      ],
+      "placeIds": [
+        "place_madyan",
+        "place_thicket"
       ]
     },
     {
@@ -1470,6 +1527,9 @@
       "peopleIds": [
         "prophet_salih",
         "person_people_thamud"
+      ],
+      "placeIds": [
+        "place_thamud_lands"
       ]
     },
     {
@@ -1542,6 +1602,10 @@
       "peopleIds": [
         "prophet_hud",
         "person_people_ad"
+      ],
+      "placeIds": [
+        "place_iram",
+        "place_ad_lands"
       ]
     },
     {
@@ -1620,6 +1684,9 @@
       ],
       "peopleIds": [
         "person_youth_cave"
+      ],
+      "placeIds": [
+        "place_cave_kahf"
       ]
     },
     {
@@ -1699,6 +1766,9 @@
         "person_dhulqarnayn",
         "person_majuj",
         "person_yajuj"
+      ],
+      "placeIds": [
+        "place_dhulqarnayn_barrier"
       ]
     },
     {
@@ -1777,7 +1847,8 @@
       "peopleIds": [
         "person_luqman",
         "person_son_nuh"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_qarun",
@@ -1863,6 +1934,9 @@
         "prophet_musa",
         "person_qarun",
         "person_bani_israel"
+      ],
+      "placeIds": [
+        "place_egypt"
       ]
     },
     {
@@ -1940,7 +2014,8 @@
       "peopleIds": [
         "person_habil",
         "person_qabil"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_elephant",
@@ -1989,6 +2064,11 @@
       "peopleIds": [
         "person_abraha",
         "person_people_elephant"
+      ],
+      "placeIds": [
+        "place_kabah",
+        "place_masjid_al_haram",
+        "place_makkah"
       ]
     },
     {
@@ -2067,7 +2147,8 @@
       "peopleIds": [
         "prophet_musa",
         "person_bani_israel"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_uzair",
@@ -2128,7 +2209,8 @@
       ],
       "peopleIds": [
         "person_uzair"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_sabbath_breakers",
@@ -2199,6 +2281,9 @@
       "peopleIds": [
         "person_bani_israel",
         "person_sabbath_breakers"
+      ],
+      "placeIds": [
+        "place_red_sea"
       ]
     },
     {
@@ -2263,6 +2348,9 @@
         "prophet_adam",
         "person_iblis",
         "person_angels_generic"
+      ],
+      "placeIds": [
+        "place_paradise"
       ]
     },
     {
@@ -2312,7 +2400,8 @@
       ],
       "peopleIds": [
         "person_jinn_generic"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_yajuj_majuj",
@@ -2368,6 +2457,10 @@
         "person_dhulqarnayn",
         "person_majuj",
         "person_yajuj"
+      ],
+      "placeIds": [
+        "place_mount_judi",
+        "place_dhulqarnayn_barrier"
       ]
     },
     {
@@ -2439,6 +2532,10 @@
       ],
       "peopleIds": [
         "person_garden_owners"
+      ],
+      "placeIds": [
+        "place_garden",
+        "place_two_gardens"
       ]
     },
     {
@@ -2477,7 +2574,8 @@
       "subcategories": [
         "nature:plant"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_fly",
@@ -2516,7 +2614,8 @@
         "animal:fly",
         "vice:idolatry"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_spider",
@@ -2554,7 +2653,8 @@
       "subcategories": [
         "animal:spider"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_tubba",
@@ -2605,7 +2705,8 @@
       ],
       "peopleIds": [
         "person_people_tubba"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_rass",
@@ -2656,6 +2757,9 @@
       ],
       "peopleIds": [
         "person_people_rass"
+      ],
+      "placeIds": [
+        "place_rass"
       ]
     },
     {
@@ -2710,6 +2814,9 @@
       "peopleIds": [
         "prophet_shuayb",
         "person_people_ayka"
+      ],
+      "placeIds": [
+        "place_thicket"
       ]
     },
     {
@@ -2776,7 +2883,8 @@
         "prophet_dawud",
         "person_talut",
         "person_jalut"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_ifk",
@@ -2829,6 +2937,9 @@
       "peopleIds": [
         "person_aisha",
         "person_hypocrites_madinah"
+      ],
+      "placeIds": [
+        "place_madinah"
       ]
     },
     {
@@ -2884,7 +2995,8 @@
       ],
       "peopleIds": [
         "prophet_idris"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_ismail",
@@ -2956,6 +3068,12 @@
         "prophet_ibrahim",
         "prophet_ismail",
         "person_hajar"
+      ],
+      "placeIds": [
+        "place_kabah",
+        "place_masjid_al_haram",
+        "place_safa_marwa",
+        "place_makkah"
       ]
     },
     {
@@ -3011,7 +3129,8 @@
       ],
       "peopleIds": [
         "prophet_dhulkifl"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_ilyas",
@@ -3056,7 +3175,8 @@
       ],
       "peopleIds": [
         "prophet_ilyas"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_alyasa",
@@ -3109,7 +3229,8 @@
       ],
       "peopleIds": [
         "prophet_alyasa"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_muhammad",
@@ -3194,6 +3315,11 @@
       ],
       "peopleIds": [
         "prophet_muhammad"
+      ],
+      "placeIds": [
+        "place_madinah",
+        "place_makkah",
+        "place_cave_hira"
       ]
     },
     {
@@ -3244,6 +3370,10 @@
       ],
       "peopleIds": [
         "person_garden_owners"
+      ],
+      "placeIds": [
+        "place_garden",
+        "place_garden_owners_field"
       ]
     },
     {
@@ -3287,6 +3417,9 @@
       ],
       "peopleIds": [
         "person_people_ditch"
+      ],
+      "placeIds": [
+        "place_ukhdud"
       ]
     },
     {
@@ -3325,7 +3458,8 @@
       "subcategories": [
         "animal:donkey"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_dog_parable",
@@ -3367,7 +3501,8 @@
       ],
       "peopleIds": [
         "person_balam"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_ant_hoopoe",
@@ -3426,7 +3561,8 @@
       ],
       "peopleIds": [
         "prophet_sulayman"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_bilqis",
@@ -3499,6 +3635,11 @@
       "peopleIds": [
         "prophet_sulayman",
         "person_bilqis"
+      ],
+      "placeIds": [
+        "place_saba_city",
+        "place_sheba",
+        "place_palace_sulayman"
       ]
     },
     {
@@ -3537,7 +3678,8 @@
       "subcategories": [
         "miracle:healing_blind"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_light_parable",
@@ -3576,7 +3718,8 @@
         "object:scripture",
         "nature:sky"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_rain_parable",
@@ -3623,7 +3766,8 @@
         "nature:water",
         "nature:plant"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_charity_parable",
@@ -3669,7 +3813,8 @@
         "nature:plant",
         "virtue:charity"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_haman",
@@ -3734,6 +3879,9 @@
       "peopleIds": [
         "person_firawn",
         "person_haman"
+      ],
+      "placeIds": [
+        "place_egypt"
       ]
     },
     {
@@ -3776,7 +3924,10 @@
         "place:village",
         "miracle:dead_revived"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": [
+        "place_village_ruined"
+      ]
     },
     {
       "storyId": "story_ibrahim_birds",
@@ -3826,7 +3977,8 @@
       ],
       "peopleIds": [
         "prophet_ibrahim"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_isra_miraj",
@@ -3888,6 +4040,13 @@
       "peopleIds": [
         "prophet_muhammad",
         "person_jibril"
+      ],
+      "placeIds": [
+        "place_kabah",
+        "place_masjid_al_aqsa",
+        "place_masjid_al_haram",
+        "place_jerusalem",
+        "place_sidrat_muntaha"
       ]
     },
     {
@@ -3943,6 +4102,11 @@
       "peopleIds": [
         "prophet_muhammad",
         "person_abu_bakr"
+      ],
+      "placeIds": [
+        "place_madinah",
+        "place_makkah",
+        "place_cave_thawr"
       ]
     },
     {
@@ -4009,6 +4173,10 @@
       ],
       "peopleIds": [
         "prophet_muhammad"
+      ],
+      "placeIds": [
+        "place_madinah",
+        "place_badr"
       ]
     },
     {
@@ -4076,6 +4244,10 @@
       ],
       "peopleIds": [
         "prophet_muhammad"
+      ],
+      "placeIds": [
+        "place_madinah",
+        "place_uhud"
       ]
     },
     {
@@ -4136,6 +4308,10 @@
       ],
       "peopleIds": [
         "prophet_muhammad"
+      ],
+      "placeIds": [
+        "place_makkah",
+        "place_hudaybiyyah"
       ]
     },
     {
@@ -4188,6 +4364,10 @@
       ],
       "peopleIds": [
         "prophet_muhammad"
+      ],
+      "placeIds": [
+        "place_kabah",
+        "place_makkah"
       ]
     },
     {
@@ -4248,6 +4428,12 @@
       ],
       "peopleIds": [
         "prophet_muhammad"
+      ],
+      "placeIds": [
+        "place_kabah",
+        "place_masjid_al_haram",
+        "place_madinah",
+        "place_makkah"
       ]
     },
     {
@@ -4308,6 +4494,10 @@
       ],
       "peopleIds": [
         "prophet_muhammad"
+      ],
+      "placeIds": [
+        "place_madinah",
+        "place_tabuk"
       ]
     },
     {
@@ -4361,6 +4551,10 @@
       "peopleIds": [
         "prophet_muhammad",
         "person_disciples_isa"
+      ],
+      "placeIds": [
+        "place_madinah",
+        "place_najran"
       ]
     },
     {
@@ -4399,7 +4593,8 @@
       "subcategories": [
         "event:battle"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_ancient_egypt",
@@ -4456,6 +4651,10 @@
       ],
       "peopleIds": [
         "person_firawn"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_river_nile"
       ]
     },
     {
@@ -4510,6 +4709,10 @@
       "peopleIds": [
         "prophet_shuayb",
         "person_people_madyan"
+      ],
+      "placeIds": [
+        "place_madyan",
+        "place_thicket"
       ]
     },
     {
@@ -4572,6 +4775,9 @@
       "peopleIds": [
         "prophet_salih",
         "person_people_thamud"
+      ],
+      "placeIds": [
+        "place_thamud_lands"
       ]
     },
     {
@@ -4624,7 +4830,8 @@
       "subcategories": [
         "afterlife:hour"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_trumpet",
@@ -4673,7 +4880,8 @@
       ],
       "peopleIds": [
         "person_israfil"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_mizan",
@@ -4718,7 +4926,8 @@
       "subcategories": [
         "afterlife:mizan"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_araf_people",
@@ -4757,7 +4966,10 @@
       "subcategories": [
         "afterlife:araf"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": [
+        "place_araf"
+      ]
     },
     {
       "storyId": "story_paradise",
@@ -4809,7 +5021,10 @@
       "subcategories": [
         "afterlife:paradise"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": [
+        "place_paradise"
+      ]
     },
     {
       "storyId": "story_hell",
@@ -4863,7 +5078,10 @@
       "subcategories": [
         "afterlife:hell"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": [
+        "place_hell"
+      ]
     },
     {
       "storyId": "story_covenant_souls",
@@ -4907,7 +5125,8 @@
       ],
       "peopleIds": [
         "prophet_adam"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_iblis_refusal",
@@ -4967,6 +5186,9 @@
       ],
       "peopleIds": [
         "person_iblis"
+      ],
+      "placeIds": [
+        "place_paradise"
       ]
     },
     {
@@ -5025,6 +5247,9 @@
         "prophet_musa",
         "person_samiri",
         "person_bani_israel"
+      ],
+      "placeIds": [
+        "place_mount_sinai"
       ]
     },
     {
@@ -5086,6 +5311,10 @@
       "peopleIds": [
         "person_asiya",
         "person_firawn"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_palace_firawn"
       ]
     },
     {
@@ -5149,6 +5378,10 @@
         "prophet_musa",
         "person_mother_musa",
         "person_firawn"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_river_nile"
       ]
     },
     {
@@ -5217,6 +5450,9 @@
         "prophet_yusuf",
         "person_zulaykha",
         "person_aziz_egypt"
+      ],
+      "placeIds": [
+        "place_egypt"
       ]
     },
     {
@@ -5270,6 +5506,10 @@
       "peopleIds": [
         "person_believer_firaun",
         "person_firawn"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_palace_firawn"
       ]
     },
     {
@@ -5354,6 +5594,9 @@
       "peopleIds": [
         "prophet_musa",
         "person_khidr"
+      ],
+      "placeIds": [
+        "place_two_seas"
       ]
     },
     {
@@ -5410,6 +5653,10 @@
       ],
       "peopleIds": [
         "person_three_messengers"
+      ],
+      "placeIds": [
+        "place_village_ruined",
+        "place_village_yasin"
       ]
     },
     {
@@ -5468,6 +5715,9 @@
       ],
       "peopleIds": [
         "person_garden_owners"
+      ],
+      "placeIds": [
+        "place_two_gardens"
       ]
     },
     {
@@ -5518,6 +5768,11 @@
       ],
       "peopleIds": [
         "person_people_saba"
+      ],
+      "placeIds": [
+        "place_saba_city",
+        "place_sheba",
+        "place_saba_dam"
       ]
     },
     {
@@ -5579,6 +5834,10 @@
       "peopleIds": [
         "prophet_hud",
         "person_people_ad"
+      ],
+      "placeIds": [
+        "place_iram",
+        "place_ad_lands"
       ]
     },
     {
@@ -5635,6 +5894,9 @@
       "peopleIds": [
         "prophet_nuh",
         "person_people_nuh"
+      ],
+      "placeIds": [
+        "place_ark_nuh"
       ]
     },
     {
@@ -5694,7 +5956,8 @@
       ],
       "peopleIds": [
         "prophet_muhammad"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_creation_heavens_earth",
@@ -5740,7 +6003,8 @@
         "event:creation",
         "nature:sky"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "story_village_fish",
@@ -5785,6 +6049,9 @@
       ],
       "peopleIds": [
         "person_sabbath_breakers"
+      ],
+      "placeIds": [
+        "place_red_sea"
       ]
     },
     {
@@ -5856,6 +6123,11 @@
       "peopleIds": [
         "prophet_musa",
         "person_bani_israel"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_palestine",
+        "place_mount_sinai"
       ]
     },
     {
@@ -5917,7 +6189,8 @@
         "prophet_yaqub",
         "prophet_yusuf",
         "person_brothers_yusuf"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_harut_marut",
@@ -5963,6 +6236,9 @@
       "peopleIds": [
         "person_harut",
         "person_marut"
+      ],
+      "placeIds": [
+        "place_babylon"
       ]
     },
     {
@@ -6005,6 +6281,9 @@
       ],
       "peopleIds": [
         "person_youth_cave"
+      ],
+      "placeIds": [
+        "place_cave_kahf"
       ]
     },
     {
@@ -6056,7 +6335,8 @@
       "peopleIds": [
         "prophet_nuh",
         "person_wife_nuh"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_wife_lut",
@@ -6105,7 +6385,8 @@
       "peopleIds": [
         "prophet_lut",
         "person_wife_lut"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_son_nuh",
@@ -6162,6 +6443,10 @@
       "peopleIds": [
         "prophet_nuh",
         "person_son_nuh"
+      ],
+      "placeIds": [
+        "place_mount_judi",
+        "place_ark_nuh"
       ]
     },
     {
@@ -6211,7 +6496,10 @@
         "afterlife:hell",
         "nature:plant"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": [
+        "place_hell"
+      ]
     },
     {
       "storyId": "story_seven_sleepers_dog",
@@ -6254,6 +6542,9 @@
       ],
       "peopleIds": [
         "person_youth_cave"
+      ],
+      "placeIds": [
+        "place_cave_kahf"
       ]
     },
     {
@@ -6317,6 +6608,10 @@
         "prophet_musa",
         "person_firawn",
         "person_haman"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_palace_firawn"
       ]
     },
     {
@@ -6397,6 +6692,10 @@
         "prophet_musa",
         "person_firawn",
         "person_magicians_firaun"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_palace_firawn"
       ]
     },
     {
@@ -6461,6 +6760,10 @@
         "prophet_musa",
         "person_firawn",
         "person_bani_israel"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_red_sea"
       ]
     },
     {
@@ -6533,6 +6836,9 @@
         "prophet_musa",
         "person_samiri",
         "person_bani_israel"
+      ],
+      "placeIds": [
+        "place_mount_sinai"
       ]
     },
     {
@@ -6587,6 +6893,9 @@
       ],
       "peopleIds": [
         "prophet_musa"
+      ],
+      "placeIds": [
+        "place_mount_sinai"
       ]
     },
     {
@@ -6644,7 +6953,8 @@
       "peopleIds": [
         "prophet_sulayman",
         "person_jinn_generic"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_dawud_trial",
@@ -6691,7 +7001,8 @@
       ],
       "peopleIds": [
         "prophet_dawud"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_ibrahim_fire",
@@ -6749,7 +7060,8 @@
       "peopleIds": [
         "prophet_ibrahim",
         "person_nimrod"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_ibrahim_stars",
@@ -6800,7 +7112,8 @@
       "peopleIds": [
         "prophet_ibrahim",
         "person_father_ibrahim"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_ibrahim_nimrod",
@@ -6852,6 +7165,9 @@
       "peopleIds": [
         "prophet_ibrahim",
         "person_nimrod"
+      ],
+      "placeIds": [
+        "place_babylon"
       ]
     },
     {
@@ -6913,6 +7229,10 @@
       "peopleIds": [
         "prophet_musa",
         "prophet_shuayb"
+      ],
+      "placeIds": [
+        "place_madyan",
+        "place_well_madyan"
       ]
     },
     {
@@ -6974,6 +7294,9 @@
       ],
       "peopleIds": [
         "prophet_musa"
+      ],
+      "placeIds": [
+        "place_mount_sinai"
       ]
     },
     {
@@ -7041,6 +7364,10 @@
         "prophet_isa",
         "person_maryam",
         "person_disciples_isa"
+      ],
+      "placeIds": [
+        "place_jerusalem",
+        "place_palestine"
       ]
     },
     {
@@ -7094,6 +7421,9 @@
       ],
       "peopleIds": [
         "prophet_isa"
+      ],
+      "placeIds": [
+        "place_palestine"
       ]
     },
     {
@@ -7146,6 +7476,10 @@
         "prophet_zakariyya",
         "person_imran_wife",
         "person_maryam"
+      ],
+      "placeIds": [
+        "place_masjid_al_aqsa",
+        "place_jerusalem"
       ]
     },
     {
@@ -7208,6 +7542,9 @@
       "peopleIds": [
         "prophet_yaqub",
         "prophet_yusuf"
+      ],
+      "placeIds": [
+        "place_egypt"
       ]
     },
     {
@@ -7273,6 +7610,9 @@
       ],
       "peopleIds": [
         "prophet_yusuf"
+      ],
+      "placeIds": [
+        "place_prison_egypt"
       ]
     },
     {
@@ -7338,6 +7678,10 @@
       ],
       "peopleIds": [
         "prophet_yusuf"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_well_yusuf"
       ]
     },
     {
@@ -7391,6 +7735,9 @@
       "peopleIds": [
         "prophet_muhammad",
         "person_ibn_umm_maktum"
+      ],
+      "placeIds": [
+        "place_madinah"
       ]
     },
     {
@@ -7434,6 +7781,9 @@
       ],
       "peopleIds": [
         "person_abu_lahab"
+      ],
+      "placeIds": [
+        "place_makkah"
       ]
     },
     {
@@ -7483,7 +7833,8 @@
       ],
       "peopleIds": [
         "prophet_sulayman"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_sulayman_trial",
@@ -7533,7 +7884,8 @@
       ],
       "peopleIds": [
         "prophet_sulayman"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "story_bee",
@@ -7574,7 +7926,8 @@
         "nature:plant",
         "virtue:knowledge"
       ],
-      "peopleIds": []
+      "peopleIds": [],
+      "placeIds": []
     },
     {
       "storyId": "storypage_ishaq",
@@ -7727,6 +8080,9 @@
         "prophet_yaqub",
         "prophet_yusuf",
         "person_sarah"
+      ],
+      "placeIds": [
+        "place_palestine"
       ]
     },
     {
@@ -7877,6 +8233,9 @@
         "prophet_ishaq",
         "prophet_yaqub",
         "prophet_yusuf"
+      ],
+      "placeIds": [
+        "place_palestine"
       ]
     },
     {
@@ -8120,6 +8479,10 @@
         "prophet_harun",
         "prophet_musa",
         "person_firawn"
+      ],
+      "placeIds": [
+        "place_egypt",
+        "place_mount_sinai"
       ]
     },
     {
@@ -8181,7 +8544,8 @@
         "prophet_alyasa",
         "prophet_ayyub",
         "prophet_dhulkifl"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "storypage_ilyas",
@@ -8234,7 +8598,8 @@
       "peopleIds": [
         "prophet_alyasa",
         "prophet_ilyas"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "storypage_alyasa",
@@ -8293,7 +8658,8 @@
         "prophet_alyasa",
         "prophet_dhulkifl",
         "prophet_ilyas"
-      ]
+      ],
+      "placeIds": []
     },
     {
       "storyId": "storypage_sulayman",
@@ -8444,6 +8810,11 @@
         "prophet_dawud",
         "prophet_sulayman",
         "person_bilqis"
+      ],
+      "placeIds": [
+        "place_jerusalem",
+        "place_sheba",
+        "place_palace_sulayman"
       ]
     },
     {
@@ -8533,6 +8904,11 @@
         "prophet_musa",
         "prophet_salih",
         "person_maryam"
+      ],
+      "placeIds": [
+        "place_madinah",
+        "place_makkah",
+        "place_cave_hira"
       ]
     },
     {
@@ -8659,6 +9035,10 @@
         "prophet_ibrahim",
         "prophet_ishaq",
         "prophet_ismail"
+      ],
+      "placeIds": [
+        "place_kabah",
+        "place_makkah"
       ]
     }
   ],

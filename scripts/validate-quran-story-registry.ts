@@ -118,6 +118,12 @@ for (const e of registry.stories) {
       fail(`${e.storyId}: malformed personId "${pid}"`);
     }
   }
+  // placeIds must always be canonical (start with place_).
+  for (const pid of e.placeIds || []) {
+    if (!/^place_[a-z0-9_]+$/.test(pid)) {
+      fail(`${e.storyId}: malformed placeId "${pid}"`);
+    }
+  }
 
   // Soft: relatedStories that don't resolve should be flagged in warnings
   for (const rs of e.relatedStories) {

@@ -99,6 +99,14 @@ export interface RegistryStoryEntry {
    * spelling variants in mainFigures.
    */
   peopleIds: string[];
+  /**
+   * Canonical place IDs that appear in this story. Resolved by the build
+   * script from the story's place:* subcategories, the prophet-page
+   * relatedPlaces array, and STORY_EXTRA_PLACES extras. Allows the UI
+   * to facet stories by physical geography (Egypt, Mount Sinai, Cave,
+   * Badr, …) independently of the broader subcategory taxonomy.
+   */
+  placeIds: string[];
 }
 
 export interface RegistryCoverageSummary {
@@ -393,6 +401,66 @@ export const SUBCATEGORY_TAG_LABELS: Record<string, { ar: string; en: string }> 
   'vice:hypocrisy': { ar: 'النفاق', en: 'Hypocrisy' },
   'vice:disobedience': { ar: 'العصيان', en: 'Disobedience' },
 };
+
+// ---------------------------------------------------------------------------
+// Places taxonomy (canonical Quranic places)
+// ---------------------------------------------------------------------------
+
+/**
+ * Coarse place types used to facet the Places filter. A place carries
+ * exactly one primary type. Types follow geographic/architectural
+ * intuition rather than legal categories.
+ */
+export type PlaceType =
+  | 'sanctuary'
+  | 'city'
+  | 'region'
+  | 'mountain'
+  | 'water_body'
+  | 'landmark'
+  | 'battlefield'
+  | 'structure'
+  | 'otherworldly';
+
+export const PLACE_TYPE_ORDER: PlaceType[] = [
+  'sanctuary',
+  'city',
+  'region',
+  'mountain',
+  'water_body',
+  'landmark',
+  'battlefield',
+  'structure',
+  'otherworldly',
+];
+
+export const PLACE_TYPE_LABELS: Record<PlaceType, { ar: string; en: string }> = {
+  sanctuary: { ar: 'المساجد والحرم', en: 'Sanctuaries' },
+  city: { ar: 'المدن', en: 'Cities & towns' },
+  region: { ar: 'الأقاليم', en: 'Regions' },
+  mountain: { ar: 'الجبال', en: 'Mountains' },
+  water_body: { ar: 'المياه', en: 'Seas, rivers & wells' },
+  landmark: { ar: 'معالم', en: 'Landmarks' },
+  battlefield: { ar: 'ميادين الغزوات', en: 'Battlefields' },
+  structure: { ar: 'الأبنية والمراكب', en: 'Structures' },
+  otherworldly: { ar: 'العالم الآخر', en: 'Otherworldly' },
+};
+
+export interface PlaceIndexEntry {
+  placeId: string;
+  nameArabic: string;
+  nameEnglish: string;
+  type: PlaceType;
+  /** Optional one-line bilingual note used for chip tooltips. */
+  noteArabic?: string;
+  noteEnglish?: string;
+  /**
+   * Optional Quran reference (surah:ayah) that names this place
+   * explicitly. Used when surfacing the place to readers who want to
+   * verify the textual basis. Multiple refs allowed.
+   */
+  quranReferences?: string[];
+}
 
 // ---------------------------------------------------------------------------
 // People taxonomy (canonical Quranic persons)

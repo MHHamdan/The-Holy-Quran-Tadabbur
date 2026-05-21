@@ -21,9 +21,12 @@ import {
   getStoriesByCategory,
   getStoriesBySubcategory,
   getStoriesByPerson,
+  getStoriesByPlace,
   getSubcategoryFacets,
   getPeopleFacets,
+  getPlaceFacets,
   getPerson,
+  getPlace,
   searchStories,
   isRegistryHealthy,
 } from '../utils/storyRegistryAdapter';
@@ -32,6 +35,7 @@ import {
   REGISTRY_CATEGORY_ORDER,
   SUBCATEGORY_GROUP_LABELS,
   PERSON_ROLE_LABELS,
+  PLACE_TYPE_LABELS,
   getSubcategoryLabel,
 } from '../types/quranStoryRegistry';
 import type {
@@ -80,6 +84,11 @@ export function StoryAtlasPage() {
   const [selectedPerson, setSelectedPerson] = useState<string>(
     searchParams.get('person') || 'all',
   );
+  // Places filter — either "all", a type ("city" / "mountain"), or a
+  // canonical placeId ("place_makkah" / "place_mount_sinai").
+  const [selectedPlace, setSelectedPlace] = useState<string>(
+    searchParams.get('place') || 'all',
+  );
 
   useEffect(() => {
     const next = new URLSearchParams(searchParams);
@@ -93,12 +102,17 @@ export function StoryAtlasPage() {
     } else {
       next.set('person', selectedPerson);
     }
+    if (selectedPlace === 'all') {
+      next.delete('place');
+    } else {
+      next.set('place', selectedPlace);
+    }
     // Avoid pushing a new history entry if nothing changed.
     if (next.toString() !== searchParams.toString()) {
       setSearchParams(next, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSubcategory, selectedPerson]);
+  }, [selectedSubcategory, selectedPerson, selectedPlace]);
 
   const registry = getRegistry();
   const healthy = isRegistryHealthy();
@@ -108,6 +122,10 @@ export function StoryAtlasPage() {
   );
   const peopleFacets = useMemo(
     () => (healthy ? getPeopleFacets() : []),
+    [healthy],
+  );
+  const placeFacets = useMemo(
+    () => (healthy ? getPlaceFacets() : []),
     [healthy],
   );
 
@@ -126,10 +144,16 @@ export function StoryAtlasPage() {
       );
       base = base.filter((s) => personSet.has(s.storyId));
     }
+    if (selectedPlace !== 'all') {
+      const placeSet = new Set(
+        getStoriesByPlace(selectedPlace).map((s) => s.storyId),
+      );
+      base = base.filter((s) => placeSet.has(s.storyId));
+    }
     if (!searchQuery.trim()) return base;
     const matches = new Set(searchStories(searchQuery).map((s) => s.storyId));
     return base.filter((s) => matches.has(s.storyId));
-  }, [selectedCategory, selectedSubcategory, selectedPerson, searchQuery, healthy]);
+  }, [selectedCategory, selectedSubcategory, selectedPerson, selectedPlace, searchQuery, healthy]);
 
   const counts = useMemo(() => {
     const byCategory: Record<string, number> = {};
@@ -255,6 +279,14 @@ export function StoryAtlasPage() {
             facets={peopleFacets}
             selected={selectedPerson}
             onSelect={setSelectedPerson}
+            isArabic={isArabic}
+          />
+
+          {/* Places facets */}
+          <PlaceFacets
+            facets={placeFacets}
+            selected={selectedPlace}
+            onSelect={setSelectedPlace}
             isArabic={isArabic}
           />
 
@@ -504,7 +536,7 @@ function RegistryStoryCard({
       )}
 
       {story.peopleIds && story.peopleIds.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-1">
+        <div className="mb-2 flex flex-wrap gap-1">
           {story.peopleIds.slice(0, 5).map((pid) => {
             const p = getPerson(pid);
             if (!p) return null;
@@ -534,6 +566,33 @@ function RegistryStoryCard({
           {story.peopleIds.length > 5 && (
             <span className="text-[11px] text-gray-500">
               +{story.peopleIds.length - 5}
+            </span>
+          )}
+        </div>
+      )}
+
+      {story.placeIds && story.placeIds.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1">
+          {story.placeIds.slice(0, 5).map((pid) => {
+            const p = getPlace(pid);
+            if (!p) return null;
+            const typeLabel = PLACE_TYPE_LABELS[p.type];
+            const title = isArabic
+              ? `${typeLabel?.ar ?? p.type}: ${p.nameArabic}`
+              : `${typeLabel?.en ?? p.type}: ${p.nameEnglish}`;
+            return (
+              <span
+                key={pid}
+                title={title}
+                className="inline-flex items-center text-[11px] font-medium text-amber-900 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded"
+              >
+                {isArabic ? p.nameArabic : p.nameEnglish}
+              </span>
+            );
+          })}
+          {story.placeIds.length > 5 && (
+            <span className="text-[11px] text-gray-500">
+              +{story.placeIds.length - 5}
             </span>
           )}
         </div>
@@ -818,6 +877,128 @@ function PeopleFacets({
                           className={clsx(
                             'text-[10px] px-1 rounded-full',
                             isSelectedPerson ? 'bg-white/20' : 'bg-indigo-100 text-indigo-900',
+                          )}
+                        >
+                          {p.storyCount}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PlaceFacets({
+  facets,
+  selected,
+  onSelect,
+  isArabic,
+}: {
+  facets: ReturnType<typeof getPlaceFacets>;
+  selected: string;
+  onSelect: (next: string) => void;
+  isArabic: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  if (facets.length === 0) return null;
+
+  return (
+    <div className="mb-6 rounded-lg border border-amber-100 bg-amber-50/40 p-3">
+      <div className={clsx('mb-2 flex items-center justify-between gap-2', isArabic && 'flex-row-reverse')}>
+        <div className={clsx('text-sm font-semibold text-amber-900', isArabic && 'font-arabic')}>
+          {isArabic ? 'الأماكن' : 'Places'}
+        </div>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-xs text-amber-700 hover:underline"
+        >
+          {expanded
+            ? (isArabic ? 'إخفاء' : 'Hide')
+            : (isArabic ? 'عرض الكل' : 'Show all')}
+        </button>
+      </div>
+      <div className="space-y-2">
+        <div className={clsx('flex flex-wrap gap-1.5', isArabic && 'justify-end')}>
+          <button
+            type="button"
+            onClick={() => onSelect('all')}
+            className={clsx(
+              'text-xs font-medium px-2 py-1 rounded-full',
+              selected === 'all'
+                ? 'bg-amber-700 text-white'
+                : 'bg-white text-amber-900 border border-amber-200 hover:bg-amber-100',
+            )}
+          >
+            {isArabic ? 'الكل' : 'All'}
+          </button>
+          {facets.map((f) => {
+            const label = PLACE_TYPE_LABELS[f.type];
+            const isSelectedType = selected === f.type;
+            return (
+              <button
+                key={f.type}
+                type="button"
+                onClick={() => onSelect(isSelectedType ? 'all' : f.type)}
+                className={clsx(
+                  'text-xs font-medium px-2 py-1 rounded-full inline-flex items-center gap-1',
+                  isSelectedType
+                    ? 'bg-amber-700 text-white'
+                    : 'bg-white text-amber-900 border border-amber-200 hover:bg-amber-100',
+                )}
+                title={isArabic ? `${f.totalStoryCount} قصة` : `${f.totalStoryCount} stories`}
+              >
+                <span>{isArabic ? label.ar : label.en}</span>
+                <span
+                  className={clsx(
+                    'text-[10px] px-1 rounded-full',
+                    isSelectedType ? 'bg-white/20' : 'bg-amber-100 text-amber-900',
+                  )}
+                >
+                  {f.totalStoryCount}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {expanded && (
+          <div className="pt-2 mt-2 border-t border-amber-100">
+            {facets.map((f) => (
+              <div key={f.type} className="mb-3">
+                <div
+                  className={clsx(
+                    'text-[11px] uppercase tracking-wide text-amber-800 mb-1',
+                    isArabic && 'text-right font-arabic',
+                  )}
+                >
+                  {isArabic ? PLACE_TYPE_LABELS[f.type].ar : PLACE_TYPE_LABELS[f.type].en}
+                </div>
+                <div className={clsx('flex flex-wrap gap-1', isArabic && 'justify-end')}>
+                  {f.places.map((p) => {
+                    const isSelectedPlace = selected === p.placeId;
+                    return (
+                      <button
+                        key={p.placeId}
+                        type="button"
+                        onClick={() => onSelect(isSelectedPlace ? 'all' : p.placeId)}
+                        className={clsx(
+                          'text-[11px] px-1.5 py-0.5 rounded-full inline-flex items-center gap-1',
+                          isSelectedPlace
+                            ? 'bg-amber-700 text-white'
+                            : 'bg-white text-amber-900 border border-amber-200 hover:bg-amber-100',
+                        )}
+                      >
+                        <span>{isArabic ? p.nameArabic : p.nameEnglish}</span>
+                        <span
+                          className={clsx(
+                            'text-[10px] px-1 rounded-full',
+                            isSelectedPlace ? 'bg-white/20' : 'bg-amber-100 text-amber-900',
                           )}
                         >
                           {p.storyCount}
