@@ -33,6 +33,19 @@ _REPO_ROOT = Path(__file__).resolve().parents[4]
 _REGISTRY_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quranStoryRegistry.json"
 _CONNECTIONS_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quranStoryAtlasConnections.json"
 _CROSS_REFS_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quranStoryCrossReferences.json"
+_PEOPLE_FILE = _REPO_ROOT / "frontend" / "src" / "data" / "generated" / "quranPeopleIndex.json"
+
+_PERSON_ROLE_ORDER = [
+    "prophet",
+    "righteous_figure",
+    "monarch",
+    "antagonist",
+    "companion",
+    "family_member",
+    "angel",
+    "unseen_being",
+    "collective",
+]
 
 _STORY_ID_RE = re.compile(r"^[a-zA-Z0-9_:-]+$")
 _CACHE_HEADER = "public, max-age=300"
@@ -72,6 +85,23 @@ def _load_cross_refs() -> Dict[str, Any]:
     )
 
 
+@lru_cache(maxsize=1)
+def _load_people_index() -> Dict[str, Any]:
+    return _read_json(_PEOPLE_FILE, "scripts/build-quran-story-registry.ts")
+
+
+@lru_cache(maxsize=1)
+def _people_by_id() -> Dict[str, Dict[str, Any]]:
+    """Flat personId → entry lookup including both prophets and people."""
+    idx = _load_people_index()
+    out: Dict[str, Dict[str, Any]] = {}
+    for entry in idx.get("prophets", []) or []:
+        out.setdefault(entry["personId"], entry)
+    for entry in idx.get("people", []) or []:
+        out.setdefault(entry["personId"], entry)
+    return out
+
+
 def _validate_story_id(story_id: str) -> None:
     if not _STORY_ID_RE.match(story_id):
         raise HTTPException(
@@ -90,12 +120,30 @@ def _filter_stories(
     prophet: Optional[str],
     search: Optional[str],
     subcategory: Optional[str] = None,
+    person: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     result = stories
     if category and category != "all":
         result = [s for s in result if s.get("category") == category]
     if prophet:
         result = [s for s in result if prophet in (s.get("relatedProphets") or [])]
+    if person and person != "all":
+        # Accept either a canonical personId or one of the role labels —
+        # role labels expand to "any person of that role".
+        pbi = _people_by_id()
+        if person in pbi:
+            result = [s for s in result if person in (s.get("peopleIds") or [])]
+        elif person in _PERSON_ROLE_ORDER:
+            ids_in_role = {
+                pid for pid, p in pbi.items() if p.get("role") == person
+            }
+            result = [
+                s
+                for s in result
+                if any(pid in ids_in_role for pid in (s.get("peopleIds") or []))
+            ]
+        else:
+            result = []
     if subcategory and subcategory != "all":
         # Accept either an exact "group:tag" match or just the parent group.
         if ":" in subcategory:
@@ -115,6 +163,16 @@ def _filter_stories(
     if search:
         q = search.strip().lower()
         if q:
+            pbi = _people_by_id()
+            def _person_matches(pid: str) -> bool:
+                p = pbi.get(pid)
+                if not p:
+                    return False
+                return (
+                    q in pid.lower()
+                    or q in (p.get("nameEnglish", "") or "").lower()
+                    or q in (p.get("nameArabic", "") or "").lower()
+                )
             result = [
                 s
                 for s in result
@@ -127,6 +185,7 @@ def _filter_stories(
                 or any(q in (th or "").lower() for th in s.get("themes", []))
                 or any(q in (f or "").lower() for f in s.get("mainFigures", []))
                 or any(q in (sc or "").lower() for sc in s.get("subcategories", []))
+                or any(_person_matches(pid) for pid in s.get("peopleIds", []))
             ]
     return result
 
@@ -141,14 +200,22 @@ def list_registry(
         description='Subcategory filter — either a full "group:tag" string'
         ' (e.g. "animal:cow") or just the parent group (e.g. "animal")',
     ),
-    search: Optional[str] = Query(None, description="Search title / id / prophet / entity"),
+    person: Optional[str] = Query(
+        None,
+        description='Person filter — either a canonical personId'
+        ' (e.g. "person_firawn", "prophet_musa") or a role bucket'
+        ' (e.g. "antagonist", "prophet")',
+    ),
+    search: Optional[str] = Query(None, description="Search title / id / prophet / entity / person"),
     limit: int = Query(200, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ) -> Dict[str, Any]:
     """List registry entries (canonical, registry-backed)."""
     registry = _load_registry()
     stories = registry.get("stories", []) or []
-    filtered = _filter_stories(stories, category, prophet, search, subcategory)
+    filtered = _filter_stories(
+        stories, category, prophet, search, subcategory, person
+    )
     total = len(filtered)
     sliced = filtered[offset : offset + limit]
     response.headers["Cache-Control"] = _CACHE_HEADER
@@ -216,6 +283,62 @@ def get_subcategory_facets(response: Response) -> Dict[str, Any]:
                 "totalStoryCount": len(group_story_ids[group]),
                 "tags": tags,
             }
+        )
+
+    response.headers["Cache-Control"] = _CACHE_HEADER
+    return {
+        "version": registry.get("version"),
+        "generatedAt": registry.get("generatedAt"),
+        "facets": facets,
+    }
+
+
+@router.get("/story-atlas/people")
+def get_people_facets(response: Response) -> Dict[str, Any]:
+    """Return the People facet histogram.
+
+    For each role bucket present in the registry, returns the total number
+    of distinct stories featuring people of that role and the per-person
+    story counts with bilingual names.
+    """
+    registry = _load_registry()
+    pbi = _people_by_id()
+    person_story_ids: Dict[str, set] = {}
+    role_story_ids: Dict[str, set] = {}
+    for s in registry.get("stories", []) or []:
+        sid = s.get("storyId")
+        if not sid:
+            continue
+        for pid in s.get("peopleIds") or []:
+            entry = pbi.get(pid)
+            if not entry:
+                continue
+            person_story_ids.setdefault(pid, set()).add(sid)
+            role_story_ids.setdefault(entry.get("role", ""), set()).add(sid)
+
+    facets: List[Dict[str, Any]] = []
+    for role in _PERSON_ROLE_ORDER:
+        sids = role_story_ids.get(role)
+        if not sids:
+            continue
+        people: List[Dict[str, Any]] = []
+        for pid, ids in person_story_ids.items():
+            p = pbi.get(pid)
+            if not p or p.get("role") != role:
+                continue
+            people.append(
+                {
+                    "personId": pid,
+                    "nameArabic": p.get("nameArabic"),
+                    "nameEnglish": p.get("nameEnglish"),
+                    "noteArabic": p.get("noteArabic"),
+                    "noteEnglish": p.get("noteEnglish"),
+                    "storyCount": len(ids),
+                }
+            )
+        people.sort(key=lambda x: (-x["storyCount"], x["personId"]))
+        facets.append(
+            {"role": role, "totalStoryCount": len(sids), "people": people}
         )
 
     response.headers["Cache-Control"] = _CACHE_HEADER

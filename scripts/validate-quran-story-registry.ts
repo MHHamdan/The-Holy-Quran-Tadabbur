@@ -111,6 +111,14 @@ for (const e of registry.stories) {
     }
   }
 
+  // peopleIds must always be canonical (start with person_ or prophet_)
+  // and resolve to an entry in the generated quranPeopleIndex.json.
+  for (const pid of e.peopleIds || []) {
+    if (!/^(person|prophet)_[a-z0-9_]+$/.test(pid)) {
+      fail(`${e.storyId}: malformed personId "${pid}"`);
+    }
+  }
+
   // Soft: relatedStories that don't resolve should be flagged in warnings
   for (const rs of e.relatedStories) {
     if (!allIds.has(rs) && !e.warnings.some((w) => w.includes(rs))) {

@@ -13,18 +13,45 @@
  */
 
 import registryRaw from '../data/generated/quranStoryRegistry.json';
+import peopleRaw from '../data/generated/quranPeopleIndex.json';
 import type {
   QuranStoryRegistryFile,
   RegistryStoryEntry,
   RegistryStoryCategory,
   SubcategoryGroup,
+  PersonIndexEntry,
+  PersonRole,
 } from '../types/quranStoryRegistry';
 import {
   parseSubcategory,
   SUBCATEGORY_GROUP_ORDER,
+  PERSON_ROLE_ORDER,
 } from '../types/quranStoryRegistry';
 
 const registry = registryRaw as QuranStoryRegistryFile;
+
+interface PeopleIndexFile {
+  version: string;
+  generatedAt: string;
+  people: PersonIndexEntry[];
+  prophets: PersonIndexEntry[];
+}
+const peopleIndex = peopleRaw as PeopleIndexFile;
+
+const peopleById = new Map<string, PersonIndexEntry>();
+for (const p of [...peopleIndex.prophets, ...peopleIndex.people]) {
+  // Prophets win over people if there's an ID collision — prophets atlas
+  // is the canonical source for prophet identity.
+  if (!peopleById.has(p.personId)) peopleById.set(p.personId, p);
+}
+
+export function getPerson(personId: string): PersonIndexEntry | undefined {
+  return peopleById.get(personId);
+}
+
+export function getAllPeople(): PersonIndexEntry[] {
+  return Array.from(peopleById.values());
+}
 
 export function getRegistry(): QuranStoryRegistryFile {
   return registry;
@@ -56,11 +83,91 @@ export function searchStories(query: string): RegistryStoryEntry[] {
     if (s.themes?.some((t) => t.toLowerCase().includes(q))) return true;
     if (s.mainFigures?.some((f) => f.toLowerCase().includes(q))) return true;
     if (s.subcategories?.some((sc) => sc.toLowerCase().includes(q))) return true;
+    if (s.peopleIds?.some((pid) => {
+      const p = peopleById.get(pid);
+      if (!p) return false;
+      return pid.toLowerCase().includes(q)
+        || p.nameEnglish.toLowerCase().includes(q)
+        || p.nameArabic.toLowerCase().includes(q);
+    })) return true;
     if (surahMatch !== null && s.quranReferences.some((r) => r.surahNumber === surahMatch)) {
       return true;
     }
     return false;
   });
+}
+
+/**
+ * Filter stories by personId. Accepts either a canonical personId
+ * (`person_firawn`, `prophet_musa`) or one of the role labels (`prophet`,
+ * `antagonist`, …) which matches every person of that role.
+ */
+export function getStoriesByPerson(person: string): RegistryStoryEntry[] {
+  if (!person || person === 'all') return registry.stories;
+  if (peopleById.has(person)) {
+    return registry.stories.filter((s) => s.peopleIds?.includes(person));
+  }
+  if ((PERSON_ROLE_ORDER as string[]).includes(person)) {
+    const idsInRole = new Set(
+      Array.from(peopleById.values())
+        .filter((p) => p.role === (person as PersonRole))
+        .map((p) => p.personId),
+    );
+    return registry.stories.filter((s) =>
+      (s.peopleIds || []).some((id) => idsInRole.has(id)),
+    );
+  }
+  return [];
+}
+
+/**
+ * Histogram of every personId that appears across the registry, grouped
+ * by role. Roles returned in canonical PERSON_ROLE_ORDER; within each
+ * role, sorted by descending story count then alphabetically. People
+ * with zero stories are omitted so the UI only renders interactive
+ * filters.
+ */
+export function getPeopleFacets(): Array<{
+  role: PersonRole;
+  people: Array<{
+    personId: string;
+    nameArabic: string;
+    nameEnglish: string;
+    storyCount: number;
+  }>;
+  totalStoryCount: number;
+}> {
+  const personStoryIds = new Map<string, Set<string>>();
+  const roleStoryIds = new Map<PersonRole, Set<string>>();
+  for (const s of registry.stories) {
+    for (const pid of s.peopleIds || []) {
+      const entry = peopleById.get(pid);
+      if (!entry) continue;
+      if (!personStoryIds.has(pid)) personStoryIds.set(pid, new Set());
+      personStoryIds.get(pid)!.add(s.storyId);
+      if (!roleStoryIds.has(entry.role)) roleStoryIds.set(entry.role, new Set());
+      roleStoryIds.get(entry.role)!.add(s.storyId);
+    }
+  }
+  const out: ReturnType<typeof getPeopleFacets> = [];
+  for (const role of PERSON_ROLE_ORDER) {
+    const sids = roleStoryIds.get(role);
+    if (!sids || sids.size === 0) continue;
+    const people: ReturnType<typeof getPeopleFacets>[number]['people'] = [];
+    for (const [pid, ids] of personStoryIds.entries()) {
+      const p = peopleById.get(pid);
+      if (!p || p.role !== role) continue;
+      people.push({
+        personId: pid,
+        nameArabic: p.nameArabic,
+        nameEnglish: p.nameEnglish,
+        storyCount: ids.size,
+      });
+    }
+    people.sort((a, b) => b.storyCount - a.storyCount || a.personId.localeCompare(b.personId));
+    out.push({ role, people, totalStoryCount: sids.size });
+  }
+  return out;
 }
 
 /**

@@ -20,7 +20,10 @@ import {
   getRegistry,
   getStoriesByCategory,
   getStoriesBySubcategory,
+  getStoriesByPerson,
   getSubcategoryFacets,
+  getPeopleFacets,
+  getPerson,
   searchStories,
   isRegistryHealthy,
 } from '../utils/storyRegistryAdapter';
@@ -28,6 +31,7 @@ import {
   REGISTRY_CATEGORY_LABELS,
   REGISTRY_CATEGORY_ORDER,
   SUBCATEGORY_GROUP_LABELS,
+  PERSON_ROLE_LABELS,
   getSubcategoryLabel,
 } from '../types/quranStoryRegistry';
 import type {
@@ -71,6 +75,11 @@ export function StoryAtlasPage() {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>(
     searchParams.get('subcategory') || 'all',
   );
+  // People filter — either "all", a role ("prophet" / "antagonist"), or
+  // a canonical personId ("person_firawn" / "prophet_musa").
+  const [selectedPerson, setSelectedPerson] = useState<string>(
+    searchParams.get('person') || 'all',
+  );
 
   useEffect(() => {
     const next = new URLSearchParams(searchParams);
@@ -79,17 +88,26 @@ export function StoryAtlasPage() {
     } else {
       next.set('subcategory', selectedSubcategory);
     }
+    if (selectedPerson === 'all') {
+      next.delete('person');
+    } else {
+      next.set('person', selectedPerson);
+    }
     // Avoid pushing a new history entry if nothing changed.
     if (next.toString() !== searchParams.toString()) {
       setSearchParams(next, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSubcategory]);
+  }, [selectedSubcategory, selectedPerson]);
 
   const registry = getRegistry();
   const healthy = isRegistryHealthy();
   const subcategoryFacets = useMemo(
     () => (healthy ? getSubcategoryFacets() : []),
+    [healthy],
+  );
+  const peopleFacets = useMemo(
+    () => (healthy ? getPeopleFacets() : []),
     [healthy],
   );
 
@@ -102,10 +120,16 @@ export function StoryAtlasPage() {
       );
       base = base.filter((s) => subSet.has(s.storyId));
     }
+    if (selectedPerson !== 'all') {
+      const personSet = new Set(
+        getStoriesByPerson(selectedPerson).map((s) => s.storyId),
+      );
+      base = base.filter((s) => personSet.has(s.storyId));
+    }
     if (!searchQuery.trim()) return base;
     const matches = new Set(searchStories(searchQuery).map((s) => s.storyId));
     return base.filter((s) => matches.has(s.storyId));
-  }, [selectedCategory, selectedSubcategory, searchQuery, healthy]);
+  }, [selectedCategory, selectedSubcategory, selectedPerson, searchQuery, healthy]);
 
   const counts = useMemo(() => {
     const byCategory: Record<string, number> = {};
@@ -223,6 +247,14 @@ export function StoryAtlasPage() {
             facets={subcategoryFacets}
             selected={selectedSubcategory}
             onSelect={setSelectedSubcategory}
+            isArabic={isArabic}
+          />
+
+          {/* People facets */}
+          <PeopleFacets
+            facets={peopleFacets}
+            selected={selectedPerson}
+            onSelect={setSelectedPerson}
             isArabic={isArabic}
           />
 
@@ -445,7 +477,7 @@ function RegistryStoryCard({
       )}
 
       {story.subcategories && story.subcategories.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-1">
+        <div className="mb-2 flex flex-wrap gap-1">
           {story.subcategories.slice(0, 6).map((sc) => {
             const label = getSubcategoryLabel(sc);
             const group = sc.split(':')[0] as SubcategoryGroup;
@@ -466,6 +498,42 @@ function RegistryStoryCard({
           {story.subcategories.length > 6 && (
             <span className="text-[11px] text-gray-500">
               +{story.subcategories.length - 6}
+            </span>
+          )}
+        </div>
+      )}
+
+      {story.peopleIds && story.peopleIds.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1">
+          {story.peopleIds.slice(0, 5).map((pid) => {
+            const p = getPerson(pid);
+            if (!p) return null;
+            const roleLabel = PERSON_ROLE_LABELS[p.role];
+            const title = isArabic
+              ? `${roleLabel?.ar ?? p.role}: ${p.nameArabic}`
+              : `${roleLabel?.en ?? p.role}: ${p.nameEnglish}`;
+            const tone =
+              p.role === 'prophet'
+                ? 'text-indigo-800 bg-indigo-50 border-indigo-200'
+                : p.role === 'antagonist'
+                  ? 'text-rose-800 bg-rose-50 border-rose-200'
+                  : 'text-sky-800 bg-sky-50 border-sky-200';
+            return (
+              <span
+                key={pid}
+                title={title}
+                className={clsx(
+                  'inline-flex items-center text-[11px] font-medium border px-1.5 py-0.5 rounded',
+                  tone,
+                )}
+              >
+                {isArabic ? p.nameArabic : p.nameEnglish}
+              </span>
+            );
+          })}
+          {story.peopleIds.length > 5 && (
+            <span className="text-[11px] text-gray-500">
+              +{story.peopleIds.length - 5}
             </span>
           )}
         </div>
@@ -628,6 +696,131 @@ function SubcategoryFacets({
                           )}
                         >
                           {t.storyCount}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PeopleFacets({
+  facets,
+  selected,
+  onSelect,
+  isArabic,
+}: {
+  facets: ReturnType<typeof getPeopleFacets>;
+  selected: string;
+  onSelect: (next: string) => void;
+  isArabic: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  if (facets.length === 0) return null;
+
+  return (
+    <div className="mb-6 rounded-lg border border-indigo-100 bg-indigo-50/40 p-3">
+      <div className={clsx('mb-2 flex items-center justify-between gap-2', isArabic && 'flex-row-reverse')}>
+        <div className={clsx('text-sm font-semibold text-indigo-900', isArabic && 'font-arabic')}>
+          {isArabic ? 'الشخصيات' : 'People'}
+        </div>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-xs text-indigo-700 hover:underline"
+        >
+          {expanded
+            ? (isArabic ? 'إخفاء' : 'Hide')
+            : (isArabic ? 'عرض الكل' : 'Show all')}
+        </button>
+      </div>
+      <div className="space-y-2">
+        {/* Top-level role chips — always visible */}
+        <div className={clsx('flex flex-wrap gap-1.5', isArabic && 'justify-end')}>
+          <button
+            type="button"
+            onClick={() => onSelect('all')}
+            className={clsx(
+              'text-xs font-medium px-2 py-1 rounded-full',
+              selected === 'all'
+                ? 'bg-indigo-700 text-white'
+                : 'bg-white text-indigo-800 border border-indigo-200 hover:bg-indigo-100',
+            )}
+          >
+            {isArabic ? 'الكل' : 'All'}
+          </button>
+          {facets.map((f) => {
+            const label = PERSON_ROLE_LABELS[f.role];
+            const isSelectedRole = selected === f.role;
+            return (
+              <button
+                key={f.role}
+                type="button"
+                onClick={() => onSelect(isSelectedRole ? 'all' : f.role)}
+                className={clsx(
+                  'text-xs font-medium px-2 py-1 rounded-full inline-flex items-center gap-1',
+                  isSelectedRole
+                    ? 'bg-indigo-700 text-white'
+                    : 'bg-white text-indigo-800 border border-indigo-200 hover:bg-indigo-100',
+                )}
+                title={isArabic ? `${f.totalStoryCount} قصة` : `${f.totalStoryCount} stories`}
+              >
+                <span>{isArabic ? label.ar : label.en}</span>
+                <span
+                  className={clsx(
+                    'text-[10px] px-1 rounded-full',
+                    isSelectedRole ? 'bg-white/20' : 'bg-indigo-100 text-indigo-900',
+                  )}
+                >
+                  {f.totalStoryCount}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Per-person chips — expanded view */}
+        {expanded && (
+          <div className="pt-2 mt-2 border-t border-indigo-100">
+            {facets.map((f) => (
+              <div key={f.role} className="mb-3">
+                <div
+                  className={clsx(
+                    'text-[11px] uppercase tracking-wide text-indigo-700 mb-1',
+                    isArabic && 'text-right font-arabic',
+                  )}
+                >
+                  {isArabic ? PERSON_ROLE_LABELS[f.role].ar : PERSON_ROLE_LABELS[f.role].en}
+                </div>
+                <div className={clsx('flex flex-wrap gap-1', isArabic && 'justify-end')}>
+                  {f.people.map((p) => {
+                    const isSelectedPerson = selected === p.personId;
+                    return (
+                      <button
+                        key={p.personId}
+                        type="button"
+                        onClick={() => onSelect(isSelectedPerson ? 'all' : p.personId)}
+                        className={clsx(
+                          'text-[11px] px-1.5 py-0.5 rounded-full inline-flex items-center gap-1',
+                          isSelectedPerson
+                            ? 'bg-indigo-700 text-white'
+                            : 'bg-white text-indigo-800 border border-indigo-200 hover:bg-indigo-100',
+                        )}
+                      >
+                        <span>{isArabic ? p.nameArabic : p.nameEnglish}</span>
+                        <span
+                          className={clsx(
+                            'text-[10px] px-1 rounded-full',
+                            isSelectedPerson ? 'bg-white/20' : 'bg-indigo-100 text-indigo-900',
+                          )}
+                        >
+                          {p.storyCount}
                         </span>
                       </button>
                     );

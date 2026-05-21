@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-05-21T13:43:53.755Z",
+  "generatedAt": "2026-05-21T14:09:49.490Z",
   "categories": [
     "prophet",
     "prophetic_sirah",
@@ -127,6 +127,12 @@
         "virtue:repentance",
         "vice:arrogance",
         "vice:disobedience"
+      ],
+      "peopleIds": [
+        "prophet_adam",
+        "person_iblis",
+        "person_hawwa",
+        "person_angels_generic"
       ]
     },
     {
@@ -221,6 +227,10 @@
         "nature:water",
         "virtue:patience",
         "vice:disbelief"
+      ],
+      "peopleIds": [
+        "prophet_nuh",
+        "person_son_nuh"
       ]
     },
     {
@@ -340,6 +350,15 @@
         "virtue:trust_in_allah",
         "virtue:sincerity",
         "vice:idolatry"
+      ],
+      "peopleIds": [
+        "prophet_ibrahim",
+        "prophet_ishaq",
+        "prophet_ismail",
+        "person_nimrod",
+        "person_father_ibrahim",
+        "person_hajar",
+        "person_sarah"
       ]
     },
     {
@@ -466,6 +485,14 @@
         "role:prophet",
         "virtue:patience",
         "vice:tyranny"
+      ],
+      "peopleIds": [
+        "prophet_harun",
+        "prophet_musa",
+        "person_asiya",
+        "person_firawn",
+        "person_haman",
+        "person_bani_israel"
       ]
     },
     {
@@ -590,6 +617,13 @@
         "virtue:chastity",
         "vice:jealousy",
         "vice:betrayal"
+      ],
+      "peopleIds": [
+        "prophet_yaqub",
+        "prophet_yusuf",
+        "person_zulaykha",
+        "person_aziz_egypt",
+        "person_brothers_yusuf"
       ]
     },
     {
@@ -693,6 +727,11 @@
         "role:prophet",
         "role:messenger",
         "virtue:mercy"
+      ],
+      "peopleIds": [
+        "prophet_isa",
+        "person_maryam",
+        "person_disciples_isa"
       ]
     },
     {
@@ -782,6 +821,12 @@
         "family:daughter",
         "virtue:chastity",
         "virtue:sincerity"
+      ],
+      "peopleIds": [
+        "prophet_isa",
+        "prophet_zakariyya",
+        "person_imran_wife",
+        "person_maryam"
       ]
     },
     {
@@ -855,6 +900,10 @@
         "family:son",
         "role:prophet",
         "virtue:patience"
+      ],
+      "peopleIds": [
+        "prophet_yahya",
+        "prophet_zakariyya"
       ]
     },
     {
@@ -952,6 +1001,11 @@
         "role:king",
         "role:prophet",
         "nature:wind"
+      ],
+      "peopleIds": [
+        "prophet_sulayman",
+        "person_bilqis",
+        "person_jinn_generic"
       ]
     },
     {
@@ -1034,6 +1088,11 @@
         "role:prophet",
         "nature:mountain",
         "virtue:justice"
+      ],
+      "peopleIds": [
+        "prophet_dawud",
+        "person_talut",
+        "person_jalut"
       ]
     },
     {
@@ -1098,6 +1157,9 @@
         "family:husband_wife",
         "virtue:patience",
         "virtue:trust_in_allah"
+      ],
+      "peopleIds": [
+        "prophet_ayyub"
       ]
     },
     {
@@ -1174,6 +1236,10 @@
         "place:sea",
         "miracle:fish_swallow",
         "virtue:repentance"
+      ],
+      "peopleIds": [
+        "prophet_yunus",
+        "person_bani_israel"
       ]
     },
     {
@@ -1249,6 +1315,11 @@
         "role:prophet",
         "vice:disobedience",
         "vice:disbelief"
+      ],
+      "peopleIds": [
+        "prophet_lut",
+        "person_bani_israel",
+        "person_people_lut"
       ]
     },
     {
@@ -1320,6 +1391,10 @@
         "role:prophet",
         "virtue:justice",
         "vice:greed"
+      ],
+      "peopleIds": [
+        "prophet_shuayb",
+        "person_people_madyan"
       ]
     },
     {
@@ -1391,6 +1466,10 @@
         "miracle:she_camel",
         "role:prophet",
         "vice:arrogance"
+      ],
+      "peopleIds": [
+        "prophet_salih",
+        "person_people_thamud"
       ]
     },
     {
@@ -1459,6 +1538,10 @@
         "role:prophet",
         "nature:wind",
         "vice:arrogance"
+      ],
+      "peopleIds": [
+        "prophet_hud",
+        "person_people_ad"
       ]
     },
     {
@@ -1534,6 +1617,9 @@
         "miracle:cave_sleep",
         "virtue:patience",
         "virtue:trust_in_allah"
+      ],
+      "peopleIds": [
+        "person_youth_cave"
       ]
     },
     {
@@ -1608,6 +1694,11 @@
         "event:judgment",
         "role:king",
         "virtue:justice"
+      ],
+      "peopleIds": [
+        "person_dhulqarnayn",
+        "person_majuj",
+        "person_yajuj"
       ]
     },
     {
@@ -1682,6 +1773,10 @@
         "family:son",
         "virtue:wisdom",
         "virtue:humility"
+      ],
+      "peopleIds": [
+        "person_luqman",
+        "person_son_nuh"
       ]
     },
     {
@@ -1763,6 +1858,11 @@
         "nature:earthquake",
         "vice:arrogance",
         "vice:greed"
+      ],
+      "peopleIds": [
+        "prophet_musa",
+        "person_qarun",
+        "person_bani_israel"
       ]
     },
     {
@@ -1836,6 +1936,10 @@
         "event:sacrifice",
         "family:brothers",
         "vice:jealousy"
+      ],
+      "peopleIds": [
+        "person_habil",
+        "person_qabil"
       ]
     },
     {
@@ -1881,6 +1985,10 @@
         "place:makkah",
         "place:masjid_al_haram",
         "miracle:elephant_birds"
+      ],
+      "peopleIds": [
+        "person_abraha",
+        "person_people_elephant"
       ]
     },
     {
@@ -1955,6 +2063,10 @@
         "event:judgment",
         "miracle:dead_revived",
         "vice:disobedience"
+      ],
+      "peopleIds": [
+        "prophet_musa",
+        "person_bani_israel"
       ]
     },
     {
@@ -2013,6 +2125,9 @@
         "animal:donkey",
         "miracle:donkey_revived",
         "miracle:dead_revived"
+      ],
+      "peopleIds": [
+        "person_uzair"
       ]
     },
     {
@@ -2080,6 +2195,10 @@
         "place:sea",
         "miracle:transformation_monkeys",
         "vice:disobedience"
+      ],
+      "peopleIds": [
+        "person_bani_israel",
+        "person_sabbath_breakers"
       ]
     },
     {
@@ -2139,6 +2258,11 @@
       "subcategories": [
         "event:creation",
         "vice:arrogance"
+      ],
+      "peopleIds": [
+        "prophet_adam",
+        "person_iblis",
+        "person_angels_generic"
       ]
     },
     {
@@ -2185,6 +2309,9 @@
       ],
       "subcategories": [
         "event:revelation"
+      ],
+      "peopleIds": [
+        "person_jinn_generic"
       ]
     },
     {
@@ -2236,6 +2363,11 @@
       "subcategories": [
         "place:mount_judi",
         "object:mountain_lifted"
+      ],
+      "peopleIds": [
+        "person_dhulqarnayn",
+        "person_majuj",
+        "person_yajuj"
       ]
     },
     {
@@ -2304,6 +2436,9 @@
         "nature:plant",
         "virtue:gratitude",
         "vice:arrogance"
+      ],
+      "peopleIds": [
+        "person_garden_owners"
       ]
     },
     {
@@ -2341,7 +2476,8 @@
       "mainFigures": [],
       "subcategories": [
         "nature:plant"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_fly",
@@ -2379,7 +2515,8 @@
       "subcategories": [
         "animal:fly",
         "vice:idolatry"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_spider",
@@ -2416,7 +2553,8 @@
       "mainFigures": [],
       "subcategories": [
         "animal:spider"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_tubba",
@@ -2464,6 +2602,9 @@
       ],
       "subcategories": [
         "vice:disbelief"
+      ],
+      "peopleIds": [
+        "person_people_tubba"
       ]
     },
     {
@@ -2512,6 +2653,9 @@
       "subcategories": [
         "place:rass",
         "vice:disbelief"
+      ],
+      "peopleIds": [
+        "person_people_rass"
       ]
     },
     {
@@ -2562,6 +2706,10 @@
       "subcategories": [
         "place:thicket",
         "vice:disbelief"
+      ],
+      "peopleIds": [
+        "prophet_shuayb",
+        "person_people_ayka"
       ]
     },
     {
@@ -2623,6 +2771,11 @@
         "event:battle",
         "role:king",
         "virtue:courage"
+      ],
+      "peopleIds": [
+        "prophet_dawud",
+        "person_talut",
+        "person_jalut"
       ]
     },
     {
@@ -2672,6 +2825,10 @@
         "event:slander",
         "role:companion",
         "vice:slander"
+      ],
+      "peopleIds": [
+        "person_aisha",
+        "person_hypocrites_madinah"
       ]
     },
     {
@@ -2724,6 +2881,9 @@
       ],
       "subcategories": [
         "role:prophet"
+      ],
+      "peopleIds": [
+        "prophet_idris"
       ]
     },
     {
@@ -2791,6 +2951,11 @@
         "family:father",
         "family:son",
         "role:prophet"
+      ],
+      "peopleIds": [
+        "prophet_ibrahim",
+        "prophet_ismail",
+        "person_hajar"
       ]
     },
     {
@@ -2843,6 +3008,9 @@
       "subcategories": [
         "role:prophet",
         "virtue:patience"
+      ],
+      "peopleIds": [
+        "prophet_dhulkifl"
       ]
     },
     {
@@ -2885,6 +3053,9 @@
       "subcategories": [
         "role:prophet",
         "vice:idolatry"
+      ],
+      "peopleIds": [
+        "prophet_ilyas"
       ]
     },
     {
@@ -2935,6 +3106,9 @@
       ],
       "subcategories": [
         "role:prophet"
+      ],
+      "peopleIds": [
+        "prophet_alyasa"
       ]
     },
     {
@@ -3017,6 +3191,9 @@
         "event:hijrah",
         "role:prophet",
         "role:messenger"
+      ],
+      "peopleIds": [
+        "prophet_muhammad"
       ]
     },
     {
@@ -3064,6 +3241,9 @@
         "place:garden",
         "nature:plant",
         "vice:arrogance"
+      ],
+      "peopleIds": [
+        "person_garden_owners"
       ]
     },
     {
@@ -3104,6 +3284,9 @@
         "place:ditch",
         "nature:fire",
         "virtue:sacrifice"
+      ],
+      "peopleIds": [
+        "person_people_ditch"
       ]
     },
     {
@@ -3141,7 +3324,8 @@
       "mainFigures": [],
       "subcategories": [
         "animal:donkey"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_dog_parable",
@@ -3180,6 +3364,9 @@
       ],
       "subcategories": [
         "animal:dog"
+      ],
+      "peopleIds": [
+        "person_balam"
       ]
     },
     {
@@ -3236,6 +3423,9 @@
         "animal:hoopoe",
         "miracle:ant_speech",
         "miracle:hoopoe_speech"
+      ],
+      "peopleIds": [
+        "prophet_sulayman"
       ]
     },
     {
@@ -3305,6 +3495,10 @@
         "object:throne",
         "miracle:throne_transport",
         "role:queen"
+      ],
+      "peopleIds": [
+        "prophet_sulayman",
+        "person_bilqis"
       ]
     },
     {
@@ -3342,7 +3536,8 @@
       "mainFigures": [],
       "subcategories": [
         "miracle:healing_blind"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_light_parable",
@@ -3380,7 +3575,8 @@
       "subcategories": [
         "object:scripture",
         "nature:sky"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_rain_parable",
@@ -3426,7 +3622,8 @@
         "nature:rain",
         "nature:water",
         "nature:plant"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_charity_parable",
@@ -3471,7 +3668,8 @@
       "subcategories": [
         "nature:plant",
         "virtue:charity"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_haman",
@@ -3532,6 +3730,10 @@
       "subcategories": [
         "place:egypt",
         "vice:tyranny"
+      ],
+      "peopleIds": [
+        "person_firawn",
+        "person_haman"
       ]
     },
     {
@@ -3573,7 +3775,8 @@
         "animal:donkey",
         "place:village",
         "miracle:dead_revived"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_ibrahim_birds",
@@ -3620,6 +3823,9 @@
         "animal:birds",
         "miracle:dead_revived",
         "miracle:bird_creation"
+      ],
+      "peopleIds": [
+        "prophet_ibrahim"
       ]
     },
     {
@@ -3678,6 +3884,10 @@
         "place:masjid_al_haram",
         "place:masjid_al_aqsa",
         "event:isra_miraj"
+      ],
+      "peopleIds": [
+        "prophet_muhammad",
+        "person_jibril"
       ]
     },
     {
@@ -3729,6 +3939,10 @@
         "place:makkah",
         "place:madinah",
         "event:hijrah"
+      ],
+      "peopleIds": [
+        "prophet_muhammad",
+        "person_abu_bakr"
       ]
     },
     {
@@ -3792,6 +4006,9 @@
       "subcategories": [
         "place:badr",
         "event:battle"
+      ],
+      "peopleIds": [
+        "prophet_muhammad"
       ]
     },
     {
@@ -3856,6 +4073,9 @@
       "subcategories": [
         "place:uhud",
         "event:battle"
+      ],
+      "peopleIds": [
+        "prophet_muhammad"
       ]
     },
     {
@@ -3913,6 +4133,9 @@
       "subcategories": [
         "place:hudaybiyyah",
         "event:treaty"
+      ],
+      "peopleIds": [
+        "prophet_muhammad"
       ]
     },
     {
@@ -3962,6 +4185,9 @@
       "subcategories": [
         "place:makkah",
         "event:conquest"
+      ],
+      "peopleIds": [
+        "prophet_muhammad"
       ]
     },
     {
@@ -4019,6 +4245,9 @@
         "place:makkah",
         "place:masjid_al_haram",
         "event:qiblah_change"
+      ],
+      "peopleIds": [
+        "prophet_muhammad"
       ]
     },
     {
@@ -4076,6 +4305,9 @@
       "subcategories": [
         "place:tabuk",
         "event:expedition"
+      ],
+      "peopleIds": [
+        "prophet_muhammad"
       ]
     },
     {
@@ -4125,6 +4357,10 @@
       "subcategories": [
         "place:najran",
         "event:mubahala"
+      ],
+      "peopleIds": [
+        "prophet_muhammad",
+        "person_disciples_isa"
       ]
     },
     {
@@ -4162,7 +4398,8 @@
       "mainFigures": [],
       "subcategories": [
         "event:battle"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_ancient_egypt",
@@ -4216,6 +4453,9 @@
       ],
       "subcategories": [
         "place:egypt"
+      ],
+      "peopleIds": [
+        "person_firawn"
       ]
     },
     {
@@ -4266,6 +4506,10 @@
       "subcategories": [
         "place:madyan",
         "place:thicket"
+      ],
+      "peopleIds": [
+        "prophet_shuayb",
+        "person_people_madyan"
       ]
     },
     {
@@ -4324,6 +4568,10 @@
         "place:hijr",
         "miracle:she_camel",
         "vice:arrogance"
+      ],
+      "peopleIds": [
+        "prophet_salih",
+        "person_people_thamud"
       ]
     },
     {
@@ -4375,7 +4623,8 @@
       "mainFigures": [],
       "subcategories": [
         "afterlife:hour"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_trumpet",
@@ -4421,6 +4670,9 @@
       ],
       "subcategories": [
         "afterlife:trumpet"
+      ],
+      "peopleIds": [
+        "person_israfil"
       ]
     },
     {
@@ -4465,7 +4717,8 @@
       "mainFigures": [],
       "subcategories": [
         "afterlife:mizan"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_araf_people",
@@ -4503,7 +4756,8 @@
       "mainFigures": [],
       "subcategories": [
         "afterlife:araf"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_paradise",
@@ -4554,7 +4808,8 @@
       "mainFigures": [],
       "subcategories": [
         "afterlife:paradise"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_hell",
@@ -4607,7 +4862,8 @@
       "mainFigures": [],
       "subcategories": [
         "afterlife:hell"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_covenant_souls",
@@ -4648,6 +4904,9 @@
       ],
       "subcategories": [
         "afterlife:covenant_souls"
+      ],
+      "peopleIds": [
+        "prophet_adam"
       ]
     },
     {
@@ -4705,6 +4964,9 @@
       "subcategories": [
         "vice:arrogance",
         "vice:disobedience"
+      ],
+      "peopleIds": [
+        "person_iblis"
       ]
     },
     {
@@ -4757,6 +5019,12 @@
         "animal:calf",
         "object:calf_gold",
         "vice:idolatry"
+      ],
+      "peopleIds": [
+        "prophet_harun",
+        "prophet_musa",
+        "person_samiri",
+        "person_bani_israel"
       ]
     },
     {
@@ -4814,6 +5082,10 @@
         "family:husband_wife",
         "role:wife_of_tyrant",
         "virtue:patience"
+      ],
+      "peopleIds": [
+        "person_asiya",
+        "person_firawn"
       ]
     },
     {
@@ -4872,6 +5144,11 @@
         "place:egypt",
         "family:mother",
         "nature:water"
+      ],
+      "peopleIds": [
+        "prophet_musa",
+        "person_mother_musa",
+        "person_firawn"
       ]
     },
     {
@@ -4935,6 +5212,11 @@
         "place:egypt",
         "family:husband_wife",
         "vice:betrayal"
+      ],
+      "peopleIds": [
+        "prophet_yusuf",
+        "person_zulaykha",
+        "person_aziz_egypt"
       ]
     },
     {
@@ -4984,6 +5266,10 @@
         "place:egypt",
         "role:disbeliever",
         "virtue:courage"
+      ],
+      "peopleIds": [
+        "person_believer_firaun",
+        "person_firawn"
       ]
     },
     {
@@ -5064,6 +5350,10 @@
         "family:parent_child",
         "virtue:wisdom",
         "virtue:patience"
+      ],
+      "peopleIds": [
+        "prophet_musa",
+        "person_khidr"
       ]
     },
     {
@@ -5117,6 +5407,9 @@
       "subcategories": [
         "place:village",
         "role:messenger"
+      ],
+      "peopleIds": [
+        "person_three_messengers"
       ]
     },
     {
@@ -5172,6 +5465,9 @@
         "place:two_gardens",
         "nature:plant",
         "vice:arrogance"
+      ],
+      "peopleIds": [
+        "person_garden_owners"
       ]
     },
     {
@@ -5219,6 +5515,9 @@
         "event:flood",
         "nature:water",
         "vice:disbelief"
+      ],
+      "peopleIds": [
+        "person_people_saba"
       ]
     },
     {
@@ -5276,6 +5575,10 @@
         "place:ad_lands",
         "nature:wind",
         "vice:arrogance"
+      ],
+      "peopleIds": [
+        "prophet_hud",
+        "person_people_ad"
       ]
     },
     {
@@ -5328,6 +5631,10 @@
       "subcategories": [
         "event:flood",
         "vice:disbelief"
+      ],
+      "peopleIds": [
+        "prophet_nuh",
+        "person_people_nuh"
       ]
     },
     {
@@ -5384,6 +5691,9 @@
       "subcategories": [
         "afterlife:intercession",
         "afterlife:judgment_day"
+      ],
+      "peopleIds": [
+        "prophet_muhammad"
       ]
     },
     {
@@ -5429,7 +5739,8 @@
       "subcategories": [
         "event:creation",
         "nature:sky"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_village_fish",
@@ -5471,6 +5782,9 @@
         "place:sea",
         "miracle:transformation_monkeys",
         "vice:disobedience"
+      ],
+      "peopleIds": [
+        "person_sabbath_breakers"
       ]
     },
     {
@@ -5538,6 +5852,10 @@
         "event:exodus",
         "event:revelation",
         "vice:disobedience"
+      ],
+      "peopleIds": [
+        "prophet_musa",
+        "person_bani_israel"
       ]
     },
     {
@@ -5594,6 +5912,11 @@
         "family:son",
         "role:prophet",
         "virtue:patience"
+      ],
+      "peopleIds": [
+        "prophet_yaqub",
+        "prophet_yusuf",
+        "person_brothers_yusuf"
       ]
     },
     {
@@ -5636,6 +5959,10 @@
       ],
       "subcategories": [
         "vice:deception"
+      ],
+      "peopleIds": [
+        "person_harut",
+        "person_marut"
       ]
     },
     {
@@ -5675,6 +6002,9 @@
       "subcategories": [
         "place:cave",
         "miracle:cave_sleep"
+      ],
+      "peopleIds": [
+        "person_youth_cave"
       ]
     },
     {
@@ -5722,6 +6052,10 @@
         "family:husband_wife",
         "role:wife_of_prophet",
         "vice:disbelief"
+      ],
+      "peopleIds": [
+        "prophet_nuh",
+        "person_wife_nuh"
       ]
     },
     {
@@ -5767,6 +6101,10 @@
         "family:husband_wife",
         "role:wife_of_prophet",
         "vice:disbelief"
+      ],
+      "peopleIds": [
+        "prophet_lut",
+        "person_wife_lut"
       ]
     },
     {
@@ -5820,6 +6158,10 @@
         "family:father",
         "family:son",
         "vice:disbelief"
+      ],
+      "peopleIds": [
+        "prophet_nuh",
+        "person_son_nuh"
       ]
     },
     {
@@ -5868,7 +6210,8 @@
         "object:tree_zaqqum",
         "afterlife:hell",
         "nature:plant"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "story_seven_sleepers_dog",
@@ -5908,6 +6251,9 @@
       "subcategories": [
         "animal:dog",
         "place:cave"
+      ],
+      "peopleIds": [
+        "person_youth_cave"
       ]
     },
     {
@@ -5966,6 +6312,11 @@
         "place:egypt",
         "event:dialogue",
         "vice:tyranny"
+      ],
+      "peopleIds": [
+        "prophet_musa",
+        "person_firawn",
+        "person_haman"
       ]
     },
     {
@@ -6041,6 +6392,11 @@
         "miracle:staff_to_serpent",
         "role:magician",
         "virtue:repentance"
+      ],
+      "peopleIds": [
+        "prophet_musa",
+        "person_firawn",
+        "person_magicians_firaun"
       ]
     },
     {
@@ -6100,6 +6456,11 @@
         "event:exodus",
         "miracle:sea_parting",
         "nature:water"
+      ],
+      "peopleIds": [
+        "prophet_musa",
+        "person_firawn",
+        "person_bani_israel"
       ]
     },
     {
@@ -6166,6 +6527,12 @@
         "animal:calf",
         "object:calf_gold",
         "vice:idolatry"
+      ],
+      "peopleIds": [
+        "prophet_harun",
+        "prophet_musa",
+        "person_samiri",
+        "person_bani_israel"
       ]
     },
     {
@@ -6217,6 +6584,9 @@
         "object:tablets",
         "event:revelation",
         "nature:mountain"
+      ],
+      "peopleIds": [
+        "prophet_musa"
       ]
     },
     {
@@ -6270,6 +6640,10 @@
       ],
       "subcategories": [
         "role:king"
+      ],
+      "peopleIds": [
+        "prophet_sulayman",
+        "person_jinn_generic"
       ]
     },
     {
@@ -6314,6 +6688,9 @@
         "event:judgment",
         "role:king",
         "virtue:justice"
+      ],
+      "peopleIds": [
+        "prophet_dawud"
       ]
     },
     {
@@ -6368,6 +6745,10 @@
         "miracle:fire_cool",
         "nature:fire",
         "virtue:trust_in_allah"
+      ],
+      "peopleIds": [
+        "prophet_ibrahim",
+        "person_nimrod"
       ]
     },
     {
@@ -6415,6 +6796,10 @@
         "nature:stars",
         "nature:moon",
         "nature:sun"
+      ],
+      "peopleIds": [
+        "prophet_ibrahim",
+        "person_father_ibrahim"
       ]
     },
     {
@@ -6463,6 +6848,10 @@
         "event:dialogue",
         "role:king",
         "vice:tyranny"
+      ],
+      "peopleIds": [
+        "prophet_ibrahim",
+        "person_nimrod"
       ]
     },
     {
@@ -6520,6 +6909,10 @@
       "subcategories": [
         "place:madyan",
         "family:husband_wife"
+      ],
+      "peopleIds": [
+        "prophet_musa",
+        "prophet_shuayb"
       ]
     },
     {
@@ -6578,6 +6971,9 @@
         "event:revelation",
         "miracle:staff_to_serpent",
         "nature:fire"
+      ],
+      "peopleIds": [
+        "prophet_musa"
       ]
     },
     {
@@ -6640,6 +7036,11 @@
         "miracle:dead_revived",
         "miracle:healing_blind",
         "miracle:healing_leper"
+      ],
+      "peopleIds": [
+        "prophet_isa",
+        "person_maryam",
+        "person_disciples_isa"
       ]
     },
     {
@@ -6690,6 +7091,9 @@
       ],
       "subcategories": [
         "nature:sky"
+      ],
+      "peopleIds": [
+        "prophet_isa"
       ]
     },
     {
@@ -6737,6 +7141,11 @@
         "place:masjid_al_aqsa",
         "family:mother",
         "family:daughter"
+      ],
+      "peopleIds": [
+        "prophet_zakariyya",
+        "person_imran_wife",
+        "person_maryam"
       ]
     },
     {
@@ -6795,6 +7204,10 @@
         "nature:stars",
         "nature:moon",
         "nature:sun"
+      ],
+      "peopleIds": [
+        "prophet_yaqub",
+        "prophet_yusuf"
       ]
     },
     {
@@ -6857,6 +7270,9 @@
       "subcategories": [
         "place:prison",
         "event:dream"
+      ],
+      "peopleIds": [
+        "prophet_yusuf"
       ]
     },
     {
@@ -6919,6 +7335,9 @@
         "object:cup",
         "family:brothers",
         "vice:jealousy"
+      ],
+      "peopleIds": [
+        "prophet_yusuf"
       ]
     },
     {
@@ -6968,6 +7387,10 @@
       ],
       "subcategories": [
         "virtue:humility"
+      ],
+      "peopleIds": [
+        "prophet_muhammad",
+        "person_ibn_umm_maktum"
       ]
     },
     {
@@ -7008,6 +7431,9 @@
       "subcategories": [
         "family:husband_wife",
         "vice:disbelief"
+      ],
+      "peopleIds": [
+        "person_abu_lahab"
       ]
     },
     {
@@ -7054,6 +7480,9 @@
       "subcategories": [
         "animal:horse",
         "role:king"
+      ],
+      "peopleIds": [
+        "prophet_sulayman"
       ]
     },
     {
@@ -7101,6 +7530,9 @@
       "subcategories": [
         "event:trial",
         "role:king"
+      ],
+      "peopleIds": [
+        "prophet_sulayman"
       ]
     },
     {
@@ -7141,7 +7573,8 @@
         "event:revelation",
         "nature:plant",
         "virtue:knowledge"
-      ]
+      ],
+      "peopleIds": []
     },
     {
       "storyId": "storypage_ishaq",
@@ -7287,6 +7720,13 @@
       ],
       "subcategories": [
         "role:prophet"
+      ],
+      "peopleIds": [
+        "prophet_ibrahim",
+        "prophet_ishaq",
+        "prophet_yaqub",
+        "prophet_yusuf",
+        "person_sarah"
       ]
     },
     {
@@ -7431,6 +7871,12 @@
       ],
       "subcategories": [
         "role:prophet"
+      ],
+      "peopleIds": [
+        "prophet_ibrahim",
+        "prophet_ishaq",
+        "prophet_yaqub",
+        "prophet_yusuf"
       ]
     },
     {
@@ -7669,6 +8115,11 @@
       ],
       "subcategories": [
         "role:prophet"
+      ],
+      "peopleIds": [
+        "prophet_harun",
+        "prophet_musa",
+        "person_firawn"
       ]
     },
     {
@@ -7725,6 +8176,11 @@
       ],
       "subcategories": [
         "role:prophet"
+      ],
+      "peopleIds": [
+        "prophet_alyasa",
+        "prophet_ayyub",
+        "prophet_dhulkifl"
       ]
     },
     {
@@ -7774,6 +8230,10 @@
       ],
       "subcategories": [
         "role:prophet"
+      ],
+      "peopleIds": [
+        "prophet_alyasa",
+        "prophet_ilyas"
       ]
     },
     {
@@ -7828,6 +8288,11 @@
       ],
       "subcategories": [
         "role:prophet"
+      ],
+      "peopleIds": [
+        "prophet_alyasa",
+        "prophet_dhulkifl",
+        "prophet_ilyas"
       ]
     },
     {
@@ -7974,6 +8439,11 @@
       ],
       "subcategories": [
         "role:prophet"
+      ],
+      "peopleIds": [
+        "prophet_dawud",
+        "prophet_sulayman",
+        "person_bilqis"
       ]
     },
     {
@@ -8056,6 +8526,13 @@
         "event:revelation",
         "role:prophet",
         "role:messenger"
+      ],
+      "peopleIds": [
+        "prophet_isa",
+        "prophet_muhammad",
+        "prophet_musa",
+        "prophet_salih",
+        "person_maryam"
       ]
     },
     {
@@ -8177,6 +8654,11 @@
       ],
       "subcategories": [
         "role:prophet"
+      ],
+      "peopleIds": [
+        "prophet_ibrahim",
+        "prophet_ishaq",
+        "prophet_ismail"
       ]
     }
   ],

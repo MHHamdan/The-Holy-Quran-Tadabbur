@@ -91,6 +91,14 @@ export interface RegistryStoryEntry {
    * for "people" facets that aren't necessarily prophets.
    */
   mainFigures: string[];
+  /**
+   * Canonical person IDs that appear in this story. Resolved by the build
+   * script from mainFigures aliases (Fir'awn → person_firawn) and from
+   * the story's relatedProphets list (prophet_musa kept verbatim). Allows
+   * the UI to facet stories by person without depending on free-text
+   * spelling variants in mainFigures.
+   */
+  peopleIds: string[];
 }
 
 export interface RegistryCoverageSummary {
@@ -385,6 +393,64 @@ export const SUBCATEGORY_TAG_LABELS: Record<string, { ar: string; en: string }> 
   'vice:hypocrisy': { ar: 'النفاق', en: 'Hypocrisy' },
   'vice:disobedience': { ar: 'العصيان', en: 'Disobedience' },
 };
+
+// ---------------------------------------------------------------------------
+// People taxonomy (canonical Quranic persons)
+// ---------------------------------------------------------------------------
+
+/**
+ * Coarse role buckets used to facet the People filter. A person carries
+ * exactly one primary role. Prophet IDs come straight from the prophets
+ * atlas so the People index is *additive* — it never re-declares a prophet
+ * profile, it just lifts them into a unified people view.
+ */
+export type PersonRole =
+  | 'prophet'
+  | 'righteous_figure'
+  | 'monarch'
+  | 'antagonist'
+  | 'companion'
+  | 'family_member'
+  | 'angel'
+  | 'unseen_being'
+  | 'collective';
+
+export const PERSON_ROLE_ORDER: PersonRole[] = [
+  'prophet',
+  'righteous_figure',
+  'monarch',
+  'antagonist',
+  'companion',
+  'family_member',
+  'angel',
+  'unseen_being',
+  'collective',
+];
+
+export const PERSON_ROLE_LABELS: Record<PersonRole, { ar: string; en: string }> = {
+  prophet: { ar: 'الأنبياء', en: 'Prophets' },
+  righteous_figure: { ar: 'الصالحون', en: 'Righteous figures' },
+  monarch: { ar: 'الملوك والملكات', en: 'Monarchs' },
+  antagonist: { ar: 'المعارضون', en: 'Antagonists' },
+  companion: { ar: 'الصحابة', en: 'Companions' },
+  family_member: { ar: 'أهل البيت', en: 'Family members' },
+  angel: { ar: 'الملائكة', en: 'Angels' },
+  unseen_being: { ar: 'كائنات الغيب', en: 'Unseen beings' },
+  collective: { ar: 'مجموعات', en: 'Groups' },
+};
+
+export interface PersonIndexEntry {
+  personId: string;
+  nameArabic: string;
+  nameEnglish: string;
+  role: PersonRole;
+  /**
+   * Optional one-line bilingual description that the UI can show next to
+   * the chip on hover. Kept brief and factual — never tafsir.
+   */
+  noteArabic?: string;
+  noteEnglish?: string;
+}
 
 /**
  * Split a "group:tag" string into its parts. Returns null if the input is

@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { getRegistry } from '../utils/storyRegistryAdapter';
+import { getRegistry, getPerson } from '../utils/storyRegistryAdapter';
 import {
   SUBCATEGORY_GROUP_LABELS,
+  PERSON_ROLE_LABELS,
   getSubcategoryLabel,
   type SubcategoryGroup,
 } from '../types/quranStoryRegistry';
@@ -416,6 +417,12 @@ function StoryCard({ story, language, isRich }: { story: Story; language: 'ar' |
         </div>
       )}
 
+      {/* People chips — registry-backed canonical figures (prophets,
+          antagonists like Fir'awn / Haman, righteous figures like Maryam
+          / Asiya, etc.). Read-only here; deep-link UX lives on the
+          detail page. */}
+      <StoryCardPeopleChips storyId={story.id} isRtl={isRtl} />
+
       {/* Subcategory chips — registry-backed thematic facets such as
           "Animals: Cow", "Places: Egypt", "Vices: Idolatry". These deep-link
           into the story atlas with the corresponding filter. */}
@@ -435,6 +442,57 @@ function StoryCard({ story, language, isRich }: { story: Story; language: 'ar' |
         </div>
       </div>
     </Link>
+  );
+}
+
+/**
+ * Render up to four registry-backed people chips. Tone-coded by role
+ * so prophets (indigo), antagonists (rose), and others (sky) read at a
+ * glance.
+ */
+function StoryCardPeopleChips({
+  storyId,
+  isRtl,
+}: {
+  storyId: string;
+  isRtl: boolean;
+}) {
+  const entry = getRegistry().stories.find((s) => s.storyId === storyId);
+  if (!entry || !entry.peopleIds || entry.peopleIds.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1 mb-2">
+      {entry.peopleIds.slice(0, 4).map((pid) => {
+        const p = getPerson(pid);
+        if (!p) return null;
+        const roleLabel = PERSON_ROLE_LABELS[p.role];
+        const title = isRtl
+          ? `${roleLabel?.ar ?? p.role}: ${p.nameArabic}`
+          : `${roleLabel?.en ?? p.role}: ${p.nameEnglish}`;
+        const tone =
+          p.role === 'prophet'
+            ? 'text-indigo-800 bg-indigo-50 border-indigo-200'
+            : p.role === 'antagonist'
+              ? 'text-rose-800 bg-rose-50 border-rose-200'
+              : 'text-sky-800 bg-sky-50 border-sky-200';
+        return (
+          <span
+            key={pid}
+            title={title}
+            className={clsx(
+              'text-[11px] font-medium border px-1.5 py-0.5 rounded',
+              tone,
+            )}
+          >
+            {isRtl ? p.nameArabic : p.nameEnglish}
+          </span>
+        );
+      })}
+      {entry.peopleIds.length > 4 && (
+        <span className="text-[11px] text-gray-500 self-center">
+          +{entry.peopleIds.length - 4}
+        </span>
+      )}
+    </div>
   );
 }
 

@@ -45,6 +45,13 @@ import {
   parseSubcategory,
 } from '../frontend/src/types/quranStoryRegistry';
 import { STORY_SUBCATEGORY_MAP } from './storySubcategoryMap';
+import {
+  QURAN_PEOPLE_INDEX,
+  PERSON_ALIASES,
+  STORY_EXTRA_PEOPLE,
+} from './quranPeopleIndex';
+import type { PersonIndexEntry, PersonRole } from '../frontend/src/types/quranStoryRegistry';
+import { PERSON_ROLE_ORDER } from '../frontend/src/types/quranStoryRegistry';
 
 const ROOT = resolve(__dirname, '..');
 const MANIFEST = join(ROOT, 'data/manifests/stories.json');
@@ -61,6 +68,7 @@ const CROSS_REFS = join(GEN, 'quranStoryCrossReferences.json');
 
 const OUT_JSON = join(GEN, 'quranStoryRegistry.json');
 const OUT_MD = join(ROOT, 'docs/generated/quran-story-registry-summary.md');
+const OUT_PEOPLE_JSON = join(GEN, 'quranPeopleIndex.json');
 const VERSION = '1.0.0';
 
 function loadJSON<T = unknown>(p: string, optional = false): T | null {
@@ -204,6 +212,79 @@ function uniq<T>(xs: T[]): T[] {
   return Array.from(new Set(xs));
 }
 
+// ---------------------------------------------------------------------------
+// People resolution
+// ---------------------------------------------------------------------------
+
+const knownPersonIds = new Set<string>(QURAN_PEOPLE_INDEX.map((p) => p.personId));
+const knownProphetIds = new Set<string>(
+  (prophetsAtlas?.profiles || []).map((p) => p.prophetId),
+);
+
+/**
+ * Normalise raw alias strings before lookup. Lowercases, strips
+ * apostrophes/back-ticks, collapses whitespace. Returns the canonical
+ * personId for a known alias, or null if the alias is unknown.
+ */
+function normaliseAlias(raw: string): string {
+  return raw.toLowerCase().replace(/['`’]/g, '').replace(/\s+/g, ' ').trim();
+}
+const NORMALISED_ALIASES: Record<string, string> = (() => {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(PERSON_ALIASES)) {
+    out[normaliseAlias(k)] = v;
+  }
+  return out;
+})();
+
+function resolveAlias(raw: string): string | null {
+  // Prophet IDs and person IDs pass through verbatim when already canonical.
+  if (knownProphetIds.has(raw) || knownPersonIds.has(raw)) return raw;
+  const n = normaliseAlias(raw);
+  return NORMALISED_ALIASES[n] ?? null;
+}
+
+/**
+ * Resolve the canonical peopleIds for a given storyId from:
+ *   1. raw mainFigures strings (via PERSON_ALIASES)
+ *   2. the story's relatedProphets (prophet IDs pass straight through)
+ *   3. the storyId-keyed STORY_EXTRA_PEOPLE map
+ *
+ * Deduplicated. Sorted by PERSON_ROLE_ORDER then alphabetically so the
+ * UI sees a stable presentation order.
+ */
+function resolvePeople(
+  storyId: string,
+  mainFigures: string[],
+  relatedProphets: string[],
+): string[] {
+  const out = new Set<string>();
+  for (const f of mainFigures) {
+    const id = resolveAlias(f);
+    if (id) out.add(id);
+  }
+  for (const p of relatedProphets) {
+    if (knownProphetIds.has(p)) out.add(p);
+  }
+  for (const extra of STORY_EXTRA_PEOPLE[storyId] || []) {
+    if (knownPersonIds.has(extra) || knownProphetIds.has(extra)) out.add(extra);
+  }
+  return Array.from(out).sort((a, b) => {
+    const ra = roleOf(a);
+    const rb = roleOf(b);
+    const ri = ra ? PERSON_ROLE_ORDER.indexOf(ra) : 99;
+    const rj = rb ? PERSON_ROLE_ORDER.indexOf(rb) : 99;
+    if (ri !== rj) return ri - rj;
+    return a.localeCompare(b);
+  });
+}
+
+function roleOf(id: string): PersonRole | null {
+  if (knownProphetIds.has(id)) return 'prophet';
+  const entry = QURAN_PEOPLE_INDEX.find((p) => p.personId === id);
+  return entry?.role ?? null;
+}
+
 function fromManifest(story: ManifestStory): RegistryStoryEntry {
   const refs: RegistryQuranReference[] = (story.segments || [])
     .filter((s) => typeof s.sura_no === 'number' && typeof s.aya_start === 'number')
@@ -250,6 +331,11 @@ function fromManifest(story: ManifestStory): RegistryStoryEntry {
     themes: uniq(story.themes || []),
     mainFigures: uniq(story.main_figures || []),
     subcategories: resolveSubcategories(story.id),
+    peopleIds: resolvePeople(
+      story.id,
+      story.main_figures || [],
+      prophetIdByStoryId.has(story.id) ? [prophetIdByStoryId.get(story.id)!] : [],
+    ),
   };
 }
 
@@ -355,6 +441,11 @@ function fromProphetPage(page: ProphetPagesFile['pages'][number]): RegistryStory
     themes: [],
     mainFigures: [page.prophetId, ...(page.relatedFigures || [])],
     subcategories: subcats,
+    peopleIds: resolvePeople(
+      page.storyPageId,
+      page.relatedFigures || [],
+      uniq([page.prophetId, ...(page.relatedProphets || [])]),
+    ),
   };
 }
 
@@ -566,9 +657,54 @@ for (const g of SUBCATEGORY_GROUP_ORDER) {
   }
 }
 md.push('');
+// People coverage histogram (similar shape to subcategory facets).
+md.push('## People coverage');
+md.push('');
+const roleStoryIds = new Map<PersonRole, Set<string>>();
+const personStoryIds = new Map<string, Set<string>>();
+for (const e of entries) {
+  for (const pid of e.peopleIds || []) {
+    const r = roleOf(pid);
+    if (!r) continue;
+    if (!roleStoryIds.has(r)) roleStoryIds.set(r, new Set());
+    roleStoryIds.get(r)!.add(e.storyId);
+    if (!personStoryIds.has(pid)) personStoryIds.set(pid, new Set());
+    personStoryIds.get(pid)!.add(e.storyId);
+  }
+}
+for (const r of PERSON_ROLE_ORDER) {
+  const sids = roleStoryIds.get(r);
+  if (!sids || sids.size === 0) continue;
+  md.push(`- **${r}** — ${sids.size} stories`);
+  const peers = Array.from(personStoryIds.entries())
+    .filter(([pid]) => roleOf(pid) === r)
+    .sort((a, b) => b[1].size - a[1].size || a[0].localeCompare(b[0]));
+  for (const [pid, ids] of peers) md.push(`  - ${pid} (${ids.size})`);
+}
+md.push('');
 md.push('## Warnings');
 md.push('');
 for (const w of warnings) md.push(`- ${w}`);
 mkdirSync(dirname(OUT_MD), { recursive: true });
 writeFileSync(OUT_MD, md.join('\n') + '\n');
 console.log(`Wrote ${OUT_MD}`);
+
+// Emit the people index as its own JSON so the frontend can load
+// canonical names / roles / notes without bundling the alias map. The
+// build script is the single source of truth for the published index.
+const peopleOut = {
+  version: VERSION,
+  generatedAt: out.generatedAt,
+  people: QURAN_PEOPLE_INDEX as PersonIndexEntry[],
+  // Include the prophet IDs so the frontend can build a unified people
+  // list (prophet + non-prophet) without having to read prophetsAtlas
+  // separately on the static-loading path.
+  prophets: (prophetsAtlas?.profiles || []).map((p) => ({
+    personId: p.prophetId,
+    nameArabic: (p as { nameArabic?: string }).nameArabic ?? p.prophetId,
+    nameEnglish: (p as { nameEnglish?: string }).nameEnglish ?? p.prophetId,
+    role: 'prophet' as PersonRole,
+  })),
+};
+writeFileSync(OUT_PEOPLE_JSON, JSON.stringify(peopleOut, null, 2));
+console.log(`Wrote ${OUT_PEOPLE_JSON}`);

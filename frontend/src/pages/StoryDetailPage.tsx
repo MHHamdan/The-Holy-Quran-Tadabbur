@@ -14,8 +14,14 @@ const StoryGraphView = lazy(() =>
 );
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { getStoryApprovalStatus } from '../utils/reviewStatus';
-import { getRegistry } from '../utils/storyRegistryAdapter';
-import { SUBCATEGORY_GROUP_LABELS, getSubcategoryLabel, type SubcategoryGroup } from '../types/quranStoryRegistry';
+import { getRegistry, getPerson } from '../utils/storyRegistryAdapter';
+import {
+  SUBCATEGORY_GROUP_LABELS,
+  PERSON_ROLE_LABELS,
+  getSubcategoryLabel,
+  type SubcategoryGroup,
+  type PersonRole,
+} from '../types/quranStoryRegistry';
 import {
   StoryOverviewCard,
   StorySummaryCard,
@@ -183,6 +189,7 @@ export function StoryDetailPage() {
           )}
         </div>
 
+        <StoryPeopleStrip storyId={storyId!} language={language} />
         <StorySubcategoryStrip storyId={storyId!} language={language} />
       </div>
 
@@ -590,6 +597,56 @@ export function StoryDetailPage() {
           language={language}
         />
       </div>
+    </div>
+  );
+}
+
+function StoryPeopleStrip({ storyId, language }: { storyId: string; language: 'ar' | 'en' }) {
+  const isArabic = language === 'ar';
+  const entry = getRegistry().stories.find((s) => s.storyId === storyId);
+  if (!entry || !entry.peopleIds || entry.peopleIds.length === 0) return null;
+
+  const grouped = new Map<PersonRole, string[]>();
+  for (const pid of entry.peopleIds) {
+    const p = getPerson(pid);
+    if (!p) continue;
+    if (!grouped.has(p.role)) grouped.set(p.role, []);
+    grouped.get(p.role)!.push(pid);
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-100 space-y-2" dir={isArabic ? 'rtl' : 'ltr'}>
+      {Array.from(grouped.entries()).map(([role, pids]) => {
+        const roleLabel = PERSON_ROLE_LABELS[role];
+        return (
+          <div key={role} className={clsx('flex flex-wrap items-center gap-2', isArabic && 'justify-end')}>
+            <span
+              className={clsx(
+                'text-[11px] font-semibold uppercase tracking-wide text-indigo-700',
+                isArabic && 'font-arabic',
+              )}
+            >
+              {isArabic ? roleLabel.ar : roleLabel.en}
+            </span>
+            <div className="flex flex-wrap gap-1">
+              {pids.map((pid) => {
+                const p = getPerson(pid);
+                if (!p) return null;
+                return (
+                  <Link
+                    key={pid}
+                    to={`/story-atlas?person=${encodeURIComponent(pid)}`}
+                    title={isArabic ? p.noteArabic : p.noteEnglish}
+                    className="inline-flex items-center text-xs font-medium text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded hover:bg-indigo-100"
+                  >
+                    {isArabic ? p.nameArabic : p.nameEnglish}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

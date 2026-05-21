@@ -483,3 +483,162 @@ def test_themes_and_main_figures_propagated(
         assert set(m.get("main_figures", [])).issubset(
             set(entry.get("mainFigures", []))
         ), f"{m['id']} dropped main_figures during registry build"
+
+
+# ---------------------------------------------------------------------------
+# People taxonomy (Firawn, Haman, Maryam, Asiya, Bilqis, …)
+# ---------------------------------------------------------------------------
+
+
+PERSON_ROLES = {
+    "prophet",
+    "righteous_figure",
+    "monarch",
+    "antagonist",
+    "companion",
+    "family_member",
+    "angel",
+    "unseen_being",
+    "collective",
+}
+
+PEOPLE_PATH = ROOT / "frontend" / "src" / "data" / "generated" / "quranPeopleIndex.json"
+
+
+@pytest.fixture(scope="module")
+def people_index() -> Dict[str, Any]:
+    assert PEOPLE_PATH.exists(), (
+        f"Run `npx tsx scripts/build-quran-story-registry.ts` first; missing {PEOPLE_PATH}"
+    )
+    return json.loads(PEOPLE_PATH.read_text(encoding="utf-8"))
+
+
+def test_people_index_is_well_formed(people_index: Dict[str, Any]) -> None:
+    assert len(people_index["people"]) > 30, (
+        "People index has fewer than expected entries — Firawn/Haman/Maryam etc. must be present"
+    )
+    assert len(people_index["prophets"]) == 25, (
+        "All 25 prophets from the atlas must be carried into the people index"
+    )
+    seen = set()
+    for entry in people_index["people"] + people_index["prophets"]:
+        pid = entry["personId"]
+        assert pid not in seen or entry["role"] == "prophet", (
+            f"Duplicate personId outside the prophet bucket: {pid}"
+        )
+        seen.add(pid)
+        assert entry["role"] in PERSON_ROLES, (
+            f"{pid}: unknown role {entry['role']!r}"
+        )
+        assert entry["nameArabic"], f"{pid}: missing nameArabic"
+        assert entry["nameEnglish"], f"{pid}: missing nameEnglish"
+
+
+def test_every_story_has_peopleids_array(registry: Dict[str, Any]) -> None:
+    for s in registry["stories"]:
+        assert "peopleIds" in s, f"{s['storyId']} missing peopleIds field"
+        assert isinstance(s["peopleIds"], list)
+
+
+def test_user_named_antagonists_appear_in_registry(
+    registry: Dict[str, Any],
+) -> None:
+    """The user explicitly named Fir'awn and Haman. Both must be linked
+    to at least one story so the People facet has content."""
+    pid_storycount: Dict[str, int] = {}
+    for s in registry["stories"]:
+        for pid in s.get("peopleIds", []):
+            pid_storycount[pid] = pid_storycount.get(pid, 0) + 1
+    for required in (
+        "person_firawn",
+        "person_haman",
+        "person_qarun",
+        "person_iblis",
+        "person_maryam",
+        "person_asiya",
+        "person_bilqis",
+        "person_luqman",
+        "person_khidr",
+    ):
+        assert pid_storycount.get(required, 0) >= 1, (
+            f"{required} expected in at least one story; found 0"
+        )
+
+
+def test_prophets_are_referenced_with_canonical_ids(
+    registry: Dict[str, Any], people_index: Dict[str, Any]
+) -> None:
+    prophet_ids = {p["personId"] for p in people_index["prophets"]}
+    referenced = set()
+    for s in registry["stories"]:
+        for pid in s.get("peopleIds", []):
+            if pid.startswith("prophet_"):
+                referenced.add(pid)
+    # At least the major prophets the user cares about must be present.
+    for required in (
+        "prophet_musa",
+        "prophet_ibrahim",
+        "prophet_yusuf",
+        "prophet_isa",
+        "prophet_muhammad",
+    ):
+        assert required in prophet_ids, f"Missing prophet ID {required} in index"
+        assert required in referenced, (
+            f"{required} not linked to any story via peopleIds"
+        )
+
+
+def test_filter_by_person_endpoint() -> None:
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    # Filter by canonical personId.
+    r = client.get(
+        "/api/v1/quran/story-atlas", params={"person": "person_firawn"}
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["total"] >= 1
+    for s in body["stories"]:
+        assert "person_firawn" in s["peopleIds"]
+
+    # Filter by role bucket.
+    r = client.get(
+        "/api/v1/quran/story-atlas", params={"person": "antagonist"}
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["total"] >= 1
+
+
+def test_people_facets_endpoint() -> None:
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    r = client.get("/api/v1/quran/story-atlas/people")
+    assert r.status_code == 200
+    body = r.json()
+    assert "facets" in body
+    roles_present = {f["role"] for f in body["facets"]}
+    # The user explicitly cares about prophets + people-in-general:
+    for required in ("prophet", "antagonist", "righteous_figure"):
+        assert required in roles_present
+    # Antagonists facet should include Fir'awn and Haman with at least 1 story.
+    antag = next(f for f in body["facets"] if f["role"] == "antagonist")
+    antag_ids = {p["personId"]: p for p in antag["people"]}
+    for required in ("person_firawn", "person_haman"):
+        assert required in antag_ids
+        assert antag_ids[required]["storyCount"] >= 1
+
+
+def test_person_search_term_matches() -> None:
+    """Searching for "firawn" / "pharaoh" should hit Fir'awn-related stories."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    r = client.get("/api/v1/quran/story-atlas", params={"search": "firawn"})
+    assert r.status_code == 200
+    assert r.json()["total"] >= 1

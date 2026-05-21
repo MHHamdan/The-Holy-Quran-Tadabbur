@@ -1,7 +1,7 @@
 # Quran Story Registry — Summary
 
 - Version: 1.0.0
-- Generated: 2026-05-21T13:43:53.755Z
+- Generated: 2026-05-21T14:09:49.490Z
 - Total stories: 132
 - Authored stories: 123
 - Prophet profiles: 9
@@ -195,6 +195,106 @@
   - vice:greed (2)
   - vice:deception (1)
   - vice:slander (1)
+
+## People coverage
+
+- **prophet** — 84 stories
+  - prophet_musa (16)
+  - prophet_muhammad (13)
+  - prophet_ibrahim (9)
+  - prophet_yusuf (8)
+  - prophet_sulayman (7)
+  - prophet_isa (5)
+  - prophet_yaqub (5)
+  - prophet_alyasa (4)
+  - prophet_dawud (4)
+  - prophet_harun (4)
+  - prophet_ishaq (4)
+  - prophet_nuh (4)
+  - prophet_shuayb (4)
+  - prophet_adam (3)
+  - prophet_dhulkifl (3)
+  - prophet_ilyas (3)
+  - prophet_ismail (3)
+  - prophet_salih (3)
+  - prophet_zakariyya (3)
+  - prophet_ayyub (2)
+  - prophet_hud (2)
+  - prophet_lut (2)
+  - prophet_idris (1)
+  - prophet_yahya (1)
+  - prophet_yunus (1)
+- **righteous_figure** — 14 stories
+  - person_maryam (5)
+  - person_asiya (2)
+  - person_imran_wife (2)
+  - person_zulaykha (2)
+  - person_believer_firaun (1)
+  - person_khidr (1)
+  - person_luqman (1)
+  - person_mother_musa (1)
+  - person_uzair (1)
+- **monarch** — 10 stories
+  - person_bilqis (3)
+  - person_aziz_egypt (2)
+  - person_dhulqarnayn (2)
+  - person_talut (2)
+  - person_abraha (1)
+- **antagonist** — 23 stories
+  - person_firawn (10)
+  - person_haman (3)
+  - person_iblis (3)
+  - person_nimrod (3)
+  - person_jalut (2)
+  - person_samiri (2)
+  - person_abu_lahab (1)
+  - person_balam (1)
+  - person_qarun (1)
+- **companion** — 3 stories
+  - person_abu_bakr (1)
+  - person_aisha (1)
+  - person_ibn_umm_maktum (1)
+- **family_member** — 13 stories
+  - person_son_nuh (3)
+  - person_brothers_yusuf (2)
+  - person_father_ibrahim (2)
+  - person_hajar (2)
+  - person_sarah (2)
+  - person_habil (1)
+  - person_hawwa (1)
+  - person_qabil (1)
+  - person_wife_lut (1)
+  - person_wife_nuh (1)
+- **angel** — 5 stories
+  - person_angels_generic (2)
+  - person_harut (1)
+  - person_israfil (1)
+  - person_jibril (1)
+  - person_marut (1)
+- **unseen_being** — 5 stories
+  - person_jinn_generic (3)
+  - person_majuj (2)
+  - person_yajuj (2)
+- **collective** — 36 stories
+  - person_bani_israel (10)
+  - person_disciples_isa (3)
+  - person_garden_owners (3)
+  - person_youth_cave (3)
+  - person_people_ad (2)
+  - person_people_madyan (2)
+  - person_people_thamud (2)
+  - person_sabbath_breakers (2)
+  - person_hypocrites_madinah (1)
+  - person_magicians_firaun (1)
+  - person_people_ayka (1)
+  - person_people_ditch (1)
+  - person_people_elephant (1)
+  - person_people_lut (1)
+  - person_people_nuh (1)
+  - person_people_rass (1)
+  - person_people_saba (1)
+  - person_people_tubba (1)
+  - person_three_messengers (1)
 
 ## Warnings
 
