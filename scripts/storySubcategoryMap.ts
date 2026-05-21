@@ -442,4 +442,16 @@ export const STORY_SUBCATEGORY_MAP: Record<string, string[]> = {
   story_abu_lahab: ['vice:disbelief', 'family:husband_wife'],
   story_sulayman_horses: ['animal:horse', 'role:king'],
   story_sulayman_trial: ['role:king', 'event:trial'],
+
+  // --- Didactic mentions added later -----------------------------------
+  // Stories whose Quranic basis is a short didactic mention rather than a
+  // multi-segment narrative. They are still real Quran content and benefit
+  // from being browseable under the animal facet alongside the cow,
+  // elephant, ant, spider, fly, etc.
+  story_bee: [
+    'animal:bee',
+    'nature:plant',
+    'event:revelation',
+    'virtue:knowledge',
+  ],
 };

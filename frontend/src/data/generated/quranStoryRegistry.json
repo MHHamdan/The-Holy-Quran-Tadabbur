@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-05-21T13:39:38.764Z",
+  "generatedAt": "2026-05-21T13:43:53.755Z",
   "categories": [
     "prophet",
     "prophetic_sirah",
@@ -13,15 +13,15 @@
     "needs_review"
   ],
   "coverage": {
-    "totalStories": 131,
-    "authoredStories": 122,
+    "totalStories": 132,
+    "authoredStories": 123,
     "prophetProfiles": 9,
     "generatedCandidates": 0,
     "missingMetadataCount": 0,
-    "surahsCovered": 68,
+    "surahsCovered": 69,
     "prophetsCovered": 24,
-    "ayahRangesLinked": 365,
-    "reviewPendingCount": 131
+    "ayahRangesLinked": 366,
+    "reviewPendingCount": 132
   },
   "stories": [
     {
@@ -7101,6 +7101,46 @@
       "subcategories": [
         "event:trial",
         "role:king"
+      ]
+    },
+    {
+      "storyId": "story_bee",
+      "titleArabic": "قصة النحل",
+      "titleEnglish": "The Bee (An-Nahl)",
+      "category": "parable",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 16,
+          "ayahStart": 68,
+          "ayahEnd": 69,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 1,
+      "surahCount": 1,
+      "ayahRangeCount": 1,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_bee",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [],
+      "themes": [
+        "signs",
+        "revelation",
+        "healing"
+      ],
+      "mainFigures": [],
+      "subcategories": [
+        "animal:bee",
+        "event:revelation",
+        "nature:plant",
+        "virtue:knowledge"
       ]
     },
     {

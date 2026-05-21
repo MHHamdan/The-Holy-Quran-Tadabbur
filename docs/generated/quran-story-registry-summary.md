@@ -1,16 +1,16 @@
 # Quran Story Registry — Summary
 
 - Version: 1.0.0
-- Generated: 2026-05-21T13:39:38.764Z
-- Total stories: 131
-- Authored stories: 122
+- Generated: 2026-05-21T13:43:53.755Z
+- Total stories: 132
+- Authored stories: 123
 - Prophet profiles: 9
 - Generated candidates: 0
 - Missing metadata: 0
-- Surahs covered: 68
+- Surahs covered: 69
 - Prophets covered: 24
-- Ayah ranges linked: 365
-- Review pending: 131
+- Ayah ranges linked: 366
+- Review pending: 132
 
 ## Categories used
 
@@ -18,7 +18,7 @@
 - prophetic_sirah: 1
 - person: 9
 - nation: 16
-- parable: 33
+- parable: 34
 - historical: 21
 - unseen: 15
 - compact_profile: 2
@@ -26,7 +26,7 @@
 
 ## Subcategory coverage
 
-- **animal** — 25 stories
+- **animal** — 26 stories
   - animal:birds (5)
   - animal:dog (3)
   - animal:donkey (3)
@@ -36,6 +36,7 @@
   - animal:camel (2)
   - animal:hoopoe (2)
   - animal:horse (2)
+  - animal:bee (1)
   - animal:cow (1)
   - animal:elephant (1)
   - animal:fly (1)
@@ -86,8 +87,8 @@
   - object:ring (1)
   - object:scripture (1)
   - object:tree_zaqqum (1)
-- **event** — 42 stories
-  - event:revelation (7)
+- **event** — 43 stories
+  - event:revelation (8)
   - event:battle (5)
   - event:flood (5)
   - event:judgment (4)
@@ -156,8 +157,8 @@
   - afterlife:mizan (1)
   - afterlife:paradise (1)
   - afterlife:trumpet (1)
-- **nature** — 26 stories
-  - nature:plant (7)
+- **nature** — 27 stories
+  - nature:plant (8)
   - nature:water (5)
   - nature:fire (4)
   - nature:sky (3)
@@ -168,7 +169,7 @@
   - nature:sun (2)
   - nature:earthquake (1)
   - nature:rain (1)
-- **virtue** — 28 stories
+- **virtue** — 29 stories
   - virtue:patience (10)
   - virtue:justice (4)
   - virtue:trust_in_allah (4)
@@ -180,6 +181,7 @@
   - virtue:wisdom (2)
   - virtue:charity (1)
   - virtue:gratitude (1)
+  - virtue:knowledge (1)
   - virtue:mercy (1)
   - virtue:sacrifice (1)
 - **vice** — 42 stories
