@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-05-21T19:52:49.569Z",
+  "generatedAt": "2026-05-21T21:26:40.061Z",
   "places": [
     {
       "placeId": "place_masjid_al_haram",
@@ -230,6 +230,25 @@
         "17:1",
         "21:71"
       ]
+    },
+    {
+      "placeId": "place_byzantium",
+      "nameArabic": "بلاد الروم",
+      "nameEnglish": "Land of the Romans (Byzantium)",
+      "type": "region",
+      "noteEnglish": "The Eastern Roman empire whose lands witnessed the events of Surah Ar-Rum.",
+      "noteArabic": "بلاد الإمبراطورية البيزنطية.",
+      "quranReferences": [
+        "30:1-5"
+      ]
+    },
+    {
+      "placeId": "place_persia",
+      "nameArabic": "بلاد فارس",
+      "nameEnglish": "Land of the Persians (Sassanian Persia)",
+      "type": "region",
+      "noteEnglish": "The Sassanian Persian empire, victorious before the Romans regained ground.",
+      "noteArabic": "بلاد الفرس الساسانية."
     },
     {
       "placeId": "place_mount_sinai",
@@ -470,6 +489,17 @@
       "noteArabic": "وادي حنين، ذُكر في سورة التوبة.",
       "quranReferences": [
         "9:25-26"
+      ]
+    },
+    {
+      "placeId": "place_khandaq",
+      "nameArabic": "الخندق (المدينة)",
+      "nameEnglish": "The Trench (around Madinah)",
+      "type": "battlefield",
+      "noteEnglish": "Defensive trench dug around Madinah in the Battle of Al-Ahzab.",
+      "noteArabic": "الخندق الذي حُفر حول المدينة في غزوة الأحزاب.",
+      "quranReferences": [
+        "33:9-27"
       ]
     },
     {

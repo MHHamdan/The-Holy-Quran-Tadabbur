@@ -213,6 +213,23 @@ export const QURAN_PLACES_INDEX: PlaceIndexEntry[] = [
     noteArabic: 'الأرض التي بارك الله فيها للعالمين.',
     quranReferences: ['5:21', '17:1', '21:71'],
   },
+  {
+    placeId: 'place_byzantium',
+    nameArabic: 'بلاد الروم',
+    nameEnglish: 'Land of the Romans (Byzantium)',
+    type: 'region',
+    noteEnglish: 'The Eastern Roman empire whose lands witnessed the events of Surah Ar-Rum.',
+    noteArabic: 'بلاد الإمبراطورية البيزنطية.',
+    quranReferences: ['30:1-5'],
+  },
+  {
+    placeId: 'place_persia',
+    nameArabic: 'بلاد فارس',
+    nameEnglish: 'Land of the Persians (Sassanian Persia)',
+    type: 'region',
+    noteEnglish: 'The Sassanian Persian empire, victorious before the Romans regained ground.',
+    noteArabic: 'بلاد الفرس الساسانية.',
+  },
 
   // -------------------------------------------------------------------
   // Mountains
@@ -424,6 +441,15 @@ export const QURAN_PLACES_INDEX: PlaceIndexEntry[] = [
     noteArabic: 'وادي حنين، ذُكر في سورة التوبة.',
     quranReferences: ['9:25-26'],
   },
+  {
+    placeId: 'place_khandaq',
+    nameArabic: 'الخندق (المدينة)',
+    nameEnglish: 'The Trench (around Madinah)',
+    type: 'battlefield',
+    noteEnglish: 'Defensive trench dug around Madinah in the Battle of Al-Ahzab.',
+    noteArabic: 'الخندق الذي حُفر حول المدينة في غزوة الأحزاب.',
+    quranReferences: ['33:9-27'],
+  },
 
   // -------------------------------------------------------------------
   // Structures (vessels and named buildings that anchor stories)
@@ -570,9 +596,9 @@ export const STORY_EXTRA_PLACES: Record<string, string[]> = {
   ],
   story_hijrah: ['place_makkah', 'place_madinah', 'place_cave_thawr'],
   story_muhammad: ['place_makkah', 'place_madinah', 'place_cave_hira'],
-  story_ibrahim: ['place_makkah', 'place_kabah', 'place_palestine', 'place_babylon'],
+  story_ibrahim: ['place_makkah', 'place_kabah', 'place_maqam_ibrahim', 'place_palestine', 'place_babylon'],
   story_ibrahim_nimrod: ['place_babylon'],
-  story_ismail: ['place_makkah', 'place_kabah', 'place_safa_marwa'],
+  story_ismail: ['place_makkah', 'place_kabah', 'place_maqam_ibrahim', 'place_safa_marwa'],
   story_yusuf: ['place_egypt', 'place_well_yusuf', 'place_prison_egypt'],
   story_yusuf_prison: ['place_prison_egypt'],
   story_yusuf_brothers: ['place_egypt', 'place_well_yusuf'],
@@ -646,4 +672,7 @@ export const STORY_EXTRA_PLACES: Record<string, string[]> = {
   storypage_yaqub: ['place_palestine'],
   storypage_ishaq: ['place_palestine'],
   storypage_harun: ['place_egypt', 'place_mount_sinai'],
+  story_khandaq: ['place_madinah', 'place_khandaq'],
+  story_romans_persians: ['place_byzantium', 'place_persia', 'place_jerusalem'],
+  story_conquest_makkah: ['place_makkah', 'place_kabah', 'place_hunayn'],
 };

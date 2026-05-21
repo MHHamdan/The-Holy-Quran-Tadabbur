@@ -454,4 +454,15 @@ export const STORY_SUBCATEGORY_MAP: Record<string, string[]> = {
     'event:revelation',
     'virtue:knowledge',
   ],
+
+  // --- Sirah expansion --------------------------------------------------
+  story_khandaq: [
+    'event:battle',
+    'place:madinah',
+    'role:prophet',
+    'nature:wind',
+    'virtue:patience',
+    'virtue:trust_in_allah',
+    'vice:hypocrisy',
+  ],
 };

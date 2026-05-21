@@ -1,16 +1,16 @@
 # Quran Story Registry — Summary
 
 - Version: 1.0.0
-- Generated: 2026-05-21T19:52:49.569Z
-- Total stories: 132
-- Authored stories: 123
+- Generated: 2026-05-21T21:26:40.061Z
+- Total stories: 133
+- Authored stories: 124
 - Prophet profiles: 9
 - Generated candidates: 0
 - Missing metadata: 0
 - Surahs covered: 69
 - Prophets covered: 24
-- Ayah ranges linked: 366
-- Review pending: 132
+- Ayah ranges linked: 369
+- Review pending: 133
 
 ## Categories used
 
@@ -19,7 +19,7 @@
 - person: 9
 - nation: 16
 - parable: 34
-- historical: 21
+- historical: 22
 - unseen: 15
 - compact_profile: 2
 - needs_review: 0
@@ -45,7 +45,7 @@
   - animal:sheep (1)
   - animal:spider (1)
   - animal:whale (1)
-- **place** — 57 stories
+- **place** — 58 stories
   - place:egypt (10)
   - place:makkah (7)
   - place:masjid_al_haram (5)
@@ -53,13 +53,13 @@
   - place:masjid_al_aqsa (4)
   - place:cave (3)
   - place:garden (3)
+  - place:madinah (3)
   - place:madyan (3)
   - place:mount_sinai (3)
   - place:sheba (3)
   - place:thicket (3)
   - place:ad_lands (2)
   - place:hijr (2)
-  - place:madinah (2)
   - place:mount_judi (2)
   - place:prison (2)
   - place:two_gardens (2)
@@ -87,9 +87,9 @@
   - object:ring (1)
   - object:scripture (1)
   - object:tree_zaqqum (1)
-- **event** — 43 stories
+- **event** — 44 stories
   - event:revelation (8)
-  - event:battle (5)
+  - event:battle (6)
   - event:flood (5)
   - event:judgment (4)
   - event:creation (3)
@@ -136,8 +136,8 @@
   - family:brothers (3)
   - family:daughter (2)
   - family:parent_child (2)
-- **role** — 42 stories
-  - role:prophet (27)
+- **role** — 43 stories
+  - role:prophet (28)
   - role:king (9)
   - role:messenger (4)
   - role:wife_of_prophet (2)
@@ -157,22 +157,22 @@
   - afterlife:mizan (1)
   - afterlife:paradise (1)
   - afterlife:trumpet (1)
-- **nature** — 27 stories
+- **nature** — 28 stories
   - nature:plant (8)
   - nature:water (5)
   - nature:fire (4)
+  - nature:wind (4)
   - nature:sky (3)
   - nature:stars (3)
-  - nature:wind (3)
   - nature:moon (2)
   - nature:mountain (2)
   - nature:sun (2)
   - nature:earthquake (1)
   - nature:rain (1)
-- **virtue** — 29 stories
-  - virtue:patience (10)
+- **virtue** — 30 stories
+  - virtue:patience (11)
+  - virtue:trust_in_allah (5)
   - virtue:justice (4)
-  - virtue:trust_in_allah (4)
   - virtue:repentance (3)
   - virtue:chastity (2)
   - virtue:courage (2)
@@ -184,7 +184,7 @@
   - virtue:knowledge (1)
   - virtue:mercy (1)
   - virtue:sacrifice (1)
-- **vice** — 42 stories
+- **vice** — 43 stories
   - vice:arrogance (11)
   - vice:disbelief (11)
   - vice:disobedience (7)
@@ -194,6 +194,7 @@
   - vice:betrayal (2)
   - vice:greed (2)
   - vice:deception (1)
+  - vice:hypocrisy (1)
   - vice:slander (1)
 
 ## Places coverage
@@ -202,23 +203,26 @@
   - place_kabah (7)
   - place_masjid_al_haram (5)
   - place_masjid_al_aqsa (4)
+  - place_maqam_ibrahim (2)
   - place_safa_marwa (1)
-- **city** — 47 stories
+- **city** — 49 stories
   - place_egypt (16)
+  - place_madinah (11)
   - place_makkah (11)
-  - place_madinah (10)
-  - place_jerusalem (8)
+  - place_jerusalem (9)
   - place_babylon (3)
   - place_saba_city (3)
   - place_iram (2)
-- **region** — 23 stories
+- **region** — 24 stories
   - place_palestine (8)
   - place_madyan (4)
   - place_sheba (4)
   - place_thicket (3)
   - place_ad_lands (2)
   - place_thamud_lands (2)
+  - place_byzantium (1)
   - place_najran (1)
+  - place_persia (1)
   - place_rass (1)
 - **mountain** — 12 stories
   - place_mount_sinai (7)
@@ -240,9 +244,11 @@
   - place_garden_owners_field (1)
   - place_ukhdud (1)
   - place_village_yasin (1)
-- **battlefield** — 4 stories
+- **battlefield** — 6 stories
   - place_badr (1)
   - place_hudaybiyyah (1)
+  - place_hunayn (1)
+  - place_khandaq (1)
   - place_tabuk (1)
   - place_uhud (1)
 - **structure** — 13 stories
@@ -259,9 +265,9 @@
 
 ## People coverage
 
-- **prophet** — 84 stories
+- **prophet** — 85 stories
   - prophet_musa (16)
-  - prophet_muhammad (13)
+  - prophet_muhammad (14)
   - prophet_ibrahim (9)
   - prophet_yusuf (8)
   - prophet_sulayman (7)
@@ -326,8 +332,8 @@
   - person_qabil (1)
   - person_wife_lut (1)
   - person_wife_nuh (1)
-- **angel** — 5 stories
-  - person_angels_generic (2)
+- **angel** — 6 stories
+  - person_angels_generic (3)
   - person_harut (1)
   - person_israfil (1)
   - person_jibril (1)
@@ -336,16 +342,17 @@
   - person_jinn_generic (3)
   - person_majuj (2)
   - person_yajuj (2)
-- **collective** — 36 stories
+- **collective** — 38 stories
   - person_bani_israel (10)
   - person_disciples_isa (3)
   - person_garden_owners (3)
   - person_youth_cave (3)
+  - person_hypocrites_madinah (2)
   - person_people_ad (2)
   - person_people_madyan (2)
   - person_people_thamud (2)
   - person_sabbath_breakers (2)
-  - person_hypocrites_madinah (1)
+  - person_confederates (1)
   - person_magicians_firaun (1)
   - person_people_ayka (1)
   - person_people_ditch (1)
@@ -355,6 +362,8 @@
   - person_people_rass (1)
   - person_people_saba (1)
   - person_people_tubba (1)
+  - person_persians (1)
+  - person_romans (1)
   - person_three_messengers (1)
 
 ## Warnings

@@ -320,15 +320,6 @@ export const QURAN_PEOPLE_INDEX: PersonIndexEntry[] = [
     noteEnglish: 'Father of Ibrahim, an idol-carver in his community.',
     noteArabic: 'والد إبراهيم، كان يصنع الأصنام.',
   },
-  {
-    personId: 'person_father_yusuf',
-    nameArabic: 'يعقوب والد يوسف',
-    nameEnglish: 'Yaqub (father of Yusuf)',
-    role: 'family_member',
-    noteEnglish: 'Already listed under prophets; mentioned here for family-context navigation.',
-    noteArabic: 'مذكور أيضاً تحت الأنبياء، لكنه يظهر هنا كأب يوسف.',
-  },
-
   // -------------------------------------------------------------------
   // Angels
   // -------------------------------------------------------------------
@@ -497,12 +488,6 @@ export const QURAN_PEOPLE_INDEX: PersonIndexEntry[] = [
     role: 'collective',
   },
   {
-    personId: 'person_people_cave_sleepers',
-    nameArabic: 'أصحاب الكهف والرقيم',
-    nameEnglish: 'People of the Cave and the Inscription',
-    role: 'collective',
-  },
-  {
     personId: 'person_people_elephant',
     nameArabic: 'أصحاب الفيل',
     nameEnglish: 'Army of the Elephant',
@@ -525,6 +510,30 @@ export const QURAN_PEOPLE_INDEX: PersonIndexEntry[] = [
     nameArabic: 'المنافقون',
     nameEnglish: 'The Hypocrites (in Madinah)',
     role: 'collective',
+  },
+  {
+    personId: 'person_romans',
+    nameArabic: 'الروم',
+    nameEnglish: 'The Romans (Byzantines)',
+    role: 'collective',
+    noteEnglish: 'Subject of the opening prediction in Surah Ar-Rum (30:1-5).',
+    noteArabic: 'موضوع نبوءة افتتاح سورة الروم (٣٠: ١-٥).',
+  },
+  {
+    personId: 'person_persians',
+    nameArabic: 'الفرس',
+    nameEnglish: 'The Persians (Sassanians)',
+    role: 'collective',
+    noteEnglish: 'Defeated the Romans before the Romans’ predicted victory in Surah Ar-Rum.',
+    noteArabic: 'هزموا الروم ثم انتصر الروم كما نزلت السورة.',
+  },
+  {
+    personId: 'person_confederates',
+    nameArabic: 'الأحزاب',
+    nameEnglish: 'The Confederates (Ahzab)',
+    role: 'collective',
+    noteEnglish: 'Tribal coalition that besieged Madinah in the Battle of the Trench.',
+    noteArabic: 'تحالف القبائل في غزوة الخندق.',
   },
   {
     personId: 'person_sabbath_breakers',
@@ -873,4 +882,11 @@ export const STORY_EXTRA_PEOPLE: Record<string, string[]> = {
   story_intercession: ['prophet_muhammad'],
   story_covenant_souls: ['prophet_adam'],
   story_isra_miraj: ['prophet_muhammad', 'person_jibril'],
+  story_khandaq: [
+    'prophet_muhammad',
+    'person_confederates',
+    'person_hypocrites_madinah',
+    'person_angels_generic',
+  ],
+  story_romans_persians: ['person_romans', 'person_persians'],
 };

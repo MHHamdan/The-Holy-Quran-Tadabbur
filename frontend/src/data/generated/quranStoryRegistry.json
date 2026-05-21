@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-05-21T19:52:49.569Z",
+  "generatedAt": "2026-05-21T21:26:40.061Z",
   "categories": [
     "prophet",
     "prophetic_sirah",
@@ -13,15 +13,15 @@
     "needs_review"
   ],
   "coverage": {
-    "totalStories": 132,
-    "authoredStories": 123,
+    "totalStories": 133,
+    "authoredStories": 124,
     "prophetProfiles": 9,
     "generatedCandidates": 0,
     "missingMetadataCount": 0,
     "surahsCovered": 69,
     "prophetsCovered": 24,
-    "ayahRangesLinked": 366,
-    "reviewPendingCount": 132
+    "ayahRangesLinked": 369,
+    "reviewPendingCount": 133
   },
   "stories": [
     {
@@ -370,6 +370,7 @@
       ],
       "placeIds": [
         "place_kabah",
+        "place_maqam_ibrahim",
         "place_masjid_al_haram",
         "place_babylon",
         "place_makkah",
@@ -3071,6 +3072,7 @@
       ],
       "placeIds": [
         "place_kabah",
+        "place_maqam_ibrahim",
         "place_masjid_al_haram",
         "place_safa_marwa",
         "place_makkah"
@@ -4367,7 +4369,8 @@
       ],
       "placeIds": [
         "place_kabah",
-        "place_makkah"
+        "place_makkah",
+        "place_hunayn"
       ]
     },
     {
@@ -4593,8 +4596,15 @@
       "subcategories": [
         "event:battle"
       ],
-      "peopleIds": [],
-      "placeIds": []
+      "peopleIds": [
+        "person_persians",
+        "person_romans"
+      ],
+      "placeIds": [
+        "place_jerusalem",
+        "place_byzantium",
+        "place_persia"
+      ]
     },
     {
       "storyId": "story_ancient_egypt",
@@ -7928,6 +7938,79 @@
       ],
       "peopleIds": [],
       "placeIds": []
+    },
+    {
+      "storyId": "story_khandaq",
+      "titleArabic": "غزوة الخندق (الأحزاب)",
+      "titleEnglish": "The Battle of the Trench (Al-Ahzab)",
+      "category": "historical",
+      "sourceType": "authored_story",
+      "quranReferences": [
+        {
+          "surahNumber": 33,
+          "ayahStart": 9,
+          "ayahEnd": 13,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 12,
+          "ayahEnd": 20,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 25,
+          "ayahEnd": 27,
+          "linkType": "story_segment",
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "relatedProphets": [],
+      "relatedEntities": [],
+      "relatedTopics": [],
+      "relatedStories": [],
+      "segmentCount": 3,
+      "surahCount": 1,
+      "ayahRangeCount": 3,
+      "hasDetailPage": true,
+      "detailRoute": "/stories/story_khandaq",
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [],
+      "themes": [
+        "trial",
+        "patience",
+        "siege",
+        "victory",
+        "hypocrisy",
+        "trust_in_allah"
+      ],
+      "mainFigures": [
+        "Muhammad",
+        "The Hypocrites"
+      ],
+      "subcategories": [
+        "place:madinah",
+        "event:battle",
+        "role:prophet",
+        "nature:wind",
+        "virtue:patience",
+        "virtue:trust_in_allah",
+        "vice:hypocrisy"
+      ],
+      "peopleIds": [
+        "prophet_muhammad",
+        "person_angels_generic",
+        "person_confederates",
+        "person_hypocrites_madinah"
+      ],
+      "placeIds": [
+        "place_madinah",
+        "place_khandaq"
+      ]
     },
     {
       "storyId": "storypage_ishaq",
