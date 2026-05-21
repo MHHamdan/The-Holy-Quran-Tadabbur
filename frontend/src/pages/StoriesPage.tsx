@@ -1,5 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { getRegistry } from '../utils/storyRegistryAdapter';
+import {
+  SUBCATEGORY_GROUP_LABELS,
+  getSubcategoryLabel,
+  type SubcategoryGroup,
+} from '../types/quranStoryRegistry';
 import {
   Book, Users, ArrowRight, Search, Crown, Globe, Scroll,
   Landmark, Eye, Heart, ChevronRight, Baby, GraduationCap,
@@ -410,6 +416,12 @@ function StoryCard({ story, language, isRich }: { story: Story; language: 'ar' |
         </div>
       )}
 
+      {/* Subcategory chips — registry-backed thematic facets such as
+          "Animals: Cow", "Places: Egypt", "Vices: Idolatry". These deep-link
+          into the story atlas with the corresponding filter. */}
+      <StoryCardSubcategoryChips storyId={story.id} isRtl={isRtl} />
+
+
       {/* Footer stats */}
       <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
         {story.suras_mentioned && story.suras_mentioned.length > 0 && (
@@ -423,5 +435,49 @@ function StoryCard({ story, language, isRich }: { story: Story; language: 'ar' |
         </div>
       </div>
     </Link>
+  );
+}
+
+/**
+ * Render up to four registry-backed subcategory chips for the given story.
+ * Renders nothing if the story is not in the registry, or has no
+ * subcategories. Chips are not clickable here (the parent card already
+ * navigates to the story); the subcategory deep-link UX lives on the
+ * detail page where dedicated screen real estate exists for it.
+ */
+function StoryCardSubcategoryChips({
+  storyId,
+  isRtl,
+}: {
+  storyId: string;
+  isRtl: boolean;
+}) {
+  const entry = getRegistry().stories.find((s) => s.storyId === storyId);
+  if (!entry || !entry.subcategories || entry.subcategories.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1 mb-3">
+      {entry.subcategories.slice(0, 4).map((sc) => {
+        const label = getSubcategoryLabel(sc);
+        const group = sc.split(':')[0] as SubcategoryGroup;
+        const groupLabel = SUBCATEGORY_GROUP_LABELS[group];
+        const title = isRtl
+          ? `${groupLabel?.ar ?? group}: ${label.ar}`
+          : `${groupLabel?.en ?? group}: ${label.en}`;
+        return (
+          <span
+            key={sc}
+            title={title}
+            className="text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded"
+          >
+            {isRtl ? label.ar : label.en}
+          </span>
+        );
+      })}
+      {entry.subcategories.length > 4 && (
+        <span className="text-[11px] text-gray-500 self-center">
+          +{entry.subcategories.length - 4}
+        </span>
+      )}
+    </div>
   );
 }
