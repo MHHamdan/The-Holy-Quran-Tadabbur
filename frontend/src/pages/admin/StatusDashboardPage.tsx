@@ -221,7 +221,7 @@ function FrontendScreen({ language }: { language: 'ar' | 'en' }) {
           </div>
           <div className="bg-white rounded-lg p-4 border border-blue-100">
             <p className="text-sm text-gray-500 mb-1">LAN URL</p>
-            <code className="text-blue-700 font-mono text-sm">http://172.24.50.21:3000</code>
+            <code className="text-blue-700 font-mono text-sm">{`http://${window.location.hostname}:3000`}</code>
           </div>
           <div className="bg-white rounded-lg p-4 border border-blue-100">
             <p className="text-sm text-gray-500 mb-1">Vite Host</p>
@@ -586,12 +586,11 @@ function BackendScreen({ language }: { language: 'ar' | 'en' }) {
         <div className="space-y-2">
           {[
             'http://localhost:3000',
+            'http://localhost:5173',
             'http://localhost:5174',
             'http://127.0.0.1:3000',
+            'http://127.0.0.1:5173',
             'http://127.0.0.1:5174',
-            'http://172.24.50.21:3000',
-            'http://172.24.50.21:5173',
-            'http://172.24.50.21:5174',
           ].map((origin, idx) => (
             <div key={idx} className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-green-500" />
