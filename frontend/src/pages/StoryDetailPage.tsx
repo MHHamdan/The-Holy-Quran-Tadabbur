@@ -14,6 +14,16 @@ const StoryGraphView = lazy(() =>
 );
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { getStoryApprovalStatus } from '../utils/reviewStatus';
+import { getRegistry, getPerson, getPlace } from '../utils/storyRegistryAdapter';
+import {
+  SUBCATEGORY_GROUP_LABELS,
+  PERSON_ROLE_LABELS,
+  PLACE_TYPE_LABELS,
+  getSubcategoryLabel,
+  type SubcategoryGroup,
+  type PersonRole,
+  type PlaceType,
+} from '../types/quranStoryRegistry';
 import {
   StoryOverviewCard,
   StorySummaryCard,
@@ -180,6 +190,10 @@ export function StoryDetailPage() {
             </div>
           )}
         </div>
+
+        <StoryPeopleStrip storyId={storyId!} language={language} />
+        <StoryPlaceStrip storyId={storyId!} language={language} />
+        <StorySubcategoryStrip storyId={storyId!} language={language} />
       </div>
 
       {/* Audience Level Toggle — shown when rich story data is available */}
@@ -586,6 +600,155 @@ export function StoryDetailPage() {
           language={language}
         />
       </div>
+    </div>
+  );
+}
+
+function StoryPeopleStrip({ storyId, language }: { storyId: string; language: 'ar' | 'en' }) {
+  const isArabic = language === 'ar';
+  const entry = getRegistry().stories.find((s) => s.storyId === storyId);
+  if (!entry || !entry.peopleIds || entry.peopleIds.length === 0) return null;
+
+  const grouped = new Map<PersonRole, string[]>();
+  for (const pid of entry.peopleIds) {
+    const p = getPerson(pid);
+    if (!p) continue;
+    if (!grouped.has(p.role)) grouped.set(p.role, []);
+    grouped.get(p.role)!.push(pid);
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-100 space-y-2" dir={isArabic ? 'rtl' : 'ltr'}>
+      {Array.from(grouped.entries()).map(([role, pids]) => {
+        const roleLabel = PERSON_ROLE_LABELS[role];
+        return (
+          <div key={role} className={clsx('flex flex-wrap items-center gap-2', isArabic && 'justify-end')}>
+            <span
+              className={clsx(
+                'text-[11px] font-semibold uppercase tracking-wide text-indigo-700',
+                isArabic && 'font-arabic',
+              )}
+            >
+              {isArabic ? roleLabel.ar : roleLabel.en}
+            </span>
+            <div className="flex flex-wrap gap-1">
+              {pids.map((pid) => {
+                const p = getPerson(pid);
+                if (!p) return null;
+                return (
+                  <Link
+                    key={pid}
+                    to={`/story-atlas?person=${encodeURIComponent(pid)}`}
+                    title={isArabic ? p.noteArabic : p.noteEnglish}
+                    className="inline-flex items-center text-xs font-medium text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded hover:bg-indigo-100"
+                  >
+                    {isArabic ? p.nameArabic : p.nameEnglish}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function StoryPlaceStrip({ storyId, language }: { storyId: string; language: 'ar' | 'en' }) {
+  const isArabic = language === 'ar';
+  const entry = getRegistry().stories.find((s) => s.storyId === storyId);
+  if (!entry || !entry.placeIds || entry.placeIds.length === 0) return null;
+
+  const grouped = new Map<PlaceType, string[]>();
+  for (const pid of entry.placeIds) {
+    const p = getPlace(pid);
+    if (!p) continue;
+    if (!grouped.has(p.type)) grouped.set(p.type, []);
+    grouped.get(p.type)!.push(pid);
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-100 space-y-2" dir={isArabic ? 'rtl' : 'ltr'}>
+      {Array.from(grouped.entries()).map(([type, pids]) => {
+        const typeLabel = PLACE_TYPE_LABELS[type];
+        return (
+          <div key={type} className={clsx('flex flex-wrap items-center gap-2', isArabic && 'justify-end')}>
+            <span
+              className={clsx(
+                'text-[11px] font-semibold uppercase tracking-wide text-amber-800',
+                isArabic && 'font-arabic',
+              )}
+            >
+              {isArabic ? typeLabel.ar : typeLabel.en}
+            </span>
+            <div className="flex flex-wrap gap-1">
+              {pids.map((pid) => {
+                const p = getPlace(pid);
+                if (!p) return null;
+                return (
+                  <Link
+                    key={pid}
+                    to={`/story-atlas?place=${encodeURIComponent(pid)}`}
+                    title={isArabic ? p.noteArabic : p.noteEnglish}
+                    className="inline-flex items-center text-xs font-medium text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded hover:bg-amber-100"
+                  >
+                    {isArabic ? p.nameArabic : p.nameEnglish}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function StorySubcategoryStrip({ storyId, language }: { storyId: string; language: 'ar' | 'en' }) {
+  const isArabic = language === 'ar';
+  const entry = getRegistry().stories.find((s) => s.storyId === storyId);
+  if (!entry || !entry.subcategories || entry.subcategories.length === 0) return null;
+
+  // Group tags by their parent group so the strip reads as
+  // "Animals: Cow, Calf • Places: Egypt • Vices: Idolatry"
+  const grouped = new Map<SubcategoryGroup, string[]>();
+  for (const sc of entry.subcategories) {
+    const group = sc.split(':')[0] as SubcategoryGroup;
+    if (!grouped.has(group)) grouped.set(group, []);
+    grouped.get(group)!.push(sc);
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-100 space-y-2" dir={isArabic ? 'rtl' : 'ltr'}>
+      {Array.from(grouped.entries()).map(([group, tags]) => {
+        const groupLabel = SUBCATEGORY_GROUP_LABELS[group];
+        return (
+          <div key={group} className={clsx('flex flex-wrap items-center gap-2', isArabic && 'justify-end')}>
+            <span
+              className={clsx(
+                'text-[11px] font-semibold uppercase tracking-wide text-emerald-700',
+                isArabic && 'font-arabic',
+              )}
+            >
+              {isArabic ? groupLabel.ar : groupLabel.en}
+            </span>
+            <div className="flex flex-wrap gap-1">
+              {tags.map((sc) => {
+                const label = getSubcategoryLabel(sc);
+                return (
+                  <Link
+                    key={sc}
+                    to={`/story-atlas?subcategory=${encodeURIComponent(sc)}`}
+                    className="inline-flex items-center text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded hover:bg-emerald-100"
+                  >
+                    {isArabic ? label.ar : label.en}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

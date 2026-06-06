@@ -46,6 +46,17 @@ const VALID_CONTENT_TYPES = new Set([
   "kg_relation",
   "source_evidence",
   "disagreement_note",
+  // Phase X — Prophets Atlas
+  "prophet_profile",
+  "prophet_ayah_link",
+  "prophet_relation",
+  "prophet_journey",
+  "prophet_storytelling_stage",
+  // Phase X2 — missing-prophet story pages, contextual links, navigation summaries
+  "prophet_story_page",
+  "prophet_story_section",
+  "prophet_contextual_link",
+  "prophet_navigation_summary",
 ]);
 
 const VALID_STATUSES = new Set(["pending", "approved", "rejected", "changes_requested"]);

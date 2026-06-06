@@ -1,0 +1,658 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-05-21T21:26:40.061Z",
+  "people": [
+    {
+      "personId": "person_firawn",
+      "nameArabic": "فرعون",
+      "nameEnglish": "Fir'awn (Pharaoh)",
+      "role": "antagonist",
+      "noteEnglish": "The Egyptian tyrant who opposed Musa.",
+      "noteArabic": "طاغية مصر الذي عارض موسى عليه السلام."
+    },
+    {
+      "personId": "person_haman",
+      "nameArabic": "هامان",
+      "nameEnglish": "Haman",
+      "role": "antagonist",
+      "noteEnglish": "Fir'awn's chief minister.",
+      "noteArabic": "وزير فرعون وقائد بنائه."
+    },
+    {
+      "personId": "person_qarun",
+      "nameArabic": "قارون",
+      "nameEnglish": "Qarun (Korah)",
+      "role": "antagonist",
+      "noteEnglish": "A wealthy man from the people of Musa, swallowed by the earth.",
+      "noteArabic": "رجل غني من قوم موسى، خسف الله به الأرض."
+    },
+    {
+      "personId": "person_nimrod",
+      "nameArabic": "نمرود",
+      "nameEnglish": "Nimrod",
+      "role": "antagonist",
+      "noteEnglish": "The king who disputed with Ibrahim and ordered the fire.",
+      "noteArabic": "الملك الذي حاجّ إبراهيم وأمر بالنار."
+    },
+    {
+      "personId": "person_abu_lahab",
+      "nameArabic": "أبو لهب",
+      "nameEnglish": "Abu Lahab",
+      "role": "antagonist",
+      "noteEnglish": "An uncle of the Prophet ﷺ named in Surah Al-Masad.",
+      "noteArabic": "عم النبي ﷺ المذكور في سورة المسد."
+    },
+    {
+      "personId": "person_samiri",
+      "nameArabic": "السامري",
+      "nameEnglish": "As-Samiri",
+      "role": "antagonist",
+      "noteEnglish": "The man who fashioned the golden calf for Bani Israel.",
+      "noteArabic": "الذي صنع العجل لبني إسرائيل."
+    },
+    {
+      "personId": "person_iblis",
+      "nameArabic": "إبليس",
+      "nameEnglish": "Iblis",
+      "role": "antagonist",
+      "noteEnglish": "Refused to prostrate to Adam; sworn enemy of humankind.",
+      "noteArabic": "رفض السجود لآدم، عدو الإنسان."
+    },
+    {
+      "personId": "person_balam",
+      "nameArabic": "بلعام بن باعوراء",
+      "nameEnglish": "Bal'am ibn Ba'ura",
+      "role": "antagonist",
+      "noteEnglish": "The scholar whose example is referenced in Surah Al-Aʿraf.",
+      "noteArabic": "العالم الذي ضرب الله مثله في سورة الأعراف."
+    },
+    {
+      "personId": "person_jalut",
+      "nameArabic": "جالوت",
+      "nameEnglish": "Jalut (Goliath)",
+      "role": "antagonist",
+      "noteEnglish": "Defeated by Dawud in the army of Talut.",
+      "noteArabic": "قتله داوود في جيش طالوت."
+    },
+    {
+      "personId": "person_maryam",
+      "nameArabic": "مريم بنت عمران",
+      "nameEnglish": "Maryam (Mary)",
+      "role": "righteous_figure",
+      "noteEnglish": "Mother of Isa; the only woman named explicitly in the Quran.",
+      "noteArabic": "أم عيسى عليه السلام، المرأة الوحيدة المسماة في القرآن."
+    },
+    {
+      "personId": "person_asiya",
+      "nameArabic": "آسية بنت مزاحم",
+      "nameEnglish": "Asiya (wife of Pharaoh)",
+      "role": "righteous_figure",
+      "noteEnglish": "Believing wife of Fir'awn, praised in Surah At-Tahrim.",
+      "noteArabic": "زوجة فرعون المؤمنة، ضرب الله بها مثلاً."
+    },
+    {
+      "personId": "person_luqman",
+      "nameArabic": "لقمان الحكيم",
+      "nameEnglish": "Luqman the Wise",
+      "role": "righteous_figure",
+      "noteEnglish": "Sage whose counsel to his son is recorded in his surah.",
+      "noteArabic": "الحكيم الذي ذُكرت وصيته لابنه في سورته."
+    },
+    {
+      "personId": "person_khidr",
+      "nameArabic": "الخضر",
+      "nameEnglish": "Al-Khidr",
+      "role": "righteous_figure",
+      "noteEnglish": "Servant of Allah who taught Musa hidden knowledge.",
+      "noteArabic": "العبد الصالح الذي علم موسى علماً."
+    },
+    {
+      "personId": "person_mother_musa",
+      "nameArabic": "أم موسى",
+      "nameEnglish": "Mother of Musa",
+      "role": "righteous_figure",
+      "noteEnglish": "Inspired to place infant Musa in the river.",
+      "noteArabic": "أُوحي إليها أن تلقي موسى في اليم."
+    },
+    {
+      "personId": "person_believer_firaun",
+      "nameArabic": "مؤمن آل فرعون",
+      "nameEnglish": "Believer from Pharaoh's family",
+      "role": "righteous_figure",
+      "noteEnglish": "Concealed his faith; spoke in defence of Musa.",
+      "noteArabic": "كتم إيمانه ودافع عن موسى."
+    },
+    {
+      "personId": "person_imran_wife",
+      "nameArabic": "امرأة عمران",
+      "nameEnglish": "Wife of Imran (mother of Maryam)",
+      "role": "righteous_figure",
+      "noteEnglish": "Dedicated Maryam to the service of the Sacred House.",
+      "noteArabic": "نذرت ابنتها مريم لخدمة بيت المقدس."
+    },
+    {
+      "personId": "person_uzair",
+      "nameArabic": "عزير",
+      "nameEnglish": "Uzair (Ezra)",
+      "role": "righteous_figure",
+      "noteEnglish": "The man whom Allah caused to die for a hundred years.",
+      "noteArabic": "الذي أماته الله مئة عام ثم بعثه."
+    },
+    {
+      "personId": "person_zulaykha",
+      "nameArabic": "امرأة العزيز (زليخا)",
+      "nameEnglish": "Wife of Al-Aziz (tradition: Zulaykha)",
+      "role": "righteous_figure",
+      "noteEnglish": "Featured in the story of Yusuf in Egypt.",
+      "noteArabic": "وردت قصتها مع يوسف في مصر."
+    },
+    {
+      "personId": "person_bilqis",
+      "nameArabic": "بلقيس ملكة سبأ",
+      "nameEnglish": "Bilqis (Queen of Sheba)",
+      "role": "monarch",
+      "noteEnglish": "The queen who accepted Islam at the time of Sulayman.",
+      "noteArabic": "الملكة التي أسلمت في عهد سليمان."
+    },
+    {
+      "personId": "person_talut",
+      "nameArabic": "طالوت",
+      "nameEnglish": "Talut (Saul)",
+      "role": "monarch",
+      "noteEnglish": "King appointed for Bani Israel before the battle with Jalut.",
+      "noteArabic": "الملك الذي بعثه الله لبني إسرائيل قبل قتال جالوت."
+    },
+    {
+      "personId": "person_dhulqarnayn",
+      "nameArabic": "ذو القرنين",
+      "nameEnglish": "Dhul-Qarnayn",
+      "role": "monarch",
+      "noteEnglish": "The traveller-king who built the barrier against Yaʾjuj wa Maʾjuj.",
+      "noteArabic": "الملك الرحالة الذي بنى السد دون يأجوج ومأجوج."
+    },
+    {
+      "personId": "person_aziz_egypt",
+      "nameArabic": "عزيز مصر",
+      "nameEnglish": "Al-Aziz of Egypt",
+      "role": "monarch",
+      "noteEnglish": "The minister of Egypt who bought Yusuf.",
+      "noteArabic": "الذي اشترى يوسف وكان من علية مصر."
+    },
+    {
+      "personId": "person_abraha",
+      "nameArabic": "أبرهة الأشرم",
+      "nameEnglish": "Abraha",
+      "role": "monarch",
+      "noteEnglish": "Led the army of the elephant against the Kaʿba.",
+      "noteArabic": "قائد جيش الفيل الذي قصد الكعبة."
+    },
+    {
+      "personId": "person_aisha",
+      "nameArabic": "عائشة بنت أبي بكر",
+      "nameEnglish": "ʿAisha bint Abi Bakr",
+      "role": "companion",
+      "noteEnglish": "Subject of the Ifk revelation in Surah An-Nur.",
+      "noteArabic": "نزلت آيات الإفك في تبرئتها."
+    },
+    {
+      "personId": "person_abu_bakr",
+      "nameArabic": "أبو بكر الصديق",
+      "nameEnglish": "Abu Bakr As-Siddiq",
+      "role": "companion",
+      "noteEnglish": "Companion of the Prophet ﷺ in the cave during the Hijrah.",
+      "noteArabic": "صاحب النبي ﷺ في الغار في الهجرة."
+    },
+    {
+      "personId": "person_ibn_umm_maktum",
+      "nameArabic": "ابن أم مكتوم",
+      "nameEnglish": "Ibn Umm Maktum",
+      "role": "companion",
+      "noteEnglish": "The blind companion referenced in Surah ʿAbasa.",
+      "noteArabic": "الصحابي الأعمى الذي نزلت فيه آيات سورة عبس."
+    },
+    {
+      "personId": "person_hawwa",
+      "nameArabic": "حواء",
+      "nameEnglish": "Hawwa (Eve)",
+      "role": "family_member",
+      "noteEnglish": "Adam's wife in Paradise and on Earth.",
+      "noteArabic": "زوج آدم عليه السلام."
+    },
+    {
+      "personId": "person_sarah",
+      "nameArabic": "سارة",
+      "nameEnglish": "Sarah",
+      "role": "family_member",
+      "noteEnglish": "Wife of Ibrahim, mother of Ishaq.",
+      "noteArabic": "زوجة إبراهيم وأم إسحاق."
+    },
+    {
+      "personId": "person_hajar",
+      "nameArabic": "هاجر",
+      "nameEnglish": "Hajar",
+      "role": "family_member",
+      "noteEnglish": "Mother of Ismail in Makkah.",
+      "noteArabic": "أم إسماعيل في مكة."
+    },
+    {
+      "personId": "person_wife_nuh",
+      "nameArabic": "امرأة نوح",
+      "nameEnglish": "Wife of Nuh",
+      "role": "family_member",
+      "noteEnglish": "Example of disbelief among prophets’ wives.",
+      "noteArabic": "ضرب الله بها مثلاً للذين كفروا."
+    },
+    {
+      "personId": "person_wife_lut",
+      "nameArabic": "امرأة لوط",
+      "nameEnglish": "Wife of Lut",
+      "role": "family_member",
+      "noteEnglish": "Example of disbelief among prophets’ wives.",
+      "noteArabic": "مثل آخر في سورة التحريم."
+    },
+    {
+      "personId": "person_son_nuh",
+      "nameArabic": "ابن نوح",
+      "nameEnglish": "Son of Nuh",
+      "role": "family_member",
+      "noteEnglish": "Drowned in the Flood despite his father’s call.",
+      "noteArabic": "غرق في الطوفان رغم نداء أبيه."
+    },
+    {
+      "personId": "person_brothers_yusuf",
+      "nameArabic": "إخوة يوسف",
+      "nameEnglish": "Brothers of Yusuf",
+      "role": "family_member",
+      "noteEnglish": "Cast Yusuf into the well; later repented in Egypt.",
+      "noteArabic": "ألقوا يوسف في الجب ثم تابوا في مصر."
+    },
+    {
+      "personId": "person_father_ibrahim",
+      "nameArabic": "آزر (والد إبراهيم)",
+      "nameEnglish": "Azar (father of Ibrahim)",
+      "role": "family_member",
+      "noteEnglish": "Father of Ibrahim, an idol-carver in his community.",
+      "noteArabic": "والد إبراهيم، كان يصنع الأصنام."
+    },
+    {
+      "personId": "person_jibril",
+      "nameArabic": "جبريل",
+      "nameEnglish": "Jibril (Gabriel)",
+      "role": "angel",
+      "noteEnglish": "The angel of revelation; carried the Quran to the Prophet ﷺ.",
+      "noteArabic": "الملك الموكل بالوحي."
+    },
+    {
+      "personId": "person_israfil",
+      "nameArabic": "إسرافيل",
+      "nameEnglish": "Israfil",
+      "role": "angel",
+      "noteEnglish": "The angel who will blow the trumpet of resurrection.",
+      "noteArabic": "الملك الموكل بالنفخ في الصور."
+    },
+    {
+      "personId": "person_mikail",
+      "nameArabic": "ميكائيل",
+      "nameEnglish": "Mikail (Michael)",
+      "role": "angel"
+    },
+    {
+      "personId": "person_harut",
+      "nameArabic": "هاروت",
+      "nameEnglish": "Harut",
+      "role": "angel",
+      "noteEnglish": "Mentioned with Marut in Surah Al-Baqarah.",
+      "noteArabic": "مذكور مع ماروت في سورة البقرة."
+    },
+    {
+      "personId": "person_marut",
+      "nameArabic": "ماروت",
+      "nameEnglish": "Marut",
+      "role": "angel",
+      "noteEnglish": "Mentioned with Harut in Surah Al-Baqarah.",
+      "noteArabic": "مذكور مع هاروت في سورة البقرة."
+    },
+    {
+      "personId": "person_angels_generic",
+      "nameArabic": "الملائكة",
+      "nameEnglish": "Angels (generic)",
+      "role": "angel",
+      "noteEnglish": "Unnamed angels who prostrated to Adam and serve at the Throne.",
+      "noteArabic": "الملائكة الذين سجدوا لآدم وحملة العرش."
+    },
+    {
+      "personId": "person_jinn_generic",
+      "nameArabic": "الجن",
+      "nameEnglish": "Jinn",
+      "role": "unseen_being",
+      "noteEnglish": "A separate creation; some Jinn listened to the Quran from the Prophet ﷺ.",
+      "noteArabic": "خلق مستقل، استمع بعضهم للقرآن من النبي ﷺ."
+    },
+    {
+      "personId": "person_yajuj",
+      "nameArabic": "يأجوج",
+      "nameEnglish": "Yaʾjuj (Gog)",
+      "role": "unseen_being"
+    },
+    {
+      "personId": "person_majuj",
+      "nameArabic": "مأجوج",
+      "nameEnglish": "Maʾjuj (Magog)",
+      "role": "unseen_being"
+    },
+    {
+      "personId": "person_youth_cave",
+      "nameArabic": "فتية الكهف",
+      "nameEnglish": "Youth of the Cave",
+      "role": "collective",
+      "noteEnglish": "The believers who took refuge in the cave with their dog.",
+      "noteArabic": "الفتية الذين آووا إلى الكهف."
+    },
+    {
+      "personId": "person_magicians_firaun",
+      "nameArabic": "سحرة فرعون",
+      "nameEnglish": "Magicians of Pharaoh",
+      "role": "collective",
+      "noteEnglish": "Believed in the Lord of Musa after the contest.",
+      "noteArabic": "آمنوا بربّ موسى بعد المواجهة."
+    },
+    {
+      "personId": "person_disciples_isa",
+      "nameArabic": "الحواريون",
+      "nameEnglish": "Disciples of Isa",
+      "role": "collective",
+      "noteEnglish": "Helpers of Isa who asked for the heavenly table-spread.",
+      "noteArabic": "أنصار عيسى الذين سألوا المائدة."
+    },
+    {
+      "personId": "person_bani_israel",
+      "nameArabic": "بنو إسرائيل",
+      "nameEnglish": "Bani Israel (Children of Israel)",
+      "role": "collective"
+    },
+    {
+      "personId": "person_people_nuh",
+      "nameArabic": "قوم نوح",
+      "nameEnglish": "People of Nuh",
+      "role": "collective"
+    },
+    {
+      "personId": "person_people_ad",
+      "nameArabic": "عاد",
+      "nameEnglish": "People of 'Ad",
+      "role": "collective"
+    },
+    {
+      "personId": "person_people_thamud",
+      "nameArabic": "ثمود",
+      "nameEnglish": "Thamud",
+      "role": "collective"
+    },
+    {
+      "personId": "person_people_lut",
+      "nameArabic": "قوم لوط",
+      "nameEnglish": "People of Lut",
+      "role": "collective"
+    },
+    {
+      "personId": "person_people_madyan",
+      "nameArabic": "أهل مدين",
+      "nameEnglish": "People of Madyan",
+      "role": "collective"
+    },
+    {
+      "personId": "person_people_saba",
+      "nameArabic": "أهل سبأ",
+      "nameEnglish": "People of Sheba",
+      "role": "collective"
+    },
+    {
+      "personId": "person_people_tubba",
+      "nameArabic": "قوم تُبَّع",
+      "nameEnglish": "People of Tubbaʿ",
+      "role": "collective"
+    },
+    {
+      "personId": "person_people_rass",
+      "nameArabic": "أصحاب الرس",
+      "nameEnglish": "People of Ar-Rass",
+      "role": "collective"
+    },
+    {
+      "personId": "person_people_ayka",
+      "nameArabic": "أصحاب الأيكة",
+      "nameEnglish": "People of the Thicket",
+      "role": "collective"
+    },
+    {
+      "personId": "person_people_ditch",
+      "nameArabic": "أصحاب الأخدود",
+      "nameEnglish": "People of the Ditch",
+      "role": "collective"
+    },
+    {
+      "personId": "person_people_elephant",
+      "nameArabic": "أصحاب الفيل",
+      "nameEnglish": "Army of the Elephant",
+      "role": "collective"
+    },
+    {
+      "personId": "person_three_messengers",
+      "nameArabic": "المرسلون الثلاثة",
+      "nameEnglish": "Three Messengers (Ya-Sin)",
+      "role": "collective"
+    },
+    {
+      "personId": "person_garden_owners",
+      "nameArabic": "أصحاب الجنة",
+      "nameEnglish": "Owners of the Garden",
+      "role": "collective"
+    },
+    {
+      "personId": "person_hypocrites_madinah",
+      "nameArabic": "المنافقون",
+      "nameEnglish": "The Hypocrites (in Madinah)",
+      "role": "collective"
+    },
+    {
+      "personId": "person_romans",
+      "nameArabic": "الروم",
+      "nameEnglish": "The Romans (Byzantines)",
+      "role": "collective",
+      "noteEnglish": "Subject of the opening prediction in Surah Ar-Rum (30:1-5).",
+      "noteArabic": "موضوع نبوءة افتتاح سورة الروم (٣٠: ١-٥)."
+    },
+    {
+      "personId": "person_persians",
+      "nameArabic": "الفرس",
+      "nameEnglish": "The Persians (Sassanians)",
+      "role": "collective",
+      "noteEnglish": "Defeated the Romans before the Romans’ predicted victory in Surah Ar-Rum.",
+      "noteArabic": "هزموا الروم ثم انتصر الروم كما نزلت السورة."
+    },
+    {
+      "personId": "person_confederates",
+      "nameArabic": "الأحزاب",
+      "nameEnglish": "The Confederates (Ahzab)",
+      "role": "collective",
+      "noteEnglish": "Tribal coalition that besieged Madinah in the Battle of the Trench.",
+      "noteArabic": "تحالف القبائل في غزوة الخندق."
+    },
+    {
+      "personId": "person_sabbath_breakers",
+      "nameArabic": "أصحاب السبت",
+      "nameEnglish": "People of the Sabbath",
+      "role": "collective",
+      "noteEnglish": "The villagers transformed for breaking the Sabbath.",
+      "noteArabic": "القرية التي مُسخ أهلها لاعتدائهم في السبت."
+    },
+    {
+      "personId": "person_habil",
+      "nameArabic": "هابيل",
+      "nameEnglish": "Habil (Abel)",
+      "role": "family_member",
+      "noteEnglish": "One of the two sons of Adam in Surah Al-Maʾida.",
+      "noteArabic": "أحد ابني آدم في سورة المائدة."
+    },
+    {
+      "personId": "person_qabil",
+      "nameArabic": "قابيل",
+      "nameEnglish": "Qabil (Cain)",
+      "role": "family_member",
+      "noteEnglish": "The brother who committed the first murder.",
+      "noteArabic": "الأخ الذي ارتكب أول جريمة قتل."
+    }
+  ],
+  "prophets": [
+    {
+      "personId": "prophet_adam",
+      "nameArabic": "آدم عليه السلام",
+      "nameEnglish": "Adam",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_idris",
+      "nameArabic": "إدريس عليه السلام",
+      "nameEnglish": "Idris (Enoch)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_nuh",
+      "nameArabic": "نوح عليه السلام",
+      "nameEnglish": "Nuh (Noah)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_hud",
+      "nameArabic": "هود عليه السلام",
+      "nameEnglish": "Hud",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_salih",
+      "nameArabic": "صالح عليه السلام",
+      "nameEnglish": "Salih",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_ibrahim",
+      "nameArabic": "إبراهيم عليه السلام",
+      "nameEnglish": "Ibrahim (Abraham)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_lut",
+      "nameArabic": "لوط عليه السلام",
+      "nameEnglish": "Lut (Lot)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_ismail",
+      "nameArabic": "إسماعيل عليه السلام",
+      "nameEnglish": "Ismail (Ishmael)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_ishaq",
+      "nameArabic": "إسحاق عليه السلام",
+      "nameEnglish": "Ishaq (Isaac)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_yaqub",
+      "nameArabic": "يعقوب عليه السلام",
+      "nameEnglish": "Yaqub (Jacob)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_yusuf",
+      "nameArabic": "يوسف عليه السلام",
+      "nameEnglish": "Yusuf (Joseph)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_ayyub",
+      "nameArabic": "أيوب عليه السلام",
+      "nameEnglish": "Ayyub (Job)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_shuayb",
+      "nameArabic": "شعيب عليه السلام",
+      "nameEnglish": "Shuayb (Jethro)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_musa",
+      "nameArabic": "موسى عليه السلام",
+      "nameEnglish": "Musa (Moses)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_harun",
+      "nameArabic": "هارون عليه السلام",
+      "nameEnglish": "Harun (Aaron)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_dhulkifl",
+      "nameArabic": "ذو الكفل عليه السلام",
+      "nameEnglish": "Dhul-Kifl",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_dawud",
+      "nameArabic": "داود عليه السلام",
+      "nameEnglish": "Dawud (David)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_sulayman",
+      "nameArabic": "سليمان عليه السلام",
+      "nameEnglish": "Sulayman (Solomon)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_ilyas",
+      "nameArabic": "إلياس عليه السلام",
+      "nameEnglish": "Ilyas (Elijah)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_alyasa",
+      "nameArabic": "اليسع عليه السلام",
+      "nameEnglish": "Al-Yasa (Elisha)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_yunus",
+      "nameArabic": "يونس عليه السلام",
+      "nameEnglish": "Yunus (Jonah)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_zakariyya",
+      "nameArabic": "زكريا عليه السلام",
+      "nameEnglish": "Zakariyya (Zechariah)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_yahya",
+      "nameArabic": "يحيى عليه السلام",
+      "nameEnglish": "Yahya (John)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_isa",
+      "nameArabic": "عيسى عليه السلام",
+      "nameEnglish": "Isa (Jesus)",
+      "role": "prophet"
+    },
+    {
+      "personId": "prophet_muhammad",
+      "nameArabic": "محمد ﷺ",
+      "nameEnglish": "Muhammad (peace be upon him)",
+      "role": "prophet"
+    }
+  ]
+}

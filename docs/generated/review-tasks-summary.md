@@ -1,23 +1,30 @@
 # Review Tasks Summary
-_Generated: 2026-05-07T01:38:05.193Z_
+_Generated: 2026-05-18T01:55:44.249Z_
 
 ## Totals
 
 | Metric | Count |
 |---|---|
-| Total review tasks | 914 |
-| Pending | 914 |
+| Total review tasks | 1976 |
+| Pending | 1976 |
 | Tasks with disagreement notes | 7 |
 | Tasks with missing evidence | 167 |
-| Tasks requiring scholar review | 914 |
+| Tasks requiring scholar review | 1976 |
 
 ## By Content Type
 
 | Content Type | Count |
 |---|---|
+| prophet_contextual_link | 446 |
 | kg_relation | 418 |
+| prophet_relation | 412 |
 | story_segment | 315 |
 | source_evidence | 167 |
+| prophet_journey | 125 |
+| prophet_ayah_link | 27 |
+| prophet_profile | 25 |
+| prophet_story_section | 18 |
+| prophet_story_page | 9 |
 | related_story | 7 |
 | disagreement_note | 7 |
 
@@ -25,19 +32,21 @@ _Generated: 2026-05-07T01:38:05.193Z_
 
 | Priority | Count |
 |---|---|
-| high | 341 |
-| medium | 155 |
-| low | 418 |
+| high | 1325 |
+| medium | 204 |
+| low | 447 |
 
 ## By Source
 
 | Source ID | Tasks Referencing |
 |---|---|
+| quran_uthmani_cloud | 1060 |
 | ibn_kathir | 495 |
 | story_manifest | 418 |
 | tabari | 99 |
 | qurtubi | 75 |
 | saadi | 61 |
+| stories_manifest | 2 |
 
 ## Disagreement Notes
 
@@ -64,4 +73,4 @@ The following segments have scholarly disagreements requiring priority review:
 - All tasks have `humanReviewRequired: true`
 - No task is auto-approved
 - Task IDs are stable (SHA-256 of contentType:contentId)
-- Duplicate prevention: 914 unique tasks
+- Duplicate prevention: 1976 unique tasks

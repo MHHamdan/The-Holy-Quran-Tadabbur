@@ -72,3 +72,15 @@ redis_backup.rdb
 
 # Claude / AI tooling
 .claude/
+
+# Research artefacts and private planning docs — local only
+artifacts/
+reports/
+docs/phase-*.md
+docs/entity-*.md
+docs/prophet-*.md
+docs/quran-coreference*.md
+docs/quran-prophet*.md
+docs/quran-topic*.md
+docs/implicit-*.md
+docs/prophets-atlas-*.md

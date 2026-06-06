@@ -80,6 +80,7 @@ class ClusterSummary:
     tags: list[str]
     event_count: int
     primary_sura: Optional[int]
+    summary_ar: Optional[str]
     summary_en: Optional[str]
 
 
@@ -477,6 +478,7 @@ class StoryAtlasService:
             tags=cluster.tags or [],
             event_count=cluster.event_count or 0,
             primary_sura=cluster.primary_sura,
+            summary_ar=cluster.summary_ar,
             summary_en=cluster.summary_en,
         )
 

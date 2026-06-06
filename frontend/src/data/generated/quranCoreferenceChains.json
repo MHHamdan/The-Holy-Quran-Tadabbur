@@ -1,0 +1,683 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-05-17T03:57:32.324Z",
+  "totalChains": 29,
+  "chainsByType": {
+    "surah_level": 9,
+    "local_passage": 17,
+    "cross_surah_candidate": 3
+  },
+  "chains": [
+    {
+      "chainId": "chain_000001",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "em:entity_person_maryam:2:87:explicit_name",
+        "em:entity_person_maryam:2:253:explicit_name",
+        "cm_000001",
+        "cm_000003"
+      ],
+      "surahScope": [
+        2
+      ],
+      "ayahRangeStart": "2:87",
+      "ayahRangeEnd": "2:253",
+      "chainType": "surah_level",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000002",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "em:entity_person_maryam:3:36:explicit_name",
+        "em:entity_person_maryam:3:37:explicit_name",
+        "em:entity_person_maryam:3:42:explicit_name",
+        "em:entity_person_maryam:3:43:explicit_name",
+        "em:entity_person_maryam:3:44:explicit_name",
+        "em:entity_person_maryam:3:45:explicit_name",
+        "cm_000006"
+      ],
+      "surahScope": [
+        3
+      ],
+      "ayahRangeStart": "3:36",
+      "ayahRangeEnd": "3:45",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000003",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "em:entity_person_maryam:4:156:explicit_name",
+        "em:entity_person_maryam:4:157:explicit_name",
+        "em:entity_person_maryam:4:171:explicit_name",
+        "cm_000009",
+        "cm_000012"
+      ],
+      "surahScope": [
+        4
+      ],
+      "ayahRangeStart": "4:156",
+      "ayahRangeEnd": "4:171",
+      "chainType": "surah_level",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000004",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "em:entity_person_maryam:5:17:explicit_name",
+        "em:entity_person_maryam:5:46:explicit_name",
+        "em:entity_person_maryam:5:72:explicit_name",
+        "em:entity_person_maryam:5:75:explicit_name",
+        "em:entity_person_maryam:5:78:explicit_name",
+        "em:entity_person_maryam:5:110:explicit_name",
+        "em:entity_person_maryam:5:112:explicit_name",
+        "em:entity_person_maryam:5:114:explicit_name",
+        "em:entity_person_maryam:5:116:explicit_name",
+        "cm_000016",
+        "cm_000019",
+        "cm_000021",
+        "cm_000024",
+        "cm_000027",
+        "cm_000029",
+        "cm_000031",
+        "cm_000033",
+        "cm_000035"
+      ],
+      "surahScope": [
+        5
+      ],
+      "ayahRangeStart": "5:17",
+      "ayahRangeEnd": "5:116",
+      "chainType": "surah_level",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000005",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "em:entity_person_maryam:9:31:explicit_name",
+        "cm_000040"
+      ],
+      "surahScope": [
+        9
+      ],
+      "ayahRangeStart": "9:31",
+      "ayahRangeEnd": "9:31",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000006",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "em:entity_person_maryam:19:16:explicit_name",
+        "em:entity_person_maryam:19:27:explicit_name",
+        "em:entity_person_maryam:19:34:explicit_name",
+        "cm_000046"
+      ],
+      "surahScope": [
+        19
+      ],
+      "ayahRangeStart": "19:16",
+      "ayahRangeEnd": "19:34",
+      "chainType": "surah_level",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000007",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "em:entity_person_maryam:23:50:explicit_name",
+        "cm_000048"
+      ],
+      "surahScope": [
+        23
+      ],
+      "ayahRangeStart": "23:50",
+      "ayahRangeEnd": "23:50",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000008",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "em:entity_person_maryam:33:7:explicit_name",
+        "cm_000058"
+      ],
+      "surahScope": [
+        33
+      ],
+      "ayahRangeStart": "33:7",
+      "ayahRangeEnd": "33:7",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000009",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "em:entity_person_maryam:43:57:explicit_name",
+        "cm_000060"
+      ],
+      "surahScope": [
+        43
+      ],
+      "ayahRangeStart": "43:57",
+      "ayahRangeEnd": "43:57",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000010",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "em:entity_person_maryam:57:27:explicit_name",
+        "cm_000062"
+      ],
+      "surahScope": [
+        57
+      ],
+      "ayahRangeStart": "57:27",
+      "ayahRangeEnd": "57:27",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000011",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "em:entity_person_maryam:61:6:explicit_name",
+        "em:entity_person_maryam:61:14:explicit_name",
+        "cm_000064",
+        "cm_000066"
+      ],
+      "surahScope": [
+        61
+      ],
+      "ayahRangeStart": "61:6",
+      "ayahRangeEnd": "61:14",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000012",
+      "entityId": "entity_person_maryam",
+      "mentions": [
+        "cm_000001",
+        "cm_000003",
+        "cm_000006",
+        "cm_000009",
+        "cm_000012",
+        "cm_000016",
+        "cm_000019",
+        "cm_000021",
+        "cm_000024",
+        "cm_000027",
+        "cm_000029",
+        "cm_000031",
+        "cm_000033",
+        "cm_000035",
+        "cm_000040",
+        "cm_000046",
+        "cm_000048",
+        "cm_000058",
+        "cm_000060",
+        "cm_000062",
+        "cm_000064",
+        "cm_000066"
+      ],
+      "surahScope": [
+        2,
+        3,
+        4,
+        5,
+        9,
+        19,
+        23,
+        33,
+        43,
+        57,
+        61
+      ],
+      "ayahRangeStart": "2:87",
+      "ayahRangeEnd": "61:14",
+      "chainType": "cross_surah_candidate",
+      "confidence": 0.5,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Cross-surah candidate chain — needs scholar review before promotion."
+      ]
+    },
+    {
+      "chainId": "chain_000013",
+      "entityId": "entity_prophet_isa",
+      "mentions": [
+        "em:entity_prophet_isa:2:87:explicit_name",
+        "em:entity_prophet_isa:2:136:explicit_name",
+        "em:entity_prophet_isa:2:253:explicit_name",
+        "cm_000002",
+        "cm_000004"
+      ],
+      "surahScope": [
+        2
+      ],
+      "ayahRangeStart": "2:87",
+      "ayahRangeEnd": "2:253",
+      "chainType": "surah_level",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000014",
+      "entityId": "entity_prophet_isa",
+      "mentions": [
+        "em:entity_prophet_isa:3:45:explicit_name",
+        "em:entity_prophet_isa:3:52:explicit_name",
+        "em:entity_prophet_isa:3:55:explicit_name",
+        "em:entity_prophet_isa:3:59:explicit_name",
+        "em:entity_prophet_isa:3:84:explicit_name",
+        "cm_000007",
+        "cm_000008"
+      ],
+      "surahScope": [
+        3
+      ],
+      "ayahRangeStart": "3:45",
+      "ayahRangeEnd": "3:84",
+      "chainType": "surah_level",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000015",
+      "entityId": "entity_prophet_isa",
+      "mentions": [
+        "em:entity_prophet_isa:4:157:explicit_name",
+        "em:entity_prophet_isa:4:163:explicit_name",
+        "em:entity_prophet_isa:4:171:explicit_name",
+        "cm_000010",
+        "cm_000011",
+        "cm_000013",
+        "cm_000014",
+        "cm_000015"
+      ],
+      "surahScope": [
+        4
+      ],
+      "ayahRangeStart": "4:157",
+      "ayahRangeEnd": "4:172",
+      "chainType": "surah_level",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000016",
+      "entityId": "entity_prophet_isa",
+      "mentions": [
+        "em:entity_prophet_isa:5:46:explicit_name",
+        "em:entity_prophet_isa:5:78:explicit_name",
+        "em:entity_prophet_isa:5:110:explicit_name",
+        "em:entity_prophet_isa:5:112:explicit_name",
+        "em:entity_prophet_isa:5:114:explicit_name",
+        "em:entity_prophet_isa:5:116:explicit_name",
+        "cm_000017",
+        "cm_000018",
+        "cm_000020",
+        "cm_000022",
+        "cm_000023",
+        "cm_000025",
+        "cm_000026",
+        "cm_000028",
+        "cm_000030",
+        "cm_000032",
+        "cm_000034",
+        "cm_000036"
+      ],
+      "surahScope": [
+        5
+      ],
+      "ayahRangeStart": "5:17",
+      "ayahRangeEnd": "5:116",
+      "chainType": "surah_level",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000017",
+      "entityId": "entity_prophet_isa",
+      "mentions": [
+        "cm_000039",
+        "cm_000041",
+        "cm_000042"
+      ],
+      "surahScope": [
+        9
+      ],
+      "ayahRangeStart": "9:30",
+      "ayahRangeEnd": "9:31",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000018",
+      "entityId": "entity_prophet_isa",
+      "mentions": [
+        "em:entity_prophet_isa:19:34:explicit_name",
+        "cm_000047"
+      ],
+      "surahScope": [
+        19
+      ],
+      "ayahRangeStart": "19:34",
+      "ayahRangeEnd": "19:34",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000019",
+      "entityId": "entity_prophet_isa",
+      "mentions": [
+        "em:entity_prophet_isa:33:7:explicit_name",
+        "cm_000059"
+      ],
+      "surahScope": [
+        33
+      ],
+      "ayahRangeStart": "33:7",
+      "ayahRangeEnd": "33:7",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000020",
+      "entityId": "entity_prophet_isa",
+      "mentions": [
+        "em:entity_prophet_isa:43:63:explicit_name",
+        "cm_000061"
+      ],
+      "surahScope": [
+        43
+      ],
+      "ayahRangeStart": "43:57",
+      "ayahRangeEnd": "43:63",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000021",
+      "entityId": "entity_prophet_isa",
+      "mentions": [
+        "em:entity_prophet_isa:57:27:explicit_name",
+        "cm_000063"
+      ],
+      "surahScope": [
+        57
+      ],
+      "ayahRangeStart": "57:27",
+      "ayahRangeEnd": "57:27",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000022",
+      "entityId": "entity_prophet_isa",
+      "mentions": [
+        "em:entity_prophet_isa:61:6:explicit_name",
+        "em:entity_prophet_isa:61:14:explicit_name",
+        "cm_000065",
+        "cm_000067"
+      ],
+      "surahScope": [
+        61
+      ],
+      "ayahRangeStart": "61:6",
+      "ayahRangeEnd": "61:14",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000023",
+      "entityId": "entity_prophet_isa",
+      "mentions": [
+        "cm_000002",
+        "cm_000004",
+        "cm_000007",
+        "cm_000008",
+        "cm_000010",
+        "cm_000011",
+        "cm_000013",
+        "cm_000014",
+        "cm_000015",
+        "cm_000017",
+        "cm_000018",
+        "cm_000020",
+        "cm_000022",
+        "cm_000023",
+        "cm_000025",
+        "cm_000026",
+        "cm_000028",
+        "cm_000030",
+        "cm_000032",
+        "cm_000034",
+        "cm_000036",
+        "cm_000039",
+        "cm_000041",
+        "cm_000042",
+        "cm_000047",
+        "cm_000049",
+        "cm_000059",
+        "cm_000061",
+        "cm_000063",
+        "cm_000065",
+        "cm_000067"
+      ],
+      "surahScope": [
+        2,
+        3,
+        4,
+        5,
+        9,
+        19,
+        23,
+        33,
+        43,
+        57,
+        61
+      ],
+      "ayahRangeStart": "2:87",
+      "ayahRangeEnd": "61:14",
+      "chainType": "cross_surah_candidate",
+      "confidence": 0.5,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Cross-surah candidate chain — needs scholar review before promotion."
+      ]
+    },
+    {
+      "chainId": "chain_000024",
+      "entityId": "entity_prophet_zakariyya",
+      "mentions": [
+        "em:entity_prophet_zakariyya:3:37:explicit_name",
+        "em:entity_prophet_zakariyya:3:38:explicit_name",
+        "cm_000005"
+      ],
+      "surahScope": [
+        3
+      ],
+      "ayahRangeStart": "3:37",
+      "ayahRangeEnd": "3:38",
+      "chainType": "local_passage",
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000025",
+      "entityId": "entity_object_staff_musa",
+      "mentions": [
+        "cm_000037",
+        "cm_000038"
+      ],
+      "surahScope": [
+        7
+      ],
+      "ayahRangeStart": "7:107",
+      "ayahRangeEnd": "7:117",
+      "chainType": "local_passage",
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000026",
+      "entityId": "entity_object_staff_musa",
+      "mentions": [
+        "cm_000050",
+        "cm_000051",
+        "cm_000052"
+      ],
+      "surahScope": [
+        26
+      ],
+      "ayahRangeStart": "26:32",
+      "ayahRangeEnd": "26:63",
+      "chainType": "surah_level",
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000027",
+      "entityId": "entity_object_staff_musa",
+      "mentions": [
+        "cm_000037",
+        "cm_000038",
+        "cm_000050",
+        "cm_000051",
+        "cm_000052",
+        "cm_000057"
+      ],
+      "surahScope": [
+        7,
+        26,
+        28
+      ],
+      "ayahRangeStart": "7:107",
+      "ayahRangeEnd": "28:31",
+      "chainType": "cross_surah_candidate",
+      "confidence": 0.5,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Cross-surah candidate chain — needs scholar review before promotion."
+      ]
+    },
+    {
+      "chainId": "chain_000028",
+      "entityId": "entity_animal_dog_cave",
+      "mentions": [
+        "cm_000044",
+        "cm_000045"
+      ],
+      "surahScope": [
+        18
+      ],
+      "ayahRangeStart": "18:18",
+      "ayahRangeEnd": "18:22",
+      "chainType": "local_passage",
+      "confidence": 0.85,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "chainId": "chain_000029",
+      "entityId": "entity_object_throne_bilqis",
+      "mentions": [
+        "cm_000055",
+        "cm_000056"
+      ],
+      "surahScope": [
+        27
+      ],
+      "ayahRangeStart": "27:38",
+      "ayahRangeEnd": "27:41",
+      "chainType": "local_passage",
+      "confidence": 0.8,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    }
+  ],
+  "warnings": [
+    "Chains are observational. No identity is asserted unless a reviewer promotes the chain."
+  ]
+}

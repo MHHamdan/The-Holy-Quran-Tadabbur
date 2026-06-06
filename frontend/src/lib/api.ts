@@ -939,6 +939,58 @@ export const storyAtlasApi = {
     api.get<SimilarCluster[]>(`/story-atlas/${clusterId}/similar`, { params: { limit } }),
 };
 
+// ============================================================================
+// Registry-backed Story Atlas (Phase Story Registry)
+// Distinct from the DB-backed storyAtlasApi above — this one is served from
+// the local generated registry / connections / cross-references files.
+// ============================================================================
+
+export type StoryCrossRefRelation =
+  | 'same_prophet'
+  | 'same_figure'
+  | 'same_surah'
+  | 'same_theme'
+  | 'same_topic'
+  | 'overlapping_ayahs';
+
+export interface StoryCrossRefEvidence {
+  relation: StoryCrossRefRelation;
+  values: string[];
+}
+
+export interface StoryCrossRefEdge {
+  sourceStoryId: string;
+  targetStoryId: string;
+  score: number;
+  evidence: StoryCrossRefEvidence[];
+  reviewStatus: 'verified' | 'needs_review';
+  humanReviewRequired: boolean;
+}
+
+export interface StoryCrossRefNeighbour {
+  storyId: string;
+  score: number;
+}
+
+export interface StoryCrossRefsResponse {
+  version: string;
+  generatedAt: string;
+  storyId: string;
+  total: number;
+  neighbours: StoryCrossRefNeighbour[];
+  edges: StoryCrossRefEdge[];
+  warnings: string[];
+}
+
+export const storyAtlasRegistryApi = {
+  getCrossReferences: (storyId: string) =>
+    api.get<StoryCrossRefsResponse>(`/quran/story-atlas/${encodeURIComponent(storyId)}/cross-references`),
+  getCrossReferencesOverview: () =>
+    api.get<{ stats: Record<string, unknown>; weights: Record<string, number>; minScore: number; generatedAt: string }>(
+      '/quran/story-atlas/cross-references/overview',
+    ),
+};
+
 export const ragApi = {
   // Main ask endpoint with session support
   ask: (question: string, language: string = 'en', preferredSources: string[] = [], sessionId?: string) =>
@@ -1002,6 +1054,103 @@ export const ragApi = {
   getAdminSources: (adminToken: string) =>
     api.get<TafseerSourcesResponse>('/rag/admin/sources', {
       headers: { 'X-Admin-Token': adminToken }
+    }),
+};
+
+// =============================================================================
+// Verse Ask AI (Phase Y) — grounded per-verse Q&A
+// =============================================================================
+
+export interface VerseAskAiSuggestedQuestion {
+  id: string;
+  text: string;
+  language: 'ar' | 'en';
+}
+
+export interface VerseAskAiResponse extends RAGResponse {
+  verse: {
+    surah: number;
+    ayah_start: number;
+    ayah_end: number | null;
+    reference: string;
+  };
+  suggested_questions?: VerseAskAiSuggestedQuestion[];
+  word?: string;
+}
+
+export const verseAskAiApi = {
+  ask: (params: {
+    surah: number;
+    ayahStart: number;
+    ayahEnd?: number;
+    question: string;
+    language?: 'ar' | 'en';
+    preferredSources?: string[];
+    maxSources?: number;
+  }) =>
+    api.post<VerseAskAiResponse>('/rag/verse/ask', {
+      surah: params.surah,
+      ayah_start: params.ayahStart,
+      ayah_end: params.ayahEnd,
+      question: params.question,
+      language: params.language ?? 'ar',
+      preferred_sources: params.preferredSources ?? [],
+      max_sources: params.maxSources ?? 5,
+    }),
+
+  summarize: (params: {
+    surah: number;
+    ayahStart: number;
+    ayahEnd?: number;
+    language?: 'ar' | 'en';
+    preferredSources?: string[];
+    maxSources?: number;
+  }) =>
+    api.post<VerseAskAiResponse>('/rag/verse/summarize', {
+      surah: params.surah,
+      ayah_start: params.ayahStart,
+      ayah_end: params.ayahEnd,
+      language: params.language ?? 'ar',
+      preferred_sources: params.preferredSources ?? [],
+      max_sources: params.maxSources ?? 5,
+    }),
+
+  explainWord: (params: {
+    surah: number;
+    ayahStart: number;
+    ayahEnd?: number;
+    word: string;
+    language?: 'ar' | 'en';
+    preferredSources?: string[];
+  }) =>
+    api.post<VerseAskAiResponse>('/rag/verse/explain-word', {
+      surah: params.surah,
+      ayah_start: params.ayahStart,
+      ayah_end: params.ayahEnd,
+      word: params.word,
+      language: params.language ?? 'ar',
+      preferred_sources: params.preferredSources ?? [],
+    }),
+
+  suggestedQuestions: (params: {
+    surah: number;
+    ayahStart: number;
+    ayahEnd?: number;
+    language?: 'ar' | 'en';
+  }) =>
+    api.get<{
+      surah: number;
+      ayah_start: number;
+      ayah_end: number | null;
+      language: 'ar' | 'en';
+      questions: VerseAskAiSuggestedQuestion[];
+    }>('/rag/verse/suggested-questions', {
+      params: {
+        surah: params.surah,
+        ayah_start: params.ayahStart,
+        ayah_end: params.ayahEnd,
+        language: params.language ?? 'ar',
+      },
     }),
 };
 
@@ -2707,6 +2856,9 @@ import type {
   InsightsResponse,
   ReflectionsResponse,
   TopicResourcesResponse,
+  SituationsListResponse,
+  SituationDetail,
+  RuqyahEvidenceResponse,
 } from '../types/therapy';
 
 export const therapyApi = {
@@ -2739,4 +2891,483 @@ export const therapyApi = {
   // Phase T-Adaptive — topic-specific hadith + wise phrases
   getTopicResources: (topicKey: string) =>
     api.get<TopicResourcesResponse>(`/therapy/topic/${encodeURIComponent(topicKey)}`).then(r => r.data),
+
+  // Phase T-Situations — named life situations
+  getSituations: () =>
+    api.get<SituationsListResponse>('/therapy/situations').then(r => r.data),
+
+  getSituation: (key: string) =>
+    api.get<SituationDetail>(`/therapy/situations/${encodeURIComponent(key)}`).then(r => r.data),
+
+  // Phase T-Ruqyah — authenticated ayah + hadith evidence pack
+  getRuqyahEvidence: () =>
+    api.get<RuqyahEvidenceResponse>('/therapy/ruqyah-evidence').then(r => r.data),
+};
+
+// =============================================================================
+// Phase W — Asmā' Allah al-Ḥusnā Atlas
+// =============================================================================
+
+export interface AsmaBasmalahPolicy {
+  countBasmalaInFatihah: boolean;
+  excludeRepeatedSurahOpeningBasmalah: boolean;
+  notes: string;
+}
+
+export interface AsmaCategoryEntry {
+  category: string;
+  names: number;
+  countedOccurrences: number;
+  labelArabic: string;
+  labelEnglish: string;
+}
+
+export interface AsmaPrimaryReference {
+  surahNumber: number;
+  ayahStart: number;
+  ayahEnd?: number;
+  note?: string;
+  /** Canonical Arabic ayah text from the Uthmani mushaf (atlas v1.2+). */
+  ayahText?: string;
+}
+
+export interface AsmaNameSummary {
+  nameId: string;
+  arabicName: string;
+  transliteration: string;
+  englishName?: string;
+  category: string;
+  occurrenceCount: number;
+  surahCount: number;
+  reviewStatus: string;
+  warningCount: number;
+  primaryQuranicReferences: AsmaPrimaryReference[];
+}
+
+export interface AsmaDivineName {
+  nameId: string;
+  arabicName: string;
+  transliteration: string;
+  englishName?: string;
+  occurrenceCount: number;
+  surahCount: number;
+  reviewStatus: string;
+  warningCount: number;
+  labelArabic: string;
+  labelEnglish: string;
+  separateFromListNoteArabic: string;
+  separateFromListNoteEnglish: string;
+}
+
+export interface AsmaListResponse {
+  total: number;
+  traditionalNamesCount: number;
+  divineNameAllahIncluded: boolean;
+  allDisplayCount: number;
+  quranEvidenceNamesCount: number;
+  zeroExactOccurrenceNamesCount: number;
+  basmalahPolicy: AsmaBasmalahPolicy;
+  categories: AsmaCategoryEntry[];
+  names: AsmaNameSummary[];
+  divineNameAllah?: AsmaDivineName | null;
+}
+
+export interface AsmaCategoriesResponse {
+  total: number;
+  traditionalNamesCount: number;
+  divineNameAllahIncluded: boolean;
+  allDisplayCount: number;
+  basmalahPolicy: AsmaBasmalahPolicy;
+  categories: AsmaCategoryEntry[];
+  divineNameAllah?: AsmaDivineName | null;
+}
+
+export interface AsmaOccurrence {
+  surahNumber: number;
+  ayahNumber: number;
+  matchedForm: string;
+  matchType: string;
+  isBasmalah: boolean;
+  counted: boolean;
+  confidence: number;
+  sourceIds: string[];
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+}
+
+export interface AsmaPairing {
+  firstNameId: string;
+  secondNameId: string;
+  occurrenceCount: number;
+  ayahReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+  reviewStatus: string;
+}
+
+export interface AsmaDetailResponse {
+  nameId: string;
+  arabicName: string;
+  transliteration: string;
+  englishName?: string;
+  rootArabic?: string;
+  category: string;
+  meaningArabic?: string;
+  meaningEnglish?: string;
+  shortReflectionArabic?: string;
+  shortReflectionEnglish?: string;
+  occurrenceCount: number;
+  surahCount: number;
+  firstOccurrence?: { surahNumber: number; ayahStart: number; ayahEnd?: number };
+  lastOccurrence?: { surahNumber: number; ayahStart: number; ayahEnd?: number };
+  commonPairings: AsmaPairing[];
+  relatedTopics: string[];
+  relatedEntities: string[];
+  sourceIds: string[];
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+  warnings: string[];
+  basmalahPolicy: AsmaBasmalahPolicy;
+  missingMeaningMessage: { ar: string; en: string };
+  primaryQuranicReferences: AsmaPrimaryReference[];
+}
+
+export interface AsmaOccurrencesResponse {
+  nameId: string;
+  total: number;
+  occurrences: AsmaOccurrence[];
+  excludedBasmalahCount: number;
+}
+
+export interface AsmaPairingsResponse {
+  nameId: string;
+  total: number;
+  pairings: AsmaPairing[];
+}
+
+export const asmaApi = {
+  list: (params?: { category?: string; has_occurrences?: boolean; limit?: number; offset?: number }) =>
+    api.get<AsmaListResponse>('/quran/asma', { params }).then((r) => r.data),
+  categories: () =>
+    api.get<AsmaCategoriesResponse>('/quran/asma/categories').then((r) => r.data),
+  search: (q: string, limit = 50) =>
+    api.get<AsmaListResponse>('/quran/asma/search', { params: { q, limit } }).then((r) => r.data),
+  get: (nameId: string) =>
+    api.get<AsmaDetailResponse>(`/quran/asma/${encodeURIComponent(nameId)}`).then((r) => r.data),
+  occurrences: (nameId: string, params?: { surah?: number; include_excluded?: boolean; counted_only?: boolean; limit?: number; offset?: number }) =>
+    api.get<AsmaOccurrencesResponse>(`/quran/asma/${encodeURIComponent(nameId)}/occurrences`, { params }).then((r) => r.data),
+  pairings: (nameId: string) =>
+    api.get<AsmaPairingsResponse>(`/quran/asma/${encodeURIComponent(nameId)}/pairings`).then((r) => r.data),
+};
+
+// ---------------------------------------------------------------------------
+// Phase X — Prophets Atlas
+// ---------------------------------------------------------------------------
+
+export interface ProphetSummary {
+  prophetId: string;
+  nameArabic: string;
+  nameEnglish: string;
+  transliteration: string;
+  quranMentionCount: number;
+  surahCount: number;
+  explicitMentionCount: number;
+  contextualMentionCount: number;
+  storyIdCount: number;
+  relatedProphetCount: number;
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+}
+
+export interface ProphetListResponse {
+  total: number;
+  prophets: ProphetSummary[];
+}
+
+export interface ProphetAyahLink {
+  surahNumber: number;
+  ayahNumber: number;
+  linkType: string;
+  confidence: number;
+  sourceIds: string[];
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+  warnings: string[];
+}
+
+export interface ProphetRelation {
+  sourceProphetId: string;
+  targetProphetId: string;
+  relationType: string;
+  evidenceReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+  explanationArabic?: string;
+  explanationEnglish?: string;
+  confidence: number;
+  sourceIds: string[];
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+  warnings: string[];
+}
+
+export interface ProphetJourneyStage {
+  stageId: string;
+  orderIndex: number;
+  labelArabic: string;
+  labelEnglish: string;
+  ayahReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+  relatedEntities: string[];
+  relatedTopics: string[];
+  storytellingArabic?: string;
+  storytellingEnglish?: string;
+  sourceIds: string[];
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+  warnings: string[];
+}
+
+export interface ProphetJourney {
+  journeyId: string;
+  prophetId: string;
+  journeyType: string;
+  titleArabic: string;
+  titleEnglish: string;
+  stages: ProphetJourneyStage[];
+  certainty: string;
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+  warnings: string[];
+}
+
+export interface ProphetProfile {
+  prophetId: string;
+  nameArabic: string;
+  nameEnglish: string;
+  transliteration: string;
+  aliasesArabic: string[];
+  aliasesEnglish: string[];
+  quranMentionCount: number;
+  surahCount: number;
+  explicitMentions: ProphetAyahLink[];
+  contextualMentions: ProphetAyahLink[];
+  coreferenceMentions: ProphetAyahLink[];
+  storyIds: string[];
+  relatedEntities: string[];
+  relatedPeopleOrNations: string[];
+  relatedPlaces: string[];
+  relatedAnimals: string[];
+  relatedObjects: string[];
+  relatedEvents: string[];
+  relatedTopics: string[];
+  relatedProphets: ProphetRelation[];
+  journeys: ProphetJourney[];
+  storytellingSummaryArabic?: string;
+  storytellingSummaryEnglish?: string;
+  sourceIds: string[];
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+  warnings: string[];
+}
+
+export interface ProphetStorytellingResponse {
+  summaryArabic: string;
+  summaryEnglish: string;
+  stages: Array<{
+    stageId: string;
+    explanationArabic: string;
+    explanationEnglish: string;
+    ayahReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+    sourceEvidence: string[];
+    warnings: string[];
+    reviewStatus: string;
+  }>;
+  followUpQuestionsArabic: string[];
+  followUpQuestionsEnglish: string[];
+  relatedStories: string[];
+  relatedProphets: string[];
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+  warnings: string[];
+}
+
+// Phase X2 — story-page types
+export interface ProphetStoryReference {
+  surahNumber: number;
+  ayahStart: number;
+  ayahEnd?: number;
+  linkType: string;
+  confidence: number;
+  sourceIds: string[];
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+}
+
+export interface ProphetStorySection {
+  sectionId: string;
+  labelArabic: string;
+  labelEnglish: string;
+  ayahReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+  sectionType: string;
+  summaryArabic?: string;
+  summaryEnglish?: string;
+  sourceIds: string[];
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+  warnings: string[];
+}
+
+export interface ProphetChronologyNote {
+  chronologyType: string;
+  noteArabic: string;
+  noteEnglish: string;
+  certainty: string;
+  sourceIds: string[];
+  reviewStatus: string;
+}
+
+export interface ProphetStoryPage {
+  storyPageId: string;
+  prophetId: string;
+  titleArabic: string;
+  titleEnglish: string;
+  pageType: 'full_story' | 'compact_profile' | 'contextual_mentions' | 'mission_summary' | 'limited_quran_mentions';
+  quranReferences: ProphetStoryReference[];
+  storySections: ProphetStorySection[];
+  relatedProphets: string[];
+  relatedFigures: string[];
+  relatedPlaces: string[];
+  relatedNations: string[];
+  relatedObjects: string[];
+  relatedTopics: string[];
+  chronologyNotes: ProphetChronologyNote[];
+  sourceIds: string[];
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+  warnings: string[];
+}
+
+export interface ProphetContextualLink {
+  prophetId: string;
+  surahNumber: number;
+  ayahNumber: number;
+  linkType: string;
+  confidence: number;
+  evidenceReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+  sourceIds: string[];
+  reviewStatus: string;
+  humanReviewRequired: boolean;
+  rationale: string;
+  warnings: string[];
+}
+
+export interface ProphetMissingCoverageEntry {
+  prophetId: string;
+  nameEnglish: string;
+  pageType: string | null;
+  hasStoryPage: boolean;
+  storyIdCount: number;
+  explicitMentionCount: number;
+  warnings: string[];
+}
+
+export interface ProphetMissingCoverageResponse {
+  total: number;
+  coverage: ProphetMissingCoverageEntry[];
+}
+
+export interface ProphetExplainRelationResponse {
+  explanationArabic: string;
+  explanationEnglish: string;
+  evidenceReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+  tafsirEvidence: Array<{ sourceId: string; reference: string; relationStatus: string }>;
+  warnings: string[];
+  reviewStatus: string;
+}
+
+export const prophetsApi = {
+  list: () =>
+    api.get<ProphetListResponse>('/quran/prophets').then((r) => r.data),
+  get: (prophetId: string) =>
+    api.get<ProphetProfile>(`/quran/prophets/${encodeURIComponent(prophetId)}`).then((r) => r.data),
+  ayahs: (prophetId: string, params?: { link_type?: string }) =>
+    api
+      .get<{ prophetId: string; total: number; explicit: ProphetAyahLink[]; contextual: ProphetAyahLink[]; coreference: ProphetAyahLink[] }>(
+        `/quran/prophets/${encodeURIComponent(prophetId)}/ayahs`,
+        { params },
+      )
+      .then((r) => r.data),
+  stories: (prophetId: string) =>
+    api
+      .get<{ prophetId: string; storyIds: string[] }>(
+        `/quran/prophets/${encodeURIComponent(prophetId)}/stories`,
+      )
+      .then((r) => r.data),
+  relations: (prophetId: string, params?: { relation_type?: string; target_prophet_id?: string }) =>
+    api
+      .get<{ prophetId: string; total: number; relations: ProphetRelation[] }>(
+        `/quran/prophets/${encodeURIComponent(prophetId)}/relations`,
+        { params },
+      )
+      .then((r) => r.data),
+  journey: (prophetId: string, order: 'mushaf' | 'story_world' | 'revelation' | 'thematic' | 'learning' = 'mushaf') =>
+    api
+      .get<ProphetJourney>(`/quran/prophets/${encodeURIComponent(prophetId)}/journey`, { params: { order } })
+      .then((r) => r.data),
+  storytelling: (
+    prophetId: string,
+    payload: {
+      journeyType: 'mushaf_order' | 'story_world_order' | 'revelation_order' | 'thematic_order' | 'learning_order';
+      ayahReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+      relatedEntityIds?: string[];
+      relatedTopicIds?: string[];
+      sourceIds?: string[];
+      language?: 'ar' | 'en';
+    },
+  ) =>
+    api
+      .post<ProphetStorytellingResponse>(
+        `/quran/prophets/${encodeURIComponent(prophetId)}/storytelling`,
+        payload,
+      )
+      .then((r) => r.data),
+  explainRelation: (payload: {
+    sourceProphetId: string;
+    targetProphetId: string;
+    relationType: string;
+    ayahReferences?: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+    sourceIds?: string[];
+    language?: 'ar' | 'en';
+  }) =>
+    api
+      .post<ProphetExplainRelationResponse>('/quran/prophets/explain-relation', payload)
+      .then((r) => r.data),
+  // Phase X2
+  storyPage: (prophetId: string) =>
+    api
+      .get<ProphetStoryPage>(`/quran/prophets/${encodeURIComponent(prophetId)}/story-page`)
+      .then((r) => r.data),
+  contextualLinks: (prophetId: string) =>
+    api
+      .get<{ prophetId: string; total: number; links: ProphetContextualLink[] }>(
+        `/quran/prophets/${encodeURIComponent(prophetId)}/contextual-links`,
+      )
+      .then((r) => r.data),
+  missingCoverage: () =>
+    api
+      .get<ProphetMissingCoverageResponse>('/quran/prophets/missing-coverage')
+      .then((r) => r.data),
+  storytellingSafe: (
+    prophetId: string,
+    payload: {
+      journeyType: 'mushaf_order' | 'story_world_order' | 'revelation_order' | 'thematic_order' | 'learning_order';
+      ayahReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+      relatedEntityIds?: string[];
+      relatedTopicIds?: string[];
+      sourceIds?: string[];
+      language?: 'ar' | 'en';
+    },
+  ) =>
+    api
+      .post<ProphetStorytellingResponse & { outputMode: string; followUpActions: string[] }>(
+        `/quran/prophets/${encodeURIComponent(prophetId)}/storytelling-safe`,
+        payload,
+      )
+      .then((r) => r.data),
 };

@@ -35,10 +35,13 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  ShieldAlert,
+  Quote,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
-import { quranApi, Verse, api } from '../lib/api';
+import { quranApi, Verse, api, verseAskAiApi } from '../lib/api';
+import type { VerseAskAiResponse, Citation } from '../lib/api';
 import { queryKeys, staleTimes } from '../lib/queryClient';
 
 // =============================================================================
@@ -428,12 +431,190 @@ const VersePanel = memo(function VersePanel({
 });
 
 // =============================================================================
+// Grounded Answer Card — renders RAG output with citations + status + safe-refusal
+// =============================================================================
+
+interface GroundedAnswerCardProps {
+  response: VerseAskAiResponse;
+  language: 'ar' | 'en';
+  isRTL: boolean;
+  copied: boolean;
+  onCopy: (text: string) => void;
+  t: (key: string) => string;
+  title?: string;
+}
+
+const GroundedAnswerCard = memo(function GroundedAnswerCard({
+  response,
+  language,
+  isRTL,
+  copied,
+  onCopy,
+  t,
+  title,
+}: GroundedAnswerCardProps) {
+  const hasCitations = response.citations && response.citations.length > 0;
+  const isRefusal = response.status === 'no_verified_source' || !hasCitations;
+  const confidencePct = Math.round((response.confidence ?? 0) * 100);
+  const dir = isRTL ? 'rtl' : 'ltr';
+
+  return (
+    <div className="space-y-3">
+      {/* Status banner */}
+      {isRefusal ? (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className={clsx('flex-1', isRTL && 'text-right')} dir={dir}>
+            <p className="font-medium">
+              {language === 'ar'
+                ? 'لا توجد مصادر موثوقة كافية للإجابة على هذا السؤال.'
+                : 'No verified sources are available to answer this question.'}
+            </p>
+            <p className="text-xs mt-1 opacity-80">
+              {language === 'ar'
+                ? 'جرّب أحد الأسئلة المقترحة أدناه.'
+                : 'Try one of the suggested questions below.'}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between text-xs">
+          <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-1 rounded">
+            <Check className="w-3 h-3" />
+            {language === 'ar'
+              ? `${response.citations.length} مصدر · ثقة ${confidencePct}٪`
+              : `${response.citations.length} sources · ${confidencePct}% confidence`}
+          </span>
+          {response.cached && (
+            <span className="text-gray-400">{language === 'ar' ? 'محفوظ' : 'cached'}</span>
+          )}
+        </div>
+      )}
+
+      {/* AI disclaimer (grounded but still AI-assisted) */}
+      {response.ai_summary_disclaimer !== false && !isRefusal && (
+        <p className={clsx('text-xs text-gray-500 italic', isRTL && 'text-right')} dir={dir}>
+          {t('rag_ai_disclaimer')}
+        </p>
+      )}
+
+      {/* Optional title (used by Explain tab) */}
+      {title && (
+        <p
+          className={clsx(
+            'font-bold text-emerald-700 text-lg',
+            isRTL ? 'text-right font-arabic' : '',
+          )}
+          dir={dir}
+        >
+          {title}
+        </p>
+      )}
+
+      {/* Answer body */}
+      {response.answer && (
+        <div className="bg-gray-50 rounded-lg p-4 relative group border border-gray-200">
+          <button
+            onClick={() => onCopy(response.answer)}
+            className={clsx(
+              'absolute top-2 p-1.5 bg-white rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity border',
+              isRTL ? 'left-2' : 'right-2'
+            )}
+            title={language === 'ar' ? 'نسخ' : 'Copy'}
+          >
+            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-500" />}
+          </button>
+          <p
+            className={clsx(
+              'text-gray-800 leading-loose text-lg whitespace-pre-wrap',
+              isRTL ? 'font-arabic text-right' : '',
+            )}
+            dir={dir}
+          >
+            {response.answer}
+          </p>
+        </div>
+      )}
+
+      {/* Citations */}
+      {hasCitations && (
+        <div className="space-y-2">
+          <p className={clsx('text-xs font-medium text-gray-500 flex items-center gap-1', isRTL && 'flex-row-reverse')}>
+            <Quote className="w-3 h-3" />
+            {language === 'ar' ? 'المصادر:' : 'Sources:'}
+          </p>
+          <div className="space-y-2">
+            {response.citations.map((c: Citation) => (
+              <div
+                key={c.chunk_id}
+                className="bg-white border border-gray-200 rounded-lg p-3 text-sm"
+                dir={dir}
+              >
+                <div className={clsx('flex items-center justify-between mb-1', isRTL && 'flex-row-reverse')}>
+                  <span className={clsx('font-medium text-emerald-700', isRTL && 'font-arabic')}>
+                    {language === 'ar' ? c.source_name_ar : c.source_name}
+                  </span>
+                  <span className="text-xs text-gray-400">{c.verse_reference}</span>
+                </div>
+                {c.author && (
+                  <p className="text-xs text-gray-500">{c.author}</p>
+                )}
+                {(c.quoted_evidence || c.excerpt) && (
+                  <p
+                    className={clsx(
+                      'text-gray-700 mt-1 line-clamp-3',
+                      isRTL && language === 'ar' && 'font-arabic text-right',
+                    )}
+                    dir={dir}
+                  >
+                    {c.quoted_evidence || c.excerpt}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Suggested questions when refused */}
+      {isRefusal && response.suggested_questions && response.suggested_questions.length > 0 && (
+        <div className="space-y-2 pt-2">
+          <p className={clsx('text-xs font-medium text-gray-500', isRTL && 'text-right')}>
+            {t('ai_suggested_questions')}
+          </p>
+          {response.suggested_questions.map((q) => (
+            <div
+              key={q.id}
+              className={clsx('text-sm text-emerald-700 p-2 rounded-lg border border-gray-200 bg-white', isRTL && 'text-right')}
+              dir={dir}
+            >
+              {q.text}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Warnings */}
+      {response.warnings && response.warnings.length > 0 && (
+        <ul className={clsx('text-xs text-amber-700 space-y-1', isRTL && 'text-right')} dir={dir}>
+          {response.warnings.slice(0, 3).map((w, i) => (
+            <li key={i}>⚠ {w}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+});
+
+// =============================================================================
 // AI Assistant Sidebar
 // =============================================================================
 
 interface AIAssistantProps {
   verse: Verse | null;
-  tafsirText: string;
+  /** Retained for backwards compatibility with callers; the grounded
+   *  endpoints retrieve their own context from the tafseer corpus. */
+  tafsirText?: string;
   language: 'ar' | 'en';
   isOpen: boolean;
   onClose: () => void;
@@ -441,7 +622,6 @@ interface AIAssistantProps {
 
 const AIAssistant = memo(function AIAssistant({
   verse,
-  tafsirText,
   language,
   isOpen,
   onClose,
@@ -452,39 +632,58 @@ const AIAssistant = memo(function AIAssistant({
   const [question, setQuestion] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const summaryMutation = useMutation({
+  const summaryMutation = useMutation<VerseAskAiResponse>({
     mutationFn: async () => {
-      const response = await api.post('/tafseer/llm/summarize', {
-        tafsir_text: tafsirText,
-        verse_text: verse?.text_uthmani || '',
+      if (!verse) throw new Error('verse_required');
+      const response = await verseAskAiApi.summarize({
+        surah: verse.sura_no,
+        ayahStart: verse.aya_no,
         language,
       });
       return response.data;
     },
   });
 
-  const explainMutation = useMutation({
+  const explainMutation = useMutation<VerseAskAiResponse, unknown, string>({
     mutationFn: async (word: string) => {
-      const response = await api.post('/tafseer/llm/explain-word', {
+      if (!verse) throw new Error('verse_required');
+      const response = await verseAskAiApi.explainWord({
+        surah: verse.sura_no,
+        ayahStart: verse.aya_no,
         word: word.trim(),
-        verse_text: verse?.text_uthmani || '',
-        context: tafsirText || '',
         language,
       });
       return response.data;
     },
   });
 
-  const answerMutation = useMutation({
+  const answerMutation = useMutation<VerseAskAiResponse, unknown, string>({
     mutationFn: async (q: string) => {
-      const response = await api.post('/tafseer/llm/answer', {
+      if (!verse) throw new Error('verse_required');
+      const response = await verseAskAiApi.ask({
+        surah: verse.sura_no,
+        ayahStart: verse.aya_no,
         question: q.trim(),
-        verse_text: verse?.text_uthmani || '',
-        tafsir_text: tafsirText || '',
         language,
       });
       return response.data;
     },
+  });
+
+  // Suggested questions (live from backend so they can be extended per-verse)
+  const { data: suggestedQuestionsData } = useQuery({
+    queryKey: ['verse-ask-ai-suggested', verse?.sura_no, verse?.aya_no, language],
+    queryFn: async () => {
+      if (!verse) return null;
+      const r = await verseAskAiApi.suggestedQuestions({
+        surah: verse.sura_no,
+        ayahStart: verse.aya_no,
+        language,
+      });
+      return r.data;
+    },
+    enabled: !!verse,
+    staleTime: 60 * 60 * 1000,
   });
 
   const handleCopy = useCallback((text: string) => {
@@ -493,11 +692,15 @@ const AIAssistant = memo(function AIAssistant({
     setTimeout(() => setCopied(false), 2000);
   }, []);
 
-  const suggestedQuestions = useMemo(() => [
-    t('ai_question_revelation'),
-    t('ai_question_lessons'),
-    t('ai_question_context'),
-  ], [t]);
+  const suggestedQuestions = useMemo(() => {
+    const fromBackend = suggestedQuestionsData?.questions?.map((q) => q.text);
+    if (fromBackend && fromBackend.length > 0) return fromBackend;
+    return [
+      t('ai_question_revelation'),
+      t('ai_question_lessons'),
+      t('ai_question_context'),
+    ];
+  }, [suggestedQuestionsData, t]);
 
   const isRTL = language === 'ar';
 
@@ -571,7 +774,7 @@ const AIAssistant = memo(function AIAssistant({
               <div className="space-y-4">
                 <button
                   onClick={() => summaryMutation.mutate()}
-                  disabled={summaryMutation.isPending || !tafsirText}
+                  disabled={summaryMutation.isPending}
                   className="w-full py-3 bg-emerald-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
                   {summaryMutation.isPending ? (
@@ -582,27 +785,15 @@ const AIAssistant = memo(function AIAssistant({
                   {t('ai_generate_summary')}
                 </button>
 
-                {!tafsirText && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
-                    <p className="text-sm text-amber-700">{t('ai_open_tafsir_first')}</p>
-                  </div>
-                )}
-
-                {summaryMutation.data?.result && (
-                  <div className="bg-gray-50 rounded-lg p-4 relative group border border-gray-200">
-                    <button
-                      onClick={() => handleCopy(summaryMutation.data.result)}
-                      className={clsx(
-                        'absolute top-2 p-1.5 bg-white rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity border',
-                        isRTL ? 'left-2' : 'right-2'
-                      )}
-                    >
-                      {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-500" />}
-                    </button>
-                    <p className="font-arabic text-gray-800 leading-loose text-lg" dir="rtl">
-                      {summaryMutation.data.result}
-                    </p>
-                  </div>
+                {summaryMutation.data && (
+                  <GroundedAnswerCard
+                    response={summaryMutation.data}
+                    language={language}
+                    isRTL={isRTL}
+                    copied={copied}
+                    onCopy={handleCopy}
+                    t={t}
+                  />
                 )}
               </div>
             )}
@@ -636,15 +827,16 @@ const AIAssistant = memo(function AIAssistant({
                   </button>
                 </div>
 
-                {explainMutation.data?.result && (
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="font-bold text-emerald-700 mb-3 text-lg" dir="rtl">
-                      {t('ai_explanation_of').replace('{word}', selectedWord)}
-                    </p>
-                    <p className="font-arabic text-gray-800 leading-loose text-lg" dir="rtl">
-                      {explainMutation.data.result}
-                    </p>
-                  </div>
+                {explainMutation.data && (
+                  <GroundedAnswerCard
+                    response={explainMutation.data}
+                    language={language}
+                    isRTL={isRTL}
+                    copied={copied}
+                    onCopy={handleCopy}
+                    t={t}
+                    title={t('ai_explanation_of').replace('{word}', selectedWord)}
+                  />
                 )}
               </div>
             )}
@@ -689,12 +881,15 @@ const AIAssistant = memo(function AIAssistant({
                   ))}
                 </div>
 
-                {answerMutation.data?.result && (
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="font-arabic text-gray-800 leading-loose text-lg" dir="rtl">
-                      {answerMutation.data.result}
-                    </p>
-                  </div>
+                {answerMutation.data && (
+                  <GroundedAnswerCard
+                    response={answerMutation.data}
+                    language={language}
+                    isRTL={isRTL}
+                    copied={copied}
+                    onCopy={handleCopy}
+                    t={t}
+                  />
                 )}
               </div>
             )}

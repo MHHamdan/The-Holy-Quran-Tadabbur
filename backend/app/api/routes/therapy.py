@@ -40,6 +40,16 @@ from app.services.spiritual_guidance_service import (
 )
 from app.services.tone_adapter import get_tone_profile, tone_directive as build_tone_directive
 from app.services.topic_knowledge_service import get_topic_resources, get_topics_for_emotion
+from app.services.crisis_classifier import (
+    CrisisAssessment,
+    classify_crisis,
+    banner_text as crisis_banner_text,
+)
+from app.services.situation_atlas import (
+    DUA_BANK,
+    SITUATION_ATLAS,
+    get_situation,
+)
 
 
 def _classify_with_confidence(message: str) -> tuple[str, float]:
@@ -176,6 +186,12 @@ class AskResponse(BaseModel):
     reflection_prompt_ar: str = ""
     disclaimer_en: str = _DISCLAIMER_EN
     disclaimer_ar: str = _DISCLAIMER_AR
+    # Crisis-safety layer — populated whenever classify_crisis() returns a
+    # non-`none` level. UI must render the banner BEFORE the cards.
+    crisis_level: str = "none"   # "none" | "elevated" | "crisis"
+    crisis_banner_en: Optional[str] = None
+    crisis_banner_ar: Optional[str] = None
+    crisis_hotlines: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -1024,13 +1040,32 @@ async def ask(
     personalised Quranic guidance cards with verses, lessons, reflections,
     and du'a suggestions.
     """
+    # Crisis-safety check runs BEFORE any emotion classification so it
+    # cannot be skipped by mis-classification. False positives are fine.
+    crisis: CrisisAssessment = classify_crisis(body.message)
+    if crisis.is_crisis:
+        logger.warning(
+            "[therapy.ask] crisis trigger fired reasons=%s len=%d",
+            crisis.reasons,
+            len(body.message),
+        )
+
     if body.emotion_override:
         emotion, emotion_confidence = body.emotion_override, 1.0
     else:
         emotion, emotion_confidence = _classify_with_confidence(body.message)
 
     tone = get_tone_profile(emotion, emotion_confidence)
-    cards_data = await build_guidance_cards(emotion, db, max_cards=3)
+    # In crisis mode, force the safest themes (mercy / hope / trust) so we
+    # never surface verses about punishment, hell, or accountability.
+    if crisis.is_crisis:
+        cards_data = []
+        for safe_emotion in ("anxiety", "hopelessness", "sadness", "general"):
+            cards_data = await build_guidance_cards(safe_emotion, db, max_cards=3)
+            if cards_data:
+                break
+    else:
+        cards_data = await build_guidance_cards(emotion, db, max_cards=3)
 
     labels = EMOTION_LABELS.get(emotion, {"en": emotion, "ar": emotion})
     # T5-C: use deeper empathy variant for DISTRESS-tier emotions
@@ -1077,6 +1112,20 @@ async def ask(
 
     cards = [GuidanceCard(**c) for c in cards_data]
 
+    hotlines_payload = [
+        {
+            "region_code": h.region_code,
+            "region_name_en": h.region_name_en,
+            "region_name_ar": h.region_name_ar,
+            "number": h.number,
+            "organisation_en": h.organisation_en,
+            "organisation_ar": h.organisation_ar,
+            "url": h.url,
+            "is_muslim_specific": h.is_muslim_specific,
+        }
+        for h in crisis.suggested_hotlines
+    ]
+
     return AskResponse(
         session_id=session_id,
         emotion=emotion,
@@ -1099,6 +1148,10 @@ async def ask(
         tone_profile=tone.label,
         reflection_prompt_en=rp["en"],
         reflection_prompt_ar=rp["ar"],
+        crisis_level=crisis.level,
+        crisis_banner_en=crisis_banner_text(crisis.level, "en"),
+        crisis_banner_ar=crisis_banner_text(crisis.level, "ar"),
+        crisis_hotlines=hotlines_payload,
     )
 
 
@@ -1604,3 +1657,244 @@ async def get_topic(
         hadith=[TopicHadithItem(**h) for h in block["hadith"]],
         wise_phrases=[TopicWisePhraseItem(**w) for w in block["wise_phrases"]],
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase T-Situations: Situation Atlas (named life situations)
+# ---------------------------------------------------------------------------
+
+
+class SituationHadithRefOut(BaseModel):
+    collection: str
+    number: str
+    narrator_en: str
+    narrator_ar: str
+    note_en: str
+    note_ar: str
+    url: str
+
+
+class SituationDuaOut(BaseModel):
+    key: str
+    arabic: str
+    transliteration: str
+    translation_en: str
+    translation_ar: str
+
+
+class SituationSummary(BaseModel):
+    key: str
+    label_en: str
+    label_ar: str
+    description_en: str
+    description_ar: str
+    primary_emotion: str
+    healing_themes: List[str]
+    refer_to_professional: bool
+
+
+class SituationDetail(SituationSummary):
+    duas: List[SituationDuaOut] = []
+    hadith_refs: List[SituationHadithRefOut] = []
+    review_status: str = "needs_review"
+    human_review_required: bool = True
+    disclaimer_en: str = _DISCLAIMER_EN
+    disclaimer_ar: str = _DISCLAIMER_AR
+
+
+class SituationsListResponse(BaseModel):
+    total: int
+    situations: List[SituationSummary]
+    disclaimer_en: str = _DISCLAIMER_EN
+    disclaimer_ar: str = _DISCLAIMER_AR
+
+
+def _serialize_situation(entry, *, with_details: bool):
+    base = dict(
+        key=entry.key,
+        label_en=entry.label_en,
+        label_ar=entry.label_ar,
+        description_en=entry.description_en,
+        description_ar=entry.description_ar,
+        primary_emotion=entry.primary_emotion,
+        healing_themes=list(entry.healing_themes),
+        refer_to_professional=entry.refer_to_professional,
+    )
+    if not with_details:
+        return SituationSummary(**base)
+    duas = []
+    for k in entry.dua_keys:
+        if k in DUA_BANK:
+            d = DUA_BANK[k]
+            duas.append(SituationDuaOut(key=k, **d))
+    hadith_refs = [
+        SituationHadithRefOut(
+            collection=h.collection,
+            number=h.number,
+            narrator_en=h.narrator_en,
+            narrator_ar=h.narrator_ar,
+            note_en=h.note_en,
+            note_ar=h.note_ar,
+            url=h.url,
+        )
+        for h in entry.hadith_refs
+    ]
+    return SituationDetail(
+        duas=duas,
+        hadith_refs=hadith_refs,
+        review_status=entry.review_status,
+        human_review_required=entry.human_review_required,
+        **base,
+    )
+
+
+@router.get(
+    "/situations",
+    response_model=SituationsListResponse,
+    summary="List curated life-situation entries (needs_review)",
+)
+async def list_situations(http_response: Response) -> SituationsListResponse:
+    """Return the situation atlas — short summaries only.
+
+    Cache for 1h since the entries are static per release.
+    """
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
+    rows = [_serialize_situation(e, with_details=False) for e in SITUATION_ATLAS]
+    return SituationsListResponse(total=len(rows), situations=rows)
+
+
+@router.get(
+    "/situations/{situation_key}",
+    response_model=SituationDetail,
+    summary="Get a single life-situation entry with du'a + hadith citations",
+)
+async def get_situation_detail(
+    http_response: Response,
+    situation_key: str = Path(..., description="Situation slug (e.g. 'physical_illness')"),
+) -> SituationDetail:
+    entry = get_situation(situation_key)
+    if entry is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error_code": "situation_not_found",
+                "message_en": f"Situation '{situation_key}' not found.",
+                "message_ar": "الحالة غير موجودة.",
+            },
+        )
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
+    return _serialize_situation(entry, with_details=True)
+
+
+# ---------------------------------------------------------------------------
+# Phase T-Ruqyah: Authenticated ruqyah evidence pack
+# ---------------------------------------------------------------------------
+
+
+class RuqyahEvidenceItem(BaseModel):
+    """A single hadith / verse reference for the ruqyah evidence pack."""
+    kind: str
+    title_en: str
+    title_ar: str
+    summary_en: str
+    summary_ar: str
+    reference: str
+    url: str
+    review_status: str = "needs_review"
+
+
+class RuqyahEvidenceResponse(BaseModel):
+    total: int
+    items: List[RuqyahEvidenceItem]
+    disclaimer_en: str = _DISCLAIMER_EN
+    disclaimer_ar: str = _DISCLAIMER_AR
+    scope_note_en: str = (
+        "Ruqyah is a Sunnah spiritual practice through Quran recitation and "
+        "du'a. It complements but never replaces medical or mental-health "
+        "treatment."
+    )
+    scope_note_ar: str = (
+        "الرقية الشرعية ممارسة روحية مشروعة بقراءة القرآن والدعاء. هي مكمّلة "
+        "للرعاية الطبية والنفسية ولا تحلّ محلّها."
+    )
+
+
+_RUQYAH_EVIDENCE: List[RuqyahEvidenceItem] = [
+    RuqyahEvidenceItem(
+        kind="ayah",
+        title_en="Al-Isra 17:82 — Quran as healing and mercy",
+        title_ar="الإسراء 17:82 — القرآن شفاء ورحمة",
+        summary_en="And We send down of the Quran that which is healing and a mercy to those who believe.",
+        summary_ar="«وَنُنَزِّلُ مِنَ الْقُرْآنِ مَا هُوَ شِفَاءٌ وَرَحْمَةٌ لِّلْمُؤْمِنِينَ».",
+        reference="17:82",
+        url="https://quran.com/17/82",
+    ),
+    RuqyahEvidenceItem(
+        kind="ayah",
+        title_en="Yunus 10:57 — Healing for what is in the hearts",
+        title_ar="يونس 10:57 — شفاء لما في الصدور",
+        summary_en="There has come to you a direction from your Lord and a healing for the diseases in your hearts.",
+        summary_ar="«قَدْ جَاءَتْكُم مَّوْعِظَةٌ مِّن رَّبِّكُمْ وَشِفَاءٌ لِّمَا فِي الصُّدُورِ».",
+        reference="10:57",
+        url="https://quran.com/10/57",
+    ),
+    RuqyahEvidenceItem(
+        kind="ayah",
+        title_en="Fussilat 41:44 — Guidance and healing for believers",
+        title_ar="فصلت 41:44 — هدى وشفاء للمؤمنين",
+        summary_en="Say: it is, for those who believe, a guidance and a healing.",
+        summary_ar="«قُلْ هُوَ لِلَّذِينَ آمَنُوا هُدًى وَشِفَاءٌ».",
+        reference="41:44",
+        url="https://quran.com/41/44",
+    ),
+    RuqyahEvidenceItem(
+        kind="hadith",
+        title_en="Bukhari 5735 — Prophet ﷺ recited the Mu'awwidhat during illness",
+        title_ar="البخاري 5735 — قراءة المعوذتين عند المرض",
+        summary_en="ʿĀʾisha narrated: During the Prophet's illness he would recite the Mu'awwidhat (al-Falaq + an-Nas) and blow on himself. When his illness intensified, she would recite over him.",
+        summary_ar="عن عائشة: كان النبي ﷺ ينفث على نفسه في مرضه بالمعوذتين، ولمّا اشتد به وجعه كانت تقرأ عليه.",
+        reference="Sahih al-Bukhari 5735",
+        url="https://sunnah.com/bukhari:5735",
+    ),
+    RuqyahEvidenceItem(
+        kind="hadith",
+        title_en="Bukhari 5017 — Reciting al-Ikhlas + al-Falaq + an-Nas before sleep",
+        title_ar="البخاري 5017 — قراءة الإخلاص والمعوذتين قبل النوم",
+        summary_en="Whenever the Prophet ﷺ went to bed he would cup his hands, recite Surahs al-Ikhlas, al-Falaq, and an-Nas, blow into his palms, and wipe whatever he could of his body.",
+        summary_ar="كان النبي ﷺ إذا أوى إلى فراشه جمع كفيه وقرأ المعوذتين والإخلاص ثم نفث فيهما ومسح بهما ما استطاع من جسده.",
+        reference="Sahih al-Bukhari 5017",
+        url="https://sunnah.com/bukhari:5017",
+    ),
+    RuqyahEvidenceItem(
+        kind="hadith",
+        title_en="Bukhari 2276 — Surah al-Fatihah as ruqyah (Abu Saʿid)",
+        title_ar="البخاري 2276 — الفاتحة رقية (أبو سعيد الخدري)",
+        summary_en="Companions recited Surah al-Fatihah as a ruqyah on a tribal chief who had been stung; he was cured. The Prophet ﷺ approved their action.",
+        summary_ar="رقى الصحابة سيد القوم اللديغ بفاتحة الكتاب فبرئ، فأقرّهم النبي ﷺ على ذلك.",
+        reference="Sahih al-Bukhari 2276",
+        url="https://sunnah.com/bukhari:2276",
+    ),
+    RuqyahEvidenceItem(
+        kind="hadith",
+        title_en="Bukhari 5743 — The Prophet's du'a for the sick (Anas)",
+        title_ar="البخاري 5743 — دعاء النبي ﷺ للمريض (أنس)",
+        summary_en="The Messenger of Allah ﷺ used to say: 'O Allah, Lord of mankind, Remover of harm. Cure — You are the Healer. There is no cure except Yours, a healing that leaves no illness behind.'",
+        summary_ar="كان النبي ﷺ يقول: «اللهم رب الناس، أذهب البأس، اشفِ — أنت الشافي، لا شافي إلا أنت، شفاءً لا يغادر سقماً».",
+        reference="Sahih al-Bukhari 5743",
+        url="https://sunnah.com/bukhari:5743",
+    ),
+]
+
+
+@router.get(
+    "/ruqyah-evidence",
+    response_model=RuqyahEvidenceResponse,
+    summary="Authenticated ruqyah / Quranic-healing evidence pack",
+)
+async def get_ruqyah_evidence(http_response: Response) -> RuqyahEvidenceResponse:
+    """Authentic ayah + hadith citations supporting Quranic spiritual healing.
+
+    Cached for 1h. Every entry is needs_review until scholarly approval.
+    """
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
+    return RuqyahEvidenceResponse(total=len(_RUQYAH_EVIDENCE), items=list(_RUQYAH_EVIDENCE))
