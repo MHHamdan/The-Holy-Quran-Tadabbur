@@ -2,7 +2,7 @@
 
 **Date**: 2026-05-17
 **Branch**: phase-w-asma-allah-atlas
-**Symptom**: `http://172.24.50.21:3000/story-atlas` shows `"0 قصة متاحة"` and `"لا توجد قصص مطابقة للبحث"` even when `/stories` returns content.
+**Symptom**: `http://localhost:3000/story-atlas` shows `"0 قصة متاحة"` and `"لا توجد قصص مطابقة للبحث"` even when `/stories` returns content.
 
 ---
 

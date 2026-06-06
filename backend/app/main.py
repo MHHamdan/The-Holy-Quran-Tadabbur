@@ -16,7 +16,25 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
+import os
+
 from app.core.config import settings
+
+
+def _cors_origins() -> list[str]:
+    """CORS origins from env (CORS_ORIGINS=url1,url2) with localhost fallback."""
+    env = os.getenv("CORS_ORIGINS", "")
+    if env.strip():
+        return [o.strip() for o in env.split(",") if o.strip()]
+    return [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:8002",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+    ]
 from app.core.responses import APIError, ErrorCode, error_response, ErrorDetail
 from app.api.routes import quran, stories, rag, rag_verse, health, translation, story_atlas, story_atlas_registry, concepts, grammar, kg, tafseer, search, admin, graph, streaming, performance, rhetoric, themes, tasmee, review_tasks, vocabulary, feedback, therapy, asma, prophets, entities, topics
 
@@ -108,16 +126,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5174",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5174",
-        "http://172.24.50.21:3000",
-        "http://172.24.50.21:5173",
-        "http://172.24.50.21:5174",
-        "http://172.24.50.21:8002",
-    ],
+    allow_origins=_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
