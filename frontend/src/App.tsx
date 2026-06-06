@@ -99,6 +99,11 @@ const AdminFeedbackPage = lazy(() => import('./pages/admin/AdminFeedbackPage').t
 // Spiritual Guidance / Heart Care (Phase T)
 const TherapyPage = lazy(() => import('./pages/TherapyPage').then(m => ({ default: m.TherapyPage })));
 
+// Prophets Atlas (Phase X)
+const ProphetsPage = lazy(() => import('./pages/ProphetsPage').then(m => ({ default: m.ProphetsPage })));
+const ProphetDetailPage = lazy(() => import('./pages/ProphetDetailPage').then(m => ({ default: m.ProphetDetailPage })));
+const ProphetJourneyPage = lazy(() => import('./pages/ProphetJourneyPage').then(m => ({ default: m.ProphetJourneyPage })));
+
 // =============================================================================
 // Preloading - Predictive loading for common navigation paths
 // =============================================================================
@@ -226,6 +231,11 @@ function App() {
 
           {/* Spiritual Guidance / Heart Care (Phase T) */}
           <Route path="/therapy" element={<TherapyPage />} />
+
+          {/* Prophets Atlas (Phase X) */}
+          <Route path="/prophets" element={<ProphetsPage />} />
+          <Route path="/prophets/:prophetId" element={<ProphetDetailPage />} />
+          <Route path="/prophets/:prophetId/journey" element={<ProphetJourneyPage />} />
         </Routes>
       </Suspense>
       </ErrorBoundary>

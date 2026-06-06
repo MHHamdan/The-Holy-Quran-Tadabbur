@@ -1,0 +1,2107 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-05-17T03:57:32.324Z",
+  "totalMentions": 67,
+  "totalChains": 29,
+  "mentionsBySurfaceType": {
+    "family_reference": 44,
+    "implicit_context": 2,
+    "title": 9,
+    "possessive_pronoun": 10,
+    "role_reference": 2
+  },
+  "mentionsByResolutionMethod": {
+    "rule_pattern": 53,
+    "story_segment_context": 14
+  },
+  "zeroMatchEntitiesImproved": [
+    "entity_animal_dog_cave",
+    "entity_object_staff_musa",
+    "entity_object_throne_bilqis",
+    "entity_person_bilqis"
+  ],
+  "mentions": [
+    {
+      "mentionId": "cm_000001",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 2,
+      "ayahNumber": 87,
+      "phraseStart": 57,
+      "phraseEnd": 65,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 87,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000002",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 2,
+      "ayahNumber": 87,
+      "phraseStart": 57,
+      "phraseEnd": 65,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 87,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000003",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 2,
+      "ayahNumber": 253,
+      "phraseStart": 78,
+      "phraseEnd": 86,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 253,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000004",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 2,
+      "ayahNumber": 253,
+      "phraseStart": 78,
+      "phraseEnd": 86,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 253,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000005",
+      "surfaceType": "implicit_context",
+      "surfaceText": "كفلها",
+      "surahNumber": 3,
+      "ayahNumber": 37,
+      "phraseStart": 43,
+      "phraseEnd": 48,
+      "candidateEntityIds": [
+        "entity_prophet_zakariyya"
+      ],
+      "selectedEntityId": "entity_prophet_zakariyya",
+      "confidence": 0.7,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 37,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Guardianship reference; needs reviewer confirmation.",
+        "Triggered by pattern `zakariyya_kafala_aal_imran`."
+      ]
+    },
+    {
+      "mentionId": "cm_000006",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 3,
+      "ayahNumber": 45,
+      "phraseStart": 63,
+      "phraseEnd": 71,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 45,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000007",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 3,
+      "ayahNumber": 45,
+      "phraseStart": 63,
+      "phraseEnd": 71,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 45,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000008",
+      "surfaceType": "title",
+      "surfaceText": "المسيح",
+      "surahNumber": 3,
+      "ayahNumber": 45,
+      "phraseStart": 51,
+      "phraseEnd": 57,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 45,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title \"Al-Masih\" refers to Isa; needs_review.",
+        "Triggered by pattern `isa_masih_title`."
+      ]
+    },
+    {
+      "mentionId": "cm_000009",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 4,
+      "ayahNumber": 157,
+      "phraseStart": 29,
+      "phraseEnd": 37,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 157,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000010",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 4,
+      "ayahNumber": 157,
+      "phraseStart": 29,
+      "phraseEnd": 37,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 157,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000011",
+      "surfaceType": "title",
+      "surfaceText": "المسيح",
+      "surahNumber": 4,
+      "ayahNumber": 157,
+      "phraseStart": 17,
+      "phraseEnd": 23,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 157,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title \"Al-Masih\" refers to Isa; needs_review.",
+        "Triggered by pattern `isa_masih_title`."
+      ]
+    },
+    {
+      "mentionId": "cm_000012",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 4,
+      "ayahNumber": 171,
+      "phraseStart": 76,
+      "phraseEnd": 84,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 171,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000013",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 4,
+      "ayahNumber": 171,
+      "phraseStart": 76,
+      "phraseEnd": 84,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 171,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000014",
+      "surfaceType": "title",
+      "surfaceText": "المسيح",
+      "surahNumber": 4,
+      "ayahNumber": 171,
+      "phraseStart": 64,
+      "phraseEnd": 70,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 171,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title \"Al-Masih\" refers to Isa; needs_review.",
+        "Triggered by pattern `isa_masih_title`."
+      ]
+    },
+    {
+      "mentionId": "cm_000015",
+      "surfaceType": "title",
+      "surfaceText": "المسيح",
+      "surahNumber": 4,
+      "ayahNumber": 172,
+      "phraseStart": 10,
+      "phraseEnd": 16,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 4,
+          "ayahStart": 172,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title \"Al-Masih\" refers to Isa; needs_review.",
+        "Triggered by pattern `isa_masih_title`."
+      ]
+    },
+    {
+      "mentionId": "cm_000016",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 17,
+      "phraseStart": 38,
+      "phraseEnd": 46,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 17,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000017",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 17,
+      "phraseStart": 38,
+      "phraseEnd": 46,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 17,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000018",
+      "surfaceType": "title",
+      "surfaceText": "المسيح",
+      "surahNumber": 5,
+      "ayahNumber": 17,
+      "phraseStart": 31,
+      "phraseEnd": 37,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 17,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title \"Al-Masih\" refers to Isa; needs_review.",
+        "Triggered by pattern `isa_masih_title`."
+      ]
+    },
+    {
+      "mentionId": "cm_000019",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 46,
+      "phraseStart": 23,
+      "phraseEnd": 31,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 46,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000020",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 46,
+      "phraseStart": 23,
+      "phraseEnd": 31,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 46,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000021",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 72,
+      "phraseStart": 38,
+      "phraseEnd": 46,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 72,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000022",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 72,
+      "phraseStart": 38,
+      "phraseEnd": 46,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 72,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000023",
+      "surfaceType": "title",
+      "surfaceText": "المسيح",
+      "surahNumber": 5,
+      "ayahNumber": 72,
+      "phraseStart": 31,
+      "phraseEnd": 37,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 72,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title \"Al-Masih\" refers to Isa; needs_review.",
+        "Triggered by pattern `isa_masih_title`."
+      ]
+    },
+    {
+      "mentionId": "cm_000024",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 75,
+      "phraseStart": 10,
+      "phraseEnd": 18,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 75,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000025",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 75,
+      "phraseStart": 10,
+      "phraseEnd": 18,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 75,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000026",
+      "surfaceType": "title",
+      "surfaceText": "المسيح",
+      "surahNumber": 5,
+      "ayahNumber": 75,
+      "phraseStart": 3,
+      "phraseEnd": 9,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 75,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title \"Al-Masih\" refers to Isa; needs_review.",
+        "Triggered by pattern `isa_masih_title`."
+      ]
+    },
+    {
+      "mentionId": "cm_000027",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 78,
+      "phraseStart": 49,
+      "phraseEnd": 57,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 78,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000028",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 78,
+      "phraseStart": 49,
+      "phraseEnd": 57,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 78,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000029",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 110,
+      "phraseStart": 18,
+      "phraseEnd": 26,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 110,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000030",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 110,
+      "phraseStart": 18,
+      "phraseEnd": 26,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 110,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000031",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 112,
+      "phraseStart": 23,
+      "phraseEnd": 31,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 112,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000032",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 112,
+      "phraseStart": 23,
+      "phraseEnd": 31,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 112,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000033",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 114,
+      "phraseStart": 9,
+      "phraseEnd": 17,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 114,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000034",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 114,
+      "phraseStart": 9,
+      "phraseEnd": 17,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 114,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000035",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 116,
+      "phraseStart": 19,
+      "phraseEnd": 27,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 116,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000036",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 5,
+      "ayahNumber": 116,
+      "phraseStart": 19,
+      "phraseEnd": 27,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 5,
+          "ayahStart": 116,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000037",
+      "surfaceType": "possessive_pronoun",
+      "surfaceText": "عصاه",
+      "surahNumber": 7,
+      "ayahNumber": 107,
+      "phraseStart": 6,
+      "phraseEnd": 10,
+      "candidateEntityIds": [
+        "entity_object_staff_musa"
+      ],
+      "selectedEntityId": "entity_object_staff_musa",
+      "confidence": 0.7,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 107,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Staff possessive anchored to Musa story window; needs_review.",
+        "Triggered by pattern `musa_staff_asaa_h`."
+      ]
+    },
+    {
+      "mentionId": "cm_000038",
+      "surfaceType": "possessive_pronoun",
+      "surfaceText": "عصاك",
+      "surahNumber": 7,
+      "ayahNumber": 117,
+      "phraseStart": 24,
+      "phraseEnd": 28,
+      "candidateEntityIds": [
+        "entity_object_staff_musa"
+      ],
+      "selectedEntityId": "entity_object_staff_musa",
+      "confidence": 0.7,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 117,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Staff direct-address anchored to Musa story window; needs_review.",
+        "Triggered by pattern `musa_staff_asaa_k`."
+      ]
+    },
+    {
+      "mentionId": "cm_000039",
+      "surfaceType": "title",
+      "surfaceText": "المسيح",
+      "surahNumber": 9,
+      "ayahNumber": 30,
+      "phraseStart": 40,
+      "phraseEnd": 46,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 9,
+          "ayahStart": 30,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title \"Al-Masih\" refers to Isa; needs_review.",
+        "Triggered by pattern `isa_masih_title`."
+      ]
+    },
+    {
+      "mentionId": "cm_000040",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 9,
+      "ayahNumber": 31,
+      "phraseStart": 50,
+      "phraseEnd": 58,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 9,
+          "ayahStart": 31,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000041",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 9,
+      "ayahNumber": 31,
+      "phraseStart": 50,
+      "phraseEnd": 58,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 9,
+          "ayahStart": 31,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000042",
+      "surfaceType": "title",
+      "surfaceText": "المسيح",
+      "surahNumber": 9,
+      "ayahNumber": 31,
+      "phraseStart": 43,
+      "phraseEnd": 49,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 9,
+          "ayahStart": 31,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title \"Al-Masih\" refers to Isa; needs_review.",
+        "Triggered by pattern `isa_masih_title`."
+      ]
+    },
+    {
+      "mentionId": "cm_000043",
+      "surfaceType": "role_reference",
+      "surfaceText": "الفتيه",
+      "surahNumber": 18,
+      "ayahNumber": 10,
+      "phraseStart": 7,
+      "phraseEnd": 13,
+      "candidateEntityIds": [
+        "entity_people_ashab_kahf"
+      ],
+      "selectedEntityId": "entity_people_ashab_kahf",
+      "confidence": 0.65,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 10,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Generic word for \"youths\"; matched only inside Surah Al-Kahf.",
+        "Triggered by pattern `kahf_alfityah`."
+      ]
+    },
+    {
+      "mentionId": "cm_000044",
+      "surfaceType": "possessive_pronoun",
+      "surfaceText": "كلبهم",
+      "surahNumber": 18,
+      "ayahNumber": 18,
+      "phraseStart": 58,
+      "phraseEnd": 63,
+      "candidateEntityIds": [
+        "entity_animal_dog_cave"
+      ],
+      "selectedEntityId": "entity_animal_dog_cave",
+      "confidence": 0.85,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 18,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Dog of the Cave; anchored to Surah Al-Kahf only.",
+        "Triggered by pattern `kahf_kalbuhum_dog`."
+      ]
+    },
+    {
+      "mentionId": "cm_000045",
+      "surfaceType": "possessive_pronoun",
+      "surfaceText": "كلبهم",
+      "surahNumber": 18,
+      "ayahNumber": 22,
+      "phraseStart": 20,
+      "phraseEnd": 25,
+      "candidateEntityIds": [
+        "entity_animal_dog_cave"
+      ],
+      "selectedEntityId": "entity_animal_dog_cave",
+      "confidence": 0.85,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 18,
+          "ayahStart": 22,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Dog of the Cave; anchored to Surah Al-Kahf only.",
+        "Triggered by pattern `kahf_kalbuhum_dog`."
+      ]
+    },
+    {
+      "mentionId": "cm_000046",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 19,
+      "ayahNumber": 34,
+      "phraseStart": 9,
+      "phraseEnd": 17,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 34,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000047",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 19,
+      "ayahNumber": 34,
+      "phraseStart": 9,
+      "phraseEnd": 17,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 19,
+          "ayahStart": 34,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000048",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 23,
+      "ayahNumber": 50,
+      "phraseStart": 7,
+      "phraseEnd": 15,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 23,
+          "ayahStart": 50,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000049",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 23,
+      "ayahNumber": 50,
+      "phraseStart": 7,
+      "phraseEnd": 15,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 23,
+          "ayahStart": 50,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000050",
+      "surfaceType": "possessive_pronoun",
+      "surfaceText": "عصاه",
+      "surahNumber": 26,
+      "ayahNumber": 32,
+      "phraseStart": 6,
+      "phraseEnd": 10,
+      "candidateEntityIds": [
+        "entity_object_staff_musa"
+      ],
+      "selectedEntityId": "entity_object_staff_musa",
+      "confidence": 0.7,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 32,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Staff possessive anchored to Musa story window; needs_review.",
+        "Triggered by pattern `musa_staff_asaa_h`."
+      ]
+    },
+    {
+      "mentionId": "cm_000051",
+      "surfaceType": "possessive_pronoun",
+      "surfaceText": "عصاه",
+      "surahNumber": 26,
+      "ayahNumber": 45,
+      "phraseStart": 11,
+      "phraseEnd": 15,
+      "candidateEntityIds": [
+        "entity_object_staff_musa"
+      ],
+      "selectedEntityId": "entity_object_staff_musa",
+      "confidence": 0.7,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 45,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Staff possessive anchored to Musa story window; needs_review.",
+        "Triggered by pattern `musa_staff_asaa_h`."
+      ]
+    },
+    {
+      "mentionId": "cm_000052",
+      "surfaceType": "possessive_pronoun",
+      "surfaceText": "عصاك",
+      "surahNumber": 26,
+      "ayahNumber": 63,
+      "phraseStart": 26,
+      "phraseEnd": 30,
+      "candidateEntityIds": [
+        "entity_object_staff_musa"
+      ],
+      "selectedEntityId": "entity_object_staff_musa",
+      "confidence": 0.7,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 63,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Staff direct-address anchored to Musa story window; needs_review.",
+        "Triggered by pattern `musa_staff_asaa_k`."
+      ]
+    },
+    {
+      "mentionId": "cm_000053",
+      "surfaceType": "implicit_context",
+      "surfaceText": "فانفلق",
+      "surahNumber": 26,
+      "ayahNumber": 63,
+      "phraseStart": 38,
+      "phraseEnd": 44,
+      "candidateEntityIds": [
+        "entity_event_sea_crossing"
+      ],
+      "selectedEntityId": "entity_event_sea_crossing",
+      "confidence": 0.75,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 26,
+          "ayahStart": 63,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Sea-splitting event; needs_review.",
+        "Triggered by pattern `musa_sea_crossing`."
+      ]
+    },
+    {
+      "mentionId": "cm_000054",
+      "surfaceType": "role_reference",
+      "surfaceText": "امراه تملكهم",
+      "surahNumber": 27,
+      "ayahNumber": 23,
+      "phraseStart": 9,
+      "phraseEnd": 21,
+      "candidateEntityIds": [
+        "entity_person_bilqis"
+      ],
+      "selectedEntityId": "entity_person_bilqis",
+      "confidence": 0.6,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 23,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Bilqis is never named explicitly in the Quran; this role-reference is needs_review.",
+        "Triggered by pattern `bilqis_implicit_imratan_tamlikuhum`."
+      ]
+    },
+    {
+      "mentionId": "cm_000055",
+      "surfaceType": "possessive_pronoun",
+      "surfaceText": "عرشها",
+      "surahNumber": 27,
+      "ayahNumber": 38,
+      "phraseStart": 30,
+      "phraseEnd": 35,
+      "candidateEntityIds": [
+        "entity_object_throne_bilqis"
+      ],
+      "selectedEntityId": "entity_object_throne_bilqis",
+      "confidence": 0.8,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 38,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Throne possessive anchored to Surah An-Naml; needs_review.",
+        "Triggered by pattern `bilqis_arshuha_throne`."
+      ]
+    },
+    {
+      "mentionId": "cm_000056",
+      "surfaceType": "possessive_pronoun",
+      "surfaceText": "عرشها",
+      "surahNumber": 27,
+      "ayahNumber": 41,
+      "phraseStart": 14,
+      "phraseEnd": 19,
+      "candidateEntityIds": [
+        "entity_object_throne_bilqis"
+      ],
+      "selectedEntityId": "entity_object_throne_bilqis",
+      "confidence": 0.8,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 41,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Throne possessive anchored to Surah An-Naml; needs_review.",
+        "Triggered by pattern `bilqis_arshuha_throne`."
+      ]
+    },
+    {
+      "mentionId": "cm_000057",
+      "surfaceType": "possessive_pronoun",
+      "surfaceText": "عصاك",
+      "surahNumber": 28,
+      "ayahNumber": 31,
+      "phraseStart": 8,
+      "phraseEnd": 12,
+      "candidateEntityIds": [
+        "entity_object_staff_musa"
+      ],
+      "selectedEntityId": "entity_object_staff_musa",
+      "confidence": 0.7,
+      "resolutionMethod": "story_segment_context",
+      "evidenceReferences": [
+        {
+          "surahNumber": 28,
+          "ayahStart": 31,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Staff direct-address anchored to Musa story window; needs_review.",
+        "Triggered by pattern `musa_staff_asaa_k`."
+      ]
+    },
+    {
+      "mentionId": "cm_000058",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 33,
+      "ayahNumber": 7,
+      "phraseStart": 60,
+      "phraseEnd": 68,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 33,
+          "ayahStart": 7,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000059",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 33,
+      "ayahNumber": 7,
+      "phraseStart": 60,
+      "phraseEnd": 68,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 33,
+          "ayahStart": 7,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000060",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 43,
+      "ayahNumber": 57,
+      "phraseStart": 9,
+      "phraseEnd": 17,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 43,
+          "ayahStart": 57,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000061",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 43,
+      "ayahNumber": 57,
+      "phraseStart": 9,
+      "phraseEnd": 17,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 43,
+          "ayahStart": 57,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000062",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 57,
+      "ayahNumber": 27,
+      "phraseStart": 39,
+      "phraseEnd": 47,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 57,
+          "ayahStart": 27,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000063",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 57,
+      "ayahNumber": 27,
+      "phraseStart": 39,
+      "phraseEnd": 47,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 57,
+          "ayahStart": 27,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000064",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 61,
+      "ayahNumber": 6,
+      "phraseStart": 13,
+      "phraseEnd": 21,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 61,
+          "ayahStart": 6,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000065",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 61,
+      "ayahNumber": 6,
+      "phraseStart": 13,
+      "phraseEnd": 21,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 61,
+          "ayahStart": 6,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    },
+    {
+      "mentionId": "cm_000066",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 61,
+      "ayahNumber": 14,
+      "phraseStart": 48,
+      "phraseEnd": 56,
+      "candidateEntityIds": [
+        "entity_person_maryam"
+      ],
+      "selectedEntityId": "entity_person_maryam",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 61,
+          "ayahStart": 14,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Family reference; needs_review until scholar confirms.",
+        "Triggered by pattern `maryam_ibn_maryam_family`."
+      ]
+    },
+    {
+      "mentionId": "cm_000067",
+      "surfaceType": "family_reference",
+      "surfaceText": "ابن مريم",
+      "surahNumber": 61,
+      "ayahNumber": 14,
+      "phraseStart": 48,
+      "phraseEnd": 56,
+      "candidateEntityIds": [
+        "entity_prophet_isa"
+      ],
+      "selectedEntityId": "entity_prophet_isa",
+      "confidence": 0.85,
+      "resolutionMethod": "rule_pattern",
+      "evidenceReferences": [
+        {
+          "surahNumber": 61,
+          "ayahStart": 14,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "evidenceType": "quran_text_pattern"
+        }
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Title-style reference; refers to Isa son of Maryam.",
+        "Triggered by pattern `isa_ibn_maryam_link`."
+      ]
+    }
+  ],
+  "warnings": [
+    "All coreference mentions default to needs_review.",
+    "Cross-surah chains are always needs_review.",
+    "No Quran text is embedded; only short normalised surface tokens are kept."
+  ]
+}

@@ -1,7 +1,7 @@
 # Asmā' Allah al-Ḥusnā Atlas — Build Summary
 
-Generated at: 2026-05-17T18:03:00.393Z
-Version: 1.1.0
+Generated at: 2026-05-17T22:58:39.113Z
+Version: 1.2.0
 
 ## Totals
 

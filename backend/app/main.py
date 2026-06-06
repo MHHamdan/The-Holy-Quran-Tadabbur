@@ -18,7 +18,7 @@ from pydantic import ValidationError
 
 from app.core.config import settings
 from app.core.responses import APIError, ErrorCode, error_response, ErrorDetail
-from app.api.routes import quran, stories, rag, rag_verse, health, translation, story_atlas, story_atlas_registry, concepts, grammar, kg, tafseer, search, admin, graph, streaming, performance, rhetoric, themes, tasmee, review_tasks, vocabulary, feedback, therapy
+from app.api.routes import quran, stories, rag, rag_verse, health, translation, story_atlas, story_atlas_registry, concepts, grammar, kg, tafseer, search, admin, graph, streaming, performance, rhetoric, themes, tasmee, review_tasks, vocabulary, feedback, therapy, asma, prophets, entities, topics
 
 # Configure structured logging
 logging.basicConfig(
@@ -75,6 +75,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
                 print(f"Warning: Emotion classifier warmup failed: {exc}")
 
         asyncio.create_task(_warmup_emotion_classifier())
+
+    # Pre-warm the Asmā' Allah atlas so the first /api/v1/quran/asma request
+    # doesn't pay the ~700ms cold parse latency on a user's first navigation.
+    # Cheap (one-shot file read + JSON parse), so we do it inline at startup
+    # rather than as a background task — gives a deterministic hit on boot.
+    try:
+        from app.api.routes.asma import _load_atlas
+        _load_atlas()  # populates the lru_cache
+        print("Asmā' atlas: pre-warmed")
+    except Exception as exc:
+        print(f"Warning: Asmā' atlas pre-warm skipped ({exc})")
 
     yield
 
@@ -252,6 +263,10 @@ app.include_router(review_tasks.router, prefix="/api/v1/admin", tags=["Review Wo
 app.include_router(vocabulary.router, prefix="/api/v1/vocabulary", tags=["Vocabulary (Phase F)"])
 app.include_router(feedback.router, prefix="/api/v1/feedback", tags=["User Feedback (Phase G)"])
 app.include_router(therapy.router, prefix="/api/v1/therapy", tags=["Spiritual Guidance (Phase T)"])
+app.include_router(asma.router, prefix="/api/v1/quran", tags=["Asmā' Allah Atlas (Phase W)"])
+app.include_router(entities.router, prefix="/api/v1/quran", tags=["Entities (Phase T)"])
+app.include_router(topics.router, prefix="/api/v1/quran", tags=["Topics (Phase V)"])
+app.include_router(prophets.router, prefix="/api/v1/quran", tags=["Prophets Atlas (Phase X)"])
 app.include_router(story_atlas_registry.router, prefix="/api/v1/quran", tags=["Story Atlas Registry"])
 
 

@@ -39,7 +39,7 @@ const ROOT = resolve(__dirname, '..');
 const QURAN_PATH = join(ROOT, 'data/raw/quran_uthmani.json');
 const OUT_JSON = join(ROOT, 'frontend/src/data/generated/asmaAllahAtlas.json');
 const OUT_MD = join(ROOT, 'docs/generated/asma-allah-atlas-summary.md');
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 
 // Names that may appear inside a surah-opening basmalah and must therefore
 // be excluded from the count when the match lands inside the basmalah prefix.
@@ -285,14 +285,33 @@ function finaliseOccurrenceStats(name: AsmaAllahName): void {
 }
 
 /**
+ * Build a fast lookup of Quran ayah text keyed by "surah:ayah". The text is
+ * the canonical Uthmani rasm with diacritics, copied verbatim — never
+ * normalised, paraphrased, or translated.
+ */
+function buildAyahTextIndex(ayahs: RawAyah[]): Map<string, string> {
+  const idx = new Map<string, string>();
+  for (const a of ayahs) {
+    idx.set(`${a.sura_no}:${a.aya_no}`, a.aya_text ?? '');
+  }
+  return idx;
+}
+
+/**
  * Attach curated Tirmidhi-tradition primary Quranic references to each Name.
- * Validates each reference against the mushaf ayah-count table and dedupes
- * by surah:ayah so the same Name isn't cited twice for the same verse.
+ * Validates each reference against the mushaf ayah-count table, dedupes by
+ * surah:ayah, and attaches the canonical Arabic ayah text (verbatim from
+ * data/raw/quran_uthmani.json — never paraphrased) so the UI can render the
+ * actual verse alongside the Name.
  *
  * Adds `tirmidhi_asma_husna_list` to the Name's sourceIds when at least one
- * reference is attached. Never modifies Quran text — only emits numbers.
+ * reference is attached. The Quran-text sourceId (`quran_uthmani_cloud`) is
+ * already on every seed.
  */
-function attachPrimaryReferences(nameMap: Map<string, AsmaAllahName>): void {
+function attachPrimaryReferences(
+  nameMap: Map<string, AsmaAllahName>,
+  ayahTextIndex: Map<string, string>
+): void {
   let invalidCount = 0;
   for (const entry of ASMA_ALLAH_PRIMARY_REFERENCES) {
     const slot = nameMap.get(entry.nameId);
@@ -311,10 +330,12 @@ function attachPrimaryReferences(nameMap: Map<string, AsmaAllahName>): void {
       const key = `${r.surahNumber}:${r.ayahNumber}`;
       if (seen.has(key)) continue;
       seen.add(key);
+      const ayahText = ayahTextIndex.get(key);
       refs.push({
         surahNumber: r.surahNumber,
         ayahStart: r.ayahNumber,
         ...(r.note ? { note: r.note } : {}),
+        ...(ayahText ? { ayahText } : {}),
       });
     }
     slot.primaryQuranicReferences = refs;
@@ -437,8 +458,11 @@ function main(): void {
     }
   }
 
-  // Attach the curated Tirmidhi-tradition primary Quranic references.
-  attachPrimaryReferences(nameMap);
+  // Attach the curated Tirmidhi-tradition primary Quranic references,
+  // including the canonical ayah text so the UI can render the verse
+  // alongside the Name (no paraphrase — copied verbatim from the mushaf).
+  const ayahTextIndex = buildAyahTextIndex(ayahs);
+  attachPrimaryReferences(nameMap, ayahTextIndex);
 
   // Attach pairings to each name (top 25 by count).
   const allPairings = Array.from(pairingMap.values()).sort(

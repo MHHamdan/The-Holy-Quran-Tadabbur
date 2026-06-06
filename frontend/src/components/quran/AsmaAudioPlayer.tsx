@@ -34,6 +34,9 @@ interface PlaylistEntry {
   surahNumber: number;
   ayahNumber: number;
   url: string;
+  /** Canonical ayah text from the Uthmani mushaf — copied verbatim by the
+   *  atlas builder, attributed via quran_uthmani_cloud on the Name record. */
+  ayahText?: string;
 }
 
 function buildPlaylist(names: AsmaNameSummary[]): PlaylistEntry[] {
@@ -49,6 +52,7 @@ function buildPlaylist(names: AsmaNameSummary[]): PlaylistEntry[] {
       surahNumber: ref.surahNumber,
       ayahNumber: ref.ayahStart,
       url: asmaAudioUrl(ref.surahNumber, ref.ayahStart),
+      ayahText: ref.ayahText,
     });
   }
   return out;
@@ -221,6 +225,21 @@ export function AsmaAudioPlayer({ names }: AsmaAudioPlayerProps) {
             </div>
           )}
         </div>
+
+        {current?.ayahText && (
+          <blockquote
+            className="mt-1 p-3 bg-emerald-50/60 border-s-4 border-emerald-300 rounded-r text-gray-900 font-arabic text-lg leading-loose"
+            dir="rtl"
+            lang="ar"
+          >
+            {current.ayahText}
+            <footer className="text-[10px] text-gray-500 mt-1 font-sans" dir="ltr">
+              {language === 'ar'
+                ? `المصدر: المصحف العثماني · ${current.surahNumber}:${current.ayahNumber}`
+                : `Source: Uthmani mushaf · ${current.surahNumber}:${current.ayahNumber}`}
+            </footer>
+          </blockquote>
+        )}
 
         {error && (
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">

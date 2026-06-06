@@ -2,13 +2,13 @@
 Quran API routes for verses, translations, and tafseer.
 """
 import logging
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 
 logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Response
 from pydantic import BaseModel, Field
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -14054,57 +14054,88 @@ async def get_allah_names(
     if category is not None:
         names_to_process = [n for n in names_to_process if n["category"] == category]
 
+    # ----- PERF: hoist the verse + tafseer fetch out of the per-name loop -----
+    # Previously this endpoint did:
+    #   for each of 99 names:
+    #       fetch ALL 6210 verses
+    #       normalize ALL 6210 texts in Python
+    #       for each match (~5 verses):
+    #           fetch tafseer (separate query)
+    # → ~614K row transfers + 495 follow-up queries → ≈43s/request.
+    # Now: fetch verses ONCE, normalize ONCE, batch tafseer with IN(...).
+    verses_all: List[QuranVerse] = []
+    verse_normalized_index: Dict[int, str] = {}
+    tafseer_by_ref: Dict[Tuple[int, int], str] = {}
+    if include_verses:
+        verses_all = list((await session.execute(select(QuranVerse))).scalars().all())
+        verse_normalized_index = {
+            v.id: normalize_arabic(v.text_uthmani).lower() for v in verses_all
+        }
+
     result_names = []
+
+    # Step 1: find matching verses per name (in-memory, single pass over the corpus).
+    name_matches: Dict[int, List[QuranVerse]] = {}
+    if include_verses:
+        for name_data in names_to_process:
+            search_term = name_data["name_simple"]
+            search_term_no_al = search_term[2:] if search_term.startswith("ال") else search_term
+            normalized_term = normalize_arabic(search_term_no_al).lower()
+            matches = [
+                v for v in verses_all
+                if normalized_term in verse_normalized_index[v.id]
+            ][:max_verses_per_name]
+            name_matches[name_data["number"]] = matches
+
+    # Step 2: batch-fetch tafseer for every (sura, ayah) we ended up keeping.
+    # One SQL round-trip across the union of all needed verses.
+    if include_verses and name_matches:
+        needed: set[Tuple[int, int]] = set()
+        for matches in name_matches.values():
+            for v in matches:
+                needed.add((v.sura_no, v.aya_no))
+        if needed:
+            sura_ayah_pairs = list(needed)
+            # Build an OR-of-ranges query: for each (sura, aya) we want a chunk
+            # whose [aya_start, aya_end] contains aya. We chunk in groups of 100
+            # to keep statement size reasonable.
+            BATCH = 200
+            for i in range(0, len(sura_ayah_pairs), BATCH):
+                batch = sura_ayah_pairs[i : i + BATCH]
+                conds = [
+                    and_(
+                        TafseerChunk.sura_no == s,
+                        TafseerChunk.aya_start <= a,
+                        TafseerChunk.aya_end >= a,
+                    )
+                    for (s, a) in batch
+                ]
+                tafseer_stmt = select(TafseerChunk).where(or_(*conds))
+                for t in (await session.execute(tafseer_stmt)).scalars().all():
+                    for (s, a) in batch:
+                        if t.sura_no == s and t.aya_start <= a <= t.aya_end:
+                            key = (s, a)
+                            if key not in tafseer_by_ref:
+                                content = t.content_ar if lang == "ar" else (t.content_en or t.content_ar)
+                                if content:
+                                    tafseer_by_ref[key] = (
+                                        content[:200] + "..." if len(content) > 200 else content
+                                    )
 
     for name_data in names_to_process:
         verses_list: List[NameVerseMatchResponse] = []
 
         if include_verses:
-            # Search for verses containing this name
-            name_simple = name_data["name_simple"]
+            search_term = name_data["name_simple"]
+            search_term_no_al = search_term[2:] if search_term.startswith("ال") else search_term
 
-            # Remove "ال" prefix for broader matching
-            search_term = name_simple
-            if search_term.startswith("ال"):
-                search_term_no_al = search_term[2:]
-            else:
-                search_term_no_al = search_term
-
-            # Query verses containing the name
-            normalized_term = normalize_arabic(search_term_no_al).lower()
-
-            stmt = select(QuranVerse)
-            verses = (await session.execute(stmt)).scalars().all()
-
-            matching_verses = []
-            for verse in verses:
-                verse_normalized = normalize_arabic(verse.text_uthmani).lower()
-                if normalized_term in verse_normalized:
-                    matching_verses.append(verse)
-
-            # Limit and process matching verses
-            for verse in matching_verses[:max_verses_per_name]:
-                # Highlight the name in the verse
+            for verse in name_matches.get(name_data["number"], []):
+                # Highlight the name in the verse (cheap in-memory op).
                 positions = search_service._find_match_positions(
                     verse.text_uthmani,
                     {search_term_no_al, search_term}
                 )
                 highlighted = search_service._highlight_matches(verse.text_uthmani, positions)
-
-                # Get tafseer snippet if available
-                tafseer_snippet = ""
-                tafseer_stmt = select(TafseerChunk).where(
-                    TafseerChunk.sura_no == verse.sura_no,
-                    TafseerChunk.aya_start <= verse.aya_no,
-                    TafseerChunk.aya_end >= verse.aya_no
-                ).limit(1)
-                tafseer_result = await session.execute(tafseer_stmt)
-                tafseer = tafseer_result.scalar_one_or_none()
-                if tafseer:
-                    content = tafseer.content_ar if lang == "ar" else (tafseer.content_en or tafseer.content_ar)
-                    if content:
-                        # Get first 200 chars as snippet
-                        tafseer_snippet = content[:200] + "..." if len(content) > 200 else content
 
                 verses_list.append(NameVerseMatchResponse(
                     sura_no=verse.sura_no,
@@ -14112,7 +14143,7 @@ async def get_allah_names(
                     reference=f"{verse.sura_no}:{verse.aya_no}",
                     text_uthmani=verse.text_uthmani,
                     highlighted_text=highlighted,
-                    tafseer_snippet=tafseer_snippet,
+                    tafseer_snippet=tafseer_by_ref.get((verse.sura_no, verse.aya_no), ""),
                 ))
 
         # Get category labels

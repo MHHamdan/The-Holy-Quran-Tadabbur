@@ -60,7 +60,18 @@ type ContentType =
   | "related_story"
   | "kg_relation"
   | "source_evidence"
-  | "disagreement_note";
+  | "disagreement_note"
+  // Phase X — Prophets Atlas review task types
+  | "prophet_profile"
+  | "prophet_ayah_link"
+  | "prophet_relation"
+  | "prophet_journey"
+  | "prophet_storytelling_stage"
+  // Phase X2 — missing-prophet story pages, contextual links, navigation summaries
+  | "prophet_story_page"
+  | "prophet_story_section"
+  | "prophet_contextual_link"
+  | "prophet_navigation_summary";
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "changes_requested";
 type Priority = "low" | "medium" | "high";
@@ -143,6 +154,17 @@ function computePriority(
   if (contentType === "story_segment") return "medium";
   if (contentType === "related_story") return "medium";
   if (contentType === "kg_relation") return "low";
+  // Phase X prophet review priorities
+  if (contentType === "prophet_storytelling_stage") return "high";
+  if (contentType === "prophet_journey") return "high";
+  if (contentType === "prophet_relation") return "high";
+  if (contentType === "prophet_profile") return "high";
+  if (contentType === "prophet_ayah_link") return "low";
+  // Phase X2 priorities
+  if (contentType === "prophet_navigation_summary") return "high";
+  if (contentType === "prophet_story_page") return "medium";
+  if (contentType === "prophet_story_section") return "medium";
+  if (contentType === "prophet_contextual_link") return "high";
   return "medium";
 }
 
@@ -522,6 +544,348 @@ console.log(`  kg_relation groups: ${kgRelationCount}`);
 console.log(`  total KG edges scanned: ${kgEdges.length}`);
 
 // ---------------------------------------------------------------------------
+// 2.5. Phase X — Prophets Atlas review tasks
+// ---------------------------------------------------------------------------
+
+const PROPHETS_ATLAS_PATH = path.join(
+  ROOT,
+  "frontend",
+  "src",
+  "data",
+  "generated",
+  "quranProphetsAtlas.json",
+);
+
+let prophetProfileCount = 0;
+let prophetAyahLinkCount = 0;
+let prophetRelationCount = 0;
+let prophetJourneyCount = 0;
+let prophetStorytellingStageCount = 0;
+
+if (fs.existsSync(PROPHETS_ATLAS_PATH)) {
+  console.log("\n[2.5] Scanning Prophets Atlas …");
+  const atlas = JSON.parse(fs.readFileSync(PROPHETS_ATLAS_PATH, "utf-8")) as {
+    profiles: Array<{
+      prophetId: string;
+      nameEnglish: string;
+      reviewStatus: string;
+      humanReviewRequired: boolean;
+      explicitMentions: Array<{ surahNumber: number; ayahNumber: number; linkType: string; sourceIds: string[]; warnings: string[] }>;
+      contextualMentions: Array<{ surahNumber: number; ayahNumber: number; linkType: string; sourceIds: string[]; warnings: string[] }>;
+      coreferenceMentions: Array<{ surahNumber: number; ayahNumber: number; linkType: string; sourceIds: string[]; warnings: string[] }>;
+      relatedProphets: Array<{ sourceProphetId: string; targetProphetId: string; relationType: string; evidenceReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>; sourceIds: string[]; reviewStatus: string }>;
+      journeys: Array<{ journeyId: string; journeyType: string; certainty: string; reviewStatus: string; stages: Array<{ stageId: string; orderIndex: number; ayahReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>; sourceIds: string[]; storytellingArabic?: string; storytellingEnglish?: string; reviewStatus: string }>; warnings: string[] }>;
+      warnings: string[];
+    }>;
+  };
+
+  for (const p of atlas.profiles) {
+    // prophet_profile task
+    addTask({
+      id: makeTaskId("prophet_profile", p.prophetId),
+      contentType: "prophet_profile",
+      contentId: p.prophetId,
+      status: "pending",
+      priority: computePriority("prophet_profile", false, 1),
+      language: "both",
+      reviewerId: null,
+      reviewerName: null,
+      createdAt: NOW,
+      updatedAt: NOW,
+      reviewedAt: null,
+      sourceIds: ["quran_uthmani_cloud"],
+      quranReferences: [],
+      decision: null,
+      warnings: p.warnings ?? [],
+      humanReviewRequired: true,
+      summaryEnglish: `Prophet profile review: ${p.nameEnglish}`,
+    });
+    prophetProfileCount++;
+
+    // prophet_ayah_link tasks — emit one per non-explicit (riskier) link;
+    // explicit-name links are low-risk and not individually queued (the
+    // overall profile task covers them).
+    const riskyLinks = [
+      ...p.contextualMentions.map((m) => ({ ...m, _bucket: "contextual" })),
+      ...p.coreferenceMentions.map((m) => ({ ...m, _bucket: "coreference" })),
+    ];
+    for (const m of riskyLinks) {
+      const cid = `${p.prophetId}:${m.surahNumber}:${m.ayahNumber}:${m.linkType}`;
+      addTask({
+        id: makeTaskId("prophet_ayah_link", cid),
+        contentType: "prophet_ayah_link",
+        contentId: cid,
+        status: "pending",
+        priority: "low",
+        language: "both",
+        reviewerId: null,
+        reviewerName: null,
+        createdAt: NOW,
+        updatedAt: NOW,
+        reviewedAt: null,
+        sourceIds: m.sourceIds ?? ["quran_uthmani_cloud"],
+        quranReferences: [
+          { surahNumber: m.surahNumber, ayahStart: m.ayahNumber },
+        ],
+        decision: null,
+        warnings: m.warnings ?? [],
+        humanReviewRequired: true,
+        summaryEnglish: `Ayah link review for ${p.nameEnglish} at ${m.surahNumber}:${m.ayahNumber} (${m.linkType}).`,
+      });
+      prophetAyahLinkCount++;
+    }
+
+    // prophet_relation tasks — dedupe by (target, type)
+    const relSeen = new Set<string>();
+    for (const r of p.relatedProphets) {
+      const k = `${r.sourceProphetId}::${r.targetProphetId}::${r.relationType}`;
+      if (relSeen.has(k)) continue;
+      relSeen.add(k);
+      const refs = r.evidenceReferences.slice(0, 5);
+      addTask({
+        id: makeTaskId("prophet_relation", k),
+        contentType: "prophet_relation",
+        contentId: k,
+        status: "pending",
+        priority: "high",
+        language: "both",
+        reviewerId: null,
+        reviewerName: null,
+        createdAt: NOW,
+        updatedAt: NOW,
+        reviewedAt: null,
+        sourceIds: r.sourceIds ?? ["quran_uthmani_cloud"],
+        quranReferences: refs,
+        decision: null,
+        warnings: [],
+        humanReviewRequired: true,
+        summaryEnglish: `Prophet relation review: ${r.sourceProphetId} ↔ ${r.targetProphetId} (${r.relationType}).`,
+      });
+      prophetRelationCount++;
+    }
+
+    // prophet_journey tasks — one per journey type
+    for (const j of p.journeys) {
+      addTask({
+        id: makeTaskId("prophet_journey", j.journeyId),
+        contentType: "prophet_journey",
+        contentId: j.journeyId,
+        status: "pending",
+        priority: j.certainty === "high" ? "medium" : "high",
+        language: "both",
+        reviewerId: null,
+        reviewerName: null,
+        createdAt: NOW,
+        updatedAt: NOW,
+        reviewedAt: null,
+        sourceIds: ["quran_uthmani_cloud"],
+        quranReferences: [],
+        decision: null,
+        warnings: j.warnings ?? [],
+        humanReviewRequired: true,
+        summaryEnglish: `Prophet journey review: ${p.nameEnglish} — ${j.journeyType} (certainty=${j.certainty}).`,
+      });
+      prophetJourneyCount++;
+
+      // prophet_storytelling_stage tasks — only when the stage carries a
+      // storytelling field. The build script does not emit storytelling by
+      // default; storytelling is generated on demand by the backend.
+      for (const st of j.stages) {
+        if (!st.storytellingArabic && !st.storytellingEnglish) continue;
+        addTask({
+          id: makeTaskId("prophet_storytelling_stage", st.stageId),
+          contentType: "prophet_storytelling_stage",
+          contentId: st.stageId,
+          status: "pending",
+          priority: "high",
+          language: "both",
+          reviewerId: null,
+          reviewerName: null,
+          createdAt: NOW,
+          updatedAt: NOW,
+          reviewedAt: null,
+          sourceIds: st.sourceIds ?? ["quran_uthmani_cloud"],
+          quranReferences: st.ayahReferences.slice(0, 5),
+          decision: null,
+          warnings: ["AI-assisted storytelling defaults to needs_review until reviewed."],
+          humanReviewRequired: true,
+          summaryEnglish: `Storytelling stage review: ${p.nameEnglish} stage ${st.orderIndex} (${j.journeyType}).`,
+        });
+        prophetStorytellingStageCount++;
+      }
+    }
+  }
+  console.log(`  prophet_profile: ${prophetProfileCount}`);
+  console.log(`  prophet_ayah_link: ${prophetAyahLinkCount}`);
+  console.log(`  prophet_relation: ${prophetRelationCount}`);
+  console.log(`  prophet_journey: ${prophetJourneyCount}`);
+  console.log(`  prophet_storytelling_stage: ${prophetStorytellingStageCount}`);
+} else {
+  console.log(
+    "\n[2.5] quranProphetsAtlas.json not found — skipping prophet review tasks.",
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 2.6. Phase X2 — story pages + contextual links
+// ---------------------------------------------------------------------------
+
+const STORY_PAGES_PATH = path.join(
+  ROOT,
+  "frontend",
+  "src",
+  "data",
+  "generated",
+  "quranProphetStoryPages.json",
+);
+const CONTEXTUAL_LINKS_PATH = path.join(
+  ROOT,
+  "frontend",
+  "src",
+  "data",
+  "generated",
+  "quranProphetContextualLinks.json",
+);
+
+let prophetStoryPageCount = 0;
+let prophetStorySectionCount = 0;
+let prophetContextualLinkCount = 0;
+
+if (fs.existsSync(STORY_PAGES_PATH)) {
+  console.log("\n[2.6] Scanning prophet story pages …");
+  const sp = JSON.parse(fs.readFileSync(STORY_PAGES_PATH, "utf-8")) as {
+    pages: Array<{
+      storyPageId: string;
+      prophetId: string;
+      titleEnglish: string;
+      pageType: string;
+      sourceIds: string[];
+      reviewStatus: string;
+      warnings: string[];
+      storySections: Array<{
+        sectionId: string;
+        labelEnglish: string;
+        sectionType: string;
+        ayahReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+        sourceIds: string[];
+        warnings: string[];
+      }>;
+    }>;
+  };
+  for (const page of sp.pages) {
+    // Filter Arabic warnings — review tasks are English-only per policy.
+    const pageWarningsEn = (page.warnings ?? []).filter((w) => !containsArabicText(w));
+    addTask({
+      id: makeTaskId("prophet_story_page", page.storyPageId),
+      contentType: "prophet_story_page",
+      contentId: page.storyPageId,
+      status: "pending",
+      priority: page.prophetId === "prophet_muhammad" ? "high" : "medium",
+      language: "both",
+      reviewerId: null,
+      reviewerName: null,
+      createdAt: NOW,
+      updatedAt: NOW,
+      reviewedAt: null,
+      sourceIds: page.sourceIds ?? ["quran_uthmani_cloud"],
+      quranReferences: [],
+      decision: null,
+      warnings: pageWarningsEn,
+      humanReviewRequired: true,
+      summaryEnglish: `Prophet story-page review (${page.pageType}): ${page.titleEnglish}.`,
+    });
+    prophetStoryPageCount++;
+    for (const sec of page.storySections) {
+      const sectionWarningsEn = (sec.warnings ?? []).filter((w) => !containsArabicText(w));
+      addTask({
+        id: makeTaskId("prophet_story_section", sec.sectionId),
+        contentType: "prophet_story_section",
+        contentId: sec.sectionId,
+        status: "pending",
+        priority:
+          sec.sectionType === "summary_only" || sec.sectionType === "limited_mentions"
+            ? "low"
+            : "medium",
+        language: "both",
+        reviewerId: null,
+        reviewerName: null,
+        createdAt: NOW,
+        updatedAt: NOW,
+        reviewedAt: null,
+        sourceIds: sec.sourceIds ?? ["quran_uthmani_cloud"],
+        quranReferences: sec.ayahReferences.slice(0, 5),
+        decision: null,
+        warnings: sectionWarningsEn,
+        humanReviewRequired: true,
+        summaryEnglish: `Story-section review: ${page.titleEnglish} — ${sec.labelEnglish}.`,
+      });
+      prophetStorySectionCount++;
+    }
+  }
+  console.log(`  prophet_story_page: ${prophetStoryPageCount}`);
+  console.log(`  prophet_story_section: ${prophetStorySectionCount}`);
+} else {
+  console.log("\n[2.6] quranProphetStoryPages.json not found — skipping.");
+}
+
+if (fs.existsSync(CONTEXTUAL_LINKS_PATH)) {
+  console.log("\n[2.7] Scanning prophet contextual links …");
+  const ctx = JSON.parse(fs.readFileSync(CONTEXTUAL_LINKS_PATH, "utf-8")) as {
+    links: Array<{
+      prophetId: string;
+      surahNumber: number;
+      ayahNumber: number;
+      linkType: string;
+      sourceIds: string[];
+      evidenceReferences: Array<{ surahNumber: number; ayahStart: number; ayahEnd?: number }>;
+      warnings: string[];
+      rationale: string;
+    }>;
+  };
+  // Group by (prophet, surah, linkType) so we don't explode the task count;
+  // each group lists one representative link.
+  const groups = new Map<string, {
+    prophetId: string;
+    surahNumber: number;
+    linkType: string;
+    count: number;
+    sample: typeof ctx.links[number];
+  }>();
+  for (const l of ctx.links) {
+    const k = `${l.prophetId}:${l.surahNumber}:${l.linkType}`;
+    if (!groups.has(k)) {
+      groups.set(k, { prophetId: l.prophetId, surahNumber: l.surahNumber, linkType: l.linkType, count: 0, sample: l });
+    }
+    groups.get(k)!.count++;
+  }
+  for (const [k, g] of groups) {
+    addTask({
+      id: makeTaskId("prophet_contextual_link", k),
+      contentType: "prophet_contextual_link",
+      contentId: k,
+      status: "pending",
+      priority: "high",
+      language: "both",
+      reviewerId: null,
+      reviewerName: null,
+      createdAt: NOW,
+      updatedAt: NOW,
+      reviewedAt: null,
+      sourceIds: g.sample.sourceIds ?? ["quran_uthmani_cloud"],
+      quranReferences: g.sample.evidenceReferences.slice(0, 3),
+      decision: null,
+      warnings: (g.sample.warnings ?? []).filter((w) => !containsArabicText(w)),
+      humanReviewRequired: true,
+      summaryEnglish: `Contextual link group: ${g.prophetId} surah ${g.surahNumber} (${g.linkType}) — ${g.count} link(s).`,
+    });
+    prophetContextualLinkCount++;
+  }
+  console.log(`  prophet_contextual_link groups: ${prophetContextualLinkCount}`);
+} else {
+  console.log("\n[2.7] quranProphetContextualLinks.json not found — skipping.");
+}
+
+// ---------------------------------------------------------------------------
 // 3. Final output
 // ---------------------------------------------------------------------------
 
@@ -626,4 +990,6 @@ if (errors > 0) {
 
 console.log(`\n[OK] Review task generation complete.`);
 console.log(`     ${storySegmentCount} story_segment + ${relatedStoryCount} related_story + ${kgRelationCount} kg_relation + ${sourceEvidenceCount} source_evidence + ${disagreementNoteCount} disagreement_note`);
+console.log(`     + ${prophetProfileCount} prophet_profile + ${prophetAyahLinkCount} prophet_ayah_link + ${prophetRelationCount} prophet_relation + ${prophetJourneyCount} prophet_journey + ${prophetStorytellingStageCount} prophet_storytelling_stage`);
+console.log(`     + ${prophetStoryPageCount} prophet_story_page + ${prophetStorySectionCount} prophet_story_section + ${prophetContextualLinkCount} prophet_contextual_link groups`);
 process.exit(0);

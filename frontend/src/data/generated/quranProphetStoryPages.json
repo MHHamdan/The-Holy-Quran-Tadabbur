@@ -1,0 +1,2228 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-05-18T04:03:39.418Z",
+  "totalPages": 9,
+  "pageTypeBreakdown": {
+    "full_story": 6,
+    "compact_profile": 2,
+    "mission_summary": 1
+  },
+  "prophetIdsCovered": [
+    "prophet_ishaq",
+    "prophet_yaqub",
+    "prophet_harun",
+    "prophet_dhulkifl",
+    "prophet_ilyas",
+    "prophet_alyasa",
+    "prophet_sulayman",
+    "prophet_muhammad",
+    "prophet_ismail"
+  ],
+  "pages": [
+    {
+      "storyPageId": "storypage_ishaq",
+      "prophetId": "prophet_ishaq",
+      "titleArabic": "إسحاق عليه السلام",
+      "titleEnglish": "Ishaq (Isaac)",
+      "pageType": "full_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 133,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 84,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 71,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 6,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 38,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 14,
+          "ayahStart": 39,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 49,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 72,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 29,
+          "ayahStart": 27,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 112,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 113,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 45,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        }
+      ],
+      "storySections": [
+        {
+          "sectionId": "prophet_ishaq:section:1",
+          "labelArabic": "النسب: ابن إبراهيم وأبو يعقوب",
+          "labelEnglish": "Lineage: son of Ibrahim, father of Yaqub",
+          "ayahReferences": [
+            {
+              "surahNumber": 2,
+              "ayahStart": 133
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 136
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 140
+            },
+            {
+              "surahNumber": 3,
+              "ayahStart": 84
+            },
+            {
+              "surahNumber": 6,
+              "ayahStart": 84
+            },
+            {
+              "surahNumber": 11,
+              "ayahStart": 71
+            },
+            {
+              "surahNumber": 14,
+              "ayahStart": 39
+            },
+            {
+              "surahNumber": 19,
+              "ayahStart": 49
+            },
+            {
+              "surahNumber": 21,
+              "ayahStart": 72
+            },
+            {
+              "surahNumber": 29,
+              "ayahStart": 27
+            },
+            {
+              "surahNumber": 37,
+              "ayahStart": 112
+            },
+            {
+              "surahNumber": 37,
+              "ayahStart": 113
+            }
+          ],
+          "sectionType": "birth_or_family",
+          "summaryArabic": "يُذكر إسحاق ضمن سلسلة الذرية النبوية: ابنُ إبراهيم وأبو يعقوب، في آيات تتحدث عن العهد والميثاق والذرّية المباركة.",
+          "summaryEnglish": "Ishaq appears in the prophetic-lineage passages: son of Ibrahim and father of Yaqub, in ayahs about covenant, oath, and blessed progeny.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        },
+        {
+          "sectionId": "prophet_ishaq:section:2",
+          "labelArabic": "بشارة الميلاد لإبراهيم وسارة",
+          "labelEnglish": "Glad tidings of his birth to Ibrahim and Sarah",
+          "ayahReferences": [
+            {
+              "surahNumber": 11,
+              "ayahStart": 71
+            }
+          ],
+          "sectionType": "miracle_or_sign",
+          "summaryArabic": "بشّر الملائكة إبراهيم وسارة بإسحاق ومن وراء إسحاق يعقوب — حدثٌ آية على رحمة الله وقدرته.",
+          "summaryEnglish": "Angels announced Ishaq, and beyond Ishaq Yaqub, to Ibrahim and Sarah — a sign of divine mercy and power.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        }
+      ],
+      "relatedProphets": [
+        "prophet_ibrahim",
+        "prophet_yaqub",
+        "prophet_yusuf"
+      ],
+      "relatedFigures": [
+        "figure_sarah"
+      ],
+      "relatedPlaces": [],
+      "relatedNations": [],
+      "relatedObjects": [],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_revelation"
+      ],
+      "chronologyNotes": [
+        {
+          "chronologyType": "story_world_guided",
+          "noteArabic": "يقع زمن إسحاق بعد إبراهيم وقبل يعقوب ضمن قراءة إرشادية.",
+          "noteEnglish": "Ishaq is placed after Ibrahim and before Yaqub in the guided reading order.",
+          "certainty": "medium",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "sourceIds": [
+        "quran_uthmani_cloud"
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyPageId": "storypage_yaqub",
+      "prophetId": "prophet_yaqub",
+      "titleArabic": "يعقوب عليه السلام",
+      "titleEnglish": "Yaqub (Jacob)",
+      "pageType": "full_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 132,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 84,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 71,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 6,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 38,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 12,
+          "ayahStart": 68,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 6,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 49,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 72,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 29,
+          "ayahStart": 27,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 45,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        }
+      ],
+      "storySections": [
+        {
+          "sectionId": "prophet_yaqub:section:1",
+          "labelArabic": "النسب: ابن إسحاق وأبو يوسف",
+          "labelEnglish": "Lineage: son of Ishaq, father of Yusuf",
+          "ayahReferences": [
+            {
+              "surahNumber": 2,
+              "ayahStart": 132
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 133
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 136
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 140
+            },
+            {
+              "surahNumber": 3,
+              "ayahStart": 84
+            },
+            {
+              "surahNumber": 4,
+              "ayahStart": 163
+            },
+            {
+              "surahNumber": 6,
+              "ayahStart": 84
+            },
+            {
+              "surahNumber": 11,
+              "ayahStart": 71
+            },
+            {
+              "surahNumber": 19,
+              "ayahStart": 6
+            },
+            {
+              "surahNumber": 19,
+              "ayahStart": 49
+            },
+            {
+              "surahNumber": 21,
+              "ayahStart": 72
+            },
+            {
+              "surahNumber": 29,
+              "ayahStart": 27
+            }
+          ],
+          "sectionType": "birth_or_family",
+          "summaryArabic": "يعقوب — المسمّى إسرائيل — يرد في آيات النسب والميثاق، أبٌ ليوسف وحفيدٌ لإبراهيم.",
+          "summaryEnglish": "Yaqub — called Israel — appears in ayahs of lineage and covenant, father of Yusuf and grandson of Ibrahim.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        },
+        {
+          "sectionId": "prophet_yaqub:section:2",
+          "labelArabic": "في قصة يوسف: الحوار مع أبنائه والحزن والصبر",
+          "labelEnglish": "In Yusuf's story: dialogue with his sons, grief, and patience",
+          "ayahReferences": [
+            {
+              "surahNumber": 12,
+              "ayahStart": 6
+            },
+            {
+              "surahNumber": 12,
+              "ayahStart": 38
+            },
+            {
+              "surahNumber": 12,
+              "ayahStart": 68
+            }
+          ],
+          "sectionType": "dialogue",
+          "summaryArabic": "يعقوب في سورة يوسف: التحذير من تأويل الرؤيا، الحزن على يوسف، الصبر الجميل، ولقاء الإيمان والرضى في الختام.",
+          "summaryEnglish": "Yaqub in Surah Yusuf: warning at the dream, grief over Yusuf, beautiful patience, and the closing reunion in faith.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": [
+            "Coreference within Surah Yusuf is reviewer-territory; needs scholarly verification."
+          ]
+        }
+      ],
+      "relatedProphets": [
+        "prophet_ishaq",
+        "prophet_yusuf",
+        "prophet_ibrahim"
+      ],
+      "relatedFigures": [],
+      "relatedPlaces": [],
+      "relatedNations": [],
+      "relatedObjects": [],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_revelation",
+        "topic_community"
+      ],
+      "chronologyNotes": [
+        {
+          "chronologyType": "story_world_guided",
+          "noteArabic": "يعقوب بعد إسحاق وقبل يوسف ضمن قراءة إرشادية.",
+          "noteEnglish": "Yaqub follows Ishaq and precedes Yusuf in the guided reading order.",
+          "certainty": "medium",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "sourceIds": [
+        "quran_uthmani_cloud"
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyPageId": "storypage_harun",
+      "prophetId": "prophet_harun",
+      "titleArabic": "هارون عليه السلام",
+      "titleEnglish": "Harun (Aaron)",
+      "pageType": "full_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 85,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 248,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 82,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 122,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 127,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 7,
+          "ayahStart": 142,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 10,
+          "ayahStart": 75,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 28,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 53,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 30,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 70,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 90,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 20,
+          "ayahStart": 92,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 48,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 23,
+          "ayahStart": 45,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 25,
+          "ayahStart": 35,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 13,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 48,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 56,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 28,
+          "ayahStart": 34,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 30,
+          "ayahStart": 18,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 4,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 114,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 120,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 43,
+          "ayahStart": 33,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 56,
+          "ayahStart": 79,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 58,
+          "ayahStart": 2,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 58,
+          "ayahStart": 3,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        }
+      ],
+      "storySections": [
+        {
+          "sectionId": "prophet_harun:section:1",
+          "labelArabic": "البعثة مع موسى",
+          "labelEnglish": "Joint mission with Musa",
+          "ayahReferences": [
+            {
+              "surahNumber": 20,
+              "ayahStart": 30
+            },
+            {
+              "surahNumber": 20,
+              "ayahStart": 70
+            },
+            {
+              "surahNumber": 20,
+              "ayahStart": 90
+            },
+            {
+              "surahNumber": 20,
+              "ayahStart": 92
+            },
+            {
+              "surahNumber": 26,
+              "ayahStart": 13
+            },
+            {
+              "surahNumber": 26,
+              "ayahStart": 48
+            }
+          ],
+          "sectionType": "mission",
+          "summaryArabic": "بُعث هارون مع أخيه موسى إلى فرعون وآل فرعون، وزيرًا في الرسالة كما طلب موسى من ربه.",
+          "summaryEnglish": "Harun was sent with his brother Musa to Pharaoh and his people, a wazir in the message as Musa asked of his Lord.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        },
+        {
+          "sectionId": "prophet_harun:section:2",
+          "labelArabic": "مع فرعون وبني إسرائيل",
+          "labelEnglish": "With Pharaoh and Bani Israel",
+          "ayahReferences": [
+            {
+              "surahNumber": 7,
+              "ayahStart": 82
+            },
+            {
+              "surahNumber": 7,
+              "ayahStart": 122
+            },
+            {
+              "surahNumber": 7,
+              "ayahStart": 127
+            },
+            {
+              "surahNumber": 7,
+              "ayahStart": 142
+            },
+            {
+              "surahNumber": 10,
+              "ayahStart": 75
+            },
+            {
+              "surahNumber": 26,
+              "ayahStart": 13
+            },
+            {
+              "surahNumber": 26,
+              "ayahStart": 48
+            },
+            {
+              "surahNumber": 28,
+              "ayahStart": 34
+            }
+          ],
+          "sectionType": "people_or_nation",
+          "summaryArabic": "مواجهة فرعون وآله، ودعوة بني إسرائيل، تدور مع موسى وهارون في آيات متعددة.",
+          "summaryEnglish": "Confronting Pharaoh and his people, and calling Bani Israel — appearing alongside Musa across multiple ayahs.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        },
+        {
+          "sectionId": "prophet_harun:section:3",
+          "labelArabic": "محنة العجل في غياب موسى",
+          "labelEnglish": "The trial of the calf in Musa's absence",
+          "ayahReferences": [
+            {
+              "surahNumber": 7,
+              "ayahStart": 82
+            },
+            {
+              "surahNumber": 7,
+              "ayahStart": 122
+            },
+            {
+              "surahNumber": 7,
+              "ayahStart": 127
+            },
+            {
+              "surahNumber": 7,
+              "ayahStart": 142
+            },
+            {
+              "surahNumber": 20,
+              "ayahStart": 30
+            },
+            {
+              "surahNumber": 20,
+              "ayahStart": 70
+            },
+            {
+              "surahNumber": 20,
+              "ayahStart": 90
+            },
+            {
+              "surahNumber": 20,
+              "ayahStart": 92
+            }
+          ],
+          "sectionType": "trial",
+          "summaryArabic": "يبيّن القرآن دور هارون عند فتنة العجل ودفاعَه عن أمانة موسى وحرصه على وحدة بني إسرائيل.",
+          "summaryEnglish": "The Quran describes Harun's stance during the calf trial, his defence of Musa's trust, and his concern for the unity of Bani Israel.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        }
+      ],
+      "relatedProphets": [
+        "prophet_musa"
+      ],
+      "relatedFigures": [
+        "figure_firawn"
+      ],
+      "relatedPlaces": [
+        "entity_place_sinai"
+      ],
+      "relatedNations": [
+        "entity_people_aad",
+        "entity_people_aal_firawn",
+        "entity_people_bani_israel",
+        "entity_people_madyan",
+        "entity_people_qawm_nuh",
+        "entity_people_thamud"
+      ],
+      "relatedObjects": [
+        "entity_object_ark",
+        "entity_object_tablets"
+      ],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_heavens_earth",
+        "topic_mercy"
+      ],
+      "chronologyNotes": [
+        {
+          "chronologyType": "story_world_guided",
+          "noteArabic": "تتزامن قصة هارون مع موسى في زمن فرعون.",
+          "noteEnglish": "Harun's story coincides with Musa's in the time of Pharaoh.",
+          "certainty": "medium",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "sourceIds": [
+        "quran_uthmani_cloud"
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyPageId": "storypage_dhulkifl",
+      "prophetId": "prophet_dhulkifl",
+      "titleArabic": "ذو الكفل عليه السلام",
+      "titleEnglish": "Dhul-Kifl",
+      "pageType": "compact_profile",
+      "quranReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        }
+      ],
+      "storySections": [
+        {
+          "sectionId": "prophet_dhulkifl:section:1",
+          "labelArabic": "ذكر قرآني محدود",
+          "labelEnglish": "Limited Quranic mention",
+          "ayahReferences": [
+            {
+              "surahNumber": 21,
+              "ayahStart": 85
+            },
+            {
+              "surahNumber": 38,
+              "ayahStart": 48
+            }
+          ],
+          "sectionType": "limited_mentions",
+          "summaryArabic": "يَرِدُ ذو الكفل في القرآن ضمن قائمة الصابرين والأخيار، دون تفصيل قصصي.",
+          "summaryEnglish": "Dhul-Kifl appears in the Quran within lists of the patient and the righteous, without narrative detail.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": [
+            "القرآن لا يفصّل قصة هذا النبي؛ هذا ملف موجز.",
+            "The Quran does not narrate this prophet in detail; this is a compact profile."
+          ]
+        }
+      ],
+      "relatedProphets": [
+        "prophet_ayyub",
+        "prophet_alyasa"
+      ],
+      "relatedFigures": [],
+      "relatedPlaces": [],
+      "relatedNations": [],
+      "relatedObjects": [],
+      "relatedTopics": [],
+      "chronologyNotes": [],
+      "sourceIds": [
+        "quran_uthmani_cloud"
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "القرآن لا يفصّل قصة هذا النبي؛ هذا ملف موجز.",
+        "The Quran does not narrate this prophet in detail; this is a compact profile.",
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyPageId": "storypage_ilyas",
+      "prophetId": "prophet_ilyas",
+      "titleArabic": "إلياس عليه السلام",
+      "titleEnglish": "Ilyas (Elijah)",
+      "pageType": "full_story",
+      "quranReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 85,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 37,
+          "ayahStart": 123,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        }
+      ],
+      "storySections": [
+        {
+          "sectionId": "prophet_ilyas:section:1",
+          "labelArabic": "دعوة إلى التوحيد ومواجهة عبادة \"بعل\"",
+          "labelEnglish": "Call to tawhid and confrontation with the worship of Ba'l",
+          "ayahReferences": [
+            {
+              "surahNumber": 37,
+              "ayahStart": 123
+            }
+          ],
+          "sectionType": "mission",
+          "summaryArabic": "بُعث إلياس إلى قومه يدعوهم إلى عبادة الله وحده، ويحذرهم من عبادة \"بعل\"، في مقطعٍ من سورة الصافات.",
+          "summaryEnglish": "Ilyas was sent to his people calling them to worship Allah alone and warning against the worship of \"Ba'l\", in a passage of Surah As-Saffat.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        },
+        {
+          "sectionId": "prophet_ilyas:section:2",
+          "labelArabic": "ضمن سلسلة الأنبياء",
+          "labelEnglish": "Within the prophetic sequence",
+          "ayahReferences": [
+            {
+              "surahNumber": 6,
+              "ayahStart": 85
+            }
+          ],
+          "sectionType": "relation_to_other_prophet",
+          "summaryArabic": "ذكر إلياس في سورة الأنعام ضمن قائمة الأنبياء الذين هداهم الله.",
+          "summaryEnglish": "Ilyas appears in Surah Al-An'am within the list of prophets whom Allah guided.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        }
+      ],
+      "relatedProphets": [
+        "prophet_alyasa"
+      ],
+      "relatedFigures": [],
+      "relatedPlaces": [],
+      "relatedNations": [],
+      "relatedObjects": [],
+      "relatedTopics": [],
+      "chronologyNotes": [],
+      "sourceIds": [
+        "quran_uthmani_cloud"
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyPageId": "storypage_alyasa",
+      "prophetId": "prophet_alyasa",
+      "titleArabic": "اليسع عليه السلام",
+      "titleEnglish": "Al-Yasa (Elisha)",
+      "pageType": "compact_profile",
+      "quranReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 86,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        }
+      ],
+      "storySections": [
+        {
+          "sectionId": "prophet_alyasa:section:1",
+          "labelArabic": "ذكر قرآني محدود",
+          "labelEnglish": "Limited Quranic mention",
+          "ayahReferences": [
+            {
+              "surahNumber": 6,
+              "ayahStart": 86
+            },
+            {
+              "surahNumber": 38,
+              "ayahStart": 48
+            }
+          ],
+          "sectionType": "limited_mentions",
+          "summaryArabic": "ذُكر اليسع في سورتي الأنعام وص ضمن قائمة الأنبياء الأخيار، دون تفصيل قصصي.",
+          "summaryEnglish": "Al-Yasa appears in Surahs Al-An'am and Saad within lists of righteous prophets, without narrative detail.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": [
+            "القرآن لا يفصّل قصة هذا النبي؛ هذا ملف موجز.",
+            "The Quran does not narrate this prophet in detail; this is a compact profile."
+          ]
+        }
+      ],
+      "relatedProphets": [
+        "prophet_ilyas",
+        "prophet_dhulkifl"
+      ],
+      "relatedFigures": [],
+      "relatedPlaces": [],
+      "relatedNations": [],
+      "relatedObjects": [],
+      "relatedTopics": [],
+      "chronologyNotes": [],
+      "sourceIds": [
+        "quran_uthmani_cloud"
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "القرآن لا يفصّل قصة هذا النبي؛ هذا ملف موجز.",
+        "The Quran does not narrate this prophet in detail; this is a compact profile.",
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyPageId": "storypage_sulayman",
+      "prophetId": "prophet_sulayman",
+      "titleArabic": "سليمان عليه السلام",
+      "titleEnglish": "Sulayman (Solomon)",
+      "pageType": "full_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 102,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 84,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 78,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 79,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 81,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 15,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 16,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 17,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 18,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 30,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 36,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 27,
+          "ayahStart": 44,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 34,
+          "ayahStart": 12,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 30,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 34,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        }
+      ],
+      "storySections": [
+        {
+          "sectionId": "prophet_sulayman:section:1",
+          "labelArabic": "النسب: ابن داود",
+          "labelEnglish": "Lineage: son of Dawud",
+          "ayahReferences": [
+            {
+              "surahNumber": 2,
+              "ayahStart": 102
+            },
+            {
+              "surahNumber": 4,
+              "ayahStart": 163
+            },
+            {
+              "surahNumber": 6,
+              "ayahStart": 84
+            },
+            {
+              "surahNumber": 21,
+              "ayahStart": 78
+            },
+            {
+              "surahNumber": 21,
+              "ayahStart": 79
+            },
+            {
+              "surahNumber": 21,
+              "ayahStart": 81
+            },
+            {
+              "surahNumber": 38,
+              "ayahStart": 30
+            },
+            {
+              "surahNumber": 38,
+              "ayahStart": 34
+            }
+          ],
+          "sectionType": "birth_or_family",
+          "summaryArabic": "سليمان ابن داود، آتاه الله الملك والحكمة، وفضّله بآياتٍ كريمة.",
+          "summaryEnglish": "Sulayman, son of Dawud, was given kingdom and wisdom and was singled out by Allah's grace.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        },
+        {
+          "sectionId": "prophet_sulayman:section:2",
+          "labelArabic": "في سورة النمل: النملة والهدهد",
+          "labelEnglish": "In Surah An-Naml: the ant and the hoopoe",
+          "ayahReferences": [
+            {
+              "surahNumber": 27,
+              "ayahStart": 15
+            },
+            {
+              "surahNumber": 27,
+              "ayahStart": 16
+            },
+            {
+              "surahNumber": 27,
+              "ayahStart": 17
+            },
+            {
+              "surahNumber": 27,
+              "ayahStart": 18
+            },
+            {
+              "surahNumber": 27,
+              "ayahStart": 30
+            },
+            {
+              "surahNumber": 27,
+              "ayahStart": 36
+            },
+            {
+              "surahNumber": 27,
+              "ayahStart": 44
+            }
+          ],
+          "sectionType": "miracle_or_sign",
+          "summaryArabic": "في سورة النمل: كلام النملة، وغيبة الهدهد، ونبأ سبأ وملكتها، ودعوة قومها إلى الإيمان.",
+          "summaryEnglish": "In Surah An-Naml: the speech of the ant, the absence of the hoopoe, the news from Sheba and its queen, and the call of her people to faith.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        },
+        {
+          "sectionId": "prophet_sulayman:section:3",
+          "labelArabic": "سبأ والريح والجن",
+          "labelEnglish": "Saba, the wind, and the jinn",
+          "ayahReferences": [
+            {
+              "surahNumber": 34,
+              "ayahStart": 12
+            },
+            {
+              "surahNumber": 38,
+              "ayahStart": 30
+            },
+            {
+              "surahNumber": 38,
+              "ayahStart": 34
+            }
+          ],
+          "sectionType": "people_or_nation",
+          "summaryArabic": "سُخّرت لسليمان الريح والجنُّ يعملون له، ومُلكٌ لا ينبغي لأحدٍ من بعده.",
+          "summaryEnglish": "The wind was placed under Sulayman's command, and jinn worked for him — a kingdom singular in its kind.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        }
+      ],
+      "relatedProphets": [
+        "prophet_dawud"
+      ],
+      "relatedFigures": [
+        "figure_bilqis"
+      ],
+      "relatedPlaces": [],
+      "relatedNations": [
+        "entity_people_saba",
+        "entity_people_thamud"
+      ],
+      "relatedObjects": [],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_community"
+      ],
+      "chronologyNotes": [
+        {
+          "chronologyType": "story_world_guided",
+          "noteArabic": "سليمان بعد داود في القراءة الإرشادية.",
+          "noteEnglish": "Sulayman follows Dawud in the guided reading order.",
+          "certainty": "medium",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "sourceIds": [
+        "quran_uthmani_cloud"
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    },
+    {
+      "storyPageId": "storypage_muhammad",
+      "prophetId": "prophet_muhammad",
+      "titleArabic": "محمد ﷺ — ملف الرسالة القرآني",
+      "titleEnglish": "Muhammad ﷺ — Quranic mission profile",
+      "pageType": "mission_summary",
+      "quranReferences": [
+        {
+          "surahNumber": 3,
+          "ayahStart": 144,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 33,
+          "ayahStart": 40,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 47,
+          "ayahStart": 2,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 48,
+          "ayahStart": 29,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 61,
+          "ayahStart": 6,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        }
+      ],
+      "storySections": [
+        {
+          "sectionId": "prophet_muhammad:section:1",
+          "labelArabic": "البعثة الخاتمة",
+          "labelEnglish": "The final mission",
+          "ayahReferences": [
+            {
+              "surahNumber": 3,
+              "ayahStart": 144
+            },
+            {
+              "surahNumber": 33,
+              "ayahStart": 40
+            },
+            {
+              "surahNumber": 47,
+              "ayahStart": 2
+            },
+            {
+              "surahNumber": 48,
+              "ayahStart": 29
+            },
+            {
+              "surahNumber": 61,
+              "ayahStart": 6
+            }
+          ],
+          "sectionType": "mission",
+          "summaryArabic": "هذه الصفحة تعرض الشواهد القرآنية الصريحة لاسم النبي ﷺ ولا تستوعب سيرته كاملة.",
+          "summaryEnglish": "This page surfaces the explicit Quranic name-mentions of the Prophet ﷺ and is not a full biographical account.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": [
+            "هذه الصفحة تعرض الشواهد القرآنية فقط ولا تمثل سيرة كاملة للنبي ﷺ.",
+            "This page presents Quranic evidence only and is not a full biography of the Prophet ﷺ."
+          ]
+        },
+        {
+          "sectionId": "prophet_muhammad:section:2",
+          "labelArabic": "استمرار الرسالة مع الأنبياء السابقين",
+          "labelEnglish": "Continuity with previous prophets",
+          "ayahReferences": [
+            {
+              "surahNumber": 3,
+              "ayahStart": 144
+            },
+            {
+              "surahNumber": 33,
+              "ayahStart": 40
+            },
+            {
+              "surahNumber": 47,
+              "ayahStart": 2
+            },
+            {
+              "surahNumber": 48,
+              "ayahStart": 29
+            },
+            {
+              "surahNumber": 61,
+              "ayahStart": 6
+            }
+          ],
+          "sectionType": "relation_to_other_prophet",
+          "summaryArabic": "يقرّر القرآن استمرار الرسالة، ويصل دعوة النبي ﷺ بدعوات سابقيه من الأنبياء.",
+          "summaryEnglish": "The Quran affirms the continuity of the message, linking the Prophet ﷺ to earlier prophets.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": [
+            "Coreference-resolved generic-prophet references are deferred to a future scan."
+          ]
+        }
+      ],
+      "relatedProphets": [
+        "prophet_isa",
+        "prophet_isa",
+        "prophet_isa",
+        "prophet_isa",
+        "prophet_musa",
+        "prophet_salih",
+        "prophet_salih",
+        "prophet_musa",
+        "prophet_salih",
+        "prophet_salih"
+      ],
+      "relatedFigures": [
+        "figure_maryam"
+      ],
+      "relatedPlaces": [],
+      "relatedNations": [
+        "entity_people_bani_israel"
+      ],
+      "relatedObjects": [],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_iman"
+      ],
+      "chronologyNotes": [
+        {
+          "chronologyType": "mushaf_order",
+          "noteArabic": "الترتيب المصحفي للآيات الخمس الصريحة موثوق.",
+          "noteEnglish": "Mushaf order for the 5 explicit name-ayahs is reliable.",
+          "certainty": "high",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "sourceIds": [
+        "quran_uthmani_cloud"
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "هذه الصفحة تعرض الشواهد القرآنية فقط ولا تمثل سيرة كاملة للنبي ﷺ.",
+        "This page presents Quranic evidence only and is not a full biography of the Prophet ﷺ.",
+        "seerah_deferred: detailed biography is deferred to a separate module."
+      ]
+    },
+    {
+      "storyPageId": "storypage_ismail",
+      "prophetId": "prophet_ismail",
+      "titleArabic": "إسماعيل عليه السلام",
+      "titleEnglish": "Ismail (Ishmael)",
+      "pageType": "full_story",
+      "quranReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 125,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 127,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 133,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 136,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 2,
+          "ayahStart": 140,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 3,
+          "ayahStart": 84,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 4,
+          "ayahStart": 163,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 6,
+          "ayahStart": 86,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 14,
+          "ayahStart": 39,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 19,
+          "ayahStart": 54,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 21,
+          "ayahStart": 85,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        },
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "linkType": "explicit_name",
+          "confidence": 0.95,
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true
+        }
+      ],
+      "storySections": [
+        {
+          "sectionId": "prophet_ismail:section:1",
+          "labelArabic": "النسب: ابن إبراهيم",
+          "labelEnglish": "Lineage: son of Ibrahim",
+          "ayahReferences": [
+            {
+              "surahNumber": 2,
+              "ayahStart": 125
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 127
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 133
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 136
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 140
+            },
+            {
+              "surahNumber": 3,
+              "ayahStart": 84
+            },
+            {
+              "surahNumber": 4,
+              "ayahStart": 163
+            },
+            {
+              "surahNumber": 6,
+              "ayahStart": 86
+            },
+            {
+              "surahNumber": 14,
+              "ayahStart": 39
+            },
+            {
+              "surahNumber": 19,
+              "ayahStart": 54
+            },
+            {
+              "surahNumber": 21,
+              "ayahStart": 85
+            },
+            {
+              "surahNumber": 38,
+              "ayahStart": 48
+            }
+          ],
+          "sectionType": "birth_or_family",
+          "summaryArabic": "إسماعيل ابن إبراهيم، يُذكر في آيات النسب والميثاق والقربان وبناء البيت.",
+          "summaryEnglish": "Ismail, son of Ibrahim, appears in ayahs about lineage, covenant, sacrifice, and the building of the Kaaba.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        },
+        {
+          "sectionId": "prophet_ismail:section:2",
+          "labelArabic": "بناء البيت مع إبراهيم",
+          "labelEnglish": "Building the Kaaba with Ibrahim",
+          "ayahReferences": [
+            {
+              "surahNumber": 2,
+              "ayahStart": 125
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 127
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 133
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 136
+            },
+            {
+              "surahNumber": 2,
+              "ayahStart": 140
+            }
+          ],
+          "sectionType": "mission",
+          "summaryArabic": "يُذكر بناء البيت العتيق بإبراهيم وإسماعيل في سورة البقرة، ودعاؤهما عند رفع القواعد.",
+          "summaryEnglish": "The building of the Sacred House by Ibrahim and Ismail is mentioned in Surah Al-Baqarah, with their du'a as they raised the foundations.",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review",
+          "humanReviewRequired": true,
+          "warnings": []
+        }
+      ],
+      "relatedProphets": [
+        "prophet_ibrahim",
+        "prophet_ishaq"
+      ],
+      "relatedFigures": [],
+      "relatedPlaces": [
+        "entity_place_makkah"
+      ],
+      "relatedNations": [],
+      "relatedObjects": [],
+      "relatedTopics": [
+        "topic_allah",
+        "topic_dua",
+        "topic_revelation"
+      ],
+      "chronologyNotes": [
+        {
+          "chronologyType": "story_world_guided",
+          "noteArabic": "إسماعيل بعد إبراهيم في القراءة الإرشادية.",
+          "noteEnglish": "Ismail follows Ibrahim in the guided reading order.",
+          "certainty": "medium",
+          "sourceIds": [
+            "quran_uthmani_cloud"
+          ],
+          "reviewStatus": "needs_review"
+        }
+      ],
+      "sourceIds": [
+        "quran_uthmani_cloud"
+      ],
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "AI-assisted summary; needs scholarly review."
+      ]
+    }
+  ],
+  "warnings": []
+}
