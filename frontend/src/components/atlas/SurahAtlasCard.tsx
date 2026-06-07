@@ -4,6 +4,23 @@ import clsx from 'clsx';
 import { useLanguageStore } from '../../stores/languageStore';
 import type { SurahAtlasEntry } from '../../types/surahAtlas';
 
+const AR_JUZ: Record<number, string> = {
+  1:'الجزء الأول',2:'الجزء الثاني',3:'الجزء الثالث',4:'الجزء الرابع',5:'الجزء الخامس',
+  6:'الجزء السادس',7:'الجزء السابع',8:'الجزء الثامن',9:'الجزء التاسع',10:'الجزء العاشر',
+  11:'الجزء الحادي عشر',12:'الجزء الثاني عشر',13:'الجزء الثالث عشر',14:'الجزء الرابع عشر',
+  15:'الجزء الخامس عشر',16:'الجزء السادس عشر',17:'الجزء السابع عشر',18:'الجزء الثامن عشر',
+  19:'الجزء التاسع عشر',20:'الجزء العشرون',21:'الجزء الحادي والعشرون',22:'الجزء الثاني والعشرون',
+  23:'الجزء الثالث والعشرون',24:'الجزء الرابع والعشرون',25:'الجزء الخامس والعشرون',
+  26:'الجزء السادس والعشرون',27:'الجزء السابع والعشرون',28:'الجزء الثامن والعشرون',
+  29:'الجزء التاسع والعشرون',30:'الجزء الثلاثون',
+};
+
+function juzLabel(ref: string, isAr: boolean): string {
+  if (!isAr) return ref;
+  const n = parseInt(ref.replace('Juz ', ''), 10);
+  return AR_JUZ[n] ?? ref;
+}
+
 interface SurahAtlasCardProps {
   entry: SurahAtlasEntry;
   compact?: boolean;
@@ -46,9 +63,15 @@ export function SurahAtlasCard({ entry, compact = false }: SurahAtlasCardProps) 
             <div dir="rtl" className="text-base font-semibold text-gray-900 leading-tight">
               {entry.nameArabic.replace('سُورَةُ ', '').replace('ٱل', 'ال').trim()}
             </div>
-            <div dir="ltr" className="text-xs text-gray-500">
-              {entry.nameTransliteration} · {entry.nameEnglishMeaning}
-            </div>
+            {isAr ? (
+              <div dir="ltr" className="text-xs text-gray-400 italic">
+                {entry.nameTransliteration}
+              </div>
+            ) : (
+              <div dir="ltr" className="text-xs text-gray-500">
+                {entry.nameTransliteration} · {entry.nameEnglishMeaning}
+              </div>
+            )}
           </div>
         </div>
         <span className={clsx('text-xs px-2 py-0.5 rounded-full border font-medium flex-shrink-0', revBadge.color)}>
@@ -78,7 +101,7 @@ export function SurahAtlasCard({ entry, compact = false }: SurahAtlasCardProps) 
           {entry.juzRefs.length > 0 && (
             <span className="flex items-center gap-1">
               <Map size={12} />
-              {entry.juzRefs[0]}
+              {juzLabel(entry.juzRefs[0], isAr)}
             </span>
           )}
         </div>

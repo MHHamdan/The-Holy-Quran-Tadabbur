@@ -4,6 +4,8 @@ import clsx from 'clsx';
 import { useLanguageStore } from '../../stores/languageStore';
 import type { SurahAtlasEntry } from '../../types/surahAtlas';
 
+
+
 interface SurahAtlasHeroProps {
   entry: SurahAtlasEntry;
 }
@@ -34,9 +36,15 @@ export function SurahAtlasHero({ entry }: SurahAtlasHeroProps) {
             <div dir="rtl" className="text-2xl font-bold mb-1">
               {entry.nameArabic}
             </div>
-            <div dir="ltr" className="text-primary-200 text-sm">
-              {entry.nameTransliteration} · {entry.nameEnglishMeaning}
-            </div>
+            {isAr ? (
+              <div dir="ltr" className="text-primary-300 text-xs italic">
+                {entry.nameTransliteration}
+              </div>
+            ) : (
+              <div dir="ltr" className="text-primary-200 text-sm">
+                {entry.nameTransliteration} · {entry.nameEnglishMeaning}
+              </div>
+            )}
           </div>
         </div>
         <span className={clsx('text-xs px-3 py-1 rounded-full border font-medium', revBadge.color)}>
@@ -51,7 +59,9 @@ export function SurahAtlasHero({ entry }: SurahAtlasHeroProps) {
           <div className="text-xs text-primary-200">{isAr ? 'آية' : 'Ayat'}</div>
         </div>
         <div className="bg-white/10 rounded-xl p-3 text-center">
-          <div className="text-2xl font-bold">{entry.juzRefs[0] ?? '—'}</div>
+          <div className="text-2xl font-bold">
+            {entry.juzRefs[0] ? entry.juzRefs[0].replace('Juz ', '') : '—'}
+          </div>
           <div className="text-xs text-primary-200">{isAr ? 'الجزء' : 'Juz'}</div>
         </div>
         <div className="bg-white/10 rounded-xl p-3 text-center">
