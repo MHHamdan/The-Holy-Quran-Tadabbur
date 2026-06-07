@@ -61,6 +61,14 @@ export const translations: Translations = {
     ar: 'حالة المنصة',
     en: 'Status',
   },
+  nav_surah_atlas: {
+    ar: 'أطلس السور',
+    en: 'Surah Atlas',
+  },
+  nav_memorization: {
+    ar: 'ذكاء الحفظ',
+    en: 'Memorization',
+  },
 
   // Common
   app_title: {

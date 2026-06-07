@@ -13,6 +13,7 @@
         verify-rag verify-tafseer-api verify-chunking verify-translation \
         verify-security verify-e2e verify-e2e-full \
         test test-cov test-quick \
+        validate-surah-atlas validate-memorization-links validate-rare-words validate-quran-intelligence \
         dev dev-backend dev-frontend \
         install-backend install-frontend \
         lint format pipeline \
@@ -354,6 +355,18 @@ verify-e2e-full: ## Run full E2E verification (includes startup)
 # =============================================================================
 # Testing
 # =============================================================================
+
+validate-surah-atlas: ## Validate 114-entry Surah Atlas data file
+	npx tsx scripts/validate-surah-atlas.ts
+
+validate-memorization-links: ## Validate memorization links and confusion pairs
+	npx tsx scripts/validate-memorization-links.ts
+
+validate-rare-words: ## Validate rare words data file
+	npx tsx scripts/validate-rare-words.ts
+
+validate-quran-intelligence: validate-surah-atlas validate-memorization-links validate-rare-words ## Run all Quran intelligence validators
+	npx tsx scripts/validate-quran-integrity.ts
 
 test: ## Run all tests
 	@echo "$(GREEN)Running tests...$(NC)"
