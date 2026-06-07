@@ -59,7 +59,10 @@ export default function SurahAtlasPage() {
           s.nameEnglishMeaning.toLowerCase().includes(q) ||
           s.nameArabic.includes(filter.searchQuery ?? '') ||
           s.keyConcepts.some((c) => c.toLowerCase().includes(q)) ||
-          s.prophetsMentioned.some((p) => p.toLowerCase().includes(q)),
+          (s.keyConceptsAr ?? []).some((c) => c.includes(filter.searchQuery ?? '')) ||
+          s.prophetsMentioned.some((p) => p.toLowerCase().includes(q)) ||
+          s.summary.short.ar.includes(filter.searchQuery ?? '') ||
+          s.summary.short.en.toLowerCase().includes(q),
       );
     }
 

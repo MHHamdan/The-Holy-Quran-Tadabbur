@@ -87,12 +87,12 @@ export function SimilarAyatCard({ link, currentSurah }: MemorizationLinkCardProp
         </div>
       )}
 
-      {/* Link to ayah */}
+      {/* Link to ayah in Mushaf */}
       <Link
-        to={`/quran/${otherRef.surah}`}
+        to={`/surah-atlas/${otherRef.surah}`}
         className="mt-2 inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 font-medium"
       >
-        {isAr ? `اذهب إلى ${otherRef.display}` : `Go to ${otherRef.display}`}
+        {isAr ? `أطلس ${otherRef.display}` : `Atlas ${otherRef.display}`}
         <ArrowRight size={11} />
       </Link>
     </div>
@@ -137,7 +137,7 @@ export function ConfusionPairCard({ pair, currentSurah }: ConfusionPairCardProps
       <div className="flex items-center gap-2 text-sm mb-2">
         <span className="font-bold text-primary-600">{thisRef.display}</span>
         <ArrowRight size={12} className="text-gray-400" />
-        <Link to={`/quran/${otherRef.surah}`} className="font-bold text-primary-600 hover:underline">
+        <Link to={`/surah-atlas/${otherRef.surah}`} className="font-bold text-primary-600 hover:underline">
           {otherRef.display}
         </Link>
       </div>

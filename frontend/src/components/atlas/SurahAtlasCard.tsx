@@ -85,9 +85,9 @@ export function SurahAtlasCard({ entry, compact = false }: SurahAtlasCardProps) 
       )}
 
       {/* Concepts */}
-      {!compact && entry.keyConcepts.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-3">
-          {entry.keyConcepts.slice(0, 3).map((c) => (
+      {!compact && (isAr ? (entry.keyConceptsAr ?? entry.keyConcepts) : entry.keyConcepts).length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-3" dir={isAr ? 'rtl' : 'ltr'}>
+          {(isAr ? (entry.keyConceptsAr ?? entry.keyConcepts) : entry.keyConcepts).slice(0, 3).map((c) => (
             <span key={c} className="text-xs bg-gray-50 border border-gray-200 rounded-full px-2 py-0.5 text-gray-600">
               {c}
             </span>

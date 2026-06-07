@@ -1,4 +1,5 @@
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { useLanguageStore } from '../../stores/languageStore';
 import type { SurahAtlasEntry } from '../../types/surahAtlas';
@@ -62,6 +63,17 @@ export function SurahAtlasHero({ entry }: SurahAtlasHeroProps) {
           <div className="text-xs text-primary-200">{isAr ? 'أنبياء' : 'Prophets'}</div>
         </div>
       </div>
+
+      {/* Read in Mushaf */}
+      {entry.pageStart && (
+        <Link
+          to={`/mushaf?page=${entry.pageStart}`}
+          className="inline-flex items-center gap-1.5 text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-3 py-1.5 mb-3 transition-colors"
+        >
+          <ExternalLink size={12} />
+          {isAr ? `اقرأ في المصحف — صفحة ${entry.pageStart}` : `Read in Mushaf — Page ${entry.pageStart}`}
+        </Link>
+      )}
 
       {/* Review status warning */}
       {entry.reviewStatus === 'needs_review' && (

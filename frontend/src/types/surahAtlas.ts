@@ -126,9 +126,10 @@ export interface RepeatedPhrase {
 
 export interface SurahStoryRef {
   storyId: string;
-  titleEn: string;
-  titleAr: string;
-  ayahRange: AyahRef;
+  titleEn?: string;
+  titleAr?: string;
+  ayahRange: { display: string; start?: number; end?: number };
+  prophetIds?: string[];
   coverage: 'complete' | 'partial' | 'mention_only';
 }
 
@@ -146,10 +147,16 @@ export interface SurahAtlasEntry {
   ayahCount: number;
   wordCount?: number;
   uniqueWordCount?: number;
+  pageStart?: number;
+  pageEnd?: number;
   juzRefs: string[];
   hizbRefs: string[];
   rukus?: number;
   sajdahAyat?: AyahRef[];
+  firstAyahRef?: string;
+  lastAyahRef?: string;
+  firstAyahPreview?: string;
+  lastAyahPreview?: string;
 
   mainThemes: SurahTheme[];
   subThemes: SurahTheme[];
@@ -157,14 +164,16 @@ export interface SurahAtlasEntry {
   prophetsMentioned: string[];
   nationsMentioned: string[];
   keyConcepts: string[];
+  keyConceptsAr?: string[];
   rareWordIds: string[];
 
   summary: {
     short: BilingualText;
     detailed: BilingualText;
-    memorizer: BilingualText;
-    childFriendly: BilingualText;
+    memorizer?: BilingualText;
+    childFriendly?: BilingualText;
   };
+  summarySource?: string;
 
   structure: SurahSection[];
   openingStyle: string;
@@ -186,11 +195,10 @@ export interface SurahAtlasEntry {
 // ---------------------------------------------------------------------------
 
 export interface SurahAtlas {
-  version: string;
-  generatedAt: string;
-  totalSurahs: number;
-  surahs: SurahAtlasEntry[];
-  reviewNote: BilingualText;
+  entries: SurahAtlasEntry[];
+  totalCount: number;
+  lastUpdated: string;
+  reviewStatus: SunniReviewStatus;
 }
 
 // ---------------------------------------------------------------------------

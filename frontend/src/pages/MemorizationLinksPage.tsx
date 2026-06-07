@@ -51,10 +51,11 @@ export default function MemorizationLinksPage() {
           p.ayahA.display.includes(search) ||
           p.ayahB.display.includes(search) ||
           p.confusionReason.en.toLowerCase().includes(q) ||
-          p.keyDifference.en.toLowerCase().includes(q),
+          p.confusionReason.ar.includes(search) ||
+          p.keyDifference.en.toLowerCase().includes(q) ||
+          p.keyDifference.ar.includes(search),
       );
     }
-    // Sort by risk level
     const riskOrder = { high: 0, medium: 1, low: 2 };
     pairs.sort((a, b) => riskOrder[a.riskLevel] - riskOrder[b.riskLevel]);
     return pairs;
@@ -68,7 +69,8 @@ export default function MemorizationLinksPage() {
         (l) =>
           l.sourceAyah.display.includes(search) ||
           l.targetAyah.display.includes(search) ||
-          l.similarityReason.en.toLowerCase().includes(q),
+          l.similarityReason.en.toLowerCase().includes(q) ||
+          l.similarityReason.ar.includes(search),
       );
     }
     return links;
@@ -82,7 +84,8 @@ export default function MemorizationLinksPage() {
         (p) =>
           p.phraseArabic.includes(search) ||
           (p.transliteration ?? '').toLowerCase().includes(q) ||
-          p.meaningEn.toLowerCase().includes(q),
+          p.meaningEn.toLowerCase().includes(q) ||
+          p.meaningAr.includes(search),
       );
     }
     return phrases;

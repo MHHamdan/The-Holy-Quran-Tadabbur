@@ -22,6 +22,7 @@ import {
   Layers,
   ChevronRight,
   RefreshCw,
+  ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -140,15 +141,20 @@ export default function SurahAtlasDetailPage() {
               <p className="text-sm text-gray-800 leading-relaxed" dir={isAr ? 'rtl' : 'ltr'}>
                 {isAr ? entry.summary.short.ar : entry.summary.short.en}
               </p>
+              {entry.summarySource && (
+                <p className="text-xs text-gray-400 mt-2 italic" dir="ltr">
+                  {isAr ? 'المصدر: ' : 'Source: '}{entry.summarySource}
+                </p>
+              )}
             </div>
 
-            {entry.keyConcepts.length > 0 && (
+            {(isAr ? (entry.keyConceptsAr ?? entry.keyConcepts) : entry.keyConcepts).length > 0 && (
               <div>
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
                   {isAr ? 'المفاهيم الرئيسية' : 'Key Concepts'}
                 </h3>
-                <div className="flex flex-wrap gap-2">
-                  {entry.keyConcepts.map((c) => (
+                <div className="flex flex-wrap gap-2" dir={isAr ? 'rtl' : 'ltr'}>
+                  {(isAr ? (entry.keyConceptsAr ?? entry.keyConcepts) : entry.keyConcepts).map((c) => (
                     <span key={c} className="text-xs bg-primary-50 text-primary-700 border border-primary-200 rounded-full px-2.5 py-1">
                       {c}
                     </span>
