@@ -72,6 +72,13 @@ const StoryAtlasConnectionsPage = lazy(() => import('./pages/StoryAtlasConnectio
 // Tasmeeʿ (Memorization) - Audio recording with STT
 const TasmeePage = lazy(() => import('./pages/TasmeePage'));
 
+// Surah Atlas Intelligence (new)
+const SurahAtlasPage = lazy(() => import('./pages/SurahAtlasPage'));
+const SurahAtlasDetailPage = lazy(() => import('./pages/SurahAtlasDetailPage'));
+
+// Memorization Intelligence (new)
+const MemorizationLinksPage = lazy(() => import('./pages/MemorizationLinksPage'));
+
 // Tools pages (bundled together)
 const ToolsPage = lazy(() => import('./pages/ToolsPage').then(m => ({ default: m.ToolsPage })));
 const ZakatCalculatorPage = lazy(() => import('./pages/tools/ZakatCalculatorPage').then(m => ({ default: m.ZakatCalculatorPage })));
@@ -203,6 +210,13 @@ function App() {
           <Route path="/story-atlas" element={<StoryAtlasPage />} />
           <Route path="/story-atlas/connections" element={<StoryAtlasConnectionsPage />} />
           <Route path="/story-atlas/:clusterId" element={<StoryAtlasDetailPage />} />
+
+          {/* Surah Atlas Intelligence (Phase Atlas) */}
+          <Route path="/surah-atlas" element={<SurahAtlasPage />} />
+          <Route path="/surah-atlas/:surahNumber" element={<SurahAtlasDetailPage />} />
+
+          {/* Memorization Intelligence (Phase Atlas) */}
+          <Route path="/memorization" element={<MemorizationLinksPage />} />
 
           {/* Tasmeeʿ (Memorization) */}
           <Route path="/tasmee" element={<TasmeePage />} />

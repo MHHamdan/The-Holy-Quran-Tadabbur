@@ -36,7 +36,7 @@ def _cors_origins() -> list[str]:
         "http://127.0.0.1:5174",
     ]
 from app.core.responses import APIError, ErrorCode, error_response, ErrorDetail
-from app.api.routes import quran, stories, rag, rag_verse, health, translation, story_atlas, story_atlas_registry, concepts, grammar, kg, tafseer, search, admin, graph, streaming, performance, rhetoric, themes, tasmee, review_tasks, vocabulary, feedback, therapy, asma, prophets, entities, topics
+from app.api.routes import quran, stories, rag, rag_verse, health, translation, story_atlas, story_atlas_registry, concepts, grammar, kg, tafseer, search, admin, graph, streaming, performance, rhetoric, themes, tasmee, review_tasks, vocabulary, feedback, therapy, asma, prophets, entities, topics, surah_atlas_intelligence, memorization
 
 # Configure structured logging
 logging.basicConfig(
@@ -277,6 +277,8 @@ app.include_router(entities.router, prefix="/api/v1/quran", tags=["Entities (Pha
 app.include_router(topics.router, prefix="/api/v1/quran", tags=["Topics (Phase V)"])
 app.include_router(prophets.router, prefix="/api/v1/quran", tags=["Prophets Atlas (Phase X)"])
 app.include_router(story_atlas_registry.router, prefix="/api/v1/quran", tags=["Story Atlas Registry"])
+app.include_router(surah_atlas_intelligence.router, prefix="/api/v1/surah-atlas", tags=["Surah Atlas Intelligence"])
+app.include_router(memorization.router, prefix="/api/v1/memorization", tags=["Memorization Intelligence"])
 
 
 @app.get("/")
