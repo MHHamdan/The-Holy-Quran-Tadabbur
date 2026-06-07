@@ -22,7 +22,6 @@ import {
   Layers,
   ChevronRight,
   RefreshCw,
-  ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -34,6 +33,16 @@ import {
   getConfusionPairsForSurah,
   STORY_RECURRENCES,
 } from '../data/quranMemorizationLinks';
+
+const STORY_TITLE_MAP = Object.fromEntries(
+  STORY_RECURRENCES.map((r) => [r.storyId, { en: r.titleEn, ar: r.titleAr }]),
+);
+
+function storyTitle(storyId: string, isAr: boolean): string {
+  const t = STORY_TITLE_MAP[storyId];
+  if (t) return isAr ? t.ar : t.en;
+  return storyId.replace('story_', '').replace(/_/g, ' ');
+}
 import { getRareWordsBySurah } from '../data/quranRareWords';
 import { SimilarAyatCard, ConfusionPairCard } from '../components/quran/SimilarAyatCard';
 import { StoryRecurrenceCard } from '../components/quran/MemorizerHintCard';
@@ -210,9 +219,11 @@ export default function SurahAtlasDetailPage() {
                   className="flex items-center justify-between gap-3 p-3 rounded-xl border hover:bg-gray-50 transition-colors"
                 >
                   <div>
-                    <div className="text-sm font-medium text-gray-800">{s.storyId.replace('story_', '').replace(/_/g, ' ')}</div>
+                    <div className="text-sm font-medium text-gray-800" dir={isAr ? 'rtl' : 'ltr'}>
+                      {storyTitle(s.storyId, isAr)}
+                    </div>
                     <div className="text-xs text-gray-500">
-                      {s.ayahRange.display} · {s.coverage}
+                      {s.ayahRange.display}{s.coverage ? ` · ${s.coverage}` : ''}
                     </div>
                   </div>
                   <ChevronRight size={14} className="text-gray-400" />
