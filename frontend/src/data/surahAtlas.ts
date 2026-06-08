@@ -98,7 +98,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["التشريع الإسلامي", "بنو إسرائيل", "آية الكرسي", "الصيام", "الحج", "الطلاق", "الجهاد", "التوبة", "آية الدَّيْن"],
     prophetsMentioned: ["Adam", "Ibrahim", "Ismail", "Ishaq", "Yaqub", "Musa", "Isa", "Dawud"
     ],
-    nationsMentioned: ["Bani Israel"],
+    nationsMentioned: ["Bani Israel", "Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_adam",
@@ -1091,7 +1091,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Fate of Deniers", "Seven Prophets", "Steadfastness"],
     keyConceptsAr: ["عاقبة المكذبين", "قصص سبعة أنبياء", "الاستقامة"],
     prophetsMentioned: ["Nuh", "Hud", "Salih", "Ibrahim", "Lut", "Shuayb", "Musa"],
-    nationsMentioned: ["People of Nuh", "Aad", "Thamud", "People of Ibrahim", "People of Lut", "Madyan"],
+    nationsMentioned: ["Aad", "Bani Israel", "Madyan", "People of Ibrahim", "People of Lut", "People of Nuh", "Pharaoh's Army", "Thamud"],
     storiesMentioned: [
       {
         storyId: "story_nuh",
@@ -1393,7 +1393,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["دعاء إبراهيم", "الشكر والكفران", "مثل الكلمة الطيبة"],
     prophetsMentioned: ["Ibrahim", "Musa", "Ismail"
     ],
-    nationsMentioned: ["Bani Israel"],
+    nationsMentioned: ["Bani Israel", "Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_ibrahim",
@@ -1693,7 +1693,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Isra and Miraj", "Moral Commandments", "Miracle of Quran", "Prayer"],
     keyConceptsAr: ["الإسراء والمعراج", "الوصايا الأخلاقية", "إعجاز القرآن", "الصلاة"],
     prophetsMentioned: ["Musa", "Ibrahim", "Isa", "Adam", "Muhammad"],
-    nationsMentioned: ["Bani Israel"],
+    nationsMentioned: ["Bani Israel", "Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_adam",
@@ -2376,7 +2376,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["صفات المؤمنين الفائزين", "التوحيد بالخلق", "دعاء الغفران"],
     prophetsMentioned: ["Nuh", "Musa", "Isa", "Ibrahim", "Maryam"
     ],
-    nationsMentioned: ["People of Nuh"],
+    nationsMentioned: ["Bani Israel", "People of Nuh", "Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_nuh",
@@ -2564,7 +2564,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["الفرقان حق وباطل", "عباد الرحمن", "الرد على شُبه المشركين"],
     prophetsMentioned: ["أصحاب الرس", "Lut", "Musa", "Nuh"
     ],
-    nationsMentioned: ["Aad", "People of Lut", "People of Nuh", "Thamud"],
+    nationsMentioned: ["Aad", "Bani Israel", "People of Lut", "People of Nuh", "Pharaoh's Army", "Thamud"],
     storiesMentioned: [
       {
         storyId: "story_rass",
@@ -2769,8 +2769,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["سليمان وبلقيس", "الهدهد", "الخضوع لله"],
     prophetsMentioned: ["Musa", "Sulayman", "Salih", "Dawud", "Lut"
     ],
-    nationsMentioned: ["Saba", "Thamud", "People of Lut"
-    ],
+    nationsMentioned: ["People of Lut", "People of Saba", "Thamud"],
     storiesMentioned: [
       {
         storyId: "story_musa",
@@ -3003,7 +3002,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Faith is Tested", "Spider's Web", "Jihad Leads to Guidance"],
     keyConceptsAr: ["الإيمان يُختبر", "بيت العنكبوت", "الجهاد يهدي"],
     prophetsMentioned: ["Nuh", "Ibrahim", "Lut", "Shuayb", "Musa"],
-    nationsMentioned: ["Madyan", "People of Lut", "People of Nuh"],
+    nationsMentioned: ["Bani Israel", "Madyan", "People of Lut", "People of Nuh", "Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_nuh",
@@ -3346,7 +3345,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Battle of Ahzab", "Seal of Prophets", "Hijab", "The Trust"],
     keyConceptsAr: ["غزوة الأحزاب", "خاتم النبيين", "الحجاب", "الأمانة"],
     prophetsMentioned: ["Ibrahim", "Musa", "Isa", "Nuh", "Muhammad"],
-    nationsMentioned: ["People of Nuh"],
+    nationsMentioned: ["Bani Israel", "People of Nuh"],
     storiesMentioned: [
       {
         storyId: "story_muhammad",
@@ -3428,7 +3427,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Dawud and Sulayman", "People of Saba", "Gratitude Preserves Blessings"],
     keyConceptsAr: ["داود وسليمان", "أهل سبأ", "الشكر يُبقي النعمة"],
     prophetsMentioned: ["Dawud", "Sulayman"],
-    nationsMentioned: ["Saba"],
+    nationsMentioned: ["People of Saba"],
     storiesMentioned: [
       {
         storyId: "story_sulayman",
@@ -3701,8 +3700,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["الصافات", "إبراهيم وإسماعيل", "الفداء العظيم", "إلياس ويونس"],
     prophetsMentioned: ["Ibrahim", "Ismail", "Ishaq", "Musa", "Harun", "Ilyas", "Lut", "Yunus", "Nuh"
     ],
-    nationsMentioned: ["Aad", "People of Lut", "People of Nuh"
-    ],
+    nationsMentioned: ["Aad", "Bani Israel", "People of Lut", "People of Nuh", "Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_nuh",
@@ -4017,7 +4015,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Believer of Pharaoh's Family", "Speaking Truth to Power", "Vastness of Allah"],
     keyConceptsAr: ["مؤمن آل فرعون", "الجهر بالحق", "سعة الله وعظمته"],
     prophetsMentioned: ["Musa", "Yusuf", "Nuh"],
-    nationsMentioned: ["People of Nuh", "Pharaoh's Army"],
+    nationsMentioned: ["Bani Israel", "People of Nuh", "Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_musa",
@@ -4319,7 +4317,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Rejecting Worldly Pride", "Musa and Isa", "Refuting Shirk"],
     keyConceptsAr: ["رفض الغرور بالدنيا", "موسى وعيسى", "بطلان الشرك"],
     prophetsMentioned: ["Musa", "Isa", "Ibrahim"],
-    nationsMentioned: ["Pharaoh's Army"],
+    nationsMentioned: ["Bani Israel", "Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_ibrahim",
@@ -5071,7 +5069,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["الوعد الحق", "العبادة غاية الخلق"],
     prophetsMentioned: ["Ibrahim", "Lut", "Musa", "Nuh"
     ],
-    nationsMentioned: ["Aad", "People of Lut", "People of Nuh"],
+    nationsMentioned: ["Aad", "Bani Israel", "People of Lut", "People of Nuh", "Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_ibrahim",
@@ -6298,7 +6296,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["True Repentance", "Examples of Believing and Disbelieving Women"],
     keyConceptsAr: ["التوبة النصوح", "أمثال المرأة المؤمنة والكافرة"],
     prophetsMentioned: ["Nuh", "Lut", "Musa", "Isa", "Maryam", "Muhammad"],
-    nationsMentioned: ["People of Lut", "People of Nuh"],
+    nationsMentioned: ["People of Lut", "People of Nuh", "Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_maryam",
@@ -6906,7 +6904,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Night Prayer", "Weight of Carrying the Quran"],
     keyConceptsAr: ["قيام الليل", "ثقل القرآن وحمله"],
     prophetsMentioned: ["Musa"],
-    nationsMentioned: ["Pharaoh's Army"],
+    nationsMentioned: ["Bani Israel", "Pharaoh's Army"],
     storiesMentioned: [
         { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '73:15-16', start: 15, end: 16 } },
     ],
@@ -9241,7 +9239,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Destruction of Elephant Army", "Protection of the Kaaba"],
     keyConceptsAr: ["إهلاك أصحاب الفيل", "حماية الكعبة"],
     prophetsMentioned: ["Abraha", "Elephant"],
-    nationsMentioned: ["People of the Elephant"],
+    nationsMentioned: ["Companions of Elephant"],
     storiesMentioned: [
       {
         storyId: "story_elephant",
