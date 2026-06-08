@@ -96,7 +96,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "لَا يُكَلِّفُ ٱللَّهُ نَفْسًا إِلَّا وُسْعَهَا ۚ لَهَا مَا كَسَبَتْ وَعَلَيْهَا مَا ٱكْتَسَبَتْ ۗ رَبَّنَا لَا تُؤَاخِذْنَآ إِن نَّسِينَآ أَوْ أَخْطَأْنَا ۚ رَبَّنَا وَلَا تَحْمِلْ عَلَيْنَآ إِصْرًۭا كَمَا حَمَلْتَهُۥ عَلَى ٱلَّذِينَ مِن قَبْلِنَا ۚ رَبَّنَا وَلَا تُحَمِّلْنَا مَا لَا طَاقَةَ لَنَا بِهِۦ ۖ وَٱعْفُ عَنَّا وَٱغْفِرْ لَنَا وَٱرْحَمْنَآ ۚ أَنتَ مَوْلَىٰنَا فَٱنصُرْنَا عَلَى ٱلْقَوْمِ ٱلْكَٰفِرِينَ",
     keyConcepts: ["Islamic Law", "Bani Israel", "Ayat al-Kursi", "Fasting", "Hajj", "Divorce", "Jihad", "Repentance"],
     keyConceptsAr: ["التشريع الإسلامي", "بنو إسرائيل", "آية الكرسي", "الصيام", "الحج", "الطلاق", "الجهاد", "التوبة", "آية الدَّيْن"],
-    prophetsMentioned: ["Adam", "Ibrahim", "Ismail", "Ishaq", "Yaqub", "Musa", "Isa"],
+    prophetsMentioned: ["Adam", "Ibrahim", "Ismail", "Ishaq", "Yaqub", "Musa", "Isa", "Dawud"
+    ],
     nationsMentioned: ["Bani Israel"],
     storiesMentioned: [
       {
@@ -554,7 +555,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَهُوَ ٱلَّذِى جَعَلَكُمْ خَلَٰٓئِفَ ٱلْأَرْضِ وَرَفَعَ بَعْضَكُمْ فَوْقَ بَعْضٍۢ دَرَجَٰتٍۢ لِّيَبْلُوَكُمْ فِى مَآ ءَاتَىٰكُمْ ۗ إِنَّ رَبَّكَ سَرِيعُ ٱلْعِقَابِ وَإِنَّهُۥ لَغَفُورٌۭ رَّحِيمٌۢ",
     keyConcepts: ["Cosmic Tawheed", "Signs of Creation", "Refuting Shirk", "Ten Commandments"],
     keyConceptsAr: ["التوحيد الكوني", "دلائل الخلق", "الرد على الشرك", "الوصايا المحمدية", "اليوم الآخر"],
-    prophetsMentioned: ["Ibrahim", "Ishaq", "Yaqub", "Nuh", "Dawud", "Sulayman", "Ayyub", "Yusuf", "Musa", "Harun", "Zakariya", "Yahya", "Isa", "Ilyas", "Al-Yasaa", "Yunus", "Lut", "Idris"],
+    prophetsMentioned: ["Ibrahim", "Ishaq", "Yaqub", "Nuh", "Dawud", "Sulayman", "Ayyub", "Yusuf", "Musa", "Harun", "Zakariya", "Yahya", "Isa", "Ilyas", "Al-Yasaa", "Yunus", "Lut", "Idris", "Ismail"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -872,7 +874,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَإِن تَوَلَّوْا۟ فَقُلْ حَسْبِىَ ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ۖ عَلَيْهِ تَوَكَّلْتُ ۖ وَهُوَ رَبُّ ٱلْعَرْشِ ٱلْعَظِيمِ",
     keyConcepts: ["Disavowal from Polytheists", "Exposing Hypocrites", "Battle of Tabuk", "Jizyah"],
     keyConceptsAr: ["البراءة من المشركين", "كشف النفاق", "غزوة تبوك", "الجزية"],
-    prophetsMentioned: ["Musa", "Ibrahim"],
+    prophetsMentioned: ["Musa", "Ibrahim", "Nuh"
+    ],
     nationsMentioned: ["Bani Israel", "Christians", "Zoroastrians"],
     storiesMentioned: [
       {
@@ -1386,7 +1389,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "هَٰذَا بَلَٰغٌۭ لِّلنَّاسِ وَلِيُنذَرُوا۟ بِهِۦ وَلِيَعْلَمُوٓا۟ أَنَّمَا هُوَ إِلَٰهٌۭ وَٰحِدٌۭ وَلِيَذَّكَّرَ أُو۟لُوا۟ ٱلْأَلْبَٰبِ",
     keyConcepts: ["Prayer of Ibrahim", "Gratitude vs Ingratitude", "Parable of Good Word"],
     keyConceptsAr: ["دعاء إبراهيم", "الشكر والكفران", "مثل الكلمة الطيبة"],
-    prophetsMentioned: ["Ibrahim", "Musa"],
+    prophetsMentioned: ["Ibrahim", "Musa", "Ismail"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -1614,7 +1618,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "إِنَّ ٱللَّهَ مَعَ ٱلَّذِينَ ٱتَّقَوا۟ وَّٱلَّذِينَ هُم مُّحْسِنُونَ",
     keyConcepts: ["Abundant Blessings", "Justice and Ihsan", "Rights of Relatives", "Keeping Promises"],
     keyConceptsAr: ["نعم الله الكثيرة", "العدل والإحسان", "ذوو القربى", "الوفاء بالعهود"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Ibrahim"],
     nationsMentioned: [],
     storiesMentioned: [
         { storyId: 'story_bee', coverage: 'complete', ayahRange: { display: '16:68-69', start: 68, end: 69 } },
@@ -2149,7 +2153,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "قَٰلَ رَبِّ ٱحْكُم بِٱلْحَقِّ ۗ وَرَبُّنَا ٱلرَّحْمَٰنُ ٱلْمُسْتَعَانُ عَلَىٰ مَا تَصِفُونَ",
     keyConcepts: ["Unity of Tawheed", "Brief Prophets Stories", "Yajuj Majuj"],
     keyConceptsAr: ["وحدة التوحيد", "قصص موجزة للأنبياء", "يأجوج ومأجوج"],
-    prophetsMentioned: ["Musa", "Harun", "Ibrahim", "Lut", "Ishaq", "Yaqub", "Nuh", "Dawud", "Sulayman", "Ayyub", "Ismail", "Idris", "Dhul-Kifl", "Yunus", "Zakariya", "Yahya"],
+    prophetsMentioned: ["Musa", "Harun", "Ibrahim", "Lut", "Ishaq", "Yaqub", "Nuh", "Dawud", "Sulayman", "Ayyub", "Ismail", "Idris", "Dhul-Kifl", "Yunus", "Zakariya", "Yahya", "Maryam"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -2269,7 +2274,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَجَٰهِدُوا۟ فِى ٱللَّهِ حَقَّ جِهَادِهِۦ ۚ هُوَ ٱجْتَبَىٰكُمْ وَمَا جَعَلَ عَلَيْكُمْ فِى ٱلدِّينِ مِنْ حَرَجٍۢ ۚ مِّلَّةَ أَبِيكُمْ إِبْرَٰهِيمَ ۚ هُوَ سَمَّىٰكُمُ ٱلْمُسْلِمِينَ مِن قَبْلُ وَفِى هَٰذَا لِيَكُونَ ٱلرَّسُولُ شَهِيدًا عَلَيْكُمْ وَتَكُونُوا۟ شُهَدَآءَ عَلَى ٱلنَّاسِ ۚ فَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ وَٱعْتَصِمُوا۟ بِٱللَّهِ هُوَ مَوْلَىٰكُمْ ۖ فَنِعْمَ ٱلْمَوْلَىٰ وَنِعْمَ ٱلنَّصِيرُ",
     keyConcepts: ["Hajj Pilgrimage", "Horrors of Judgment Day", "Defensive Jihad"],
     keyConceptsAr: ["فريضة الحج", "أهوال القيامة", "الجهاد الدفاعي"],
-    prophetsMentioned: ["Ibrahim", "Ismail"],
+    prophetsMentioned: ["Ibrahim", "Ismail", "Hud", "Lut", "Nuh", "Salih", "Shuayb"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -2363,7 +2369,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَقُل رَّبِّ ٱغْفِرْ وَٱرْحَمْ وَأَنتَ خَيْرُ ٱلرَّٰحِمِينَ",
     keyConcepts: ["Qualities of Successful Believers", "Tawheed Through Creation", "Prayer for Forgiveness"],
     keyConceptsAr: ["صفات المؤمنين الفائزين", "التوحيد بالخلق", "دعاء الغفران"],
-    prophetsMentioned: ["Nuh", "Musa", "Isa"],
+    prophetsMentioned: ["Nuh", "Musa", "Isa", "Ibrahim", "Maryam"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -2550,7 +2557,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "قُلْ مَا يَعْبَؤُا۟ بِكُمْ رَبِّى لَوْلَا دُعَآؤُكُمْ ۖ فَقَدْ كَذَّبْتُمْ فَسَوْفَ يَكُونُ لِزَامًۢا",
     keyConcepts: ["Quran Distinguishes Truth from Falsehood", "Servants of Rahman", "Refuting Doubts"],
     keyConceptsAr: ["الفرقان حق وباطل", "عباد الرحمن", "الرد على شُبه المشركين"],
-    prophetsMentioned: ["أصحاب الرس"],
+    prophetsMentioned: ["أصحاب الرس", "Lut", "Musa", "Nuh"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -2750,7 +2758,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَقُلِ ٱلْحَمْدُ لِلَّهِ سَيُرِيكُمْ ءَايَٰتِهِۦ فَتَعْرِفُونَهَا ۚ وَمَا رَبُّكَ بِغَٰفِلٍ عَمَّا تَعْمَلُونَ",
     keyConcepts: ["Sulayman and Bilqis", "The Hoopoe", "Submission to Allah"],
     keyConceptsAr: ["سليمان وبلقيس", "الهدهد", "الخضوع لله"],
-    prophetsMentioned: ["Musa", "Sulayman", "Salih"],
+    prophetsMentioned: ["Musa", "Sulayman", "Salih", "Dawud", "Lut"
+    ],
     nationsMentioned: ["Saba", "Thamud"],
     storiesMentioned: [
       {
@@ -3254,7 +3263,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَأَعْرِضْ عَنْهُمْ وَٱنتَظِرْ إِنَّهُم مُّنتَظِرُونَ",
     keyConcepts: ["Resurrection and Creation", "Quran is Revelation", "Paradise for Patient Ones"],
     keyConceptsAr: ["البعث والخلق", "القرآن وحي", "الجنة للصابرين"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Musa"],
     nationsMentioned: [],
     storiesMentioned: [
         { storyId: 'story_adam', coverage: 'partial', ayahRange: { display: '32:7-9', start: 7, end: 9 } },
@@ -3325,7 +3334,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "لِّيُعَذِّبَ ٱللَّهُ ٱلْمُنَٰفِقِينَ وَٱلْمُنَٰفِقَٰتِ وَٱلْمُشْرِكِينَ وَٱلْمُشْرِكَٰتِ وَيَتُوبَ ٱللَّهُ عَلَى ٱلْمُؤْمِنِينَ وَٱلْمُؤْمِنَٰتِ ۗ وَكَانَ ٱللَّهُ غَفُورًۭا رَّحِيمًۢا",
     keyConcepts: ["Battle of Ahzab", "Seal of Prophets", "Hijab", "The Trust"],
     keyConceptsAr: ["غزوة الأحزاب", "خاتم النبيين", "الحجاب", "الأمانة"],
-    prophetsMentioned: ["Ibrahim", "Dawud", "Sulayman", "Musa", "Isa"],
+    prophetsMentioned: ["Ibrahim", "Dawud", "Sulayman", "Musa", "Isa", "Nuh"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -3512,7 +3522,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَلَوْ يُؤَاخِذُ ٱللَّهُ ٱلنَّاسَ بِمَا كَسَبُوا۟ مَا تَرَكَ عَلَىٰ ظَهْرِهَا مِن دَآبَّةٍۢ وَلَٰكِن يُؤَخِّرُهُمْ إِلَىٰٓ أَجَلٍۢ مُّسَمًّۭى ۖ فَإِذَا جَآءَ أَجَلُهُمْ فَإِنَّ ٱللَّهَ كَانَ بِعِبَادِهِۦ بَصِيرًۢا",
     keyConcepts: ["Angels Glorifying Allah", "Allah's Absolute Richness", "Paradise for Grateful"],
     keyConceptsAr: ["تسبيح الملائكة", "الغنى المطلق", "الجنة جزاء الشاكرين"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Nuh"],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -3592,7 +3602,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَسُبْحَٰنَ ٱلَّذِى بِيَدِهِۦ مَلَكُوتُ كُلِّ شَىْءٍۢ وَإِلَيْهِ تُرْجَعُونَ",
     keyConcepts: ["Heart of Quran", "Resurrection Tawheed and Revelation"],
     keyConceptsAr: ["قلب القرآن", "البعث والتوحيد والوحي"],
-    prophetsMentioned: ["Israfil"],
+    prophetsMentioned: ["Israfil", "Musa"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -3680,7 +3691,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ",
     keyConcepts: ["The Rows of Angels", "Ibrahim and Ismail Sacrifice", "Ilyas and Yunus"],
     keyConceptsAr: ["الصافات", "إبراهيم وإسماعيل", "الفداء العظيم", "إلياس ويونس"],
-    prophetsMentioned: ["Ibrahim", "Ismail", "Ishaq", "Musa", "Harun", "Ilyas", "Lut", "Yunus"],
+    prophetsMentioned: ["Ibrahim", "Ismail", "Ishaq", "Musa", "Harun", "Ilyas", "Lut", "Yunus", "Nuh"
+    ],
     nationsMentioned: ["Aad"],
     storiesMentioned: [
       {
@@ -3915,7 +3927,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَتَرَى ٱلْمَلَٰٓئِكَةَ حَآفِّينَ مِنْ حَوْلِ ٱلْعَرْشِ يُسَبِّحُونَ بِحَمْدِ رَبِّهِمْ ۖ وَقُضِىَ بَيْنَهُم بِٱلْحَقِّ وَقِيلَ ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ",
     keyConcepts: ["Sincere Worship", "Allah's Vast Mercy", "Day of Judgment"],
     keyConceptsAr: ["إخلاص العبادة", "رحمة الله الواسعة", "يوم القيامة"],
-    prophetsMentioned: ["Israfil"],
+    prophetsMentioned: ["Israfil", "Ibrahim"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -4109,7 +4122,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "أَلَآ إِنَّهُمْ فِى مِرْيَةٍۢ مِّن لِّقَآءِ رَبِّهِمْ ۗ أَلَآ إِنَّهُۥ بِكُلِّ شَىْءٍۢ مُّحِيطٌۢ",
     keyConcepts: ["Miracle of Quran", "Creation in Six Days", "Testimony of Limbs"],
     keyConceptsAr: ["إعجاز القرآن", "خلق الكون ستة أيام", "شهادة الأعضاء"],
-    prophetsMentioned: ["Hud", "People of 'Ad"],
+    prophetsMentioned: ["Hud", "People of 'Ad", "Salih"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -4223,7 +4237,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "صِرَٰطِ ٱللَّهِ ٱلَّذِى لَهُۥ مَا فِى ٱلسَّمَٰوَٰتِ وَمَا فِى ٱلْأَرْضِ ۗ أَلَآ إِلَى ٱللَّهِ تَصِيرُ ٱلْأُمُورُ",
     keyConcepts: ["Shura in Governance", "Levels of Revelation", "Forgiveness and Punishment"],
     keyConceptsAr: ["الشورى في الحكم", "مراتب الوحي", "العفو والعقوبة"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Ibrahim", "Isa", "Musa", "Nuh"],
     nationsMentioned: [],
     storiesMentioned: [
         { storyId: 'story_nuh', coverage: 'partial', ayahRange: { display: '42:13', start: 13, end: 13 } },
@@ -5047,7 +5061,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَوَيْلٌۭ لِّلَّذِينَ كَفَرُوا۟ مِن يَوْمِهِمُ ٱلَّذِى يُوعَدُونَ",
     keyConcepts: ["True Promise", "Purpose of Creation: Worship"],
     keyConceptsAr: ["الوعد الحق", "العبادة غاية الخلق"],
-    prophetsMentioned: ["Ibrahim", "Lut", "Musa"],
+    prophetsMentioned: ["Ibrahim", "Lut", "Musa", "Nuh"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -5197,7 +5212,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَٱسْجُدُوا۟ لِلَّهِ وَٱعْبُدُوا۟ ۩",
     keyConcepts: ["Revelation Not From Desire", "Isra and Miraj", "Prostration Verse"],
     keyConceptsAr: ["الوحي قول رسول كريم", "الإسراء والمعراج", "سجدة التلاوة"],
-    prophetsMentioned: ["Ibrahim", "Musa"],
+    prophetsMentioned: ["Ibrahim", "Musa", "Lut", "Nuh"
+    ],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -5289,7 +5305,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فِى مَقْعَدِ صِدْقٍ عِندَ مَلِيكٍۢ مُّقْتَدِرٍۭ",
     keyConcepts: ["Splitting of Moon", "Stories of Deniers", "Quran Made Easy"],
     keyConceptsAr: ["انشقاق القمر", "قصص المكذبين", "تيسير القرآن"],
-    prophetsMentioned: ["Nuh", "Lut", "Salih", "Thamud", "The She-camel", "Hud"],
+    prophetsMentioned: ["Nuh", "Lut", "Salih", "Thamud", "The She-camel", "Hud", "Musa"
+    ],
     nationsMentioned: ["People of Nuh", "Aad", "Thamud", "People of Lut", "Firaun's Army"],
     storiesMentioned: [
       {
@@ -6858,7 +6875,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "۞ إِنَّ رَبَّكَ يَعْلَمُ أَنَّكَ تَقُومُ أَدْنَىٰ مِن ثُلُثَىِ ٱلَّيْلِ وَنِصْفَهُۥ وَثُلُثَهُۥ وَطَآئِفَةٌۭ مِّنَ ٱلَّذِينَ مَعَكَ ۚ وَٱللَّهُ يُقَدِّرُ ٱلَّيْلَ وَٱلنَّهَارَ ۚ عَلِمَ أَن لَّن تُحْصُوهُ فَتَابَ عَلَيْكُمْ ۖ فَٱقْرَءُوا۟ مَا تَيَسَّرَ مِنَ ٱلْقُرْءَانِ ۚ عَلِمَ أَن سَيَكُونُ مِنكُم مَّرْضَىٰ ۙ وَءَاخَرُونَ يَضْرِبُونَ فِى ٱلْأَرْضِ يَبْتَغُونَ مِن فَضْلِ ٱللَّهِ ۙ وَءَاخَرُونَ يُقَٰتِلُونَ فِى سَبِيلِ ٱللَّهِ ۖ فَٱقْرَءُوا۟ مَا تَيَسَّرَ مِنْهُ ۚ وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ وَأَقْرِضُوا۟ ٱللَّهَ قَرْضًا حَسَنًۭا ۚ وَمَا تُقَدِّمُوا۟ لِأَنفُسِكُم مِّنْ خَيْرٍۢ تَجِدُوهُ عِندَ ٱللَّهِ هُوَ خَيْرًۭا وَأَعْظَمَ أَجْرًۭا ۚ وَٱسْتَغْفِرُوا۟ ٱللَّهَ ۖ إِنَّ ٱللَّهَ غَفُورٌۭ رَّحِيمٌۢ",
     keyConcepts: ["Night Prayer", "Weight of Carrying the Quran"],
     keyConceptsAr: ["قيام الليل", "ثقل القرآن وحمله"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Musa"],
     nationsMentioned: [],
     storiesMentioned: [
         { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '73:15-16', start: 15, end: 16 } },
@@ -7142,7 +7159,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَبِأَىِّ حَدِيثٍۭ بَعْدَهُۥ يُؤْمِنُونَ",
     keyConcepts: ["Oath by the Sent Winds", "Woe to the Deniers"],
     keyConceptsAr: ["المرسلات قسماً", "ويل للمكذبين"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Nuh"],
     nationsMentioned: [],
     storiesMentioned: [
         { storyId: 'story_nuh', coverage: 'partial', ayahRange: { display: '77:14-19', start: 14, end: 19 } },
@@ -8029,7 +8046,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَٱدْخُلِى جَنَّتِى",
     keyConcepts: ["Dawn and Fate of Tyrants", "The Tranquil Soul"],
     keyConceptsAr: ["الفجر وعاقبة المتجبرين", "النفس المطمئنة"],
-    prophetsMentioned: ["Hud"],
+    prophetsMentioned: ["Hud", "Lut"
+    ],
     nationsMentioned: ["Aad", "Thamud", "People of Firaun"],
     storiesMentioned: [
       {
