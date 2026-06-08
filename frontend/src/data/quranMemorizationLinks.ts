@@ -359,7 +359,6 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 44, surahName: 'Ad-Dukhan', ayahRange: { surah: 44, ayah: 17, rangeEnd: 33, display: '44:17-33' }, coverageNote: { en: 'Trial of Pharaoh\'s people', ar: 'ابتلاء قوم فرعون' } },
       { surahNumber: 51, surahName: 'Adh-Dhariyat', ayahRange: { surah: 51, ayah: 38, rangeEnd: 40, display: '51:38-40' }, coverageNote: { en: 'Brief mention as a warning example', ar: 'ذكر موجز كمثال تحذيري' } },
       { surahNumber: 54, surahName: 'Al-Qamar', ayahRange: { surah: 54, ayah: 41, rangeEnd: 42, display: '54:41-42' }, coverageNote: { en: 'Very brief mention', ar: 'ذكر موجز جداً' } },
-      { surahNumber: 66, surahName: 'At-Tahrim', ayahRange: { surah: 66, ayah: 11, display: '66:11' }, coverageNote: { en: 'Asiya, wife of Pharaoh, cited as example', ar: 'آسيا زوجة فرعون مضروبة كمثل' } },
       { surahNumber: 73, surahName: 'Al-Muzzammil', ayahRange: { surah: 73, ayah: 15, rangeEnd: 16, display: '73:15-16' }, coverageNote: { en: 'Musa mentioned as a parallel messenger', ar: 'موسى مذكور كرسول موازٍ' } },
       { surahNumber: 79, surahName: 'An-Naziat', ayahRange: { surah: 79, ayah: 15, rangeEnd: 26, display: '79:15-26' }, coverageNote: { en: 'Pharaoh\'s arrogance and punishment', ar: 'تكبر فرعون وعذابه' } },
       { surahNumber: 4, surahName: 'An-Nisa', ayahRange: { surah: 4, ayah: 153, rangeEnd: 155, display: '4:153-155' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
@@ -373,7 +372,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 61, surahName: 'As-Saf', ayahRange: { surah: 61, ayah: 5, rangeEnd: 5, display: '61:5' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 20,
-    totalOccurrences: 29,
+    totalOccurrences: 28,
     reviewStatus: 'needs_review',
   },
   {
