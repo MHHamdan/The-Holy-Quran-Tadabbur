@@ -2696,6 +2696,9 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_musa_firaun_dialogue', coverage: 'partial', ayahRange: { display: '26:10-33', start: 10, end: 33 } },
         { storyId: 'story_sea_crossing', coverage: 'partial', ayahRange: { display: '26:63-66', start: 63, end: 66 } },
         { storyId: 'story_magicians', coverage: 'complete', ayahRange: { display: '26:38-51', start: 38, end: 51 } },
+        { storyId: 'story_hud', coverage: 'partial', ayahRange: { display: '26:123-140', start: 123, end: 140 } },
+        { storyId: 'story_salih', coverage: 'partial', ayahRange: { display: '26:141-159', start: 141, end: 159 } },
+        { storyId: 'story_thamud', coverage: 'partial', ayahRange: { display: '26:141-159', start: 141, end: 159 } },
     ],
     summary: {
       short: {
