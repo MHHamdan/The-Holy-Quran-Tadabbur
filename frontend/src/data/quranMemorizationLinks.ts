@@ -336,13 +336,13 @@ export const REPEATED_PHRASES: QuranRepeatedPhrase[] = [
 // Story Recurrences — where each story appears across the Quran
 // ---------------------------------------------------------------------------
 
-export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
-  {
+export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [{
     storyId: 'story_musa',
     titleEn: 'Story of Prophet Musa (Moses)',
     titleAr: 'قصة النبي موسى عليه السلام',
-    surahOccurrences: [
-      { surahNumber: 2, surahName: 'Al-Baqara', ayahRange: { surah: 2, ayah: 49, rangeEnd: 73, display: '2:49-73' }, coverageNote: { en: 'Detailed account of Bani Israel deliverance', ar: 'رواية مفصلة لإنقاذ بني إسرائيل' } },
+    surahOccurrences: [{ surahNumber: 2, surahName: 'Al-Baqara', ayahRange: { surah: 2, ayah: 49, rangeEnd: 73, display: '2:49-73' }, coverageNote: { en: 'Detailed account of Bani Israel deliverance', ar: 'رواية مفصلة لإنقاذ بني إسرائيل' } },
+      { surahNumber: 4, surahName: 'An-Nisa', ayahRange: { surah: 4, ayah: 153, rangeEnd: 155, display: '4:153-155' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 5, surahName: 'Al-Maida', ayahRange: { surah: 5, ayah: 20, rangeEnd: 26, display: '5:20-26' }, coverageNote: { en: 'Musa commanding Bani Israel to enter the Holy Land', ar: 'موسى يأمر بني إسرائيل بدخول الأرض المقدسة' } },
       { surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 103, rangeEnd: 162, display: '7:103-162' }, coverageNote: { en: 'Full confrontation with Pharaoh and Bani Israel', ar: 'المواجهة الكاملة مع فرعون وبني إسرائيل' } },
       { surahNumber: 10, surahName: 'Yunus', ayahRange: { surah: 10, ayah: 75, rangeEnd: 92, display: '10:75-92' }, coverageNote: { en: 'Confrontation with Pharaoh and his fate', ar: 'المواجهة مع فرعون ومصيره' } },
       { surahNumber: 11, surahName: 'Hud', ayahRange: { surah: 11, ayah: 96, rangeEnd: 99, display: '11:96-99' }, coverageNote: { en: 'Brief mention in series of prophets', ar: 'ذكر موجز في سلسلة الأنبياء' } },
@@ -351,37 +351,34 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 18, surahName: 'Al-Kahf', ayahRange: { surah: 18, ayah: 60, rangeEnd: 82, display: '18:60-82' }, coverageNote: { en: 'Musa and Khidr journey', ar: 'رحلة موسى والخضر' } },
       { surahNumber: 19, surahName: 'Maryam', ayahRange: { surah: 19, ayah: 51, rangeEnd: 53, display: '19:51-53' }, coverageNote: { en: 'Brief praise of Musa', ar: 'ثناء موجز على موسى' } },
       { surahNumber: 20, surahName: 'Ta-Ha', ayahRange: { surah: 20, ayah: 9, rangeEnd: 98, display: '20:9-98' }, coverageNote: { en: 'Most detailed account of Musa\'s prophethood', ar: 'أكثر الروايات تفصيلاً لنبوة موسى' } },
+      { surahNumber: 23, surahName: 'Al-Muminun', ayahRange: { surah: 23, ayah: 45, rangeEnd: 49, display: '23:45-49' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 25, surahName: 'Al-Furqan', ayahRange: { surah: 25, ayah: 35, rangeEnd: 36, display: '25:35-36' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 26, surahName: 'Ash-Shuara', ayahRange: { surah: 26, ayah: 10, rangeEnd: 68, display: '26:10-68' }, coverageNote: { en: 'Dialogue with Pharaoh and the magicians', ar: 'حوار مع فرعون والسحرة' } },
       { surahNumber: 27, surahName: 'An-Naml', ayahRange: { surah: 27, ayah: 7, rangeEnd: 14, display: '27:7-14' }, coverageNote: { en: 'The fire and the staff', ar: 'النار والعصا' } },
       { surahNumber: 28, surahName: 'Al-Qasas', ayahRange: { surah: 28, ayah: 1, rangeEnd: 43, display: '28:1-43' }, coverageNote: { en: 'Birth, upbringing, and early mission of Musa', ar: 'ولادة موسى ونشأته ومهمته الأولى' } },
+      { surahNumber: 32, surahName: 'As-Sajda', ayahRange: { surah: 32, ayah: 23, rangeEnd: 23, display: '32:23' }, coverageNote: { en: 'Brief mention of giving Musa the scripture', ar: 'ذكر موجز لإعطاء موسى الكتاب' } },
+      { surahNumber: 33, surahName: 'Al-Ahzab', ayahRange: { surah: 33, ayah: 69, rangeEnd: 69, display: '33:69' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 36, surahName: 'Ya-Sin', ayahRange: { surah: 36, ayah: 13, rangeEnd: 29, display: '36:13-29' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 40, surahName: 'Ghafir', ayahRange: { surah: 40, ayah: 23, rangeEnd: 46, display: '40:23-46' }, coverageNote: { en: 'The believer of Pharaoh\'s household', ar: 'مؤمن آل فرعون' } },
+      { surahNumber: 42, surahName: 'Ash-Shura', ayahRange: { surah: 42, ayah: 13, rangeEnd: 13, display: '42:13' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 43, surahName: 'Az-Zukhruf', ayahRange: { surah: 43, ayah: 46, rangeEnd: 56, display: '43:46-56' }, coverageNote: { en: 'Musa\'s signs before Pharaoh', ar: 'آيات موسى أمام فرعون' } },
       { surahNumber: 44, surahName: 'Ad-Dukhan', ayahRange: { surah: 44, ayah: 17, rangeEnd: 33, display: '44:17-33' }, coverageNote: { en: 'Trial of Pharaoh\'s people', ar: 'ابتلاء قوم فرعون' } },
       { surahNumber: 51, surahName: 'Adh-Dhariyat', ayahRange: { surah: 51, ayah: 38, rangeEnd: 40, display: '51:38-40' }, coverageNote: { en: 'Brief mention as a warning example', ar: 'ذكر موجز كمثال تحذيري' } },
       { surahNumber: 54, surahName: 'Al-Qamar', ayahRange: { surah: 54, ayah: 41, rangeEnd: 42, display: '54:41-42' }, coverageNote: { en: 'Very brief mention', ar: 'ذكر موجز جداً' } },
-      { surahNumber: 73, surahName: 'Al-Muzzammil', ayahRange: { surah: 73, ayah: 15, rangeEnd: 16, display: '73:15-16' }, coverageNote: { en: 'Musa mentioned as a parallel messenger', ar: 'موسى مذكور كرسول موازٍ' } },
+      { surahNumber: 61, surahName: 'As-Saf', ayahRange: { surah: 61, ayah: 5, rangeEnd: 5, display: '61:5' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },{ surahNumber: 73, surahName: 'Al-Muzzammil', ayahRange: { surah: 73, ayah: 15, rangeEnd: 16, display: '73:15-16' }, coverageNote: { en: 'Musa mentioned as a parallel messenger', ar: 'موسى مذكور كرسول موازٍ' } },
       { surahNumber: 79, surahName: 'An-Naziat', ayahRange: { surah: 79, ayah: 15, rangeEnd: 26, display: '79:15-26' }, coverageNote: { en: 'Pharaoh\'s arrogance and punishment', ar: 'تكبر فرعون وعذابه' } },
-      { surahNumber: 4, surahName: 'An-Nisa', ayahRange: { surah: 4, ayah: 153, rangeEnd: 155, display: '4:153-155' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 23, surahName: 'Al-Muminun', ayahRange: { surah: 23, ayah: 45, rangeEnd: 49, display: '23:45-49' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 25, surahName: 'Al-Furqan', ayahRange: { surah: 25, ayah: 35, rangeEnd: 36, display: '25:35-36' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 33, surahName: 'Al-Ahzab', ayahRange: { surah: 33, ayah: 69, rangeEnd: 69, display: '33:69' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 36, surahName: 'Ya-Sin', ayahRange: { surah: 36, ayah: 13, rangeEnd: 29, display: '36:13-29' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 42, surahName: 'Ash-Shura', ayahRange: { surah: 42, ayah: 13, rangeEnd: 13, display: '42:13' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 5, surahName: 'Al-Maida', ayahRange: { surah: 5, ayah: 20, rangeEnd: 26, display: '5:20-26' }, coverageNote: { en: 'Musa commanding Bani Israel to enter the Holy Land', ar: 'موسى يأمر بني إسرائيل بدخول الأرض المقدسة' } },
-      { surahNumber: 32, surahName: 'As-Sajda', ayahRange: { surah: 32, ayah: 23, rangeEnd: 23, display: '32:23' }, coverageNote: { en: 'Brief mention of giving Musa the scripture', ar: 'ذكر موجز لإعطاء موسى الكتاب' } },
-      { surahNumber: 61, surahName: 'As-Saf', ayahRange: { surah: 61, ayah: 5, rangeEnd: 5, display: '61:5' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      
     ],
     dominantSurahNumber: 20,
     totalOccurrences: 28,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ibrahim',
     titleEn: 'Story of Prophet Ibrahim (Abraham)',
     titleAr: 'قصة النبي إبراهيم عليه السلام',
-    surahOccurrences: [
-      { surahNumber: 2, surahName: 'Al-Baqara', ayahRange: { surah: 2, ayah: 124, rangeEnd: 141, display: '2:124-141' }, coverageNote: { en: 'Building the Kaaba, prayers for progeny', ar: 'بناء الكعبة، الدعاء للذرية' } },
+    surahOccurrences: [{ surahNumber: 2, surahName: 'Al-Baqara', ayahRange: { surah: 2, ayah: 124, rangeEnd: 141, display: '2:124-141' }, coverageNote: { en: 'Building the Kaaba, prayers for progeny', ar: 'بناء الكعبة، الدعاء للذرية' } },
       { surahNumber: 3, surahName: 'Aal-Imran', ayahRange: { surah: 3, ayah: 65, rangeEnd: 68, display: '3:65-68' }, coverageNote: { en: 'Ibrahim as neither Jew nor Christian', ar: 'إبراهيم لم يكن يهودياً ولا نصرانياً' } },
+      { surahNumber: 4, surahName: 'An-Nisa', ayahRange: { surah: 4, ayah: 125, rangeEnd: 125, display: '4:125' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 6, surahName: 'Al-An\'am', ayahRange: { surah: 6, ayah: 74, rangeEnd: 84, display: '6:74-84' }, coverageNote: { en: 'Ibrahim\'s search for truth through stars, moon, sun', ar: 'بحث إبراهيم عن الحق عبر النجوم والقمر والشمس' } },
       { surahNumber: 9, surahName: 'At-Tawba', ayahRange: { surah: 9, ayah: 113, rangeEnd: 114, display: '9:113-114' }, coverageNote: { en: 'Ibrahim\'s distancing from his father', ar: 'تبري إبراهيم من أبيه' } },
       { surahNumber: 11, surahName: 'Hud', ayahRange: { surah: 11, ayah: 69, rangeEnd: 83, display: '11:69-83' }, coverageNote: { en: 'Angels visit Ibrahim; Lut\'s people destroyed', ar: 'زيارة الملائكة لإبراهيم؛ هلاك قوم لوط' } },
@@ -391,25 +388,23 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 19, surahName: 'Maryam', ayahRange: { surah: 19, ayah: 41, rangeEnd: 50, display: '19:41-50' }, coverageNote: { en: 'Ibrahim\'s dialogue with his father', ar: 'حوار إبراهيم مع أبيه' } },
       { surahNumber: 21, surahName: 'Al-Anbiya', ayahRange: { surah: 21, ayah: 51, rangeEnd: 73, display: '21:51-73' }, coverageNote: { en: 'Ibrahim smashing idols; fire miracle', ar: 'إبراهيم يحطم الأصنام؛ معجزة النار' } },
       { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 26, rangeEnd: 27, display: '22:26-27' }, coverageNote: { en: 'Ibrahim called to declare Hajj', ar: 'إبراهيم مأمور بإعلان الحج' } },
+      { surahNumber: 23, surahName: 'Al-Muminun', ayahRange: { surah: 23, ayah: 26, rangeEnd: 29, display: '23:26-29' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 26, surahName: 'Ash-Shuara', ayahRange: { surah: 26, ayah: 69, rangeEnd: 89, display: '26:69-89' }, coverageNote: { en: 'Ibrahim\'s dialogue with his people', ar: 'حوار إبراهيم مع قومه' } },
       { surahNumber: 29, surahName: 'Al-Ankabut', ayahRange: { surah: 29, ayah: 16, rangeEnd: 27, display: '29:16-27' }, coverageNote: { en: 'Ibrahim and the fire', ar: 'إبراهيم والنار' } },
-      { surahNumber: 37, surahName: 'As-Saffat', ayahRange: { surah: 37, ayah: 83, rangeEnd: 113, display: '37:83-113' }, coverageNote: { en: 'Ibrahim\'s dream sacrifice of Ismail', ar: 'رؤيا إبراهيم بذبح إسماعيل' } },
-      { surahNumber: 43, surahName: 'Az-Zukhruf', ayahRange: { surah: 43, ayah: 26, rangeEnd: 28, display: '43:26-28' }, coverageNote: { en: 'Ibrahim\'s rejection of his people', ar: 'تبري إبراهيم من قومه' } },
-      { surahNumber: 51, surahName: 'Adh-Dhariyat', ayahRange: { surah: 51, ayah: 24, rangeEnd: 34, display: '51:24-34' }, coverageNote: { en: 'Angels visit Ibrahim', ar: 'زيارة الملائكة لإبراهيم' } },
-      { surahNumber: 60, surahName: 'Al-Mumtahana', ayahRange: { surah: 60, ayah: 4, rangeEnd: 6, display: '60:4-6' }, coverageNote: { en: 'Ibrahim as a good example in distancing from disbelievers', ar: 'إبراهيم كأسوة حسنة في التبري من الكافرين' } },
-      { surahNumber: 4, surahName: 'An-Nisa', ayahRange: { surah: 4, ayah: 125, rangeEnd: 125, display: '4:125' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 23, surahName: 'Al-Muminun', ayahRange: { surah: 23, ayah: 26, rangeEnd: 29, display: '23:26-29' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 33, surahName: 'Al-Ahzab', ayahRange: { surah: 33, ayah: 7, rangeEnd: 7, display: '33:7' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 37, surahName: 'As-Saffat', ayahRange: { surah: 37, ayah: 83, rangeEnd: 113, display: '37:83-113' }, coverageNote: { en: 'Ibrahim\'s dream sacrifice of Ismail', ar: 'رؤيا إبراهيم بذبح إسماعيل' } },
       { surahNumber: 39, surahName: 'Az-Zumar', ayahRange: { surah: 39, ayah: 12, rangeEnd: 12, display: '39:12' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 42, surahName: 'Ash-Shura', ayahRange: { surah: 42, ayah: 13, rangeEnd: 13, display: '42:13' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 43, surahName: 'Az-Zukhruf', ayahRange: { surah: 43, ayah: 26, rangeEnd: 28, display: '43:26-28' }, coverageNote: { en: 'Ibrahim\'s rejection of his people', ar: 'تبري إبراهيم من قومه' } },
+      { surahNumber: 51, surahName: 'Adh-Dhariyat', ayahRange: { surah: 51, ayah: 24, rangeEnd: 34, display: '51:24-34' }, coverageNote: { en: 'Angels visit Ibrahim', ar: 'زيارة الملائكة لإبراهيم' } },
       { surahNumber: 53, surahName: 'An-Najm', ayahRange: { surah: 53, ayah: 37, rangeEnd: 37, display: '53:37' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 57, surahName: 'Al-Hadid', ayahRange: { surah: 57, ayah: 26, rangeEnd: 26, display: '57:26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 57, surahName: 'Al-Hadid', ayahRange: { surah: 57, ayah: 26, rangeEnd: 26, display: '57:26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },{ surahNumber: 60, surahName: 'Al-Mumtahana', ayahRange: { surah: 60, ayah: 4, rangeEnd: 6, display: '60:4-6' }, coverageNote: { en: 'Ibrahim as a good example in distancing from disbelievers', ar: 'إبراهيم كأسوة حسنة في التبري من الكافرين' } },
+      
     ],
     dominantSurahNumber: 14,
     totalOccurrences: 24,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_abasa',
     titleEn: 'The Story of He Frowned (Abasa)',
     titleAr: 'قصة عبس وتولى',
@@ -419,8 +414,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 80,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_abu_lahab',
     titleEn: 'Abu Lahab\'s Destruction',
     titleAr: 'قصة هلاك أبي لهب وامرأته',
@@ -430,44 +424,39 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 111,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ad',
     titleEn: 'The People of Ad and Prophet Hud',
     titleAr: 'قصة عاد وهود',
-    surahOccurrences: [
+    surahOccurrences: [{ surahNumber: 25, surahName: 'Al-Furqan', ayahRange: { surah: 25, ayah: 38, rangeEnd: 38, display: '25:38' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 41, surahName: 'Fussilat', ayahRange: { surah: 41, ayah: 13, rangeEnd: 16, display: '41:13-16' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 46, surahName: 'Al-Ahqaf', ayahRange: { surah: 46, ayah: 21, rangeEnd: 26, display: '46:21-26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 69, surahName: 'Al-Haqqa', ayahRange: { surah: 69, ayah: 6, rangeEnd: 8, display: '69:6-8' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 89, surahName: 'Al-Fajr', ayahRange: { surah: 89, ayah: 6, rangeEnd: 8, display: '89:6-8' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 25, surahName: 'Al-Furqan', ayahRange: { surah: 25, ayah: 38, rangeEnd: 38, display: '25:38' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 51, surahName: 'Adh-Dhariyat', ayahRange: { surah: 51, ayah: 41, rangeEnd: 42, display: '51:41-42' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 53, surahName: 'An-Najm', ayahRange: { surah: 53, ayah: 50, rangeEnd: 50, display: '53:50' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 77, surahName: 'Al-Mursalat', ayahRange: { surah: 77, ayah: 16, rangeEnd: 17, display: '77:16-17' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 69, surahName: 'Al-Haqqa', ayahRange: { surah: 69, ayah: 6, rangeEnd: 8, display: '69:6-8' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 77, surahName: 'Al-Mursalat', ayahRange: { surah: 77, ayah: 16, rangeEnd: 17, display: '77:16-17' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },{ surahNumber: 89, surahName: 'Al-Fajr', ayahRange: { surah: 89, ayah: 6, rangeEnd: 8, display: '89:6-8' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      
     ],
     dominantSurahNumber: 46,
     totalOccurrences: 8,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_adam',
     titleEn: 'The Creation and Story of Adam',
     titleAr: 'قصة خلق آدم وإسكانه الجنة',
-    surahOccurrences: [
-      { surahNumber: 2, surahName: 'Al-Baqara', ayahRange: { surah: 2, ayah: 30, rangeEnd: 39, display: '2:30-39' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 2, surahName: 'Al-Baqara', ayahRange: { surah: 2, ayah: 30, rangeEnd: 39, display: '2:30-39' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 11, rangeEnd: 25, display: '7:11-25' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 15, surahName: 'Al-Hijr', ayahRange: { surah: 15, ayah: 26, rangeEnd: 44, display: '15:26-44' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 17, surahName: 'Al-Isra', ayahRange: { surah: 17, ayah: 61, rangeEnd: 65, display: '17:61-65' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 18, surahName: 'Al-Kahf', ayahRange: { surah: 18, ayah: 50, rangeEnd: 50, display: '18:50' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 20, surahName: 'Ta-Ha', ayahRange: { surah: 20, ayah: 115, rangeEnd: 123, display: '20:115-123' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 38, surahName: 'Sad', ayahRange: { surah: 38, ayah: 71, rangeEnd: 85, display: '38:71-85' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 32, surahName: 'As-Sajda', ayahRange: { surah: 32, ayah: 7, rangeEnd: 9, display: '32:7-9' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 32, surahName: 'As-Sajda', ayahRange: { surah: 32, ayah: 7, rangeEnd: 9, display: '32:7-9' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },{ surahNumber: 38, surahName: 'Sad', ayahRange: { surah: 38, ayah: 71, rangeEnd: 85, display: '38:71-85' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      
     ],
     dominantSurahNumber: 2,
     totalOccurrences: 8,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_alyasa',
     titleEn: 'Prophet Al-Yasa\' (Elisha)',
     titleAr: 'قصة النبي اليسع',
@@ -478,27 +467,24 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 6,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ancient_egypt',
     titleEn: 'The Ancient Egypt and Pharaoh',
     titleAr: 'قصة مصر القديمة وفرعون',
-    surahOccurrences: [
-      { surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 130, rangeEnd: 136, display: '7:130-136' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 130, rangeEnd: 136, display: '7:130-136' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 10, surahName: 'Yunus', ayahRange: { surah: 10, ayah: 75, rangeEnd: 92, display: '10:75-92' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 28, surahName: 'Al-Qasas', ayahRange: { surah: 28, ayah: 1, rangeEnd: 43, display: '28:1-43' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 40, surahName: 'Ghafir', ayahRange: { surah: 40, ayah: 23, rangeEnd: 46, display: '40:23-46' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 43, surahName: 'Az-Zukhruf', ayahRange: { surah: 43, ayah: 46, rangeEnd: 56, display: '43:46-56' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 44, surahName: 'Ad-Dukhan', ayahRange: { surah: 44, ayah: 17, rangeEnd: 33, display: '44:17-33' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 79, surahName: 'An-Naziat', ayahRange: { surah: 79, ayah: 15, rangeEnd: 26, display: '79:15-26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 54, surahName: 'Al-Qamar', ayahRange: { surah: 54, ayah: 41, rangeEnd: 42, display: '54:41-42' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 79, surahName: 'An-Naziat', ayahRange: { surah: 79, ayah: 15, rangeEnd: 26, display: '79:15-26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 89, surahName: 'Al-Fajr', ayahRange: { surah: 89, ayah: 10, rangeEnd: 12, display: '89:10-12' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 28,
     totalOccurrences: 9,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_angels_prostration',
     titleEn: 'The Angels\' Prostration to Adam',
     titleAr: 'قصة سجود الملائكة لآدم',
@@ -512,8 +498,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 15,
     totalOccurrences: 5,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ant_hoopoe',
     titleEn: 'The Ant and the Hoopoe with Sulayman',
     titleAr: 'قصة النملة والهدهد مع سليمان',
@@ -523,8 +508,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 27,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_araf_people',
     titleEn: 'The People of Al-Araf',
     titleAr: 'قصة أصحاب الأعراف',
@@ -534,8 +518,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 7,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_asiya',
     titleEn: 'Asiya — Pharaoh\'s Believing Wife',
     titleAr: 'قصة آسيا زوجة فرعون المؤمنة',
@@ -546,8 +529,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 28,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ayka',
     titleEn: 'The People of Ayka and Prophet Shuayb',
     titleAr: 'قصة أصحاب الأيكة وشعيب',
@@ -558,8 +540,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 15,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ayyub',
     titleEn: 'The Trial of Prophet Ayyub (Job)',
     titleAr: 'قصة ابتلاء النبي أيوب',
@@ -570,8 +551,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 21,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_badr',
     titleEn: 'The Battle of Badr',
     titleAr: 'قصة غزوة بدر',
@@ -582,23 +562,20 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 3,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_bani_israel',
     titleEn: 'The Story of Bani Israel in the Wilderness',
     titleAr: 'قصة بني إسرائيل في التيه',
-    surahOccurrences: [
-      { surahNumber: 2, surahName: 'Al-Baqara', ayahRange: { surah: 2, ayah: 57, rangeEnd: 66, display: '2:57-66' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 5, surahName: 'Al-Maida', ayahRange: { surah: 5, ayah: 20, rangeEnd: 26, display: '5:20-26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 2, surahName: 'Al-Baqara', ayahRange: { surah: 2, ayah: 57, rangeEnd: 66, display: '2:57-66' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 4, surahName: 'An-Nisa', ayahRange: { surah: 4, ayah: 47, rangeEnd: 56, display: '4:47-56' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 5, surahName: 'Al-Maida', ayahRange: { surah: 5, ayah: 20, rangeEnd: 26, display: '5:20-26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 35, surahName: 'Fatir', ayahRange: { surah: 35, ayah: 31, rangeEnd: 32, display: '35:31-32' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 45, surahName: 'Al-Jathiya', ayahRange: { surah: 45, ayah: 16, rangeEnd: 17, display: '45:16-17' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 2,
     totalOccurrences: 5,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_baqarah_cow',
     titleEn: 'The Cow Sacrifice of Bani Israel',
     titleAr: 'قصة البقرة التي أمر بذبحها بنو إسرائيل',
@@ -608,8 +585,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 2,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_bee',
     titleEn: 'The Bee and Divine Revelation',
     titleAr: 'قصة النحل والوحي',
@@ -619,8 +595,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 16,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_believer_firaun',
     titleEn: 'The Believer of Pharaoh\'s Household',
     titleAr: 'قصة مؤمن آل فرعون',
@@ -630,8 +605,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 40,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_bilqis',
     titleEn: 'The Queen of Sheba (Bilqis)',
     titleAr: 'قصة ملكة سبأ (بلقيس)',
@@ -641,8 +615,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 27,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_blind_seeing',
     titleEn: 'The Blind Man and the Seeing Man',
     titleAr: 'مثل الأعمى والبصير',
@@ -652,8 +625,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 35,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_charity_parable',
     titleEn: 'The Parable of Charity',
     titleAr: 'مثل الصدقة وأثرها',
@@ -663,8 +635,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 2,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_conquest_makkah',
     titleEn: 'The Conquest of Makkah',
     titleAr: 'قصة فتح مكة المكرمة',
@@ -674,8 +645,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 110,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_covenant_souls',
     titleEn: 'The Covenant of the Souls',
     titleAr: 'قصة ميثاق الذريات',
@@ -685,8 +655,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 7,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_creation_heavens_earth',
     titleEn: 'Creation of the Heavens and Earth',
     titleAr: 'قصة خلق السماوات والأرض',
@@ -698,8 +667,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 41,
     totalOccurrences: 3,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_dawud',
     titleEn: 'Prophet Dawud (David) — Wisdom and Kingdom',
     titleAr: 'قصة النبي داود الملك والنبي',
@@ -713,8 +681,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 2,
     totalOccurrences: 5,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_dawud_trial',
     titleEn: 'The Trial of Dawud — the Two Litigants',
     titleAr: 'قصة محاكمة داود والخصمين',
@@ -724,8 +691,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 38,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_dhulkifl',
     titleEn: 'Dhul-Kifl — the Patient Prophet',
     titleAr: 'قصة ذو الكفل النبي الصابر',
@@ -736,8 +702,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 21,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_dhulqarnayn',
     titleEn: 'Dhul-Qarnayn — the Great Traveler',
     titleAr: 'قصة ذو القرنين المسافر العظيم',
@@ -747,8 +712,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 18,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ditch',
     titleEn: 'The People of the Ditch (Ukhdud)',
     titleAr: 'قصة أصحاب الأخدود',
@@ -758,8 +722,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 85,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_dog_parable',
     titleEn: 'The Parable of the Heedless Man and his Dog',
     titleAr: 'مثل الذي آتيناه آياتنا فانسلخ منها',
@@ -769,8 +732,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 7,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_donkey_books',
     titleEn: 'The Donkey Carrying Books — a Parable',
     titleAr: 'مثل الحمار يحمل أسفاراً',
@@ -780,8 +742,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 62,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_elephant',
     titleEn: 'The People of the Elephant (Abraha)',
     titleAr: 'قصة أصحاب الفيل وأبرهة',
@@ -791,8 +752,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 105,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_fly',
     titleEn: 'The Parable of the Fly',
     titleAr: 'مثل الذباب',
@@ -802,8 +762,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 22,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_garden_owners',
     titleEn: 'The Owners of the Garden',
     titleAr: 'قصة أصحاب الجنة',
@@ -813,8 +772,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 68,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_golden_calf',
     titleEn: 'The Worship of the Golden Calf',
     titleAr: 'قصة عبادة العجل الذهبي',
@@ -825,8 +783,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 2,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_good_word',
     titleEn: 'The Parable of the Good Word',
     titleAr: 'مثل الكلمة الطيبة والخبيثة',
@@ -836,8 +793,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 14,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_habil_qabil',
     titleEn: 'Habil and Qabil — the First Murder',
     titleAr: 'قصة هابيل وقابيل وأول جريمة قتل',
@@ -847,8 +803,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 5,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_haman',
     titleEn: 'Haman — Pharaoh\'s Minister',
     titleAr: 'قصة هامان وزير فرعون',
@@ -860,8 +815,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 28,
     totalOccurrences: 3,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_harut_marut',
     titleEn: 'Harut and Marut — Magic in Babylon',
     titleAr: 'قصة هاروت وماروت ببابل',
@@ -871,8 +825,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 2,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_hell',
     titleEn: 'The Description of Hell',
     titleAr: 'وصف جهنم وأهوالها',
@@ -888,8 +841,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 4,
     totalOccurrences: 7,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_hijrah',
     titleEn: 'The Migration (Hijrah) to Madinah',
     titleAr: 'قصة الهجرة إلى المدينة المنورة',
@@ -899,25 +851,22 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 9,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_hud',
     titleEn: 'Prophet Hud and the People of Ad',
     titleAr: 'قصة النبي هود وقوم عاد',
-    surahOccurrences: [
-      { surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 65, rangeEnd: 72, display: '7:65-72' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 65, rangeEnd: 72, display: '7:65-72' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 11, surahName: 'Hud', ayahRange: { surah: 11, ayah: 50, rangeEnd: 60, display: '11:50-60' }, coverageNote: { en: 'Complete account', ar: 'الرواية الكاملة' } },
-      { surahNumber: 41, surahName: 'Fussilat', ayahRange: { surah: 41, ayah: 13, rangeEnd: 16, display: '41:13-16' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 42, rangeEnd: 42, display: '22:42' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },{ surahNumber: 41, surahName: 'Fussilat', ayahRange: { surah: 41, ayah: 13, rangeEnd: 16, display: '41:13-16' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 46, surahName: 'Al-Ahqaf', ayahRange: { surah: 46, ayah: 21, rangeEnd: 26, display: '46:21-26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 54, surahName: 'Al-Qamar', ayahRange: { surah: 54, ayah: 18, rangeEnd: 22, display: '54:18-22' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 69, surahName: 'Al-Haqqa', ayahRange: { surah: 69, ayah: 6, rangeEnd: 8, display: '69:6-8' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 42, rangeEnd: 42, display: '22:42' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      
     ],
     dominantSurahNumber: 11,
     totalOccurrences: 7,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_hudaybiyyah',
     titleEn: 'The Treaty of Hudaybiyyah',
     titleAr: 'قصة صلح الحديبية',
@@ -927,8 +876,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 48,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_iblis_refusal',
     titleEn: 'Iblis\'s Refusal to Prostrate',
     titleAr: 'قصة إباء إبليس السجود',
@@ -940,8 +888,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 7,
     totalOccurrences: 3,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ibrahim_birds',
     titleEn: 'Ibrahim Revives the Four Birds',
     titleAr: 'قصة إبراهيم وإحياء الطيور الأربعة',
@@ -951,8 +898,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 2,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ibrahim_fire',
     titleEn: 'Ibrahim Thrown into the Fire',
     titleAr: 'قصة إلقاء إبراهيم في النار',
@@ -962,8 +908,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 21,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ibrahim_nimrod',
     titleEn: 'Ibrahim Debates the Tyrant Nimrod',
     titleAr: 'قصة إبراهيم ومناظرة النمرود',
@@ -973,8 +918,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 2,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ibrahim_stars',
     titleEn: 'Ibrahim\'s Search for God Through Stars',
     titleAr: 'قصة إبراهيم وبحثه عن الله عبر النجوم',
@@ -984,8 +928,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 6,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_idris',
     titleEn: 'Prophet Idris — Raised to a High Station',
     titleAr: 'قصة النبي إدريس ورفعه إلى مكان عليّ',
@@ -996,8 +939,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 19,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ifk',
     titleEn: 'The Affair of the Ifk (Slander)',
     titleAr: 'قصة الإفك وبراءة عائشة',
@@ -1007,8 +949,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 24,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ilyas',
     titleEn: 'Prophet Ilyas (Elijah)',
     titleAr: 'قصة النبي إلياس',
@@ -1019,8 +960,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 37,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_intercession',
     titleEn: 'The Doctrine of Intercession',
     titleAr: 'قصة الشفاعة',
@@ -1030,27 +970,24 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 53,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_isa',
     titleEn: 'Prophet Isa (Jesus) — Signs and Mission',
     titleAr: 'قصة النبي عيسى ومعجزاته ومهمته',
-    surahOccurrences: [
-      { surahNumber: 3, surahName: 'Aal-Imran', ayahRange: { surah: 3, ayah: 45, rangeEnd: 60, display: '3:45-60' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 3, surahName: 'Aal-Imran', ayahRange: { surah: 3, ayah: 45, rangeEnd: 60, display: '3:45-60' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 4, surahName: 'An-Nisa', ayahRange: { surah: 4, ayah: 157, rangeEnd: 172, display: '4:157-172' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 5, surahName: 'Al-Maida', ayahRange: { surah: 5, ayah: 72, rangeEnd: 75, display: '5:72-75' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 19, surahName: 'Maryam', ayahRange: { surah: 19, ayah: 16, rangeEnd: 40, display: '19:16-40' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 43, surahName: 'Az-Zukhruf', ayahRange: { surah: 43, ayah: 57, rangeEnd: 65, display: '43:57-65' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 61, surahName: 'As-Saf', ayahRange: { surah: 61, ayah: 6, rangeEnd: 14, display: '61:6-14' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 23, surahName: 'Al-Muminun', ayahRange: { surah: 23, ayah: 50, rangeEnd: 50, display: '23:50' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 42, surahName: 'Ash-Shura', ayahRange: { surah: 42, ayah: 13, rangeEnd: 13, display: '42:13' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 57, surahName: 'Al-Hadid', ayahRange: { surah: 57, ayah: 27, rangeEnd: 27, display: '57:27' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 43, surahName: 'Az-Zukhruf', ayahRange: { surah: 43, ayah: 57, rangeEnd: 65, display: '43:57-65' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 57, surahName: 'Al-Hadid', ayahRange: { surah: 57, ayah: 27, rangeEnd: 27, display: '57:27' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },{ surahNumber: 61, surahName: 'As-Saf', ayahRange: { surah: 61, ayah: 6, rangeEnd: 14, display: '61:6-14' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      
     ],
     dominantSurahNumber: 3,
     totalOccurrences: 9,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_isa_ascension',
     titleEn: 'The Raising of Isa to Heaven',
     titleAr: 'قصة رفع عيسى إلى السماء',
@@ -1061,8 +998,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 3,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_isa_miracles',
     titleEn: 'The Miracles of Isa',
     titleAr: 'قصة معجزات عيسى عليه السلام',
@@ -1073,24 +1009,21 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 3,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_ismail',
     titleEn: 'Prophet Ismail — Sacrifice and Heritage',
     titleAr: 'قصة النبي إسماعيل الذبيح وإرثه',
-    surahOccurrences: [
-      { surahNumber: 2, surahName: 'Al-Baqara', ayahRange: { surah: 2, ayah: 127, rangeEnd: 129, display: '2:127-129' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 2, surahName: 'Al-Baqara', ayahRange: { surah: 2, ayah: 127, rangeEnd: 129, display: '2:127-129' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 6, surahName: 'Al-Anam', ayahRange: { surah: 6, ayah: 86, rangeEnd: 86, display: '6:86' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 14, surahName: 'Ibrahim', ayahRange: { surah: 14, ayah: 37, rangeEnd: 41, display: '14:37-41' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 19, surahName: 'Maryam', ayahRange: { surah: 19, ayah: 54, rangeEnd: 55, display: '19:54-55' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 37, surahName: 'As-Saffat', ayahRange: { surah: 37, ayah: 101, rangeEnd: 113, display: '37:101-113' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 26, rangeEnd: 27, display: '22:26-27' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 26, rangeEnd: 27, display: '22:26-27' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },{ surahNumber: 37, surahName: 'As-Saffat', ayahRange: { surah: 37, ayah: 101, rangeEnd: 113, display: '37:101-113' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      
     ],
     dominantSurahNumber: 37,
     totalOccurrences: 6,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_isra_miraj',
     titleEn: 'The Night Journey and Ascension (Isra Miraj)',
     titleAr: 'قصة الإسراء والمعراج',
@@ -1101,8 +1034,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 17,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_jinn_quran',
     titleEn: 'The Jinn Who Heard the Quran',
     titleAr: 'قصة الجن الذين استمعوا للقرآن',
@@ -1113,8 +1045,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 46,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_kahf',
     titleEn: 'The People of the Cave (Ashab Al-Kahf)',
     titleAr: 'قصة أصحاب الكهف',
@@ -1124,8 +1055,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 18,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_khandaq',
     titleEn: 'The Battle of the Trench (Khandaq)',
     titleAr: 'قصة غزوة الخندق',
@@ -1135,8 +1065,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 33,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_khidr',
     titleEn: 'Musa and Al-Khidr — Hidden Wisdom',
     titleAr: 'قصة موسى والخضر والحكمة الخفية',
@@ -1146,8 +1075,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 18,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_light_parable',
     titleEn: 'The Parable of Light',
     titleAr: 'مثل نور الله',
@@ -1157,8 +1085,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 24,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_luqman',
     titleEn: 'Luqman — Wisdom and Advice to His Son',
     titleAr: 'قصة لقمان وحكمته ووصاياه لابنه',
@@ -1168,31 +1095,28 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 31,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_lut',
     titleEn: 'Prophet Lut and the People of Sodom',
     titleAr: 'قصة النبي لوط وقوم سدوم',
-    surahOccurrences: [
-      { surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 80, rangeEnd: 84, display: '7:80-84' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 80, rangeEnd: 84, display: '7:80-84' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 11, surahName: 'Hud', ayahRange: { surah: 11, ayah: 77, rangeEnd: 83, display: '11:77-83' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 15, surahName: 'Al-Hijr', ayahRange: { surah: 15, ayah: 61, rangeEnd: 77, display: '15:61-77' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 43, rangeEnd: 43, display: '22:43' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 25, surahName: 'Al-Furqan', ayahRange: { surah: 25, ayah: 40, rangeEnd: 40, display: '25:40' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 26, surahName: 'Ash-Shuara', ayahRange: { surah: 26, ayah: 160, rangeEnd: 175, display: '26:160-175' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 27, surahName: 'An-Naml', ayahRange: { surah: 27, ayah: 54, rangeEnd: 58, display: '27:54-58' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 29, surahName: 'Al-Ankabut', ayahRange: { surah: 29, ayah: 28, rangeEnd: 35, display: '29:28-35' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 37, surahName: 'As-Saffat', ayahRange: { surah: 37, ayah: 133, rangeEnd: 138, display: '37:133-138' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 54, surahName: 'Al-Qamar', ayahRange: { surah: 54, ayah: 33, rangeEnd: 40, display: '54:33-40' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 43, rangeEnd: 43, display: '22:43' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 25, surahName: 'Al-Furqan', ayahRange: { surah: 25, ayah: 40, rangeEnd: 40, display: '25:40' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 51, surahName: 'Adh-Dhariyat', ayahRange: { surah: 51, ayah: 32, rangeEnd: 37, display: '51:32-37' }, coverageNote: { en: 'Complete account', ar: 'الرواية الكاملة' } },
       { surahNumber: 53, surahName: 'An-Najm', ayahRange: { surah: 53, ayah: 53, rangeEnd: 54, display: '53:53-54' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 54, surahName: 'Al-Qamar', ayahRange: { surah: 54, ayah: 33, rangeEnd: 40, display: '54:33-40' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 89, surahName: 'Al-Fajr', ayahRange: { surah: 89, ayah: 9, rangeEnd: 9, display: '89:9' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 11,
     totalOccurrences: 13,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_magicians',
     titleEn: 'Pharaoh\'s Magicians Embrace Faith',
     titleAr: 'قصة سحرة فرعون وإيمانهم',
@@ -1204,23 +1128,20 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 7,
     totalOccurrences: 3,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_maryam',
     titleEn: 'Maryam — the Chosen and Purified',
     titleAr: 'قصة مريم المختارة المطهرة',
-    surahOccurrences: [
-      { surahNumber: 3, surahName: 'Aal-Imran', ayahRange: { surah: 3, ayah: 35, rangeEnd: 47, display: '3:35-47' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 3, surahName: 'Aal-Imran', ayahRange: { surah: 3, ayah: 35, rangeEnd: 47, display: '3:35-47' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 19, surahName: 'Maryam', ayahRange: { surah: 19, ayah: 16, rangeEnd: 37, display: '19:16-37' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 21, surahName: 'Al-Anbiya', ayahRange: { surah: 21, ayah: 91, rangeEnd: 91, display: '21:91' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 66, surahName: 'At-Tahrim', ayahRange: { surah: 66, ayah: 12, rangeEnd: 12, display: '66:12' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 23, surahName: 'Al-Muminun', ayahRange: { surah: 23, ayah: 50, rangeEnd: 50, display: '23:50' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 23, surahName: 'Al-Muminun', ayahRange: { surah: 23, ayah: 50, rangeEnd: 50, display: '23:50' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },{ surahNumber: 66, surahName: 'At-Tahrim', ayahRange: { surah: 66, ayah: 12, rangeEnd: 12, display: '66:12' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      
     ],
     dominantSurahNumber: 19,
     totalOccurrences: 5,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_maryam_birth',
     titleEn: 'The Birth and Dedication of Maryam',
     titleAr: 'قصة ولادة مريم ونذرها',
@@ -1230,8 +1151,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 3,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_mizan',
     titleEn: 'The Scale (Mizan) on the Day of Judgment',
     titleAr: 'قصة الميزان يوم القيامة',
@@ -1242,8 +1162,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 23,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_mother_musa',
     titleEn: 'The Courage of Musa\'s Mother',
     titleAr: 'قصة أم موسى وشجاعتها',
@@ -1254,8 +1173,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 20,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_muhammad',
     titleEn: 'Prophet Muhammad — Life and Struggles',
     titleAr: 'قصة النبي محمد حياته وجهاده',
@@ -1271,8 +1189,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 3,
     totalOccurrences: 7,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_musa_burning_bush',
     titleEn: 'Musa and the Burning Bush',
     titleAr: 'قصة موسى والشجرة المضيئة',
@@ -1282,8 +1199,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 20,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_musa_firaun_dialogue',
     titleEn: 'Musa\'s Dialogue with Pharaoh',
     titleAr: 'قصة حوار موسى مع فرعون',
@@ -1294,8 +1210,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 26,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_musa_midian',
     titleEn: 'Musa in Midian — Rest and Marriage',
     titleAr: 'قصة موسى في مدين وزواجه',
@@ -1305,8 +1220,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 28,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_musa_mountain',
     titleEn: 'Musa Asks to See Allah — the Mountain',
     titleAr: 'قصة موسى وطلبه الرؤية والجبل',
@@ -1316,8 +1230,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 7,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_najran',
     titleEn: 'The Delegation of Najran and Mubahala',
     titleAr: 'قصة وفد نجران والمباهلة',
@@ -1327,37 +1240,34 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 3,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_nuh',
     titleEn: 'Prophet Nuh (Noah) and the Great Flood',
     titleAr: 'قصة النبي نوح والطوفان العظيم',
-    surahOccurrences: [
-      { surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 59, rangeEnd: 64, display: '7:59-64' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 59, rangeEnd: 64, display: '7:59-64' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 9, surahName: 'At-Tawba', ayahRange: { surah: 9, ayah: 70, rangeEnd: 70, display: '9:70' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 10, surahName: 'Yunus', ayahRange: { surah: 10, ayah: 71, rangeEnd: 73, display: '10:71-73' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 11, surahName: 'Hud', ayahRange: { surah: 11, ayah: 25, rangeEnd: 49, display: '11:25-49' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 42, rangeEnd: 44, display: '22:42-44' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 23, surahName: 'Al-Muminun', ayahRange: { surah: 23, ayah: 23, rangeEnd: 30, display: '23:23-30' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 25, surahName: 'Al-Furqan', ayahRange: { surah: 25, ayah: 37, rangeEnd: 37, display: '25:37' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 26, surahName: 'Ash-Shuara', ayahRange: { surah: 26, ayah: 105, rangeEnd: 122, display: '26:105-122' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 29, surahName: 'Al-Ankabut', ayahRange: { surah: 29, ayah: 14, rangeEnd: 15, display: '29:14-15' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 37, surahName: 'As-Saffat', ayahRange: { surah: 37, ayah: 75, rangeEnd: 82, display: '37:75-82' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 54, surahName: 'Al-Qamar', ayahRange: { surah: 54, ayah: 9, rangeEnd: 16, display: '54:9-16' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 71, surahName: 'Nuh', ayahRange: { surah: 71, ayah: 1, rangeEnd: 28, display: '71:1-28' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 9, surahName: 'At-Tawba', ayahRange: { surah: 9, ayah: 70, rangeEnd: 70, display: '9:70' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 42, rangeEnd: 44, display: '22:42-44' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 25, surahName: 'Al-Furqan', ayahRange: { surah: 25, ayah: 37, rangeEnd: 37, display: '25:37' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 33, surahName: 'Al-Ahzab', ayahRange: { surah: 33, ayah: 7, rangeEnd: 7, display: '33:7' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 35, surahName: 'Fatir', ayahRange: { surah: 35, ayah: 24, rangeEnd: 26, display: '35:24-26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 37, surahName: 'As-Saffat', ayahRange: { surah: 37, ayah: 75, rangeEnd: 82, display: '37:75-82' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 42, surahName: 'Ash-Shura', ayahRange: { surah: 42, ayah: 13, rangeEnd: 13, display: '42:13' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 51, surahName: 'Adh-Dhariyat', ayahRange: { surah: 51, ayah: 46, rangeEnd: 46, display: '51:46' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 53, surahName: 'An-Najm', ayahRange: { surah: 53, ayah: 52, rangeEnd: 52, display: '53:52' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 54, surahName: 'Al-Qamar', ayahRange: { surah: 54, ayah: 9, rangeEnd: 16, display: '54:9-16' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 57, surahName: 'Al-Hadid', ayahRange: { surah: 57, ayah: 26, rangeEnd: 26, display: '57:26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 71, surahName: 'Nuh', ayahRange: { surah: 71, ayah: 1, rangeEnd: 28, display: '71:1-28' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 77, surahName: 'Al-Mursalat', ayahRange: { surah: 77, ayah: 14, rangeEnd: 19, display: '77:14-19' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 71,
     totalOccurrences: 19,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_nuh_people',
     titleEn: 'The People of Nuh\'s Rejection',
     titleAr: 'قصة قوم نوح وتكذيبهم',
@@ -1368,8 +1278,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 23,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_paradise',
     titleEn: 'The Description of Paradise (Jannah)',
     titleAr: 'وصف الجنة ونعيمها',
@@ -1382,8 +1291,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 47,
     totalOccurrences: 4,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_qarun',
     titleEn: 'Qarun — the Arrogant Rich Man',
     titleAr: 'قصة قارون الثري المتكبر',
@@ -1395,8 +1303,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 28,
     totalOccurrences: 3,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_qiblah_change',
     titleEn: 'The Change of the Qibla to Makkah',
     titleAr: 'قصة تحويل القبلة نحو مكة',
@@ -1406,8 +1313,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 2,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_rain_parable',
     titleEn: 'The Parable of Rain and Vegetation',
     titleAr: 'مثل المطر والنبات',
@@ -1418,8 +1324,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 10,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_rass',
     titleEn: 'The People of Ar-Rass',
     titleAr: 'قصة أصحاب الرس',
@@ -1430,8 +1335,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 25,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_romans_persians',
     titleEn: 'The Romans vs Persians — a Sign',
     titleAr: 'قصة الروم والفرس وآية القرآن',
@@ -1441,8 +1345,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 30,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_saba',
     titleEn: 'The Kingdom of Saba and the Dam of Marib',
     titleAr: 'قصة مملكة سبأ وسيل العرم',
@@ -1452,8 +1355,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 34,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_sabbath_breakers',
     titleEn: 'The Sabbath Breakers Transformed',
     titleAr: 'قصة أصحاب السبت وعقوبتهم',
@@ -1464,25 +1366,22 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 2,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_salih',
     titleEn: 'Prophet Salih and the She-Camel',
     titleAr: 'قصة النبي صالح وناقة الله',
-    surahOccurrences: [
-      { surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 73, rangeEnd: 79, display: '7:73-79' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 73, rangeEnd: 79, display: '7:73-79' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 11, surahName: 'Hud', ayahRange: { surah: 11, ayah: 61, rangeEnd: 68, display: '11:61-68' }, coverageNote: { en: 'Complete account', ar: 'الرواية الكاملة' } },
-      { surahNumber: 27, surahName: 'An-Naml', ayahRange: { surah: 27, ayah: 45, rangeEnd: 53, display: '27:45-53' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 42, rangeEnd: 42, display: '22:42' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },{ surahNumber: 27, surahName: 'An-Naml', ayahRange: { surah: 27, ayah: 45, rangeEnd: 53, display: '27:45-53' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 41, surahName: 'Fussilat', ayahRange: { surah: 41, ayah: 17, rangeEnd: 18, display: '41:17-18' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 54, surahName: 'Al-Qamar', ayahRange: { surah: 54, ayah: 23, rangeEnd: 32, display: '54:23-32' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 91, surahName: 'Ash-Shams', ayahRange: { surah: 91, ayah: 11, rangeEnd: 15, display: '91:11-15' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 42, rangeEnd: 42, display: '22:42' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      
     ],
     dominantSurahNumber: 11,
     totalOccurrences: 7,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_samiri',
     titleEn: 'Al-Samiri — the Golden Calf Maker',
     titleAr: 'قصة السامري وصنعه العجل الذهبي',
@@ -1492,8 +1391,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 20,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_sea_crossing',
     titleEn: 'The Crossing of the Red Sea',
     titleAr: 'قصة عبور بني إسرائيل البحر الأحمر',
@@ -1504,23 +1402,20 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 10,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_shuayb',
     titleEn: 'Prophet Shuayb and the People of Madyan',
     titleAr: 'قصة النبي شعيب وقوم مدين',
-    surahOccurrences: [
-      { surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 85, rangeEnd: 93, display: '7:85-93' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 85, rangeEnd: 93, display: '7:85-93' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 11, surahName: 'Hud', ayahRange: { surah: 11, ayah: 84, rangeEnd: 95, display: '11:84-95' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 26, surahName: 'Ash-Shuara', ayahRange: { surah: 26, ayah: 176, rangeEnd: 191, display: '26:176-191' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 44, rangeEnd: 44, display: '22:44' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },{ surahNumber: 26, surahName: 'Ash-Shuara', ayahRange: { surah: 26, ayah: 176, rangeEnd: 191, display: '26:176-191' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 29, surahName: 'Al-Ankabut', ayahRange: { surah: 29, ayah: 36, rangeEnd: 37, display: '29:36-37' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 44, rangeEnd: 44, display: '22:44' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      
     ],
     dominantSurahNumber: 7,
     totalOccurrences: 5,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_signs_hour',
     titleEn: 'The Signs of the Hour (Day of Judgment)',
     titleAr: 'قصة علامات الساعة',
@@ -1532,8 +1427,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 43,
     totalOccurrences: 3,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_son_nuh',
     titleEn: 'Nuh\'s Son — the Drowned Non-Believer',
     titleAr: 'قصة ابن نوح الغريق',
@@ -1544,8 +1438,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 11,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_spider',
     titleEn: 'The Parable of the Spider Web',
     titleAr: 'مثل بيت العنكبوت',
@@ -1555,8 +1448,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 29,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_sulayman',
     titleEn: 'Prophet Sulayman — Kingdom and Wisdom',
     titleAr: 'قصة النبي سليمان الملك الحكيم',
@@ -1569,8 +1461,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 21,
     totalOccurrences: 4,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_sulayman_horses',
     titleEn: 'Sulayman and the Prancing Horses',
     titleAr: 'قصة سليمان والخيل الصافنات',
@@ -1580,8 +1471,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 38,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_sulayman_jinn',
     titleEn: 'Sulayman\'s Jinn and the Building Projects',
     titleAr: 'قصة جن سليمان ومشاريع البناء',
@@ -1591,8 +1481,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 34,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_sulayman_trial',
     titleEn: 'The Trial of Sulayman — the Body on the Throne',
     titleAr: 'قصة فتنة سليمان والجسد على العرش',
@@ -1602,8 +1491,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 38,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_tabuk',
     titleEn: 'The Expedition of Tabuk',
     titleAr: 'قصة غزوة تبوك',
@@ -1613,8 +1501,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 9,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_talut_jalut',
     titleEn: 'Talut, Jalut, and the Victory of Dawud',
     titleAr: 'قصة طالوت وجالوت وانتصار داود',
@@ -1624,28 +1511,25 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 2,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_thamud',
     titleEn: 'The Thamud — People of Al-Hijr',
     titleAr: 'قصة ثمود قوم الحجر',
-    surahOccurrences: [
-      { surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 73, rangeEnd: 79, display: '7:73-79' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+    surahOccurrences: [{ surahNumber: 7, surahName: 'Al-Araf', ayahRange: { surah: 7, ayah: 73, rangeEnd: 79, display: '7:73-79' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 11, surahName: 'Hud', ayahRange: { surah: 11, ayah: 67, rangeEnd: 68, display: '11:67-68' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 25, surahName: 'Al-Furqan', ayahRange: { surah: 25, ayah: 38, rangeEnd: 38, display: '25:38' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 41, surahName: 'Fussilat', ayahRange: { surah: 41, ayah: 17, rangeEnd: 18, display: '41:17-18' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 53, surahName: 'An-Najm', ayahRange: { surah: 53, ayah: 51, rangeEnd: 51, display: '53:51' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 54, surahName: 'Al-Qamar', ayahRange: { surah: 54, ayah: 23, rangeEnd: 32, display: '54:23-32' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 69, surahName: 'Al-Haqqa', ayahRange: { surah: 69, ayah: 4, rangeEnd: 5, display: '69:4-5' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 91, surahName: 'Ash-Shams', ayahRange: { surah: 91, ayah: 11, rangeEnd: 15, display: '91:11-15' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 25, surahName: 'Al-Furqan', ayahRange: { surah: 25, ayah: 38, rangeEnd: 38, display: '25:38' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 53, surahName: 'An-Najm', ayahRange: { surah: 53, ayah: 51, rangeEnd: 51, display: '53:51' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 77, surahName: 'Al-Mursalat', ayahRange: { surah: 77, ayah: 16, rangeEnd: 17, display: '77:16-17' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
-      { surahNumber: 89, surahName: 'Al-Fajr', ayahRange: { surah: 89, ayah: 9, rangeEnd: 9, display: '89:9' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 89, surahName: 'Al-Fajr', ayahRange: { surah: 89, ayah: 9, rangeEnd: 9, display: '89:9' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },{ surahNumber: 91, surahName: 'Ash-Shams', ayahRange: { surah: 91, ayah: 11, rangeEnd: 15, display: '91:11-15' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      
     ],
     dominantSurahNumber: 11,
     totalOccurrences: 10,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_three_messengers',
     titleEn: 'The Three Messengers to the City',
     titleAr: 'قصة أصحاب القرية والرسل الثلاثة',
@@ -1655,8 +1539,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 36,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_tree_cursed',
     titleEn: 'The Cursed Tree of Zaqqum',
     titleAr: 'قصة شجرة الزقوم الملعونة',
@@ -1668,8 +1551,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 37,
     totalOccurrences: 3,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_trumpet',
     titleEn: 'The Trumpet Blast on the Day of Resurrection',
     titleAr: 'قصة نفخ الصور يوم القيامة',
@@ -1682,8 +1564,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 36,
     totalOccurrences: 4,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_tubba',
     titleEn: 'The People of Tubba\'',
     titleAr: 'قصة أصحاب تبع',
@@ -1694,8 +1575,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 44,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_two_gardens',
     titleEn: 'The Parable of the Two Gardens',
     titleAr: 'قصة صاحبي الجنتين',
@@ -1705,8 +1585,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 18,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_uhud',
     titleEn: 'The Battle of Uhud',
     titleAr: 'قصة غزوة أحد',
@@ -1716,8 +1595,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 3,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_uzair',
     titleEn: 'Uzair Passes by the Dead City',
     titleAr: 'قصة عزير والمدينة الميتة',
@@ -1727,8 +1605,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 2,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_wife_lut',
     titleEn: 'The Story of Lut\'s Wife',
     titleAr: 'قصة امرأة لوط الخائنة',
@@ -1738,8 +1615,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 66,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_wife_nuh',
     titleEn: 'The Story of Nuh\'s Wife',
     titleAr: 'قصة امرأة نوح الخائنة',
@@ -1749,8 +1625,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 66,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_yajuj_majuj',
     titleEn: 'Yajuj and Majuj — Gog and Magog',
     titleAr: 'قصة يأجوج ومأجوج',
@@ -1761,8 +1636,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 18,
     totalOccurrences: 2,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_yaqub',
     titleEn: 'Prophet Yaqub (Jacob) and His Sons',
     titleAr: 'قصة النبي يعقوب وأبنائه',
@@ -1772,8 +1646,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 12,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_yunus',
     titleEn: 'Prophet Yunus (Jonah) in the Whale',
     titleAr: 'قصة النبي يونس في بطن الحوت',
@@ -1786,8 +1659,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 10,
     totalOccurrences: 4,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_yusuf',
     titleEn: 'Prophet Yusuf (Joseph) — Complete Story',
     titleAr: 'قصة النبي يوسف الكاملة',
@@ -1797,8 +1669,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 12,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_yusuf_brothers',
     titleEn: 'Yusuf\'s Brothers and Their Plot',
     titleAr: 'قصة إخوة يوسف ومؤامرتهم',
@@ -1808,8 +1679,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 12,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_yusuf_dream',
     titleEn: 'Yusuf\'s Dream and Its Fulfillment',
     titleAr: 'قصة رؤيا يوسف وتحقيقها',
@@ -1819,8 +1689,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 12,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_yusuf_prison',
     titleEn: 'Yusuf in Prison',
     titleAr: 'قصة يوسف في السجن',
@@ -1830,8 +1699,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 12,
     totalOccurrences: 1,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_zakariyya_yahya',
     titleEn: 'Prophets Zakariyya and Yahya',
     titleAr: 'قصة النبيين زكريا ويحيى',
@@ -1843,8 +1711,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
     dominantSurahNumber: 3,
     totalOccurrences: 3,
     reviewStatus: 'needs_review',
-  },
-  {
+  },{
     storyId: 'story_zulaykha',
     titleEn: 'Zulaykha and Yusuf — Test of Character',
     titleAr: 'قصة زليخا ويوسف اختبار الشخصية',
