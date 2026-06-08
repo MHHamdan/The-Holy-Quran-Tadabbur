@@ -2769,7 +2769,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["سليمان وبلقيس", "الهدهد", "الخضوع لله"],
     prophetsMentioned: ["Musa", "Sulayman", "Salih", "Dawud", "Lut"
     ],
-    nationsMentioned: ["People of Lut", "People of Saba", "Thamud"],
+    nationsMentioned: ["Bani Israel", "People of Lut", "People of Saba", "Pharaoh's Army", "Thamud"],
     storiesMentioned: [
       {
         storyId: "story_musa",
@@ -4431,7 +4431,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Day of Smoke", "Night of Power", "Fate of Pharaoh"],
     keyConceptsAr: ["يوم الدخان", "ليلة القدر", "مصير فرعون"],
     prophetsMentioned: ["Musa", "Harun"],
-    nationsMentioned: ["Pharaoh's Army", "Bani Israel"],
+    nationsMentioned: ["Bani Israel", "People of Tubba", "Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_musa",
@@ -4545,7 +4545,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَلَهُ ٱلْكِبْرِيَآءُ فِى ٱلسَّمَٰوَٰتِ وَٱلْأَرْضِ ۖ وَهُوَ ٱلْعَزِيزُ ٱلْحَكِيمُ",
     keyConcepts: ["Scrolls of Deeds", "Kneeling for Judgment", "Universe as Signs"],
     keyConceptsAr: ["صحائف الأعمال", "الجثو للحساب", "الكون آيات"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Musa", "Muhammad"],
     nationsMentioned: ["Bani Israel"],
     storiesMentioned: [
         { storyId: 'story_bani_israel', coverage: 'partial', ayahRange: { display: '45:16-17', start: 16, end: 17 } },
@@ -4963,7 +4963,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Resurrection Proven", "Agonies of Death", "The Five Prayers"],
     keyConceptsAr: ["البعث بالأدلة", "سكرة الموت", "الصلوات الخمس"],
     prophetsMentioned: ["Shuayb"],
-    nationsMentioned: ["Madyan"],
+    nationsMentioned: ["Madyan", "People of Tubba"],
     storiesMentioned: [
       {
         storyId: "story_tubba",
@@ -6011,7 +6011,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَإِذَا رَأَوْا۟ تِجَٰرَةً أَوْ لَهْوًا ٱنفَضُّوٓا۟ إِلَيْهَا وَتَرَكُوكَ قَآئِمًۭا ۚ قُلْ مَا عِندَ ٱللَّهِ خَيْرٌۭ مِّنَ ٱللَّهْوِ وَمِنَ ٱلتِّجَٰرَةِ ۚ وَٱللَّهُ خَيْرُ ٱلرَّٰزِقِينَ",
     keyConcepts: ["Obligation of Jumu'ah", "Remembrance Over Trade"],
     keyConceptsAr: ["فريضة الجمعة", "الذكر على التجارة"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Muhammad"],
     nationsMentioned: ["Bani Israel"],
     storiesMentioned: [
       {
@@ -6904,7 +6904,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Night Prayer", "Weight of Carrying the Quran"],
     keyConceptsAr: ["قيام الليل", "ثقل القرآن وحمله"],
     prophetsMentioned: ["Musa"],
-    nationsMentioned: ["Bani Israel", "Pharaoh's Army"],
+    nationsMentioned: ["Bani Israel", "People of Tubba", "Pharaoh's Army"],
     storiesMentioned: [
         { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '73:15-16', start: 15, end: 16 } },
     ],
