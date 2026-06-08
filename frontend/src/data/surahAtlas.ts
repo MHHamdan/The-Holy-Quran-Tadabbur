@@ -274,6 +274,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_isa_ascension', coverage: 'partial', ayahRange: { display: '3:55', start: 55, end: 55 } },
         { storyId: 'story_uhud', coverage: 'complete', ayahRange: { display: '3:121-155', start: 121, end: 155 } },
         { storyId: 'story_najran', coverage: 'partial', ayahRange: { display: '3:59-63', start: 59, end: 63 } },
+        { storyId: 'story_ibrahim', coverage: 'partial', ayahRange: { display: '3:65-68', start: 65, end: 68 } },
     ],
     summary: {
       short: {
@@ -1964,6 +1965,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         }
       },
         { storyId: 'story_ismail', coverage: 'partial', ayahRange: { display: '19:54-55', start: 54, end: 55 } },
+        { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '19:51-53', start: 51, end: 53 } },
     ],
     summary: {
       short: {
