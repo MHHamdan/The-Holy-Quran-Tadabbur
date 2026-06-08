@@ -3609,7 +3609,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["قلب القرآن", "البعث والتوحيد والوحي"],
     prophetsMentioned: ["Israfil", "Musa"
     ],
-    nationsMentioned: [],
+    nationsMentioned: ["People of the City"],
     storiesMentioned: [
       {
         storyId: "story_trumpet",
@@ -5913,7 +5913,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Supporting the Religion", "Prophecy of Ahmad", "Jihad with Life and Wealth"],
     keyConceptsAr: ["نصرة الدين", "البشرى بأحمد", "الجهاد بالنفس والمال"],
     prophetsMentioned: ["Musa", "Isa"],
-    nationsMentioned: [],
+    nationsMentioned: ["Bani Israel"],
     storiesMentioned: [
       {
         storyId: "story_isa",
