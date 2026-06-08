@@ -31,6 +31,8 @@ import {
   AdultsReflectionPanel,
   GroupedSegmentList,
 } from '../components/stories/StoryReadingPanel';
+import { STORY_RECURRENCES } from '../data/quranMemorizationLinks';
+import type { StoryRecurrenceEntry } from '../types/quranMemorization';
 import clsx from 'clsx';
 
 type ViewMode = 'list' | 'graph' | 'themes' | 'insights';
@@ -121,15 +123,16 @@ export function StoryDetailPage() {
   }
 
   if (!story) {
+    const recurrence = STORY_RECURRENCES.find((r) => r.storyId === storyId);
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8 text-center">
-        <p className="text-gray-500">
-          {language === 'ar' ? 'القصة غير موجودة' : 'Story not found'}
-        </p>
-        <Link to="/stories" className="text-primary-600 hover:underline mt-4 inline-block">
-          {language === 'ar' ? 'العودة للقصص' : 'Back to Stories'}
-        </Link>
-      </div>
+      <StoryFallbackView
+        storyId={storyId!}
+        language={language}
+        recurrence={recurrence}
+        richStory={richStory}
+        audienceLevel={audienceLevel}
+        setAudienceLevel={setAudienceLevel}
+      />
     );
   }
 
@@ -600,6 +603,146 @@ export function StoryDetailPage() {
           language={language}
         />
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Fallback view — shown when backend API is unavailable (e.g. unauthenticated)
+// Uses STORY_RECURRENCES metadata + local richStory data where available
+// ---------------------------------------------------------------------------
+
+function StoryFallbackView({
+  storyId,
+  language,
+  recurrence,
+  richStory,
+  audienceLevel,
+  setAudienceLevel,
+}: {
+  storyId: string;
+  language: 'ar' | 'en';
+  recurrence: StoryRecurrenceEntry | undefined;
+  richStory: import('../types/quranStory').QuranStory | undefined;
+  audienceLevel: AudienceLevel;
+  setAudienceLevel: (l: AudienceLevel) => void;
+}) {
+  const isAr = language === 'ar';
+  const title = recurrence
+    ? (isAr ? recurrence.titleAr : recurrence.titleEn)
+    : storyId.replace('story_', '').replace(/_/g, ' ');
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-8" dir={isAr ? 'rtl' : 'ltr'}>
+      <Link
+        to="/stories"
+        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6"
+      >
+        <ArrowLeft className={clsx('w-4 h-4', isAr && 'rotate-180')} size={14} />
+        {isAr ? 'العودة للقصص' : 'Back to Stories'}
+      </Link>
+
+      {/* Header */}
+      <div className="bg-white rounded-2xl border p-6 mb-4">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Book className="w-6 h-6 text-primary-600" />
+          </div>
+          <div>
+            <h1 className={clsx('text-xl font-bold text-gray-900 mb-1', isAr && 'font-arabic')}>
+              {title}
+            </h1>
+            {recurrence && (
+              <p className="text-sm text-gray-500">
+                {isAr
+                  ? `${recurrence.totalOccurrences} سورة مذكورة فيها`
+                  : `Mentioned in ${recurrence.totalOccurrences} surah${recurrence.totalOccurrences !== 1 ? 's' : ''}`}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Surah occurrences from STORY_RECURRENCES */}
+        {recurrence && recurrence.surahOccurrences.length > 0 && (
+          <div>
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
+              {isAr ? 'مواضع القصة في القرآن' : 'Quranic References'}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {recurrence.surahOccurrences.map((occ: StoryRecurrenceEntry['surahOccurrences'][number]) => (
+                <Link
+                  key={`${occ.surahNumber}-${occ.ayahRange.display}`}
+                  to={`/surah-atlas/${occ.surahNumber}`}
+                  className="inline-flex items-center gap-1.5 text-xs bg-primary-50 text-primary-700 border border-primary-200 rounded-full px-3 py-1.5 hover:bg-primary-100 transition-colors"
+                >
+                  <span className="font-medium">{occ.ayahRange.display}</span>
+                  <span className="text-primary-500">·</span>
+                  <span>{isAr ? occ.surahName : occ.surahName}</span>
+                  <span className="text-primary-400">
+                    {isAr
+                      ? (occ.coverageNote.ar.includes('كاملة') ? '(كاملة)' : '')
+                      : (occ.coverageNote.en === 'Complete account' ? '(complete)' : '')}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Rich local story data if available */}
+      {richStory ? (
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl border p-4 mb-4">
+            <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+              <h3 className={clsx('font-semibold text-gray-900', isAr && 'font-arabic')}>
+                {isAr ? 'مستوى العرض' : 'Reading Level'}
+              </h3>
+              <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+                <button
+                  onClick={() => setAudienceLevel('kids')}
+                  className={clsx(
+                    'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all',
+                    audienceLevel === 'kids' ? 'bg-amber-500 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900',
+                  )}
+                >
+                  <Baby className="w-4 h-4" />
+                  {isAr ? 'للأطفال' : 'Kids'}
+                </button>
+                <button
+                  onClick={() => setAudienceLevel('adults')}
+                  className={clsx(
+                    'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all',
+                    audienceLevel === 'adults' ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900',
+                  )}
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  {isAr ? 'للكبار' : 'Adults'}
+                </button>
+              </div>
+            </div>
+          </div>
+          <StoryOverviewCard story={richStory} level={audienceLevel} language={language} />
+          <GroupedSegmentList story={richStory} level={audienceLevel} language={language} />
+          <StorySummaryCard story={richStory} level={audienceLevel} language={language} />
+          {audienceLevel === 'kids' && <KidsQuizWidget story={richStory} language={language} />}
+          {audienceLevel === 'adults' && <AdultsReflectionPanel story={richStory} language={language} />}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center">
+          <Clock className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+          <p className={clsx('text-gray-500 text-sm mb-1', isAr && 'font-arabic')}>
+            {isAr
+              ? 'المحتوى التفصيلي لهذه القصة سيكون متاحاً قريباً.'
+              : 'Full story content will be available soon.'}
+          </p>
+          <p className="text-xs text-gray-400">
+            {isAr
+              ? 'تسجيل الدخول يتيح الوصول الكامل إلى كل القصص.'
+              : 'Sign in for full access to all story content.'}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
