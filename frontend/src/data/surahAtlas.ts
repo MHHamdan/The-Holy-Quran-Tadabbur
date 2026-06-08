@@ -3610,7 +3610,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَسُبْحَٰنَ ٱلَّذِى بِيَدِهِۦ مَلَكُوتُ كُلِّ شَىْءٍۢ وَإِلَيْهِ تُرْجَعُونَ",
     keyConcepts: ["Heart of Quran", "Resurrection Tawheed and Revelation"],
     keyConceptsAr: ["قلب القرآن", "البعث والتوحيد والوحي"],
-    prophetsMentioned: ["Muhammad"],
+    prophetsMentioned: [],
     nationsMentioned: ["People of the City"],
     storiesMentioned: [
       {
@@ -4544,7 +4544,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَلَهُ ٱلْكِبْرِيَآءُ فِى ٱلسَّمَٰوَٰتِ وَٱلْأَرْضِ ۖ وَهُوَ ٱلْعَزِيزُ ٱلْحَكِيمُ",
     keyConcepts: ["Scrolls of Deeds", "Kneeling for Judgment", "Universe as Signs"],
     keyConceptsAr: ["صحائف الأعمال", "الجثو للحساب", "الكون آيات"],
-    prophetsMentioned: ["Musa", "Muhammad"],
+    prophetsMentioned: [],
     nationsMentioned: ["Bani Israel"],
     storiesMentioned: [
         { storyId: 'story_bani_israel', coverage: 'partial', ayahRange: { display: '45:16-17', start: 16, end: 17 } },
@@ -6553,7 +6553,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَسَبِّحْ بِٱسْمِ رَبِّكَ ٱلْعَظِيمِ",
     keyConcepts: ["Al-Haqqah Day of Truth", "Fate of Ancient Deniers", "Quran Not Poetry"],
     keyConceptsAr: ["الحاقة يوم الحق", "مصير المكذبين", "القرآن وحي لا شعر"],
-    prophetsMentioned: ["Hud", "Salih", "Muhammad"],
+    prophetsMentioned: ["Hud", "Salih"],
     nationsMentioned: ["Aad", "Thamud", "People of Lut", "Pharaoh's Army"],
     storiesMentioned: [
       {
@@ -7937,7 +7937,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "صُحُفِ إِبْرَٰهِيمَ وَمُوسَىٰ",
     keyConcepts: ["Glorify the Highest", "You Will Not Forget the Quran"],
     keyConceptsAr: ["تسبيح الله الأعلى", "لن تنسى القرآن"],
-    prophetsMentioned: ["Ibrahim", "Musa"],
+    prophetsMentioned: [],
     nationsMentioned: [],
     storiesMentioned: [],
     summary: {
