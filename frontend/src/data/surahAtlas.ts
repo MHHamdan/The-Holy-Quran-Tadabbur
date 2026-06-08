@@ -3001,7 +3001,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Faith is Tested", "Spider's Web", "Jihad Leads to Guidance"],
     keyConceptsAr: ["الإيمان يُختبر", "بيت العنكبوت", "الجهاد يهدي"],
     prophetsMentioned: ["Nuh", "Ibrahim", "Lut", "Shuayb", "Musa"],
-    nationsMentioned: ["Bani Israel", "Madyan", "People of Lut", "People of Nuh", "Pharaoh's Army"],
+    nationsMentioned: ["Aad", "Bani Israel", "Madyan", "People of Lut", "People of Nuh", "Pharaoh's Army", "Thamud"],
     storiesMentioned: [
       {
         storyId: "story_nuh",
@@ -4962,7 +4962,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Resurrection Proven", "Agonies of Death", "The Five Prayers"],
     keyConceptsAr: ["البعث بالأدلة", "سكرة الموت", "الصلوات الخمس"],
     prophetsMentioned: ["Shuayb"],
-    nationsMentioned: ["Madyan", "People of Tubba"],
+    nationsMentioned: ["Aad", "Companions of Rass", "Madyan", "People of Lut", "People of Nuh", "People of Tubba", "Pharaoh's Army", "Thamud"],
     storiesMentioned: [
       {
         storyId: "story_tubba",
@@ -5066,9 +5066,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَوَيْلٌۭ لِّلَّذِينَ كَفَرُوا۟ مِن يَوْمِهِمُ ٱلَّذِى يُوعَدُونَ",
     keyConcepts: ["True Promise", "Purpose of Creation: Worship"],
     keyConceptsAr: ["الوعد الحق", "العبادة غاية الخلق"],
-    prophetsMentioned: ["Ibrahim", "Lut", "Musa", "Nuh"
-    ],
-    nationsMentioned: ["Aad", "Bani Israel", "People of Lut", "People of Nuh", "Pharaoh's Army"],
+    prophetsMentioned: ["Ibrahim", "Lut", "Musa", "Nuh"],
+    nationsMentioned: ["Aad", "Bani Israel", "People of Lut", "People of Nuh", "Pharaoh's Army", "Thamud"],
     storiesMentioned: [
       {
         storyId: "story_ibrahim",
