@@ -3345,7 +3345,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "لِّيُعَذِّبَ ٱللَّهُ ٱلْمُنَٰفِقِينَ وَٱلْمُنَٰفِقَٰتِ وَٱلْمُشْرِكِينَ وَٱلْمُشْرِكَٰتِ وَيَتُوبَ ٱللَّهُ عَلَى ٱلْمُؤْمِنِينَ وَٱلْمُؤْمِنَٰتِ ۗ وَكَانَ ٱللَّهُ غَفُورًۭا رَّحِيمًۢا",
     keyConcepts: ["Battle of Ahzab", "Seal of Prophets", "Hijab", "The Trust"],
     keyConceptsAr: ["غزوة الأحزاب", "خاتم النبيين", "الحجاب", "الأمانة"],
-    prophetsMentioned: ["Ibrahim", "Dawud", "Sulayman", "Musa", "Isa", "Nuh", "Muhammad"],
+    prophetsMentioned: ["Ibrahim", "Musa", "Isa", "Nuh", "Muhammad"],
     nationsMentioned: ["People of Nuh"],
     storiesMentioned: [
       {
@@ -3612,7 +3612,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَسُبْحَٰنَ ٱلَّذِى بِيَدِهِۦ مَلَكُوتُ كُلِّ شَىْءٍۢ وَإِلَيْهِ تُرْجَعُونَ",
     keyConcepts: ["Heart of Quran", "Resurrection Tawheed and Revelation"],
     keyConceptsAr: ["قلب القرآن", "البعث والتوحيد والوحي"],
-    prophetsMentioned: ["Israfil"],
+    prophetsMentioned: ["Muhammad"],
     nationsMentioned: ["People of the City"],
     storiesMentioned: [
       {
@@ -3937,8 +3937,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَتَرَى ٱلْمَلَٰٓئِكَةَ حَآفِّينَ مِنْ حَوْلِ ٱلْعَرْشِ يُسَبِّحُونَ بِحَمْدِ رَبِّهِمْ ۖ وَقُضِىَ بَيْنَهُم بِٱلْحَقِّ وَقِيلَ ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ",
     keyConcepts: ["Sincere Worship", "Allah's Vast Mercy", "Day of Judgment"],
     keyConceptsAr: ["إخلاص العبادة", "رحمة الله الواسعة", "يوم القيامة"],
-    prophetsMentioned: ["Israfil", "Ibrahim"
-    ],
+    prophetsMentioned: ["Ibrahim"],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -4132,8 +4131,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "أَلَآ إِنَّهُمْ فِى مِرْيَةٍۢ مِّن لِّقَآءِ رَبِّهِمْ ۗ أَلَآ إِنَّهُۥ بِكُلِّ شَىْءٍۢ مُّحِيطٌۢ",
     keyConcepts: ["Miracle of Quran", "Creation in Six Days", "Testimony of Limbs"],
     keyConceptsAr: ["إعجاز القرآن", "خلق الكون ستة أيام", "شهادة الأعضاء"],
-    prophetsMentioned: ["Hud", "People of 'Ad", "Salih"
-    ],
+    prophetsMentioned: ["Hud", "Salih"],
     nationsMentioned: ["Aad", "Thamud"],
     storiesMentioned: [
       {
@@ -4434,8 +4432,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَٱرْتَقِبْ إِنَّهُم مُّرْتَقِبُونَ",
     keyConcepts: ["Day of Smoke", "Night of Power", "Fate of Pharaoh"],
     keyConceptsAr: ["يوم الدخان", "ليلة القدر", "مصير فرعون"],
-    prophetsMentioned: ["Musa", "Harun", "Firawn", "Bani Israel", "Asiya", "تُبَّع"],
-    nationsMentioned: ["Pharaoh's Army"],
+    prophetsMentioned: ["Musa", "Harun"],
+    nationsMentioned: ["Pharaoh's Army", "Bani Israel"],
     storiesMentioned: [
       {
         storyId: "story_musa",
@@ -5858,7 +5856,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ لَا تَتَوَلَّوْا۟ قَوْمًا غَضِبَ ٱللَّهُ عَلَيْهِمْ قَدْ يَئِسُوا۟ مِنَ ٱلْءَاخِرَةِ كَمَا يَئِسَ ٱلْكُفَّارُ مِنْ أَصْحَٰبِ ٱلْقُبُورِ",
     keyConcepts: ["Allegiance and Disavowal", "Ibrahim as Role Model", "Rights of Migrant Women"],
     keyConceptsAr: ["الولاء والبراء", "إبراهيم أسوة", "حقوق المهاجرات"],
-    prophetsMentioned: ["Ibrahim", "Ismail", "Ishaq", "Sara", "Hajar", "Namrud"],
+    prophetsMentioned: ["Ibrahim"],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -6560,7 +6558,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَسَبِّحْ بِٱسْمِ رَبِّكَ ٱلْعَظِيمِ",
     keyConcepts: ["Al-Haqqah Day of Truth", "Fate of Ancient Deniers", "Quran Not Poetry"],
     keyConceptsAr: ["الحاقة يوم الحق", "مصير المكذبين", "القرآن وحي لا شعر"],
-    prophetsMentioned: ["Hud", "People of 'Ad", "Salih", "Israfil"],
+    prophetsMentioned: ["Hud", "Salih", "Muhammad"],
     nationsMentioned: ["Aad", "Thamud", "People of Lut", "Pharaoh's Army"],
     storiesMentioned: [
       {
@@ -7265,7 +7263,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "إِنَّآ أَنذَرْنَٰكُمْ عَذَابًۭا قَرِيبًۭا يَوْمَ يَنظُرُ ٱلْمَرْءُ مَا قَدَّمَتْ يَدَاهُ وَيَقُولُ ٱلْكَافِرُ يَٰلَيْتَنِى كُنتُ تُرَٰبًۢا",
     keyConcepts: ["The Great News is Judgment Day", "Day of Separation", "Bliss of Paradise"],
     keyConceptsAr: ["النبأ العظيم", "يوم الفصل", "نعيم الجنة"],
-    prophetsMentioned: ["Israfil"],
+    prophetsMentioned: [],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -7343,8 +7341,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "كَأَنَّهُمْ يَوْمَ يَرَوْنَهَا لَمْ يَلْبَثُوٓا۟ إِلَّا عَشِيَّةً أَوْ ضُحَىٰهَا",
     keyConcepts: ["Angels Drawing Out Souls", "Musa and Pharaoh the Tyrant"],
     keyConceptsAr: ["النازعات", "موسى وفرعون الطاغي"],
-    prophetsMentioned: ["Musa", "Harun", "Firawn", "Bani Israel", "Asiya"],
-    nationsMentioned: ["Pharaoh's Army"],
+    prophetsMentioned: ["Musa", "Harun"],
+    nationsMentioned: ["Pharaoh's Army", "Bani Israel"],
     storiesMentioned: [
       {
         storyId: "story_musa",
@@ -7448,7 +7446,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "أُو۟لَٰٓئِكَ هُمُ ٱلْكَفَرَةُ ٱلْفَجَرَةُ",
     keyConcepts: ["Islam's Equality", "Ibn Umm Maktum"],
     keyConceptsAr: ["مساواة الإسلام", "ابن أم مكتوم"],
-    prophetsMentioned: ["Muhammad", "Ibn Umm Maktum"],
+    prophetsMentioned: ["Muhammad"],
     nationsMentioned: [],
     storiesMentioned: [
       {
