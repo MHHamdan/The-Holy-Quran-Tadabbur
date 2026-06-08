@@ -1185,6 +1185,8 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [{
       { surahNumber: 33, surahName: 'Al-Ahzab', ayahRange: { surah: 33, ayah: 1, rangeEnd: 73, display: '33:1-73' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 47, surahName: 'Muhammad', ayahRange: { surah: 47, ayah: 1, rangeEnd: 38, display: '47:1-38' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 48, surahName: 'Al-Fath', ayahRange: { surah: 48, ayah: 1, rangeEnd: 29, display: '48:1-29' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 58, surahName: 'Al-Mujadila', ayahRange: { surah: 58, ayah: 1, rangeEnd: 4, display: '58:1-4' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
+      { surahNumber: 59, surahName: 'Al-Hashr', ayahRange: { surah: 59, ayah: 2, rangeEnd: 10, display: '59:2-10' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 63, surahName: 'Al-Munafiqun', ayahRange: { surah: 63, ayah: 1, rangeEnd: 11, display: '63:1-11' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 66, surahName: 'At-Tahrim', ayahRange: { surah: 66, ayah: 1, rangeEnd: 5, display: '66:1-5' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 74, surahName: 'Al-Muddaththir', ayahRange: { surah: 74, ayah: 1, rangeEnd: 7, display: '74:1-7' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
@@ -1193,7 +1195,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [{
       { surahNumber: 96, surahName: 'Al-Alaq', ayahRange: { surah: 96, ayah: 1, rangeEnd: 5, display: '96:1-5' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 3,
-    totalOccurrences: 11,
+    totalOccurrences: 13,
     reviewStatus: 'needs_review',
   },{
     storyId: 'story_musa_burning_bush',

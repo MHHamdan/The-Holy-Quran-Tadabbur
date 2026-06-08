@@ -1807,7 +1807,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Trial of Religion", "Trial of Wealth", "Trial of Knowledge", "Trial of Power", "Dajjal"],
     keyConceptsAr: ["فتنة الدين", "فتنة المال", "فتنة العلم", "فتنة السلطة", "الدجال"],
     prophetsMentioned: ["Musa", "Dhul-Qarnayn", "Adam"],
-    nationsMentioned: [],
+    nationsMentioned: ["Bani Israel"],
     storiesMentioned: [
       {
         storyId: "story_adam",
@@ -1924,7 +1924,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Prophets Stories", "Yahya Maryam Isa", "Ibrahim", "Refuting Trinity"],
     keyConceptsAr: ["قصص الأنبياء", "يحيى ومريم وعيسى", "إبراهيم", "نفي التثليث"],
     prophetsMentioned: ["Zakariya", "Yahya", "Maryam", "Isa", "Ibrahim", "Musa", "Ismail", "Idris"],
-    nationsMentioned: [],
+    nationsMentioned: ["Bani Israel"],
     storiesMentioned: [
       {
         storyId: "story_ibrahim",
@@ -2158,7 +2158,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Unity of Tawheed", "Brief Prophets Stories", "Yajuj Majuj"],
     keyConceptsAr: ["وحدة التوحيد", "قصص موجزة للأنبياء", "يأجوج ومأجوج"],
     prophetsMentioned: ["Musa", "Harun", "Ibrahim", "Lut", "Ishaq", "Yaqub", "Nuh", "Dawud", "Sulayman", "Ayyub", "Ismail", "Idris", "Dhul-Kifl", "Yunus", "Zakariya", "Yahya", "Maryam", "Isa"],
-    nationsMentioned: [],
+    nationsMentioned: ["People of Lut", "People of Nuh"],
     storiesMentioned: [
       {
         storyId: "story_ibrahim",
@@ -5704,7 +5704,17 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["الظهار محرّم", "آداب المجالس", "حزب الله"],
     prophetsMentioned: ["Muhammad"],
     nationsMentioned: [],
-    storiesMentioned: [],
+    storiesMentioned: [
+      {
+        storyId: "story_muhammad",
+        coverage: "partial",
+        ayahRange: {
+          display: "58:1-4",
+          start: 1,
+          end: 4
+        }
+      }
+    ],
     summary: {
       short: {
         en: "This Surah is entitled Al Mujadalah as well as Al Mujadilah, the title being derived from the word tujadiluka of the very first verse. As at the outset mention has been made of the woman who pleaded with the Holy Prophet (upon whom be Allah's peace) the case of zihar pronounced by her husband and urged him to suggest a way out of the difficult situation in order to save her and, her children's life from ruin, and Allah has described her pleading by the word 'mujadalah', the Surah came to be known by this very title. If it is read as 'mujadalah', it would mean 'pleading and arguing', and if it is read as 'mujadilah', it would mean 'the woman who pleaded and argued.'",
@@ -5770,9 +5780,19 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "هُوَ ٱللَّهُ ٱلْخَٰلِقُ ٱلْبَارِئُ ٱلْمُصَوِّرُ ۖ لَهُ ٱلْأَسْمَآءُ ٱلْحُسْنَىٰ ۚ يُسَبِّحُ لَهُۥ مَا فِى ٱلسَّمَٰوَٰتِ وَٱلْأَرْضِ ۖ وَهُوَ ٱلْعَزِيزُ ٱلْحَكِيمُ",
     keyConcepts: ["Exile of Banu Nadir", "Al-Fay", "The Beautiful Names of Allah"],
     keyConceptsAr: ["إجلاء بني النضير", "الفيء", "الأسماء الحسنى"],
-    prophetsMentioned: ["Musa"],
-    nationsMentioned: [],
-    storiesMentioned: [],
+    prophetsMentioned: ["Muhammad"],
+    nationsMentioned: ["Bani Israel"],
+    storiesMentioned: [
+      {
+        storyId: "story_muhammad",
+        coverage: "partial",
+        ayahRange: {
+          display: "59:2-10",
+          start: 2,
+          end: 10
+        }
+      }
+    ],
     summary: {
       short: {
         en: "The Surah derives its name from the mention of the word al-hashr in verse thereby implying that it is the Surah in which the word al-hashr has occurred.",
