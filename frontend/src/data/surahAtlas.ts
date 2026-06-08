@@ -1806,7 +1806,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "قُلْ إِنَّمَآ أَنَا۠ بَشَرٌۭ مِّثْلُكُمْ يُوحَىٰٓ إِلَىَّ أَنَّمَآ إِلَٰهُكُمْ إِلَٰهٌۭ وَٰحِدٌۭ ۖ فَمَن كَانَ يَرْجُوا۟ لِقَآءَ رَبِّهِۦ فَلْيَعْمَلْ عَمَلًۭا صَٰلِحًۭا وَلَا يُشْرِكْ بِعِبَادَةِ رَبِّهِۦٓ أَحَدًۢا",
     keyConcepts: ["Trial of Religion", "Trial of Wealth", "Trial of Knowledge", "Trial of Power", "Dajjal"],
     keyConceptsAr: ["فتنة الدين", "فتنة المال", "فتنة العلم", "فتنة السلطة", "الدجال"],
-    prophetsMentioned: ["Musa", "Dhul-Qarnayn", "Adam"],
+    prophetsMentioned: ["Musa", "Adam"],
     nationsMentioned: ["Bani Israel"],
     storiesMentioned: [
       {
@@ -2475,7 +2475,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "أَلَآ إِنَّ لِلَّهِ مَا فِى ٱلسَّمَٰوَٰتِ وَٱلْأَرْضِ ۖ قَدْ يَعْلَمُ مَآ أَنتُمْ عَلَيْهِ وَيَوْمَ يُرْجَعُونَ إِلَيْهِ فَيُنَبِّئُهُم بِمَا عَمِلُوا۟ ۗ وَٱللَّهُ بِكُلِّ شَىْءٍ عَلِيمٌۢ",
     keyConcepts: ["Punishment for Zina and Slander", "Story of al-Ifk", "Hijab", "Light of Allah"],
     keyConceptsAr: ["حدّ الزنا والقذف", "قصة الإفك", "الحجاب", "نور الله"],
-    prophetsMentioned: ["عائشة", "المنافقون"],
+    prophetsMentioned: ["Muhammad"],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -2562,9 +2562,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "قُلْ مَا يَعْبَؤُا۟ بِكُمْ رَبِّى لَوْلَا دُعَآؤُكُمْ ۖ فَقَدْ كَذَّبْتُمْ فَسَوْفَ يَكُونُ لِزَامًۢا",
     keyConcepts: ["Quran Distinguishes Truth from Falsehood", "Servants of Rahman", "Refuting Doubts"],
     keyConceptsAr: ["الفرقان حق وباطل", "عباد الرحمن", "الرد على شُبه المشركين"],
-    prophetsMentioned: ["أصحاب الرس", "Lut", "Musa", "Nuh"
-    ],
-    nationsMentioned: ["Aad", "Bani Israel", "People of Lut", "People of Nuh", "Pharaoh's Army", "Thamud"],
+    prophetsMentioned: ["Lut", "Musa", "Nuh"],
+    nationsMentioned: ["Aad", "Bani Israel", "Companions of Rass", "People of Lut", "People of Nuh", "Pharaoh's Army", "Thamud"],
     storiesMentioned: [
       {
         storyId: "story_rass",
@@ -4615,7 +4614,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَٱصْبِرْ كَمَا صَبَرَ أُو۟لُوا۟ ٱلْعَزْمِ مِنَ ٱلرُّسُلِ وَلَا تَسْتَعْجِل لَّهُمْ ۚ كَأَنَّهُمْ يَوْمَ يَرَوْنَ مَا يُوعَدُونَ لَمْ يَلْبَثُوٓا۟ إِلَّا سَاعَةًۭ مِّن نَّهَارٍۭ ۚ بَلَٰغٌۭ ۚ فَهَلْ يُهْلَكُ إِلَّا ٱلْقَوْمُ ٱلْفَٰسِقُونَ",
     keyConcepts: ["People of Aad in Ahqaf", "Jinn Embrace Islam", "Honor Parents"],
     keyConceptsAr: ["قوم عاد والأحقاف", "الجن يسلمون", "بر الوالدين"],
-    prophetsMentioned: ["Hud"],
+    prophetsMentioned: ["Hud", "Muhammad"],
     nationsMentioned: ["Aad"],
     storiesMentioned: [
       {
@@ -5310,8 +5309,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فِى مَقْعَدِ صِدْقٍ عِندَ مَلِيكٍۢ مُّقْتَدِرٍۭ",
     keyConcepts: ["Splitting of Moon", "Stories of Deniers", "Quran Made Easy"],
     keyConceptsAr: ["انشقاق القمر", "قصص المكذبين", "تيسير القرآن"],
-    prophetsMentioned: ["Nuh", "Lut", "Salih", "Thamud", "The She-camel", "Hud", "Musa"
-    ],
+    prophetsMentioned: ["Nuh", "Lut", "Salih", "Hud", "Musa"],
     nationsMentioned: ["People of Nuh", "Aad", "Thamud", "People of Lut", "Pharaoh's Army"],
     storiesMentioned: [
       {
@@ -6295,7 +6293,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَمَرْيَمَ ٱبْنَتَ عِمْرَٰنَ ٱلَّتِىٓ أَحْصَنَتْ فَرْجَهَا فَنَفَخْنَا فِيهِ مِن رُّوحِنَا وَصَدَّقَتْ بِكَلِمَٰتِ رَبِّهَا وَكُتُبِهِۦ وَكَانَتْ مِنَ ٱلْقَٰنِتِينَ",
     keyConcepts: ["True Repentance", "Examples of Believing and Disbelieving Women"],
     keyConceptsAr: ["التوبة النصوح", "أمثال المرأة المؤمنة والكافرة"],
-    prophetsMentioned: ["Nuh", "Lut", "Musa", "Isa", "Maryam", "Muhammad"],
+    prophetsMentioned: ["Nuh", "Lut", "Isa", "Maryam", "Muhammad"],
     nationsMentioned: ["People of Lut", "People of Nuh", "Pharaoh's Army"],
     storiesMentioned: [
       {
@@ -6825,7 +6823,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "لِّيَعْلَمَ أَن قَدْ أَبْلَغُوا۟ رِسَٰلَٰتِ رَبِّهِمْ وَأَحَاطَ بِمَا لَدَيْهِمْ وَأَحْصَىٰ كُلَّ شَىْءٍ عَدَدًۢا",
     keyConcepts: ["Jinn Accept Islam", "Message Universal for Jinn and Men"],
     keyConceptsAr: ["إسلام الجن", "شمول الرسالة للجن والإنس"],
-    prophetsMentioned: ["الجن"],
+    prophetsMentioned: ["Muhammad"],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -6904,7 +6902,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Night Prayer", "Weight of Carrying the Quran"],
     keyConceptsAr: ["قيام الليل", "ثقل القرآن وحمله"],
     prophetsMentioned: ["Musa"],
-    nationsMentioned: ["Bani Israel", "People of Tubba", "Pharaoh's Army"],
+    nationsMentioned: ["Bani Israel", "Pharaoh's Army"],
     storiesMentioned: [
         { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '73:15-16', start: 15, end: 16 } },
     ],
@@ -8225,7 +8223,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَلَا يَخَافُ عُقْبَٰهَا",
     keyConcepts: ["Purifying or Corrupting the Soul", "She-Camel of Salih"],
     keyConceptsAr: ["تزكية النفس أم تدسيتها", "ناقة صالح"],
-    prophetsMentioned: ["Salih", "Thamud", "The She-camel"],
+    prophetsMentioned: ["Salih"],
     nationsMentioned: ["Thamud"],
     storiesMentioned: [
       {
@@ -9238,7 +9236,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَجَعَلَهُمْ كَعَصْفٍۢ مَّأْكُولٍۭ",
     keyConcepts: ["Destruction of Elephant Army", "Protection of the Kaaba"],
     keyConceptsAr: ["إهلاك أصحاب الفيل", "حماية الكعبة"],
-    prophetsMentioned: ["Abraha", "Elephant"],
+    prophetsMentioned: [],
     nationsMentioned: ["Companions of Elephant"],
     storiesMentioned: [
       {
@@ -9666,7 +9664,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فِى جِيدِهَا حَبْلٌۭ مِّن مَّسَدٍۭ",
     keyConcepts: ["Abu Lahab and His Wife", "Wealth Cannot Save from Allah"],
     keyConceptsAr: ["أبو لهب وامرأته", "المال لا يُغني عن الله"],
-    prophetsMentioned: ["Abu Lahab"],
+    prophetsMentioned: ["Muhammad"],
     nationsMentioned: [],
     storiesMentioned: [
       {
