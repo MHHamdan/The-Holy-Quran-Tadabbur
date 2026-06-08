@@ -6069,9 +6069,11 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَلَن يُؤَخِّرَ ٱللَّهُ نَفْسًا إِذَا جَآءَ أَجَلُهَا ۚ وَٱللَّهُ خَبِيرٌۢ بِمَا تَعْمَلُونَ",
     keyConcepts: ["Signs of Hypocrites", "Spend Before Death"],
     keyConceptsAr: ["علامات المنافقين", "الإنفاق قبل الموت"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Muhammad"],
     nationsMentioned: [],
-    storiesMentioned: [],
+    storiesMentioned: [
+      { storyId: "story_muhammad", coverage: "partial", ayahRange: { display: "63:1-11", start: 1, end: 11 } },
+    ],
     summary: {
       short: {
         en: "The Surah takes its name from the sentence Idha jaa kal-munafiquna of verse 1. This is the name of the Surah as well as the title of its subject matter, for in it a review has been made of the conduct and attitude of the hypocrites themselves.",
@@ -6950,9 +6952,11 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَمَا يَذْكُرُونَ إِلَّآ أَن يَشَآءَ ٱللَّهُ ۚ هُوَ أَهْلُ ٱلتَّقْوَىٰ وَأَهْلُ ٱلْمَغْفِرَةِ",
     keyConcepts: ["Warning the Public", "Reasons for Entering Hell"],
     keyConceptsAr: ["إنذار العامة", "أسباب دخول النار"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Muhammad"],
     nationsMentioned: [],
-    storiesMentioned: [],
+    storiesMentioned: [
+      { storyId: "story_muhammad", coverage: "partial", ayahRange: { display: "74:1-7", start: 1, end: 7 } },
+    ],
     summary: {
       short: {
         en: "The Surah takes its name from the word al-muddaththir in the first verse. This also is only a name, not a title of its subject matter.",
@@ -8579,9 +8583,11 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "كَلَّا لَا تُطِعْهُ وَٱسْجُدْ وَٱقْتَرِب ۩",
     keyConcepts: ["Read in the Name of Your Lord", "Excellence of Knowledge", "Tyranny"],
     keyConceptsAr: ["اقرأ باسم ربك", "فضل العلم", "الطغيان"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Muhammad"],
     nationsMentioned: [],
-    storiesMentioned: [],
+    storiesMentioned: [
+      { storyId: "story_muhammad", coverage: "partial", ayahRange: { display: "96:1-5", start: 1, end: 5 } },
+    ],
     summary: {
       short: {
         en: "The Surah is titled so, after the word 'alaq in the second verse.",
