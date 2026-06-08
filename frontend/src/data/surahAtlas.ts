@@ -6268,7 +6268,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "وَمَرْيَمَ ٱبْنَتَ عِمْرَٰنَ ٱلَّتِىٓ أَحْصَنَتْ فَرْجَهَا فَنَفَخْنَا فِيهِ مِن رُّوحِنَا وَصَدَّقَتْ بِكَلِمَٰتِ رَبِّهَا وَكُتُبِهِۦ وَكَانَتْ مِنَ ٱلْقَٰنِتِينَ",
     keyConcepts: ["True Repentance", "Examples of Believing and Disbelieving Women"],
     keyConceptsAr: ["التوبة النصوح", "أمثال المرأة المؤمنة والكافرة"],
-    prophetsMentioned: ["Maryam", "Zakariyya", "Isa", "Asiya", "Fir'awn", "Wife of Nuh"],
+    prophetsMentioned: ["Maryam", "Zakariya", "Isa", "Asiya", "Firawn", "Wife of Nuh"],
     nationsMentioned: [],
     storiesMentioned: [
       {
@@ -7309,7 +7309,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "كَأَنَّهُمْ يَوْمَ يَرَوْنَهَا لَمْ يَلْبَثُوٓا۟ إِلَّا عَشِيَّةً أَوْ ضُحَىٰهَا",
     keyConcepts: ["Angels Drawing Out Souls", "Musa and Pharaoh the Tyrant"],
     keyConceptsAr: ["النازعات", "موسى وفرعون الطاغي"],
-    prophetsMentioned: ["Musa", "Harun", "Firawn", "Bani Israel", "Asiya", "Fir'awn"],
+    prophetsMentioned: ["Musa", "Harun", "Firawn", "Bani Israel", "Asiya"],
     nationsMentioned: [],
     storiesMentioned: [
       {
