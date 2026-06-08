@@ -371,7 +371,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 61, surahName: 'As-Saf', ayahRange: { surah: 61, ayah: 5, rangeEnd: 5, display: '61:5' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 20,
-    totalOccurrences: 20,
+    totalOccurrences: 27,
     reviewStatus: 'needs_review',
   },
   {
@@ -405,7 +405,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 57, surahName: 'Al-Hadid', ayahRange: { surah: 57, ayah: 26, rangeEnd: 26, display: '57:26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 14,
-    totalOccurrences: 17,
+    totalOccurrences: 24,
     reviewStatus: 'needs_review',
   },
   {
@@ -444,8 +444,8 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 53, surahName: 'An-Najm', ayahRange: { surah: 53, ayah: 50, rangeEnd: 50, display: '53:50' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 77, surahName: 'Al-Mursalat', ayahRange: { surah: 77, ayah: 16, rangeEnd: 17, display: '77:16-17' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
-    dominantSurahNumber: 41,
-    totalOccurrences: 4,
+    dominantSurahNumber: 7,
+    totalOccurrences: 8,
     reviewStatus: 'needs_review',
   },
   {
@@ -463,7 +463,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 32, surahName: 'As-Sajda', ayahRange: { surah: 32, ayah: 7, rangeEnd: 9, display: '32:7-9' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 2,
-    totalOccurrences: 7,
+    totalOccurrences: 8,
     reviewStatus: 'needs_review',
   },
   {
@@ -492,8 +492,8 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 79, surahName: 'An-Naziat', ayahRange: { surah: 79, ayah: 15, rangeEnd: 26, display: '79:15-26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 89, surahName: 'Al-Fajr', ayahRange: { surah: 89, ayah: 10, rangeEnd: 12, display: '89:10-12' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
-    dominantSurahNumber: 7,
-    totalOccurrences: 7,
+    dominantSurahNumber: 20,
+    totalOccurrences: 8,
     reviewStatus: 'needs_review',
   },
   {
@@ -593,7 +593,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 45, surahName: 'Al-Jathiya', ayahRange: { surah: 45, ayah: 16, rangeEnd: 17, display: '45:16-17' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 2,
-    totalOccurrences: 2,
+    totalOccurrences: 5,
     reviewStatus: 'needs_review',
   },
   {
@@ -913,7 +913,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 42, rangeEnd: 42, display: '22:42' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 11,
-    totalOccurrences: 7,
+    totalOccurrences: 8,
     reviewStatus: 'needs_review',
   },
   {
@@ -1046,7 +1046,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 57, surahName: 'Al-Hadid', ayahRange: { surah: 57, ayah: 27, rangeEnd: 27, display: '57:27' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 3,
-    totalOccurrences: 6,
+    totalOccurrences: 9,
     reviewStatus: 'needs_review',
   },
   {
@@ -1085,8 +1085,8 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 37, surahName: 'As-Saffat', ayahRange: { surah: 37, ayah: 101, rangeEnd: 113, display: '37:101-113' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 26, rangeEnd: 27, display: '22:26-27' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
-    dominantSurahNumber: 2,
-    totalOccurrences: 5,
+    dominantSurahNumber: 37,
+    totalOccurrences: 6,
     reviewStatus: 'needs_review',
   },
   {
@@ -1188,8 +1188,8 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 53, surahName: 'An-Najm', ayahRange: { surah: 53, ayah: 53, rangeEnd: 54, display: '53:53-54' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 89, surahName: 'Al-Fajr', ayahRange: { surah: 89, ayah: 9, rangeEnd: 9, display: '89:9' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
-    dominantSurahNumber: 7,
-    totalOccurrences: 9,
+    dominantSurahNumber: 11,
+    totalOccurrences: 14,
     reviewStatus: 'needs_review',
   },
   {
@@ -1216,8 +1216,8 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 66, surahName: 'At-Tahrim', ayahRange: { surah: 66, ayah: 12, rangeEnd: 12, display: '66:12' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 23, surahName: 'Al-Muminun', ayahRange: { surah: 23, ayah: 50, rangeEnd: 50, display: '23:50' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
-    dominantSurahNumber: 3,
-    totalOccurrences: 4,
+    dominantSurahNumber: 19,
+    totalOccurrences: 5,
     reviewStatus: 'needs_review',
   },
   {
@@ -1353,8 +1353,8 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 57, surahName: 'Al-Hadid', ayahRange: { surah: 57, ayah: 26, rangeEnd: 26, display: '57:26' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 77, surahName: 'Al-Mursalat', ayahRange: { surah: 77, ayah: 14, rangeEnd: 19, display: '77:14-19' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
-    dominantSurahNumber: 7,
-    totalOccurrences: 9,
+    dominantSurahNumber: 71,
+    totalOccurrences: 19,
     reviewStatus: 'needs_review',
   },
   {
@@ -1479,7 +1479,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 42, rangeEnd: 42, display: '22:42' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 11,
-    totalOccurrences: 6,
+    totalOccurrences: 7,
     reviewStatus: 'needs_review',
   },
   {
@@ -1517,7 +1517,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 22, surahName: 'Al-Hajj', ayahRange: { surah: 22, ayah: 44, rangeEnd: 44, display: '22:44' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 7,
-    totalOccurrences: 4,
+    totalOccurrences: 5,
     reviewStatus: 'needs_review',
   },
   {
@@ -1641,8 +1641,8 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [
       { surahNumber: 77, surahName: 'Al-Mursalat', ayahRange: { surah: 77, ayah: 16, rangeEnd: 17, display: '77:16-17' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 89, surahName: 'Al-Fajr', ayahRange: { surah: 89, ayah: 9, rangeEnd: 9, display: '89:9' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
-    dominantSurahNumber: 7,
-    totalOccurrences: 6,
+    dominantSurahNumber: 11,
+    totalOccurrences: 10,
     reviewStatus: 'needs_review',
   },
   {
