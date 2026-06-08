@@ -2211,6 +2211,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_idris', coverage: 'partial', ayahRange: { display: '21:85-86', start: 85, end: 86 } },
         { storyId: 'story_yunus', coverage: 'partial', ayahRange: { display: '21:87-88', start: 87, end: 88 } },
         { storyId: 'story_yajuj_majuj', coverage: 'partial', ayahRange: { display: '21:96-97', start: 96, end: 97 } },
+        { storyId: 'story_lut', coverage: 'partial', ayahRange: { display: '21:74-75', start: 74, end: 75 } },
+        { storyId: 'story_nuh', coverage: 'partial', ayahRange: { display: '21:76-77', start: 76, end: 77 } },
     ],
     summary: {
       short: {
@@ -3610,8 +3612,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "فَسُبْحَٰنَ ٱلَّذِى بِيَدِهِۦ مَلَكُوتُ كُلِّ شَىْءٍۢ وَإِلَيْهِ تُرْجَعُونَ",
     keyConcepts: ["Heart of Quran", "Resurrection Tawheed and Revelation"],
     keyConceptsAr: ["قلب القرآن", "البعث والتوحيد والوحي"],
-    prophetsMentioned: ["Israfil", "Musa"
-    ],
+    prophetsMentioned: ["Israfil"],
     nationsMentioned: ["People of the City"],
     storiesMentioned: [
       {
@@ -3632,7 +3633,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 32
         }
       },
-        { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '36:13-29', start: 13, end: 29 } },
     ],
     summary: {
       short: {
@@ -3751,6 +3751,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
       },
         { storyId: 'story_ilyas', coverage: 'complete', ayahRange: { display: '37:123-132', start: 123, end: 132 } },
         { storyId: 'story_tree_cursed', coverage: 'partial', ayahRange: { display: '37:62-68', start: 62, end: 68 } },
+        { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '37:114-122', start: 114, end: 122 } },
     ],
     summary: {
       short: {
@@ -5701,7 +5702,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "لَّا تَجِدُ قَوْمًۭا يُؤْمِنُونَ بِٱللَّهِ وَٱلْيَوْمِ ٱلْءَاخِرِ يُوَآدُّونَ مَنْ حَآدَّ ٱللَّهَ وَرَسُولَهُۥ وَلَوْ كَانُوٓا۟ ءَابَآءَهُمْ أَوْ أَبْنَآءَهُمْ أَوْ إِخْوَٰنَهُمْ أَوْ عَشِيرَتَهُمْ ۚ أُو۟لَٰٓئِكَ كَتَبَ فِى قُلُوبِهِمُ ٱلْإِيمَٰنَ وَأَيَّدَهُم بِرُوحٍۢ مِّنْهُ ۖ وَيُدْخِلُهُمْ جَنَّٰتٍۢ تَجْرِى مِن تَحْتِهَا ٱلْأَنْهَٰرُ خَٰلِدِينَ فِيهَا ۚ رَضِىَ ٱللَّهُ عَنْهُمْ وَرَضُوا۟ عَنْهُ ۚ أُو۟لَٰٓئِكَ حِزْبُ ٱللَّهِ ۚ أَلَآ إِنَّ حِزْبَ ٱللَّهِ هُمُ ٱلْمُفْلِحُونَ",
     keyConcepts: ["Zihar Prohibition", "Etiquette of Gatherings", "Party of Allah"],
     keyConceptsAr: ["الظهار محرّم", "آداب المجالس", "حزب الله"],
-    prophetsMentioned: ["Nuh"],
+    prophetsMentioned: ["Muhammad"],
     nationsMentioned: [],
     storiesMentioned: [],
     summary: {
@@ -6316,7 +6317,8 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           start: 10,
           end: 10
         }
-      }
+      },
+      { storyId: "story_muhammad", coverage: "partial", ayahRange: { display: "66:1-5", start: 1, end: 5 } },
     ],
     summary: {
       short: {
