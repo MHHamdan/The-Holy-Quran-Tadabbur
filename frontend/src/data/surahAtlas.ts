@@ -470,6 +470,15 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         }
       },
       {
+        storyId: "story_musa",
+        coverage: "partial",
+        ayahRange: {
+          display: "5:20-26",
+          start: 20,
+          end: 26
+        }
+      },
+      {
         storyId: "story_isa_miracles",
         coverage: "partial",
         ayahRange: {
@@ -1404,6 +1413,15 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           display: "14:37-41",
           start: 37,
           end: 41
+        }
+      },
+      {
+        storyId: "story_musa",
+        coverage: "partial",
+        ayahRange: {
+          display: "14:5-8",
+          start: 5,
+          end: 8
         }
       },
       {
@@ -3238,6 +3256,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     nationsMentioned: [],
     storiesMentioned: [
         { storyId: 'story_adam', coverage: 'partial', ayahRange: { display: '32:7-9', start: 7, end: 9 } },
+        { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '32:23', start: 23, end: 23 } },
     ],
     summary: {
       short: {
@@ -4107,6 +4126,24 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           display: "41:13-16",
           start: 13,
           end: 16
+        }
+      },
+      {
+        storyId: "story_thamud",
+        coverage: "partial",
+        ayahRange: {
+          display: "41:17-18",
+          start: 17,
+          end: 18
+        }
+      },
+      {
+        storyId: "story_salih",
+        coverage: "partial",
+        ayahRange: {
+          display: "41:17-18",
+          start: 17,
+          end: 18
         }
       },
       {
@@ -5298,10 +5335,24 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 32
         }
       },
-        { storyId: 'story_hud', coverage: 'partial', ayahRange: { display: '54:18-21', start: 18, end: 21 } },
-        { storyId: 'story_lut', coverage: 'partial', ayahRange: { display: '54:33-38', start: 33, end: 38 } },
-        { storyId: 'story_salih', coverage: 'partial', ayahRange: { display: '54:23-31', start: 23, end: 31 } },
-        { storyId: 'story_thamud', coverage: 'partial', ayahRange: { display: '54:23-31', start: 23, end: 31 } },
+      {
+        storyId: "story_musa",
+        coverage: "partial",
+        ayahRange: {
+          display: "54:41-42",
+          start: 41,
+          end: 42
+        }
+      },
+      {
+        storyId: "story_ancient_egypt",
+        coverage: "partial",
+        ayahRange: {
+          display: "54:41-42",
+          start: 41,
+          end: 42
+        }
+      },
     ],
     summary: {
       short: {
