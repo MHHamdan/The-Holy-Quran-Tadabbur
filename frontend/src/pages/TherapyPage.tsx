@@ -14,6 +14,7 @@ import {
   TopicKnowledgePanel,
   CrisisBanner,
   SituationCatalog,
+  IslamicPillarsPanel,
 } from '../components/therapy';
 
 const RuqyahGuide = lazy(() =>
@@ -520,6 +521,10 @@ export function TherapyPage() {
 
           {/* Daily Practices — always shown at bottom of guidance tab */}
           <DailyPracticesPanel />
+
+          {/* Pillars & Virtues — Quranic verse collection for prayer, fasting,
+              zakat, hajj, honoring parents, neighbor rights, truthfulness, etc. */}
+          <IslamicPillarsPanel />
 
           {/* Situation Atlas — browse named life situations to find a
               sourced du'a + hadith. Always available; prefills the

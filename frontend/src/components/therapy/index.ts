@@ -10,3 +10,4 @@ export { DailyPracticesPanel } from './DailyPracticesPanel';
 export { TopicKnowledgePanel } from './TopicKnowledgePanel';
 export { CrisisBanner } from './CrisisBanner';
 export { SituationCatalog } from './SituationCatalog';
+export { IslamicPillarsPanel } from './IslamicPillarsPanel';
