@@ -1,0 +1,88 @@
+{
+  "name": "Quran Text — Hafs 'an 'Asim (Uthmani Script)",
+  "version": "1.1.0",
+  "description": "Complete Quran text in Uthmani script, Hafs recitation variant, digitised from the Madinah Mushaf printed by the King Fahd Complex for the Printing of the Holy Quran",
+  "language": "ar",
+  "script": "uthmani",
+  "recitation": "hafs_an_asim",
+  "license": "Public Domain",
+  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "citation": "مجمع الملك فهد لطباعة المصحف الشريف — المدينة المنورة",
+  "citation_en": "King Fahd Complex for the Printing of the Holy Quran, Madinah al-Munawwarah",
+
+  "authority": {
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف",
+    "name_en": "King Fahd Complex for the Printing of the Holy Quran",
+    "location": "Madinah al-Munawwarah, Saudi Arabia",
+    "url": "https://qurancomplex.gov.sa",
+    "notes": "The Madinah Mushaf (مصحف المدينة النبوية) is the globally recognised reference edition for Hafs an Asim in Uthmani script. The digital text used here faithfully reproduces the rasm and diacritics of that edition via the Tanzil project's verified corpus."
+  },
+
+  "sources": [
+    {
+      "id": "local_hafs_smart",
+      "name": "Hafs Smart v8 — Uthmani (Local)",
+      "path": "../../assets/hafs_smart_v8.json",
+      "format": "json",
+      "encoding": "utf-8",
+      "description": "Local corpus verified against the King Fahd Madinah Mushaf. Uses Alef Wasla (ٱ) and full tashkeel (diacritics) matching the printed Mushaf exactly.",
+      "is_primary": true,
+      "verified_against": "King Fahd Complex Madinah Mushaf (1404 AH edition)"
+    },
+    {
+      "id": "tanzil_quran_uthmani",
+      "name": "Tanzil.net Uthmani Quran Text",
+      "url": "https://tanzil.net",
+      "format": "text",
+      "encoding": "utf-8",
+      "description": "Tanzil project digital corpus — a widely-used faithful digital reproduction of the Madinah Mushaf.",
+      "license": "Creative Commons BY 3.0",
+      "notes": "Fallback/cross-reference source"
+    }
+  ],
+
+  "expected_structure": {
+    "total_verses": 6236,
+    "total_suras": 114,
+    "total_pages": 604,
+    "total_juz": 30,
+    "fields": [
+      "id",
+      "sura_no",
+      "sura_name_ar",
+      "sura_name_en",
+      "aya_no",
+      "aya_text",
+      "aya_text_emlaey",
+      "page",
+      "jozz",
+      "line_start",
+      "line_end"
+    ]
+  },
+
+  "parser": {
+    "type": "json",
+    "root_key": null,
+    "field_mapping": {
+      "id": "id",
+      "sura_no": "sura_no",
+      "sura_name_ar": "sura_name_ar",
+      "sura_name_en": "sura_name_en",
+      "aya_no": "aya_no",
+      "text_uthmani": "aya_text",
+      "text_imlaei": "aya_text_emlaey",
+      "page_no": "page",
+      "juz_no": "jozz",
+      "line_start": "line_start",
+      "line_end": "line_end"
+    }
+  },
+
+  "validation": {
+    "checksum_sha256": null,
+    "min_file_size_bytes": 1000000,
+    "required_fields": ["sura_no", "aya_no", "aya_text"],
+    "verse_count_check": 6236
+  }
+}
