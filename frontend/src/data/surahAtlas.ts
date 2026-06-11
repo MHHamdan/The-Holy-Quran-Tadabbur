@@ -798,7 +798,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Spoils of Badr", "Rules of Jihad", "Brotherhood of Faith"],
     keyConceptsAr: ["غنائم بدر", "أحكام الجهاد", "الأخوة الإيمانية", "السلم والحرب"],
     prophetsMentioned: ["Muhammad"],
-    nationsMentioned: [],
+    nationsMentioned: ["Pharaoh's Army"],
     storiesMentioned: [
       {
         storyId: "story_badr",
@@ -3116,7 +3116,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Prophecy of Rome's Victory", "Resurrection from Cosmic Signs"],
     keyConceptsAr: ["نبوءة انتصار الروم", "البعث بالأدلة الكونية"],
     prophetsMentioned: [],
-    nationsMentioned: [],
+    nationsMentioned: ["Romans"],
     storiesMentioned: [
       {
         storyId: "story_romans_persians",
