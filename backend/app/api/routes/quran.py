@@ -104,6 +104,9 @@ class VerseResponse(BaseModel):
     page_no: int
     juz_no: int
     translations: List[TranslationResponse] = []
+    # Provenance: every verse is served from the King Fahd Madinah Mushaf corpus
+    source_authority: str = "مجمع الملك فهد لطباعة المصحف الشريف"
+    source_authority_en: str = "King Fahd Complex for the Printing of the Holy Quran"
 
     class Config:
         from_attributes = True

@@ -72,6 +72,13 @@ interface ReciterOption {
 
 const TOTAL_PAGES = 604;
 
+// First Mushaf page for each Juz (King Fahd Madinah Mushaf, 604-page edition)
+const JUZ_FIRST_PAGE: Record<number, number> = {
+  1:1,2:22,3:42,4:62,5:82,6:102,7:121,8:142,9:162,10:182,
+  11:201,12:222,13:242,14:262,15:282,16:302,17:322,18:342,19:362,20:382,
+  21:402,22:422,23:442,24:462,25:482,26:502,27:522,28:542,29:562,30:582,
+};
+
 const ARABIC_TAFSIR_EDITIONS: TafsirEdition[] = [
   { id: 'muyassar', translationKey: 'tafseer_muyassar', has_audio: true },
   { id: 'ibn_kathir', translationKey: 'tafseer_ibn_kathir', has_audio: false },
@@ -337,6 +344,15 @@ const VersePanel = memo(function VersePanel({
 }: VersePanelProps) {
   const { t } = useLanguageStore();
   const [showTafsir, setShowTafsir] = useState(true);
+  const [copiedVerse, setCopiedVerse] = useState(false);
+
+  const copyVerseWithAttribution = useCallback(() => {
+    const ref = `${verse.sura_name_en} (${verse.sura_no}:${verse.aya_no})`;
+    const text = `${verse.text_uthmani}\n— ${ref}\n[King Fahd Complex for the Printing of the Holy Quran — مجمع الملك فهد لطباعة المصحف الشريف]`;
+    navigator.clipboard.writeText(text).catch(console.error);
+    setCopiedVerse(true);
+    setTimeout(() => setCopiedVerse(false), 2000);
+  }, [verse]);
 
   const { data: tafsirData, isLoading: tafsirLoading } = useTafsir(
     verse.sura_no,
@@ -368,6 +384,14 @@ const VersePanel = memo(function VersePanel({
           >
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             {isPlaying ? t('mushaf_pause') : t('mushaf_listen')}
+          </button>
+          <button
+            onClick={copyVerseWithAttribution}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white/20 hover:bg-white/30 transition-colors"
+            title={language === 'ar' ? 'نسخ الآية مع المصدر' : 'Copy verse with attribution'}
+          >
+            {copiedVerse ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4" />}
+            <span className="hidden sm:inline">{copiedVerse ? (language === 'ar' ? 'تم النسخ' : 'Copied') : (language === 'ar' ? 'نسخ' : 'Copy')}</span>
           </button>
           <button
             onClick={onOpenAI}
@@ -1111,6 +1135,25 @@ export function MushafPage() {
             )}
           </div>
 
+          {/* Juz Jump Selector */}
+          <div className="flex items-center gap-1.5">
+            <label className="text-white/70 text-xs hidden sm:block">
+              {language === 'ar' ? 'جزء' : 'Juz'}
+            </label>
+            <select
+              value={verses[0]?.juz_no ?? 1}
+              onChange={(e) => goToPage(JUZ_FIRST_PAGE[parseInt(e.target.value)] ?? 1)}
+              className="px-2 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm border border-white/20 outline-none cursor-pointer"
+              title={language === 'ar' ? 'انتقل إلى الجزء' : 'Jump to Juz'}
+            >
+              {Array.from({ length: 30 }, (_, i) => i + 1).map(j => (
+                <option key={j} value={j} className="bg-emerald-800">
+                  {language === 'ar' ? `الجزء ${toArabicNumber(j)}` : `Juz ${j}`}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Controls */}
           <div className="flex items-center gap-2">
             <button
@@ -1190,6 +1233,14 @@ export function MushafPage() {
           </div>
         )}
       </nav>
+
+      {/* King Fahd Complex Attribution Banner */}
+      <div className="bg-amber-50 border-b border-amber-200 px-4 py-1.5 flex items-center justify-center gap-2 text-amber-800 text-xs">
+        <BookOpen className="w-3.5 h-3.5 flex-shrink-0" />
+        <span dir="rtl" className="font-arabic">مجمع الملك فهد لطباعة المصحف الشريف — المدينة المنورة</span>
+        <span className="text-amber-400">·</span>
+        <span dir="ltr">King Fahd Complex for the Printing of the Holy Quran, Madinah</span>
+      </div>
 
       {/* Main Content */}
       <main className={clsx(
