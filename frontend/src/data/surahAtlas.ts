@@ -3815,7 +3815,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Dawud the Just King", "Sulayman's Repentance", "Patience of Ayyub", "Iblis"],
     keyConceptsAr: ["داود والملك العادل", "سليمان والتوبة", "صبر أيوب", "إبليس"],
     prophetsMentioned: ["Dawud", "Sulayman", "Ayyub", "Ibrahim", "Ishaq", "Yaqub", "Ismail", "Al-Yasaa", "Dhul-Kifl", "Idris", "Adam"],
-    nationsMentioned: [],
+    nationsMentioned: ["Aad", "Madyan", "People of Lut", "People of Nuh", "Pharaoh's Army", "Thamud"],
     storiesMentioned: [
       {
         storyId: "story_adam",
