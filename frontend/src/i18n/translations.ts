@@ -760,6 +760,7 @@ export const translations: Translations = {
   // =============================================================================
   // Tasmeeʿ (Memorization) Page - صفحة التسميع
   // =============================================================================
+  nav_prophets: { ar: 'الأنبياء', en: 'Prophets' },
   nav_tasmee: { ar: 'التسميع', en: 'Memorize' },
   tasmee_title: { ar: 'التسميع', en: 'Tasmeeʿ' },
   tasmee_subtitle: { ar: 'تدرب على حفظ القرآن الكريم مع التصحيح الفوري', en: 'Practice Quran memorization with real-time feedback' },

@@ -12,7 +12,8 @@
  */
 
 import { useState, useMemo } from 'react';
-import { RefreshCw, AlertTriangle, Search, BookOpen, Layers, type LucideIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { RefreshCw, AlertTriangle, Search, BookOpen, Layers, Mic, ArrowRight, type LucideIcon } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import {
@@ -123,6 +124,28 @@ export default function MemorizationLinksPage() {
               </p>
             </div>
           </div>
+
+          {/* Tasmee practice banner */}
+          <Link
+            to="/tasmee"
+            className="flex items-center justify-between gap-3 mb-3 px-4 py-3 bg-primary-50 border border-primary-200 rounded-xl hover:bg-primary-100 transition-colors"
+            dir={isAr ? 'rtl' : 'ltr'}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Mic size={15} className="text-white" />
+              </div>
+              <div>
+                <p className={clsx('text-sm font-semibold text-primary-800', isAr && 'font-arabic')}>
+                  {isAr ? 'التسميع — تدرّب بصوتك' : 'Tasmeeʿ — Practice with your voice'}
+                </p>
+                <p className={clsx('text-xs text-primary-600', isAr && 'font-arabic')}>
+                  {isAr ? 'تلاوة مع التصحيح الفوري وكشف الأخطاء' : 'Recite with real-time feedback and mistake detection'}
+                </p>
+              </div>
+            </div>
+            <ArrowRight size={16} className={clsx('text-primary-500 flex-shrink-0', isAr && 'rotate-180')} />
+          </Link>
 
           {/* Search */}
           <div className="relative mb-3">

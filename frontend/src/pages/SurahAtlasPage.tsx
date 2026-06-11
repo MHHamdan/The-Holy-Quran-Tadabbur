@@ -104,7 +104,7 @@ export default function SurahAtlasPage() {
             </div>
 
             <Link
-              to="/tools/surah-memory-atlas"
+              to="/memorization"
               className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1"
             >
               {isAr ? 'دليل الحفظ' : 'Memory Guide'}

@@ -156,7 +156,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_golden_calf', coverage: 'partial', ayahRange: { display: '2:54', start: 54, end: 54 } },
         { storyId: 'story_harut_marut', coverage: 'complete', ayahRange: { display: '2:102-103', start: 102, end: 103 } },
         { storyId: 'story_sabbath_breakers', coverage: 'partial', ayahRange: { display: '2:65-66', start: 65, end: 66 } },
-    ,
       {
         storyId: "story_angels_prostration",
         coverage: "partial",
@@ -622,8 +621,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           start: 76,
           end: 79
         }
-      }
-    ,
+      },
       {
         storyId: "story_yusuf",
         coverage: "partial",
@@ -769,7 +767,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_araf_people', coverage: 'partial', ayahRange: { display: '7:46-49', start: 46, end: 49 } },
         { storyId: 'story_covenant_souls', coverage: 'partial', ayahRange: { display: '7:172-174', start: 172, end: 174 } },
         { storyId: 'story_dog_parable', coverage: 'partial', ayahRange: { display: '7:175-176', start: 175, end: 176 } },
-    ,
       {
         storyId: "story_ad",
         coverage: "partial",
@@ -865,8 +862,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           start: 5,
           end: 19
         }
-      }
-    ,
+      },
       {
         storyId: "story_muhammad",
         coverage: "partial",
@@ -1208,7 +1204,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_salih', coverage: 'complete', ayahRange: { display: '11:61-68', start: 61, end: 68 } },
         { storyId: 'story_thamud', coverage: 'partial', ayahRange: { display: '11:67-68', start: 67, end: 68 } },
         { storyId: 'story_son_nuh', coverage: 'complete', ayahRange: { display: '11:42-47', start: 42, end: 47 } },
-    ,
       {
         storyId: "story_ad",
         coverage: "partial",
@@ -1629,8 +1624,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           start: 78,
           end: 79
         }
-      }
-    ,
+      },
       {
         storyId: "story_iblis_refusal",
         coverage: "partial",
@@ -1824,8 +1818,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           start: 61,
           end: 65
         }
-      }
-    ,
+      },
       {
         storyId: "story_thamud",
         coverage: "partial",
@@ -1952,7 +1945,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_two_gardens', coverage: 'complete', ayahRange: { display: '18:32-44', start: 32, end: 44 } },
         { storyId: 'story_khidr', coverage: 'complete', ayahRange: { display: '18:60-82', start: 60, end: 82 } },
         { storyId: 'story_yajuj_majuj', coverage: 'partial', ayahRange: { display: '18:93-98', start: 93, end: 98 } },
-    ,
       {
         storyId: "story_iblis_refusal",
         coverage: "partial",
@@ -2196,7 +2188,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_musa_burning_bush', coverage: 'partial', ayahRange: { display: '20:9-23', start: 9, end: 23 } },
         { storyId: 'story_magicians', coverage: 'partial', ayahRange: { display: '20:70-73', start: 70, end: 73 } },
         { storyId: 'story_mother_musa', coverage: 'partial', ayahRange: { display: '20:38-40', start: 38, end: 40 } },
-    ,
       {
         storyId: "story_musa_firaun_dialogue",
         coverage: "partial",
@@ -2328,7 +2319,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_yajuj_majuj', coverage: 'partial', ayahRange: { display: '21:96-97', start: 96, end: 97 } },
         { storyId: 'story_lut', coverage: 'partial', ayahRange: { display: '21:74-75', start: 74, end: 75 } },
         { storyId: 'story_nuh', coverage: 'partial', ayahRange: { display: '21:76-77', start: 76, end: 77 } },
-    ,
       {
         storyId: "story_isa",
         coverage: "partial",
@@ -2834,7 +2824,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_hud', coverage: 'partial', ayahRange: { display: '26:123-140', start: 123, end: 140 } },
         { storyId: 'story_salih', coverage: 'partial', ayahRange: { display: '26:141-159', start: 141, end: 159 } },
         { storyId: 'story_thamud', coverage: 'partial', ayahRange: { display: '26:141-159', start: 141, end: 159 } },
-    ,
       {
         storyId: "story_ad",
         coverage: "partial",
@@ -2961,7 +2950,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
       },
         { storyId: 'story_ant_hoopoe', coverage: 'complete', ayahRange: { display: '27:18-28', start: 18, end: 28 } },
         { storyId: 'story_bilqis', coverage: 'complete', ayahRange: { display: '27:23-44', start: 23, end: 44 } },
-    ,
       {
         storyId: "story_saba",
         coverage: "partial",
@@ -3441,7 +3429,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     storiesMentioned: [
         { storyId: 'story_adam', coverage: 'partial', ayahRange: { display: '32:7-9', start: 7, end: 9 } },
         { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '32:23', start: 23, end: 23 } },
-    ,
       {
         storyId: "story_creation_heavens_earth",
         coverage: "partial",
@@ -4042,7 +4029,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_dhulkifl', coverage: 'partial', ayahRange: { display: '38:48', start: 48, end: 48 } },
         { storyId: 'story_sulayman_horses', coverage: 'partial', ayahRange: { display: '38:31-33', start: 31, end: 33 } },
         { storyId: 'story_sulayman_trial', coverage: 'complete', ayahRange: { display: '38:34-40', start: 34, end: 40 } },
-    ,
       {
         storyId: "story_iblis_refusal",
         coverage: "partial",
@@ -4254,7 +4240,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 45
         }
       },
-    ,
       {
         storyId: "story_yusuf",
         coverage: "partial",
@@ -5028,8 +5013,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           start: 1,
           end: 29
         }
-      }
-    ,
+      },
       {
         storyId: "story_conquest_makkah",
         coverage: "partial",
@@ -5294,7 +5278,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '51:38-40', start: 38, end: 40 } },
         { storyId: 'story_nuh', coverage: 'partial', ayahRange: { display: '51:46', start: 46, end: 46 } },
         { storyId: 'story_ad', coverage: 'partial', ayahRange: { display: '51:41-42', start: 41, end: 42 } },
-    ,
       {
         storyId: "story_thamud",
         coverage: "partial",
@@ -5464,7 +5447,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_ad', coverage: 'partial', ayahRange: { display: '53:50', start: 50, end: 50 } },
         { storyId: 'story_thamud', coverage: 'partial', ayahRange: { display: '53:51', start: 51, end: 51 } },
         { storyId: 'story_lut', coverage: 'partial', ayahRange: { display: '53:53-54', start: 53, end: 54 } },
-    ,
       {
         storyId: "story_muhammad",
         coverage: "partial",
@@ -5606,7 +5588,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 42
         }
       },
-    ,
       {
         storyId: "story_ad",
         coverage: "partial",
@@ -5871,7 +5852,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_nuh', coverage: 'partial', ayahRange: { display: '57:26', start: 26, end: 26 } },
         { storyId: 'story_ibrahim', coverage: 'partial', ayahRange: { display: '57:26', start: 26, end: 26 } },
         { storyId: 'story_isa', coverage: 'partial', ayahRange: { display: '57:27', start: 27, end: 27 } },
-    ,
       {
         storyId: "story_creation_heavens_earth",
         coverage: "partial",
@@ -6271,8 +6251,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           start: 5,
           end: 5
         }
-      }
-    ,
+      },
       {
         storyId: "story_bani_israel",
         coverage: "partial",
@@ -8064,8 +8043,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           start: 4,
           end: 9
         }
-      }
-    ,
+      },
       {
         storyId: "story_thamud",
         coverage: "partial",

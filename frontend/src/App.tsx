@@ -46,9 +46,11 @@ const MushafPage = lazy(() => import('./pages/MushafPage').then(m => ({ default:
 const AskPage = lazy(() => import('./pages/AskPage').then(m => ({ default: m.AskPage })));
 const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ default: m.SearchPage })));
 
-// Stories feature
-const StoriesPage = lazy(() => import('./pages/StoriesPage').then(m => ({ default: m.StoriesPage })));
+// Stories — canonical list + detail (StoryAtlasPage is the single authoritative browse experience)
+const StoryAtlasPage = lazy(() => import('./pages/StoryAtlasPage').then(m => ({ default: m.StoryAtlasPage })));
 const StoryDetailPage = lazy(() => import('./pages/StoryDetailPage').then(m => ({ default: m.StoryDetailPage })));
+const StoryAtlasDetailPage = lazy(() => import('./pages/StoryAtlasDetailPage').then(m => ({ default: m.StoryAtlasDetailPage })));
+const StoryAtlasConnectionsPage = lazy(() => import('./pages/StoryAtlasConnectionsPage').then(m => ({ default: m.StoryAtlasConnectionsPage })));
 
 // Concepts feature
 const ConceptsPage = lazy(() => import('./pages/ConceptsPage').then(m => ({ default: m.ConceptsPage })));
@@ -64,19 +66,14 @@ const MiraclesPage = lazy(() => import('./pages/MiraclesPage').then(m => ({ defa
 const SimilarityPage = lazy(() => import('./pages/SimilarityPage').then(m => ({ default: m.SimilarityPage })));
 const SourcesPage = lazy(() => import('./pages/SourcesPage').then(m => ({ default: m.SourcesPage })));
 
-// Story Atlas (narrative clusters)
-const StoryAtlasPage = lazy(() => import('./pages/StoryAtlasPage').then(m => ({ default: m.StoryAtlasPage })));
-const StoryAtlasDetailPage = lazy(() => import('./pages/StoryAtlasDetailPage').then(m => ({ default: m.StoryAtlasDetailPage })));
-const StoryAtlasConnectionsPage = lazy(() => import('./pages/StoryAtlasConnectionsPage').then(m => ({ default: m.StoryAtlasConnectionsPage })));
-
 // Tasmeeʿ (Memorization) - Audio recording with STT
 const TasmeePage = lazy(() => import('./pages/TasmeePage'));
 
-// Surah Atlas Intelligence (new)
+// Surah Atlas Intelligence
 const SurahAtlasPage = lazy(() => import('./pages/SurahAtlasPage'));
 const SurahAtlasDetailPage = lazy(() => import('./pages/SurahAtlasDetailPage'));
 
-// Memorization Intelligence (new)
+// Memorization Intelligence
 const MemorizationLinksPage = lazy(() => import('./pages/MemorizationLinksPage'));
 
 // Tools pages (bundled together)
@@ -106,7 +103,7 @@ const AdminFeedbackPage = lazy(() => import('./pages/admin/AdminFeedbackPage').t
 // Spiritual Guidance / Heart Care (Phase T)
 const TherapyPage = lazy(() => import('./pages/TherapyPage').then(m => ({ default: m.TherapyPage })));
 
-// Prophets Atlas (Phase X)
+// Prophets Atlas
 const ProphetsPage = lazy(() => import('./pages/ProphetsPage').then(m => ({ default: m.ProphetsPage })));
 const ProphetDetailPage = lazy(() => import('./pages/ProphetDetailPage').then(m => ({ default: m.ProphetDetailPage })));
 const ProphetJourneyPage = lazy(() => import('./pages/ProphetJourneyPage').then(m => ({ default: m.ProphetJourneyPage })));
@@ -117,20 +114,15 @@ const ProphetJourneyPage = lazy(() => import('./pages/ProphetJourneyPage').then(
 
 const preloadRoutes: Record<string, () => void> = {
   '/': () => {
-    // From home, users often go to Mushaf or Ask
     import('./pages/MushafPage');
     import('./pages/AskPage');
   },
   '/mushaf': () => {
-    // From Mushaf, users might search or go to Quran
     import('./pages/SearchPage');
     import('./pages/QuranPage');
   },
   '/stories': () => {
     import('./pages/StoryDetailPage');
-    import('./pages/StoryAtlasPage');
-  },
-  '/story-atlas': () => {
     import('./pages/StoryAtlasDetailPage');
   },
   '/concepts': () => {
@@ -143,6 +135,9 @@ const preloadRoutes: Record<string, () => void> = {
     import('./pages/tools/PrayerTimesPage');
     import('./pages/tools/HijriCalendarPage');
   },
+  '/prophets': () => {
+    import('./pages/ProphetDetailPage');
+  },
 };
 
 // =============================================================================
@@ -153,7 +148,6 @@ function useRoutePreloader() {
   const location = useLocation();
 
   useEffect(() => {
-    // Preload after a short delay to not block current render
     const timer = setTimeout(() => {
       const preloader = preloadRoutes[location.pathname];
       if (preloader) {
@@ -188,9 +182,13 @@ function App() {
           <Route path="/ask" element={<AskPage />} />
           <Route path="/search" element={<SearchPage />} />
 
-          {/* Stories */}
-          <Route path="/stories" element={<StoriesPage />} />
+          {/* Stories — /stories is the single entry point (rich atlas view) */}
+          <Route path="/stories" element={<StoryAtlasPage />} />
           <Route path="/stories/:storyId" element={<StoryDetailPage />} />
+
+          {/* Story Atlas cluster detail + connections (deep-linked, not in nav) */}
+          <Route path="/story-atlas/connections" element={<StoryAtlasConnectionsPage />} />
+          <Route path="/story-atlas/:clusterId" element={<StoryAtlasDetailPage />} />
 
           {/* Concepts */}
           <Route path="/concepts" element={<ConceptsPage />} />
@@ -206,19 +204,12 @@ function App() {
           <Route path="/similarity" element={<SimilarityPage />} />
           <Route path="/sources" element={<SourcesPage />} />
 
-          {/* Story Atlas (narrative clusters) */}
-          <Route path="/story-atlas" element={<StoryAtlasPage />} />
-          <Route path="/story-atlas/connections" element={<StoryAtlasConnectionsPage />} />
-          <Route path="/story-atlas/:clusterId" element={<StoryAtlasDetailPage />} />
-
-          {/* Surah Atlas Intelligence (Phase Atlas) */}
+          {/* Surah Atlas */}
           <Route path="/surah-atlas" element={<SurahAtlasPage />} />
           <Route path="/surah-atlas/:surahNumber" element={<SurahAtlasDetailPage />} />
 
-          {/* Memorization Intelligence (Phase Atlas) */}
+          {/* Memorization */}
           <Route path="/memorization" element={<MemorizationLinksPage />} />
-
-          {/* Tasmeeʿ (Memorization) */}
           <Route path="/tasmee" element={<TasmeePage />} />
 
           {/* Tools */}
@@ -239,14 +230,14 @@ function App() {
           {/* Admin / Status Dashboard */}
           <Route path="/status" element={<StatusDashboardPage />} />
 
-          {/* Admin / Review Workflow (Phase 6) */}
+          {/* Admin / Review Workflow */}
           <Route path="/admin/review" element={<ReviewDashboardPage />} />
           <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
 
-          {/* Spiritual Guidance / Heart Care (Phase T) */}
+          {/* Spiritual Guidance / Heart Care */}
           <Route path="/therapy" element={<TherapyPage />} />
 
-          {/* Prophets Atlas (Phase X) */}
+          {/* Prophets Atlas */}
           <Route path="/prophets" element={<ProphetsPage />} />
           <Route path="/prophets/:prophetId" element={<ProphetDetailPage />} />
           <Route path="/prophets/:prophetId/journey" element={<ProphetJourneyPage />} />

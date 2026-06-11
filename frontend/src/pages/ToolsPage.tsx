@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Video, Newspaper, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar, Library, ShieldCheck, LayoutGrid } from 'lucide-react';
+import { Video, Newspaper, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar, Library, ShieldCheck } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import clsx from 'clsx';
 
@@ -124,16 +124,6 @@ const TOOL_MODULES: ToolModule[] = [
     icon: ShieldCheck,
     path: '/tools/prompt-guide',
     color: 'emerald',
-  },
-  {
-    id: 'surah-memory-atlas',
-    name_en: 'Surah Memory Atlas',
-    name_ar: 'تذكّر ترتيب السور',
-    description_en: 'Learn all 114 surah names, their order, Makki/Madani status, ayah counts, page ranges, and memory clues',
-    description_ar: 'تعلّم أسماء السور الـ١١٤ وترتيبها وتصنيفها المكي/المدني وعدد آياتها ومفاتيح الحفظ',
-    icon: LayoutGrid,
-    path: '/tools/surah-memory-atlas',
-    color: 'violet',
   },
 ];
 

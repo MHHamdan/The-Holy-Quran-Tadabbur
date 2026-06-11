@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Map, Heart, Layers, RefreshCw } from 'lucide-react';
+import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import clsx from 'clsx';
@@ -18,8 +18,8 @@ export function Layout({ children }: LayoutProps) {
     { path: '/', label: 'nav_home', icon: Home },
     { path: '/mushaf', label: 'nav_mushaf', icon: BookOpenCheck },
     { path: '/stories', label: 'nav_stories', icon: Book },
-    { path: '/story-atlas', label: 'nav_atlas', icon: Map },
     { path: '/surah-atlas', label: 'nav_surah_atlas', icon: Layers },
+    { path: '/prophets', label: 'nav_prophets', icon: Users },
     { path: '/memorization', label: 'nav_memorization', icon: RefreshCw },
     { path: '/concepts', label: 'nav_concepts', icon: Network },
     { path: '/themes', label: 'nav_themes', icon: Compass },
