@@ -1443,10 +1443,9 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [{
     titleAr: 'قصة ابن نوح الغريق',
     surahOccurrences: [
       { surahNumber: 11, surahName: 'Hud', ayahRange: { surah: 11, ayah: 42, rangeEnd: 47, display: '11:42-47' }, coverageNote: { en: 'Complete account', ar: 'الرواية الكاملة' } },
-      { surahNumber: 40, surahName: 'Ghafir', ayahRange: { surah: 40, ayah: 5, rangeEnd: 5, display: '40:5' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],
     dominantSurahNumber: 11,
-    totalOccurrences: 2,
+    totalOccurrences: 1,
     reviewStatus: 'needs_review',
   },{
     storyId: 'story_spider',

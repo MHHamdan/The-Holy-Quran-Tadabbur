@@ -4061,7 +4061,6 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 45
         }
       },
-        { storyId: 'story_son_nuh', coverage: 'partial', ayahRange: { display: '40:5', start: 5, end: 5 } },
     ],
     summary: {
       short: {
