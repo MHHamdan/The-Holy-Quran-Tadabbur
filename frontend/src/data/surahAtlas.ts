@@ -876,8 +876,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Disavowal from Polytheists", "Exposing Hypocrites", "Battle of Tabuk", "Jizyah"],
     keyConceptsAr: ["البراءة من المشركين", "كشف النفاق", "غزوة تبوك", "الجزية"],
     prophetsMentioned: ["Musa", "Ibrahim", "Nuh", "Muhammad"],
-    nationsMentioned: ["Bani Israel", "Christians", "Zoroastrians", "People of Nuh"
-    ],
+    nationsMentioned: ["Bani Israel", "Christians", "People of Nuh"],
     storiesMentioned: [
       {
         storyId: "story_muhammad",
@@ -2280,7 +2279,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["فريضة الحج", "أهوال القيامة", "الجهاد الدفاعي"],
     prophetsMentioned: ["Ibrahim", "Ismail", "Hud", "Lut", "Nuh", "Salih", "Shuayb"
     ],
-    nationsMentioned: ["Aad", "Madyan", "People of Lut", "People of Nuh", "Thamud"],
+    nationsMentioned: ["Aad", "Madyan", "People of Lut", "People of Nuh", "Thamud", "Zoroastrians"],
     storiesMentioned: [
       {
         storyId: "story_fly",
