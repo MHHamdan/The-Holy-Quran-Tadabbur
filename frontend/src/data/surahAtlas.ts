@@ -1507,8 +1507,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Preservation of Quran", "Story of Iblis", "Story of Lut", "Reassurance with Truth"],
     keyConceptsAr: ["حفظ القرآن", "قصة إبليس", "قصة لوط", "الطمأنينة بالحق"],
     prophetsMentioned: ["Ibrahim", "Lut", "Adam", "Shuayb"],
-    nationsMentioned: ["Aad", "People of Lut", "Al-Hijr", "Madyan"
-    ],
+    nationsMentioned: ["Al-Hijr", "Madyan", "People of Lut"],
     storiesMentioned: [
       {
         storyId: "story_adam",
@@ -3001,7 +3000,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConcepts: ["Faith is Tested", "Spider's Web", "Jihad Leads to Guidance"],
     keyConceptsAr: ["الإيمان يُختبر", "بيت العنكبوت", "الجهاد يهدي"],
     prophetsMentioned: ["Nuh", "Ibrahim", "Lut", "Shuayb", "Musa"],
-    nationsMentioned: ["Aad", "Bani Israel", "Madyan", "People of Lut", "People of Nuh", "Pharaoh's Army", "Thamud"],
+    nationsMentioned: ["Aad", "Madyan", "People of Lut", "People of Nuh", "Pharaoh's Army", "Thamud"],
     storiesMentioned: [
       {
         storyId: "story_nuh",
@@ -3050,6 +3049,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
       },
         { storyId: 'story_haman', coverage: 'partial', ayahRange: { display: '29:39-40', start: 39, end: 40 } },
         { storyId: 'story_spider', coverage: 'partial', ayahRange: { display: '29:41', start: 41, end: 41 } },
+      { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '29:39-40', start: 39, end: 40 } },
     ],
     summary: {
       short: {
@@ -3699,7 +3699,7 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     keyConceptsAr: ["الصافات", "إبراهيم وإسماعيل", "الفداء العظيم", "إلياس ويونس"],
     prophetsMentioned: ["Ibrahim", "Ismail", "Ishaq", "Musa", "Harun", "Ilyas", "Lut", "Yunus", "Nuh"
     ],
-    nationsMentioned: ["Aad", "Bani Israel", "People of Lut", "People of Nuh", "Pharaoh's Army"],
+    nationsMentioned: ["People of Lut", "People of Nuh"],
     storiesMentioned: [
       {
         storyId: "story_nuh",

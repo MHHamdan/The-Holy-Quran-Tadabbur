@@ -356,6 +356,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [{
       { surahNumber: 26, surahName: 'Ash-Shuara', ayahRange: { surah: 26, ayah: 10, rangeEnd: 68, display: '26:10-68' }, coverageNote: { en: 'Dialogue with Pharaoh and the magicians', ar: 'حوار مع فرعون والسحرة' } },
       { surahNumber: 27, surahName: 'An-Naml', ayahRange: { surah: 27, ayah: 7, rangeEnd: 14, display: '27:7-14' }, coverageNote: { en: 'The fire and the staff', ar: 'النار والعصا' } },
       { surahNumber: 28, surahName: 'Al-Qasas', ayahRange: { surah: 28, ayah: 1, rangeEnd: 43, display: '28:1-43' }, coverageNote: { en: 'Birth, upbringing, and early mission of Musa', ar: 'ولادة موسى ونشأته ومهمته الأولى' } },
+      { surahNumber: 29, surahName: 'Al-Ankabut', ayahRange: { surah: 29, ayah: 39, rangeEnd: 40, display: '29:39-40' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 32, surahName: 'As-Sajda', ayahRange: { surah: 32, ayah: 23, rangeEnd: 23, display: '32:23' }, coverageNote: { en: 'Brief mention of giving Musa the scripture', ar: 'ذكر موجز لإعطاء موسى الكتاب' } },
       { surahNumber: 33, surahName: 'Al-Ahzab', ayahRange: { surah: 33, ayah: 69, rangeEnd: 69, display: '33:69' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
       { surahNumber: 37, surahName: 'As-Saffat', ayahRange: { surah: 37, ayah: 114, rangeEnd: 122, display: '37:114-122' }, coverageNote: { en: 'Musa and Harun honored and saved', ar: 'تكريم موسى وهارون ونجاتهم' } },
@@ -370,7 +371,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [{
       
     ],
     dominantSurahNumber: 20,
-    totalOccurrences: 28,
+    totalOccurrences: 29,
     reviewStatus: 'needs_review',
   },{
     storyId: 'story_ibrahim',
