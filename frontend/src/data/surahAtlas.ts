@@ -156,6 +156,25 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_golden_calf', coverage: 'partial', ayahRange: { display: '2:54', start: 54, end: 54 } },
         { storyId: 'story_harut_marut', coverage: 'complete', ayahRange: { display: '2:102-103', start: 102, end: 103 } },
         { storyId: 'story_sabbath_breakers', coverage: 'partial', ayahRange: { display: '2:65-66', start: 65, end: 66 } },
+    ,
+      {
+        storyId: "story_angels_prostration",
+        coverage: "partial",
+        ayahRange: {
+          display: "2:34",
+          start: 34,
+          end: 34
+        }
+      },
+      {
+        storyId: "story_iblis_refusal",
+        coverage: "partial",
+        ayahRange: {
+          display: "2:34",
+          start: 34,
+          end: 34
+        }
+      }
     ],
     summary: {
       short: {
@@ -604,6 +623,25 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 79
         }
       }
+    ,
+      {
+        storyId: "story_yusuf",
+        coverage: "partial",
+        ayahRange: {
+          display: "6:84",
+          start: 84,
+          end: 84
+        }
+      },
+      {
+        storyId: "story_zakariyya_yahya",
+        coverage: "partial",
+        ayahRange: {
+          display: "6:85",
+          start: 85,
+          end: 85
+        }
+      }
     ],
     summary: {
       short: {
@@ -731,6 +769,25 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_araf_people', coverage: 'partial', ayahRange: { display: '7:46-49', start: 46, end: 49 } },
         { storyId: 'story_covenant_souls', coverage: 'partial', ayahRange: { display: '7:172-174', start: 172, end: 174 } },
         { storyId: 'story_dog_parable', coverage: 'partial', ayahRange: { display: '7:175-176', start: 175, end: 176 } },
+    ,
+      {
+        storyId: "story_ad",
+        coverage: "partial",
+        ayahRange: {
+          display: "7:65-72",
+          start: 65,
+          end: 72
+        }
+      },
+      {
+        storyId: "story_angels_prostration",
+        coverage: "partial",
+        ayahRange: {
+          display: "7:11-25",
+          start: 11,
+          end: 25
+        }
+      }
     ],
     summary: {
       short: {
@@ -807,6 +864,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           display: "8:5-19",
           start: 5,
           end: 19
+        }
+      }
+    ,
+      {
+        storyId: "story_muhammad",
+        coverage: "partial",
+        ayahRange: {
+          display: "8:30",
+          start: 30,
+          end: 30
         }
       }
     ],
@@ -1141,6 +1208,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_salih', coverage: 'complete', ayahRange: { display: '11:61-68', start: 61, end: 68 } },
         { storyId: 'story_thamud', coverage: 'partial', ayahRange: { display: '11:67-68', start: 67, end: 68 } },
         { storyId: 'story_son_nuh', coverage: 'complete', ayahRange: { display: '11:42-47', start: 42, end: 47 } },
+    ,
+      {
+        storyId: "story_ad",
+        coverage: "partial",
+        ayahRange: {
+          display: "11:50-60",
+          start: 50,
+          end: 60
+        }
+      }
     ],
     summary: {
       short: {
@@ -1553,6 +1630,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 79
         }
       }
+    ,
+      {
+        storyId: "story_iblis_refusal",
+        coverage: "partial",
+        ayahRange: {
+          display: "15:26-44",
+          start: 26,
+          end: 44
+        }
+      }
     ],
     summary: {
       short: {
@@ -1738,6 +1825,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 65
         }
       }
+    ,
+      {
+        storyId: "story_thamud",
+        coverage: "partial",
+        ayahRange: {
+          display: "17:59",
+          start: 59,
+          end: 59
+        }
+      }
     ],
     summary: {
       short: {
@@ -1855,6 +1952,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_two_gardens', coverage: 'complete', ayahRange: { display: '18:32-44', start: 32, end: 44 } },
         { storyId: 'story_khidr', coverage: 'complete', ayahRange: { display: '18:60-82', start: 60, end: 82 } },
         { storyId: 'story_yajuj_majuj', coverage: 'partial', ayahRange: { display: '18:93-98', start: 93, end: 98 } },
+    ,
+      {
+        storyId: "story_iblis_refusal",
+        coverage: "partial",
+        ayahRange: {
+          display: "18:50",
+          start: 50,
+          end: 50
+        }
+      }
     ],
     summary: {
       short: {
@@ -2089,6 +2196,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_musa_burning_bush', coverage: 'partial', ayahRange: { display: '20:9-23', start: 9, end: 23 } },
         { storyId: 'story_magicians', coverage: 'partial', ayahRange: { display: '20:70-73', start: 70, end: 73 } },
         { storyId: 'story_mother_musa', coverage: 'partial', ayahRange: { display: '20:38-40', start: 38, end: 40 } },
+    ,
+      {
+        storyId: "story_musa_firaun_dialogue",
+        coverage: "partial",
+        ayahRange: {
+          display: "20:42-73",
+          start: 42,
+          end: 73
+        }
+      }
     ],
     summary: {
       short: {
@@ -2211,6 +2328,25 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_yajuj_majuj', coverage: 'partial', ayahRange: { display: '21:96-97', start: 96, end: 97 } },
         { storyId: 'story_lut', coverage: 'partial', ayahRange: { display: '21:74-75', start: 74, end: 75 } },
         { storyId: 'story_nuh', coverage: 'partial', ayahRange: { display: '21:76-77', start: 76, end: 77 } },
+    ,
+      {
+        storyId: "story_isa",
+        coverage: "partial",
+        ayahRange: {
+          display: "21:91",
+          start: 91,
+          end: 91
+        }
+      },
+      {
+        storyId: "story_ismail",
+        coverage: "partial",
+        ayahRange: {
+          display: "21:85-86",
+          start: 85,
+          end: 86
+        }
+      }
     ],
     summary: {
       short: {
@@ -2698,6 +2834,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_hud', coverage: 'partial', ayahRange: { display: '26:123-140', start: 123, end: 140 } },
         { storyId: 'story_salih', coverage: 'partial', ayahRange: { display: '26:141-159', start: 141, end: 159 } },
         { storyId: 'story_thamud', coverage: 'partial', ayahRange: { display: '26:141-159', start: 141, end: 159 } },
+    ,
+      {
+        storyId: "story_ad",
+        coverage: "partial",
+        ayahRange: {
+          display: "26:123-140",
+          start: 123,
+          end: 140
+        }
+      }
     ],
     summary: {
       short: {
@@ -2815,6 +2961,25 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
       },
         { storyId: 'story_ant_hoopoe', coverage: 'complete', ayahRange: { display: '27:18-28', start: 18, end: 28 } },
         { storyId: 'story_bilqis', coverage: 'complete', ayahRange: { display: '27:23-44', start: 23, end: 44 } },
+    ,
+      {
+        storyId: "story_saba",
+        coverage: "partial",
+        ayahRange: {
+          display: "27:22-44",
+          start: 22,
+          end: 44
+        }
+      },
+      {
+        storyId: "story_thamud",
+        coverage: "partial",
+        ayahRange: {
+          display: "27:45-53",
+          start: 45,
+          end: 53
+        }
+      }
     ],
     summary: {
       short: {
@@ -3276,6 +3441,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     storiesMentioned: [
         { storyId: 'story_adam', coverage: 'partial', ayahRange: { display: '32:7-9', start: 7, end: 9 } },
         { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '32:23', start: 23, end: 23 } },
+    ,
+      {
+        storyId: "story_creation_heavens_earth",
+        coverage: "partial",
+        ayahRange: {
+          display: "32:4-9",
+          start: 4,
+          end: 9
+        }
+      }
     ],
     summary: {
       short: {
@@ -3867,6 +4042,25 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_dhulkifl', coverage: 'partial', ayahRange: { display: '38:48', start: 48, end: 48 } },
         { storyId: 'story_sulayman_horses', coverage: 'partial', ayahRange: { display: '38:31-33', start: 31, end: 33 } },
         { storyId: 'story_sulayman_trial', coverage: 'complete', ayahRange: { display: '38:34-40', start: 34, end: 40 } },
+    ,
+      {
+        storyId: "story_iblis_refusal",
+        coverage: "partial",
+        ayahRange: {
+          display: "38:71-85",
+          start: 71,
+          end: 85
+        }
+      },
+      {
+        storyId: "story_ismail",
+        coverage: "partial",
+        ayahRange: {
+          display: "38:48",
+          start: 48,
+          end: 48
+        }
+      }
     ],
     summary: {
       short: {
@@ -4060,6 +4254,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 45
         }
       },
+    ,
+      {
+        storyId: "story_yusuf",
+        coverage: "partial",
+        ayahRange: {
+          display: "40:34",
+          start: 34,
+          end: 34
+        }
+      }
     ],
     summary: {
       short: {
@@ -4825,6 +5029,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 29
         }
       }
+    ,
+      {
+        storyId: "story_conquest_makkah",
+        coverage: "partial",
+        ayahRange: {
+          display: "48:18-21",
+          start: 18,
+          end: 21
+        }
+      }
     ],
     summary: {
       short: {
@@ -5080,6 +5294,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_musa', coverage: 'partial', ayahRange: { display: '51:38-40', start: 38, end: 40 } },
         { storyId: 'story_nuh', coverage: 'partial', ayahRange: { display: '51:46', start: 46, end: 46 } },
         { storyId: 'story_ad', coverage: 'partial', ayahRange: { display: '51:41-42', start: 41, end: 42 } },
+    ,
+      {
+        storyId: "story_thamud",
+        coverage: "partial",
+        ayahRange: {
+          display: "51:43-45",
+          start: 43,
+          end: 45
+        }
+      }
     ],
     summary: {
       short: {
@@ -5240,6 +5464,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_ad', coverage: 'partial', ayahRange: { display: '53:50', start: 50, end: 50 } },
         { storyId: 'story_thamud', coverage: 'partial', ayahRange: { display: '53:51', start: 51, end: 51 } },
         { storyId: 'story_lut', coverage: 'partial', ayahRange: { display: '53:53-54', start: 53, end: 54 } },
+    ,
+      {
+        storyId: "story_muhammad",
+        coverage: "partial",
+        ayahRange: {
+          display: "53:1-18",
+          start: 1,
+          end: 18
+        }
+      }
     ],
     summary: {
       short: {
@@ -5372,6 +5606,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 42
         }
       },
+    ,
+      {
+        storyId: "story_ad",
+        coverage: "partial",
+        ayahRange: {
+          display: "54:18-22",
+          start: 18,
+          end: 22
+        }
+      }
     ],
     summary: {
       short: {
@@ -5627,6 +5871,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
         { storyId: 'story_nuh', coverage: 'partial', ayahRange: { display: '57:26', start: 26, end: 26 } },
         { storyId: 'story_ibrahim', coverage: 'partial', ayahRange: { display: '57:26', start: 26, end: 26 } },
         { storyId: 'story_isa', coverage: 'partial', ayahRange: { display: '57:27', start: 27, end: 27 } },
+    ,
+      {
+        storyId: "story_creation_heavens_earth",
+        coverage: "partial",
+        ayahRange: {
+          display: "57:4",
+          start: 4,
+          end: 4
+        }
+      }
     ],
     summary: {
       short: {
@@ -6016,6 +6270,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           display: "62:5",
           start: 5,
           end: 5
+        }
+      }
+    ,
+      {
+        storyId: "story_bani_israel",
+        coverage: "partial",
+        ayahRange: {
+          display: "62:5-8",
+          start: 5,
+          end: 8
         }
       }
     ],
@@ -7801,6 +8065,16 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
           end: 9
         }
       }
+    ,
+      {
+        storyId: "story_thamud",
+        coverage: "partial",
+        ayahRange: {
+          display: "85:17-18",
+          start: 17,
+          end: 18
+        }
+      }
     ],
     summary: {
       short: {
@@ -7935,9 +8209,28 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "صُحُفِ إِبْرَٰهِيمَ وَمُوسَىٰ",
     keyConcepts: ["Glorify the Highest", "You Will Not Forget the Quran"],
     keyConceptsAr: ["تسبيح الله الأعلى", "لن تنسى القرآن"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Ibrahim", "Musa"],
     nationsMentioned: [],
-    storiesMentioned: [],
+    storiesMentioned: [
+      {
+        storyId: "story_ibrahim",
+        coverage: "partial",
+        ayahRange: {
+          display: "87:18-19",
+          start: 18,
+          end: 19
+        }
+      },
+      {
+        storyId: "story_musa",
+        coverage: "partial",
+        ayahRange: {
+          display: "87:18-19",
+          start: 18,
+          end: 19
+        }
+      }
+    ],
     summary: {
       short: {
         en: "The Surah takes its name from the word al-A`la in the very first verse.",
@@ -9447,9 +9740,19 @@ export const SURAH_ATLAS_DATA: SurahAtlasEntry[] = [
     lastAyahPreview: "إِنَّ شَانِئَكَ هُوَ ٱلْأَبْتَرُ",
     keyConcepts: ["Al-Kawthar Given", "The Prophet's Enemy is the Cut-Off One"],
     keyConceptsAr: ["الكوثر", "شانئ النبي الأبتر"],
-    prophetsMentioned: [],
+    prophetsMentioned: ["Muhammad"],
     nationsMentioned: [],
-    storiesMentioned: [],
+    storiesMentioned: [
+      {
+        storyId: "story_muhammad",
+        coverage: "partial",
+        ayahRange: {
+          display: "108:1-3",
+          start: 1,
+          end: 3
+        }
+      }
+    ],
     summary: {
       short: {
         en: "The Surah has been titled after the word al-kauthar occurring in the first verse.",
