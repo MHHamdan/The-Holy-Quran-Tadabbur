@@ -18,6 +18,8 @@ import {
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import clsx from 'clsx';
+import { VerseOfDayCard } from '../components/home/VerseOfDayCard';
+import { ReadingProgressCard } from '../components/home/ReadingProgressCard';
 
 // ---------------------------------------------------------------------------
 // Feature sections
@@ -207,6 +209,16 @@ export function HomePage() {
             >
               {t('nav_ask', language)}
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Daily Widgets: Verse of the Day + Reading Progress */}
+      <section className="py-8 bg-gray-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <VerseOfDayCard />
+            <ReadingProgressCard />
           </div>
         </div>
       </section>

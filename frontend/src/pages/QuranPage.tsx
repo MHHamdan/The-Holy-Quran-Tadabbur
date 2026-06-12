@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
+import { recordSurahVisit } from '../hooks/useReadingProgress';
 import { VerseText } from '../components/quran/WordMeaningPopover';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import clsx from 'clsx';
@@ -165,6 +166,15 @@ export function QuranPage() {
       loadSura(currentSura);
     }
   }, [currentSura, navMode, currentPage]);
+
+  // Record surah visit for reading progress tracking
+  useEffect(() => {
+    if (navMode !== 'surah' || currentSura < 1 || currentSura > 114) return;
+    const meta = suras.find(s => s.sura_no === currentSura);
+    if (meta) {
+      recordSurahVisit(currentSura, meta.name_ar, meta.name_en);
+    }
+  }, [currentSura, navMode, suras]);
 
   // Scroll to highlighted verse
   useEffect(() => {
