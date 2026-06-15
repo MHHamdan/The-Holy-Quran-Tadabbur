@@ -2225,6 +2225,17 @@ export const themeTranslations: Record<string, { ar: string; en: string }> = {
   anger: { ar: 'الغضب', en: 'anger' },
   disbelief: { ar: 'الكفر', en: 'disbelief' },
 
+  // Daily Challenge nav
+  nav_challenge: { ar: 'تحدي اليوم', en: 'Daily Challenge' },
+
+  // Persona labels
+  persona_new_muslim: { ar: 'مسلم جديد', en: 'New Muslim' },
+  persona_student: { ar: 'طالب علم', en: 'Student' },
+  persona_researcher: { ar: 'باحث أكاديمي', en: 'Researcher' },
+  persona_parent: { ar: 'ولي أمر', en: 'Parent' },
+  persona_arabic_learner: { ar: 'متعلّم العربية', en: 'Arabic Learner' },
+  persona_memorizer: { ar: 'حافظ القرآن', en: 'Memorizer' },
+
 };
 
 // Main figures translations

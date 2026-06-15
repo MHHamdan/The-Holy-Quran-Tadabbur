@@ -11,6 +11,8 @@ import { Routes, Route, Navigate, useParams, useLocation } from 'react-router-do
 import { Suspense, lazy, useEffect, memo } from 'react';
 import { Layout } from './components/layout/Layout';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { OnboardingModal } from './components/onboarding/OnboardingModal';
+import { usePersonaStore } from './stores/personaStore';
 import { Loader2 } from 'lucide-react';
 import { useLanguageStore } from './stores/languageStore';
 import { t } from './i18n/translations';
@@ -93,6 +95,9 @@ const SurahMemoryAtlasPage = lazy(() => import('./pages/tools/SurahMemoryAtlasPa
 
 // Bookmarks
 const BookmarksPage = lazy(() => import('./pages/BookmarksPage').then(m => ({ default: m.BookmarksPage })));
+
+// Daily Challenge
+const DailyChallengePage = lazy(() => import('./pages/DailyChallengePage').then(m => ({ default: m.DailyChallengePage })));
 
 // Asma Allah (99 Names of Allah)
 const AsmaAllahPage = lazy(() => import('./pages/AsmaAllahPage').then(m => ({ default: m.AsmaAllahPage })));
@@ -186,9 +191,11 @@ function useRoutePreloader() {
 
 function App() {
   useRoutePreloader();
+  const { hasChosen } = usePersonaStore();
 
   return (
     <Layout>
+      {!hasChosen && <OnboardingModal />}
       <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -265,6 +272,9 @@ function App() {
 
           {/* Bookmarks */}
           <Route path="/bookmarks" element={<BookmarksPage />} />
+
+          {/* Daily Challenge */}
+          <Route path="/challenge" element={<DailyChallengePage />} />
 
           {/* Asma Allah — 99 Names */}
           <Route path="/asma-allah" element={<AsmaAllahPage />} />

@@ -19,12 +19,14 @@ import {
   Layers,
   Heart,
   Bookmark,
+  Flame,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import clsx from 'clsx';
 import { VerseOfDayCard } from '../components/home/VerseOfDayCard';
 import { ReadingProgressCard } from '../components/home/ReadingProgressCard';
+import { usePersonaStore, PERSONA_META } from '../stores/personaStore';
 
 // ---------------------------------------------------------------------------
 // Feature sections
@@ -228,6 +230,16 @@ const TOOLS_FEATURES: Feature[] = [
     color: 'text-amber-700',
     iconBg: 'bg-amber-100',
   },
+  {
+    icon: Flame,
+    titleAr: 'تحدي اليوم',
+    titleEn: 'Daily Challenge',
+    descAr: 'سؤال يومي من قصص القرآن — اختبر معلوماتك وتابع سلسلتك',
+    descEn: 'One Quranic question per day — test your knowledge and track your streak',
+    link: '/challenge',
+    color: 'text-orange-700',
+    iconBg: 'bg-orange-100',
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -236,6 +248,7 @@ const TOOLS_FEATURES: Feature[] = [
 
 export function HomePage() {
   const { language } = useLanguageStore();
+  const { persona } = usePersonaStore();
   const isRtl = language === 'ar';
 
   return (
@@ -271,6 +284,21 @@ export function HomePage() {
       {/* Daily Widgets: Verse of the Day + Reading Progress */}
       <section className="py-8 bg-gray-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Persona welcome chip */}
+          {persona && (
+            <div className={clsx('flex items-center gap-2 mb-4 text-sm', isRtl && 'font-arabic')}>
+              <span className="text-lg">{PERSONA_META[persona].emoji}</span>
+              <span className="text-gray-600">
+                {isRtl
+                  ? `مرحباً — وضعك: ${PERSONA_META[persona].labelAr}`
+                  : `Welcome back — your mode: ${PERSONA_META[persona].labelEn}`}
+              </span>
+              <Link to="/challenge" className="ms-auto flex items-center gap-1 text-orange-600 hover:text-orange-800 font-medium transition-colors">
+                <Flame className="w-4 h-4" />
+                {isRtl ? 'تحدي اليوم' : "Today's Challenge"}
+              </Link>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <VerseOfDayCard />
             <ReadingProgressCard />

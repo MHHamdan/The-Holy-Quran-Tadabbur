@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users, Bookmark, Star } from 'lucide-react';
+import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users, Bookmark, Star, Flame } from 'lucide-react';
 import { useBookmarksStore } from '../../stores/bookmarksStore';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
@@ -20,6 +20,7 @@ export function Layout({ children }: LayoutProps) {
     { path: '/', label: 'nav_home', icon: Home },
     { path: '/mushaf', label: 'nav_mushaf', icon: BookOpenCheck },
     { path: '/bookmarks', label: 'nav_bookmarks', icon: Bookmark },
+    { path: '/challenge', label: 'nav_challenge', icon: Flame },
     { path: '/stories', label: 'nav_stories', icon: Book },
     { path: '/surah-atlas', label: 'nav_surah_atlas', icon: Layers },
     { path: '/prophets', label: 'nav_prophets', icon: Users },

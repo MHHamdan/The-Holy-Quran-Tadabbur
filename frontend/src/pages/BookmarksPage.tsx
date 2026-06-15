@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Bookmark, Trash2, ExternalLink, BookmarkX, Search, X } from 'lucide-react';
+import { Bookmark, Trash2, ExternalLink, BookmarkX, Search, X, Pencil, Check } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { useBookmarksStore } from '../stores/bookmarksStore';
 import clsx from 'clsx';
@@ -11,11 +11,22 @@ function toArabicNumber(n: number): string {
 
 export function BookmarksPage() {
   const { language } = useLanguageStore();
-  const { bookmarks, removeBookmark, clearAll } = useBookmarksStore();
+  const { bookmarks, removeBookmark, updateNote, clearAll } = useBookmarksStore();
   const isRtl = language === 'ar';
 
   const [filter, setFilter] = useState('');
   const [confirmClear, setConfirmClear] = useState(false);
+  const [editingNote, setEditingNote] = useState<{ id: number; draft: string } | null>(null);
+
+  const startEditNote = useCallback((id: number, currentNote: string) => {
+    setEditingNote({ id, draft: currentNote });
+  }, []);
+
+  const saveNote = useCallback(() => {
+    if (!editingNote) return;
+    updateNote(editingNote.id, editingNote.draft.trim());
+    setEditingNote(null);
+  }, [editingNote, updateNote]);
 
   const filtered = bookmarks.filter((b) => {
     if (!filter.trim()) return true;
@@ -191,6 +202,13 @@ export function BookmarksPage() {
                           )}
                         </span>
                         <button
+                          onClick={() => startEditNote(b.id, b.note ?? '')}
+                          className="p-1 text-gray-400 hover:text-amber-600 transition-colors rounded"
+                          title={isRtl ? 'إضافة ملاحظة' : 'Add note'}
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
                           onClick={() => removeBookmark(b.id)}
                           className="p-1 text-gray-400 hover:text-red-500 transition-colors rounded"
                           title={isRtl ? 'إزالة الإشارة' : 'Remove bookmark'}
@@ -211,12 +229,42 @@ export function BookmarksPage() {
                         {'﴿'}{isRtl ? toArabicNumber(b.aya_no) : b.aya_no}{'﴾'}
                       </span>
                     </p>
-                    {/* Note (if any) */}
-                    {b.note && (
-                      <p className={clsx('text-sm text-gray-600 mt-2 pt-2 border-t border-amber-100', isRtl && 'font-arabic text-right')}>
+                    {/* Inline note editor */}
+                    {editingNote?.id === b.id ? (
+                      <div className="mt-2 pt-2 border-t border-amber-100">
+                        <textarea
+                          value={editingNote.draft}
+                          onChange={(e) => setEditingNote({ ...editingNote, draft: e.target.value })}
+                          placeholder={isRtl ? 'أضف ملاحظتك هنا...' : 'Add your reflection here...'}
+                          rows={3}
+                          dir={isRtl ? 'rtl' : 'ltr'}
+                          className={clsx(
+                            'w-full text-sm border border-amber-200 rounded-lg p-2.5 resize-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none bg-white',
+                            isRtl && 'font-arabic text-right'
+                          )}
+                          autoFocus
+                        />
+                        <div className="flex gap-2 mt-1.5 justify-end">
+                          <button
+                            onClick={() => setEditingNote(null)}
+                            className="px-3 py-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                          >
+                            {isRtl ? 'إلغاء' : 'Cancel'}
+                          </button>
+                          <button
+                            onClick={saveNote}
+                            className="flex items-center gap-1 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs rounded-lg transition-colors"
+                          >
+                            <Check className="w-3 h-3" />
+                            {isRtl ? 'حفظ' : 'Save'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : b.note ? (
+                      <p className={clsx('text-sm text-gray-600 mt-2 pt-2 border-t border-amber-100 italic', isRtl && 'font-arabic text-right')}>
                         {b.note}
                       </p>
-                    )}
+                    ) : null}
                   </div>
                 ))}
               </div>

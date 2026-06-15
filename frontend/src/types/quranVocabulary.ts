@@ -10,7 +10,7 @@
  * - contextualMeaning is distinct from dictionary meaning
  */
 
-import type { AyahRef, BilingualText, EvidenceReference } from './surahAtlas';
+import type { BilingualText, EvidenceReference } from './surahAtlas';
 import type { SunniReviewStatus } from './quranStory';
 
 // ---------------------------------------------------------------------------
