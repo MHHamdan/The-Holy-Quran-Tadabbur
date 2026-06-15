@@ -20,12 +20,14 @@ import {
   Heart,
   Bookmark,
   Flame,
+  CalendarCheck,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import clsx from 'clsx';
 import { VerseOfDayCard } from '../components/home/VerseOfDayCard';
 import { ReadingProgressCard } from '../components/home/ReadingProgressCard';
+import { WordOfDayCard } from '../components/home/WordOfDayCard';
 import { usePersonaStore, PERSONA_META } from '../stores/personaStore';
 
 // ---------------------------------------------------------------------------
@@ -240,6 +242,16 @@ const TOOLS_FEATURES: Feature[] = [
     color: 'text-orange-700',
     iconBg: 'bg-orange-100',
   },
+  {
+    icon: CalendarCheck,
+    titleAr: 'خطة الختمة',
+    titleEn: 'Khatmah Reading Plan',
+    descAr: 'تتبع تقدمك في قراءة القرآن وحدد هدفاً لإكمال الختمة',
+    descEn: 'Track your Quran reading progress and set a target date to complete Khatmah',
+    link: '/reading-plan',
+    color: 'text-violet-700',
+    iconBg: 'bg-violet-100',
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -299,9 +311,10 @@ export function HomePage() {
               </Link>
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             <VerseOfDayCard />
             <ReadingProgressCard />
+            <WordOfDayCard />
           </div>
         </div>
       </section>
