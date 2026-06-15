@@ -105,6 +105,9 @@ const ReadingPlanPage = lazy(() => import('./pages/ReadingPlanPage').then(m => (
 // Quranic Duʿā Explorer
 const DuasPage = lazy(() => import('./pages/DuasPage').then(m => ({ default: m.DuasPage })));
 
+// Juz Navigator
+const JuzNavigatorPage = lazy(() => import('./pages/JuzNavigatorPage').then(m => ({ default: m.JuzNavigatorPage })));
+
 // Asma Allah (99 Names of Allah)
 const AsmaAllahPage = lazy(() => import('./pages/AsmaAllahPage').then(m => ({ default: m.AsmaAllahPage })));
 const AsmaAllahDetailPage = lazy(() => import('./pages/AsmaAllahDetailPage').then(m => ({ default: m.AsmaAllahDetailPage })));
@@ -287,6 +290,9 @@ function App() {
 
           {/* Quranic Duʿā Explorer */}
           <Route path="/duas" element={<DuasPage />} />
+
+          {/* Juz Navigator */}
+          <Route path="/juz" element={<JuzNavigatorPage />} />
 
           {/* Asma Allah — 99 Names */}
           <Route path="/asma-allah" element={<AsmaAllahPage />} />

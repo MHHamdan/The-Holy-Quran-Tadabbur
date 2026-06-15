@@ -85,6 +85,10 @@ export const translations: Translations = {
     ar: 'أدعية القرآن',
     en: "Quranic Duʿā",
   },
+  nav_juz: {
+    ar: 'الأجزاء',
+    en: 'Juz Navigator',
+  },
 
   // Common
   app_title: {
