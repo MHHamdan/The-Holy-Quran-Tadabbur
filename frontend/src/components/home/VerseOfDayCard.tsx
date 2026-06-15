@@ -9,11 +9,12 @@
  * fetched live from the API — never hardcoded (CLAUDE.md constraint).
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ExternalLink, RefreshCw, Volume2 } from 'lucide-react';
+import { BookOpen, ExternalLink, RefreshCw, Volume2, Share2, Bookmark, BookmarkCheck } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../../stores/languageStore';
+import { useBookmarksStore } from '../../stores/bookmarksStore';
 import { quranApi } from '../../lib/api';
 
 // ---------------------------------------------------------------------------
@@ -112,8 +113,39 @@ export function VerseOfDayCard({ compact = false }: Props) {
   const [uthmani, setUthmani] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const fetchedRef = useRef<number | null>(null);
+  const { addBookmark, removeBookmark, isBookmarked } = useBookmarksStore();
 
   const ref = POOL[idx];
+  const verseIdApprox = ref[0] * 1000 + ref[1]; // stable pseudo-id for day verse
+
+  const bookmarked = uthmani ? isBookmarked(verseIdApprox) : false;
+
+  const toggleBookmark = useCallback(() => {
+    if (!uthmani) return;
+    if (bookmarked) {
+      removeBookmark(verseIdApprox);
+    } else {
+      addBookmark({
+        id: verseIdApprox,
+        sura_no: ref[0],
+        sura_name_ar: ref[3],
+        sura_name_en: ref[2],
+        aya_no: ref[1],
+        text_uthmani: uthmani,
+      });
+    }
+  }, [bookmarked, uthmani, ref, verseIdApprox, addBookmark, removeBookmark]);
+
+  const shareVerse = useCallback(async () => {
+    if (!uthmani) return;
+    const verseRef = `${ref[2]} (${ref[0]}:${ref[1]})`;
+    const text = `${uthmani}\n— ${verseRef}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: verseRef, text }); } catch { /* cancelled */ }
+    } else {
+      navigator.clipboard.writeText(text).catch(console.error);
+    }
+  }, [uthmani, ref]);
 
   useEffect(() => {
     if (fetchedRef.current === idx) return;
@@ -220,6 +252,36 @@ export function VerseOfDayCard({ compact = false }: Props) {
           <Volume2 className="w-3 h-3" />
           {isRtl ? 'تدبر هذه الآية' : 'Reflect on this verse'}
         </Link>
+        {uthmani && (
+          <>
+            <button
+              onClick={toggleBookmark}
+              className={clsx(
+                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                bookmarked
+                  ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                  : 'bg-white/70 text-gray-600 border border-gray-200 hover:bg-white',
+                isRtl && 'font-arabic',
+              )}
+              title={isRtl ? (bookmarked ? 'إزالة الإشارة' : 'حفظ الآية') : (bookmarked ? 'Remove bookmark' : 'Bookmark')}
+            >
+              {bookmarked ? <BookmarkCheck className="w-3 h-3" /> : <Bookmark className="w-3 h-3" />}
+              {isRtl ? (bookmarked ? 'محفوظة' : 'حفظ') : (bookmarked ? 'Saved' : 'Save')}
+            </button>
+            <button
+              onClick={shareVerse}
+              className={clsx(
+                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium',
+                'bg-white/70 text-gray-600 border border-gray-200 hover:bg-white transition-colors',
+                isRtl && 'font-arabic',
+              )}
+              title={isRtl ? 'مشاركة' : 'Share'}
+            >
+              <Share2 className="w-3 h-3" />
+              {isRtl ? 'مشاركة' : 'Share'}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -86,7 +86,7 @@ export default defineConfig({
             './src/pages/ConceptDetailPage.tsx',
           ],
           'feature-stories': [
-            './src/pages/StoriesPage.tsx',
+            './src/pages/StoryAtlasPage.tsx',
             './src/pages/StoryDetailPage.tsx',
           ],
           // Tools pages are each separately lazy-loaded in App.tsx router,

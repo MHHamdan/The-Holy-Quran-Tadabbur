@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users } from 'lucide-react';
+import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users, Bookmark, Star } from 'lucide-react';
+import { useBookmarksStore } from '../../stores/bookmarksStore';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import clsx from 'clsx';
@@ -12,11 +13,13 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const { language, toggleLanguage, direction } = useLanguageStore();
+  const { bookmarks } = useBookmarksStore();
   const location = useLocation();
 
   const navItems = [
     { path: '/', label: 'nav_home', icon: Home },
     { path: '/mushaf', label: 'nav_mushaf', icon: BookOpenCheck },
+    { path: '/bookmarks', label: 'nav_bookmarks', icon: Bookmark },
     { path: '/stories', label: 'nav_stories', icon: Book },
     { path: '/surah-atlas', label: 'nav_surah_atlas', icon: Layers },
     { path: '/prophets', label: 'nav_prophets', icon: Users },
@@ -24,6 +27,7 @@ export function Layout({ children }: LayoutProps) {
     { path: '/concepts', label: 'nav_concepts', icon: Network },
     { path: '/themes', label: 'nav_themes', icon: Compass },
     { path: '/miracles', label: 'nav_miracles', icon: Sparkles },
+    { path: '/asma-allah', label: 'nav_asma_allah', icon: Star },
     { path: '/similarity', label: 'nav_similarity', icon: Link2 },
     { path: '/search', label: 'nav_search', icon: Search },
     { path: '/ask', label: 'nav_ask', icon: MessageCircle },
@@ -74,7 +78,7 @@ export function Layout({ children }: LayoutProps) {
                     key={item.path}
                     to={item.path}
                     className={clsx(
-                      'flex items-center gap-1.5 px-2.5 py-2 rounded-lg transition-colors flex-shrink-0',
+                      'relative flex items-center gap-1.5 px-2.5 py-2 rounded-lg transition-colors flex-shrink-0',
                       isActive
                         ? 'bg-primary-50 text-primary-700'
                         : 'text-gray-600 hover:bg-gray-100'
@@ -83,6 +87,11 @@ export function Layout({ children }: LayoutProps) {
                   >
                     <Icon className="w-4 h-4" />
                     <span className={clsx('font-medium text-sm hidden xl:inline', language === 'ar' && 'font-arabic')}>{t(item.label, language)}</span>
+                    {item.path === '/bookmarks' && bookmarks.length > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-amber-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                        {bookmarks.length > 9 ? '9+' : bookmarks.length}
+                      </span>
+                    )}
                   </Link>
                 );
               })}

@@ -109,7 +109,7 @@ const TOOL_MODULES: ToolModule[] = [
     id: 'vocabulary',
     name_en: 'Quranic Vocabulary',
     name_ar: 'غريب القرآن',
-    description_en: 'Look up Quranic word meanings from verified classical Arabic lexicons (coming soon)',
+    description_en: 'Look up Quranic word meanings from verified classical Arabic lexicons',
     description_ar: 'البحث في معاني الكلمات القرآنية من المعاجم الكلاسيكية الموثوقة (قريباً)',
     icon: Library,
     path: '/tools/vocabulary',

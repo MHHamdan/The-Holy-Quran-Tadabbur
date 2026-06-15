@@ -14,6 +14,7 @@ import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { Skeleton } from '../components/ui/Skeleton';
 import { prophetsApi, type ProphetProfile, type ProphetStoryPage } from '../lib/api';
+import { getSurahName } from '../data/surahNames';
 
 // ---------------------------------------------------------------------------
 // Skeleton
@@ -118,8 +119,9 @@ function StoryTimeline({ sections, language }: {
                         key={i}
                         to={`/quran/${r.surahNumber}`}
                         className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full hover:bg-emerald-100 transition-colors"
+                        title={getSurahName(r.surahNumber)[isAr ? 'ar' : 'en']}
                       >
-                        {r.surahNumber}:{r.ayahStart}{r.ayahEnd ? `–${r.ayahEnd}` : ''}
+                        {getSurahName(r.surahNumber)[isAr ? 'ar' : 'en']} {r.surahNumber}:{r.ayahStart}{r.ayahEnd ? `–${r.ayahEnd}` : ''}
                       </Link>
                     ))}
                     {s.ayahReferences.length > 10 && (
@@ -411,9 +413,13 @@ export function ProphetDetailPage() {
               <Link
                 key={idx}
                 to={`/quran/${m.surahNumber}`}
-                className="text-xs p-2 rounded-lg bg-gray-50 border border-gray-200 text-center hover:bg-emerald-50 hover:border-emerald-200 transition-colors text-gray-600 hover:text-emerald-700 font-mono"
+                className="text-xs p-2 rounded-lg bg-gray-50 border border-gray-200 text-center hover:bg-emerald-50 hover:border-emerald-200 transition-colors text-gray-600 hover:text-emerald-700"
+                title={getSurahName(m.surahNumber)[isAr ? 'ar' : 'en']}
               >
-                {m.surahNumber}:{m.ayahNumber}
+                <span className={isAr ? 'font-arabic block text-[10px]' : 'block text-[10px] truncate'}>
+                  {getSurahName(m.surahNumber)[isAr ? 'ar' : 'en']}
+                </span>
+                <span className="font-mono">{m.surahNumber}:{m.ayahNumber}</span>
               </Link>
             ))}
           </div>

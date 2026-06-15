@@ -2,6 +2,18 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Language, t as translateFn } from '../i18n/translations';
 
+function detectDefaultLanguage(): Language {
+  try {
+    const langs = navigator.languages ?? [navigator.language];
+    for (const lang of langs) {
+      if (lang.startsWith('ar')) return 'ar';
+    }
+  } catch {
+    // ignore
+  }
+  return 'en';
+}
+
 interface LanguageState {
   language: Language;
   direction: 'ltr' | 'rtl';
@@ -13,8 +25,8 @@ interface LanguageState {
 export const useLanguageStore = create<LanguageState>()(
   persist(
     (set, get) => ({
-      language: 'en',
-      direction: 'ltr',
+      language: detectDefaultLanguage(),
+      direction: detectDefaultLanguage() === 'ar' ? 'rtl' : 'ltr',
 
       t: (key: string) => translateFn(key, get().language),
 
@@ -41,6 +53,11 @@ export const useLanguageStore = create<LanguageState>()(
         if (state) {
           document.documentElement.dir = state.direction;
           document.documentElement.lang = state.language;
+        } else {
+          // No stored preference — apply detected language to DOM
+          const detected = detectDefaultLanguage();
+          document.documentElement.dir = detected === 'ar' ? 'rtl' : 'ltr';
+          document.documentElement.lang = detected;
         }
       },
     }

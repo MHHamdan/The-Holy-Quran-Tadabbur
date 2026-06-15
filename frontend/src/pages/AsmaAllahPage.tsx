@@ -196,7 +196,7 @@ export function AsmaAllahPage() {
               </p>
             </div>
             <button
-              onClick={() => navigate(`/themes/asma/${encodeURIComponent(data.divineNameAllah!.nameId)}`)}
+              onClick={() => navigate(`/asma-allah/${encodeURIComponent(data.divineNameAllah!.nameId)}`)}
               className="self-start sm:self-center px-4 py-2 text-sm rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
             >
               {language === 'ar'
@@ -216,7 +216,7 @@ export function AsmaAllahPage() {
             {visible.map((n) => (
               <button
                 key={n.nameId}
-                onClick={() => navigate(`/themes/asma/${encodeURIComponent(n.nameId)}`)}
+                onClick={() => navigate(`/asma-allah/${encodeURIComponent(n.nameId)}`)}
                 className="text-start p-5 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
               >
                 <div className="flex justify-between items-start mb-2">

@@ -1057,17 +1057,20 @@ function ConsequenceCard({ consequence, language }: { consequence: ThemeConseque
             <div className="text-sm text-gray-500">
               <span className="font-medium">{language === 'ar' ? 'الدليل:' : 'Evidence:'}</span>
               {' '}
-              {consequence.supporting_verses.map((v, i) => (
-                <span key={i}>
-                  {i > 0 && ', '}
-                  <Link
-                    to={`/quran/${v.sura}?aya=${v.ayah}`}
-                    className="text-primary-600 hover:underline"
-                  >
-                    {v.sura}:{v.ayah}
-                  </Link>
-                </span>
-              ))}
+              {consequence.supporting_verses.map((v, i) => {
+                const sName = language === 'ar' ? (SURA_NAMES_AR[v.sura] ?? String(v.sura)) : (SURA_NAMES_EN[v.sura] ?? String(v.sura));
+                return (
+                  <span key={i}>
+                    {i > 0 && ', '}
+                    <Link
+                      to={`/quran/${v.sura}?aya=${v.ayah}`}
+                      className="text-primary-600 hover:underline"
+                    >
+                      {sName} {v.sura}:{v.ayah}
+                    </Link>
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>

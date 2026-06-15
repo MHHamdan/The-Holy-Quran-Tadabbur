@@ -15,6 +15,7 @@ const StoryGraphView = lazy(() =>
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { getStoryApprovalStatus } from '../utils/reviewStatus';
 import { getRegistry, getPerson, getPlace } from '../utils/storyRegistryAdapter';
+import { getSurahName } from '../data/surahNames';
 import {
   SUBCATEGORY_GROUP_LABELS,
   PERSON_ROLE_LABELS,
@@ -368,7 +369,9 @@ export function StoryDetailPage() {
                             key={idx}
                             to={`/quran/${ev.surahNumber}?aya=${ev.ayahStart}`}
                             className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full hover:bg-primary-100 transition-colors"
+                            title={`${getSurahName(ev.surahNumber)[language === 'ar' ? 'ar' : 'en']} ${ev.surahNumber}:${ev.ayahStart}`}
                           >
+                            {language === 'ar' ? getSurahName(ev.surahNumber).ar : getSurahName(ev.surahNumber).en}{' '}
                             {ev.surahNumber}:{ev.ayahStart}{ev.ayahEnd !== ev.ayahStart ? `–${ev.ayahEnd}` : ''}
                           </Link>
                         ))}
@@ -408,7 +411,7 @@ export function StoryDetailPage() {
 
       {/* View Toggle */}
       <div className="flex items-center gap-4 mb-6">
-        <h2 className="text-lg font-semibold flex-1">
+        <h2 className={clsx('text-lg font-semibold flex-1', language === 'ar' && 'font-arabic')}>
           {t('story_segments', language)} ({story.segments.length})
         </h2>
         <div className="flex bg-gray-100 rounded-lg p-1">
@@ -501,7 +504,7 @@ export function StoryDetailPage() {
                           </span>
                         </div>
                         {segSummary && (
-                          <p className="text-gray-600 text-sm">{segSummary}</p>
+                          <p className={clsx('text-gray-600 text-sm', language === 'ar' && 'font-arabic')}>{segSummary}</p>
                         )}
                       </div>
                     </div>

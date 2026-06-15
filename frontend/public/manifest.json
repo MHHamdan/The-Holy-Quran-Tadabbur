@@ -1,0 +1,45 @@
+{
+  "name": "Tadabbur Al-Quran | تدبر القرآن",
+  "short_name": "Tadabbur",
+  "description": "Deepen your understanding of the Quran with AI-powered tafsir, stories, and thematic exploration",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "orientation": "portrait-primary",
+  "categories": ["education", "religion", "lifestyle"],
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Mushaf",
+      "short_name": "Mushaf",
+      "description": "Open the Quran reader",
+      "url": "/mushaf",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Tafsir Assistant",
+      "short_name": "Ask",
+      "description": "Ask about Quranic verses",
+      "url": "/ask",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Bookmarks",
+      "short_name": "Saved",
+      "description": "View saved verses",
+      "url": "/bookmarks",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    }
+  ]
+}

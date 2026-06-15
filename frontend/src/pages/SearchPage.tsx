@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import {
   Search, ExternalLink, BarChart3, BookOpen, Hash, CheckCircle, AlertCircle,
   ChevronDown, ChevronUp, Filter, BookMarked, Sparkles, Languages, Info,
-  GitBranch, TrendingUp, Layers, X, Loader2
+  GitBranch, TrendingUp, Layers, X, Loader2, Bookmark, BookmarkCheck
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { useSearchHistoryStore } from '../stores/searchHistoryStore';
+import { useBookmarksStore } from '../stores/bookmarksStore';
 import { t } from '../i18n/translations';
 import {
   quranApi, EnhancedSearchResponse, SearchMatch, WordAnalyticsResponse,
@@ -1125,6 +1126,8 @@ function SearchMatchCard({
 }) {
   const [showTafsirLink, setShowTafsirLink] = useState(false);
   const suraName = getSuraName(match.sura_no);
+  const { addBookmark, removeBookmark, isBookmarked } = useBookmarksStore();
+  const bookmarked = isBookmarked(match.verse_id);
 
   return (
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 hover:border-primary-200 transition-colors">
@@ -1161,6 +1164,30 @@ function SearchMatchCard({
               <GitBranch className="w-3 h-3" />
             )}
             {language === 'ar' ? 'آيات مشابهة' : 'Find Similar'}
+          </button>
+          {/* Bookmark button */}
+          <button
+            onClick={() => {
+              if (bookmarked) {
+                removeBookmark(match.verse_id);
+              } else {
+                addBookmark({
+                  id: match.verse_id,
+                  sura_no: match.sura_no,
+                  sura_name_ar: match.sura_name_ar,
+                  sura_name_en: match.sura_name_en,
+                  aya_no: match.aya_no,
+                  text_uthmani: match.text_uthmani,
+                });
+              }
+            }}
+            className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors ${
+              bookmarked ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+            title={bookmarked ? (language === 'ar' ? 'إزالة الإشارة' : 'Remove bookmark') : (language === 'ar' ? 'حفظ الآية' : 'Bookmark')}
+          >
+            {bookmarked ? <BookmarkCheck className="w-3 h-3" /> : <Bookmark className="w-3 h-3" />}
+            {language === 'ar' ? (bookmarked ? 'محفوظة' : 'حفظ') : (bookmarked ? 'Saved' : 'Save')}
           </button>
         </div>
         <div className="flex items-center gap-2">

@@ -37,7 +37,11 @@ import {
   ChevronUp,
   ShieldAlert,
   Quote,
+  Bookmark,
+  BookmarkCheck,
+  Share2,
 } from 'lucide-react';
+import { useBookmarksStore } from '../stores/bookmarksStore';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, Verse, api, verseAskAiApi } from '../lib/api';
@@ -343,8 +347,39 @@ const VersePanel = memo(function VersePanel({
   onClose,
 }: VersePanelProps) {
   const { t } = useLanguageStore();
+  const { addBookmark, removeBookmark, isBookmarked } = useBookmarksStore();
   const [showTafsir, setShowTafsir] = useState(true);
   const [copiedVerse, setCopiedVerse] = useState(false);
+  const bookmarked = isBookmarked(verse.id);
+
+  const toggleBookmark = useCallback(() => {
+    if (bookmarked) {
+      removeBookmark(verse.id);
+    } else {
+      addBookmark({
+        id: verse.id,
+        sura_no: verse.sura_no,
+        sura_name_ar: verse.sura_name_ar,
+        sura_name_en: verse.sura_name_en,
+        aya_no: verse.aya_no,
+        text_uthmani: verse.text_uthmani,
+      });
+    }
+  }, [bookmarked, verse, addBookmark, removeBookmark]);
+
+  const shareVerse = useCallback(async () => {
+    const ref = `${verse.sura_name_en} (${verse.sura_no}:${verse.aya_no})`;
+    const text = `${verse.text_uthmani}\n— ${ref}\n\ntadabbur.app/quran/${verse.sura_no}?aya=${verse.aya_no}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: ref, text });
+      } catch {
+        // User cancelled or not supported — silently ignore
+      }
+    } else {
+      navigator.clipboard.writeText(text).catch(console.error);
+    }
+  }, [verse]);
 
   const copyVerseWithAttribution = useCallback(() => {
     const ref = `${verse.sura_name_en} (${verse.sura_no}:${verse.aya_no})`;
@@ -392,6 +427,25 @@ const VersePanel = memo(function VersePanel({
           >
             {copiedVerse ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4" />}
             <span className="hidden sm:inline">{copiedVerse ? (language === 'ar' ? 'تم النسخ' : 'Copied') : (language === 'ar' ? 'نسخ' : 'Copy')}</span>
+          </button>
+          <button
+            onClick={toggleBookmark}
+            className={clsx(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+              bookmarked ? 'bg-amber-400 hover:bg-amber-500 text-white' : 'bg-white/20 hover:bg-white/30'
+            )}
+            title={language === 'ar' ? (bookmarked ? 'إزالة الإشارة' : 'حفظ الآية') : (bookmarked ? 'Remove bookmark' : 'Bookmark verse')}
+          >
+            {bookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+            <span className="hidden sm:inline">{bookmarked ? (language === 'ar' ? 'محفوظة' : 'Saved') : (language === 'ar' ? 'حفظ' : 'Save')}</span>
+          </button>
+          <button
+            onClick={shareVerse}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white/20 hover:bg-white/30 transition-colors"
+            title={language === 'ar' ? 'مشاركة الآية' : 'Share verse'}
+          >
+            <Share2 className="w-4 h-4" />
+            <span className="hidden sm:inline">{language === 'ar' ? 'مشاركة' : 'Share'}</span>
           </button>
           <button
             onClick={onOpenAI}

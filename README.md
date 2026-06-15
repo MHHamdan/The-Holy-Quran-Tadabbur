@@ -29,7 +29,7 @@ Tadabbur-AI is a scholarly Quranic knowledge platform that:
 ### Setup
 
 1. **Clone and configure:**
-   ```bash
+   ```bashcontinue
    cd tadabbur
    cp .env.example .env
    # Edit .env and add ANTHROPIC_API_KEY

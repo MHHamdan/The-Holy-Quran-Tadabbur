@@ -7,7 +7,7 @@
  * 3. Preloading for predictive navigation
  */
 
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect, memo } from 'react';
 import { Layout } from './components/layout/Layout';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
@@ -91,6 +91,13 @@ const VocabularyPage = lazy(() => import('./pages/tools/VocabularyPage').then(m 
 const PromptGuidePage = lazy(() => import('./pages/tools/PromptGuidePage').then(m => ({ default: m.PromptGuidePage })));
 const SurahMemoryAtlasPage = lazy(() => import('./pages/tools/SurahMemoryAtlasPage').then(m => ({ default: m.SurahMemoryAtlasPage })));
 
+// Bookmarks
+const BookmarksPage = lazy(() => import('./pages/BookmarksPage').then(m => ({ default: m.BookmarksPage })));
+
+// Asma Allah (99 Names of Allah)
+const AsmaAllahPage = lazy(() => import('./pages/AsmaAllahPage').then(m => ({ default: m.AsmaAllahPage })));
+const AsmaAllahDetailPage = lazy(() => import('./pages/AsmaAllahDetailPage').then(m => ({ default: m.AsmaAllahDetailPage })));
+
 // Admin / Status
 const StatusDashboardPage = lazy(() => import('./pages/admin/StatusDashboardPage').then(m => ({ default: m.StatusDashboardPage })));
 
@@ -107,6 +114,20 @@ const TherapyPage = lazy(() => import('./pages/TherapyPage').then(m => ({ defaul
 const ProphetsPage = lazy(() => import('./pages/ProphetsPage').then(m => ({ default: m.ProphetsPage })));
 const ProphetDetailPage = lazy(() => import('./pages/ProphetDetailPage').then(m => ({ default: m.ProphetDetailPage })));
 const ProphetJourneyPage = lazy(() => import('./pages/ProphetJourneyPage').then(m => ({ default: m.ProphetJourneyPage })));
+
+// =============================================================================
+// Param-forwarding redirect helpers (for legacy / aliased routes)
+// =============================================================================
+
+function AsmaThemeRedirect() {
+  const { nameId } = useParams<{ nameId: string }>();
+  return <Navigate to={`/asma-allah/${nameId ?? ''}`} replace />;
+}
+
+function TopicsRedirect() {
+  const { topicId } = useParams<{ topicId: string }>();
+  return <Navigate to={`/concepts/${topicId ?? ''}`} replace />;
+}
 
 // =============================================================================
 // Preloading - Predictive loading for common navigation paths
@@ -241,6 +262,19 @@ function App() {
           <Route path="/prophets" element={<ProphetsPage />} />
           <Route path="/prophets/:prophetId" element={<ProphetDetailPage />} />
           <Route path="/prophets/:prophetId/journey" element={<ProphetJourneyPage />} />
+
+          {/* Bookmarks */}
+          <Route path="/bookmarks" element={<BookmarksPage />} />
+
+          {/* Asma Allah — 99 Names */}
+          <Route path="/asma-allah" element={<AsmaAllahPage />} />
+          <Route path="/asma-allah/:nameId" element={<AsmaAllahDetailPage />} />
+
+          {/* Legacy / aliased routes — redirect to canonical paths */}
+          <Route path="/story-atlas" element={<Navigate to="/stories" replace />} />
+          <Route path="/themes/asma" element={<Navigate to="/asma-allah" replace />} />
+          <Route path="/themes/asma/:nameId" element={<AsmaThemeRedirect />} />
+          <Route path="/topics/:topicId" element={<TopicsRedirect />} />
         </Routes>
       </Suspense>
       </ErrorBoundary>

@@ -7,6 +7,7 @@ import {
   type AsmaDetailResponse,
   type AsmaOccurrencesResponse,
 } from '../lib/api';
+import { getSurahName } from '../data/surahNames';
 function ReviewBadge({ status }: { status: string }) {
   const { language } = useLanguageStore();
   const meta =
@@ -80,7 +81,7 @@ export function AsmaAllahDetailPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6" dir={dir}>
-      <Link to="/themes/asma" className="inline-flex items-center gap-1 text-sm text-emerald-700 hover:text-emerald-900 mb-3">
+      <Link to="/asma-allah" className="inline-flex items-center gap-1 text-sm text-emerald-700 hover:text-emerald-900 mb-3">
         <ArrowLeft className="w-4 h-4" />
         {language === 'ar' ? 'كل الأسماء' : 'All Names'}
       </Link>
@@ -229,7 +230,7 @@ export function AsmaAllahDetailPage() {
                     to={`/quran/${o.surahNumber}`}
                     className="font-mono text-emerald-700 hover:text-emerald-900"
                   >
-                    {o.surahNumber}:{o.ayahNumber}
+                    {getSurahName(o.surahNumber)[language === 'ar' ? 'ar' : 'en']} {o.surahNumber}:{o.ayahNumber}
                   </Link>
                   <span className="mx-1.5 text-gray-400">·</span>
                   <span className="text-xs text-gray-700">{o.matchType}</span>
@@ -278,7 +279,7 @@ export function AsmaAllahDetailPage() {
                   className="text-sm flex items-center justify-between py-1 border-b last:border-b-0"
                 >
                   <Link
-                    to={`/themes/asma/${encodeURIComponent(otherId)}`}
+                    to={`/asma-allah/${encodeURIComponent(otherId)}`}
                     className="text-emerald-700 hover:text-emerald-900"
                   >
                     {otherId}

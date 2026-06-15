@@ -14,6 +14,11 @@ import {
   BookOpen,
   Wrench,
   ShieldCheck,
+  Star,
+  Users,
+  Layers,
+  Heart,
+  Bookmark,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
@@ -130,6 +135,36 @@ const KNOWLEDGE_FEATURES: Feature[] = [
     color: 'text-rose-700',
     iconBg: 'bg-rose-100',
   },
+  {
+    icon: Star,
+    titleAr: 'أسماء الله الحسنى',
+    titleEn: '99 Names of Allah',
+    descAr: 'تصفح أسماء الله الحسنى مع المعاني والشواهد القرآنية والتلاوة الصوتية',
+    descEn: 'Explore the 99 Names of Allah with meanings, Quranic references, and audio recitation',
+    link: '/asma-allah',
+    color: 'text-yellow-700',
+    iconBg: 'bg-yellow-100',
+  },
+  {
+    icon: Users,
+    titleAr: 'أطلس الأنبياء',
+    titleEn: 'Prophets Atlas',
+    descAr: 'تتبع رحلات الأنبياء ومسيرتهم في القرآن الكريم مع الشواهد القرآنية',
+    descEn: "Trace the journeys and life stages of Quranic prophets with verified references",
+    link: '/prophets',
+    color: 'text-green-700',
+    iconBg: 'bg-green-100',
+  },
+  {
+    icon: Layers,
+    titleAr: 'أطلس السور',
+    titleEn: 'Surah Atlas',
+    descAr: 'خرائط تفصيلية لكل سورة تربطها بالقصص والأنبياء والمواضيع القرآنية',
+    descEn: 'Detailed maps for each surah connecting stories, prophets, and Quranic themes',
+    link: '/surah-atlas',
+    color: 'text-purple-700',
+    iconBg: 'bg-purple-100',
+  },
 ];
 
 const TOOLS_FEATURES: Feature[] = [
@@ -172,6 +207,26 @@ const TOOLS_FEATURES: Feature[] = [
     link: '/tools/prompt-guide',
     color: 'text-emerald-700',
     iconBg: 'bg-emerald-100',
+  },
+  {
+    icon: Heart,
+    titleAr: 'التوجيه الروحي',
+    titleEn: 'Spiritual Guidance',
+    descAr: 'توجيه روحي قرآني لدعم الصحة النفسية والوجدانية — مستند إلى التفسير',
+    descEn: 'Quran-grounded spiritual guidance for emotional and mental wellbeing',
+    link: '/therapy',
+    color: 'text-rose-700',
+    iconBg: 'bg-rose-100',
+  },
+  {
+    icon: Bookmark,
+    titleAr: 'الآيات المحفوظة',
+    titleEn: 'Saved Verses',
+    descAr: 'الوصول السريع إلى الآيات التي حفظتها من المصحف والبحث',
+    descEn: 'Quick access to verses you have bookmarked from the Mushaf and search',
+    link: '/bookmarks',
+    color: 'text-amber-700',
+    iconBg: 'bg-amber-100',
   },
 ];
 

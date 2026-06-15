@@ -14,10 +14,11 @@ import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Book, ChevronLeft, ChevronRight, BookOpen,
-  Languages, GitBranch, FileText, Headphones
+  Languages, GitBranch, FileText, Headphones, Bookmark, BookmarkCheck
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
+import { useBookmarksStore } from '../stores/bookmarksStore';
 import { recordSurahVisit } from '../hooks/useReadingProgress';
 import { VerseText } from '../components/quran/WordMeaningPopover';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
@@ -140,6 +141,7 @@ export function QuranPage() {
   const [_conceptLabels, setConceptLabels] = useState<string[]>([]);
   const [_multiConceptMatches, setMultiConceptMatches] = useState<Map<string, string[]>>(new Map()); // verse -> matched concepts
 
+  const { addBookmark, removeBookmark, isBookmarked } = useBookmarksStore();
   const highlightRef = useRef<HTMLSpanElement>(null);
 
   const currentSura = parseInt(suraNo || '1', 10);
@@ -738,6 +740,37 @@ export function QuranPage() {
                         >
                           <BookOpen className="w-4 h-4" />
                           {language === 'ar' ? 'التفسير' : 'Tafsir'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (isBookmarked(verse.id)) {
+                              removeBookmark(verse.id);
+                            } else {
+                              addBookmark({
+                                id: verse.id,
+                                sura_no: verse.sura_no,
+                                sura_name_ar: verse.sura_name_ar,
+                                sura_name_en: verse.sura_name_en,
+                                aya_no: verse.aya_no,
+                                text_uthmani: verse.text_uthmani,
+                              });
+                            }
+                          }}
+                          className={clsx(
+                            'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors',
+                            isBookmarked(verse.id)
+                              ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+                            language === 'ar' && 'font-arabic'
+                          )}
+                          title={isBookmarked(verse.id) ? (language === 'ar' ? 'إزالة الإشارة' : 'Remove bookmark') : (language === 'ar' ? 'حفظ الآية' : 'Bookmark')}
+                        >
+                          {isBookmarked(verse.id)
+                            ? <BookmarkCheck className="w-4 h-4" />
+                            : <Bookmark className="w-4 h-4" />}
+                          {language === 'ar'
+                            ? (isBookmarked(verse.id) ? 'محفوظة' : 'حفظ')
+                            : (isBookmarked(verse.id) ? 'Saved' : 'Save')}
                         </button>
                       </div>
                       {/* Grammar analysis panel */}

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { User, Bot, Clock, AlertTriangle, CheckCircle, Sparkles, Info, BookOpen, ExternalLink, Copy, Check, Share2, ThumbsUp, ThumbsDown, HelpCircle, ShieldCheck, ShieldAlert, ShieldX, Scale, FileText, GitCompare, BookMarked, Layers, GraduationCap, FlaskConical } from 'lucide-react';
+import { getSurahName } from '../../data/surahNames';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { t } from '../../i18n/translations';
@@ -367,7 +368,8 @@ function CitationCard({ citation, language }: { citation: Citation; language: 'a
           to={`/quran/${sura}?aya=${aya}&highlight=true`}
           className="shrink-0 flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
         >
-          {citation.verse_reference}
+          <span className="font-arabic" dir="rtl">{getSurahName(Number(sura))[language === 'ar' ? 'ar' : 'en']}</span>
+          {' '}{citation.verse_reference}
           <ExternalLink className="w-3 h-3" />
         </Link>
       </div>

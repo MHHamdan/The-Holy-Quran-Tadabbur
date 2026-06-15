@@ -7,7 +7,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { BookMarked, RotateCcw, ChevronRight } from 'lucide-react';
+import { BookMarked, RotateCcw, ChevronRight, Flame } from 'lucide-react';
 import clsx from 'clsx';
 import { useReadingProgress } from '../../hooks/useReadingProgress';
 import { useLanguageStore } from '../../stores/languageStore';
@@ -22,6 +22,8 @@ export function ReadingProgressCard() {
   const visited = progress.visited.size;
   const pct = Math.round((visited / TOTAL) * 100);
   const lastRead = progress.lastRead;
+  const streak = progress.streak ?? 0;
+  const longestStreak = progress.longestStreak ?? 0;
 
   const handleReset = () => {
     if (window.confirm(isRtl ? 'هل تريد إعادة تعيين تقدم القراءة؟' : 'Reset reading progress?')) {
@@ -81,6 +83,35 @@ export function ReadingProgressCard() {
           />
         </div>
       </div>
+
+      {/* Streak stats */}
+      {(streak > 0 || longestStreak > 0) && (
+        <div className={clsx('flex items-center gap-3 mb-4', isRtl && 'flex-row-reverse')}>
+          <div className={clsx(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-lg flex-1 justify-center',
+            streak >= 3 ? 'bg-orange-100 text-orange-700' : 'bg-white/60 text-gray-600'
+          )}>
+            <Flame className={clsx('w-3.5 h-3.5 flex-shrink-0', streak >= 3 && 'text-orange-500')} />
+            <div className="text-center">
+              <p className="text-xs font-bold">{streak}</p>
+              <p className={clsx('text-[10px]', isRtl && 'font-arabic')}>
+                {isRtl ? 'يوم متتالي' : streak === 1 ? 'day' : 'days'}
+              </p>
+            </div>
+          </div>
+          {longestStreak > streak && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/60 text-gray-500 flex-1 justify-center">
+              <Flame className="w-3 h-3 text-gray-400" />
+              <div className="text-center">
+                <p className="text-xs font-bold">{longestStreak}</p>
+                <p className={clsx('text-[10px]', isRtl && 'font-arabic')}>
+                  {isRtl ? 'أفضل سلسلة' : 'best streak'}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Last read */}
       {lastRead ? (

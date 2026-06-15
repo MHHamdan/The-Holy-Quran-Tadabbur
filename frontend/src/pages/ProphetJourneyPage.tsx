@@ -116,7 +116,7 @@ export function ProphetJourneyPage() {
           {language === 'ar' ? 'رحلة ' : 'Journey — '}
           {prophetId?.replace(/^prophet_/, '')}
         </h1>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className={clsx('text-xs text-gray-500 mt-1', language === 'ar' && 'font-arabic')}>
           {language === 'ar' ? 'حالة المراجعة: ' : 'Review status: '}
           <span className="font-medium">{journey.reviewStatus}</span> · {journey.certainty}
         </p>
@@ -196,7 +196,7 @@ export function ProphetJourneyPage() {
         <h2 className={clsx('text-lg font-semibold mb-2 text-emerald-800', language === 'ar' && 'font-arabic')}>
           {language === 'ar' ? 'السرد القرآني بالشواهد' : 'Storytelling with evidence'}
         </h2>
-        <p className="text-xs text-gray-600 mb-3">
+        <p className={clsx('text-xs text-gray-600 mb-3', language === 'ar' && 'font-arabic')}>
           {language === 'ar'
             ? 'تصفّح إرشادي وليس تفسيراً. يحتاج التفصيل إلى مصادر معتمدة.'
             : 'Navigation summary, not tafsir. Detail requires verified sources.'}

@@ -5,6 +5,7 @@ import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import type { GuidanceCard } from '../../types/therapy';
 import { QuranAudioPlayer } from '../quran/QuranAudioPlayer';
+import { getSurahName } from '../../data/surahNames';
 import clsx from 'clsx';
 
 interface SpiritualGuidanceCardProps {
@@ -50,8 +51,10 @@ export function SpiritualGuidanceCard({ card, index }: SpiritualGuidanceCardProp
         <Link
           to={surahLink}
           className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
-          title="Open surah"
         >
+          <span dir={isRtl ? 'rtl' : 'ltr'} className={isRtl ? 'font-arabic' : ''}>
+            {getSurahName(card.surah)[isRtl ? 'ar' : 'en']}
+          </span>
           <span dir="ltr" className="font-mono">{card.reference}</span>
           <ExternalLink className="w-3 h-3" />
         </Link>
