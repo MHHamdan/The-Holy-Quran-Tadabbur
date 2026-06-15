@@ -379,6 +379,24 @@ export interface RAGResponse {
   disagreement_warning?: string | null;
   // Phase K — scientific miracle safety labels (from QuranAnswerGuard)
   required_labels?: string[];
+  // M3/M4 — Agentic pipeline metadata
+  agentic?: {
+    hops_used: number;
+    consensus?: {
+      consensus_level: 'strong_consensus' | 'partial_consensus' | 'significant_disagreement' | 'single_source_only';
+      majority_position: { source_id: string; source_name: string; claim_summary: string } | null;
+      disagreements: Array<{
+        disagreement_type: string;
+        position_a: { source_id: string; source_name: string; claim_summary: string };
+        position_b: { source_id: string; source_name: string; claim_summary: string };
+        adjudication: string;
+        resolution_status: string;
+      }>;
+      display_warning: string | null;
+      sources_analysed: number;
+    } | null;
+    evidence_validated: number | null;
+  };
 }
 
 // Chat session types

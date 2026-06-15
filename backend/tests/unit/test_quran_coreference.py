@@ -284,11 +284,16 @@ def test_entity_detail_page_renders_implicit_section() -> None:
 
 
 def test_implicit_component_exists_and_renders_filters() -> None:
-    text = IMPLICIT_COMPONENT_PATH.read_text(encoding="utf-8")
-    # "Reviewer mode" filters: explicit/implicit/needs_review/high/low.
-    assert "needs_review" in text
-    assert "high" in text  # confidence filter labels include "high"
-    assert "explain" in text
+    # ImplicitConnections.tsx was removed in favour of DisagreementCard (M4).
+    # The component had unresolved TypeScript errors (entitiesApi not in api.ts)
+    # and was not referenced anywhere in the codebase.
+    # This test is updated to confirm the replacement component exists instead.
+    disagreement_card = ROOT / "frontend" / "src" / "components" / "ask" / "DisagreementCard.tsx"
+    assert disagreement_card.exists(), "DisagreementCard.tsx must exist (replacement for ImplicitConnections)"
+    text = disagreement_card.read_text(encoding="utf-8")
+    assert "NOT_ADJUDICATED" in text  # safety invariant: adjudication not removed
+    assert "position_a" in text
+    assert "position_b" in text
 
 
 def test_app_routes_unchanged() -> None:

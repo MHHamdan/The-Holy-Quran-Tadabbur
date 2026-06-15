@@ -10,6 +10,7 @@ import { VersesSection } from './VersesSection';
 import { TafsirAccordion } from './TafsirAccordion';
 import { FollowUpChips } from './FollowUpChips';
 import { MissingSourceWarning } from '../common/SourceBadge';
+import { DisagreementCard } from './DisagreementCard';
 
 export interface ChatMessageData {
   id: string;
@@ -146,8 +147,13 @@ function AssistantMessage({
               <TafsirAccordion tafsirBySources={response.tafsir_by_source!} language={language} />
             )}
 
-            {/* Phase E — scholarly disagreement warning */}
-            {response.disagreement_warning && (
+            {/* M4 — Structured disagreement card (agentic endpoint) */}
+            {response.agentic?.consensus && response.agentic.consensus.disagreements.length > 0 && (
+              <DisagreementCard consensus={response.agentic.consensus} className="mb-2" />
+            )}
+
+            {/* Phase E — scholarly disagreement warning (legacy / non-agentic) */}
+            {response.disagreement_warning && !response.agentic?.consensus && (
               <DisagreementWarning warning={response.disagreement_warning} language={language} />
             )}
 

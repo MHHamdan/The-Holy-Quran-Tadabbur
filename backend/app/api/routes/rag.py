@@ -31,6 +31,7 @@ from app.core.errors import (
     create_error,
 )
 from app.rag.pipeline import RAGPipeline
+from app.rag.agents.orchestrator import AgenticRAGOrchestrator
 from app.rag.types import QueryIntent, RelatedVerse, TafsirExplanation
 from app.services.redis_cache import RedisCache
 from app.services.conversation_service import (
@@ -485,6 +486,57 @@ async def ask_question(
 
 # ============================================================================
 # NEW: Chat Experience Endpoints
+# ============================================================================
+# Agentic RAG endpoint — M3
+# ============================================================================
+
+@router.post("/ask/agentic")
+async def ask_agentic(
+    request: "AskRequest",
+    session: AsyncSession = Depends(get_async_session),
+    _rate: None = Depends(rag_rate_limit),
+):
+    """
+    Agentic RAG endpoint — multi-hop retrieval + Validation Agent +
+    Consensus/Disagreement Agent.
+
+    Returns the same fields as /ask plus:
+    - agentic.hops_used: number of retrieval hops executed
+    - agentic.consensus: consensus level and structured disagreements
+    - agentic.evidence_validated: count of validated evidence items
+
+    API version: 2.0.0
+    """
+    import asyncio as _asyncio
+
+    try:
+        orchestrator = AgenticRAGOrchestrator(session=session, max_hops=3)
+        result = await _asyncio.wait_for(
+            orchestrator.run(
+                question=request.question,
+                language=request.language,
+                preferred_sources=request.preferred_sources,
+                session_id=request.session_id,
+            ),
+            timeout=30.0,
+        )
+        response_dict = result.to_dict()
+        response_dict["cached"] = False
+        return response_dict
+
+    except _asyncio.TimeoutError:
+        return JSONResponse(
+            status_code=504,
+            content={"error": "Agentic pipeline timeout", "status": "error"},
+        )
+    except Exception as e:
+        logger.exception(f"Agentic RAG error: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Internal error in agentic pipeline", "status": "error"},
+        )
+
+
 # ============================================================================
 
 @router.post("/ask/followup", response_model=Union[GroundedResponse, ErrorResponse])
