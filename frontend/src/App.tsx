@@ -99,6 +99,9 @@ const BookmarksPage = lazy(() => import('./pages/BookmarksPage').then(m => ({ de
 // Daily Challenge
 const DailyChallengePage = lazy(() => import('./pages/DailyChallengePage').then(m => ({ default: m.DailyChallengePage })));
 
+// Reading Plan (Khatmah planner)
+const ReadingPlanPage = lazy(() => import('./pages/ReadingPlanPage').then(m => ({ default: m.ReadingPlanPage })));
+
 // Asma Allah (99 Names of Allah)
 const AsmaAllahPage = lazy(() => import('./pages/AsmaAllahPage').then(m => ({ default: m.AsmaAllahPage })));
 const AsmaAllahDetailPage = lazy(() => import('./pages/AsmaAllahDetailPage').then(m => ({ default: m.AsmaAllahDetailPage })));
@@ -275,6 +278,9 @@ function App() {
 
           {/* Daily Challenge */}
           <Route path="/challenge" element={<DailyChallengePage />} />
+
+          {/* Reading Plan / Khatmah planner */}
+          <Route path="/reading-plan" element={<ReadingPlanPage />} />
 
           {/* Asma Allah — 99 Names */}
           <Route path="/asma-allah" element={<AsmaAllahPage />} />

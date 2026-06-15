@@ -7,7 +7,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { BookMarked, RotateCcw, ChevronRight, Flame } from 'lucide-react';
+import { BookMarked, RotateCcw, ChevronRight, Flame, CalendarCheck } from 'lucide-react';
 import clsx from 'clsx';
 import { useReadingProgress } from '../../hooks/useReadingProgress';
 import { useLanguageStore } from '../../stores/languageStore';
@@ -143,18 +143,31 @@ export function ReadingProgressCard() {
         </p>
       )}
 
-      {/* CTA */}
-      <Link
-        to="/quran"
-        className={clsx(
-          'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium w-full justify-center',
-          'bg-violet-600 text-white hover:bg-violet-700 transition-colors',
-          isRtl && 'flex-row-reverse font-arabic',
-        )}
-      >
-        {isRtl ? 'تصفح المصحف' : 'Browse Mushaf'}
-        <ChevronRight className={clsx('w-3.5 h-3.5', isRtl && 'rotate-180')} />
-      </Link>
+      {/* CTAs */}
+      <div className="flex gap-2">
+        <Link
+          to="/quran"
+          className={clsx(
+            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium flex-1 justify-center',
+            'bg-violet-600 text-white hover:bg-violet-700 transition-colors',
+            isRtl && 'flex-row-reverse font-arabic',
+          )}
+        >
+          {isRtl ? 'المصحف' : 'Mushaf'}
+          <ChevronRight className={clsx('w-3.5 h-3.5', isRtl && 'rotate-180')} />
+        </Link>
+        <Link
+          to="/reading-plan"
+          className={clsx(
+            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium flex-1 justify-center',
+            'bg-white border border-violet-200 text-violet-700 hover:bg-violet-50 transition-colors',
+            isRtl && 'flex-row-reverse font-arabic',
+          )}
+        >
+          <CalendarCheck className="w-3.5 h-3.5" />
+          {isRtl ? 'الختمة' : 'Plan'}
+        </Link>
+      </div>
     </div>
   );
 }

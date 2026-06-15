@@ -77,6 +77,10 @@ export const translations: Translations = {
     ar: 'ذكاء الحفظ',
     en: 'Memorization',
   },
+  nav_reading_plan: {
+    ar: 'خطة الختمة',
+    en: 'Reading Plan',
+  },
 
   // Common
   app_title: {
