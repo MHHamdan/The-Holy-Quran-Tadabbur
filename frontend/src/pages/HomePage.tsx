@@ -21,6 +21,7 @@ import {
   Bookmark,
   Flame,
   CalendarCheck,
+  HandHeart,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
@@ -251,6 +252,16 @@ const TOOLS_FEATURES: Feature[] = [
     link: '/reading-plan',
     color: 'text-violet-700',
     iconBg: 'bg-violet-100',
+  },
+  {
+    icon: HandHeart,
+    titleAr: 'أدعية القرآن',
+    titleEn: 'Quranic Duʿā',
+    descAr: 'أدعية الأنبياء والمؤمنين من القرآن الكريم — مع التشكيل والمعنى والسياق',
+    descEn: "Supplications from the Quran — prophets' prayers, daily duʿā, with transliteration and meaning",
+    link: '/duas',
+    color: 'text-teal-700',
+    iconBg: 'bg-teal-100',
   },
 ];
 

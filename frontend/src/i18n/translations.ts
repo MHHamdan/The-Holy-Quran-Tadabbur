@@ -81,6 +81,10 @@ export const translations: Translations = {
     ar: 'خطة الختمة',
     en: 'Reading Plan',
   },
+  nav_duas: {
+    ar: 'أدعية القرآن',
+    en: "Quranic Duʿā",
+  },
 
   // Common
   app_title: {
