@@ -108,6 +108,9 @@ const DuasPage = lazy(() => import('./pages/DuasPage').then(m => ({ default: m.D
 // Juz Navigator
 const JuzNavigatorPage = lazy(() => import('./pages/JuzNavigatorPage').then(m => ({ default: m.JuzNavigatorPage })));
 
+// Learning Paths
+const LearnPage = lazy(() => import('./pages/LearnPage').then(m => ({ default: m.LearnPage })));
+
 // Asma Allah (99 Names of Allah)
 const AsmaAllahPage = lazy(() => import('./pages/AsmaAllahPage').then(m => ({ default: m.AsmaAllahPage })));
 const AsmaAllahDetailPage = lazy(() => import('./pages/AsmaAllahDetailPage').then(m => ({ default: m.AsmaAllahDetailPage })));
@@ -293,6 +296,9 @@ function App() {
 
           {/* Juz Navigator */}
           <Route path="/juz" element={<JuzNavigatorPage />} />
+
+          {/* Learning Paths */}
+          <Route path="/learn" element={<LearnPage />} />
 
           {/* Asma Allah — 99 Names */}
           <Route path="/asma-allah" element={<AsmaAllahPage />} />

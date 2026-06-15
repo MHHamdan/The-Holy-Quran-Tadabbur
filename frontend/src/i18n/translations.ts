@@ -89,6 +89,10 @@ export const translations: Translations = {
     ar: 'الأجزاء',
     en: 'Juz Navigator',
   },
+  nav_learn: {
+    ar: 'مسار التعلم',
+    en: 'Learning Path',
+  },
 
   // Common
   app_title: {
