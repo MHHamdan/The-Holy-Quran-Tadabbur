@@ -127,6 +127,39 @@ const AdminFeedbackPage = lazy(() => import('./pages/admin/AdminFeedbackPage').t
 // Spiritual Guidance / Heart Care (Phase T)
 const TherapyPage = lazy(() => import('./pages/TherapyPage').then(m => ({ default: m.TherapyPage })));
 
+// Emotional Guidance — "What the Quran says when you feel…"
+const EmotionalGuidancePage = lazy(() => import('./pages/EmotionalGuidancePage').then(m => ({ default: m.EmotionalGuidancePage })));
+
+// Reading Stats Dashboard
+const ReadingStatsPage = lazy(() => import('./pages/ReadingStatsPage').then(m => ({ default: m.ReadingStatsPage })));
+
+// Verse Reflection Journal
+const JournalPage = lazy(() => import('./pages/JournalPage').then(m => ({ default: m.JournalPage })));
+
+// Quranic Names Explorer
+const QuranicNamesPage = lazy(() => import('./pages/QuranicNamesPage').then(m => ({ default: m.QuranicNamesPage })));
+
+// Daily Dhikr Counter
+const DhikrPage = lazy(() => import('./pages/DhikrPage').then(m => ({ default: m.DhikrPage })));
+
+// Revelation Timeline
+const RevelationTimelinePage = lazy(() => import('./pages/RevelationTimelinePage').then(m => ({ default: m.RevelationTimelinePage })));
+
+// Quranic Trivia Quiz
+const QuizPage = lazy(() => import('./pages/QuizPage').then(m => ({ default: m.QuizPage })));
+
+// Quran Wonders & Statistics
+const QuranWondersPage = lazy(() => import('./pages/QuranWondersPage').then(m => ({ default: m.QuranWondersPage })));
+
+// Surah Comparison Tool
+const SurahComparePage = lazy(() => import('./pages/SurahComparePage').then(m => ({ default: m.SurahComparePage })));
+
+// Memorization Flashcards
+const FlashcardsPage = lazy(() => import('./pages/FlashcardsPage').then(m => ({ default: m.FlashcardsPage })));
+
+// Quranic Roots Explorer
+const QuranicRootsPage = lazy(() => import('./pages/QuranicRootsPage').then(m => ({ default: m.QuranicRootsPage })));
+
 // Prophets Atlas
 const ProphetsPage = lazy(() => import('./pages/ProphetsPage').then(m => ({ default: m.ProphetsPage })));
 const ProphetDetailPage = lazy(() => import('./pages/ProphetDetailPage').then(m => ({ default: m.ProphetDetailPage })));
@@ -276,6 +309,39 @@ function App() {
 
           {/* Spiritual Guidance / Heart Care */}
           <Route path="/therapy" element={<TherapyPage />} />
+
+          {/* Emotional Guidance */}
+          <Route path="/guidance" element={<EmotionalGuidancePage />} />
+
+          {/* Reading Stats Dashboard */}
+          <Route path="/stats" element={<ReadingStatsPage />} />
+
+          {/* Verse Reflection Journal */}
+          <Route path="/journal" element={<JournalPage />} />
+
+          {/* Quranic Names Explorer */}
+          <Route path="/names" element={<QuranicNamesPage />} />
+
+          {/* Daily Dhikr Counter */}
+          <Route path="/dhikr" element={<DhikrPage />} />
+
+          {/* Revelation Timeline */}
+          <Route path="/timeline" element={<RevelationTimelinePage />} />
+
+          {/* Quranic Trivia Quiz */}
+          <Route path="/quiz" element={<QuizPage />} />
+
+          {/* Quran Wonders & Statistics */}
+          <Route path="/wonders" element={<QuranWondersPage />} />
+
+          {/* Surah Comparison Tool */}
+          <Route path="/compare" element={<SurahComparePage />} />
+
+          {/* Memorization Flashcards */}
+          <Route path="/flashcards" element={<FlashcardsPage />} />
+
+          {/* Quranic Roots Explorer */}
+          <Route path="/roots" element={<QuranicRootsPage />} />
 
           {/* Prophets Atlas */}
           <Route path="/prophets" element={<ProphetsPage />} />

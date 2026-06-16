@@ -93,6 +93,50 @@ export const translations: Translations = {
     ar: 'مسار التعلم',
     en: 'Learning Path',
   },
+  nav_guidance: {
+    ar: 'الإرشاد العاطفي',
+    en: 'Emotional Guidance',
+  },
+  nav_stats: {
+    ar: 'إحصائيات القراءة',
+    en: 'Reading Stats',
+  },
+  nav_journal: {
+    ar: 'مذكرة التأمل',
+    en: 'Journal',
+  },
+  nav_names: {
+    ar: 'أسماء قرآنية',
+    en: 'Quranic Names',
+  },
+  nav_dhikr: {
+    ar: 'التسبيح اليومي',
+    en: 'Daily Dhikr',
+  },
+  nav_timeline: {
+    ar: 'ترتيب النزول',
+    en: 'Revelation Order',
+  },
+  nav_quiz: {
+    ar: 'اختبار قرآني',
+    en: 'Quran Quiz',
+  },
+  nav_wonders: {
+    ar: 'عجائب القرآن',
+    en: 'Wonders',
+  },
+  nav_compare: {
+    ar: 'مقارنة السور',
+    en: 'Compare',
+  },
+  nav_flashcards: {
+    ar: 'بطاقات الحفظ',
+    en: 'Flashcards',
+  },
+  nav_roots: {
+    ar: 'الجذور اللغوية',
+    en: 'Roots',
+  },
 
   // Common
   app_title: {

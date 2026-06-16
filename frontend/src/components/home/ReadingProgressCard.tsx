@@ -7,7 +7,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { BookMarked, RotateCcw, ChevronRight, Flame, CalendarCheck } from 'lucide-react';
+import { BookMarked, RotateCcw, ChevronRight, Flame, CalendarCheck, BarChart2 } from 'lucide-react';
 import clsx from 'clsx';
 import { useReadingProgress } from '../../hooks/useReadingProgress';
 import { useLanguageStore } from '../../stores/languageStore';
@@ -166,6 +166,17 @@ export function ReadingProgressCard() {
         >
           <CalendarCheck className="w-3.5 h-3.5" />
           {isRtl ? 'الختمة' : 'Plan'}
+        </Link>
+        <Link
+          to="/stats"
+          className={clsx(
+            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium flex-1 justify-center',
+            'bg-white border border-violet-200 text-violet-700 hover:bg-violet-50 transition-colors',
+            isRtl && 'flex-row-reverse font-arabic',
+          )}
+        >
+          <BarChart2 className="w-3.5 h-3.5" />
+          {isRtl ? 'إحصائيات' : 'Stats'}
         </Link>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users, Bookmark, Star, Flame, CalendarCheck, HandHeart, BookCopy, GraduationCap } from 'lucide-react';
+import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users, Bookmark, Star, Flame, CalendarCheck, HandHeart, BookCopy, GraduationCap, Smile, BarChart2, PenLine, Baby, Wind, AlarmClock, Trophy, Lightbulb, GitCompare, FlipHorizontal2, Sigma } from 'lucide-react';
 import { useBookmarksStore } from '../../stores/bookmarksStore';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
@@ -37,6 +37,17 @@ export function Layout({ children }: LayoutProps) {
     { path: '/search', label: 'nav_search', icon: Search },
     { path: '/ask', label: 'nav_ask', icon: MessageCircle },
     { path: '/tasmee', label: 'nav_tasmee', icon: Mic },
+    { path: '/stats', label: 'nav_stats', icon: BarChart2 },
+    { path: '/journal', label: 'nav_journal', icon: PenLine },
+    { path: '/names', label: 'nav_names', icon: Baby },
+    { path: '/dhikr', label: 'nav_dhikr', icon: Wind },
+    { path: '/timeline', label: 'nav_timeline', icon: AlarmClock },
+    { path: '/quiz', label: 'nav_quiz', icon: Trophy },
+    { path: '/guidance', label: 'nav_guidance', icon: Smile },
+    { path: '/wonders', label: 'nav_wonders', icon: Lightbulb },
+    { path: '/compare', label: 'nav_compare', icon: GitCompare },
+    { path: '/flashcards', label: 'nav_flashcards', icon: FlipHorizontal2 },
+    { path: '/roots', label: 'nav_roots', icon: Sigma },
     { path: '/therapy', label: 'nav_therapy', icon: Heart },
     { path: '/sources', label: 'nav_sources', icon: BookOpen },
     { path: '/tools', label: 'nav_tools', icon: Wrench },
