@@ -41,7 +41,7 @@ import clsx from 'clsx';
 import { VerseOfDayCard } from '../components/home/VerseOfDayCard';
 import { ReadingProgressCard } from '../components/home/ReadingProgressCard';
 import { WordOfDayCard } from '../components/home/WordOfDayCard';
-import { usePersonaStore, PERSONA_META } from '../stores/personaStore';
+import { usePersonaStore } from '../stores/personaStore';
 
 // ---------------------------------------------------------------------------
 // Feature sections
@@ -449,16 +449,10 @@ export function HomePage() {
       {/* Daily Widgets: Verse of the Day + Reading Progress */}
       <section className="py-8 bg-gray-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Persona welcome chip */}
+          {/* Daily challenge shortcut — visible only when persona is set */}
           {persona && (
-            <div className={clsx('flex items-center gap-2 mb-4 text-sm', isRtl && 'font-arabic')}>
-              <span className="text-lg">{PERSONA_META[persona].emoji}</span>
-              <span className="text-gray-600">
-                {isRtl
-                  ? `مرحباً — وضعك: ${PERSONA_META[persona].labelAr}`
-                  : `Welcome back — your mode: ${PERSONA_META[persona].labelEn}`}
-              </span>
-              <Link to="/challenge" className="ms-auto flex items-center gap-1 text-orange-600 hover:text-orange-800 font-medium transition-colors">
+            <div className={clsx('flex items-center mb-4', isRtl ? 'justify-start' : 'justify-end')}>
+              <Link to="/challenge" className="flex items-center gap-1.5 text-sm text-orange-600 hover:text-orange-800 font-medium transition-colors">
                 <Flame className="w-4 h-4" />
                 {isRtl ? 'تحدي اليوم' : "Today's Challenge"}
               </Link>

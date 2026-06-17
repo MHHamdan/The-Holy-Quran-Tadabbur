@@ -9,12 +9,60 @@
  */
 
 import { useState, useMemo } from 'react';
-import { GitCompare, ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { GitCompare, ChevronDown, BookOpen } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { SURAH_ATLAS_DATA } from '../data/surahAtlas';
 import { TIMELINE_BY_SURAH } from '../data/revelationTimeline';
 import { SURAH_NAMES } from '../data/surahNames';
+
+// ---------------------------------------------------------------------------
+// Prophet name translation map
+// ---------------------------------------------------------------------------
+
+const PROPHET_AR: Record<string, string> = {
+  Adam: 'آدم', Ibrahim: 'إبراهيم', Ismail: 'إسماعيل', Ishaq: 'إسحاق',
+  Yaqub: 'يعقوب', Yusuf: 'يوسف', Musa: 'موسى', Harun: 'هارون',
+  Dawud: 'داود', Sulayman: 'سليمان', Isa: 'عيسى', Yahya: 'يحيى',
+  Zakariyya: 'زكريا', Nuh: 'نوح', Hud: 'هود', Salih: 'صالح',
+  Lut: 'لوط', Shuayb: 'شعيب', Idris: 'إدريس', Yunus: 'يونس',
+  Ilyas: 'إلياس', Alyasa: 'اليسع', Dhulkifl: 'ذو الكفل', Ayyub: 'أيوب',
+  Luqman: 'لقمان', Khidr: 'الخضر',
+};
+
+// ---------------------------------------------------------------------------
+// Story title map (storyId → { en, ar })
+// ---------------------------------------------------------------------------
+
+const STORY_TITLES: Record<string, { en: string; ar: string }> = {
+  story_kahf:                 { en: 'People of the Cave',        ar: 'أصحاب الكهف' },
+  story_two_gardens:          { en: 'Owner of Two Gardens',      ar: 'صاحب الجنتين' },
+  story_khidr:                { en: 'Musa and Khidr',            ar: 'موسى والخضر' },
+  story_dhulqarnayn:          { en: 'Dhul-Qarnayn',              ar: 'ذو القرنين' },
+  story_musa:                 { en: 'Prophet Musa',              ar: 'نبي موسى' },
+  story_adam:                 { en: 'Prophet Adam',              ar: 'نبي آدم' },
+  story_ibrahim:              { en: 'Prophet Ibrahim',           ar: 'نبي إبراهيم' },
+  story_nuh:                  { en: 'Prophet Nuh',               ar: 'نبي نوح' },
+  story_isa:                  { en: 'Prophet Isa',               ar: 'نبي عيسى' },
+  story_dawud:                { en: 'Prophet Dawud',             ar: 'نبي داود' },
+  story_sulayman:             { en: 'Prophet Sulayman',          ar: 'نبي سليمان' },
+  story_yusuf:                { en: 'Prophet Yusuf',             ar: 'نبي يوسف' },
+  story_ayyub:                { en: 'Prophet Ayyub',             ar: 'نبي أيوب' },
+  story_yunus:                { en: 'Prophet Yunus',             ar: 'نبي يونس' },
+  story_bilqis:               { en: 'Bilqis & Sulayman',         ar: 'بلقيس وسليمان' },
+  story_yajuj_majuj:          { en: 'Yajuj and Majuj',           ar: 'يأجوج ومأجوج' },
+  story_iblis_refusal:        { en: 'Iblis Refuses to Bow',      ar: 'إباء إبليس السجود' },
+  story_angels_prostration:   { en: 'Angels Prostrate to Adam',  ar: 'سجود الملائكة لآدم' },
+  story_rain_parable:         { en: 'Parable of Rain',           ar: 'مثل الغيث' },
+  story_creation_heavens_earth:{ en: 'Creation of Heavens & Earth', ar: 'خلق السماوات والأرض' },
+};
+
+function storyTitle(storyId: string, isRtl: boolean): string {
+  const entry = STORY_TITLES[storyId];
+  if (entry) return isRtl ? entry.ar : entry.en;
+  return storyId.replace('story_', '').replace(/_/g, ' ');
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -105,7 +153,7 @@ function buildRows(
     highlight: JSON.stringify(a.atlas?.juzRefs) !== JSON.stringify(b.atlas?.juzRefs),
   });
 
-  // Main theme
+  // Main theme — from timeline
   rows.push({
     labelEn: 'Main Theme',
     labelAr: 'الموضوع الرئيسي',
@@ -114,28 +162,34 @@ function buildRows(
     highlight: false,
   });
 
-  // Key concepts
+  // Key concepts — use Arabic version when in RTL mode
   rows.push({
     labelEn: 'Key Concepts',
     labelAr: 'المفاهيم الرئيسية',
-    renderA: a.atlas?.keyConcepts?.slice(0, 4).join(', ') ?? '—',
-    renderB: b.atlas?.keyConcepts?.slice(0, 4).join(', ') ?? '—',
+    renderA: isRtl
+      ? (a.atlas?.keyConceptsAr?.slice(0, 4).join('، ') ?? a.atlas?.keyConcepts?.slice(0, 4).join(', ') ?? '—')
+      : (a.atlas?.keyConcepts?.slice(0, 4).join(', ') ?? '—'),
+    renderB: isRtl
+      ? (b.atlas?.keyConceptsAr?.slice(0, 4).join('، ') ?? b.atlas?.keyConcepts?.slice(0, 4).join(', ') ?? '—')
+      : (b.atlas?.keyConcepts?.slice(0, 4).join(', ') ?? '—'),
     highlight: false,
   });
 
-  // Prophets mentioned
+  // Prophets mentioned — translate to Arabic when in RTL mode
+  const prophetsA = a.atlas?.prophetsMentioned ?? [];
+  const prophetsB = b.atlas?.prophetsMentioned ?? [];
   rows.push({
     labelEn: 'Prophets Mentioned',
     labelAr: 'الأنبياء المذكورون',
-    renderA: a.atlas?.prophetsMentioned?.length
-      ? a.atlas.prophetsMentioned.slice(0, 4).join(', ')
-      : isRtl ? 'لا أحد' : 'None',
-    renderB: b.atlas?.prophetsMentioned?.length
-      ? b.atlas.prophetsMentioned.slice(0, 4).join(', ')
-      : isRtl ? 'لا أحد' : 'None',
+    renderA: prophetsA.length
+      ? prophetsA.slice(0, 4).map(p => isRtl ? (PROPHET_AR[p] ?? p) : p).join(isRtl ? '، ' : ', ')
+      : (isRtl ? 'لا أحد' : 'None'),
+    renderB: prophetsB.length
+      ? prophetsB.slice(0, 4).map(p => isRtl ? (PROPHET_AR[p] ?? p) : p).join(isRtl ? '، ' : ', ')
+      : (isRtl ? 'لا أحد' : 'None'),
     highlight:
-      JSON.stringify(a.atlas?.prophetsMentioned?.slice().sort()) !==
-      JSON.stringify(b.atlas?.prophetsMentioned?.slice().sort()),
+      JSON.stringify(prophetsA.slice().sort()) !==
+      JSON.stringify(prophetsB.slice().sort()),
   });
 
   return rows;
@@ -208,6 +262,101 @@ function AyahBar({ count, maxCount }: { count: number; maxCount: number }) {
 }
 
 // ---------------------------------------------------------------------------
+// Stories section
+// ---------------------------------------------------------------------------
+
+type StoryRef = { storyId: string; coverage: string; ayahRange?: { display: string } };
+
+function StoriesSection({
+  dataA,
+  dataB,
+  surahA,
+  surahB,
+  isRtl,
+}: {
+  dataA: ReturnType<typeof getSurahData>;
+  dataB: ReturnType<typeof getSurahData>;
+  surahA: number;
+  surahB: number;
+  isRtl: boolean;
+}) {
+  const storiesA: StoryRef[] = (dataA.atlas as any)?.storiesMentioned ?? [];
+  const storiesB: StoryRef[] = (dataB.atlas as any)?.storiesMentioned ?? [];
+
+  if (!storiesA.length && !storiesB.length) return null;
+
+  const COVERAGE_AR: Record<string, string> = {
+    complete: 'كاملة', partial: 'جزئية', mention_only: 'إشارة',
+  };
+  const COVERAGE_COLOR: Record<string, string> = {
+    complete: 'bg-emerald-100 text-emerald-700',
+    partial: 'bg-amber-100 text-amber-700',
+    mention_only: 'bg-gray-100 text-gray-500',
+  };
+
+  function StoryList({ stories, color }: { stories: StoryRef[]; color: 'violet' | 'blue' }) {
+    if (!stories.length) return (
+      <p className={clsx('text-xs text-gray-400 italic', isRtl && 'font-arabic text-right')}>
+        {isRtl ? 'لا توجد قصص مرتبطة' : 'No linked stories'}
+      </p>
+    );
+    return (
+      <ul className="space-y-1.5">
+        {stories.map(ref => (
+          <li key={ref.storyId}>
+            <Link
+              to={`/stories/${ref.storyId}`}
+              className={clsx(
+                'flex items-start gap-2 rounded-lg px-3 py-2 text-xs transition-colors group hover:bg-white/80',
+                isRtl && 'flex-row-reverse text-right',
+              )}
+            >
+              <BookOpen className={clsx(
+                'w-3.5 h-3.5 mt-0.5 shrink-0',
+                color === 'violet' ? 'text-violet-400 group-hover:text-violet-600' : 'text-blue-400 group-hover:text-blue-600'
+              )} />
+              <span className={clsx('flex-1 font-medium text-gray-700 group-hover:text-gray-900', isRtl && 'font-arabic')}>
+                {storyTitle(ref.storyId, isRtl)}
+              </span>
+              {ref.coverage && (
+                <span className={clsx(
+                  'shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                  COVERAGE_COLOR[ref.coverage] ?? 'bg-gray-100 text-gray-400'
+                )}>
+                  {isRtl ? (COVERAGE_AR[ref.coverage] ?? ref.coverage) : ref.coverage.replace('_', ' ')}
+                </span>
+              )}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  return (
+    <div className="mb-6">
+      <h3 className={clsx('text-sm font-bold text-gray-700 mb-3', isRtl ? 'font-arabic text-right' : '')}>
+        {isRtl ? 'القصص المذكورة في السورتين' : 'Stories mentioned in each surah'}
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="rounded-2xl border border-violet-100 bg-violet-50/50 p-4">
+          <p className={clsx('text-xs font-bold text-violet-600 mb-2', isRtl && 'font-arabic text-right')}>
+            {isRtl ? SURAH_NAMES[surahA - 1]?.ar : SURAH_NAMES[surahA - 1]?.en}
+          </p>
+          <StoryList stories={storiesA} color="violet" />
+        </div>
+        <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+          <p className={clsx('text-xs font-bold text-blue-600 mb-2', isRtl && 'font-arabic text-right')}>
+            {isRtl ? SURAH_NAMES[surahB - 1]?.ar : SURAH_NAMES[surahB - 1]?.en}
+          </p>
+          <StoryList stories={storiesB} color="blue" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
 
@@ -215,8 +364,8 @@ export function SurahComparePage() {
   const { language } = useLanguageStore();
   const isRtl = language === 'ar';
 
-  const [surahA, setSurahA] = useState(2);  // Al-Baqarah — longest
-  const [surahB, setSurahB] = useState(36); // Ya-Sin — most recited
+  const [surahA, setSurahA] = useState(18); // Al-Kahf
+  const [surahB, setSurahB] = useState(57); // Al-Hadid
 
   const dataA = useMemo(() => getSurahData(surahA), [surahA]);
   const dataB = useMemo(() => getSurahData(surahB), [surahB]);
@@ -258,7 +407,7 @@ export function SurahComparePage() {
       </div>
 
       {/* Quick header cards */}
-      <div className={clsx('grid grid-cols-2 gap-3 mb-6', isRtl && '')}>
+      <div className="grid grid-cols-2 gap-3 mb-6">
         {[
           { num: surahA, data: dataA, color: 'violet' },
           { num: surahB, data: dataB, color: 'blue'   },
@@ -272,11 +421,12 @@ export function SurahComparePage() {
           >
             <p className={clsx(
               'text-xs font-semibold uppercase tracking-wide mb-1',
-              color === 'violet' ? 'text-violet-500' : 'text-blue-500'
+              color === 'violet' ? 'text-violet-500' : 'text-blue-500',
+              isRtl && 'font-arabic text-right'
             )}>
               {isRtl ? `سورة ${num}` : `Surah ${num}`}
             </p>
-            <p className={clsx('text-xl font-bold text-gray-900 leading-tight', isRtl && 'font-arabic')}>
+            <p className={clsx('text-xl font-bold text-gray-900 leading-tight', isRtl ? 'font-arabic text-right' : '')}>
               {isRtl ? data.name?.ar : data.name?.en}
             </p>
             {!isRtl && (
@@ -285,7 +435,7 @@ export function SurahComparePage() {
             {isRtl && (
               <p className="text-xs text-gray-500 mt-0.5">{data.name?.en}</p>
             )}
-            <p className={clsx('text-xs text-gray-400 mt-1', isRtl && 'font-arabic')}>
+            <p className={clsx('text-xs text-gray-400 mt-1', isRtl && 'font-arabic text-right')}>
               {data.atlas?.ayahCount ?? '?'} {isRtl ? 'آية' : 'verses'}
             </p>
             {data.atlas && (
@@ -297,12 +447,14 @@ export function SurahComparePage() {
 
       {/* Comparison table */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-6">
-        <div className={clsx('grid grid-cols-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wide', isRtl && 'flex-row-reverse')}>
-          <div className={clsx('px-4 py-3 col-span-1', isRtl && 'text-right font-arabic')}>{isRtl ? 'المعيار' : 'Attribute'}</div>
-          <div className={clsx('px-4 py-3 text-violet-600', isRtl ? 'text-right font-arabic' : 'text-center')}>
+        <div className="grid grid-cols-3 bg-gray-50 border-b border-gray-100">
+          <div className={clsx('px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide', isRtl && 'text-right font-arabic')}>
+            {isRtl ? 'المعيار' : 'Attribute'}
+          </div>
+          <div className={clsx('px-4 py-3 text-xs font-semibold uppercase tracking-wide text-violet-600', isRtl ? 'text-right font-arabic' : 'text-center')}>
             {isRtl ? SURAH_NAMES[surahA - 1]?.ar : SURAH_NAMES[surahA - 1]?.en}
           </div>
-          <div className={clsx('px-4 py-3 text-blue-600', isRtl ? 'text-right font-arabic' : 'text-center')}>
+          <div className={clsx('px-4 py-3 text-xs font-semibold uppercase tracking-wide text-blue-600', isRtl ? 'text-right font-arabic' : 'text-center')}>
             {isRtl ? SURAH_NAMES[surahB - 1]?.ar : SURAH_NAMES[surahB - 1]?.en}
           </div>
         </div>
@@ -329,6 +481,15 @@ export function SurahComparePage() {
         ))}
       </div>
 
+      {/* Stories linked to each surah */}
+      <StoriesSection
+        dataA={dataA}
+        dataB={dataB}
+        surahA={surahA}
+        surahB={surahB}
+        isRtl={isRtl}
+      />
+
       {/* Summaries */}
       {(summaryA || summaryB) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
@@ -346,7 +507,7 @@ export function SurahComparePage() {
               <p className={clsx(
                 'text-xs font-bold mb-2',
                 color === 'violet' ? 'text-violet-600' : 'text-blue-600',
-                isRtl && 'font-arabic'
+                isRtl && 'font-arabic text-right'
               )}>
                 {name}
               </p>
