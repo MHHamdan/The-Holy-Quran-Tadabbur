@@ -28,6 +28,18 @@
  */
 
 import type { QuranStory } from '../types/quranStory';
+import {
+  STORY_SULAYMAN,
+  STORY_ILYAS,
+  STORY_ALYASA,
+  STORY_DHULKIFL,
+} from './quranStoriesBatch5a';
+import {
+  STORY_HARUN,
+  STORY_ISHAQ,
+  STORY_YAQUB,
+  STORY_MIRAJ,
+} from './quranStoriesBatch5b';
 
 // ---------------------------------------------------------------------------
 // Source ID constants — must exist in sourceRegistry.ts
@@ -5810,6 +5822,15 @@ export const QURAN_STORIES_FIRST_BATCH: QuranStory[] = [
   STORY_ISA,                // pos 30 — references story_maryam (pos 13) and story_zakariyya_yahya (pos 12)
   STORY_UKHDUD,             // pos 31 — references story_elephant (pos 22) and story_musa (pos 5)
   STORY_QARYA,              // pos 32 — references story_hud (pos 2) and story_salih (pos 3)
+  // Batch 5 — completing prophets and key events
+  STORY_SULAYMAN,           // pos 33 — Solomon's kingdom, jinn, wind; bilqis is separate
+  STORY_ILYAS,              // pos 34 — Elijah, Baal worship, divine praise
+  STORY_ALYASA,             // pos 35 — Elisha, among the best
+  STORY_DHULKIFL,           // pos 36 — Dhul-Kifl, patience and mercy
+  STORY_HARUN,              // pos 37 — Aaron, golden calf, brotherhood in mission
+  STORY_ISHAQ,              // pos 38 — Isaac, miraculous birth, prophetic lineage
+  STORY_YAQUB,              // pos 39 — Jacob, patient grief, faith bequest
+  STORY_MIRAJ,              // pos 40 — Night Journey and Ascension, five prayers
 ];
 
 export function getStoryById(storyId: string): QuranStory | undefined {
