@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-05-16T23:50:11.881Z",
-  "nodeCount": 1132,
-  "edgeCount": 2290,
+  "generatedAt": "2026-06-17T02:45:34.685Z",
+  "nodeCount": 1159,
+  "edgeCount": 2323,
   "nodes": [
     {
       "id": "surah:1",
@@ -3601,6 +3601,325 @@
         "surahNumber": 36,
         "ayahStart": 28,
         "ayahEnd": 32
+      }
+    },
+    {
+      "id": "story:story_sulayman",
+      "type": "story",
+      "labelArabic": "قصة سليمان عليه السلام",
+      "labelEnglish": "Story of Prophet Sulayman (Solomon)",
+      "metadata": {
+        "storyId": "story_sulayman"
+      }
+    },
+    {
+      "id": "story_segment:story_sulayman:sulayman_wisdom",
+      "type": "story_segment",
+      "labelArabic": "الحكمة والملك الموهوب",
+      "labelEnglish": "Wisdom and the Granted Kingdom",
+      "metadata": {
+        "storyId": "story_sulayman",
+        "segmentId": "sulayman_wisdom",
+        "surahNumber": 38,
+        "ayahStart": 30,
+        "ayahEnd": 35
+      }
+    },
+    {
+      "id": "story_segment:story_sulayman:sulayman_wind_jinn",
+      "type": "story_segment",
+      "labelArabic": "تسخير الريح والجن والشياطين",
+      "labelEnglish": "Command over Wind, Jinn, and Devils",
+      "metadata": {
+        "storyId": "story_sulayman",
+        "segmentId": "sulayman_wind_jinn",
+        "surahNumber": 34,
+        "ayahStart": 10,
+        "ayahEnd": 13
+      }
+    },
+    {
+      "id": "story_segment:story_sulayman:sulayman_birds_ants",
+      "type": "story_segment",
+      "labelArabic": "منطق الطير وعالم النمل",
+      "labelEnglish": "The Language of Birds and the World of Ants",
+      "metadata": {
+        "storyId": "story_sulayman",
+        "segmentId": "sulayman_birds_ants",
+        "surahNumber": 27,
+        "ayahStart": 15,
+        "ayahEnd": 19
+      }
+    },
+    {
+      "id": "story_segment:story_sulayman:sulayman_death",
+      "type": "story_segment",
+      "labelArabic": "وفاة سليمان والدرس الكوني",
+      "labelEnglish": "Sulayman's Death and the Cosmic Lesson",
+      "metadata": {
+        "storyId": "story_sulayman",
+        "segmentId": "sulayman_death",
+        "surahNumber": 34,
+        "ayahStart": 14,
+        "ayahEnd": 14
+      }
+    },
+    {
+      "id": "story:story_ilyas",
+      "type": "story",
+      "labelArabic": "قصة إلياس عليه السلام",
+      "labelEnglish": "Story of Prophet Ilyas (Elijah)",
+      "metadata": {
+        "storyId": "story_ilyas"
+      }
+    },
+    {
+      "id": "story_segment:story_ilyas:ilyas_call",
+      "type": "story_segment",
+      "labelArabic": "النداء ضد عبادة البعل",
+      "labelEnglish": "The Call Against Baal Worship",
+      "metadata": {
+        "storyId": "story_ilyas",
+        "segmentId": "ilyas_call",
+        "surahNumber": 37,
+        "ayahStart": 123,
+        "ayahEnd": 128
+      }
+    },
+    {
+      "id": "story_segment:story_ilyas:ilyas_honor",
+      "type": "story_segment",
+      "labelArabic": "الثناء الإلهي على إلياس",
+      "labelEnglish": "Divine Praise of Ilyas",
+      "metadata": {
+        "storyId": "story_ilyas",
+        "segmentId": "ilyas_honor",
+        "surahNumber": 37,
+        "ayahStart": 129,
+        "ayahEnd": 132
+      }
+    },
+    {
+      "id": "story:story_alyasa",
+      "type": "story",
+      "labelArabic": "قصة اليسع عليه السلام",
+      "labelEnglish": "Story of Prophet Al-Yasa (Elisha)",
+      "metadata": {
+        "storyId": "story_alyasa"
+      }
+    },
+    {
+      "id": "story_segment:story_alyasa:alyasa_honor",
+      "type": "story_segment",
+      "labelArabic": "اليسع بين المصطفين الأخيار",
+      "labelEnglish": "Al-Yasa Among the Chosen Righteous",
+      "metadata": {
+        "storyId": "story_alyasa",
+        "segmentId": "alyasa_honor",
+        "surahNumber": 38,
+        "ayahStart": 48,
+        "ayahEnd": 48
+      }
+    },
+    {
+      "id": "story:story_dhulkifl",
+      "type": "story",
+      "labelArabic": "قصة ذي الكفل عليه السلام",
+      "labelEnglish": "Story of Prophet Dhul-Kifl",
+      "metadata": {
+        "storyId": "story_dhulkifl"
+      }
+    },
+    {
+      "id": "story_segment:story_dhulkifl:dhulkifl_patience",
+      "type": "story_segment",
+      "labelArabic": "الصبر والرحمة والاصطفاء",
+      "labelEnglish": "Patience, Mercy, and Divine Selection",
+      "metadata": {
+        "storyId": "story_dhulkifl",
+        "segmentId": "dhulkifl_patience",
+        "surahNumber": 21,
+        "ayahStart": 85,
+        "ayahEnd": 86
+      }
+    },
+    {
+      "id": "story:story_harun",
+      "type": "story",
+      "labelArabic": "قصة هارون عليه السلام",
+      "labelEnglish": "Story of Prophet Harun (Aaron)",
+      "metadata": {
+        "storyId": "story_harun"
+      }
+    },
+    {
+      "id": "story_segment:story_harun:harun_appointment",
+      "type": "story_segment",
+      "labelArabic": "دعاء موسى لأخيه هارون",
+      "labelEnglish": "Musa's Prayer for His Brother Harun",
+      "metadata": {
+        "storyId": "story_harun",
+        "segmentId": "harun_appointment",
+        "surahNumber": 20,
+        "ayahStart": 29,
+        "ayahEnd": 36
+      }
+    },
+    {
+      "id": "story_segment:story_harun:harun_golden_calf",
+      "type": "story_segment",
+      "labelArabic": "هارون وأزمة العجل الذهبي",
+      "labelEnglish": "Harun and the Golden Calf Crisis",
+      "metadata": {
+        "storyId": "story_harun",
+        "segmentId": "harun_golden_calf",
+        "surahNumber": 20,
+        "ayahStart": 85,
+        "ayahEnd": 97
+      }
+    },
+    {
+      "id": "story_segment:story_harun:harun_legacy",
+      "type": "story_segment",
+      "labelArabic": "إرث هارون في القرآن",
+      "labelEnglish": "Harun's Legacy in the Quran",
+      "metadata": {
+        "storyId": "story_harun",
+        "segmentId": "harun_legacy",
+        "surahNumber": 37,
+        "ayahStart": 114,
+        "ayahEnd": 122
+      }
+    },
+    {
+      "id": "story:story_ishaq",
+      "type": "story",
+      "labelArabic": "قصة إسحاق عليه السلام",
+      "labelEnglish": "Story of Prophet Ishaq (Isaac)",
+      "metadata": {
+        "storyId": "story_ishaq"
+      }
+    },
+    {
+      "id": "story_segment:story_ishaq:ishaq_annunciation",
+      "type": "story_segment",
+      "labelArabic": "البشارة بإسحاق لإبراهيم وسارة",
+      "labelEnglish": "The Annunciation of Ishaq to Ibrahim and Sarah",
+      "metadata": {
+        "storyId": "story_ishaq",
+        "segmentId": "ishaq_annunciation",
+        "surahNumber": 11,
+        "ayahStart": 69,
+        "ayahEnd": 73
+      }
+    },
+    {
+      "id": "story_segment:story_ishaq:ishaq_lineage",
+      "type": "story_segment",
+      "labelArabic": "إسحاق: النبي ورأس السلالة النبوية",
+      "labelEnglish": "Ishaq: The Prophet and Head of the Prophetic Line",
+      "metadata": {
+        "storyId": "story_ishaq",
+        "segmentId": "ishaq_lineage",
+        "surahNumber": 37,
+        "ayahStart": 112,
+        "ayahEnd": 113
+      }
+    },
+    {
+      "id": "story:story_yaqub",
+      "type": "story",
+      "labelArabic": "قصة يعقوب عليه السلام",
+      "labelEnglish": "Story of Prophet Yaqub (Jacob)",
+      "metadata": {
+        "storyId": "story_yaqub"
+      }
+    },
+    {
+      "id": "story_segment:story_yaqub:yaqub_wasiyya",
+      "type": "story_segment",
+      "labelArabic": "وصية يعقوب لأبنائه بالإسلام",
+      "labelEnglish": "Yaqub's Command to His Sons to Die as Muslims",
+      "metadata": {
+        "storyId": "story_yaqub",
+        "segmentId": "yaqub_wasiyya",
+        "surahNumber": 2,
+        "ayahStart": 132,
+        "ayahEnd": 133
+      }
+    },
+    {
+      "id": "story_segment:story_yaqub:yaqub_grief",
+      "type": "story_segment",
+      "labelArabic": "حزن يعقوب وصبره على فراق يوسف",
+      "labelEnglish": "Yaqub's Grief and Patience over Yusuf's Separation",
+      "metadata": {
+        "storyId": "story_yaqub",
+        "segmentId": "yaqub_grief",
+        "surahNumber": 12,
+        "ayahStart": 84,
+        "ayahEnd": 87
+      }
+    },
+    {
+      "id": "story_segment:story_yaqub:yaqub_reunion",
+      "type": "story_segment",
+      "labelArabic": "لقاء يعقوب بيوسف وعودة البصر",
+      "labelEnglish": "Yaqub's Reunion with Yusuf and the Return of Sight",
+      "metadata": {
+        "storyId": "story_yaqub",
+        "segmentId": "yaqub_reunion",
+        "surahNumber": 12,
+        "ayahStart": 93,
+        "ayahEnd": 101
+      }
+    },
+    {
+      "id": "story:story_miraj",
+      "type": "story",
+      "labelArabic": "قصة الإسراء والمعراج",
+      "labelEnglish": "The Night Journey and Ascension (Al-Isra wal-Miraj)",
+      "metadata": {
+        "storyId": "story_miraj"
+      }
+    },
+    {
+      "id": "story_segment:story_miraj:isra_journey",
+      "type": "story_segment",
+      "labelArabic": "الإسراء من المسجد الحرام إلى المسجد الأقصى",
+      "labelEnglish": "The Night Journey from Al-Masjid Al-Haram to Al-Masjid Al-Aqsa",
+      "metadata": {
+        "storyId": "story_miraj",
+        "segmentId": "isra_journey",
+        "surahNumber": 17,
+        "ayahStart": 1,
+        "ayahEnd": 1
+      }
+    },
+    {
+      "id": "story_segment:story_miraj:miraj_ascension",
+      "type": "story_segment",
+      "labelArabic": "المعراج ورؤية آيات الله الكبرى",
+      "labelEnglish": "The Ascension and Seeing the Greatest Signs of Allah",
+      "metadata": {
+        "storyId": "story_miraj",
+        "segmentId": "miraj_ascension",
+        "surahNumber": 53,
+        "ayahStart": 7,
+        "ayahEnd": 18
+      }
+    },
+    {
+      "id": "story_segment:story_miraj:miraj_trial",
+      "type": "story_segment",
+      "labelArabic": "الإسراء اختباراً للناس",
+      "labelEnglish": "The Night Journey as a Trial for People",
+      "metadata": {
+        "storyId": "story_miraj",
+        "segmentId": "miraj_trial",
+        "surahNumber": 17,
+        "ayahStart": 60,
+        "ayahEnd": 60
       }
     },
     {
@@ -50499,6 +50818,431 @@
           "sourceIds": [
             "ibn_kathir",
             "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_sulayman:sulayman_wisdom->story:story_sulayman",
+      "sourceNodeId": "story_segment:story_sulayman:sulayman_wisdom",
+      "targetNodeId": "story:story_sulayman",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 30,
+          "ayahEnd": 35,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_sulayman:sulayman_wind_jinn->story:story_sulayman",
+      "sourceNodeId": "story_segment:story_sulayman:sulayman_wind_jinn",
+      "targetNodeId": "story:story_sulayman",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 34,
+          "ayahStart": 10,
+          "ayahEnd": 13,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari",
+            "qurtubi"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_sulayman:sulayman_birds_ants->story:story_sulayman",
+      "sourceNodeId": "story_segment:story_sulayman:sulayman_birds_ants",
+      "targetNodeId": "story:story_sulayman",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 15,
+          "ayahEnd": 19,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari",
+            "qurtubi"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_sulayman:sulayman_death->story:story_sulayman",
+      "sourceNodeId": "story_segment:story_sulayman:sulayman_death",
+      "targetNodeId": "story:story_sulayman",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 34,
+          "ayahStart": 14,
+          "ayahEnd": 14,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_ilyas:ilyas_call->story:story_ilyas",
+      "sourceNodeId": "story_segment:story_ilyas:ilyas_call",
+      "targetNodeId": "story:story_ilyas",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 123,
+          "ayahEnd": 128,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_ilyas:ilyas_honor->story:story_ilyas",
+      "sourceNodeId": "story_segment:story_ilyas:ilyas_honor",
+      "targetNodeId": "story:story_ilyas",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 129,
+          "ayahEnd": 132,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari",
+            "qurtubi"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_alyasa:alyasa_honor->story:story_alyasa",
+      "sourceNodeId": "story_segment:story_alyasa:alyasa_honor",
+      "targetNodeId": "story:story_alyasa",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "ayahEnd": 48,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_dhulkifl:dhulkifl_patience->story:story_dhulkifl",
+      "sourceNodeId": "story_segment:story_dhulkifl:dhulkifl_patience",
+      "targetNodeId": "story:story_dhulkifl",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85,
+          "ayahEnd": 86,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_harun:harun_appointment->story:story_harun",
+      "sourceNodeId": "story_segment:story_harun:harun_appointment",
+      "targetNodeId": "story:story_harun",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 29,
+          "ayahEnd": 36,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_harun:harun_golden_calf->story:story_harun",
+      "sourceNodeId": "story_segment:story_harun:harun_golden_calf",
+      "targetNodeId": "story:story_harun",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 85,
+          "ayahEnd": 97,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari",
+            "qurtubi"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_harun:harun_legacy->story:story_harun",
+      "sourceNodeId": "story_segment:story_harun:harun_legacy",
+      "targetNodeId": "story:story_harun",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 114,
+          "ayahEnd": 122,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_ishaq:ishaq_annunciation->story:story_ishaq",
+      "sourceNodeId": "story_segment:story_ishaq:ishaq_annunciation",
+      "targetNodeId": "story:story_ishaq",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 69,
+          "ayahEnd": 73,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_ishaq:ishaq_lineage->story:story_ishaq",
+      "sourceNodeId": "story_segment:story_ishaq:ishaq_lineage",
+      "targetNodeId": "story:story_ishaq",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 112,
+          "ayahEnd": 113,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_yaqub:yaqub_wasiyya->story:story_yaqub",
+      "sourceNodeId": "story_segment:story_yaqub:yaqub_wasiyya",
+      "targetNodeId": "story:story_yaqub",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 2,
+          "ayahStart": 132,
+          "ayahEnd": 133,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_yaqub:yaqub_grief->story:story_yaqub",
+      "sourceNodeId": "story_segment:story_yaqub:yaqub_grief",
+      "targetNodeId": "story:story_yaqub",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 84,
+          "ayahEnd": 87,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari",
+            "qurtubi"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_yaqub:yaqub_reunion->story:story_yaqub",
+      "sourceNodeId": "story_segment:story_yaqub:yaqub_reunion",
+      "targetNodeId": "story:story_yaqub",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 93,
+          "ayahEnd": 101,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari",
+            "qurtubi"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_miraj:isra_journey->story:story_miraj",
+      "sourceNodeId": "story_segment:story_miraj:isra_journey",
+      "targetNodeId": "story:story_miraj",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 17,
+          "ayahStart": 1,
+          "ayahEnd": 1,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari",
+            "qurtubi"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_miraj:miraj_ascension->story:story_miraj",
+      "sourceNodeId": "story_segment:story_miraj:miraj_ascension",
+      "targetNodeId": "story:story_miraj",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 53,
+          "ayahStart": 7,
+          "ayahEnd": 18,
+          "sourceIds": [
+            "ibn_kathir",
+            "tabari"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.9,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "PART_OF_STORY:story_segment:story_miraj:miraj_trial->story:story_miraj",
+      "sourceNodeId": "story_segment:story_miraj:miraj_trial",
+      "targetNodeId": "story:story_miraj",
+      "edgeType": "PART_OF_STORY",
+      "evidenceReferences": [
+        {
+          "surahNumber": 17,
+          "ayahStart": 60,
+          "ayahEnd": 60,
+          "sourceIds": [
+            "ibn_kathir",
+            "qurtubi"
           ],
           "evidenceType": "story_data"
         }
@@ -128891,6 +129635,300 @@
           "surahNumber": 36,
           "ayahStart": 28,
           "ayahEnd": 32,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_sulayman->story:story_dawud",
+      "sourceNodeId": "story:story_sulayman",
+      "targetNodeId": "story:story_dawud",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 30,
+          "ayahEnd": 40,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_sulayman->story:story_bilqis",
+      "sourceNodeId": "story:story_sulayman",
+      "targetNodeId": "story:story_bilqis",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 27,
+          "ayahStart": 20,
+          "ayahEnd": 44,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_ilyas->story:story_ibrahim",
+      "sourceNodeId": "story:story_ilyas",
+      "targetNodeId": "story:story_ibrahim",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 123,
+          "ayahEnd": 132,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_alyasa->story:story_ilyas",
+      "sourceNodeId": "story:story_alyasa",
+      "targetNodeId": "story:story_ilyas",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 6,
+          "ayahStart": 85,
+          "ayahEnd": 87,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_alyasa->story:story_dhulkifl",
+      "sourceNodeId": "story:story_alyasa",
+      "targetNodeId": "story:story_dhulkifl",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "ayahEnd": 48,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_dhulkifl->story:story_alyasa",
+      "sourceNodeId": "story:story_dhulkifl",
+      "targetNodeId": "story:story_alyasa",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 38,
+          "ayahStart": 48,
+          "ayahEnd": 48,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_dhulkifl->story:story_idris",
+      "sourceNodeId": "story:story_dhulkifl",
+      "targetNodeId": "story:story_idris",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 85,
+          "ayahEnd": 86,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_harun->story:story_musa",
+      "sourceNodeId": "story:story_harun",
+      "targetNodeId": "story:story_musa",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 20,
+          "ayahStart": 29,
+          "ayahEnd": 97,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_ishaq->story:story_ibrahim",
+      "sourceNodeId": "story:story_ishaq",
+      "targetNodeId": "story:story_ibrahim",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 11,
+          "ayahStart": 69,
+          "ayahEnd": 73,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_ishaq->story:story_yusuf",
+      "sourceNodeId": "story:story_ishaq",
+      "targetNodeId": "story:story_yusuf",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 37,
+          "ayahStart": 112,
+          "ayahEnd": 113,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_yaqub->story:story_yusuf",
+      "sourceNodeId": "story:story_yaqub",
+      "targetNodeId": "story:story_yusuf",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 12,
+          "ayahStart": 4,
+          "ayahEnd": 101,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_yaqub->story:story_ibrahim",
+      "sourceNodeId": "story:story_yaqub",
+      "targetNodeId": "story:story_ibrahim",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 21,
+          "ayahStart": 72,
+          "ayahEnd": 72,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_miraj->story:story_musa",
+      "sourceNodeId": "story:story_miraj",
+      "targetNodeId": "story:story_musa",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 17,
+          "ayahStart": 1,
+          "ayahEnd": 1,
+          "sourceIds": [
+            "ibn_kathir"
+          ],
+          "evidenceType": "story_data"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "SAME_EVENT:story:story_miraj->story:story_ibrahim",
+      "sourceNodeId": "story:story_miraj",
+      "targetNodeId": "story:story_ibrahim",
+      "edgeType": "SAME_EVENT",
+      "evidenceReferences": [
+        {
+          "surahNumber": 53,
+          "ayahStart": 1,
+          "ayahEnd": 18,
           "sourceIds": [
             "ibn_kathir"
           ],

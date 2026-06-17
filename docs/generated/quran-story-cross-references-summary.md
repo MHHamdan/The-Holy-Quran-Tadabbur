@@ -1,21 +1,21 @@
 # Quran Story Cross-References — Summary
 
 - Version: 1.0.0
-- Generated: 2026-05-19T17:38:06.578Z
+- Generated: 2026-06-17T02:45:36.140Z
 - Min score: 2
-- Total pairs: 319
-- Stories with at least one neighbour: 105 / 131
-- Stories with NO neighbour: 26
+- Total pairs: 331
+- Stories with at least one neighbour: 106 / 133
+- Stories with NO neighbour: 27
 - Average neighbours per story (cap 8): 3.81
 
 ## Signal counts
 
 - same_prophet: 19
 - overlapping_ayahs: 102
-- same_surah: 200
+- same_surah: 201
 - same_topic: 11
-- same_theme: 62
-- same_figure: 245
+- same_theme: 68
+- same_figure: 257
 
 ## Top 10 strongest edges
 

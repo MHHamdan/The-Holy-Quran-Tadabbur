@@ -1,7 +1,7 @@
 # Quran Story Registry — Summary
 
 - Version: 1.0.0
-- Generated: 2026-05-21T21:26:40.061Z
+- Generated: 2026-06-17T02:45:25.579Z
 - Total stories: 133
 - Authored stories: 124
 - Prophet profiles: 9
