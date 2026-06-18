@@ -113,8 +113,8 @@ export function ProphetJourneyPage() {
       <header className="mt-3 mb-6">
         <h1 className={clsx('text-2xl font-bold text-gray-900 flex items-center gap-2', language === 'ar' && 'font-arabic')}>
           <BookOpen className="w-6 h-6 text-emerald-600" />
-          {language === 'ar' ? 'رحلة ' : 'Journey — '}
-          {prophetId?.replace(/^prophet_/, '')}
+          {language === 'ar' ? 'رحلة النبي ' : 'Journey — '}
+          {prophetId?.replace(/^prophet_/, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
         </h1>
         <p className={clsx('text-xs text-gray-500 mt-1', language === 'ar' && 'font-arabic')}>
           {language === 'ar' ? 'حالة المراجعة: ' : 'Review status: '}
@@ -162,10 +162,14 @@ export function ProphetJourneyPage() {
             {s.ayahReferences.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {s.ayahReferences.slice(0, 16).map((r, i) => (
-                  <span key={i} className="text-xs px-2 py-0.5 bg-gray-50 border border-gray-200 rounded">
+                  <Link
+                    key={i}
+                    to={`/quran/${r.surahNumber}${r.ayahStart ? `?ayah=${r.ayahStart}` : ''}`}
+                    className="text-xs px-2 py-0.5 bg-gray-50 border border-gray-200 rounded hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                  >
                     {r.surahNumber}:{r.ayahStart}
                     {r.ayahEnd ? `-${r.ayahEnd}` : ''}
-                  </span>
+                  </Link>
                 ))}
                 {s.ayahReferences.length > 16 && (
                   <span className="text-xs text-gray-500">+{s.ayahReferences.length - 16}</span>
@@ -239,9 +243,13 @@ export function ProphetJourneyPage() {
                     </p>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {st.ayahReferences.slice(0, 8).map((r, i) => (
-                        <span key={i} className="text-[10px] px-1.5 py-0.5 bg-gray-50 border border-gray-200 rounded">
+                        <Link
+                          key={i}
+                          to={`/quran/${r.surahNumber}${r.ayahStart ? `?ayah=${r.ayahStart}` : ''}`}
+                          className="text-[10px] px-1.5 py-0.5 bg-gray-50 border border-gray-200 rounded hover:border-emerald-300 hover:text-emerald-700 transition-colors"
+                        >
                           {r.surahNumber}:{r.ayahStart}
-                        </span>
+                        </Link>
                       ))}
                     </div>
                   </li>

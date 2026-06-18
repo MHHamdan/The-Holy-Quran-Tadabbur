@@ -8,7 +8,7 @@
 
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Search, ChevronRight } from 'lucide-react';
+import { Clock, Search, ChevronRight, GitCompare, Map } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { SURAH_NAMES } from '../data/surahNames';
@@ -94,17 +94,41 @@ function TimelineCard({ entry, isRtl, expanded, onToggle }: {
           <p className={clsx('text-xs text-gray-600 mb-2', isRtl && 'font-arabic text-right')}>
             {isRtl ? entry.contextAr : entry.contextEn}
           </p>
-          <Link
-            to={`/quran/${entry.surah}`}
-            onClick={e => e.stopPropagation()}
-            className={clsx(
-              'inline-flex items-center gap-1 text-[10px] text-violet-600 hover:underline',
-              isRtl && 'flex-row-reverse'
-            )}
-          >
-            {isRtl ? `افتح السورة ${name?.ar}` : `Open ${name?.en}`}
-            <ChevronRight className={clsx('w-3 h-3', isRtl && 'rotate-180')} />
-          </Link>
+          <div className={clsx('flex items-center gap-2 flex-wrap', isRtl && 'flex-row-reverse')}>
+            <Link
+              to={`/quran/${entry.surah}`}
+              onClick={e => e.stopPropagation()}
+              className={clsx(
+                'inline-flex items-center gap-1 text-[10px] text-violet-600 hover:underline',
+                isRtl && 'flex-row-reverse'
+              )}
+            >
+              {isRtl ? `افتح السورة ${name?.ar}` : `Open ${name?.en}`}
+              <ChevronRight className={clsx('w-3 h-3', isRtl && 'rotate-180')} />
+            </Link>
+            <Link
+              to={`/surah-atlas/${entry.surah}`}
+              onClick={e => e.stopPropagation()}
+              className={clsx(
+                'inline-flex items-center gap-1 text-[10px] text-gray-400 hover:text-teal-600 hover:underline',
+                isRtl && 'flex-row-reverse'
+              )}
+            >
+              <Map className="w-2.5 h-2.5" />
+              {isRtl ? 'الأطلس' : 'Atlas'}
+            </Link>
+            <Link
+              to={`/compare?a=${entry.surah}`}
+              onClick={e => e.stopPropagation()}
+              className={clsx(
+                'inline-flex items-center gap-1 text-[10px] text-gray-400 hover:text-violet-600 hover:underline',
+                isRtl && 'flex-row-reverse'
+              )}
+            >
+              <GitCompare className="w-2.5 h-2.5" />
+              {isRtl ? 'مقارنة' : 'Compare'}
+            </Link>
+          </div>
         </div>
       )}
     </div>

@@ -207,6 +207,7 @@ export interface SurahAtlas {
 
 export type SurahAtlasSortKey =
   | 'quranOrder'
+  | 'revelationOrder'
   | 'ayahCount'
   | 'storyCount'
   | 'rareWordCount'

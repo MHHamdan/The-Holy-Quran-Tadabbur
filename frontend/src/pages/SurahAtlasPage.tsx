@@ -10,7 +10,8 @@
 
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Map, BookOpen, AlertTriangle } from 'lucide-react';
+import { Search, Map, BookOpen, AlertTriangle, GitCompare } from 'lucide-react';
+import { TIMELINE_BY_SURAH } from '../data/revelationTimeline';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { SURAH_ATLAS_DATA } from '../data/surahAtlas';
@@ -29,10 +30,17 @@ const REVELATION_FILTERS = [
 ];
 
 const SORT_OPTIONS: { id: SurahAtlasSortKey; labelEn: string; labelAr: string }[] = [
-  { id: 'quranOrder', labelEn: 'Quran Order', labelAr: 'الترتيب القرآني' },
-  { id: 'ayahCount', labelEn: 'Ayah Count', labelAr: 'عدد الآيات' },
-  { id: 'storyCount', labelEn: 'Story Count', labelAr: 'عدد القصص' },
+  { id: 'quranOrder',       labelEn: 'Quran Order',       labelAr: 'الترتيب القرآني' },
+  { id: 'revelationOrder',  labelEn: 'Revelation Order',  labelAr: 'ترتيب النزول'    },
+  { id: 'ayahCount',        labelEn: 'Ayah Count',        labelAr: 'عدد الآيات'      },
+  { id: 'storyCount',       labelEn: 'Story Count',       labelAr: 'عدد القصص'       },
 ];
+
+const JUZ_OPTIONS = Array.from({ length: 30 }, (_, i) => ({
+  id: String(i + 1),
+  labelEn: `Juz ${i + 1}`,
+  labelAr: `الجزء ${i + 1}`,
+}));
 
 // ---------------------------------------------------------------------------
 // Page component
@@ -47,6 +55,8 @@ export default function SurahAtlasPage() {
     sortBy: 'quranOrder',
     searchQuery: '',
   });
+  const [juzFilter, setJuzFilter] = useState<string>('all');
+
   const filtered = useMemo(() => {
     let data = [...SURAH_ATLAS_DATA];
 
@@ -71,17 +81,28 @@ export default function SurahAtlasPage() {
       data = data.filter((s) => s.revelationType === filter.revelationType);
     }
 
+    // Juz filter
+    if (juzFilter !== 'all') {
+      data = data.filter((s) => s.juzRefs?.some(j => j.includes(juzFilter)));
+    }
+
     // Sort
     if (filter.sortBy === 'ayahCount') {
       data.sort((a, b) => b.ayahCount - a.ayahCount);
     } else if (filter.sortBy === 'storyCount') {
       data.sort((a, b) => (b.storiesMentioned?.length ?? 0) - (a.storiesMentioned?.length ?? 0));
+    } else if (filter.sortBy === 'revelationOrder') {
+      data.sort((a, b) => {
+        const ra = TIMELINE_BY_SURAH[a.surahNumber]?.revelationOrder ?? 999;
+        const rb = TIMELINE_BY_SURAH[b.surahNumber]?.revelationOrder ?? 999;
+        return ra - rb;
+      });
     } else {
       data.sort((a, b) => a.surahNumber - b.surahNumber);
     }
 
     return data;
-  }, [filter]);
+  }, [filter, juzFilter]);
 
   return (
     <div className={clsx('min-h-screen bg-gray-50', isAr ? 'font-arabic' : '')}>
@@ -103,13 +124,22 @@ export default function SurahAtlasPage() {
               </div>
             </div>
 
-            <Link
-              to="/memorization"
-              className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1"
-            >
-              {isAr ? 'دليل الحفظ' : 'Memory Guide'}
-              <BookOpen size={12} />
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/compare"
+                className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1"
+              >
+                {isAr ? 'مقارنة' : 'Compare'}
+                <GitCompare size={12} />
+              </Link>
+              <Link
+                to="/memorization"
+                className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1"
+              >
+                {isAr ? 'دليل الحفظ' : 'Memory Guide'}
+                <BookOpen size={12} />
+              </Link>
+            </div>
           </div>
 
           {/* Search */}
@@ -144,6 +174,20 @@ export default function SurahAtlasPage() {
             ))}
 
             <div className="flex-1" />
+
+            {/* Juz filter */}
+            <select
+              className="text-xs border rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary-400"
+              value={juzFilter}
+              onChange={(e) => setJuzFilter(e.target.value)}
+            >
+              <option value="all">{isAr ? 'كل الأجزاء' : 'All Juz'}</option>
+              {JUZ_OPTIONS.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {isAr ? o.labelAr : o.labelEn}
+                </option>
+              ))}
+            </select>
 
             {/* Sort */}
             <select
