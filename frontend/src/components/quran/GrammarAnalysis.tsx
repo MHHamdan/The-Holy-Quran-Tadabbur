@@ -8,10 +8,10 @@
  * - Confidence indicator
  * - Health status awareness (shows warning when degraded)
  */
-import { useState, useEffect } from 'react';
-import { BookOpen, AlertCircle, ChevronDown, ChevronUp, Loader2, AlertTriangle, Info } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { BookOpen, AlertCircle, ChevronDown, ChevronUp, Loader2, AlertTriangle, Info, BookOpenCheck } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
-import { grammarApi, GrammarAnalysis as GrammarAnalysisType, GrammarToken, GrammarHealth } from '../../lib/api';
+import { grammarApi, GrammarAnalysis as GrammarAnalysisType, GrammarToken, GrammarHealth, vocabularyApi, VocabularyResponse } from '../../lib/api';
 import clsx from 'clsx';
 
 interface Props {
@@ -432,6 +432,175 @@ export function GrammarAnalysisView({ suraNo, ayaNo, verseText }: Props) {
           {analysis.verse_reference}
         </span>
       </div>
+
+      {/* ─── Word Meanings Section ────────────────────────────────────────── */}
+      <WordMeaningsSection suraNo={suraNo} ayaNo={ayaNo} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// WordMeaningsSection — معنى الكلمات
+//
+// Shows word-by-word Arabic (and English) meanings sourced from the
+// vocabulary_entries table (QAC + Mufradat Al-Raghib).
+// Fetches all words of the verse in one batch call to /vocabulary/verse.
+// ---------------------------------------------------------------------------
+
+type MeaningState = 'idle' | 'loading' | 'loaded' | 'empty' | 'error';
+
+function WordMeaningsSection({ suraNo, ayaNo }: { suraNo: number; ayaNo: number }) {
+  const { language } = useLanguageStore();
+  const isRtl = language === 'ar';
+
+  const [state, setState] = useState<MeaningState>('idle');
+  const [words, setWords] = useState<VocabularyResponse[]>([]);
+  const [open, setOpen] = useState(false);
+
+  const loadMeanings = useCallback(async () => {
+    if (state === 'loading' || state === 'loaded') return;
+    setState('loading');
+    try {
+      const res = await vocabularyApi.verseWords(suraNo, ayaNo);
+      const meaningful = res.data.words.filter(w => w.status === 'found');
+      setWords(meaningful);
+      setState(meaningful.length > 0 ? 'loaded' : 'empty');
+    } catch {
+      setState('error');
+    }
+  }, [suraNo, ayaNo, state]);
+
+  const handleToggle = () => {
+    if (!open) loadMeanings();
+    setOpen(o => !o);
+  };
+
+  const hasData = state === 'loaded' && words.length > 0;
+
+  return (
+    <div className="border-t border-gray-200 pt-3 mt-1" dir="rtl">
+      {/* Toggle header */}
+      <button
+        onClick={handleToggle}
+        className="w-full flex items-center justify-between text-sm font-medium text-gray-700 hover:text-teal-700 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <BookOpenCheck className="w-4 h-4 text-teal-600" />
+          <span>{isRtl ? 'معنى الكلمات' : 'Word Meanings'}</span>
+          {state === 'loaded' && (
+            <span className="text-xs text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded">
+              {words.length}
+            </span>
+          )}
+        </div>
+        {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+      </button>
+
+      {/* Content */}
+      {open && (
+        <div className="mt-3 space-y-2">
+          {state === 'loading' && (
+            <div className="flex items-center justify-center py-4 text-gray-400">
+              <Loader2 className="w-4 h-4 animate-spin me-2" />
+              <span className="text-sm">{isRtl ? 'جارٍ التحميل…' : 'Loading…'}</span>
+            </div>
+          )}
+
+          {state === 'error' && (
+            <p className="text-sm text-red-500 text-center py-2">
+              {isRtl ? 'حدث خطأ في تحميل المعاني.' : 'Failed to load word meanings.'}
+            </p>
+          )}
+
+          {state === 'empty' && (
+            <div className="text-center py-3 text-gray-400">
+              <p className="text-sm">
+                {isRtl
+                  ? 'لا تتوفر معاني للكلمات في قاعدة البيانات حالياً.'
+                  : 'No word meanings available in the database yet.'}
+              </p>
+              <p className="text-xs text-gray-300 mt-1" dir="ltr">
+                Run: python backend/scripts/seed_vocabulary_complete.py
+              </p>
+            </div>
+          )}
+
+          {hasData && (
+            <>
+              {/* Word meaning cards — horizontal scroll on mobile */}
+              <div className="flex flex-wrap gap-2">
+                {words.map((w, i) => (
+                  <WordMeaningCard key={i} word={w} isRtl={isRtl} />
+                ))}
+              </div>
+              {/* Source attribution */}
+              <div className="flex items-center gap-1.5 text-xs text-gray-400 pt-1" dir="ltr">
+                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  Quranic Arabic Corpus · Mufradat Al-Raghib Al-Isfahani (d. 502 AH)
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WordMeaningCard({ word }: { word: VocabularyResponse; isRtl: boolean }) {
+  const hasMeaningAr = Boolean(word.meaning_ar);
+  const hasMeaningEn = Boolean(word.meaning_en);
+
+  return (
+    <div
+      dir="rtl"
+      className={clsx(
+        'flex-shrink-0 rounded-xl border px-3 py-2 min-w-[7rem] max-w-[14rem]',
+        'bg-gradient-to-br from-teal-50 to-white border-teal-100',
+        'text-right',
+      )}
+    >
+      {/* Arabic word */}
+      <div className="font-arabic text-base font-bold text-teal-900 leading-snug mb-1">
+        {word.word}
+      </div>
+
+      {/* Arabic meaning — primary */}
+      {hasMeaningAr && (
+        <p className="text-xs text-gray-700 font-arabic leading-relaxed">
+          {word.meaning_ar}
+        </p>
+      )}
+
+      {/* English gloss — secondary or sole meaning */}
+      {hasMeaningEn && (
+        <p
+          dir="ltr"
+          className={clsx(
+            'text-xs leading-snug',
+            hasMeaningAr ? 'text-gray-400 mt-0.5' : 'text-gray-600 font-medium',
+          )}
+        >
+          {word.meaning_en}
+        </p>
+      )}
+
+      {/* Root and POS chip row */}
+      {(word.root || word.pos_tag) && (
+        <div className="flex flex-wrap gap-1 mt-1.5" dir="rtl">
+          {word.root && (
+            <span className="text-xs bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded font-arabic">
+              {word.root}
+            </span>
+          )}
+          {word.pos_tag && (
+            <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-arabic">
+              {word.pos_tag}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

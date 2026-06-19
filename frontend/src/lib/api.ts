@@ -2629,12 +2629,23 @@ export interface VocabularyStatusResponse {
   message_ar: string;
 }
 
+export interface VerseVocabularyResponse {
+  sura: number;
+  aya: number;
+  words: VocabularyResponse[];
+  source_id: string;
+}
+
 export const vocabularyApi = {
   lookup: (word: string) =>
     api.get<VocabularyResponse>('/vocabulary/lookup', { params: { word } }),
 
   byRef: (sura: number, aya: number, pos: number) =>
     api.get<VocabularyResponse>('/vocabulary/by-ref', { params: { sura, aya, pos } }),
+
+  /** Fetch all word meanings for a verse in a single request (batch). */
+  verseWords: (sura: number, aya: number) =>
+    api.get<VerseVocabularyResponse>('/vocabulary/verse', { params: { sura, aya } }),
 
   status: () =>
     api.get<VocabularyStatusResponse>('/vocabulary/status'),

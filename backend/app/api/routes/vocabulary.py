@@ -333,6 +333,58 @@ async def vocabulary_by_ref(
     return response
 
 
+# Verse-level batch cache: (sura, aya) → list[VocabularyResponse]
+_VERSE_CACHE: dict[tuple[int, int], list["VocabularyResponse"]] = {}
+_VERSE_CACHE_MAX = 512
+
+
+class VerseVocabularyResponse(BaseModel):
+    sura: int
+    aya: int
+    words: list[VocabularyResponse]
+    source_id: str = 'quranic_arabic_corpus'
+
+
+@router.get('/verse', response_model=VerseVocabularyResponse)
+async def vocabulary_verse(
+    sura: int = Query(..., ge=1, le=114, description='Surah number'),
+    aya: int = Query(..., ge=1, description='Ayah number'),
+    db: AsyncSession = Depends(get_async_session),
+    http_response: Response = None,
+) -> VerseVocabularyResponse:
+    """
+    Return all word meanings for a complete verse in one request.
+
+    Fetches all vocabulary_entries for the given sura:aya ordered by word_position.
+    Words not in the DB are returned with status='no_verified_source'.
+    Response is cached per verse (max 512 verses in memory).
+    Cache-Control: public, max-age=86400 — vocabulary data is immutable between restarts.
+    """
+    cache_key = (sura, aya)
+    cached = _VERSE_CACHE.get(cache_key)
+    if cached is not None:
+        if http_response:
+            http_response.headers["Cache-Control"] = "public, max-age=86400"
+        return VerseVocabularyResponse(sura=sura, aya=aya, words=cached)
+
+    result = await db.execute(
+        select(VocabEntry)
+        .where(VocabEntry.sura_no == sura, VocabEntry.aya_no == aya)
+        .order_by(VocabEntry.word_position)
+    )
+    entries = result.scalars().all()
+
+    words = [_entry_to_response(e) for e in entries]
+
+    if len(_VERSE_CACHE) < _VERSE_CACHE_MAX:
+        _VERSE_CACHE[cache_key] = words
+
+    if http_response:
+        http_response.headers["Cache-Control"] = "public, max-age=86400"
+
+    return VerseVocabularyResponse(sura=sura, aya=aya, words=words)
+
+
 @router.get('/status', response_model=VocabularyStatusResponse)
 async def vocabulary_status(
     db: AsyncSession = Depends(get_async_session),
