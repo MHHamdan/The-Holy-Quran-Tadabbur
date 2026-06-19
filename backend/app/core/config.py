@@ -63,10 +63,12 @@ class Settings(BaseSettings):
 
     # Ollama Configuration (for local LLM inference)
     ollama_model: str = "qwen2.5:32b"
-    ollama_model_fast: str = "qwen2.5:14b"  # Faster model for RAG (half the size, 2x faster)
+    ollama_model_fast: str = "qwen2.5:14b"        # GPU path: fast model for RAG
+    ollama_model_cpu_fallback: str = "llama3.2:3b" # CPU path: small model when no GPU detected
     ollama_base_url: str = "http://localhost:11434"
-    ollama_rag_max_tokens: int = 1500  # Lower token limit for faster RAG responses
-    ollama_rag_use_fast_model: bool = True  # Use fast model for RAG by default
+    ollama_rag_max_tokens: int = 1500     # GPU path token limit
+    ollama_rag_max_tokens_cpu: int = 800  # CPU path token limit (shorter = faster)
+    ollama_rag_use_fast_model: bool = True  # Use fast/fallback model for RAG by default
 
     # Embedding Model
     embedding_model_multilingual: str = "intfloat/multilingual-e5-large"

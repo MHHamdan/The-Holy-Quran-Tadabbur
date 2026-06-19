@@ -9,11 +9,27 @@ from abc import ABC, abstractmethod
 from typing import Optional, AsyncIterator
 from dataclasses import dataclass
 from enum import Enum
+from functools import lru_cache
+import subprocess
 import time
 import logging
 import httpx
 
 logger = logging.getLogger(__name__)
+
+
+@lru_cache(maxsize=1)
+def _detect_gpu() -> bool:
+    """Return True if an NVIDIA GPU is accessible. Cached for process lifetime."""
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "-L"],
+            capture_output=True,
+            timeout=3,
+        )
+        return result.returncode == 0 and b"GPU" in result.stdout
+    except Exception:
+        return False
 
 
 class LLMProvider(str, Enum):

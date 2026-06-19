@@ -91,7 +91,7 @@ from app.rag.prompts import GROUNDED_SYSTEM_PROMPT, build_user_prompt
 from app.rag.query_expander import expand_query, ExpandedQuery
 from app.rag.confidence import confidence_scorer, get_confidence_message, ConfidenceBreakdown
 from app.validators.citation_validator import CitationValidator
-from app.rag.llm_provider import get_llm, LLMProvider, BaseLLM
+from app.rag.llm_provider import get_llm, LLMProvider, BaseLLM, _detect_gpu
 from app.rag.source_validator import source_validator
 from app.safety.quran_question_classifier import (
     quran_question_classifier,
@@ -134,15 +134,25 @@ class RAGPipeline:
             llm_provider = LLMProvider(settings.llm_provider)
 
         try:
-            # Use fast model for RAG if configured
             ollama_model = None
             if llm_provider == LLMProvider.OLLAMA and settings.ollama_rag_use_fast_model:
-                ollama_model = settings.ollama_model_fast
-                logger.info(f"RAG Pipeline using fast model: {ollama_model}")
+                gpu_available = _detect_gpu()
+                if gpu_available:
+                    ollama_model = settings.ollama_model_fast
+                    self.max_tokens = settings.ollama_rag_max_tokens
+                    logger.info(f"GPU detected — RAG using fast model: {ollama_model} (max_tokens={self.max_tokens})")
+                else:
+                    ollama_model = settings.ollama_model_cpu_fallback
+                    self.max_tokens = settings.ollama_rag_max_tokens_cpu
+                    logger.warning(
+                        f"No GPU detected — RAG falling back to CPU model: {ollama_model} "
+                        f"(max_tokens={self.max_tokens})"
+                    )
+            else:
+                self.max_tokens = settings.ollama_rag_max_tokens
 
             self.llm = get_llm(provider=llm_provider, ollama_model=ollama_model)
             self.llm_provider = llm_provider
-            self.max_tokens = settings.ollama_rag_max_tokens  # Use RAG-specific token limit
             logger.info(f"RAG Pipeline initialized with {llm_provider.value} provider (max_tokens={self.max_tokens})")
         except Exception as e:
             logger.warning(f"Failed to initialize {llm_provider}: {e}")
