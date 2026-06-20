@@ -45,7 +45,7 @@ import { useBookmarksStore } from '../stores/bookmarksStore';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, Verse, api, verseAskAiApi } from '../lib/api';
-import type { VerseAskAiResponse, Citation } from '../lib/api';
+import type { VerseAskAiResponse, Citation, MushafLine } from '../lib/api';
 import { queryKeys, staleTimes } from '../lib/queryClient';
 
 // =============================================================================
@@ -979,6 +979,117 @@ const AIAssistant = memo(function AIAssistant({
 });
 
 // =============================================================================
+// Line-by-line Mushaf renderer (King Fahd Madinah exact layout)
+// =============================================================================
+
+interface MushafLineViewProps {
+  lines: MushafLine[];
+  verseMap: Record<string, Verse>;
+  surahFirstVerse: Record<number, Verse>;
+  selectedVerse: Verse | null;
+  playingVerseId: number | null;
+  fontSize: number;
+  onVerseClick: (verse: Verse) => void;
+}
+
+const MushafLineView = memo(function MushafLineView({
+  lines,
+  verseMap,
+  surahFirstVerse,
+  selectedVerse,
+  playingVerseId,
+  fontSize,
+  onVerseClick,
+}: MushafLineViewProps) {
+  // Track which surah headers we've already shown on this page
+  const shownHeaders = new Set<number>();
+
+  return (
+    <div className="mushaf-lines" dir="rtl">
+      {lines.map((line) => {
+        // Detect if a new surah starts on this line
+        const firstWord = line.words[0];
+        const newSuraNo = firstWord?.sura_no;
+        const needsHeader =
+          newSuraNo !== undefined &&
+          !shownHeaders.has(newSuraNo) &&
+          firstWord?.aya_no === 1 &&
+          firstWord?.word_pos === 1;
+
+        if (needsHeader) shownHeaders.add(newSuraNo);
+
+        const headerVerse = needsHeader ? surahFirstVerse[newSuraNo] : null;
+
+        return (
+          <div key={line.line_no}>
+            {headerVerse && (
+              <div className="mushaf-surah-header">
+                <span
+                  className="font-mushaf font-semibold text-amber-900"
+                  style={{ fontSize: `${fontSize * 0.85}px` }}
+                >
+                  {headerVerse.sura_name_ar}
+                </span>
+                {!SURAHS_WITHOUT_BISMILLAH_HEADER.has(newSuraNo!) && (
+                  <div
+                    className="font-mushaf text-gray-800 mt-1"
+                    style={{ fontSize: `${fontSize * 0.9}px` }}
+                  >
+                    بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div
+              className="mushaf-line"
+              style={{ minHeight: `${fontSize * 2.1}px` }}
+            >
+              {line.words.map((word, wi) => {
+                const verse = verseMap[`${word.sura_no}:${word.aya_no}`];
+                const isSelected = selectedVerse
+                  ? selectedVerse.sura_no === word.sura_no &&
+                    selectedVerse.aya_no === word.aya_no
+                  : false;
+                const isPlaying = verse ? playingVerseId === verse.id : false;
+
+                if (word.char_type === 'end') {
+                  return (
+                    <span
+                      key={wi}
+                      className="mushaf-end font-mushaf"
+                      style={{ fontSize: `${fontSize * 0.72}px` }}
+                    >
+                      {word.text}
+                    </span>
+                  );
+                }
+
+                return (
+                  <span
+                    key={wi}
+                    className={clsx(
+                      'mushaf-word font-mushaf',
+                      isSelected && 'selected',
+                      isPlaying && 'playing',
+                    )}
+                    style={{ fontSize: `${fontSize}px`, lineHeight: 2.0 }}
+                    onClick={() => verse && onVerseClick(verse)}
+                    title={verse ? `${verse.sura_name_ar} ${verse.aya_no}` : undefined}
+                  >
+                    {word.text}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+
+// =============================================================================
 // Main Mushaf Page Component
 // =============================================================================
 
@@ -1013,6 +1124,30 @@ export function MushafPage() {
 
   // Data Fetching
   const { data: verses = [], isLoading, error, prefetchAdjacent } = usePageVerses(currentPage);
+
+  // Line-by-line layout from mushaf_words table (King Fahd exact layout)
+  const { data: mushafLinesData } = useQuery({
+    queryKey: ['mushaf-lines', currentPage],
+    queryFn: () => quranApi.getMushafPageLines(currentPage).then(r => r.data),
+    staleTime: 24 * 60 * 60 * 1000,
+    retry: false,
+  });
+
+  // Build sura_no → Verse lookup for headers/tooltips in line mode
+  const verseMap = useMemo(() => {
+    const m: Record<string, Verse> = {};
+    for (const v of verses) m[`${v.sura_no}:${v.aya_no}`] = v;
+    return m;
+  }, [verses]);
+
+  // Build sura_no → first Verse on this page (for surah headers in line mode)
+  const surahFirstVerse = useMemo(() => {
+    const m: Record<number, Verse> = {};
+    for (const v of verses) {
+      if (!(v.sura_no in m)) m[v.sura_no] = v;
+    }
+    return m;
+  }, [verses]);
 
   // Reset tafsir when language changes
   useEffect(() => {
@@ -1340,7 +1475,19 @@ export function MushafPage() {
                     {t('mushaf_retry')}
                   </button>
                 </div>
+              ) : mushafLinesData ? (
+                // ── Line-by-line rendering (King Fahd exact layout) ──────────
+                <MushafLineView
+                  lines={mushafLinesData.lines}
+                  verseMap={verseMap}
+                  surahFirstVerse={surahFirstVerse}
+                  selectedVerse={selectedVerse}
+                  playingVerseId={playingVerseId}
+                  fontSize={fontSize}
+                  onVerseClick={handleVerseClick}
+                />
               ) : (
+                // ── Fallback: flowing text (used while mushaf_words is seeding) ─
                 <div className="text-center" dir="rtl">
                   {pageItems.map((item) => {
                     if (item.type === 'header') {

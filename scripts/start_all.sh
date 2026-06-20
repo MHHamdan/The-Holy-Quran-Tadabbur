@@ -30,6 +30,23 @@ FRONTEND_PORT=3000
 # LEXIFORGE/backend onto sys.path.
 export PYTHONPATH="$PROJECT_DIR/backend"
 
+# ── GPU selection: prefer GPU 3, fall back to CPU ─────────────────────────────
+# CUDA_VISIBLE_DEVICES=3 maps physical GPU 3 to logical device 0 for all child
+# processes. torch.cuda.is_available() returns False when the device index is
+# absent or CUDA is not installed, so services that check it directly (e.g.
+# semantic_search.py, emotion_classifier.py) get CPU automatically.
+if command -v nvidia-smi >/dev/null 2>&1 \
+   && nvidia-smi -i 3 --query-gpu=index --format=csv,noheader 2>/dev/null \
+      | grep -q '^3$'; then
+    export CUDA_VISIBLE_DEVICES=3
+    export EMBEDDING_DEVICE=cuda
+    _GPU_MSG="GPU 3 detected → CUDA_VISIBLE_DEVICES=3, EMBEDDING_DEVICE=cuda"
+else
+    export CUDA_VISIBLE_DEVICES=""
+    export EMBEDDING_DEVICE=cpu
+    _GPU_MSG="GPU 3 not available → CPU fallback (EMBEDDING_DEVICE=cpu)"
+fi
+
 GREEN='\033[0;32m'; YELLOW='\033[0;33m'; RED='\033[0;31m'; BLUE='\033[0;34m'; NC='\033[0m'
 
 mkdir -p "$PID_DIR" "$LOG_DIR"
@@ -133,6 +150,8 @@ printf '%b╚══════════════════════�
 echo ""
 
 command -v podman >/dev/null 2>&1 || die "podman not found — install podman first"
+printf '  %b⚙%b  %s\n' "$BLUE" "$NC" "$_GPU_MSG"
+echo ""
 podman info >/dev/null 2>&1 || die "Podman is not running.
   Start with: systemctl --user start podman.socket
   Or enable:  systemctl --user enable --now podman.socket"
@@ -228,6 +247,55 @@ if python -m alembic upgrade head 2>&1 | tee -a "$LOG_DIR/migrations.log"; then
     echo -e "  ${GREEN}✓${NC} Migrations applied"
 else
     echo -e "  ${YELLOW}~${NC} Migration step returned non-zero (see logs/migrations.log)"
+fi
+
+# ── 3b. Auto-seed (only when quran_verses is empty) ──────────────────────────
+# Runs after migrations so the schema exists. Skipped on subsequent starts.
+_verse_count=$(podman exec tadabbur-postgres \
+    psql -U tadabbur tadabbur -t -c "SELECT COUNT(*) FROM quran_verses;" \
+    2>/dev/null | tr -d '[:space:]' || echo "0")
+
+if [[ "$_verse_count" == "0" ]]; then
+    echo ""
+    printf '  %b~%b  quran_verses is empty — running initial seed...\n' "$YELLOW" "$NC"
+    cd "$PROJECT_DIR"
+
+    # 1. Verses
+    python backend/scripts/ingest/seed_quran.py >> "$LOG_DIR/migrations.log" 2>&1 \
+        && printf '  %b✓%b  Quran verses seeded\n' "$GREEN" "$NC" \
+        || printf '  %b✗%b  seed_quran.py failed — check logs/migrations.log\n' "$RED" "$NC"
+
+    # 2. Normalize text for search
+    python -c "
+import re, sys; sys.path.insert(0,'backend')
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session
+def norm(t):
+    t=t.replace('﻿','').replace('ـ','')
+    t=re.sub(r'[ً-ٰٟ]','',t)
+    t=re.sub(r'[آأإٱ]','ا',t)
+    return t.replace('ة','ه').replace('ى','ي').strip()
+e=create_engine('postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur')
+s=Session(e)
+rows=s.execute(text('SELECT id,text_uthmani FROM quran_verses')).all()
+s.execute(text('UPDATE quran_verses SET text_normalized=:n WHERE id=:i'),[{'i':r,'n':norm(t or '')} for r,t in rows])
+s.commit()
+print(f'Normalized {len(rows)} verses')
+" >> "$LOG_DIR/migrations.log" 2>&1 \
+        && printf '  %b✓%b  text_normalized populated\n' "$GREEN" "$NC" \
+        || printf '  %b✗%b  normalize step failed — check logs/migrations.log\n' "$RED" "$NC"
+
+    # 3. Vocabulary (77,430 words from qurancdn.com)
+    printf '  %b~%b  Seeding vocabulary (~77k words, ~30s)...\n' "$YELLOW" "$NC"
+    python backend/scripts/seed_vocabulary_complete.py >> "$LOG_DIR/migrations.log" 2>&1 \
+        && printf '  %b✓%b  Vocabulary seeded\n' "$GREEN" "$NC" \
+        || printf '  %b✗%b  seed_vocabulary_complete.py failed — check logs/migrations.log\n' "$RED" "$NC"
+
+    # 4. Mushaf word layout (604-page line assignments for King Fahd rendering)
+    printf '  %b~%b  Seeding Mushaf word layout (~77k words across 604 pages, ~90s)...\n' "$YELLOW" "$NC"
+    python backend/scripts/ingest/seed_mushaf_words.py >> "$LOG_DIR/migrations.log" 2>&1 \
+        && printf '  %b✓%b  Mushaf word layout seeded\n' "$GREEN" "$NC" \
+        || printf '  %b✗%b  seed_mushaf_words.py failed — check logs/migrations.log\n' "$RED" "$NC"
 fi
 
 # ── 4. Application services ───────────────────────────────────────────────────

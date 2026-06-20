@@ -10,7 +10,8 @@ export default {
         'xs': '475px',  // Extra small devices
       },
       fontFamily: {
-        arabic: ['Amiri', 'Traditional Arabic', 'serif'],
+        mushaf: ['Scheherazade New', 'Noto Naskh Arabic', 'Amiri', 'serif'],
+        arabic: ['Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', 'serif'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {

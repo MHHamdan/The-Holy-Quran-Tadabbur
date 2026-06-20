@@ -30,6 +30,23 @@ export interface Translation {
   text: string;
 }
 
+// Mushaf line-layout types (King Fahd Madinah Mushaf word positions)
+export interface MushafWord {
+  sura_no: number;
+  aya_no: number;
+  word_pos: number;
+  text: string;
+  char_type: 'word' | 'end' | 'hizb' | 'sajda' | 'rub' | 'page';
+}
+export interface MushafLine {
+  line_no: number;
+  words: MushafWord[];
+}
+export interface MushafPageLines {
+  page_no: number;
+  lines: MushafLine[];
+}
+
 // =============================================================================
 // Search API Types
 // =============================================================================
@@ -492,6 +509,9 @@ export const quranApi = {
 
   getPageVerses: (pageNo: number) =>
     api.get<Verse[]>(`/quran/page/${pageNo}`),
+
+  getMushafPageLines: (pageNo: number) =>
+    api.get<MushafPageLines>(`/mushaf/page/${pageNo}/lines`),
 
   getTafseer: (suraNo: number, ayaNo: number, sources?: string[]) =>
     api.get(`/quran/tafseer/${suraNo}/${ayaNo}`, { params: { sources } }),
