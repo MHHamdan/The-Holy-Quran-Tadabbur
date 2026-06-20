@@ -8,7 +8,7 @@
 
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Search, ChevronRight, Info } from 'lucide-react';
+import { Star, Search, ChevronRight, Info, BookOpen } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import {
@@ -98,18 +98,57 @@ function NameCard({ name, isRtl, expanded, onToggle }: {
       </div>
 
       {/* Expanded detail */}
-      {expanded && (name.notesEn || name.notesAr) && (
-        <div className={clsx(
-          'px-4 pb-4 pt-0 border-t border-gray-50 bg-violet-50/40',
-        )}>
-          <p className={clsx('text-xs text-gray-600 leading-relaxed mt-3', isRtl && 'font-arabic text-right')}>
-            {isRtl ? name.notesAr : name.notesEn}
-          </p>
+      {expanded && (name.notesEn || name.notesAr || name.quranicCiteEn || name.hadithEn) && (
+        <div className={clsx('px-4 pb-4 pt-0 border-t border-gray-50 bg-violet-50/40')}>
+          {(name.notesEn || name.notesAr) && (
+            <p className={clsx('text-xs text-gray-600 leading-relaxed mt-3 mb-3', isRtl && 'font-arabic text-right')}>
+              {isRtl ? name.notesAr : name.notesEn}
+            </p>
+          )}
+
+          {/* Quranic cite callout */}
+          {(name.quranicCiteEn || name.quranicCiteAr) && (
+            <div className={clsx('flex gap-2 p-2.5 rounded-xl bg-amber-50 border border-amber-100 mb-2', isRtl && 'flex-row-reverse')}>
+              <BookOpen className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <p className={clsx('text-[10px] font-semibold text-amber-600 mb-0.5', isRtl && 'font-arabic')}>
+                  {isRtl ? 'المرجع القرآني' : 'Quranic Reference'}
+                </p>
+                <p className={clsx('text-xs text-amber-800 leading-relaxed', isRtl ? 'font-arabic' : 'italic')}>
+                  {isRtl ? (name.quranicCiteAr ?? name.quranicCiteEn) : name.quranicCiteEn}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Hadith callout */}
+          {(name.hadithEn || name.hadithAr) && (
+            <div className={clsx('flex gap-2 p-2.5 rounded-xl bg-teal-50 border border-teal-100 mb-2', isRtl && 'flex-row-reverse')}>
+              <span className="text-teal-500 flex-shrink-0 text-sm leading-none mt-0.5">📜</span>
+              <div className="min-w-0">
+                <p className={clsx('text-[10px] font-semibold text-teal-600 mb-0.5', isRtl && 'font-arabic')}>
+                  {isRtl ? 'حديث شريف' : 'Hadith Reference'}
+                </p>
+                <p className={clsx('text-xs text-teal-800 leading-relaxed', isRtl ? 'font-arabic' : 'italic')}>
+                  {isRtl ? (name.hadithAr ?? name.hadithEn) : name.hadithEn}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Scholarly sources */}
+          {(name.scholarlySrcEn || name.scholarlySrcAr) && (
+            <p className={clsx('text-[10px] text-gray-400 leading-relaxed mb-2', isRtl && 'font-arabic text-right')}>
+              <span className="font-medium text-gray-500">{isRtl ? 'المصادر: ' : 'Sources: '}</span>
+              {isRtl ? (name.scholarlySrcAr ?? name.scholarlySrcEn) : name.scholarlySrcEn}
+            </p>
+          )}
+
           <Link
             to={`/quran/${name.surahRef}`}
             onClick={e => e.stopPropagation()}
             className={clsx(
-              'inline-flex items-center gap-1 text-[10px] text-violet-600 hover:underline mt-2',
+              'inline-flex items-center gap-1 text-[10px] text-violet-600 hover:underline mt-1',
               isRtl && 'flex-row-reverse'
             )}
           >
