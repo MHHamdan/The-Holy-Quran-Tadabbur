@@ -221,7 +221,7 @@ function DuaCard({
 
           {/* Read in Mushaf */}
           <Link
-            to={`/quran/${dua.surah}`}
+            to={`/quran/${dua.surah}?aya=${dua.ayah}`}
             className={clsx(
               'inline-flex items-center gap-1.5 text-xs font-medium text-teal-700 hover:text-teal-900 transition-colors',
               isRtl && 'flex-row-reverse',
