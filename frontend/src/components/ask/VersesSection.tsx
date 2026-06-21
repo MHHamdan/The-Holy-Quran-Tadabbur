@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ExternalLink, ArrowRight } from 'lucide-react';
+import { BookOpen, ExternalLink, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import clsx from 'clsx';
 import { RelatedVerse } from '../../lib/api';
+
+const INITIAL_VERSE_COUNT = 3;
 
 interface VersesSectionProps {
   verses: RelatedVerse[];
@@ -9,7 +12,11 @@ interface VersesSectionProps {
 }
 
 export function VersesSection({ verses, language }: VersesSectionProps) {
+  const [showAll, setShowAll] = useState(false);
   if (verses.length === 0) return null;
+
+  const displayed = showAll ? verses : verses.slice(0, INITIAL_VERSE_COUNT);
+  const hidden = verses.length - INITIAL_VERSE_COUNT;
 
   return (
     <div className="space-y-3">
@@ -21,10 +28,28 @@ export function VersesSection({ verses, language }: VersesSectionProps) {
         </span>
       </h3>
       <div className="space-y-4">
-        {verses.map((verse, idx) => (
+        {displayed.map((verse, idx) => (
           <VerseCard key={`${verse.sura_no}-${verse.aya_no}-${idx}`} verse={verse} language={language} />
         ))}
       </div>
+      {verses.length > INITIAL_VERSE_COUNT && (
+        <button
+          onClick={() => setShowAll(v => !v)}
+          className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
+        >
+          {showAll ? (
+            <>
+              <ChevronUp className="w-3.5 h-3.5" />
+              {language === 'ar' ? 'إخفاء الآيات' : 'Show fewer verses'}
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-3.5 h-3.5" />
+              {language === 'ar' ? `عرض ${hidden} آية إضافية` : `Show ${hidden} more verse${hidden !== 1 ? 's' : ''}`}
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 }

@@ -137,7 +137,10 @@ function AssistantMessage({
               <NoDataNotice language={language} />
             )}
 
-            {/* Related verses - displayed first (only when we have a real answer) */}
+            {/* Main answer — always show first (safe refusal text when no_verified_source) */}
+            <AnswerCard response={response} language={language} />
+
+            {/* Related verses - supporting evidence */}
             {hasVerses && !isNoSource && (
               <VersesSection verses={response.related_verses!} language={language} />
             )}
@@ -156,9 +159,6 @@ function AssistantMessage({
             {response.disagreement_warning && !response.agentic?.consensus && (
               <DisagreementWarning warning={response.disagreement_warning} language={language} />
             )}
-
-            {/* Main answer — always show (safe refusal text when no_verified_source) */}
-            <AnswerCard response={response} language={language} />
 
             {/* Citation cards (Phase 2: richer display) */}
             {hasCitations && !isNoSource && (
@@ -468,7 +468,7 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-500 flex-shrink-0" />
           <h4 className="text-xs sm:text-sm font-semibold text-gray-700 truncate">
-            {language === 'ar' ? 'ملخص الإجابة' : 'Answer Summary'}
+            {language === 'ar' ? 'الإجابة' : 'Answer'}
           </h4>
           {response.answer_mode && (
             <AnswerModeBadge mode={response.answer_mode} language={language} />

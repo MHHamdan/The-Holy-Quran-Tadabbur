@@ -22,11 +22,25 @@ _BASE_IDS: frozenset = frozenset(TAFSIR_CATALOG.keys())
 
 # DB stores language-suffixed variants (e.g. "ibn_kathir_ar", "ibn_kathir_en").
 # Accept both the base ID and the two suffix forms.
-TRUSTED_SOURCE_IDS: frozenset = frozenset(
+_DB_VARIANTS: frozenset = frozenset(
     _BASE_IDS
     | {f"{sid}_ar" for sid in _BASE_IDS}
     | {f"{sid}_en" for sid in _BASE_IDS}
 )
+
+# External AlQuran.cloud API fallback uses ids of the form "alquran_cloud_<edition>".
+# These are legitimate scholarly sources served when the local DB is empty.
+_ALQURAN_CLOUD_EDITIONS = frozenset({
+    "ar.muyassar", "ar.jalalayn", "ar.baghawi", "ar.qurtubi",
+    "ar.tabari", "ar.ibnkathir",
+    "en.sahih", "en.pickthall", "en.yusufali", "en.hilali",
+    "en.transliteration",
+})
+_ALQURAN_CLOUD_IDS: frozenset = frozenset(
+    {f"alquran_cloud_{e}" for e in _ALQURAN_CLOUD_EDITIONS}
+)
+
+TRUSTED_SOURCE_IDS: frozenset = _DB_VARIANTS | _ALQURAN_CLOUD_IDS
 
 _HIGH_RELIABILITY = frozenset({"canonical", "verified"})
 _EXPERIMENTAL_ONLY = frozenset({"experimental"})

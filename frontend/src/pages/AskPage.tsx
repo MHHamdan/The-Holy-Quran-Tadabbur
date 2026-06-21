@@ -340,25 +340,28 @@ export function AskPage() {
           )}
         </div>
 
-        {/* Tafseer Source Selector */}
-        <div className="mt-3 sm:mt-4">
+        {/* Tafseer Source Selector — only shown when sources are available */}
+        <div className={clsx('mt-2 sm:mt-3', sources.length === 0 && 'hidden')}>
           <button
             onClick={() => setShowSourceSelector(!showSourceSelector)}
-            className="w-full flex items-center justify-between text-start p-2.5 sm:p-3 min-h-[44px] bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+            className={clsx(
+              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors',
+              showSourceSelector
+                ? 'bg-primary-50 border-primary-300 text-primary-700'
+                : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300'
+            )}
           >
-            <div className="flex items-center gap-2">
-              <Settings2 className="w-4 h-4 text-primary-600" />
-              <span className={clsx('text-sm font-medium', language === 'ar' && 'font-arabic')}>
-                {language === 'ar' ? 'مصادر التفسير' : 'Tafseer Sources'}
-              </span>
-              <span className="text-xs text-gray-500">
-                ({selectedSources.length}/{sources.length})
-              </span>
-            </div>
+            <Settings2 className="w-3.5 h-3.5" />
+            <span className={clsx(language === 'ar' && 'font-arabic')}>
+              {language === 'ar' ? 'المصادر' : 'Sources'}
+            </span>
+            <span className="text-gray-400">
+              {selectedSources.length}/{sources.length}
+            </span>
             {showSourceSelector ? (
-              <ChevronUp className="w-4 h-4 text-gray-400" />
+              <ChevronUp className="w-3 h-3 text-gray-400" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+              <ChevronDown className="w-3 h-3 text-gray-400" />
             )}
           </button>
 
@@ -461,6 +464,7 @@ export function AskPage() {
                 }}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onKeyDown={handleKeyDown}
+                autoFocus
                 placeholder={
                   messages.length > 0
                     ? (language === 'ar' ? 'اطرح سؤال متابعة...' : 'Ask a follow-up question...')
@@ -552,7 +556,7 @@ export function AskPage() {
 
             <button
               type="submit"
-              disabled={loading || !question.trim() || selectedSources.length === 0}
+              disabled={loading || !question.trim()}
               className={clsx(
                 'flex items-center justify-center gap-2 px-3 sm:px-5 py-3 min-w-[48px] min-h-[48px]',
                 'bg-gradient-to-r from-primary-500 to-primary-600',
@@ -561,7 +565,7 @@ export function AskPage() {
                 'text-white font-medium rounded-xl',
                 'shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30',
                 'transition-all duration-300',
-                (loading || !question.trim() || selectedSources.length === 0) && 'opacity-50 cursor-not-allowed shadow-none'
+                (loading || !question.trim()) && 'opacity-50 cursor-not-allowed shadow-none'
               )}
               aria-label={t('ask_button', language)}
             >
@@ -574,11 +578,6 @@ export function AskPage() {
             </button>
           </div>
 
-          {selectedSources.length === 0 && (
-            <p className={clsx('text-sm text-red-500 mt-2 flex items-center gap-2', language === 'ar' && 'font-arabic')}>
-              {language === 'ar' ? 'يرجى اختيار مصدر تفسير واحد على الأقل' : 'Please select at least one tafseer source'}
-            </p>
-          )}
         </form>
       </div>
     </div>
@@ -760,7 +759,7 @@ const EmptyState = memo(function EmptyState({
             ? categories.filter((c) => c.id === activeCategory)
             : categories
           ).map((cat) =>
-            cat.questions.slice(0, activeCategory ? 4 : 1).map((q, i) => {
+            cat.questions.slice(0, activeCategory ? 4 : 2).map((q, i) => {
               const Icon = cat.icon;
               const colors = COLOR_CLASSES[cat.color];
               return (
