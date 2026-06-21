@@ -59,7 +59,10 @@ const ACHIEVEMENTS: Record<string, Achievement> = {
   full_set:         { id: 'full_set',          emoji: '🏆', labelEn: 'Full Day Complete',  labelAr: 'يوم كامل من الذكر',   xp: 200 },
 };
 
-const TIMER_OPTIONS = [5, 10, 15, 30] as const;
+const TIMER_OPTIONS  = [5, 10, 15, 30] as const;
+// Seconds between each auto-count
+const PACE_OPTIONS   = [3, 5, 7, 10, 15, 20] as const;
+const PACE_DEFAULT   = 5;
 
 const CATS_ORDER: DhikrCategory[] = ['after_salah', 'quranic', 'any_time', 'morning', 'evening'];
 
@@ -288,9 +291,10 @@ function DhikrBrowseCard({ dhikr, count, isRtl, onIncrement, onReset }: {
 // ── Focus mode view ───────────────────────────────────────────────────────────
 
 function FocusView({
-  items, index, counts, isRtl, audioEnabled, autoPlay, timerSec, timerRunning,
+  items, index, counts, isRtl, audioEnabled, autoPlay, autoPlayInterval,
+  timerSec, timerRunning,
   onIncrement, onPrev, onNext, onClose, onToggleAudio, onToggleAutoPlay,
-  onStartTimer, onStopTimer,
+  onChangeInterval, onStartTimer, onStopTimer,
 }: {
   items: DhikrEntry[];
   index: number;
@@ -298,6 +302,7 @@ function FocusView({
   isRtl: boolean;
   audioEnabled: boolean;
   autoPlay: boolean;
+  autoPlayInterval: number;
   timerSec: number;
   timerRunning: boolean;
   onIncrement: () => void;
@@ -306,12 +311,14 @@ function FocusView({
   onClose: () => void;
   onToggleAudio: () => void;
   onToggleAutoPlay: () => void;
+  onChangeInterval: (s: number) => void;
   onStartTimer: (mins: number) => void;
   onStopTimer: () => void;
 }) {
   const [showTimerMenu, setShowTimerMenu] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [beatPct, setBeatPct] = useState(0);   // 0..1 sweep for the auto-count bar
   const timerMenuRef = useRef<HTMLDivElement>(null);
 
   const dhikr = items[index];
@@ -337,6 +344,40 @@ function FocusView({
       return () => clearTimeout(t);
     }
   }, [done]);
+
+  // ── Auto-count ticker ───────────────────────────────────────────────────────
+  // When auto-play is ON and the current dhikr is not yet complete, fire
+  // onIncrement every autoPlayInterval seconds.  A 100 ms sub-interval drives
+  // the beat progress bar so the user can see the countdown visually.
+  useEffect(() => {
+    if (!autoPlay || done) {
+      setBeatPct(0);
+      return;
+    }
+
+    const stepMs      = 100;                            // visual refresh rate
+    const totalSteps  = (autoPlayInterval * 1000) / stepMs;
+    let step          = 0;
+
+    const id = setInterval(() => {
+      step += 1;
+      setBeatPct(Math.min(step / totalSteps, 1));
+
+      if (step >= totalSteps) {
+        step = 0;
+        setBeatPct(0);
+        onIncrement();
+        vibrate();
+      }
+    }, stepMs);
+
+    return () => {
+      clearInterval(id);
+      setBeatPct(0);
+    };
+    // onIncrement identity changes when focusIndex changes — intentional so
+    // the ticker restarts cleanly when advancing to a new dhikr.
+  }, [autoPlay, done, autoPlayInterval, onIncrement]);
 
   return (
     <div className={clsx(
@@ -458,10 +499,35 @@ function FocusView({
           themeClass={{ ring: theme.ring, ringFg: theme.ringFg, text: theme.text }}
         />
 
+        {/* Beat countdown bar — visible only when auto-play is running */}
+        {autoPlay && !done && (
+          <div className="w-full max-w-[200px] space-y-1">
+            <div className={clsx(
+              'h-1 rounded-full overflow-hidden',
+              theme.dark ? 'bg-white/10' : 'bg-black/8',
+            )}>
+              <div
+                className={clsx(
+                  'h-full rounded-full transition-none',
+                  theme.dark ? 'bg-indigo-400' : 'bg-gray-700',
+                )}
+                style={{ width: `${beatPct * 100}%` }}
+              />
+            </div>
+            <p className={clsx('text-[10px] text-center tabular-nums', theme.subText)}>
+              {isRtl
+                ? `عدّ تلقائي كل ${autoPlayInterval}ث`
+                : `Auto-counting every ${autoPlayInterval}s`}
+            </p>
+          </div>
+        )}
+
         <p className={clsx('text-xs', theme.subText)}>
           {done
             ? (isRtl ? 'مكتمل ✓' : 'Complete ✓')
-            : (isRtl ? 'اضغط للعد' : 'Tap anywhere to count')}
+            : autoPlay
+              ? (isRtl ? 'أو اضغط للعدّ يدوياً' : 'or tap to count manually')
+              : (isRtl ? 'اضغط للعد' : 'Tap anywhere to count')}
         </p>
 
         {/* Info toggle */}
@@ -511,19 +577,45 @@ function FocusView({
           <ChevronLeft className="w-6 h-6" />
         </button>
 
-        {/* Auto-play toggle */}
-        <button
-          onClick={onToggleAutoPlay}
-          className={clsx(
-            'flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium transition-colors',
-            autoPlay
-              ? (theme.dark ? 'bg-indigo-500 text-white' : 'bg-gray-800 text-white')
-              : (theme.dark ? 'bg-white/10 text-white/70' : 'bg-gray-100 text-gray-600'),
+        {/* Auto-play toggle + pace selector */}
+        <div className="flex flex-col items-center gap-1.5">
+          {/* Speed pills — only visible when auto-play is ON */}
+          {autoPlay && (
+            <div className={clsx('flex items-center gap-1', isRtl && 'flex-row-reverse')}>
+              {PACE_OPTIONS.map(s => (
+                <button
+                  key={s}
+                  onClick={() => onChangeInterval(s)}
+                  className={clsx(
+                    'px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors',
+                    autoPlayInterval === s
+                      ? (theme.dark ? 'bg-white text-slate-900' : 'bg-gray-900 text-white')
+                      : (theme.dark ? 'bg-white/10 text-white/50 hover:bg-white/20' : 'bg-black/5 text-gray-400 hover:bg-black/10'),
+                  )}
+                >
+                  {s}s
+                </button>
+              ))}
+            </div>
           )}
-        >
-          {autoPlay ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-          <span>{isRtl ? 'تشغيل تلقائي' : 'Auto-play'}</span>
-        </button>
+
+          <button
+            onClick={onToggleAutoPlay}
+            className={clsx(
+              'flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium transition-colors',
+              autoPlay
+                ? (theme.dark ? 'bg-indigo-500 text-white' : 'bg-gray-800 text-white')
+                : (theme.dark ? 'bg-white/10 text-white/70' : 'bg-gray-100 text-gray-600'),
+            )}
+          >
+            {autoPlay ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            <span>
+              {autoPlay
+                ? (isRtl ? `تلقائي · ${autoPlayInterval}ث` : `Auto · ${autoPlayInterval}s`)
+                : (isRtl ? 'تشغيل تلقائي' : 'Auto-play')}
+            </span>
+          </button>
+        </div>
 
         <button
           onClick={onNext}
@@ -563,8 +655,9 @@ export function DhikrPage() {
   const [timerRunning, setTimerRunning] = useState(false);
 
   // Auto-play & audio
-  const [autoPlay, setAutoPlay]         = useState(false);
-  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [autoPlay, setAutoPlay]             = useState(false);
+  const [autoPlayInterval, setAutoPlayInterval] = useState<number>(PACE_DEFAULT);
+  const [audioEnabled, setAudioEnabled]     = useState(false);
 
   // Rewards
   const [rewards, setRewards]           = useState<RewardsData>(loadRewards);
@@ -696,6 +789,14 @@ export function DhikrPage() {
     });
   }, []);
 
+  // Stable increment callback for the active focus dhikr.
+  // Changes identity when focusIndex/focusCategory changes — this is intentional
+  // so the beat ticker in FocusView restarts on dhikr switch.
+  const focusIncrement = useCallback(() => {
+    const d = focusItems[focusIndex];
+    if (d) increment(d.id);
+  }, [focusItems, focusIndex, increment]);
+
   const resetAll = () => {
     const next: CountRecord = {};
     ADHKAR.forEach(d => { next[d.id] = { count: 0, date: TODAY }; });
@@ -770,9 +871,10 @@ export function DhikrPage() {
           isRtl={isRtl}
           audioEnabled={audioEnabled}
           autoPlay={autoPlay}
+          autoPlayInterval={autoPlayInterval}
           timerSec={timerSec}
           timerRunning={timerRunning}
-          onIncrement={() => { const d = focusItems[focusIndex]; if (d) increment(d.id); }}
+          onIncrement={focusIncrement}
           onPrev={() => setFocusIndex(i => Math.max(0, i - 1))}
           onNext={() => {
             const next = Math.min(focusItems.length - 1, focusIndex + 1);
@@ -782,6 +884,7 @@ export function DhikrPage() {
           onClose={() => { setFocusMode(false); recordSession(); }}
           onToggleAudio={() => setAudioEnabled(v => !v)}
           onToggleAutoPlay={() => setAutoPlay(v => !v)}
+          onChangeInterval={setAutoPlayInterval}
           onStartTimer={(mins) => { setTimerSec(mins * 60); setTimerRunning(true); }}
           onStopTimer={() => { setTimerRunning(false); setTimerSec(0); }}
         />
