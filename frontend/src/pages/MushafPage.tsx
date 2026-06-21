@@ -45,7 +45,7 @@ import { useBookmarksStore } from '../stores/bookmarksStore';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, Verse, api, verseAskAiApi } from '../lib/api';
-import type { VerseAskAiResponse, Citation, MushafLine } from '../lib/api';
+import type { VerseAskAiResponse, Citation } from '../lib/api';
 import { queryKeys, staleTimes } from '../lib/queryClient';
 
 // =============================================================================
@@ -145,14 +145,14 @@ interface SurahHeaderItem {
   suraNameAr: string;   // from quran_uthmani.json — already has سُورَةُ prefix
   suraNameEn: string;
   ayahCount: number;
-  bismillahText: string | null; // extracted from text_uthmani — never hardcoded
+  bismillahText: string | null; // extracted from text_imlaei — never hardcoded
   revelationType: 'makki' | 'madani' | 'unknown';
 }
 
 interface VerseItem {
   type: 'verse';
   verse: Verse;
-  displayText: string;  // text_uthmani with Bismillah prefix stripped for ayah 1
+  displayText: string;  // text_imlaei with Bismillah prefix stripped for ayah 1
 }
 
 type PageItem = SurahHeaderItem | VerseItem;
@@ -165,55 +165,20 @@ function toArabicNumber(num: number): string {
   return num.toString().split('').map(d => ARABIC_NUMS[parseInt(d)]).join('');
 }
 
-/**
- * Splits the Bismillah prefix from text_uthmani.
- * quran_uthmani.json stores Bismillah concatenated at the start of ayah 1
- * for surahs 2–114 (except surah 9 which has none).
- * Uses the Alef Wasla form ٱ (U+0671) in ٱلرَّحِيمِ as the split marker.
- * All text comes from the verified data file — nothing is hardcoded.
- */
-function splitBismillah(text: string): { bismillah: string; verseText: string } | null {
-  // The Bismillah ends with ٱلرَّحِيمِ — find the last occurrence of ٱ (U+0671)
-  // followed by ل to locate the start of ٱلرَّحِيمِ
-  const ALEF_WASLA = 'ٱ'; // ٱ — Alef Wasla, distinctive to Uthmani script
-  const MIM = 'م';        // م — final character base of ٱلرَّحِيمِ
-
-  // Walk forward to find the Bismillah boundary: last kasra after the last م in الرحيم
-  // Simpler: find second occurrence of ٱل (there are two: ٱللَّهِ and ٱلرَّحْمَٰنِ and ٱلرَّحِيمِ)
-  // Most reliable: find the index right after the third ٱ
-  const indices: number[] = [];
-  for (let i = 0; i < text.length; i++) {
-    if (text[i] === ALEF_WASLA) indices.push(i);
-  }
-  // Expect 3 Alef Wasla chars: ٱللَّهِ, ٱلرَّحْمَٰنِ, ٱلرَّحِيمِ
-  // The Bismillah ends after the last م + its diacritics
-  if (indices.length < 3) return null;
-
-  // After the 3rd ٱ (start of ٱلرَّحِيمِ), scan forward to find end of that word
-  let pos = indices[2];
-  // Advance past ل ر ّ ح ِ ي م ِ — stop when we hit a space or a non-diacritic Arabic letter
-  // that is NOT part of الرحيم
-  pos++; // skip ٱ itself
-  // Find the next letter after the diacritics cluster following the 3rd ٱل... word
-  // Easiest: find first space or BMP Arabic letter that breaks the Bismillah word
-  while (pos < text.length) {
-    const c = text[pos];
-    if (c === MIM) {
-      // Consume م and following diacritics (kasra etc.)
-      pos++;
-      while (pos < text.length && text.codePointAt(pos)! >= 0x064B && text.codePointAt(pos)! <= 0x065F) {
-        pos++;
-      }
-      break;
-    }
-    pos++;
-  }
-
-  const bismillah = text.slice(0, pos).trim();
-  const verseText = text.slice(pos).trimStart();
-  if (!verseText) return null; // guard: shouldn't happen for real verse content
-  return { bismillah, verseText };
+// Split the Bismillah prefix from an Imlaei-script verse.
+// The Bismillah is always the first 4 words of verse 1 for surahs that carry it.
+// Callers gate on aya_no===1 and sura_no not in SURAHS_WITHOUT_BISMILLAH_HEADER.
+// No Arabic string literals — text is extracted directly from the verse data.
+function splitBismillahImlaei(text: string): { bismillah: string; verseText: string } | null {
+  const clean = text.replace(/^﻿/, ''); // strip BOM (present only on 1:1)
+  const words = clean.split(/\s+/);
+  if (words.length <= 4) return null; // whole verse is just the Bismillah
+  const bismillah = words.slice(0, 4).join(' ');
+  const verseText = words.slice(4).join(' ');
+  return verseText ? { bismillah, verseText } : null;
 }
+
+
 
 // =============================================================================
 // Custom Hooks
@@ -292,32 +257,27 @@ function useTafsir(
 const SurahHeader = memo(function SurahHeader({
   suraNameAr, suraNameEn, ayahCount, bismillahText, revelationType,
 }: SurahHeaderItem) {
-  const typeLabel = revelationType === 'makki' ? 'مكية' : revelationType === 'madani' ? 'مدنية' : 'غير محدد';
-  const typeColor = revelationType === 'makki'
-    ? 'text-amber-700' : revelationType === 'madani' ? 'text-emerald-700' : 'text-gray-500';
+  const typeLabel = revelationType === 'makki' ? 'مكية' : revelationType === 'madani' ? 'مدنية' : '';
 
   return (
-    <div className="my-8 text-center select-none" dir="rtl">
-      {/* Ornamental surah name banner — suraNameAr already has سُورَةُ prefix from quran_uthmani.json */}
-      <div className="inline-flex flex-col items-center bg-gradient-to-r from-amber-200 via-amber-50 to-amber-200 border-y-2 border-amber-500 px-10 py-3 w-full max-w-lg">
-        <div className="font-mushaf text-2xl text-amber-900 font-bold tracking-wide">
-          {suraNameAr}
+    <div className="ksu-surah-header" dir="rtl">
+      {/* Ornamental name banner */}
+      <div className="ksu-surah-box">
+        <div className="ksu-surah-deco">❧</div>
+        <div className="ksu-surah-name">{suraNameAr}</div>
+        <div className="ksu-surah-meta">
+          {typeLabel && <span>{typeLabel}</span>}
+          {typeLabel && <span className="ksu-dot">·</span>}
+          <span dir="ltr">{suraNameEn}</span>
+          <span className="ksu-dot">·</span>
+          <span>{toArabicNumber(ayahCount)} آية</span>
         </div>
-        <div className="flex items-center gap-3 mt-1 text-xs">
-          <span className={typeColor}>{typeLabel}</span>
-          <span className="text-amber-400">•</span>
-          <span className="text-amber-700" dir="ltr">{suraNameEn}</span>
-          <span className="text-amber-400">•</span>
-          <span className="text-amber-700">{toArabicNumber(ayahCount)} آية</span>
-        </div>
+        <div className="ksu-surah-deco">❧</div>
       </div>
 
-      {/* Bismillah — text extracted from verified text_uthmani, NEVER hardcoded.
-          Only shown for surahs 2–114 except At-Tawba (9). */}
+      {/* Bismillah — extracted from verified text_imlaei, never hardcoded */}
       {bismillahText && (
-        <div className="mt-5 mb-1 font-mushaf text-2xl text-gray-800 leading-loose">
-          {bismillahText}
-        </div>
+        <div className="ksu-bismillah">{bismillahText}</div>
       )}
     </div>
   );
@@ -362,14 +322,14 @@ const VersePanel = memo(function VersePanel({
         sura_name_ar: verse.sura_name_ar,
         sura_name_en: verse.sura_name_en,
         aya_no: verse.aya_no,
-        text_uthmani: verse.text_uthmani,
+        text_uthmani: verse.text_imlaei,
       });
     }
   }, [bookmarked, verse, addBookmark, removeBookmark]);
 
   const shareVerse = useCallback(async () => {
     const ref = `${verse.sura_name_en} (${verse.sura_no}:${verse.aya_no})`;
-    const text = `${verse.text_uthmani}\n— ${ref}\n\ntadabbur.app/quran/${verse.sura_no}?aya=${verse.aya_no}`;
+    const text = `${verse.text_imlaei}\n— ${ref}\n\ntadabbur.app/quran/${verse.sura_no}?aya=${verse.aya_no}`;
     if (navigator.share) {
       try {
         await navigator.share({ title: ref, text });
@@ -383,7 +343,7 @@ const VersePanel = memo(function VersePanel({
 
   const copyVerseWithAttribution = useCallback(() => {
     const ref = `${verse.sura_name_en} (${verse.sura_no}:${verse.aya_no})`;
-    const text = `${verse.text_uthmani}\n— ${ref}\n[King Fahd Complex for the Printing of the Holy Quran — مجمع الملك فهد لطباعة المصحف الشريف]`;
+    const text = `${verse.text_imlaei}\n— ${ref}\n[King Fahd Complex for the Printing of the Holy Quran — مجمع الملك فهد لطباعة المصحف الشريف]`;
     navigator.clipboard.writeText(text).catch(console.error);
     setCopiedVerse(true);
     setTimeout(() => setCopiedVerse(false), 2000);
@@ -466,7 +426,7 @@ const VersePanel = memo(function VersePanel({
       {/* Selected Verse Text */}
       <div className="px-6 py-4 bg-amber-50 border-b border-amber-200">
         <p className="font-mushaf text-xl text-gray-900 leading-loose text-center" dir="rtl">
-          {verse.text_uthmani}
+          {verse.text_imlaei}
         </p>
       </div>
 
@@ -810,7 +770,7 @@ const AIAssistant = memo(function AIAssistant({
             {verse.sura_name_ar} : {verse.aya_no}
           </p>
           <p className="font-mushaf text-gray-800 leading-relaxed text-lg" dir="rtl">
-            {verse.text_uthmani}
+            {verse.text_imlaei}
           </p>
         </div>
       )}
@@ -982,113 +942,6 @@ const AIAssistant = memo(function AIAssistant({
 // Line-by-line Mushaf renderer (King Fahd Madinah exact layout)
 // =============================================================================
 
-interface MushafLineViewProps {
-  lines: MushafLine[];
-  verseMap: Record<string, Verse>;
-  surahFirstVerse: Record<number, Verse>;
-  selectedVerse: Verse | null;
-  playingVerseId: number | null;
-  fontSize: number;
-  onVerseClick: (verse: Verse) => void;
-}
-
-const MushafLineView = memo(function MushafLineView({
-  lines,
-  verseMap,
-  surahFirstVerse,
-  selectedVerse,
-  playingVerseId,
-  fontSize,
-  onVerseClick,
-}: MushafLineViewProps) {
-  // Track which surah headers we've already shown on this page
-  const shownHeaders = new Set<number>();
-
-  return (
-    <div className="mushaf-lines" dir="rtl">
-      {lines.map((line) => {
-        // Detect if a new surah starts on this line
-        const firstWord = line.words[0];
-        const newSuraNo = firstWord?.sura_no;
-        const needsHeader =
-          newSuraNo !== undefined &&
-          !shownHeaders.has(newSuraNo) &&
-          firstWord?.aya_no === 1 &&
-          firstWord?.word_pos === 1;
-
-        if (needsHeader) shownHeaders.add(newSuraNo);
-
-        const headerVerse = needsHeader ? surahFirstVerse[newSuraNo] : null;
-
-        return (
-          <div key={line.line_no}>
-            {headerVerse && (
-              <div className="mushaf-surah-header">
-                <span
-                  className="font-mushaf font-semibold text-amber-900"
-                  style={{ fontSize: `${fontSize * 0.85}px` }}
-                >
-                  {headerVerse.sura_name_ar}
-                </span>
-                {!SURAHS_WITHOUT_BISMILLAH_HEADER.has(newSuraNo!) && (
-                  <div
-                    className="font-mushaf text-gray-800 mt-1"
-                    style={{ fontSize: `${fontSize * 0.9}px` }}
-                  >
-                    بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div
-              className="mushaf-line"
-              style={{ minHeight: `${fontSize * 2.1}px` }}
-            >
-              {line.words.map((word, wi) => {
-                const verse = verseMap[`${word.sura_no}:${word.aya_no}`];
-                const isSelected = selectedVerse
-                  ? selectedVerse.sura_no === word.sura_no &&
-                    selectedVerse.aya_no === word.aya_no
-                  : false;
-                const isPlaying = verse ? playingVerseId === verse.id : false;
-
-                if (word.char_type === 'end') {
-                  return (
-                    <span
-                      key={wi}
-                      className="mushaf-end font-mushaf"
-                      style={{ fontSize: `${fontSize * 0.72}px` }}
-                    >
-                      {word.text}
-                    </span>
-                  );
-                }
-
-                return (
-                  <span
-                    key={wi}
-                    className={clsx(
-                      'mushaf-word font-mushaf',
-                      isSelected && 'selected',
-                      isPlaying && 'playing',
-                    )}
-                    style={{ fontSize: `${fontSize}px`, lineHeight: 2.0 }}
-                    onClick={() => verse && onVerseClick(verse)}
-                    title={verse ? `${verse.sura_name_ar} ${verse.aya_no}` : undefined}
-                  >
-                    {word.text}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-});
-
 // =============================================================================
 // Main Mushaf Page Component
 // =============================================================================
@@ -1124,30 +977,6 @@ export function MushafPage() {
 
   // Data Fetching
   const { data: verses = [], isLoading, error, prefetchAdjacent } = usePageVerses(currentPage);
-
-  // Line-by-line layout from mushaf_words table (King Fahd exact layout)
-  const { data: mushafLinesData } = useQuery({
-    queryKey: ['mushaf-lines', currentPage],
-    queryFn: () => quranApi.getMushafPageLines(currentPage).then(r => r.data),
-    staleTime: 24 * 60 * 60 * 1000,
-    retry: false,
-  });
-
-  // Build sura_no → Verse lookup for headers/tooltips in line mode
-  const verseMap = useMemo(() => {
-    const m: Record<string, Verse> = {};
-    for (const v of verses) m[`${v.sura_no}:${v.aya_no}`] = v;
-    return m;
-  }, [verses]);
-
-  // Build sura_no → first Verse on this page (for surah headers in line mode)
-  const surahFirstVerse = useMemo(() => {
-    const m: Record<number, Verse> = {};
-    for (const v of verses) {
-      if (!(v.sura_no in m)) m[v.sura_no] = v;
-    }
-    return m;
-  }, [verses]);
 
   // Reset tafsir when language changes
   useEffect(() => {
@@ -1236,8 +1065,7 @@ export function MushafPage() {
         let bismillahText: string | null = null;
 
         if (needsBismillah) {
-          // Extract Bismillah from the verified text_uthmani — never hardcoded
-          const split = splitBismillah(verse.text_uthmani);
+          const split = splitBismillahImlaei(verse.text_imlaei);
           bismillahText = split?.bismillah ?? null;
         }
 
@@ -1255,9 +1083,9 @@ export function MushafPage() {
 
       // Ayah 1 of surahs that have a Bismillah header: strip it from the flowing text
       const shouldStrip = verse.aya_no === 1 && !SURAHS_WITHOUT_BISMILLAH_HEADER.has(verse.sura_no);
-      let displayText = verse.text_uthmani.replace(/^﻿/, ''); // strip BOM (only 1:1 has it)
+      let displayText = verse.text_imlaei.replace(/^﻿/, ''); // strip BOM (only 1:1 has it)
       if (shouldStrip) {
-        const split = splitBismillah(verse.text_uthmani);
+        const split = splitBismillahImlaei(verse.text_imlaei);
         if (split) displayText = split.verseText;
       }
 
@@ -1475,20 +1303,9 @@ export function MushafPage() {
                     {t('mushaf_retry')}
                   </button>
                 </div>
-              ) : mushafLinesData ? (
-                // ── Line-by-line rendering (King Fahd exact layout) ──────────
-                <MushafLineView
-                  lines={mushafLinesData.lines}
-                  verseMap={verseMap}
-                  surahFirstVerse={surahFirstVerse}
-                  selectedVerse={selectedVerse}
-                  playingVerseId={playingVerseId}
-                  fontSize={fontSize}
-                  onVerseClick={handleVerseClick}
-                />
               ) : (
-                // ── Fallback: flowing text (used while mushaf_words is seeding) ─
-                <div className="text-center" dir="rtl">
+                // ── KSU-style flowing text — all verses of the page as one paragraph ──
+                <div className="ksu-quran-page" dir="rtl">
                   {pageItems.map((item) => {
                     if (item.type === 'header') {
                       return (
@@ -1508,27 +1325,22 @@ export function MushafPage() {
                         key={verse.id}
                         onClick={() => handleVerseClick(verse)}
                         className={clsx(
-                          'cursor-pointer transition-all duration-200 inline',
-                          isSelected && 'bg-amber-200 rounded px-1',
-                          isPlaying && 'bg-emerald-200 rounded px-1',
-                          !isSelected && !isPlaying && 'hover:bg-amber-100 rounded'
+                          'ksu-verse',
+                          isSelected && 'ksu-verse--selected',
+                          isPlaying  && 'ksu-verse--playing',
                         )}
                       >
                         <span
-                          className="font-mushaf"
-                          style={{
-                            fontSize: `${fontSize}px`,
-                            lineHeight: 2.2,
-                            letterSpacing: '0.01em',
-                          }}
+                          className="ksu-verse-text"
+                          style={{ fontSize: `${fontSize}px` }}
                         >
                           {displayText}
                         </span>
                         <span
-                          className="inline-flex items-center justify-center mx-1 text-amber-700 font-mushaf"
-                          style={{ fontSize: `${fontSize * 0.7}px` }}
+                          className="ksu-aya-marker"
+                          style={{ fontSize: `${fontSize * 0.78}px` }}
                         >
-                          ﴿{toArabicNumber(verse.aya_no)}﴾
+                          <span className="ksu-aya-num">{toArabicNumber(verse.aya_no)}</span>
                         </span>
                       </span>
                     );

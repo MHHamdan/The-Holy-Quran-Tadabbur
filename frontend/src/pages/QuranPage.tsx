@@ -58,43 +58,17 @@ const BISMILLAH_PATTERNS = [
   'بسم الله الرحمن الرحيم',
 ];
 
-/**
- * Splits the Bismillah prefix from text_uthmani for display.
- * Surahs 2–114 (except At-Tawba, 9) store the Bismillah as a prefix on verse 1.
- * Al-Fatiha (1): Bismillah IS verse 1:1 — caller should never strip it.
- * Uses 3-Alef-Wasla scan to avoid depending on diacritic character order.
- */
-function splitBismillah(text: string): { bismillah: string; verseText: string } | null {
-  const ALEF_WASLA = 'ٱ'; // U+0671
-  const MIM = 'م';        // U+0645
-  let count = 0;
-  let pos = 0;
-  for (let i = 0; i < text.length; i++) {
-    if (text[i] === ALEF_WASLA) {
-      // If first ٱ is too far in, text doesn't start with Bismillah
-      if (count === 0 && i > 15) return null;
-      count++;
-      if (count === 3) { pos = i; break; }
-    }
-  }
-  if (count < 3) return null; // At-Tawba (9) or no Bismillah
-  pos++;
-  while (pos < text.length) {
-    if (text[pos] === MIM) {
-      pos++;
-      while (pos < text.length) {
-        const cp = text.codePointAt(pos)!;
-        if (cp >= 0x064B && cp <= 0x065F) pos++;
-        else break;
-      }
-      break;
-    }
-    pos++;
-  }
-  const bismillah = text.slice(0, pos).trim();
-  const verseText = text.slice(pos).trimStart();
-  if (!verseText) return null;
-  return { bismillah, verseText };
+// Split the Bismillah prefix from an Imlaei-script verse.
+// The Bismillah is always the first 4 words of verse 1 for surahs that carry it.
+// Callers already gate on aya_no===1 and sura_no not in {1, 9}, so we just count words.
+// No Arabic string literals — text is extracted directly from the verse data.
+function splitBismillahImlaei(text: string): { bismillah: string; verseText: string } | null {
+  const clean = text.replace(/^﻿/, ''); // strip BOM (present only on 1:1)
+  const words = clean.split(/\s+/);
+  if (words.length <= 4) return null; // guard: whole verse is just the Bismillah
+  const bismillah = words.slice(0, 4).join(' ');
+  const verseText = words.slice(4).join(' ');
+  return verseText ? { bismillah, verseText } : null;
 }
 
 /**
@@ -578,7 +552,7 @@ export function QuranPage() {
               const verseKey = `${verse.sura_no}:${verse.aya_no}`;
               // Exclude Bismillah verses from concept highlighting to avoid redundant matches
               const isConceptHighlighted = conceptHighlights.has(verseKey) &&
-                                           !isBismillahVerse(verse.text_uthmani);
+                                           !isBismillahVerse(verse.text_imlaei);
               // Highlight specific verse: check both aya_no AND sura_no to avoid cross-sura false matches on same page
               const isHighlighted = (highlightAya &&
                                     parseInt(highlightAya, 10) === verse.aya_no &&
@@ -588,11 +562,11 @@ export function QuranPage() {
               // Extract Bismillah from verse 1 for surahs that have it as a prefix
               const isFirstVerse = verse.aya_no === 1;
               const hasBismillahPrefix = isFirstVerse && verse.sura_no !== 1 && verse.sura_no !== 9;
-              const bismillahSplit = hasBismillahPrefix ? splitBismillah(verse.text_uthmani) : null;
+              const bismillahSplit = hasBismillahPrefix ? splitBismillahImlaei(verse.text_imlaei) : null;
               // Strip BOM (appears only on 1:1 in source data) and Bismillah prefix for display
               const displayText = bismillahSplit
                 ? bismillahSplit.verseText
-                : verse.text_uthmani.replace(/^﻿/, '');
+                : verse.text_imlaei.replace(/^﻿/, '');
               // Show Bismillah block for: page mode (when surah starts on page) or surah mode
               const showBismillahBlock = bismillahSplit !== null && (
                 navMode === 'surah' ||
@@ -647,7 +621,7 @@ export function QuranPage() {
               const verseKey = `${verse.sura_no}:${verse.aya_no}`;
               // Exclude Bismillah verses from concept highlighting to avoid redundant matches
               const isConceptHighlighted = conceptHighlights.has(verseKey) &&
-                                           !isBismillahVerse(verse.text_uthmani);
+                                           !isBismillahVerse(verse.text_imlaei);
               // Highlight specific verse: check both aya_no AND sura_no to avoid cross-sura false matches on same page
               const isHighlighted = (highlightAya &&
                                     parseInt(highlightAya, 10) === verse.aya_no &&
@@ -659,10 +633,10 @@ export function QuranPage() {
 
               // Strip Bismillah prefix from verse 1 (surahs 2-114 except 9)
               const hasBismillahPrefixList = verse.aya_no === 1 && verse.sura_no !== 1 && verse.sura_no !== 9;
-              const listBismillahSplit = hasBismillahPrefixList ? splitBismillah(verse.text_uthmani) : null;
+              const listBismillahSplit = hasBismillahPrefixList ? splitBismillahImlaei(verse.text_imlaei) : null;
               const listDisplayText = listBismillahSplit
                 ? listBismillahSplit.verseText
-                : verse.text_uthmani.replace(/^﻿/, '');
+                : verse.text_imlaei.replace(/^﻿/, '');
 
               return (
                 <div
@@ -752,7 +726,7 @@ export function QuranPage() {
                                 sura_name_ar: verse.sura_name_ar,
                                 sura_name_en: verse.sura_name_en,
                                 aya_no: verse.aya_no,
-                                text_uthmani: verse.text_uthmani,
+                                text_uthmani: verse.text_imlaei,
                               });
                             }
                           }}
@@ -795,7 +769,7 @@ export function QuranPage() {
                               <SimilarVersesPanel
                                 suraNo={verse.sura_no}
                                 ayaNo={verse.aya_no}
-                                verseText={verse.text_uthmani}
+                                verseText={verse.text_imlaei}
                                 onVerseSelect={(sura, aya) => {
                                   navigate(`/quran/${sura}?aya=${aya}`);
                                 }}

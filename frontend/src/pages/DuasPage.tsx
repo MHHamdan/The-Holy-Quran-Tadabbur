@@ -10,12 +10,14 @@
 
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   BookOpen, Search, ExternalLink, ChevronDown, ChevronUp,
   Heart, Copy, Check, Eye, EyeOff, BookMarked,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
+import { quranApi } from '../lib/api';
 import {
   QURANIC_DUAS, CATEGORY_META, type DuaCategory, type QuranicDua,
 } from '../data/quranicDuas';
@@ -86,6 +88,25 @@ function DuaCard({
   const ref = isRtl ? dua.surahNameAr : dua.surahNameEn;
   const ayahRef = `${dua.surah}:${dua.ayah}${dua.ayahEnd ? `–${dua.ayahEnd}` : ''}`;
 
+  // Fetch authoritative text_uthmani from backend (King Fahd / quran_uthmani.json)
+  const { data: liveVerses } = useQuery({
+    queryKey: ['dua-verses', dua.surah, dua.ayah, dua.ayahEnd ?? null],
+    queryFn: async () => {
+      if (dua.ayahEnd) {
+        const res = await quranApi.getVerseRange(dua.surah, dua.ayah, dua.ayahEnd);
+        return res.data;
+      }
+      const res = await quranApi.getVerse(dua.surah, dua.ayah);
+      return [res.data];
+    },
+    enabled: expanded,
+    staleTime: Infinity,
+  });
+
+  const displayedAyat = liveVerses
+    ? liveVerses.map(v => v.text_imlaei).join(' ۝ ')
+    : dua.ayatUthmani;
+
   return (
     <article className={clsx(
       'rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200',
@@ -141,48 +162,50 @@ function DuaCard({
       {expanded && (
         <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
 
-          {/* Arabic Ayat — prominent */}
+          {/* Arabic Ayat — prominent, fetched from King Fahd / quran_uthmani.json */}
           <div className="bg-white rounded-xl p-4 mt-3 border border-gray-100 shadow-inner">
             <div className={clsx('flex justify-end gap-2 mb-2', isRtl && 'flex-row-reverse justify-start')}>
-              <CopyButton text={dua.ayatUthmani} />
+              <CopyButton text={displayedAyat} />
             </div>
             <p
               className="font-arabic text-xl leading-[2.2] text-gray-900 text-right"
               dir="rtl"
               lang="ar"
             >
-              {dua.ayatUthmani}
+              {displayedAyat}
             </p>
           </div>
 
-          {/* Transliteration */}
-          <div className="space-y-1">
-            <div className={clsx('flex items-center justify-between', isRtl && 'flex-row-reverse')}>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                Transliteration
-              </span>
-              {memorizeMode && (
-                <button
-                  onClick={() => setHideTranslit(v => !v)}
-                  className="text-[10px] text-gray-400 hover:text-teal-600 flex items-center gap-1"
-                >
-                  {hideTranslit ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                  {hideTranslit ? 'Show' : 'Hide'}
-                </button>
+          {/* Transliteration — hidden in Arabic mode */}
+          {!isRtl && (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                  Transliteration
+                </span>
+                {memorizeMode && (
+                  <button
+                    onClick={() => setHideTranslit(v => !v)}
+                    className="text-[10px] text-gray-400 hover:text-teal-600 flex items-center gap-1"
+                  >
+                    {hideTranslit ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    {hideTranslit ? 'Show' : 'Hide'}
+                  </button>
+                )}
+              </div>
+              {!hideTranslit && (
+                <p className="text-sm text-gray-600 italic leading-relaxed font-light tracking-wide">
+                  {dua.transliterationArabic}
+                </p>
               )}
             </div>
-            {!hideTranslit && (
-              <p className="text-sm text-gray-600 italic leading-relaxed font-light tracking-wide">
-                {dua.transliterationArabic}
-              </p>
-            )}
-          </div>
+          )}
 
-          {/* English meaning */}
+          {/* Meaning / Arabic explanation */}
           <div className="space-y-1">
             <div className={clsx('flex items-center justify-between', isRtl && 'flex-row-reverse')}>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                {isRtl ? 'الترجمة' : 'Meaning'}
+              <span className={clsx('text-[10px] font-semibold uppercase tracking-wider text-gray-400', isRtl && 'font-arabic normal-case')}>
+                {isRtl ? 'الشرح' : 'Meaning'}
               </span>
               {memorizeMode && (
                 <button
@@ -190,18 +213,34 @@ function DuaCard({
                   className="text-[10px] text-gray-400 hover:text-teal-600 flex items-center gap-1"
                 >
                   {hideMeaning ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                  {hideMeaning ? 'Show' : 'Hide'}
+                  {hideMeaning ? (isRtl ? 'إظهار' : 'Show') : (isRtl ? 'إخفاء' : 'Hide')}
                 </button>
               )}
             </div>
             {!hideMeaning && (
-              <p className="text-sm text-gray-700 leading-relaxed">
-                <span className="text-gray-400">"</span>
-                {dua.meaningEn}
-                <span className="text-gray-400">"</span>
-              </p>
+              isRtl ? (
+                <p className="font-arabic text-sm text-gray-700 leading-relaxed text-right" dir="rtl">
+                  {dua.meaningAr}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  <span className="text-gray-400">"</span>
+                  {dua.meaningEn}
+                  <span className="text-gray-400">"</span>
+                </p>
+              )
             )}
           </div>
+
+          {/* Hadith support — Arabic mode only */}
+          {isRtl && dua.hadithAr && (
+            <div className="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5">
+              <p className="text-[10px] font-semibold text-amber-600 mb-1 text-right font-arabic">شاهد من السنة</p>
+              <p className="font-arabic text-xs text-amber-900 leading-relaxed text-right" dir="rtl">
+                {dua.hadithAr}
+              </p>
+            </div>
+          )}
 
           {/* Context */}
           <div className={clsx('rounded-xl px-3 py-2.5', ACCENT[meta.color] ?? ACCENT.teal)}>
