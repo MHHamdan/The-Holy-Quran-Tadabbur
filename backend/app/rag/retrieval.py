@@ -413,16 +413,25 @@ class HybridRetriever:
         # 6. If results are insufficient, try external API fallback
         if len(reranked_results) < 3 and verse_ref and settings.feature_external_tafseer:
             print(f"[RETRIEVAL] Insufficient results, trying external API fallback...")
-            external_results = await self._external_api_fallback(
-                sura_no=verse_ref[0],
-                aya_no=verse_ref[1],
-                language=language,
-            )
-            # Add external results with moderate relevance
-            for chunk in external_results:
-                chunk.relevance_score = 0.75
+            sura_no_ext, aya_start_ext = verse_ref[0], verse_ref[1]
+            aya_end_ext = verse_ref[2] if verse_ref[2] else aya_start_ext
+            # For surah-level questions the ref spans multiple ayat — fetch each one.
+            # Cap at 7 verses so a long surah doesn't hammer the external API.
+            ayas_to_fetch = list(range(aya_start_ext, min(aya_end_ext + 1, aya_start_ext + 7)))
+            external_results = []
+            seen_chunks: set = set()
+            for aya in ayas_to_fetch:
+                for chunk in await self._external_api_fallback(
+                    sura_no=sura_no_ext,
+                    aya_no=aya,
+                    language=language,
+                ):
+                    if chunk.chunk_id not in seen_chunks:
+                        chunk.relevance_score = 0.75
+                        external_results.append(chunk)
+                        seen_chunks.add(chunk.chunk_id)
             reranked_results.extend(external_results)
-            print(f"[RETRIEVAL] Added {len(external_results)} results from external API")
+            print(f"[RETRIEVAL] Added {len(external_results)} results from external API ({len(ayas_to_fetch)} ayat)")
 
         # 7. Truncate content for safety (prevent huge payloads)
         for chunk in reranked_results:

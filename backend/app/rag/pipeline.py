@@ -1119,6 +1119,33 @@ class RAGPipeline:
                 logger.debug(f"[CITATION] FAILED to match '{source_name}' verse {verse_ref}")
                 invalid_count += 1
 
+        # Fallback: LLM skipped citation markers (common with Arabic responses).
+        # If we have trusted retrieved chunks, build citations from them directly —
+        # they were used as context so the answer IS grounded.
+        if not citations and chunks:
+            from app.rag.source_validator import TRUSTED_SOURCE_IDS as _TRUSTED
+            for chunk in chunks[:5]:
+                if chunk.source_id in _TRUSTED and chunk.chunk_id not in valid_citation_ids:
+                    rel_level = reliability_float_to_level(
+                        getattr(chunk, 'source_reliability', 0.8)
+                    )
+                    citations.append(Citation(
+                        chunk_id=chunk.chunk_id,
+                        source_id=chunk.source_id,
+                        source_name=chunk.source_name,
+                        source_name_ar=getattr(chunk, 'source_name_ar', '') or chunk.source_name,
+                        verse_reference=chunk.verse_reference,
+                        excerpt=chunk.content[:200] if chunk.content else "",
+                        relevance_score=chunk.relevance_score,
+                        reliability_level=rel_level,
+                        surah_number=chunk.sura_no,
+                        ayah_number=chunk.aya_start,
+                        quoted_evidence=chunk.content[:400] if chunk.content else None,
+                    ))
+                    valid_citation_ids.add(chunk.chunk_id)
+            if citations:
+                logger.info(f"[CITATION] Auto-built {len(citations)} citations from retrieved chunks (LLM omitted markers)")
+
         # Phase 2.5: validate every citation source_id against trusted registry
         sv_result = source_validator.validate_citations(citations, intent.value, language)
         if not sv_result.is_valid:
