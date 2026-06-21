@@ -61,7 +61,7 @@ const ACHIEVEMENTS: Record<string, Achievement> = {
 
 const TIMER_OPTIONS  = [5, 10, 15, 30] as const;
 // Seconds between each auto-count
-const PACE_OPTIONS   = [3, 5, 7, 10, 15, 20] as const;
+const PACE_OPTIONS   = [1, 2, 3, 5, 7, 10, 15, 20] as const;
 const PACE_DEFAULT   = 5;
 
 const CATS_ORDER: DhikrCategory[] = ['after_salah', 'quranic', 'any_time', 'morning', 'evening'];
