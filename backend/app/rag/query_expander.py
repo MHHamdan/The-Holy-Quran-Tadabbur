@@ -208,6 +208,22 @@ ISLAMIC_TERM_MAPPINGS = {
     "test": ("ابتلاء", ["ibtila", "fitna"], ["trial"], None),
     "reward": ("أجر", ["ajr", "thawab"], ["recompense"], None),
 
+    # Emotional / spiritual healing (theme_search intent)
+    "anxiety": ("هم", ["hamm", "ghamm", "qalaq"], ["worry", "distress", "grief"], ["theme_search"]),
+    "worry": ("قلق", ["qalaq"], ["anxiety", "distress", "هم"], ["theme_search"]),
+    "grief": ("حزن", ["huzn"], ["sadness", "sorrow", "غم"], ["theme_search"]),
+    "sadness": ("كآبة", ["kaabah"], ["grief", "sorrow", "حزن"], ["theme_search"]),
+    "distress": ("كرب", ["karb"], ["hardship", "anxiety", "الضيق"], ["theme_search"]),
+    "tranquility": ("طمأنينة", ["tuma'niina", "sakina"], ["peace", "serenity", "سكينة"], ["theme_search"]),
+    "healing": ("شفاء", ["shifa", "shifaa"], ["cure", "treatment", "علاج"], ["theme_search"]),
+    "relief": ("انشراح", ["inshirah", "farj"], ["ease", "comfort", "راحة"], ["theme_search"]),
+    "ease": ("يسر", ["yusr"], ["facilitation", "comfort", "انشراح"], ["theme_search"]),
+    "hardship": ("عسر", ["usr", "shidda"], ["difficulty", "trial", "كرb"], ["theme_search"]),
+    "hope": ("أمل", ["amal", "raja"], ["expectation", "رجاء"], ["theme_search", "verse_meaning"]),
+    "despair": ("يأس", ["ya's", "qunut"], ["hopelessness"], ["theme_search"]),
+    "serenity": ("سكينة", ["sakina", "tuma'niina"], ["tranquility", "peace"], ["theme_search"]),
+    "healing quran": ("الشفاء بالقرآن", ["shifa bil quran"], ["ruqyah", "cure"], ["theme_search"]),
+
     # Additional prophets for comprehensive coverage
     "ishmael": ("إسماعيل", ["ismail", "ismael"], ["son of ibrahim"], ["story_exploration"]),
     "isaac": ("إسحاق", ["ishaq", "ishak"], ["son of ibrahim"], ["story_exploration"]),

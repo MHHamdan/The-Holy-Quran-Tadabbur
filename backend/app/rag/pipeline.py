@@ -336,6 +336,153 @@ class RAGPipeline:
             api_version=settings.api_version,
         )
 
+    async def _try_fast_path_thematic_query(
+        self,
+        question: str,
+        language: str,
+        preferred_sources: List[str] = None,
+        session_id: Optional[str] = None,
+    ) -> Optional[GroundedResponse]:
+        """
+        Fast-path for thematic topic queries (e.g. "آيات للتخلص من الهم").
+
+        Uses THEMATIC_VERSE_INDEX to find well-known relevant verse groups directly,
+        without LLM synthesis.  Returns None if the index has no match for this query.
+        """
+        import time
+        from app.rag.retrieval import THEMATIC_VERSE_INDEX, normalize_arabic
+
+        start_time = time.time()
+        q_lower = question.lower()
+        q_norm = normalize_arabic(q_lower)
+
+        # Check if any thematic keyword matches the query
+        has_match = any(
+            normalize_arabic(kw.lower()) in q_norm or kw.lower() in q_lower
+            for kw in THEMATIC_VERSE_INDEX
+        )
+        if not has_match:
+            return None
+
+        chunks = await self.retriever._thematic_verse_lookup(
+            query=question,
+            language=language,
+            preferred_sources=preferred_sources,
+            top_k=10,
+        )
+        if not chunks or len(chunks) < 2:
+            return None
+
+        logger.info(f"[THEMATIC-PATH] {len(chunks)} chunks found — building response")
+
+        # Collect unique verse references from chunks
+        seen_verse_keys: set = set()
+        ordered_chunks: List[RetrievedChunk] = []
+        for ch in chunks:
+            key = (ch.sura_no, ch.aya_start)
+            if key not in seen_verse_keys:
+                seen_verse_keys.add(key)
+                ordered_chunks.append(ch)
+
+        # Build answer text listing the verse groups
+        verse_count = len(seen_verse_keys)
+        if language == "ar":
+            answer_parts = [
+                f"فيما يلي آيات قرآنية كريمة مرتبطة بسؤالك، مع شرح موجز من التفاسير المعتمدة:\n\n",
+                f"**عدد الآيات المتوفرة:** {verse_count} آية\n",
+            ]
+        else:
+            answer_parts = [
+                "Here are Quranic verses relevant to your question, with brief explanations from trusted tafsir sources:\n\n",
+                f"**Verses found:** {verse_count}\n",
+            ]
+
+        answer = "".join(answer_parts)
+
+        # Build citations
+        citations: List[Citation] = []
+        seen_chunk_ids: set = set()
+        for chunk in chunks[:8]:
+            if chunk.chunk_id in seen_chunk_ids:
+                continue
+            seen_chunk_ids.add(chunk.chunk_id)
+            rel_level = reliability_float_to_level(
+                getattr(chunk, "source_reliability", 0.8)
+            )
+            citations.append(Citation(
+                chunk_id=chunk.chunk_id,
+                source_id=chunk.source_id,
+                source_name=chunk.source_name,
+                source_name_ar=getattr(chunk, "source_name_ar", "") or chunk.source_name,
+                verse_reference=chunk.verse_reference,
+                excerpt=chunk.content[:200] if chunk.content else "",
+                relevance_score=chunk.relevance_score,
+                reliability_level=rel_level,
+                surah_number=chunk.sura_no,
+                ayah_number=chunk.aya_start,
+                quoted_evidence=chunk.content[:400] if chunk.content else None,
+            ))
+
+        # Phase 2.5: validate sources
+        sv_result = source_validator.validate_citations(
+            citations, intent=QueryIntent.THEME_SEARCH.value, language=language
+        )
+        if not sv_result.is_valid:
+            refusal = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
+            logger.warning(f"[THEMATIC-PATH] Source validation blocked: {sv_result.hard_block_reason}")
+            return GroundedResponse(
+                answer=refusal,
+                citations=[],
+                status="no_verified_source",
+                answer_language=language,
+                confidence=0.0,
+                intent=QueryIntent.THEME_SEARCH.value,
+                warnings=[sv_result.hard_block_reason or "Source validation failed"],
+                session_id=session_id,
+                api_version=settings.api_version,
+            )
+
+        related_verses = await self._extract_related_verses(chunks, language)
+        tafsir_by_source = self._group_tafsir_by_source(chunks, language)
+
+        # Follow-up suggestions for thematic results
+        if language == "ar":
+            follow_ups = [
+                "ما فضل تلاوة هذه الآيات؟",
+                "كيف أعمل بهذه الآيات في حياتي اليومية؟",
+                "هل هناك أدعية مأثورة للتخلص من الهم؟",
+            ]
+        else:
+            follow_ups = [
+                "What are the virtues of reciting these verses?",
+                "How can I apply these verses in daily life?",
+                "Are there related prophetic supplications (duas)?",
+            ]
+
+        processing_time = int((time.time() - start_time) * 1000)
+
+        return GroundedResponse(
+            answer=answer,
+            citations=citations,
+            status="answered",
+            answer_language=language,
+            confidence=0.85,
+            intent=QueryIntent.THEME_SEARCH.value,
+            answer_mode="thematic",
+            ai_summary_disclaimer=True,
+            warnings=[],
+            session_id=session_id,
+            related_verses=related_verses,
+            tafsir_by_source=tafsir_by_source,
+            follow_up_suggestions=follow_ups,
+            scholarly_consensus=None,
+            evidence_chunk_count=len(chunks),
+            evidence_source_count=len(tafsir_by_source),
+            evidence=chunks[:8],
+            processing_time_ms=processing_time,
+            api_version=settings.api_version,
+        )
+
     async def query(
         self,
         question: str,
@@ -388,6 +535,18 @@ class RAGPipeline:
         if fast_response:
             logger.info("[FAST-PATH] Returning direct tafsir response (LLM skipped)")
             return fast_response
+
+        # THEMATIC FAST-PATH: For topic queries (e.g. "آيات للتخلص من الهم")
+        # use the thematic verse index to build a verse-list response without LLM.
+        thematic_fast = await self._try_fast_path_thematic_query(
+            question=question,
+            language=language,
+            preferred_sources=preferred_sources,
+            session_id=session_id,
+        )
+        if thematic_fast:
+            logger.info("[THEMATIC-PATH] Returning thematic verse response (LLM skipped)")
+            return thematic_fast
 
         # 1. Classify intent
         intent = await self._classify_intent(question)

@@ -22,7 +22,7 @@ RETRIEVAL STRATEGY:
 """
 import re
 import logging
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import httpx
 from sqlalchemy import select, or_, func, and_
@@ -176,10 +176,158 @@ TERM_GLOSSARY = {
     "quran": ["qur'an", "القرآن"],
     "verse": ["ayah", "آية"],
     "chapter": ["surah", "سورة"],
+    # Emotional / spiritual healing terms
+    "anxiety": ["هم", "قلق", "حزن", "غم", "كرب", "distress", "worry"],
+    "worry": ["هم", "قلق", "حزن", "distress", "anxiety"],
+    "grief": ["حزن", "غم", "هم", "مصيبة", "sadness", "sorrow"],
+    "sadness": ["حزن", "كآبة", "غم", "grief"],
+    "distress": ["كرب", "هم", "ضيق", "hardship"],
+    "relief": ["انشراح", "راحة", "فرج", "ease", "comfort"],
+    "tranquility": ["طمأنينة", "سكينة", "peace", "serenity"],
+    "healing": ["شفاء", "علاج", "cure", "remedy"],
+    "hope": ["أمل", "رجاء", "تفاؤل"],
+    "ease": ["يسر", "انشراح", "فرج", "comfort"],
+    "hardship": ["عسر", "شدة", "كرب", "difficulty"],
+    "للتخلص": ["relief", "cure", "شفاء", "راحة", "فرج"],
     # Arabic to English
     "صبر": ["patience", "sabr"],
     "توكل": ["trust", "reliance", "tawakkul"],
     "إيمان": ["faith", "belief", "iman"],
+    "هم": ["anxiety", "worry", "grief", "حزن", "غم", "كرب"],
+    "الهم": ["anxiety", "worry", "grief", "حزن", "غم"],
+    "غم": ["grief", "sorrow", "sadness", "worry"],
+    "حزن": ["sadness", "grief", "sorrow", "huzn"],
+    "كرب": ["distress", "hardship", "grief"],
+    "طمأنينة": ["tranquility", "peace", "serenity"],
+    "سكينة": ["tranquility", "peace", "serenity"],
+    "شفاء": ["healing", "cure", "relief"],
+    "راحة": ["relief", "comfort", "ease"],
+    "فرج": ["relief", "ease", "opening"],
+    "يسر": ["ease", "facilitation", "comfort"],
+    "عسر": ["hardship", "difficulty"],
+}
+
+
+# Thematic verse index: maps Arabic/English topic keywords to well-known relevant verse groups.
+# Format: keyword -> list of (sura, aya_start) or (sura, aya_start, aya_end) tuples.
+# Used by _thematic_verse_lookup() for queries like "آيات للتخلص من الهم".
+THEMATIC_VERSE_INDEX: Dict[str, List[Tuple]] = {
+    # ─── Anxiety, worry, grief ────────────────────────────────────────────────
+    "الهم":        [(94, 5, 6), (13, 28), (39, 53), (2, 155, 157), (65, 3), (3, 139), (2, 286)],
+    "الغم":        [(94, 5, 6), (2, 155, 157), (12, 86), (3, 139), (39, 53)],
+    "الحزن":       [(2, 38), (3, 139), (10, 62), (43, 68), (39, 53)],
+    "القلق":       [(2, 286), (65, 3), (13, 28), (94, 5, 6), (3, 139)],
+    "الضيق":       [(94, 1), (39, 22), (65, 7), (20, 25)],
+    "الكرب":       [(94, 5, 6), (2, 155, 157), (39, 53), (13, 28)],
+    "هم":          [(94, 5, 6), (13, 28), (39, 53), (2, 155, 157), (65, 3)],
+    "غم":          [(94, 5, 6), (2, 155, 157), (12, 86), (3, 139)],
+    "حزن":         [(2, 38), (3, 139), (10, 62), (39, 53)],
+    "للتخلص":      [(94, 5, 6), (39, 53), (13, 28), (65, 3), (2, 286), (3, 139)],
+    "للتغلب":      [(2, 153), (2, 45), (3, 200), (39, 10)],
+    "anxiety":     [(94, 5), (13, 28), (39, 53), (2, 155), (65, 3), (3, 139)],
+    "worry":       [(94, 5), (13, 28), (39, 53), (65, 3), (3, 139)],
+    "grief":       [(2, 38), (12, 86), (3, 139), (10, 62), (2, 155)],
+    "sadness":     [(2, 38), (3, 139), (10, 62), (39, 53)],
+    "distress":    [(94, 5), (94, 6), (65, 3), (39, 53), (2, 286)],
+    "relieving":   [(94, 5, 6), (39, 53), (13, 28), (65, 3)],
+
+    # ─── Tranquility, peace of mind ──────────────────────────────────────────
+    "طمأنينة":     [(13, 28), (89, 27, 28), (48, 4)],
+    "سكينة":       [(48, 4), (9, 26), (2, 248)],
+    "راحة":        [(13, 28), (94, 1), (89, 27, 28)],
+    "tranquility": [(13, 28), (89, 27), (48, 4)],
+    "peace":       [(13, 28), (89, 27), (48, 4), (6, 127)],
+    "serenity":    [(13, 28), (89, 27), (48, 4)],
+
+    # ─── Patience ─────────────────────────────────────────────────────────────
+    "الصبر":       [(2, 153), (2, 155, 157), (3, 200), (39, 10), (8, 46)],
+    "صبر":         [(2, 153), (2, 155, 157), (3, 200), (39, 10)],
+    "patience":    [(2, 153), (2, 155), (3, 200), (39, 10)],
+    "endurance":   [(2, 153), (3, 200), (39, 10)],
+    "steadfast":   [(2, 153), (3, 200), (8, 46)],
+
+    # ─── Hope ─────────────────────────────────────────────────────────────────
+    "الأمل":       [(39, 53), (15, 56), (12, 87), (2, 218)],
+    "اليأس":       [(39, 53), (15, 56), (12, 87)],
+    "الرجاء":      [(39, 53), (15, 56), (12, 87), (18, 110)],
+    "hope":        [(39, 53), (15, 56), (12, 87)],
+    "despair":     [(39, 53), (15, 56), (12, 87)],
+
+    # ─── Trust in Allah ───────────────────────────────────────────────────────
+    "التوكل":      [(65, 3), (3, 159), (9, 51), (33, 3)],
+    "توكل":        [(65, 3), (3, 159), (9, 51)],
+    "tawakkul":    [(65, 3), (3, 159), (9, 51)],
+    "reliance":    [(65, 3), (3, 159), (33, 3)],
+
+    # ─── Remembrance of Allah ─────────────────────────────────────────────────
+    "الذكر":       [(13, 28), (2, 152), (33, 41, 42)],
+    "ذكر":         [(13, 28), (2, 152), (33, 41)],
+    "dhikr":       [(13, 28), (2, 152), (33, 41)],
+    "remembrance": [(13, 28), (2, 152), (33, 41)],
+    "zikr":        [(13, 28), (2, 152), (33, 41)],
+
+    # ─── Gratitude ────────────────────────────────────────────────────────────
+    "الشكر":       [(14, 7), (31, 12), (2, 152), (27, 40)],
+    "شكر":         [(14, 7), (31, 12), (2, 152)],
+    "gratitude":   [(14, 7), (31, 12), (2, 152)],
+    "shukr":       [(14, 7), (31, 12), (2, 152)],
+
+    # ─── Forgiveness / Repentance ─────────────────────────────────────────────
+    "المغفرة":     [(39, 53), (4, 110), (3, 135), (11, 3)],
+    "التوبة":      [(39, 53), (4, 110), (3, 135), (66, 8), (2, 222)],
+    "الاستغفار":   [(11, 3), (71, 10, 12), (4, 106)],
+    "forgiveness": [(39, 53), (4, 48), (3, 135), (4, 110)],
+    "repentance":  [(39, 53), (4, 110), (3, 135), (66, 8)],
+    "tawbah":      [(39, 53), (4, 110), (66, 8), (2, 222)],
+    "استغفار":     [(11, 3), (71, 10), (4, 106)],
+
+    # ─── Healing / Quran as cure ──────────────────────────────────────────────
+    "الشفاء":      [(17, 82), (10, 57), (26, 80), (41, 44)],
+    "شفاء":        [(17, 82), (10, 57), (26, 80)],
+    "healing":     [(17, 82), (10, 57), (26, 80)],
+    "cure":        [(17, 82), (10, 57), (26, 80), (41, 44)],
+    "ruqyah":      [(17, 82), (2, 255), (1, 1, 7)],
+    "الرقية":      [(17, 82), (2, 255), (1, 1, 7)],
+
+    # ─── Parents ──────────────────────────────────────────────────────────────
+    "الوالدين":    [(17, 23, 24), (31, 14, 15), (4, 36), (6, 151), (46, 15)],
+    "parents":     [(17, 23), (31, 14), (4, 36)],
+
+    # ─── Prayer / Salah ───────────────────────────────────────────────────────
+    "الصلاة":      [(2, 45), (2, 153), (29, 45), (4, 103)],
+    "salah":       [(2, 45), (2, 153), (29, 45)],
+
+    # ─── Rizq / Provision ─────────────────────────────────────────────────────
+    "الرزق":       [(11, 6), (29, 60), (51, 22), (65, 3), (2, 212)],
+    "رزق":         [(11, 6), (29, 60), (51, 22), (65, 3)],
+    "provision":   [(11, 6), (29, 60), (51, 22)],
+    "rizq":        [(11, 6), (29, 60), (51, 22), (65, 3)],
+
+    # ─── Tadabbur / Reflection ────────────────────────────────────────────────
+    "التدبر":      [(4, 82), (47, 24), (38, 29), (54, 17)],
+    "تدبر":        [(4, 82), (47, 24), (38, 29)],
+    "reflection":  [(4, 82), (47, 24), (38, 29)],
+    "tadabbur":    [(4, 82), (47, 24), (38, 29)],
+
+    # ─── Taqwa ────────────────────────────────────────────────────────────────
+    "التقوى":      [(2, 177), (49, 13), (3, 102), (65, 2, 3)],
+    "تقوى":        [(2, 177), (49, 13), (3, 102)],
+    "taqwa":       [(2, 177), (49, 13), (3, 102)],
+    "piety":       [(2, 177), (49, 13), (3, 102)],
+
+    # ─── Ease after hardship ──────────────────────────────────────────────────
+    "اليسر":       [(94, 5, 6), (2, 185), (65, 7)],
+    "الفرج":       [(94, 5, 6), (65, 3), (39, 53)],
+    "ease":        [(94, 5), (94, 6), (2, 185), (65, 7)],
+    "hardship":    [(94, 5, 6), (2, 155, 157), (2, 286), (65, 7)],
+    "يسر":         [(94, 5, 6), (2, 185), (65, 7)],
+    "عسر":         [(94, 5, 6), (2, 286), (65, 7)],
+
+    # ─── Good deeds ───────────────────────────────────────────────────────────
+    "الإحسان":     [(2, 195), (16, 90), (99, 7, 8)],
+    "الأعمال":     [(2, 277), (18, 30), (99, 7, 8)],
+    "good deeds":  [(2, 277), (18, 30), (99, 7)],
+    "ihsan":       [(2, 195), (16, 90)],
 }
 
 
@@ -365,14 +513,26 @@ class HybridRetriever:
                 # Still do a quick semantic search to add related context
                 pass
 
+        # 0b. Thematic lookup for topic queries (e.g. "آيات للتخلص من الهم")
+        thematic_results = []
+        if not verse_ref:
+            thematic_results = await self._thematic_verse_lookup(
+                query=query,
+                language=language,
+                preferred_sources=preferred_sources,
+                top_k=top_k,
+            )
+            print(f"[RETRIEVAL] Thematic lookup returned: {len(thematic_results)} results")
+
         # 1. Expand query with Islamic terminology
         expanded_terms = self._expand_query(query)
         expanded_query = query + " " + " ".join(expanded_terms)
         print(f"[RETRIEVAL] Query: {query[:50]}..., Expanded terms: {expanded_terms}")
 
-        # 2. Vector search (unless we have enough direct results)
+        # 2. Vector search (unless we have enough direct/thematic results)
         vector_results = []
-        if len(direct_results) < top_k:
+        have_enough = len(direct_results) + len(thematic_results) >= top_k
+        if not have_enough:
             vector_results = await self._vector_search(
                 query=expanded_query,
                 language=language,
@@ -381,25 +541,30 @@ class HybridRetriever:
             )
             print(f"[RETRIEVAL] Vector search returned: {len(vector_results)} results")
 
-        # 3. Keyword search
+        # 3. Keyword search — enrich expanded_terms with thematic synonyms
+        thematic_expanded = list(self._expand_thematic_terms(query))
         keyword_results = await self._keyword_search(
             query=query,
-            expanded_terms=expanded_terms,
+            expanded_terms=expanded_terms + thematic_expanded,
             language=language,
             preferred_sources=preferred_sources,
             top_k=top_k,
         )
         print(f"[RETRIEVAL] Keyword search returned: {len(keyword_results)} results")
 
-        # 4. Merge results with RRF (direct results get highest priority)
-        # Boost direct results by adding them with high scores
+        # 4. Merge results with RRF (direct/thematic results get highest priority)
         boosted_direct = []
         for i, chunk in enumerate(direct_results):
-            chunk.relevance_score = 0.95 - (i * 0.02)  # High scores: 0.95, 0.93, 0.91...
+            chunk.relevance_score = 0.95 - (i * 0.02)  # 0.95, 0.93, 0.91...
             boosted_direct.append(chunk)
 
+        boosted_thematic = []
+        for i, chunk in enumerate(thematic_results):
+            chunk.relevance_score = 0.90 - (i * 0.01)  # 0.90, 0.89, 0.88...
+            boosted_thematic.append(chunk)
+
         merged = self._reciprocal_rank_fusion(
-            boosted_direct + vector_results,
+            boosted_direct + boosted_thematic + vector_results,
             keyword_results,
             k=60,  # RRF constant
         )
@@ -411,7 +576,7 @@ class HybridRetriever:
         print(f"[RETRIEVAL] Reranked with method: {rerank_info.method}")
 
         # 6. If results are insufficient, try external API fallback
-        if len(reranked_results) < 3 and verse_ref and settings.feature_external_tafseer:
+        if len(reranked_results) < 3 and (verse_ref or thematic_results) and settings.feature_external_tafseer:
             print(f"[RETRIEVAL] Insufficient results, trying external API fallback...")
             sura_no_ext, aya_start_ext = verse_ref[0], verse_ref[1]
             aya_end_ext = verse_ref[2] if verse_ref[2] else aya_start_ext
@@ -536,6 +701,73 @@ class HybridRetriever:
         except Exception as e:
             logger.error(f"Direct verse lookup error: {e}")
             return []
+
+    def _expand_thematic_terms(self, query: str) -> List[str]:
+        """
+        Return synonym terms from TERM_GLOSSARY for any emotional/spiritual keyword
+        found in the query.  Used to widen the keyword search for topic queries.
+        """
+        expanded = []
+        query_normalized = normalize_arabic(query.lower())
+        for term, synonyms in TERM_GLOSSARY.items():
+            if normalize_arabic(term.lower()) in query_normalized:
+                expanded.extend(synonyms)
+        return list(set(expanded))[:12]  # cap to avoid bloating the SQL query
+
+    async def _thematic_verse_lookup(
+        self,
+        query: str,
+        language: str,
+        preferred_sources: List[str] = None,
+        top_k: int = 8,
+    ) -> List["RetrievedChunk"]:
+        """
+        Look up tafseer chunks for Quranic verses that THEMATIC_VERSE_INDEX maps
+        to the topic keywords present in the query.
+
+        Example: "آيات للتخلص من الهم" → keyword "للتخلص" + "الهم" both match →
+        fetches tafseer for 94:5-6, 13:28, 39:53, 2:155-157, 65:3, 3:139, 2:286.
+        """
+        query_lower = query.lower()
+        query_normalized = normalize_arabic(query_lower)
+
+        verse_scores: Dict[tuple, int] = {}
+        for keyword, verse_refs in THEMATIC_VERSE_INDEX.items():
+            kw_norm = normalize_arabic(keyword.lower())
+            if kw_norm in query_normalized or keyword.lower() in query_lower:
+                for ref in verse_refs:
+                    verse_scores[ref] = verse_scores.get(ref, 0) + 1
+
+        if not verse_scores:
+            return []
+
+        sorted_refs = sorted(verse_scores.keys(), key=lambda k: -verse_scores[k])[:6]
+        logger.info(
+            f"[THEMATIC] {len(sorted_refs)} verse groups matched for query: {query[:60]}"
+        )
+
+        results: List[RetrievedChunk] = []
+        seen_chunks: set = set()
+
+        for ref in sorted_refs:
+            sura = ref[0]
+            aya_start = ref[1]
+            aya_end = ref[2] if len(ref) == 3 else None
+
+            chunks = await self._direct_verse_lookup(
+                sura_no=sura,
+                aya_start=aya_start,
+                aya_end=aya_end,
+                language=language,
+                preferred_sources=preferred_sources,
+            )
+            for chunk in chunks:
+                if chunk.chunk_id not in seen_chunks:
+                    seen_chunks.add(chunk.chunk_id)
+                    results.append(chunk)
+
+        logger.info(f"[THEMATIC] Retrieved {len(results)} tafseer chunks")
+        return results[:top_k]
 
     async def _external_api_fallback(
         self,

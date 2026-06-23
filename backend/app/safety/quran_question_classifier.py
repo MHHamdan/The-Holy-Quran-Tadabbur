@@ -237,10 +237,22 @@ _THEMATIC_AR = frozenset({
     "موضوع", "التفسير الموضوعي", "آيات عن", "كيف تناول القرآن",
     "ما قاله القرآن عن", "الآيات التي تتحدث عن", "آيات الصبر",
     "آيات الرحمة", "آيات التقوى",
+    # Healing / guidance patterns
+    "آيات للتخلص", "آيات لعلاج", "آيات لـ", "آيات عن الهم",
+    "آيات عن الحزن", "آيات عن القلق", "آيات عن الخوف",
+    "كيف أتخلص", "كيف أتغلب", "علاج الهم", "علاج الحزن",
+    "للتخلص من", "للتغلب على", "بر الوالدين", "آيات عن الرزق",
+    "دعاء الاستخارة", "آيات عن الصبر", "آيات عن التوكل",
+    "آيات الشفاء", "آيات الراحة", "آيات الطمأنينة",
 })
 _THEMATIC_EN = frozenset({
     "theme", "thematic tafsir", "verses about", "what does the quran say about",
     "quran on the topic of", "all verses about", "quran teachings on",
+    "verses for", "verses to", "verses on", "quran verses about",
+    "verses relieving", "verses for anxiety", "verses for grief",
+    "verses for healing", "quran on anxiety", "quran on grief",
+    "quran on sadness", "quran on hope", "quran on patience",
+    "verses for relief", "help with", "verses for parents",
 })
 
 # 11. Tafsir / verse meaning (broad)
