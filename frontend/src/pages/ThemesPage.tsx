@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Tag, ArrowRight, Layers, BookMarked, Star, ChevronDown, ChevronUp, ExternalLink, Loader2 } from 'lucide-react';
+import { BookOpen, Tag, ArrowRight, Layers, BookMarked, Star, ChevronDown, ChevronUp, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import { themesApi, quranApi, QuranicTheme, ThemeCategory, AllahNameResponse, ALLAH_NAME_CATEGORIES } from '../lib/api';
@@ -166,8 +166,6 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedName, setExpandedName] = useState<number | null>(null);
 
-  // First paint: lite mode (no verses) — 66KB, ~25ms warm.
-  // Names list is effectively static, so cache for an hour.
   const {
     data: liteData,
     isLoading: liteLoading,
@@ -218,6 +216,11 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
           {t('allah_names_subtitle', language)}
         </p>
       </div>
+
+      {/* Audio player — shown once names are loaded */}
+      {names.length > 0 && (
+        <AllahNamesAudioPlayer names={names} language={language} />
+      )}
 
       <div className="flex flex-wrap gap-2 mb-8">
         {categories.map((cat) => {
@@ -271,6 +274,207 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
   );
 }
 
+// =============================================================================
+// 99 Names Audio Player
+// =============================================================================
+
+interface AllahNamesAudioPlayerProps {
+  names: AllahNameResponse[];
+  language: 'ar' | 'en';
+}
+
+function AllahNamesAudioPlayer({ names, language }: AllahNamesAudioPlayerProps) {
+  const dir = language === 'ar' ? 'rtl' : 'ltr';
+  const [index, setIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasTts, setHasTts] = useState(false);
+  const [noArVoice, setNoArVoice] = useState(false);
+
+  // All mutable playback state lives in refs so closures never capture stale values
+  const indexRef = useRef(0);
+  const activeRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const namesRef = useRef(names);
+  useEffect(() => { namesRef.current = names; }, [names]);
+
+  const current = names[index];
+
+  // Detect TTS support and wait for voice list (Chrome loads voices async)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    setHasTts(true);
+    const checkVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) setNoArVoice(!voices.some((v) => v.lang.startsWith('ar')));
+    };
+    checkVoices();
+    window.speechSynthesis.addEventListener('voiceschanged', checkVoices);
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', checkVoices);
+  }, []);
+
+  const getBestArVoice = (): SpeechSynthesisVoice | null => {
+    const voices = window.speechSynthesis.getVoices();
+    return (
+      voices.find((v) => v.lang === 'ar-SA') ??
+      voices.find((v) => v.lang === 'ar') ??
+      voices.find((v) => v.lang.startsWith('ar')) ??
+      null
+    );
+  };
+
+  const stopAll = useCallback(() => {
+    activeRef.current = false;
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+    setIsPlaying(false);
+  }, []);
+
+  // speakIndex reads from refs only — safe to call from any async closure
+  const speakIndex = useCallback((i: number) => {
+    const list = namesRef.current;
+    if (!activeRef.current || i < 0 || i >= list.length) {
+      activeRef.current = false;
+      setIsPlaying(false);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utt = new SpeechSynthesisUtterance(list[i].name_ar);
+    utt.lang = 'ar-SA';
+    utt.rate = 0.8;
+    utt.pitch = 1.0;
+    const voice = getBestArVoice();
+    if (voice) utt.voice = voice;
+
+    utt.onend = () => {
+      if (!activeRef.current) return;
+      if (i < list.length - 1) {
+        const next = i + 1;
+        indexRef.current = next;
+        setIndex(next);
+        // 400ms natural pause between names
+        timerRef.current = setTimeout(() => speakIndex(next), 400);
+      } else {
+        activeRef.current = false;
+        setIsPlaying(false);
+      }
+    };
+
+    utt.onerror = (e) => {
+      if (e.error === 'canceled') return;
+      activeRef.current = false;
+      setIsPlaying(false);
+    };
+
+    window.speechSynthesis.speak(utt);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onTogglePlay = useCallback(() => {
+    if (activeRef.current) {
+      stopAll();
+    } else {
+      activeRef.current = true;
+      setIsPlaying(true);
+      speakIndex(indexRef.current);
+    }
+  }, [speakIndex, stopAll]);
+
+  const onPrev = useCallback(() => {
+    stopAll();
+    const next = Math.max(0, indexRef.current - 1);
+    indexRef.current = next;
+    setIndex(next);
+  }, [stopAll]);
+
+  const onNext = useCallback(() => {
+    stopAll();
+    const next = Math.min(namesRef.current.length - 1, indexRef.current + 1);
+    indexRef.current = next;
+    setIndex(next);
+  }, [stopAll]);
+
+  useEffect(() => () => stopAll(), [stopAll]);
+
+  if (!hasTts || names.length === 0) return null;
+
+  return (
+    <div
+      className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-amber-50 border border-emerald-200 rounded-xl shadow-sm"
+      dir={dir}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <Volume2 className="w-5 h-5 text-emerald-700 flex-shrink-0" />
+        <h2 className={clsx('text-sm font-semibold text-emerald-800', language === 'ar' && 'font-arabic')}>
+          {language === 'ar' ? 'استمع لأسماء الله الحسنى' : 'Listen to the 99 Names of Allah'}
+        </h2>
+        <span className="ms-auto text-xs text-gray-500 tabular-nums" dir="ltr">
+          {index + 1} / {names.length}
+        </span>
+      </div>
+
+      {noArVoice && (
+        <p className="mb-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+          {language === 'ar'
+            ? 'لا يوجد صوت عربي في متصفحك — قد يكون النطق غير عربي.'
+            : 'No Arabic voice found in your browser — pronunciation may not be in Arabic.'}
+        </p>
+      )}
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onPrev}
+          disabled={index === 0}
+          className="p-2 rounded-full text-gray-600 hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          aria-label={language === 'ar' ? 'السابق' : 'Previous'}
+        >
+          <SkipBack className="w-4 h-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={onTogglePlay}
+          className="p-3 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors"
+          aria-label={isPlaying ? (language === 'ar' ? 'إيقاف' : 'Pause') : (language === 'ar' ? 'تشغيل' : 'Play')}
+        >
+          {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+        </button>
+
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={index >= names.length - 1}
+          className="p-2 rounded-full text-gray-600 hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          aria-label={language === 'ar' ? 'التالي' : 'Next'}
+        >
+          <SkipForward className="w-4 h-4" />
+        </button>
+
+        {current && (
+          <div className="flex-1 min-w-0 ms-2">
+            <p className="font-arabic text-2xl text-gray-900 leading-tight truncate" dir="rtl" lang="ar">
+              {current.name_ar}
+            </p>
+            <p className="text-xs text-gray-600 truncate mt-0.5" dir="ltr">
+              {current.transliteration}
+              {' · '}
+              {language === 'ar' ? current.meaning_ar : current.meaning_en}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <p className="text-xs text-gray-400 mt-3">
+        {language === 'ar'
+          ? 'النطق العربي عبر متصفحك · يعمل بدون إنترنت'
+          : 'Arabic pronunciation via your browser · works offline'}
+      </p>
+    </div>
+  );
+}
+
 // Skeleton grid shown while the lite list is loading. Lite payload is
 // already small (~66KB, <100ms warm), so users almost never see this on
 // repeat visits — the React Query cache short-circuits the fetch.
@@ -316,30 +520,6 @@ function AllahNameCard({ name, language, isExpanded, onToggle, categoryColor }: 
   const description = language === 'ar' ? name.description_ar : name.description_en;
   const categoryLabel = language === 'ar' ? name.category_label_ar : name.category_label_en;
 
-  // Verses are NOT included in the lite first paint. Fetch them only when
-  // the user expands this card — at ~4KB / ~400ms cold per name this is
-  // far cheaper than loading all 99×5 verses up front.
-  const {
-    data: detail,
-    isLoading: versesLoading,
-  } = useQuery({
-    queryKey: ['allah-name-verses', name.number, language],
-    queryFn: () =>
-      quranApi
-        .getAllahNames({
-          lang: language,
-          name_number: name.number,
-          include_verses: true,
-          max_verses_per_name: 5,
-        })
-        .then((r) => r.data.names[0] as AllahNameResponse),
-    enabled: isExpanded,
-    staleTime: 60 * 60 * 1000,
-    gcTime: 4 * 60 * 60 * 1000,
-  });
-
-  const verses = detail?.verses ?? name.verses ?? [];
-
   return (
     <div
       className={clsx(
@@ -378,64 +558,8 @@ function AllahNameCard({ name, language, isExpanded, onToggle, categoryColor }: 
 
       {isExpanded && (
         <div className="mt-4 pt-4 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
-          <div className="mb-6">
-            <h4 className="font-semibold text-gray-900 mb-2">{t('allah_names_description', language)}</h4>
-            <p className="text-gray-700 leading-relaxed">{description}</p>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              {t('allah_names_verses', language)}
-              {!versesLoading && verses.length > 0 && (
-                <span className="text-xs font-normal text-gray-500">({verses.length})</span>
-              )}
-            </h4>
-
-            {versesLoading ? (
-              <div className="flex items-center gap-2 text-sm text-gray-500 py-3">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                {t('loading', language)}
-              </div>
-            ) : verses.length === 0 ? (
-              <p className="text-sm text-gray-400">—</p>
-            ) : (
-              <div className="space-y-4">
-                {verses.map((verse, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-primary-600">
-                        {verse.reference}
-                      </span>
-                      <Link
-                        to={`/mushaf?page=${Math.ceil((verse.sura_no * 10 + verse.aya_no) / 15)}`}
-                        className="text-xs text-primary-600 hover:underline flex items-center gap-1"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {t('view_in_mushaf', language)}
-                        <ExternalLink className="w-3 h-3" />
-                      </Link>
-                    </div>
-                    <p className="text-lg font-arabic leading-loose text-gray-900 mb-2" dir="rtl">
-                      {verse.highlighted_text.split(/(【[^】]*】)/g).map((part, i) =>
-                        part.startsWith('【') && part.endsWith('】')
-                          ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part.slice(1, -1)}</mark>
-                          : <span key={i}>{part}</span>
-                      )}
-                    </p>
-                    {verse.tafseer_snippet && (
-                      <div className="mt-3 pt-3 border-t border-gray-200">
-                        <p className="text-xs font-semibold text-gray-500 mb-1">
-                          {t('allah_names_tafseer', language)}:
-                        </p>
-                        <p className="text-sm text-gray-600">{verse.tafseer_snippet}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <h4 className="font-semibold text-gray-900 mb-2">{t('allah_names_description', language)}</h4>
+          <p className="text-gray-700 leading-relaxed">{description}</p>
         </div>
       )}
     </div>

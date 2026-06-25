@@ -1365,6 +1365,10 @@ export const grammarApi = {
   analyzeAyah: (suraAyah: string) =>
     api.get<GrammarAnalysis>(`/grammar/ayah/${suraAyah}`),
 
+  // QAC-based scholar-verified I'rab (preferred when Ollama unavailable)
+  analyzeIrab: (suraAyah: string) =>
+    api.get<GrammarAnalysis>(`/grammar/irab/${suraAyah}`),
+
   getLabels: () =>
     api.get<GrammarLabels>('/grammar/labels'),
 

@@ -8,7 +8,7 @@
  * - Connection strength indicators
  * - Arabic sentence structure analysis
  */
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   GitBranch,
   Layers,
@@ -442,15 +442,30 @@ function FilterPanel({
   );
 }
 
+const SIM_CACHE_PREFIX = 'sim_verses:';
+
+function getSimCached(key: string): AdvancedSimilarityResponse | null {
+  try {
+    const raw = sessionStorage.getItem(SIM_CACHE_PREFIX + key);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function setSimCached(key: string, data: AdvancedSimilarityResponse) {
+  try { sessionStorage.setItem(SIM_CACHE_PREFIX + key, JSON.stringify(data)); } catch {}
+}
+
 // Main component
 export function SimilarVersesPanel({ suraNo, ayaNo, verseText, onVerseSelect }: Props) {
   const { language } = useLanguageStore();
-  const [data, setData] = useState<AdvancedSimilarityResponse | null>(null);
+  const cacheKey = `${suraNo}:${ayaNo}`;
+  const [data, setData] = useState<AdvancedSimilarityResponse | null>(() => getSimCached(cacheKey));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedMatch, setExpandedMatch] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [groupBy, setGroupBy] = useState<'none' | 'theme' | 'connection'>('none');
+  const abortRef = useRef<AbortController | null>(null);
 
   // Filters
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
@@ -459,9 +474,17 @@ export function SimilarVersesPanel({ suraNo, ayaNo, verseText, onVerseSelect }: 
 
   const isArabic = language === 'ar';
 
-  async function loadSimilarVerses() {
+  useEffect(() => () => { abortRef.current?.abort(); }, []);
+
+  async function loadSimilarVerses(useCache = true) {
+    if (useCache && !selectedTheme && !selectedConnectionType && !excludeSameSura) {
+      const cached = getSimCached(cacheKey);
+      if (cached) { setData(cached); return; }
+    }
     setLoading(true);
     setError(null);
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
     try {
       const response = await quranApi.getAdvancedSimilarity(suraNo, ayaNo, {
         top_k: 50,
@@ -470,11 +493,15 @@ export function SimilarVersesPanel({ suraNo, ayaNo, verseText, onVerseSelect }: 
         exclude_same_sura: excludeSameSura,
         connection_type: selectedConnectionType || undefined,
       });
+      if (!selectedTheme && !selectedConnectionType && !excludeSameSura) {
+        setSimCached(cacheKey, response.data);
+      }
       setData(response.data);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      setError(isArabic ? 'تعذّر تحميل الآيات المتشابهة' : 'Failed to load similar verses');
-      console.error('Similar verses error:', message);
+      if (message !== 'canceled') {
+        setError(isArabic ? 'تعذّر تحميل الآيات المتشابهة' : 'Failed to load similar verses');
+      }
     } finally {
       setLoading(false);
     }
@@ -483,7 +510,7 @@ export function SimilarVersesPanel({ suraNo, ayaNo, verseText, onVerseSelect }: 
   // Reload when filters change
   useEffect(() => {
     if (data) {
-      loadSimilarVerses();
+      loadSimilarVerses(false);
     }
   }, [selectedTheme, selectedConnectionType, excludeSameSura]);
 
@@ -521,7 +548,7 @@ export function SimilarVersesPanel({ suraNo, ayaNo, verseText, onVerseSelect }: 
     return (
       <div className="card p-4 text-center">
         <button
-          onClick={loadSimilarVerses}
+          onClick={() => loadSimilarVerses()}
           className="btn btn-primary inline-flex items-center gap-2"
         >
           <GitBranch className="w-4 h-4" />
@@ -557,7 +584,7 @@ export function SimilarVersesPanel({ suraNo, ayaNo, verseText, onVerseSelect }: 
           <div>
             <p className="text-red-700">{error}</p>
             <button
-              onClick={loadSimilarVerses}
+              onClick={() => loadSimilarVerses()}
               className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
             >
               {isArabic ? 'إعادة المحاولة' : 'Try again'}
@@ -592,7 +619,7 @@ export function SimilarVersesPanel({ suraNo, ayaNo, verseText, onVerseSelect }: 
             <Filter className="w-4 h-4" />
           </button>
           <button
-            onClick={loadSimilarVerses}
+            onClick={() => loadSimilarVerses()}
             className="btn btn-sm btn-ghost"
             title={isArabic ? 'تحديث' : 'Refresh'}
           >

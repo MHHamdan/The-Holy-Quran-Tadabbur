@@ -1777,6 +1777,7 @@ async def fast_similarity_search(
 async def advanced_similarity_search(
     sura_no: int,
     aya_no: int,
+    http_response: Response,
     top_k: int = Query(20, ge=1, le=100, description="Maximum results"),
     min_score: float = Query(0.25, ge=0.0, le=1.0, description="Minimum similarity threshold"),
     theme: Optional[str] = Query(None, description="Filter by theme"),
@@ -1878,6 +1879,7 @@ async def advanced_similarity_search(
                 ))
 
             source_verse = fast_result.get('source_verse', {})
+            http_response.headers["Cache-Control"] = "public, max-age=3600"
             return AdvancedSimilaritySearchResponse(
                 source_verse={
                     'verse_id': source_verse.get('verse_id', 0),

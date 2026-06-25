@@ -14,10 +14,11 @@ import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Book, ChevronLeft, ChevronRight, BookOpen,
-  Languages, GitBranch, FileText, Headphones, Bookmark, BookmarkCheck
+  Languages, GitBranch, FileText, Headphones, Bookmark, BookmarkCheck,
+  Copy, Check, Share2, Search,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
-import { quranApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
+import { quranApi, grammarApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
 import { useBookmarksStore } from '../stores/bookmarksStore';
 import { recordSurahVisit } from '../hooks/useReadingProgress';
 import { VerseText } from '../components/quran/WordMeaningPopover';
@@ -117,6 +118,51 @@ export function QuranPage() {
 
   const { addBookmark, removeBookmark, isBookmarked } = useBookmarksStore();
   const highlightRef = useRef<HTMLSpanElement>(null);
+  const [copiedVerseId, setCopiedVerseId] = useState<number | null>(null);
+
+  const copyVerse = useCallback((verse: Verse, displayText: string) => {
+    const ref = `(${verse.sura_name_ar} ${toArabicNum(verse.aya_no)})`;
+    const full = `${displayText} ${ref}`;
+    navigator.clipboard.writeText(full).then(() => {
+      setCopiedVerseId(verse.id);
+      setTimeout(() => setCopiedVerseId(null), 2000);
+    }).catch(() => {});
+  }, []);
+
+  const shareVerse = useCallback((verse: Verse) => {
+    const url = `${window.location.origin}/quran/${verse.sura_no}?aya=${verse.aya_no}`;
+    if (navigator.share) {
+      navigator.share({ url, title: `${verse.sura_name_ar} ${verse.aya_no}` }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).catch(() => {});
+    }
+  }, []);
+
+  // Prefetch on button hover so panel opens instantly
+  const prefetchGrammar = useCallback((suraNo: number, ayaNo: number) => {
+    const key = `grammar_irab:${suraNo}:${ayaNo}`;
+    if (sessionStorage.getItem(key)) return;
+    grammarApi.analyzeIrab(`${suraNo}:${ayaNo}`).then(r => {
+      try { sessionStorage.setItem(key, JSON.stringify(r.data)); } catch {}
+    }).catch(() => {});
+  }, []);
+
+  const prefetchSimilar = useCallback((suraNo: number, ayaNo: number) => {
+    const key = `sim_verses:${suraNo}:${ayaNo}`;
+    if (sessionStorage.getItem(key)) return;
+    quranApi.getAdvancedSimilarity(suraNo, ayaNo, { top_k: 50, min_score: 0.2 }).then(r => {
+      try { sessionStorage.setItem(key, JSON.stringify(r.data)); } catch {}
+    }).catch(() => {});
+  }, []);
+
+  const prefetchTafsir = useCallback((suraNo: number, ayaNo: number) => {
+    const key = `tafsir_panel:${suraNo}:${ayaNo}:muyassar`;
+    if (sessionStorage.getItem(key)) return;
+    fetch(`/api/v1/tafseer/external/verse/${suraNo}/${ayaNo}?edition=muyassar`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) try { sessionStorage.setItem(key, JSON.stringify(data)); } catch {} })
+      .catch(() => {});
+  }, []);
 
   const currentSura = parseInt(suraNo || '1', 10);
 
@@ -522,29 +568,26 @@ export function QuranPage() {
         </div>
       ) : viewMode === 'mushaf' ? (
         /* Mushaf Style View */
-        <div className="card bg-[#fefcf3] border-2 border-amber-200 shadow-lg">
-          {/* Page Navigation Header */}
-          {navMode === 'page' && Object.keys(versesBySura).length > 1 && (
-            <div className="text-center mb-4 text-sm text-amber-700">
-              {Object.entries(versesBySura).map(([suraNo, suraVerses], idx) => (
-                <span key={suraNo}>
-                  {idx > 0 && ' | '}
-                  {language === 'ar' ? suraVerses[0].sura_name_ar : suraVerses[0].sura_name_en}
-                </span>
-              ))}
-            </div>
-          )}
-
+        <div className="rounded-2xl bg-[#fefcf3] border-2 border-amber-200 shadow-lg overflow-hidden">
           {/* Decorative Header */}
-          <div className="text-center mb-6 pb-4 border-b-2 border-amber-300">
-            <div className="inline-block px-8 py-2 bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 rounded-lg border border-amber-300">
-              <h2 className="text-2xl font-bold font-arabic text-amber-900">
-                {navMode === 'surah'
-                  ? verses[0]?.sura_name_ar
-                  : language === 'ar' ? `صفحة ${toArabicNum(currentPage)}` : `Page ${currentPage}`}
-              </h2>
-            </div>
+          <div className="bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 text-center py-4 px-6">
+            <h2 className="text-2xl font-bold font-arabic text-amber-50 tracking-widest">
+              {navMode === 'surah'
+                ? verses[0]?.sura_name_ar
+                : language === 'ar' ? `صفحة ${toArabicNum(currentPage)}` : `Page ${currentPage}`}
+            </h2>
+            {navMode === 'page' && Object.keys(versesBySura).length > 1 && (
+              <p className="text-xs text-amber-200 mt-1">
+                {Object.entries(versesBySura).map(([suraNo, suraVerses], idx) => (
+                  <span key={suraNo}>
+                    {idx > 0 && ' · '}
+                    {language === 'ar' ? suraVerses[0].sura_name_ar : suraVerses[0].sura_name_en}
+                  </span>
+                ))}
+              </p>
+            )}
           </div>
+          <div className="p-6">
 
           {/* Verses in Mushaf Style */}
           <div className="text-center leading-[3] font-arabic text-2xl text-gray-900" dir="rtl">
@@ -607,198 +650,270 @@ export function QuranPage() {
           </div>
 
           {/* Decorative Footer */}
-          <div className={clsx('mt-6 pt-4 border-t-2 border-amber-300 flex justify-center gap-4 text-sm text-amber-700', language === 'ar' && 'font-arabic')}>
-            <span>{language === 'ar' ? 'الصفحة' : 'Page'}: {toArabicNum(firstVerse?.page_no || currentPage)}</span>
-            <span>•</span>
-            <span>{language === 'ar' ? 'الجزء' : 'Juz'}: {toArabicNum(firstVerse?.juz_no || 1)}</span>
+          <div className={clsx('mt-6 pt-4 border-t-2 border-amber-200 flex justify-center gap-6 text-sm text-amber-700', language === 'ar' && 'font-arabic')}>
+            <span className="flex items-center gap-1">
+              <span className="text-amber-400 text-xs">{language === 'ar' ? 'ص' : 'P'}</span>
+              {toArabicNum(firstVerse?.page_no || currentPage)}
+            </span>
+            <span className="text-amber-300">|</span>
+            <span className="flex items-center gap-1">
+              <span className="text-amber-400 text-xs">{language === 'ar' ? 'ج' : 'J'}</span>
+              {toArabicNum(firstVerse?.juz_no || 1)}
+            </span>
+            <span className="text-amber-300">|</span>
+            <span className="flex items-center gap-1">
+              <span className="text-amber-400 text-xs">{language === 'ar' ? 'آية' : 'V'}</span>
+              {toArabicNum(verses.length)}
+            </span>
+          </div>
           </div>
         </div>
       ) : (
         /* List View with Translations */
-        <div className="card">
-          <div className="space-y-6">
-            {verses.map((verse) => {
-              const verseKey = `${verse.sura_no}:${verse.aya_no}`;
-              // Exclude Bismillah verses from concept highlighting to avoid redundant matches
-              const isConceptHighlighted = conceptHighlights.has(verseKey) &&
-                                           !isBismillahVerse(verse.text_imlaei);
-              // Highlight specific verse: check both aya_no AND sura_no to avoid cross-sura false matches on same page
-              const isHighlighted = (highlightAya &&
-                                    parseInt(highlightAya, 10) === verse.aya_no &&
-                                    verse.sura_no === currentSura) ||
-                                   (currentPlayingAya === verse.aya_no && verse.sura_no === currentSura);
-              const showGrammar = grammarVerseNo === verse.aya_no;
-              const showSimilar = similarVerseNo === verse.aya_no;
-              const showTafsir = tafsirVerseNo === verse.aya_no;
+        <div className="space-y-3">
+          {verses.map((verse, verseIdx) => {
+            const verseKey = `${verse.sura_no}:${verse.aya_no}`;
+            const isConceptHighlighted = conceptHighlights.has(verseKey) &&
+                                         !isBismillahVerse(verse.text_imlaei);
+            const isHighlighted = (highlightAya &&
+                                  parseInt(highlightAya, 10) === verse.aya_no &&
+                                  verse.sura_no === currentSura) ||
+                                 (currentPlayingAya === verse.aya_no && verse.sura_no === currentSura);
+            const showGrammar = grammarVerseNo === verse.aya_no;
+            const showSimilar = similarVerseNo === verse.aya_no;
+            const showTafsir = tafsirVerseNo === verse.aya_no;
 
-              // Strip Bismillah prefix from verse 1 (surahs 2-114 except 9)
-              const hasBismillahPrefixList = verse.aya_no === 1 && verse.sura_no !== 1 && verse.sura_no !== 9;
-              const listBismillahSplit = hasBismillahPrefixList ? splitBismillahImlaei(verse.text_imlaei) : null;
-              const listDisplayText = listBismillahSplit
-                ? listBismillahSplit.verseText
-                : verse.text_imlaei.replace(/^﻿/, '');
+            const hasBismillahPrefixList = verse.aya_no === 1 && verse.sura_no !== 1 && verse.sura_no !== 9;
+            const listBismillahSplit = hasBismillahPrefixList ? splitBismillahImlaei(verse.text_imlaei) : null;
+            const listDisplayText = listBismillahSplit
+              ? listBismillahSplit.verseText
+              : verse.text_imlaei.replace(/^﻿/, '');
 
-              return (
-                <div
-                  key={verse.id}
-                  className={clsx(
-                    'p-4 rounded-lg transition-all duration-300',
-                    isHighlighted ? 'bg-primary-50 ring-2 ring-primary-300' :
-                    isConceptHighlighted ? 'bg-amber-50 ring-2 ring-amber-300' : 'hover:bg-gray-50'
-                  )}
-                >
-                  {/* Bismillah header for verse 1 — text from verse data, never hardcoded */}
-                  {listBismillahSplit && (
-                    <div className="text-center mb-3 py-2 border-y border-amber-200" dir="rtl">
-                      <span className="text-xl font-arabic text-amber-800">{listBismillahSplit.bismillah}</span>
-                    </div>
-                  )}
-                  <div className="flex items-start gap-4" dir="rtl">
+            const translation = verse.translations?.find(
+              t => t.language === (language === 'ar' ? 'ar' : 'en')
+            )?.text || verse.translations?.[0]?.text;
+
+            const isCopied = copiedVerseId === verse.id;
+
+            return (
+              <div
+                key={verse.id}
+                className={clsx(
+                  'rounded-2xl border transition-all duration-300 overflow-hidden',
+                  isHighlighted
+                    ? 'border-primary-300 bg-primary-50 shadow-sm'
+                    : isConceptHighlighted
+                    ? 'border-amber-300 bg-amber-50 shadow-sm'
+                    : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm',
+                )}
+              >
+                {/* Bismillah banner */}
+                {listBismillahSplit && (
+                  <div className="bg-amber-50 border-b border-amber-100 py-3 px-5 text-center" dir="rtl">
+                    <span className="text-lg font-arabic text-amber-800 tracking-wide">
+                      {listBismillahSplit.bismillah}
+                    </span>
+                  </div>
+                )}
+
+                {/* Verse number + index indicator */}
+                <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                  <div className="flex items-center gap-2">
                     <span
                       ref={isHighlighted ? highlightRef : null}
                       className={clsx(
-                        'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm',
-                        isHighlighted ? 'bg-primary-600 text-white' :
-                        isConceptHighlighted ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-700'
+                        'w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold font-arabic',
+                        isHighlighted
+                          ? 'bg-primary-600 text-white'
+                          : isConceptHighlighted
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-gray-100 text-gray-600',
                       )}
                     >
                       {toArabicNum(verse.aya_no)}
                     </span>
-                    <div className="flex-1">
-                      <p className="text-xl leading-loose font-arabic text-gray-900 mb-3">
-                        <VerseText text={listDisplayText} sura={verse.sura_no} aya={verse.aya_no} />
-                      </p>
-                      {verse.translations && verse.translations.length > 0 && (
-                        <p className={clsx('text-sm text-gray-600 leading-relaxed', language === 'ar' && 'font-arabic')} dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                          {verse.translations.find(t => t.language === (language === 'ar' ? 'ar' : 'en'))?.text ||
-                           verse.translations[0]?.text}
-                        </p>
+                    {navMode === 'page' && (
+                      <span className="text-xs text-gray-400">{verse.sura_name_ar}</span>
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-300">
+                    {verseIdx + 1} / {verses.length}
+                  </span>
+                </div>
+
+                {/* Arabic text */}
+                <div className="px-5 pt-2 pb-3" dir="rtl">
+                  <p className="text-2xl leading-[2.2] font-arabic text-gray-900">
+                    <VerseText text={listDisplayText} sura={verse.sura_no} aya={verse.aya_no} />
+                  </p>
+                </div>
+
+                {/* Translation */}
+                {translation && (
+                  <div
+                    className="mx-5 mb-3 px-4 py-3 bg-gray-50 rounded-xl border-l-4 border-primary-200 text-sm text-gray-600 leading-relaxed"
+                    dir={language === 'ar' ? 'rtl' : 'ltr'}
+                  >
+                    {translation}
+                  </div>
+                )}
+
+                {/* Action bar */}
+                <div className="flex items-center gap-1 px-4 pb-3 flex-wrap">
+                  <button
+                    onClick={() => setGrammarVerseNo(showGrammar ? null : verse.aya_no)}
+                    onMouseEnter={() => prefetchGrammar(verse.sura_no, verse.aya_no)}
+                    title={language === 'ar' ? 'إعراب' : 'Grammar'}
+                    className={clsx(
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg font-medium transition-colors',
+                      showGrammar
+                        ? 'bg-primary-100 text-primary-700'
+                        : 'text-gray-500 hover:bg-gray-100',
+                      language === 'ar' && 'font-arabic',
+                    )}
+                  >
+                    <Languages className="w-3.5 h-3.5" />
+                    {language === 'ar' ? 'إعراب' : 'Grammar'}
+                  </button>
+                  <button
+                    onClick={() => setSimilarVerseNo(showSimilar ? null : verse.aya_no)}
+                    onMouseEnter={() => prefetchSimilar(verse.sura_no, verse.aya_no)}
+                    title={language === 'ar' ? 'آيات متشابهة' : 'Similar verses'}
+                    className={clsx(
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg font-medium transition-colors',
+                      showSimilar
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'text-gray-500 hover:bg-gray-100',
+                      language === 'ar' && 'font-arabic',
+                    )}
+                  >
+                    <GitBranch className="w-3.5 h-3.5" />
+                    {language === 'ar' ? 'متشابهة' : 'Similar'}
+                  </button>
+                  <button
+                    onClick={() => setTafsirVerseNo(showTafsir ? null : verse.aya_no)}
+                    onMouseEnter={() => prefetchTafsir(verse.sura_no, verse.aya_no)}
+                    title={language === 'ar' ? 'التفسير' : 'Tafsir'}
+                    className={clsx(
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg font-medium transition-colors',
+                      showTafsir
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'text-gray-500 hover:bg-gray-100',
+                      language === 'ar' && 'font-arabic',
+                    )}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    {language === 'ar' ? 'تفسير' : 'Tafsir'}
+                  </button>
+
+                  {/* Right-side utilities */}
+                  <div className="flex items-center gap-1 ml-auto">
+                    <button
+                      onClick={() => copyVerse(verse, listDisplayText)}
+                      title={language === 'ar' ? 'نسخ الآية' : 'Copy verse'}
+                      className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      {isCopied
+                        ? <Check className="w-3.5 h-3.5 text-green-500" />
+                        : <Copy className="w-3.5 h-3.5" />
+                      }
+                    </button>
+                    <button
+                      onClick={() => shareVerse(verse)}
+                      title={language === 'ar' ? 'مشاركة' : 'Share'}
+                      className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (isBookmarked(verse.id)) {
+                          removeBookmark(verse.id);
+                        } else {
+                          addBookmark({
+                            id: verse.id,
+                            sura_no: verse.sura_no,
+                            sura_name_ar: verse.sura_name_ar,
+                            sura_name_en: verse.sura_name_en,
+                            aya_no: verse.aya_no,
+                            text_uthmani: verse.text_imlaei,
+                          });
+                        }
+                      }}
+                      title={isBookmarked(verse.id)
+                        ? (language === 'ar' ? 'إزالة الإشارة' : 'Remove bookmark')
+                        : (language === 'ar' ? 'حفظ' : 'Bookmark')}
+                      className={clsx(
+                        'p-1.5 rounded-lg transition-colors',
+                        isBookmarked(verse.id)
+                          ? 'text-amber-500 hover:bg-amber-50'
+                          : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50',
                       )}
-                      {/* Analysis toggle buttons */}
-                      <div className="mt-3 flex items-center gap-2">
-                        <button
-                          onClick={() => setGrammarVerseNo(showGrammar ? null : verse.aya_no)}
-                          className={clsx(
-                            'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors',
-                            showGrammar
-                              ? 'bg-primary-100 text-primary-700 hover:bg-primary-200'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-                            language === 'ar' && 'font-arabic'
-                          )}
-                        >
-                          <Languages className="w-4 h-4" />
-                          {language === 'ar' ? 'إعراب' : 'Grammar'}
-                        </button>
-                        <button
-                          onClick={() => setSimilarVerseNo(showSimilar ? null : verse.aya_no)}
-                          className={clsx(
-                            'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors',
-                            showSimilar
-                              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-                            language === 'ar' && 'font-arabic'
-                          )}
-                        >
-                          <GitBranch className="w-4 h-4" />
-                          {language === 'ar' ? 'آيات متشابهة' : 'Similar'}
-                        </button>
-                        <button
-                          onClick={() => setTafsirVerseNo(showTafsir ? null : verse.aya_no)}
-                          className={clsx(
-                            'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors',
-                            showTafsir
-                              ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-                            language === 'ar' && 'font-arabic'
-                          )}
-                        >
-                          <BookOpen className="w-4 h-4" />
-                          {language === 'ar' ? 'التفسير' : 'Tafsir'}
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (isBookmarked(verse.id)) {
-                              removeBookmark(verse.id);
-                            } else {
-                              addBookmark({
-                                id: verse.id,
-                                sura_no: verse.sura_no,
-                                sura_name_ar: verse.sura_name_ar,
-                                sura_name_en: verse.sura_name_en,
-                                aya_no: verse.aya_no,
-                                text_uthmani: verse.text_imlaei,
-                              });
-                            }
-                          }}
-                          className={clsx(
-                            'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors',
-                            isBookmarked(verse.id)
-                              ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-                            language === 'ar' && 'font-arabic'
-                          )}
-                          title={isBookmarked(verse.id) ? (language === 'ar' ? 'إزالة الإشارة' : 'Remove bookmark') : (language === 'ar' ? 'حفظ الآية' : 'Bookmark')}
-                        >
-                          {isBookmarked(verse.id)
-                            ? <BookmarkCheck className="w-4 h-4" />
-                            : <Bookmark className="w-4 h-4" />}
-                          {language === 'ar'
-                            ? (isBookmarked(verse.id) ? 'محفوظة' : 'حفظ')
-                            : (isBookmarked(verse.id) ? 'Saved' : 'Save')}
-                        </button>
-                      </div>
-                      {/* Grammar analysis panel */}
-                      {showGrammar && (
-                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Grammar analysis unavailable</div>}>
-                            <Suspense fallback={<div className="h-24 animate-pulse bg-gray-100 rounded-lg" />}>
-                              <GrammarAnalysisView
-                                suraNo={verse.sura_no}
-                                ayaNo={verse.aya_no}
-                                verseText={verse.text_uthmani}
-                              />
-                            </Suspense>
-                          </ErrorBoundary>
-                        </div>
-                      )}
-                      {/* Similar verses panel */}
-                      {showSimilar && (
-                        <div className="mt-4">
-                          <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Similar verses unavailable</div>}>
-                            <Suspense fallback={<div className="h-32 animate-pulse bg-gray-100 rounded-lg" />}>
-                              <SimilarVersesPanel
-                                suraNo={verse.sura_no}
-                                ayaNo={verse.aya_no}
-                                verseText={verse.text_imlaei}
-                                onVerseSelect={(sura, aya) => {
-                                  navigate(`/quran/${sura}?aya=${aya}`);
-                                }}
-                              />
-                            </Suspense>
-                          </ErrorBoundary>
-                        </div>
-                      )}
-                      {/* Tafsir panel */}
-                      {showTafsir && (
-                        <div className="mt-4">
-                          <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Tafsir unavailable</div>}>
-                            <Suspense fallback={<div className="h-48 animate-pulse bg-gray-100 rounded-lg" />}>
-                              <TafsirPanel
-                                sura={verse.sura_no}
-                                ayah={verse.aya_no}
-                                verseText={verse.text_uthmani}
-                                isExpanded={true}
-                              />
-                            </Suspense>
-                          </ErrorBoundary>
-                        </div>
-                      )}
-                    </div>
+                    >
+                      {isBookmarked(verse.id)
+                        ? <BookmarkCheck className="w-3.5 h-3.5" />
+                        : <Bookmark className="w-3.5 h-3.5" />
+                      }
+                    </button>
+                    <Link
+                      to={`/search?q=${encodeURIComponent(verse.sura_name_ar + ' ' + verse.aya_no)}`}
+                      title={language === 'ar' ? 'بحث' : 'Search'}
+                      className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                    </Link>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+
+                {/* Expandable panels */}
+                {(showGrammar || showSimilar || showTafsir) && (
+                  <div className="border-t border-gray-100">
+                    {showGrammar && (
+                      <div className="p-4 bg-gray-50/50">
+                        <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Grammar analysis unavailable</div>}>
+                          <Suspense fallback={<div className="h-24 animate-pulse bg-gray-100 rounded-xl" />}>
+                            <GrammarAnalysisView
+                              suraNo={verse.sura_no}
+                              ayaNo={verse.aya_no}
+                              verseText={verse.text_uthmani}
+                            />
+                          </Suspense>
+                        </ErrorBoundary>
+                      </div>
+                    )}
+                    {showSimilar && (
+                      <div className="p-4 bg-gray-50/50">
+                        <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Similar verses unavailable</div>}>
+                          <Suspense fallback={<div className="h-32 animate-pulse bg-gray-100 rounded-xl" />}>
+                            <SimilarVersesPanel
+                              suraNo={verse.sura_no}
+                              ayaNo={verse.aya_no}
+                              verseText={verse.text_imlaei}
+                              onVerseSelect={(sura, aya) => navigate(`/quran/${sura}?aya=${aya}`)}
+                            />
+                          </Suspense>
+                        </ErrorBoundary>
+                      </div>
+                    )}
+                    {showTafsir && (
+                      <div className="p-4 bg-gray-50/50">
+                        <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Tafsir unavailable</div>}>
+                          <Suspense fallback={<div className="h-48 animate-pulse bg-gray-100 rounded-xl" />}>
+                            <TafsirPanel
+                              sura={verse.sura_no}
+                              ayah={verse.aya_no}
+                              verseText={verse.text_uthmani}
+                              isExpanded={true}
+                            />
+                          </Suspense>
+                        </ErrorBoundary>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

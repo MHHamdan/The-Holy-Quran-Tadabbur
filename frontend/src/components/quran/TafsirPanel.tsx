@@ -307,6 +307,25 @@ function CollapsibleSection({
 }
 
 // =============================================================================
+// Session cache for tafsir (avoids re-fetch when panel is re-opened)
+// =============================================================================
+
+const TAFSIR_CACHE_PREFIX = 'tafsir_panel:';
+
+function getTafsirCached(sura: number, ayah: number, editionId: string): TafsirResponse | null {
+  try {
+    const raw = sessionStorage.getItem(`${TAFSIR_CACHE_PREFIX}${sura}:${ayah}:${editionId}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function setTafsirCached(sura: number, ayah: number, editionId: string, data: TafsirResponse) {
+  try {
+    sessionStorage.setItem(`${TAFSIR_CACHE_PREFIX}${sura}:${ayah}:${editionId}`, JSON.stringify(data));
+  } catch {}
+}
+
+// =============================================================================
 // Main TafsirPanel Component
 // =============================================================================
 
@@ -314,10 +333,13 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
   const { language } = useLanguageStore();
   const [expanded, setExpanded] = useState(isExpanded);
   const [selectedEdition, setSelectedEdition] = useState<TafsirEdition>(TAFSIR_EDITIONS[0]);
-  const [tafsirData, setTafsirData] = useState<TafsirResponse | null>(null);
+  const [tafsirData, setTafsirData] = useState<TafsirResponse | null>(
+    () => getTafsirCached(sura, ayah, TAFSIR_EDITIONS[0].id)
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
 
   // Collapsible sections state
   const [showAudio, setShowAudio] = useState(false);
@@ -343,6 +365,9 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
 
   // Copy state
   const [copied, setCopied] = useState(false);
+
+  // Abort in-flight requests on unmount
+  useEffect(() => () => { abortRef.current?.abort(); }, []);
 
   // Fetch tafsir when edition or verse changes
   useEffect(() => {
@@ -372,12 +397,18 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
   }, [isExpanded]);
 
   const fetchTafsir = useCallback(async () => {
+    const cached = getTafsirCached(sura, ayah, selectedEdition.id);
+    if (cached) { setTafsirData(cached); return; }
+
     setLoading(true);
     setError(null);
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
 
     try {
       const response = await fetch(
-        `/api/v1/tafseer/external/verse/${sura}/${ayah}?edition=${selectedEdition.id}`
+        `/api/v1/tafseer/external/verse/${sura}/${ayah}?edition=${selectedEdition.id}`,
+        { signal: abortRef.current.signal }
       );
 
       if (!response.ok) {
@@ -386,9 +417,11 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
       }
 
       const data: TafsirResponse = await response.json();
+      setTafsirCached(sura, ayah, selectedEdition.id, data);
       setTafsirData(data);
       setRetryCount(0);
     } catch (err) {
+      if ((err as Error)?.name === 'AbortError') return;
       console.error('Error fetching tafsir:', err);
       setError(
         language === 'ar'

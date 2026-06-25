@@ -470,6 +470,7 @@ async def get_grammar_labels(http_response: Response):
 async def get_irab(
     sura_ayah: str,
     req: Request,
+    http_response: Response,
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -544,6 +545,7 @@ async def get_irab(
 
         if result.success and result.tokens:
             logger.info(f"[{request_id}] QAC I'rab successful for {verse_ref}")
+            http_response.headers["Cache-Control"] = "public, max-age=86400"
 
             return GrammarResponse(
                 verse_reference=verse_ref,
@@ -574,6 +576,7 @@ async def get_irab(
     # Fallback to static data
     static_result = get_static_analysis(verse_text, verse_ref)
     if static_result:
+        http_response.headers["Cache-Control"] = "public, max-age=86400"
         return GrammarResponse(
             verse_reference=static_result.verse_reference,
             text=static_result.text,
@@ -598,7 +601,8 @@ async def get_irab(
             source="static",
         )
 
-    # Last resort: return empty with helpful message
+    # No data — return immediately without invoking Ollama; UI will offer AI option
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
     return GrammarResponse(
         verse_reference=verse_ref,
         text=verse_text,
