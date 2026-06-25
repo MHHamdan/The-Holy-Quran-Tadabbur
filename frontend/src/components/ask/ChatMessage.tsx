@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { t } from '../../i18n/translations';
 import type { RAGAnswerMode } from '../../lib/api';
-import { RAGResponse, Citation } from '../../lib/api';
+import { RAGResponse, Citation, feedbackApi } from '../../lib/api';
 import { VersesSection } from './VersesSection';
 import { TafsirAccordion } from './TafsirAccordion';
 import { FollowUpChips } from './FollowUpChips';
@@ -436,6 +436,7 @@ function CitationCards({ citations, language }: { citations: Citation[]; languag
 function AnswerCard({ response, language }: { response: RAGResponse; language: 'ar' | 'en' }) {
   const [copied, setCopied] = useState(false);
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -539,7 +540,18 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
           </span>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setFeedback(feedback === 'up' ? null : 'up')}
+              onClick={() => {
+                const next = feedback === 'up' ? null : 'up';
+                setFeedback(next);
+                if (next === 'up' && !feedbackSent) {
+                  setFeedbackSent(true);
+                  feedbackApi.submit({
+                    category: 'ui_feedback',
+                    message: `[helpful] intent=${response.intent} confidence=${Math.round(response.confidence * 100)}%`,
+                    page_url: window.location.pathname,
+                  }).catch(() => {/* fire-and-forget */});
+                }
+              }}
               className={clsx(
                 'p-2 min-w-[40px] min-h-[40px] rounded-lg transition-colors flex items-center justify-center',
                 feedback === 'up'
@@ -551,7 +563,18 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
               <ThumbsUp className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setFeedback(feedback === 'down' ? null : 'down')}
+              onClick={() => {
+                const next = feedback === 'down' ? null : 'down';
+                setFeedback(next);
+                if (next === 'down' && !feedbackSent) {
+                  setFeedbackSent(true);
+                  feedbackApi.submit({
+                    category: 'ui_feedback',
+                    message: `[not helpful] intent=${response.intent} confidence=${Math.round(response.confidence * 100)}%`,
+                    page_url: window.location.pathname,
+                  }).catch(() => {/* fire-and-forget */});
+                }
+              }}
               className={clsx(
                 'p-2 min-w-[40px] min-h-[40px] rounded-lg transition-colors flex items-center justify-center',
                 feedback === 'down'

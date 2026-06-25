@@ -896,7 +896,7 @@ class RAGPipeline:
 
                 context_parts.append(f"""
 [Source: {chunk.source_name} | Verse: {chunk.verse_reference} | ID: {chunk.chunk_id}]
-{content[:2000]}  # Truncate long content
+{content[:2000]}
 ---
 """)
 

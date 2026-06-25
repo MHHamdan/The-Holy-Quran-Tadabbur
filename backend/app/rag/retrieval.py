@@ -575,8 +575,8 @@ class HybridRetriever:
         reranked_results, rerank_info = self._rerank_results(query, merged, max_results)
         print(f"[RETRIEVAL] Reranked with method: {rerank_info.method}")
 
-        # 6. If results are insufficient, try external API fallback
-        if len(reranked_results) < 3 and (verse_ref or thematic_results) and settings.feature_external_tafseer:
+        # 6. If results are insufficient, try external API fallback (only when we have a verse ref)
+        if len(reranked_results) < 3 and verse_ref and settings.feature_external_tafseer:
             print(f"[RETRIEVAL] Insufficient results, trying external API fallback...")
             sura_no_ext, aya_start_ext = verse_ref[0], verse_ref[1]
             aya_end_ext = verse_ref[2] if verse_ref[2] else aya_start_ext
