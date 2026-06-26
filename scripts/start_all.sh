@@ -136,8 +136,8 @@ print_banner() {
         "$GREEN" "$NC" "$BLUE" "$HOST_IP" "$BACKEND_PORT"  "$NC" "$GREEN" "$NC"
     printf '%b║%b  API Docs    %bhttp://%s:%s/docs%b                 %b║%b\n' \
         "$GREEN" "$NC" "$BLUE" "$HOST_IP" "$BACKEND_PORT"  "$NC" "$GREEN" "$NC"
-    printf '%b║%b  Qdrant      %bhttp://%s:6333%b                         %b║%b\n' \
-        "$GREEN" "$NC" "$BLUE" "$HOST_IP" "$NC" "$GREEN" "$NC"
+    printf '%b║%b  Qdrant      %bhttp://localhost:6333%b                        %b║%b\n' \
+        "$GREEN" "$NC" "$BLUE" "$NC" "$GREEN" "$NC"
     printf '%b╚══════════════════════════════════════════════════════════╝%b\n' "$GREEN" "$NC"
     echo ""
 }
@@ -198,9 +198,11 @@ start_container tadabbur-postgres \
       -c max_connections=100
 
 # ── Qdrant ──
+# Publish explicitly to 0.0.0.0 so the port is reachable on all interfaces,
+# not just loopback (Podman's rootless default is 127.0.0.1-only).
 start_container tadabbur-qdrant \
-    -p 6333:6333 \
-    -p 6334:6334 \
+    -p 0.0.0.0:6333:6333 \
+    -p 0.0.0.0:6334:6334 \
     -v tadabbur_qdrant_data:/qdrant/storage \
     docker.io/qdrant/qdrant:v1.7.4
 
@@ -374,6 +376,6 @@ wait_for_port "$HOST_IP" "$BACKEND_PORT" "API (${HOST_IP}:${BACKEND_PORT})" 60 "
 
 wait_for_port "$HOST_IP" "$FRONTEND_PORT" "Frontend (${HOST_IP}:${FRONTEND_PORT})" 45
 
-wait_for_port "$HOST_IP" "6333" "Qdrant (${HOST_IP}:6333)" 20
+wait_for_port "localhost" "6333" "Qdrant (localhost:6333)" 20
 
 print_banner
