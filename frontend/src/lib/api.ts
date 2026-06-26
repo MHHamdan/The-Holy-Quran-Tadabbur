@@ -673,7 +673,32 @@ export const quranApi = {
     include_experimental?: boolean;
   }) =>
     api.get<KGSimilarityApiResponse>(`/quran/similarity/kg/${suraNo}/${ayaNo}`, { params }),
+
+  // Asbab al-Nuzul — occasions of revelation
+  getAsbab: (surah: number) =>
+    api.get<AsbabSurahResponse>(`/quran/asbab/${surah}`),
+  getVerseAsbab: (surah: number, ayah: number) =>
+    api.get<AsbabVerse>(`/quran/asbab/${surah}/${ayah}`),
 };
+
+// =============================================================================
+// Asbab al-Nuzul Types
+// =============================================================================
+
+export interface AsbabVerse {
+  surah: number;
+  ayah: number;
+  text: string;
+}
+
+export interface AsbabSurahResponse {
+  surah: number;
+  edition: string;
+  source_name: string;
+  source_name_en: string;
+  verses: AsbabVerse[];
+  total_with_content: number;
+}
 
 // =============================================================================
 // KG Similarity Types (Phase 5)

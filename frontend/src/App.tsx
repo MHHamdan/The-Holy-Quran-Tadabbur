@@ -142,6 +142,9 @@ const QuranicNamesPage = lazy(() => import('./pages/QuranicNamesPage').then(m =>
 // Daily Dhikr Counter
 const DhikrPage = lazy(() => import('./pages/DhikrPage').then(m => ({ default: m.DhikrPage })));
 
+// Asbab al-Nuzul — Occasions of Revelation
+const AsbabAlNuzulPage = lazy(() => import('./pages/AsbabAlNuzulPage').then(m => ({ default: m.AsbabAlNuzulPage })));
+
 // Revelation Timeline
 const RevelationTimelinePage = lazy(() => import('./pages/RevelationTimelinePage').then(m => ({ default: m.RevelationTimelinePage })));
 
@@ -369,6 +372,9 @@ function App() {
           {/* Asma Allah — 99 Names */}
           <Route path="/asma-allah" element={<AsmaAllahPage />} />
           <Route path="/asma-allah/:nameId" element={<AsmaAllahDetailPage />} />
+
+          {/* Asbab al-Nuzul */}
+          <Route path="/asbab" element={<AsbabAlNuzulPage />} />
 
           {/* Legacy / aliased routes — redirect to canonical paths */}
           <Route path="/story-atlas" element={<Navigate to="/stories" replace />} />

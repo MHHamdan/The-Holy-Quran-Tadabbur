@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 import fs from 'fs'
 import path from 'path'
 
@@ -18,7 +19,44 @@ import path from 'path'
  * - For localhost, HTTP works fine (browser exception)
  */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg'],
+      manifest: false, // we manage manifest.json ourselves in /public
+      workbox: {
+        // Cache JS/CSS/HTML with stale-while-revalidate for fast offline loads
+        globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
+        runtimeCaching: [
+          {
+            // Quran text + tafseer API — cache for 24 h, serve stale offline
+            urlPattern: /\/api\/v1\/(quran|tafseer|asbab|vocabulary|duas|dhikr)/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'api-quran-cache',
+              expiration: { maxEntries: 500, maxAgeSeconds: 86400 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Static JSON data served by the frontend (generated atlas files, etc.)
+            urlPattern: /\.json$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'json-data-cache',
+              expiration: { maxEntries: 200, maxAgeSeconds: 604800 }, // 7 days
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+      },
+      devOptions: {
+        // Keep SW disabled in dev so hot-reload is unaffected
+        enabled: false,
+      },
+    }),
+  ],
 
   server: {
     port: 3000,

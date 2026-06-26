@@ -113,6 +113,10 @@ export const translations: Translations = {
     ar: 'التسبيح اليومي',
     en: 'Daily Dhikr',
   },
+  nav_asbab: {
+    ar: 'أسباب النزول',
+    en: 'Occasions of Revelation',
+  },
   nav_timeline: {
     ar: 'ترتيب النزول',
     en: 'Revelation Order',
