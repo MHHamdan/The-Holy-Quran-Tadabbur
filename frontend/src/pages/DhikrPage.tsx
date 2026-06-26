@@ -13,12 +13,12 @@ import {
 import {
   RotateCcw, ChevronDown, ChevronUp, Info, Play, Pause,
   Volume2, VolumeX, Timer, X, ChevronLeft, ChevronRight, Trophy, Flame,
-  Star, Check, Sun, Moon,
+  Star, Check, Sun, Moon, Search, Infinity as InfinityIcon, BedDouble,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import {
-  ADHKAR, CATEGORY_META, MORNING_IDS, EVENING_IDS,
+  ADHKAR, CATEGORY_META, MORNING_IDS, EVENING_IDS, SLEEP_IDS,
   type DhikrCategory, type DhikrEntry,
 } from '../data/adhkar';
 
@@ -53,6 +53,7 @@ const ACHIEVEMENTS: Record<string, Achievement> = {
   first_dhikr:      { id: 'first_dhikr',      emoji: '⭐', labelEn: 'First Dhikr',        labelAr: 'أول ذكر',              xp: 10  },
   morning_complete: { id: 'morning_complete',  emoji: '🌅', labelEn: 'Morning Complete',   labelAr: 'أذكار الصباح مكتملة', xp: 50  },
   evening_complete: { id: 'evening_complete',  emoji: '🌙', labelEn: 'Evening Complete',   labelAr: 'أذكار المساء مكتملة', xp: 50  },
+  sleep_complete:   { id: 'sleep_complete',    emoji: '😴', labelEn: 'Sleep Adhkar Done',  labelAr: 'أذكار النوم مكتملة',  xp: 40  },
   centurion:        { id: 'centurion',         emoji: '💯', labelEn: 'Centurion',          labelAr: 'المئة',               xp: 25  },
   streak_7:         { id: 'streak_7',          emoji: '🔥', labelEn: '7-Day Streak',       labelAr: '٧ أيام متواصلة',      xp: 100 },
   streak_30:        { id: 'streak_30',         emoji: '💎', labelEn: '30-Day Streak',      labelAr: '٣٠ يوم متواصل',       xp: 500 },
@@ -64,7 +65,7 @@ const TIMER_OPTIONS  = [5, 10, 15, 30] as const;
 const PACE_OPTIONS   = [1, 2, 3, 5, 7, 10, 15, 20] as const;
 const PACE_DEFAULT   = 5;
 
-const CATS_ORDER: DhikrCategory[] = ['after_salah', 'quranic', 'any_time', 'morning', 'evening'];
+const CATS_ORDER: DhikrCategory[] = ['after_salah', 'quranic', 'any_time', 'morning', 'evening', 'sleep', 'travel'];
 
 // ── Focus-mode gradient themes ────────────────────────────────────────────────
 
@@ -77,6 +78,8 @@ const FOCUS_THEME: Record<DhikrCategory, {
   after_salah: { bg: 'bg-gradient-to-br from-emerald-50 via-green-50 to-teal-100', text: 'text-emerald-900', subText: 'text-emerald-700/70', ring: 'text-emerald-200', ringFg: 'text-emerald-500', badge: 'bg-emerald-100/80 text-emerald-800', btn: 'bg-emerald-500 hover:bg-emerald-600', btnText: 'text-white', dark: false },
   any_time:    { bg: 'bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-100', text: 'text-violet-900', subText: 'text-violet-700/70', ring: 'text-violet-200', ringFg: 'text-violet-500', badge: 'bg-violet-100/80 text-violet-800', btn: 'bg-violet-500 hover:bg-violet-600', btnText: 'text-white', dark: false },
   quranic:     { bg: 'bg-gradient-to-br from-teal-50 via-cyan-50 to-sky-100', text: 'text-teal-900', subText: 'text-teal-700/70', ring: 'text-teal-200', ringFg: 'text-teal-500', badge: 'bg-teal-100/80 text-teal-800', btn: 'bg-teal-500 hover:bg-teal-600', btnText: 'text-white', dark: false },
+  sleep:       { bg: 'bg-gradient-to-br from-slate-900 via-purple-950 to-indigo-950', text: 'text-white', subText: 'text-purple-300/80', ring: 'text-white/15', ringFg: 'text-purple-400', badge: 'bg-purple-900/80 text-purple-200', btn: 'bg-purple-500 hover:bg-purple-400', btnText: 'text-white', dark: true },
+  travel:      { bg: 'bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-100', text: 'text-sky-900', subText: 'text-sky-700/70', ring: 'text-sky-200', ringFg: 'text-sky-500', badge: 'bg-sky-100/80 text-sky-800', btn: 'bg-sky-500 hover:bg-sky-600', btnText: 'text-white', dark: false },
 };
 
 const BROWSE_COLORS: Record<string, { bg: string; ring: string; button: string; progress: string; badge: string }> = {
@@ -85,6 +88,8 @@ const BROWSE_COLORS: Record<string, { bg: string; ring: string; button: string; 
   emerald: { bg: 'bg-emerald-50', ring: 'ring-emerald-300', button: 'bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700', progress: 'bg-emerald-400', badge: 'bg-emerald-100 text-emerald-700' },
   violet:  { bg: 'bg-violet-50',  ring: 'ring-violet-300',  button: 'bg-violet-500 hover:bg-violet-600 active:bg-violet-700',   progress: 'bg-violet-400',  badge: 'bg-violet-100 text-violet-700' },
   teal:    { bg: 'bg-teal-50',    ring: 'ring-teal-300',    button: 'bg-teal-500 hover:bg-teal-600 active:bg-teal-700',         progress: 'bg-teal-400',    badge: 'bg-teal-100 text-teal-700'    },
+  purple:  { bg: 'bg-purple-50',  ring: 'ring-purple-300',  button: 'bg-purple-500 hover:bg-purple-600 active:bg-purple-700',   progress: 'bg-purple-400',  badge: 'bg-purple-100 text-purple-700' },
+  sky:     { bg: 'bg-sky-50',     ring: 'ring-sky-300',     button: 'bg-sky-500 hover:bg-sky-600 active:bg-sky-700',            progress: 'bg-sky-400',     badge: 'bg-sky-100 text-sky-700'      },
 };
 
 // ── localStorage helpers ──────────────────────────────────────────────────────
@@ -200,11 +205,128 @@ function AchievementToast({ achievement, isRtl, onDone }: {
   );
 }
 
+// ── Misbaha (infinite counter) overlay ───────────────────────────────────────
+
+const MISBAHA_MILESTONES = new Set([33, 66, 99, 100, 200, 300, 500, 1000]);
+
+function MisbahaView({ dhikr, isRtl, onClose }: {
+  dhikr: DhikrEntry; isRtl: boolean; onClose: () => void;
+}) {
+  const [count, setCount]   = useState(0);
+  const [flash, setFlash]   = useState(false);
+  const [milestone, setMilestone] = useState<number | null>(null);
+
+  const tap = useCallback(() => {
+    setCount(prev => {
+      const next = prev + 1;
+      if (MISBAHA_MILESTONES.has(next)) {
+        setFlash(true);
+        setMilestone(next);
+        setTimeout(() => { setFlash(false); setMilestone(null); }, 1000);
+      }
+      try { navigator.vibrate?.(next % 33 === 0 ? 40 : 12); } catch { /**/ }
+      return next;
+    });
+  }, []);
+
+  const reset = () => { setCount(0); setFlash(false); setMilestone(null); };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col select-none bg-gradient-to-br from-slate-950 via-purple-950 to-indigo-950"
+      onClick={tap}
+    >
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/10 flex-shrink-0">
+        <button
+          onClick={e => { e.stopPropagation(); onClose(); }}
+          className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+        >
+          <X className="w-5 h-5 text-white" />
+        </button>
+        <span className="text-white/60 text-xs font-medium">
+          {isRtl ? 'المسبحة الرقمية' : 'Digital Misbaha'}
+        </span>
+        <button
+          onClick={e => { e.stopPropagation(); reset(); }}
+          className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+        >
+          <RotateCcw className="w-4 h-4 text-white/50" />
+        </button>
+      </div>
+
+      {/* Main counter */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6">
+        <p
+          className={clsx(
+            'font-arabic text-center leading-relaxed text-white transition-transform duration-150',
+            flash && 'scale-105',
+          )}
+          style={{ fontSize: dhikr.arabicPhrase.length > 60 ? '1.4rem' : '1.8rem' }}
+          dir="rtl"
+        >
+          {dhikr.arabicPhrase}
+        </p>
+        <p className="text-white/50 text-sm text-center">{dhikr.transliteration}</p>
+
+        {/* Big counter */}
+        <div className={clsx(
+          'flex items-center justify-center w-48 h-48 rounded-full border-4 transition-all duration-200',
+          flash ? 'border-yellow-400 bg-yellow-400/10 scale-105' : 'border-purple-500/40 bg-white/5',
+        )}>
+          <span className={clsx(
+            'text-7xl font-bold tabular-nums transition-colors',
+            flash ? 'text-yellow-300' : 'text-white',
+          )}>
+            {count}
+          </span>
+        </div>
+
+        {milestone && (
+          <div className="animate-bounce text-yellow-300 text-lg font-bold">
+            ✨ {milestone}!
+          </div>
+        )}
+
+        <p className="text-white/30 text-xs">
+          {isRtl ? 'اضغط في أي مكان للعدّ' : 'Tap anywhere to count'}
+        </p>
+
+        {/* Sub-count helper (show 33/66/99 markers) */}
+        <div className="flex items-center gap-3">
+          {[33, 66, 99].map(m => (
+            <div
+              key={m}
+              className={clsx(
+                'flex flex-col items-center gap-0.5 opacity-40',
+                count >= m && 'opacity-100',
+              )}
+            >
+              <div className={clsx(
+                'w-2 h-2 rounded-full',
+                count >= m ? 'bg-yellow-400' : 'bg-white/20',
+              )} />
+              <span className="text-[10px] text-white/60">{m}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Source */}
+      <div className="px-5 pb-8 pt-2 text-center flex-shrink-0">
+        <p className="text-white/30 text-[10px] italic">
+          {isRtl ? dhikr.sourceRefAr : dhikr.sourceRef}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ── Browse card ───────────────────────────────────────────────────────────────
 
-function DhikrBrowseCard({ dhikr, count, isRtl, onIncrement, onReset }: {
+function DhikrBrowseCard({ dhikr, count, isRtl, onIncrement, onReset, onMisbaha }: {
   dhikr: DhikrEntry; count: number; isRtl: boolean;
-  onIncrement: () => void; onReset: () => void;
+  onIncrement: () => void; onReset: () => void; onMisbaha: () => void;
 }) {
   const [showInfo, setShowInfo] = useState(false);
   const meta   = CATEGORY_META[dhikr.category];
@@ -232,6 +354,13 @@ function DhikrBrowseCard({ dhikr, count, isRtl, onIncrement, onReset }: {
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
             )}
+            <button
+              onClick={e => { e.stopPropagation(); onMisbaha(); }}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-purple-500 hover:bg-white/60 transition-colors"
+              title={isRtl ? 'مسبحة' : 'Misbaha counter'}
+            >
+              <InfinityIcon className="w-3.5 h-3.5" />
+            </button>
             <button
               onClick={e => { e.stopPropagation(); setShowInfo(v => !v); }}
               className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-white/60 transition-colors"
@@ -644,6 +773,8 @@ export function DhikrPage() {
   const [counts, setCounts]       = useState<CountRecord>(loadCounts);
   const [activeCategory, setActiveCategory] = useState<DhikrCategory | 'all'>('all');
   const [collapsedCats, setCollapsedCats]   = useState<Set<string>>(new Set());
+  const [search, setSearch]                 = useState('');
+  const [misbahaEntry, setMisbahaEntry]     = useState<DhikrEntry | null>(null);
 
   // Focus mode
   const [focusMode, setFocusMode]       = useState(false);
@@ -769,6 +900,15 @@ export function DhikrPage() {
         if (eveningDone) r = unlockAchievement('evening_complete', r);
       }
 
+      // Sleep complete
+      if (dhikr && SLEEP_IDS.has(id) && newCount >= dhikr.targetCount) {
+        const sleepDone = ADHKAR.filter(d => SLEEP_IDS.has(d.id)).every(d => {
+          if (d.id === id) return true;
+          return getCount(counts, d.id) >= d.targetCount;
+        });
+        if (sleepDone) r = unlockAchievement('sleep_complete', r);
+      }
+
       // Full set
       const allDone = ADHKAR.every(d => {
         if (d.id === id) return newCount >= d.targetCount;
@@ -847,21 +987,44 @@ export function DhikrPage() {
 
   // ── Browse view derived data ─────────────────────────────────────────────────
 
-  const filtered  = activeCategory === 'all' ? ADHKAR : ADHKAR.filter(d => d.category === activeCategory);
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    const byCat = activeCategory === 'all' ? ADHKAR : ADHKAR.filter(d => d.category === activeCategory);
+    if (!q) return byCat;
+    return byCat.filter(d =>
+      d.arabicPhrase.includes(q) ||
+      d.transliteration.toLowerCase().includes(q) ||
+      d.meaningEn.toLowerCase().includes(q) ||
+      d.meaningAr.includes(q) ||
+      d.benefitEn.toLowerCase().includes(q) ||
+      d.sourceRef.toLowerCase().includes(q)
+    );
+  }, [activeCategory, search]);
+
   const totalDone = ADHKAR.filter(d => getCount(counts, d.id) >= d.targetCount).length;
 
   const grouped: Record<DhikrCategory, DhikrEntry[]> = {
-    after_salah: [], quranic: [], any_time: [], morning: [], evening: [],
+    after_salah: [], quranic: [], any_time: [], morning: [], evening: [], sleep: [], travel: [],
   };
   filtered.forEach(d => grouped[d.category].push(d));
 
   const morningDone = ADHKAR.filter(d => MORNING_IDS.has(d.id) && getCount(counts, d.id) >= d.targetCount).length;
   const eveningDone = ADHKAR.filter(d => EVENING_IDS.has(d.id) && getCount(counts, d.id) >= d.targetCount).length;
+  const sleepDone   = ADHKAR.filter(d => SLEEP_IDS.has(d.id)   && getCount(counts, d.id) >= d.targetCount).length;
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <>
+      {/* Misbaha overlay */}
+      {misbahaEntry && (
+        <MisbahaView
+          dhikr={misbahaEntry}
+          isRtl={isRtl}
+          onClose={() => setMisbahaEntry(null)}
+        />
+      )}
+
       {/* Focus mode overlay */}
       {focusMode && (
         <FocusView
@@ -988,38 +1151,55 @@ export function DhikrPage() {
         )}
 
         {/* ── Quick-start program cards ── */}
-        <div className={clsx('grid grid-cols-2 gap-3 mb-5', isRtl && 'dir-rtl')}>
+        <div className={clsx('grid grid-cols-3 gap-2.5 mb-5', isRtl && 'dir-rtl')}>
           <button
             onClick={() => startFocusSession('morning')}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 p-4 text-left shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 p-3 text-left shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
           >
-            <Sun className="w-5 h-5 text-white/80 mb-2" />
-            <p className={clsx('text-white font-bold text-sm', isRtl && 'font-arabic text-right')}>
-              {isRtl ? 'أذكار الصباح' : 'Morning Adhkar'}
+            <Sun className="w-5 h-5 text-white/80 mb-1.5" />
+            <p className={clsx('text-white font-bold text-xs leading-tight', isRtl && 'font-arabic text-right')}>
+              {isRtl ? 'أذكار الصباح' : 'Morning'}
             </p>
-            <p className="text-white/70 text-xs mt-0.5">
-              {morningDone}/{ADHKAR.filter(d => MORNING_IDS.has(d.id)).length} {isRtl ? 'مكتمل' : 'done'}
+            <p className="text-white/70 text-[10px] mt-0.5">
+              {morningDone}/{ADHKAR.filter(d => MORNING_IDS.has(d.id)).length}
             </p>
             {morningDone === ADHKAR.filter(d => MORNING_IDS.has(d.id)).length && (
-              <div className="absolute top-3 right-3 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                <Check className="w-3.5 h-3.5 text-white" />
+              <div className="absolute top-2 right-2 w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                <Check className="w-3 h-3 text-white" />
               </div>
             )}
           </button>
           <button
             onClick={() => startFocusSession('evening')}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 p-4 text-left shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 p-3 text-left shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
           >
-            <Moon className="w-5 h-5 text-white/80 mb-2" />
-            <p className={clsx('text-white font-bold text-sm', isRtl && 'font-arabic text-right')}>
-              {isRtl ? 'أذكار المساء' : 'Evening Adhkar'}
+            <Moon className="w-5 h-5 text-white/80 mb-1.5" />
+            <p className={clsx('text-white font-bold text-xs leading-tight', isRtl && 'font-arabic text-right')}>
+              {isRtl ? 'أذكار المساء' : 'Evening'}
             </p>
-            <p className="text-white/70 text-xs mt-0.5">
-              {eveningDone}/{ADHKAR.filter(d => EVENING_IDS.has(d.id)).length} {isRtl ? 'مكتمل' : 'done'}
+            <p className="text-white/70 text-[10px] mt-0.5">
+              {eveningDone}/{ADHKAR.filter(d => EVENING_IDS.has(d.id)).length}
             </p>
             {eveningDone === ADHKAR.filter(d => EVENING_IDS.has(d.id)).length && (
-              <div className="absolute top-3 right-3 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                <Check className="w-3.5 h-3.5 text-white" />
+              <div className="absolute top-2 right-2 w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                <Check className="w-3 h-3 text-white" />
+              </div>
+            )}
+          </button>
+          <button
+            onClick={() => startFocusSession('sleep')}
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700 to-purple-900 p-3 text-left shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
+          >
+            <BedDouble className="w-5 h-5 text-white/80 mb-1.5" />
+            <p className={clsx('text-white font-bold text-xs leading-tight', isRtl && 'font-arabic text-right')}>
+              {isRtl ? 'أذكار النوم' : 'Sleep'}
+            </p>
+            <p className="text-white/70 text-[10px] mt-0.5">
+              {sleepDone}/{ADHKAR.filter(d => SLEEP_IDS.has(d.id)).length}
+            </p>
+            {sleepDone === ADHKAR.filter(d => SLEEP_IDS.has(d.id)).length && (
+              <div className="absolute top-2 right-2 w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                <Check className="w-3 h-3 text-white" />
               </div>
             )}
           </button>
@@ -1036,6 +1216,36 @@ export function DhikrPage() {
           <Play className="w-4 h-4" />
           {isRtl ? 'بدء جلسة التركيز الكاملة' : 'Start Full Focus Session'}
         </button>
+
+        {/* ── Search ── */}
+        <div className="relative mb-3">
+          <Search className={clsx(
+            'absolute top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400',
+            isRtl ? 'right-3' : 'left-3',
+          )} />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={isRtl ? 'ابحث في الأذكار...' : 'Search adhkar...'}
+            className={clsx(
+              'w-full bg-white border border-gray-200 rounded-xl py-2.5 text-sm',
+              'focus:ring-2 focus:ring-teal-300 focus:border-teal-400 outline-none transition',
+              isRtl ? 'pr-9 pl-3 text-right font-arabic' : 'pl-9 pr-3',
+            )}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className={clsx(
+                'absolute top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600',
+                isRtl ? 'left-3' : 'right-3',
+              )}
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
 
         {/* ── Category filter tabs ── */}
         <div className={clsx('flex flex-wrap gap-1.5 mb-5', isRtl && 'flex-row-reverse')}>
@@ -1107,6 +1317,7 @@ export function DhikrPage() {
                           isRtl={isRtl}
                           onIncrement={() => increment(d.id)}
                           onReset={() => reset(d.id)}
+                          onMisbaha={() => setMisbahaEntry(d)}
                         />
                       ))}
                     </div>
@@ -1125,6 +1336,7 @@ export function DhikrPage() {
                 isRtl={isRtl}
                 onIncrement={() => increment(d.id)}
                 onReset={() => reset(d.id)}
+                onMisbaha={() => setMisbahaEntry(d)}
               />
             ))}
           </div>

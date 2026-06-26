@@ -16,7 +16,9 @@ export type DhikrCategory =
   | 'evening'
   | 'after_salah'
   | 'any_time'
-  | 'quranic';
+  | 'quranic'
+  | 'sleep'
+  | 'travel';
 
 export interface DhikrEntry {
   id: string;
@@ -40,6 +42,8 @@ export const CATEGORY_META: Record<DhikrCategory, {
   after_salah: { labelEn: 'After Prayer', labelAr: 'بعد الصلاة',   color: 'emerald', emoji: '🤲' },
   any_time:    { labelEn: 'Anytime',      labelAr: 'في كل وقت',    color: 'violet',  emoji: '♾️' },
   quranic:     { labelEn: 'Quranic',      labelAr: 'من القرآن',    color: 'teal',    emoji: '📖' },
+  sleep:       { labelEn: 'Before Sleep', labelAr: 'قبل النوم',    color: 'purple',  emoji: '😴' },
+  travel:      { labelEn: 'Travel',       labelAr: 'السفر',        color: 'sky',     emoji: '✈️' },
 };
 
 // ── Complete Morning Adhkar ───────────────────────────────────────────────────
@@ -719,6 +723,174 @@ const QURANIC_ADHKAR: DhikrEntry[] = [
   },
 ];
 
+// ── Before-Sleep Adhkar ───────────────────────────────────────────────────────
+// From Hisnul Muslim — Adhkar al-Nawm
+
+const SLEEP_ADHKAR: DhikrEntry[] = [
+  {
+    id: 'sleep_bismika',
+    arabicPhrase: 'بِسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا',
+    transliteration: "Bismika Allahumma amutu wa ahya",
+    meaningEn: 'In Your name, O Allah, I die and I live.',
+    meaningAr: 'بسمك اللهم أموت وأحيا',
+    targetCount: 1,
+    category: 'sleep',
+    sourceRef: 'Bukhari 6312 — said just before sleeping',
+    sourceRefAr: 'البخاري 6312 — يُقال عند النوم',
+    benefitEn: 'Sleep is like a minor death — entrusting oneself to Allah at night',
+    benefitAr: 'النوم وفاة صغرى — تفويض النفس لله عند الليل',
+  },
+  {
+    id: 'sleep_allahumma_aslamtu',
+    arabicPhrase: 'اللَّهُمَّ أَسْلَمْتُ نَفْسِي إِلَيْكَ، وَفَوَّضْتُ أَمْرِي إِلَيْكَ، وَوَجَّهْتُ وَجْهِي إِلَيْكَ، وَأَلْجَأْتُ ظَهْرِي إِلَيْكَ، رَغْبَةً وَرَهْبَةً إِلَيْكَ، لَا مَلْجَأَ وَلَا مَنْجَا مِنْكَ إِلَّا إِلَيْكَ، آمَنْتُ بِكِتَابِكَ الَّذِي أَنْزَلْتَ، وَبِنَبِيِّكَ الَّذِي أَرْسَلْتَ',
+    transliteration: "Allahumma aslamtu nafsi ilayk, wa fawwadtu amri ilayk, wa wajjahtu wajhi ilayk, wa alja'tu zahri ilayk, raghbatan wa rahbatan ilayk. La malja'a wala manja minka illa ilayk. Amantu bikitabikal-ladhi anzalt, wa binabiyyikal-ladhi arsalt",
+    meaningEn: 'O Allah, I have submitted my soul to You, entrusted my affairs to You, faced You, leaned on You in hope and fear. There is no refuge and no escape from You except to You. I believe in Your Book which You revealed and Your Prophet whom You sent.',
+    meaningAr: 'اللهم أسلمت نفسي إليك، وفوضت أمري إليك، ووجهت وجهي إليك',
+    targetCount: 1,
+    category: 'sleep',
+    sourceRef: "Bukhari 247, Muslim 2710 — 'if you die that night you die upon fitrah'",
+    sourceRefAr: 'البخاري 247، مسلم 2710 — "إن مت في ليلتك مت على الفطرة"',
+    benefitEn: '"If you die that night you die upon the fitrah." — Prophet ﷺ. The last words before sleep.',
+    benefitAr: '"إن مت في ليلتك مت على الفطرة" — النبي ﷺ. آخر ما يُقال قبل النوم.',
+  },
+  {
+    id: 'sleep_qini_adhab',
+    arabicPhrase: 'اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ',
+    transliteration: "Allahumma qini 'adhabaka yawma tab'athu 'ibadak",
+    meaningEn: 'O Allah, protect me from Your punishment on the Day You resurrect Your servants.',
+    meaningAr: 'اللهم قني عذابك يوم تبعث عبادك',
+    targetCount: 3,
+    category: 'sleep',
+    sourceRef: 'Abu Dawud 5045, Ahmad — said 3× before sleep',
+    sourceRefAr: 'أبو داود 5045، أحمد — تُقال 3× قبل النوم',
+    benefitEn: 'Seeking Allah\'s protection from punishment on the Day of Resurrection before sleep',
+    benefitAr: 'الاستعاذة من عذاب يوم القيامة قبل النوم',
+  },
+  {
+    id: 'sleep_ayat_kursi',
+    arabicPhrase: 'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ',
+    transliteration: "Allahu la ilaha illa huwal-Hayyul-Qayyum. La ta'khudhuhu sinatun wala nawm…",
+    meaningEn: 'Ayat al-Kursi (2:255) — Allah, there is no deity except Him, the Ever-Living, the Self-Sustaining...',
+    meaningAr: 'آية الكرسي (2:255)',
+    targetCount: 1,
+    category: 'sleep',
+    sourceRef: "Bukhari 3275 — 'whoever recites it before sleeping, Allah appoints a guardian for him until morning'",
+    sourceRefAr: 'البخاري 3275 — "من قرأها قبل النوم لم يزل عليه من الله حافظ حتى يصبح"',
+    benefitEn: '"Whoever recites it before sleeping, Allah appoints a guardian for him and no Shaytan approaches him until morning." — Prophet ﷺ',
+    benefitAr: '"من قرأها قبل النوم لم يزل عليه من الله حافظ ولا يقربه شيطان حتى يصبح" — النبي ﷺ',
+  },
+  {
+    id: 'sleep_ikhlas_falaq_nas',
+    arabicPhrase: 'قُلْ هُوَ اللَّهُ أَحَدٌ ۝ قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ۝ قُلْ أَعُوذُ بِرَبِّ النَّاسِ',
+    transliteration: "Qul huwallahu ahad / Qul a'udhu birabbin-falaq / Qul a'udhu birabbin-nas",
+    meaningEn: "Surahs Al-Ikhlas, Al-Falaq, An-Nas — cup hands, blow into them, wipe over body 3×. 'They suffice you against everything.' — Prophet ﷺ",
+    meaningAr: 'سورة الإخلاص والمعوذتان — يقرأهن في كفيه ثم ينفث فيهن ويمسح بهما جسده',
+    targetCount: 3,
+    category: 'sleep',
+    sourceRef: 'Bukhari 5017, Abu Dawud 5056 — Aishah ؓ narrated the Prophet ﷺ did this every night before sleep',
+    sourceRefAr: 'البخاري 5017، أبو داود 5056 — عن عائشة ؓ أن النبي ﷺ كان يفعل هذا كل ليلة',
+    benefitEn: 'The Prophet ﷺ\'s nightly practice: read 3× into cupped hands, wipe over entire body starting from head.',
+    benefitAr: 'سنة النبي ﷺ الليلية: يقرأهن 3× في كفيه المجموعتين ثم يمسح بهما وجهه وما بلغتا',
+  },
+  {
+    id: 'sleep_tasbih_fatima',
+    arabicPhrase: 'سُبْحَانَ اللَّهِ (33×) ۝ الْحَمْدُ لِلَّهِ (33×) ۝ اللَّهُ أَكْبَرُ (34×)',
+    transliteration: "SubhanAllah (33×) · Alhamdulillah (33×) · Allahu Akbar (34×)",
+    meaningEn: "Tasbih Fatima at bedtime: 'Better for you than a servant.' — Prophet ﷺ",
+    meaningAr: 'تسبيح فاطمة عند النوم: سبحان الله 33، الحمد لله 33، الله أكبر 34',
+    targetCount: 100,
+    category: 'sleep',
+    sourceRef: "Bukhari 3113, Muslim 2727 — 'better for you than a servant and what you asked for'",
+    sourceRefAr: 'البخاري 3113، مسلم 2727 — "خير لكما من خادم وما سألتماه"',
+    benefitEn: '"It is better for you than a servant." — Prophet ﷺ to Ali and Fatima who asked for a servant.',
+    benefitAr: '"خير لكما من خادم" — النبي ﷺ لعلي وفاطمة رضي الله عنهما',
+  },
+  {
+    id: 'sleep_allahumma_rabbi_samawat',
+    arabicPhrase: 'اللَّهُمَّ رَبَّ السَّمَاوَاتِ السَّبْعِ وَرَبَّ الْأَرْضِ وَرَبَّ الْعَرْشِ الْعَظِيمِ، رَبَّنَا وَرَبَّ كُلِّ شَيْءٍ، فَالِقَ الْحَبِّ وَالنَّوَى، مُنَزِّلَ التَّوْرَاةِ وَالْإِنْجِيلِ وَالْقُرْآنِ، أَعُوذُ بِكَ مِنْ شَرِّ كُلِّ شَيْءٍ أَنْتَ آخِذٌ بِنَاصِيَتِهِ',
+    transliteration: "Allahumma rabbas-samawatis-sab'i wa rabbal-ardi wa rabbal-'arshil-'azim, rabbana wa rabba kulli shay'in, faliqal-habbi wan-nawa, munazzilat-tawrati wal-injili wal-quran, a'udhu bika min sharri kulli shay'in anta akhidhun binasiyatih",
+    meaningEn: 'O Allah, Lord of the seven heavens and the earth and the Great Throne, Our Lord and Lord of all things, Splitter of grain and seeds, Revealer of Torah, Gospel and Quran — I seek refuge in You from the evil of everything You hold by the forelock.',
+    meaningAr: 'اللهم رب السماوات السبع ورب العرش العظيم، ربنا ورب كل شيء',
+    targetCount: 1,
+    category: 'sleep',
+    sourceRef: 'Abu Dawud 5052, Ahmad (authenticated) — comprehensive evening/sleep protection',
+    sourceRefAr: 'أبو داود 5052، أحمد (صحيح) — حماية شاملة عند المساء والنوم',
+    benefitEn: 'A comprehensive supplication declaring Allah\'s lordship over everything as one enters sleep',
+    benefitAr: 'دعاء شامل بإقرار ربوبية الله على كل شيء عند الدخول في النوم',
+  },
+  {
+    id: 'sleep_mulk',
+    arabicPhrase: 'تَبَارَكَ الَّذِي بِيَدِهِ الْمُلْكُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ',
+    transliteration: "Tabarakal-ladhi biyadihil-mulku wahuwa 'ala kulli shay'in qadir",
+    meaningEn: 'Blessed is He in whose hand is dominion, and He is over all things competent. (Opening of Surah Al-Mulk 67:1)',
+    meaningAr: 'فاتحة سورة الملك (67:1)',
+    targetCount: 1,
+    category: 'sleep',
+    sourceRef: "Tirmidhi 2891 (hasan) — 'Surah Al-Mulk before sleep protects from punishment of the grave'",
+    sourceRefAr: 'الترمذي 2891 (حسن) — "سورة الملك هي المانعة من عذاب القبر"',
+    benefitEn: '"Surah Al-Mulk is the protector — it protects from the punishment of the grave." — Prophet ﷺ',
+    benefitAr: '"سورة الملك هي المانعة من عذاب القبر" — النبي ﷺ',
+  },
+];
+
+// ── Travel Adhkar ──────────────────────────────────────────────────────────────
+// From Hisnul Muslim — Adhkar al-Safar
+
+const TRAVEL_ADHKAR: DhikrEntry[] = [
+  {
+    id: 'travel_sakhkhara',
+    arabicPhrase: 'سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَٰذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ ۝ وَإِنَّا إِلَىٰ رَبِّنَا لَمُنقَلِبُونَ',
+    transliteration: "SubhanAlladhee sakhkhara lana hadha wama kunna lahu muqrinin. Wa inna ila rabbina lamunqalibun",
+    meaningEn: 'Glory be to Him who has subjected this to us, and we could not have [otherwise] subdued it. And indeed, to our Lord we will return. (43:13-14)',
+    meaningAr: 'سبحان الذي سخر لنا هذا وما كنا له مقرنين، وإنا إلى ربنا لمنقلبون (الزخرف 43:13-14)',
+    targetCount: 1,
+    category: 'travel',
+    sourceRef: "Abu Dawud 2602, Tirmidhi 3446 — said when mounting any vehicle or boarding transport",
+    sourceRefAr: 'أبو داود 2602، الترمذي 3446 — يُقال عند الركوب على أي وسيلة',
+    benefitEn: 'Said when boarding any vehicle or transport. Includes gratitude for subjecting it and acknowledgment of returning to Allah.',
+    benefitAr: 'يُقال عند الركوب. يتضمن الشكر على التسخير والإقرار بالرجوع إلى الله',
+  },
+  {
+    id: 'travel_allahumma_hawwin',
+    arabicPhrase: 'اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَٰذَا وَاطْوِ عَنَّا بُعْدَهُ، اللَّهُمَّ أَنْتَ الصَّاحِبُ فِي السَّفَرِ وَالْخَلِيفَةُ فِي الْأَهْلِ',
+    transliteration: "Allahumma hawwin 'alayna safarana hadha wattwi 'anna bu'dah. Allahumma antas-sahibu fis-safar, wal-khalifatu fil-ahl",
+    meaningEn: 'O Allah, make this journey easy for us and shorten its distance. O Allah, You are the companion on the journey and the guardian of the family.',
+    meaningAr: 'اللهم هون علينا سفرنا هذا واطو عنا بعده، اللهم أنت الصاحب في السفر والخليفة في الأهل',
+    targetCount: 1,
+    category: 'travel',
+    sourceRef: "Muslim 1342 — the Prophet ﷺ said it whenever setting out on a journey",
+    sourceRefAr: 'مسلم 1342 — كان النبي ﷺ يقولها كلما خرج في سفر',
+    benefitEn: 'The Prophet\'s ﷺ traveling supplication — asks for ease, company of Allah, and protection of family left behind.',
+    benefitAr: 'دعاء النبي ﷺ للسفر — يطلب التيسير ومرافقة الله وحفظ الأهل',
+  },
+  {
+    id: 'travel_return_hamdallah',
+    arabicPhrase: 'آيِبُونَ تَائِبُونَ عَابِدُونَ لِرَبِّنَا حَامِدُونَ',
+    transliteration: "Ayibuna ta'ibuna 'abiduna li-rabbina hamidun",
+    meaningEn: 'We return, repenting, worshipping, and praising our Lord.',
+    meaningAr: 'آيبون تائبون عابدون لربنا حامدون',
+    targetCount: 1,
+    category: 'travel',
+    sourceRef: "Bukhari 3085, Muslim 1345 — said when returning from any journey alongside Allahu Akbar 3×",
+    sourceRefAr: 'البخاري 3085، مسلم 1345 — يُقال مع التكبير ثلاثاً عند الرجوع من السفر',
+    benefitEn: 'Said with three takbeers upon returning from any journey — combining praise, repentance, and worship.',
+    benefitAr: 'يُقال مع التكبير ثلاثاً عند العودة من أي سفر — جمع الحمد والتوبة والعبادة',
+  },
+  {
+    id: 'travel_aaodhu_watha',
+    arabicPhrase: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ وَعْثَاءِ السَّفَرِ، وَكَآبَةِ الْمُنْقَلَبِ، وَسُوءِ الْمَنْظَرِ فِي الْأَهْلِ وَالْمَالِ وَالْوَلَدِ',
+    transliteration: "Allahumma inni a'udhu bika min wa'tha'is-safar, wa ka'abatil-munqalab, wa su'il-manzari fil-ahli wal-mali wal-walad",
+    meaningEn: 'O Allah, I seek refuge in You from the hardships of travel, from misery upon returning, and from finding bad changes in family, wealth, and children.',
+    meaningAr: 'اللهم إني أعوذ بك من وعثاء السفر وكآبة المنقلب وسوء المنظر في الأهل والمال والولد',
+    targetCount: 1,
+    category: 'travel',
+    sourceRef: "Bukhari 2995, Muslim 1343 — said before every departure",
+    sourceRefAr: 'البخاري 2995، مسلم 1343 — يُقال قبل كل سفر',
+    benefitEn: 'Seeking refuge from travel hardship AND from coming home to bad news — comprehensive travel protection.',
+    benefitAr: 'الاستعاذة من مشقة السفر والعودة إلى مصيبة — حماية شاملة للمسافر',
+  },
+];
+
 // ── Master list ───────────────────────────────────────────────────────────────
 
 export const ADHKAR: readonly DhikrEntry[] = [
@@ -727,7 +899,10 @@ export const ADHKAR: readonly DhikrEntry[] = [
   ...AFTER_SALAH_ADHKAR,
   ...ANYTIME_ADHKAR,
   ...QURANIC_ADHKAR,
+  ...SLEEP_ADHKAR,
+  ...TRAVEL_ADHKAR,
 ];
 
 export const MORNING_IDS = new Set(MORNING_ADHKAR.map(d => d.id));
 export const EVENING_IDS = new Set(EVENING_ADHKAR.map(d => d.id));
+export const SLEEP_IDS   = new Set(SLEEP_ADHKAR.map(d => d.id));
