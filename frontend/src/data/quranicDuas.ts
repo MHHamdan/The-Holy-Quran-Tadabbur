@@ -21,6 +21,43 @@ export type DuaCategory =
   | 'general'
   | 'believers';
 
+export type DuaOccasion =
+  | 'morning'
+  | 'evening'
+  | 'before_sleep'
+  | 'after_prayer'
+  | 'hardship'
+  | 'seeking_forgiveness'
+  | 'for_parents'
+  | 'for_children'
+  | 'studying'
+  | 'travel'
+  | 'seeking_guidance'
+  | 'health'
+  | 'anxiety'
+  | 'anger'
+  | 'gratitude_moment'
+  | 'doubt';
+
+export const OCCASION_META: Record<DuaOccasion, { labelEn: string; labelAr: string; emoji: string }> = {
+  morning:              { labelEn: 'Morning',        labelAr: 'الصباح',         emoji: '🌅' },
+  evening:              { labelEn: 'Evening',        labelAr: 'المساء',         emoji: '🌆' },
+  before_sleep:         { labelEn: 'Before Sleep',   labelAr: 'قبل النوم',      emoji: '🌙' },
+  after_prayer:         { labelEn: 'After Prayer',   labelAr: 'بعد الصلاة',    emoji: '🤲' },
+  hardship:             { labelEn: 'In Hardship',    labelAr: 'في الشدة',       emoji: '⛈️' },
+  seeking_forgiveness:  { labelEn: 'Seeking Forgiveness', labelAr: 'طلب المغفرة', emoji: '🤍' },
+  for_parents:          { labelEn: 'For Parents',    labelAr: 'للوالدين',       emoji: '🏡' },
+  for_children:         { labelEn: 'For Children',   labelAr: 'للذرية',         emoji: '👶' },
+  studying:             { labelEn: 'Studying',       labelAr: 'طلب العلم',      emoji: '📖' },
+  travel:               { labelEn: 'Travelling',     labelAr: 'السفر',          emoji: '✈️' },
+  seeking_guidance:     { labelEn: 'Seeking Guidance', labelAr: 'طلب الهداية', emoji: '💡' },
+  health:               { labelEn: 'Health & Healing', labelAr: 'الشفاء والصحة', emoji: '💚' },
+  anxiety:              { labelEn: 'Anxiety & Worry', labelAr: 'الهم والقلق',  emoji: '😔' },
+  anger:                { labelEn: 'Anger',          labelAr: 'الغضب',          emoji: '🔥' },
+  gratitude_moment:     { labelEn: 'Gratitude',      labelAr: 'الشكر',          emoji: '✨' },
+  doubt:                { labelEn: 'Doubt & Steadfastness', labelAr: 'الثبات', emoji: '🌿' },
+};
+
 export interface QuranicDua {
   id: string;
   titleEn: string;
@@ -39,6 +76,7 @@ export interface QuranicDua {
   contextAr: string;
   category: DuaCategory;
   prophet?: string;
+  occasions: DuaOccasion[];
   tags: string[];
 }
 
@@ -70,6 +108,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The closing of Al-Fatihah — recited in every rak'ah of ṣalāh. The single most repeated prayer in a Muslim's life.",
     contextAr: 'خاتمة الفاتحة — يتلى في كل ركعة. أكثر دعاء يتكرر في حياة المسلم.',
     category: 'guidance',
+    occasions: ['morning', 'evening', 'after_prayer', 'seeking_guidance'],
     tags: ['fatihah', 'sirat', 'guidance', 'salah', 'daily'],
   },
 
@@ -87,6 +126,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Ibrahim's prayer for Makkah while raising the foundations of the Ka'bah with Isma'il.",
     contextAr: 'دعاء إبراهيم لمكة أثناء رفع قواعد البيت مع إسماعيل.',
     category: 'prophets', prophet: 'Ibrahim',
+    occasions: ['hardship', 'seeking_guidance'],
     tags: ['ibrahim', 'makkah', 'security', 'provision', 'city'],
   },
   {
@@ -103,6 +143,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Three-part prayer: acceptance of worship, submission, and the prayer that foresaw Prophet Muhammad ﷺ.",
     contextAr: 'دعاء ثلاثي: قبول العمل، الإسلام، والتبشير بالنبي محمد ﷺ.',
     category: 'prophets', prophet: 'Ibrahim',
+    occasions: ['after_prayer', 'seeking_guidance', 'gratitude_moment'],
     tags: ['ibrahim', 'ismail', 'kaabah', 'submission', 'accepted', 'prophet', 'ummah'],
   },
   {
@@ -118,6 +159,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Ibrahim and Isma'il's prayer while building the Ka'bah — for submission, accepted worship, and repentance.",
     contextAr: 'دعاء إبراهيم وإسماعيل أثناء بناء الكعبة — للإسلام والقبول والتوبة.',
     category: 'prophets', prophet: 'Ibrahim',
+    occasions: ['after_prayer', 'seeking_forgiveness'],
     tags: ['ibrahim', 'kaabah', 'submission', 'repentance', 'accepted', 'ummah'],
   },
   {
@@ -134,6 +176,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The Prophet ﷺ would often recite this duʿā. It covers every aspiration — worldly and eternal — in one supplication.",
     contextAr: 'كان النبي ﷺ يكثر من هذا الدعاء — يجمع الدنيا والآخرة والنجاة من النار.',
     category: 'general',
+    occasions: ['morning', 'evening', 'after_prayer'],
     tags: ['dunya', 'akhira', 'fire', 'comprehensive', 'hajj', 'prophet'],
   },
   {
@@ -149,6 +192,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The prayer of Ṭālūt's army before facing Goliath — for patience, steadfastness, and victory against overwhelming odds.",
     contextAr: 'دعاء جيش طالوت قبل مواجهة جالوت — للصبر والثبات والنصر.',
     category: 'protection',
+    occasions: ['hardship', 'anxiety'],
     tags: ['talut', 'sabr', 'patience', 'steadfast', 'victory', 'battle'],
   },
   {
@@ -165,6 +209,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The two closing verses of Sūrah Al-Baqarah — the Prophet ﷺ said they were sent as a treasure from beneath the Throne. Comprehensive forgiveness, mercy, and protection.",
     contextAr: 'آيتا خاتمة البقرة — أخبر النبي ﷺ أنهما أُنزلتا من كنز تحت العرش.',
     category: 'forgiveness',
+    occasions: ['evening', 'before_sleep', 'seeking_forgiveness'],
     tags: ['baqarah', 'khatimah', 'forgiveness', 'mercy', 'comprehensive', 'evening'],
   },
 
@@ -183,6 +228,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Prayer against losing faith after being guided — for protection from wavering hearts and heedlessness.",
     contextAr: 'الدعاء من الانزلاغ عن الهدى بعد التوفيق — حماية القلب من الزيغ.',
     category: 'guidance',
+    occasions: ['morning', 'after_prayer', 'doubt'],
     tags: ['heart', 'guidance', 'deviation', 'stability', 'iman', 'mercy'],
   },
   {
@@ -199,6 +245,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Zakariyyā's prayer for a righteous child, answered with the birth of Yaḥyā (John). Recited by those seeking children.",
     contextAr: 'دعاء زكريا طلباً للذرية الطيبة — استُجيب فوُلد له يحيى. يُستحب لمن يطلب الولد.',
     category: 'prophets', prophet: 'Zakariyya',
+    occasions: ['for_children', 'hardship'],
     tags: ['zakariyya', 'yahya', 'children', 'offspring', 'answered', 'family'],
   },
   {
@@ -214,6 +261,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The prayer of the rabbāniyyūn who fought alongside prophets — combining repentance and victory supplication.",
     contextAr: 'دعاء الربانيين الذين جاهدوا مع الأنبياء — يجمع التوبة وطلب النصر.',
     category: 'believers',
+    occasions: ['hardship', 'seeking_forgiveness'],
     tags: ['battle', 'steadfastness', 'victory', 'forgiveness', 'companions'],
   },
   {
@@ -229,6 +277,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The complete prayer of those who remember Allah standing, sitting, and lying down — covering protection from Fire, forgiveness, righteous death, and fulfilment of Allah's promise.",
     contextAr: 'دعاء أولي الألباب الذين يذكرون الله قياماً وقعوداً — يشمل النجاة والمغفرة والموت مع الأبرار.',
     category: 'believers',
+    occasions: ['after_prayer', 'seeking_forgiveness', 'hardship'],
     tags: ['uli al-albab', 'forgiveness', 'death', 'righteous', 'comprehensive', 'fire'],
   },
 
@@ -246,6 +295,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: 'Adam and Eve after leaving Paradise — the first human supplication of repentance in history.',
     contextAr: 'دعا به آدم وحواء بعد خروجهما من الجنة — أول دعاء توبة في تاريخ البشر.',
     category: 'prophets', prophet: 'Adam',
+    occasions: ['seeking_forgiveness', 'hardship'],
     tags: ['tawbah', 'forgiveness', 'adam', 'repentance'],
   },
   {
@@ -261,6 +311,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Shuʿayb's prayer after his people threatened to exile him — trusting Allah for judgement and justice.",
     contextAr: 'دعاء شعيب حين هدده قومه بالطرد — تفويض لله في الحكم والنصر بالحق.',
     category: 'prophets', prophet: "Shu'ayb",
+    occasions: ['hardship', 'anxiety'],
     tags: ['shuayb', 'tawakkul', 'justice', 'judgement', 'truth'],
   },
   {
@@ -276,6 +327,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Mūsā's supplication after the incident of the tablets — seeking Allah's mercy for himself and Hārūn.",
     contextAr: 'دعاء موسى بعد حادثة الألواح — يطلب المغفرة لنفسه ولأخيه هارون.',
     category: 'prophets', prophet: 'Musa',
+    occasions: ['seeking_forgiveness', 'anger'],
     tags: ['musa', 'harun', 'forgiveness', 'mercy', 'siblings'],
   },
 
@@ -293,6 +345,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The prayer of the youth who believed with Mūsā, facing Pharaoh's persecution — for protection and rescue.",
     contextAr: 'دعاء الفتية الذين آمنوا مع موسى وهم يواجهون فرعون — للتوكل والنجاة.',
     category: 'believers',
+    occasions: ['hardship', 'anxiety'],
     tags: ['musa', 'tawakkul', 'protection', 'persecution', 'deliverance'],
   },
 
@@ -310,6 +363,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Nūḥ's prayer after interceding for his son — a model of surrendering one's will to Allah's decree.",
     contextAr: 'دعاء نوح بعد الشفاعة لابنه — نموذج في التسليم لقضاء الله.',
     category: 'prophets', prophet: 'Nuh',
+    occasions: ['seeking_forgiveness', 'doubt'],
     tags: ['nuh', 'tawbah', 'refuge', 'knowledge', 'decree', 'submission'],
   },
 
@@ -327,6 +381,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Ibrahim's prayer spanning prayer, acceptance, forgiveness for himself, parents, and all believers on the Day of Reckoning.",
     contextAr: 'دعاء إبراهيم يشمل الصلاة والقبول والمغفرة للمؤمنين يوم الحساب.',
     category: 'prophets', prophet: 'Ibrahim',
+    occasions: ['after_prayer', 'for_parents', 'for_children'],
     tags: ['ibrahim', 'prayer', 'family', 'forgiveness', 'parents', 'judgment'],
   },
 
@@ -345,6 +400,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The Quranic duʿā for parents — to be recited for both living and deceased parents alike.",
     contextAr: 'الدعاء القرآني للوالدين — يُقال لهما حيّين وميتين.',
     category: 'family',
+    occasions: ['after_prayer', 'for_parents'],
     tags: ['parents', 'mercy', 'upbringing', 'children', 'family', 'deceased'],
   },
 
@@ -362,6 +418,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The prayer of the young believers fleeing to the cave — for mercy and right guidance under pressure.",
     contextAr: 'دعاء الفتية المؤمنين حين لجأوا إلى الكهف — للرحمة والرشد في أوقات الضغط.',
     category: 'believers',
+    occasions: ['hardship', 'seeking_guidance', 'anxiety'],
     tags: ['kahf', 'youth', 'guidance', 'mercy', 'refuge', 'faith'],
   },
 
@@ -379,6 +436,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Zakariyyā's intimate, humble prayer — sharing his age, weakness, and unbroken trust in Allah — a masterclass in heartfelt duʿā.",
     contextAr: 'يكشف زكريا همومه لربه بصدق وثقة — نموذج في الدعاء الخاشع المفصّل.',
     category: 'prophets', prophet: 'Zakariyya',
+    occasions: ['hardship', 'for_children', 'health'],
     tags: ['zakariyya', 'old age', 'trust', 'heir', 'intimate', 'heartfelt'],
   },
 
@@ -397,6 +455,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Mūsā's duʿā before confronting Pharaoh — excellent for anyone facing a difficult speech, exam, presentation, or hard conversation.",
     contextAr: 'دعاء موسى قبل مواجهة فرعون — مناسب لكل من يواجه خطاباً أو امتحاناً أو موقفاً عسيراً.',
     category: 'prophets', prophet: 'Musa',
+    occasions: ['studying', 'hardship', 'anxiety'],
     tags: ['musa', 'eloquence', 'ease', 'clarity', 'speech', 'confidence', 'exam'],
   },
   {
@@ -413,6 +472,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The shortest Quranic duʿā — a constant prayer for students, scholars, and anyone seeking understanding.",
     contextAr: 'أقصر دعاء قرآني وأبلغه — دعاء دائم لطالب العلم في كل وقت.',
     category: 'guidance',
+    occasions: ['morning', 'studying', 'after_prayer'],
     tags: ['knowledge', 'ilm', 'learning', 'students', 'short', 'daily'],
   },
 
@@ -431,6 +491,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Ayyūb's concise, dignified prayer after years of illness — a model of supplication in suffering without complaint.",
     contextAr: 'دعاء أيوب الموجز العميق بعد سنوات من الابتلاء — نموذج في التضرع الكريم.',
     category: 'prophets', prophet: 'Ayyub',
+    occasions: ['hardship', 'health', 'anxiety'],
     tags: ['ayyub', 'illness', 'hardship', 'mercy', 'relief', 'affliction'],
   },
   {
@@ -447,6 +508,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Yūnus's prayer from within the whale — one of the most powerful duʿā in the Quran for relief from any distress.",
     contextAr: 'دعاء يونس من بطن الحوت — من أعظم الأدعية لرفع الكرب.',
     category: 'prophets', prophet: 'Yunus',
+    occasions: ['hardship', 'anxiety', 'seeking_forgiveness'],
     tags: ['yunus', 'distress', 'kurbah', 'tahlil', 'whale', 'darkness', 'repentance'],
   },
   {
@@ -462,6 +524,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Zakariyyā's brief, poignant prayer — acknowledging that even if he dies childless, Allah is the ultimate inheritor of all.",
     contextAr: 'دعاء زكريا الموجز في الأنبياء — يُقر بأن الله خير الوارثين وإن لم يُرزق ولداً.',
     category: 'prophets', prophet: 'Zakariyya',
+    occasions: ['hardship', 'for_children'],
     tags: ['zakariyya', 'children', 'inheritor', 'alone', 'trust'],
   },
 
@@ -480,6 +543,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "For protection from Shayṭān — recited when feeling whispers, distraction in ṣalāh, or spiritual unease.",
     contextAr: 'للاستعاذة من وساوس الشيطان — عند التشتت في الصلاة أو الوسواس.',
     category: 'protection',
+    occasions: ['morning', 'evening', 'before_sleep', 'anger'],
     tags: ['shaytan', 'waswas', 'protection', 'refuge', 'prayer', 'distraction'],
   },
 
@@ -497,6 +561,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "One of the ʿIbād al-Raḥmān's supplications — conscious of the reality of Hellfire and earnestly seeking protection from it.",
     contextAr: 'دعاء عباد الرحمن الواعين بحقيقة النار — يطلبون الله أن يصرفها عنهم.',
     category: 'forgiveness',
+    occasions: ['after_prayer', 'evening'],
     tags: ['ibad al-rahman', 'hellfire', 'protection', 'fire', 'akhira'],
   },
   {
@@ -513,6 +578,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The duʿā of the ʿIbād al-Raḥmān — for a righteous spouse, righteous children, and leadership among the God-fearing.",
     contextAr: 'دعاء عباد الرحمن — للزوجة الصالحة والذرية الطيبة والإمامة في التقوى.',
     category: 'family',
+    occasions: ['for_children', 'after_prayer'],
     tags: ['family', 'spouse', 'children', 'offspring', 'ibad al-rahman', 'leadership'],
   },
 
@@ -530,6 +596,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Ibrahim's most comprehensive prayer — spanning wisdom, good legacy, Paradise inheritance, forgiveness for his father, and a sound heart on Judgment Day.",
     contextAr: 'أشمل دعاء لإبراهيم — يطلب الحكمة والذكر الحسن والجنة والمغفرة للأب والنجاة يوم البعث.',
     category: 'prophets', prophet: 'Ibrahim',
+    occasions: ['after_prayer', 'seeking_forgiveness', 'gratitude_moment'],
     tags: ['ibrahim', 'wisdom', 'paradise', 'legacy', 'sound heart', 'judgment'],
   },
 
@@ -548,6 +615,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Sulaymān's prayer upon hearing the ant — not just for gratitude but for being enabled to properly express it. A prayer of humility at the peak of power.",
     contextAr: 'دعاء سليمان حين سمع النملة — يطلب القدرة على أداء الشكر لا الشكر فقط.',
     category: 'gratitude', prophet: 'Sulayman',
+    occasions: ['after_prayer', 'gratitude_moment', 'for_parents'],
     tags: ['sulayman', 'shukr', 'gratitude', 'parents', 'righteous', 'enabling'],
   },
 
@@ -565,6 +633,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Mūsā's immediate repentance — four short words, instantly forgiven. A model of swift, sincere tawbah.",
     contextAr: 'توبة موسى الفورية — أربع كلمات قِصار فُغفر له. نموذج في سرعة التوبة وصدقها.',
     category: 'prophets', prophet: 'Musa',
+    occasions: ['seeking_forgiveness', 'anger'],
     tags: ['musa', 'tawbah', 'repentance', 'forgiveness', 'short', 'sincere'],
   },
 
@@ -582,6 +651,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The prayer of the angels bearing the Throne — interceding for every repentant believer and their families for Paradise.",
     contextAr: 'دعاء الملائكة حاملي العرش — يستغفرون للمؤمنين التائبين وذرياتهم وأزواجهم.',
     category: 'general',
+    occasions: ['after_prayer', 'seeking_forgiveness'],
     tags: ['angels', 'paradise', 'forgiveness', 'families', 'intercession', 'comprehensive'],
   },
 
@@ -600,6 +670,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The Quranic duʿā for mounting any vehicle — car, plane, ship — affirming dependence on Allah and awareness of return to Him.",
     contextAr: 'دعاء ركوب المركبة — يُقال عند ركوب السيارة أو الطائرة أو السفينة.',
     category: 'protection',
+    occasions: ['travel'],
     tags: ['travel', 'journey', 'vehicle', 'safety', 'safar', 'car', 'flight'],
   },
 
@@ -617,6 +688,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "This verse describes what a believer says at age forty — the age of spiritual maturity. A comprehensive life prayer.",
     contextAr: 'وصف القرآن ما يقوله المؤمن حين يبلغ أشده الأربعين — دعاء جامع في منتصف العمر.',
     category: 'gratitude',
+    occasions: ['gratitude_moment', 'for_parents', 'for_children'],
     tags: ['forty', 'maturity', 'gratitude', 'parents', 'children', 'repentance', 'comprehensive'],
   },
 
@@ -634,6 +706,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Described as those who came after the emigrants and answered — seeking forgiveness for themselves and all Muslim brothers before them, with no rancour in the heart.",
     contextAr: 'دعاء المؤمنين الذين جاؤوا بعد المهاجرين — يطلبون المغفرة لأنفسهم وإخوانهم ونزع الغل من قلوبهم.',
     category: 'believers',
+    occasions: ['after_prayer', 'seeking_forgiveness', 'for_parents'],
     tags: ['brotherhood', 'forgiveness', 'resentment', 'unity', 'iman', 'predecessors'],
   },
 
@@ -651,6 +724,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Ibrahim's example prayer cited in Al-Mumtaḥanah — for tawakkul (reliance), tawbah (repentance), and protection from becoming a source of trial.",
     contextAr: 'دعاء إبراهيم في الممتحنة — للتوكل والإنابة والحماية من أن يُفتن بهم المؤمنون.',
     category: 'prophets', prophet: 'Ibrahim',
+    occasions: ['hardship', 'seeking_forgiveness'],
     tags: ['ibrahim', 'tawakkul', 'repentance', 'trial', 'return', 'protection'],
   },
 
@@ -668,6 +742,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "The believers' prayer on the Bridge of Judgement — when their light leads them and they seek its completion and forgiveness.",
     contextAr: 'دعاء المؤمنين على الصراط يوم القيامة — يطلبون إتمام النور والمغفرة.',
     category: 'general',
+    occasions: ['after_prayer', 'evening'],
     tags: ['judgment day', 'noor', 'light', 'forgiveness', 'completion', 'akhira'],
   },
 
@@ -685,6 +760,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Nūḥ's prayer circles outward from himself → parents → household → all Muslim men and women everywhere.",
     contextAr: 'دعاء نوح يتسع دوائره: نفسه ← الوالدان ← أهل البيت ← عموم المؤمنين.',
     category: 'family', prophet: 'Nuh',
+    occasions: ['after_prayer', 'for_parents'],
     tags: ['nuh', 'parents', 'family', 'household', 'believers', 'forgiveness', 'community'],
   },
 
@@ -703,6 +779,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Recited morning and evening and before sleep for comprehensive protection from external harm, magic, and envy.",
     contextAr: 'تُقرأ صباحاً ومساءً وقبل النوم — للحماية الشاملة من الأذى والسحر والحسد.',
     category: 'protection',
+    occasions: ['morning', 'evening', 'before_sleep'],
     tags: ['falaq', 'morning', 'evening', 'sleep', 'evil', 'protection', 'sihr', 'envy'],
   },
   {
@@ -719,6 +796,470 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     contextEn: "Recited morning and evening, before sleep, and whenever feeling spiritual whispers or anxiety.",
     contextAr: 'تُقرأ صباحاً ومساءً وقبل النوم — للاستعاذة من وساوس الجن والإنس.',
     category: 'protection',
+    occasions: ['morning', 'evening', 'before_sleep', 'anxiety'],
     tags: ['nas', 'waswas', 'morning', 'evening', 'sleep', 'jinn', 'protection', 'anxiety'],
+  },
+
+  // ── NEW ADDITIONS ─────────────────────────────────────────────────────────
+
+  // ── 2. Al-Baqarah (additional) ────────────────────────────────────────────
+  {
+    id: 'dua_baqarah_knowledge_humility',
+    titleEn: "Angels' Humility Before Allah's Knowledge",
+    titleAr: 'تسبيح الملائكة واعترافهم بمحدودية علمهم',
+    surah: 2, ayah: 32,
+    surahNameEn: 'Al-Baqarah', surahNameAr: 'البقرة',
+    ayatUthmani: 'سُبْحَٰنَكَ لَا عِلْمَ لَنَآ إِلَّا مَا عَلَّمْتَنَآ ۖ إِنَّكَ أَنتَ ٱلْعَلِيمُ ٱلْحَكِيمُ',
+    meaningEn: 'Exalted are You; we have no knowledge except what You have taught us. Indeed, it is You who is the Knowing, the Wise.',
+    meaningAr: 'قالها الملائكة حين عجزوا عن الإجابة — اعترافٌ بأن كل علم عند الله وحده. نموذجٌ في التواضع العلمي والاستسلام لله في باب المعرفة.',
+    transliterationArabic: 'Subḥānaka lā ʿilma lanā illā mā ʿallamtanā, innaka anta al-ʿAlīmu al-Ḥakīm',
+    contextEn: "The angels' declaration before Adam's knowledge test — a model of intellectual humility. Excellent before studying, speaking, or when confounded.",
+    contextAr: 'قول الملائكة حين سألهم الله عن الأسماء — نموذج في التواضع العلمي. يُستحب قوله قبل الدراسة.',
+    category: 'guidance',
+    occasions: ['studying', 'seeking_guidance', 'after_prayer'],
+    tags: ['knowledge', 'humility', 'angels', 'studying', 'ilm', 'short'],
+  },
+
+  // ── 3. Āl ʿImrān (additional) ─────────────────────────────────────────────
+  {
+    id: 'dua_imran_simple_belief',
+    titleEn: "Believers' Simple Prayer — Faith, Forgiveness, Fire",
+    titleAr: 'دعاء المؤمنين المقتصد — الإيمان والمغفرة والنجاة',
+    surah: 3, ayah: 16,
+    surahNameEn: "Āl ʿImrān", surahNameAr: 'آل عمران',
+    ayatUthmani: 'رَبَّنَآ إِنَّنَآ ءَامَنَّا فَٱغْفِرْ لَنَا ذُنُوبَنَا وَقِنَا عَذَابَ ٱلنَّارِ',
+    meaningEn: 'Our Lord, indeed we have believed, so forgive us our sins and protect us from the punishment of the Fire.',
+    meaningAr: 'من أوجز الأدعية القرآنية وأكثرها جمعًا: إعلانُ الإيمان، يعقبه طلب المغفرة، ثم الاستعاذة من النار. يصلح شعارًا للمؤمن في كل مجلس.',
+    transliterationArabic: 'Rabbanā innanā āmannā fa-ghfir lanā dhunūbanā wa-qinā ʿadhāba al-nār',
+    contextEn: "One of the simplest and most comprehensive Quranic prayers — the believer's short formula of faith, forgiveness, and protection.",
+    contextAr: 'من أوجز الأدعية الجامعة — يصح قوله في كل وقت.',
+    category: 'forgiveness',
+    occasions: ['morning', 'evening', 'after_prayer', 'seeking_forgiveness'],
+    tags: ['faith', 'forgiveness', 'fire', 'short', 'comprehensive', 'iman'],
+  },
+  {
+    id: 'dua_imran_sovereignty',
+    titleEn: "Prayer of Allah's Absolute Sovereignty",
+    titleAr: 'دعاء ملك الله المطلق',
+    surah: 3, ayah: 26, ayahEnd: 27,
+    surahNameEn: "Āl ʿImrān", surahNameAr: 'آل عمران',
+    ayatUthmani: 'قُلِ ٱللَّهُمَّ مَٰلِكَ ٱلْمُلْكِ تُؤْتِى ٱلْمُلْكَ مَن تَشَآءُ وَتَنزِعُ ٱلْمُلْكَ مِمَّن تَشَآءُ وَتُعِزُّ مَن تَشَآءُ وَتُذِلُّ مَن تَشَآءُ ۖ بِيَدِكَ ٱلْخَيْرُ ۖ إِنَّكَ عَلَىٰ كُلِّ شَىْءٍۢ قَدِيرٌۭ',
+    meaningEn: "Say, 'O Allah, Owner of Sovereignty, You give sovereignty to whom You will and You take sovereignty away from whom You will. You honour whom You will and You humble whom You will. In Your hand is all good. Indeed, You are over all things competent.'",
+    meaningAr: 'يُعلِّمنا الله أن ندعوه بوصف سلطانه المطلق — فالملك كله له: يُعطيه من يشاء وينزعه متى يشاء، والعزة والذلة بيده. فيه إقرارٌ بضعف الإنسان وعظمة الله.',
+    hadithAr: 'قال القرطبي ﵀: «ذُكر أن النبي ﷺ كان يقرأ هذه الآية ويُعجبه ذلك»، وأخرج ابن أبي حاتم أنه كان يقولها إذا أصبح',
+    transliterationArabic: "Quli Allāhumma Mālika al-mulki tuʾtī al-mulka man tashāʾu wa-tanzaʿu al-mulka mimman tashāʾu · wa-tuʿizzu man tashāʾu wa-tudhillu man tashāʾu · bi-yadika al-khayr · innaka ʿalā kulli shayʾin qadīr",
+    contextEn: "A comprehensive prayer acknowledging Allah's total control over honour, power, and outcomes. For moments of status change, loss of position, or worldly transition.",
+    contextAr: 'دعاء جامع للإقرار بسلطان الله المطلق — مناسب حين تتقلَّب الأحوال.',
+    category: 'general',
+    occasions: ['morning', 'after_prayer', 'hardship', 'gratitude_moment'],
+    tags: ['sovereignty', 'power', 'honour', 'comprehensive', 'morning', 'daily'],
+  },
+  {
+    id: 'dua_hanna_maryam',
+    titleEn: "Hannah's Vow — Dedicating the Unborn Child to Allah",
+    titleAr: 'دعاء حنَّة بنذر الطفل لله وتعويذ مريم من الشيطان',
+    surah: 3, ayah: 35, ayahEnd: 36,
+    surahNameEn: "Āl ʿImrān", surahNameAr: 'آل عمران',
+    ayatUthmani: 'رَبِّ إِنِّى نَذَرْتُ لَكَ مَا فِى بَطْنِى مُحَرَّرًۭا فَتَقَبَّلْ مِنِّىٓ ۖ إِنَّكَ أَنتَ ٱلسَّمِيعُ ٱلْعَلِيمُ ۝ رَبِّ إِنِّى وَضَعْتُهَآ أُنثَىٰ وَٱللَّهُ أَعْلَمُ بِمَا وَضَعَتْ ۖ وَلَيْسَ ٱلذَّكَرُ كَٱلْأُنثَىٰ ۖ وَإِنِّى سَمَّيْتُهَا مَرْيَمَ وَإِنِّىٓ أُعِيذُهَا بِكَ وَذُرِّيَّتَهَا مِنَ ٱلشَّيْطَٰنِ ٱلرَّجِيمِ',
+    meaningEn: "My Lord, I have pledged to You what is in my womb, consecrated for Your service, so accept this from me. Indeed, You are the Hearing, the Knowing. My Lord, I have delivered a female… I have named her Mary, and I seek refuge for her in You and her descendants from Satan, the expelled.",
+    meaningAr: 'نذرت حنَّة ما في بطنها محرَّرًا لله، ثم لمَّا وُلدت أنثى سمَّتها مريم واستعاذت لها ولذريتها — فاستُجيب دعاؤها وكانت مريم أفضل نساء العالمين، وكان ابنها عيسى ﵇ من أولي العزم.',
+    hadithAr: 'عن أبي هريرة ﵁ قال: قال النبي ﷺ: «كل بني آدم يمسُّه الشيطانُ حين يُولَد، غير مريم وابنها» — متفق عليه. وهذا ثمرة دعاء أمِّها بالاستعاذة',
+    transliterationArabic: "Rabbi innī nadhartu laka mā fī baṭnī muḥarraran fa-taqabbal minnī · wa-innī sammaytuha Maryama wa-innī uʿīdhuhā bika wa-dhurriyyatahā min al-shayṭāni al-rajīm",
+    contextEn: "Hannah's prayer of dedication and protection — the mother who dedicated her unborn child to Allah's service. A moving prayer for parents seeking to raise righteous children.",
+    contextAr: 'دعاء الأم التي خصَّصت وليدها لخدمة الله — نموذج في الوالدية الروحية وتعويذ الأبناء.',
+    category: 'family',
+    occasions: ['for_children', 'for_parents', 'hardship'],
+    tags: ['hanna', 'maryam', 'vow', 'dedication', 'protection', 'children', 'family', 'mother'],
+  },
+  {
+    id: 'dua_hawaariyoon',
+    titleEn: "The Disciples of Jesus — Register Us Among the Witnesses",
+    titleAr: 'دعاء الحواريين — اكتبنا مع الشاهدين',
+    surah: 3, ayah: 53,
+    surahNameEn: "Āl ʿImrān", surahNameAr: 'آل عمران',
+    ayatUthmani: 'رَبَّنَآ ءَامَنَّا بِمَآ أَنزَلْتَ وَٱتَّبَعْنَا ٱلرَّسُولَ فَٱكْتُبْنَا مَعَ ٱلشَّٰهِدِينَ',
+    meaningEn: 'Our Lord, we have believed in what You revealed and have followed the messenger, so register us among the witnesses to truth.',
+    meaningAr: 'يجمع هذا الدعاء القصير ثلاثة أصول: الإيمان بالوحي، واتباع الرسول، وطلب الانتساب إلى الشاهدين على الحق. قاله حواريو عيسى ﵇ حين آمنوا.',
+    transliterationArabic: 'Rabbanā āmannā bi-mā anzalta wa-ttabaʿnā al-rasūla fa-ktubna maʿa al-shāhidīn',
+    contextEn: "The disciples' declaration of faith — to be recited when seeking to be counted among the sincere believers and witnesses to the truth.",
+    contextAr: 'دعاء الحواريين — يُقال حين يُريد المرء أن يُحسب في صف الصادقين.',
+    category: 'believers',
+    occasions: ['after_prayer', 'seeking_guidance', 'doubt'],
+    tags: ['hawaariyoon', 'witnesses', 'faith', 'followers', 'testimony', 'isa'],
+  },
+  {
+    id: 'dua_hasbunallah',
+    titleEn: "Ḥasbunallāh — Allah is Sufficient for Us",
+    titleAr: 'حسبنا الله ونعم الوكيل',
+    surah: 3, ayah: 173,
+    surahNameEn: "Āl ʿImrān", surahNameAr: 'آل عمران',
+    ayatUthmani: 'حَسْبُنَا ٱللَّهُ وَنِعْمَ ٱلْوَكِيلُ',
+    meaningEn: 'Allah is sufficient for us, and He is the best Disposer of affairs.',
+    meaningAr: 'قالها المؤمنون حين جاءهم من يُخوِّفهم من جيش عرمرم مقبل، فلم يزدادوا إلا إيمانًا وقالوا هذه الكلمات — فانقلبوا بنعمة من الله وفضل لم يمسَّهم سوء.',
+    hadithAr: 'عن ابن عباس ﵁ قال: «حسبنا الله ونعم الوكيل» قالها إبراهيم حين أُلقي في النار، وقالها محمد ﷺ حين قيل له: إن الناس قد جمعوا لكم — رواه البخاري',
+    transliterationArabic: 'Ḥasbunā allāhu wa-niʿma al-wakīl',
+    contextEn: "One of the most powerful short prayers — said by the companions facing an overwhelming army, and by Ibrahim before the fire. Complete surrender to Allah.",
+    contextAr: 'قالها الصحابة أمام جيش عرمرم وإبراهيم أمام النار — كلمات قليلة تحمل التوكل المطلق.',
+    category: 'protection',
+    occasions: ['hardship', 'anxiety', 'morning', 'after_prayer'],
+    tags: ['hasbunallah', 'tawakkul', 'trust', 'short', 'powerful', 'companions', 'ibrahim'],
+  },
+
+  // ── 5. Al-Māʾidah ─────────────────────────────────────────────────────────
+  {
+    id: 'dua_gospel_believers',
+    titleEn: "Gospel Believers' Prayer — Register Us Among the Witnesses",
+    titleAr: 'دعاء مؤمني أهل الإنجيل — اكتبنا مع الشاهدين',
+    surah: 5, ayah: 83, ayahEnd: 84,
+    surahNameEn: 'Al-Māʾidah', surahNameAr: 'المائدة',
+    ayatUthmani: 'رَبَّنَآ ءَامَنَّا فَٱكْتُبْنَا مَعَ ٱلشَّٰهِدِينَ',
+    meaningEn: 'Our Lord, we have believed, so register us among the witnesses.',
+    meaningAr: 'قاله مؤمنو أهل الإنجيل لمَّا سمعوا القرآن فذرفت أعينهم من الحق — طلبوا أن يُكتبوا في زمرة الشاهدين على الحق.',
+    transliterationArabic: 'Rabbanā āmannā fa-ktubna maʿa al-shāhidīn',
+    contextEn: "The prayer of those who recognized truth upon hearing the Quran. Recited when pledging sincerity and seeking to be counted among the truthful.",
+    contextAr: 'دعاء مَن آمن لمَّا سمع القرآن — يُقال حين يُجدِّد المرء إيمانه.',
+    category: 'believers',
+    occasions: ['after_prayer', 'seeking_guidance', 'doubt'],
+    tags: ['gospel', 'believers', 'witnesses', 'faith', 'sincerity', 'short'],
+  },
+  {
+    id: 'dua_eesa_table',
+    titleEn: "ʿĪsā's Prayer for the Heavenly Table",
+    titleAr: 'دعاء عيسى بن مريم للمائدة من السماء',
+    surah: 5, ayah: 114,
+    surahNameEn: 'Al-Māʾidah', surahNameAr: 'المائدة',
+    ayatUthmani: 'ٱللَّهُمَّ رَبَّنَآ أَنزِلْ عَلَيْنَا مَآئِدَةًۭ مِّنَ ٱلسَّمَآءِ تَكُونُ لَنَا عِيدًۭا لِّأَوَّلِنَا وَءَاخِرِنَا وَءَايَةًۭ مِّنكَ ۖ وَٱرْزُقْنَا وَأَنتَ خَيْرُ ٱلرَّٰزِقِينَ',
+    meaningEn: "O Allah, our Lord, send down to us a table spread with food from the heaven to be for us a festival for the first of us and the last of us and a sign from You. And provide for us, and You are the best of providers.",
+    meaningAr: 'طلب عيسى ﵇ من الله مائدةً من السماء تكون آيةً ويومًا يتجدَّد ذكره ورزقًا من عنده — يجمع الدعاء بين طلب الآية والرزق والعيد المشترك للأمة.',
+    transliterationArabic: "Allāhumma Rabbanā anzil ʿalaynā māʾidatan mina al-samāʾi takūnu lanā ʿīdan li-awwalinā wa-ākhirinā wa-āyatan minka · wa-rzuqnā wa-anta khayru al-rāziqīn",
+    contextEn: "ʿĪsā's prayer for sustenance and a divine sign — combining provision with communal remembrance of Allah's favour.",
+    contextAr: 'دعاء عيسى للرزق والآية الجامعة.',
+    category: 'prophets', prophet: 'Isa',
+    occasions: ['hardship', 'gratitude_moment', 'seeking_guidance'],
+    tags: ['isa', 'table', 'provision', 'sustenance', 'sign', 'festival', 'maidah'],
+  },
+
+  // ── 6. Al-Anʿām ───────────────────────────────────────────────────────────
+  {
+    id: 'dua_life_dedication',
+    titleEn: 'Complete Life Dedication to Allah',
+    titleAr: 'إخلاص الحياة كلها لله',
+    surah: 6, ayah: 162, ayahEnd: 163,
+    surahNameEn: 'Al-Anʿām', surahNameAr: 'الأنعام',
+    ayatUthmani: 'قُلْ إِنَّ صَلَاتِى وَنُسُكِى وَمَحْيَاىَ وَمَمَاتِى لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ ۝ لَا شَرِيكَ لَهُۥ ۖ وَبِذَٰلِكَ أُمِرْتُ وَأَنَا۠ أَوَّلُ ٱلْمُسْلِمِينَ',
+    meaningEn: "Say, 'Indeed, my prayer, my rites of sacrifice, my living and my dying are for Allah, Lord of the worlds. No partner has He. And this I have been commanded, and I am the first of the Muslims.'",
+    meaningAr: 'يُعلِّم الله نبيَّه ﷺ أن يُخلص وجوده كله له: الصلاةُ والعبادةُ والحياةُ والموتُ — كل شيء لله. إعلانٌ لتوحيد الإرادة وإخلاص الوجود من أوله إلى آخره.',
+    hadithAr: 'عن علي ﵁ قال: «كان رسول الله ﷺ إذا قام إلى الصلاة قال: وجَّهتُ وجهي للذي فطر السماوات والأرض... إن صلاتي ونسكي ومحياي ومماتي لله رب العالمين» — رواه مسلم',
+    transliterationArabic: "Qul inna ṣalātī wa-nusukī wa-maḥyāya wa-mamātī lillāhi Rabbi al-ʿālamīn · lā sharīka lahu · wa-bidhālika umirtu wa-anā awwalu al-muslimīn",
+    contextEn: "The Muslim's declaration of total dedication — prayer, worship, life, and death all for Allah alone. Recited at the opening of ṣalāh or as a daily life-affirmation.",
+    contextAr: 'إعلان الإخلاص الكامل — تُقال في استفتاح الصلاة أو كتأكيد يومي لمعنى العبودية.',
+    category: 'gratitude',
+    occasions: ['morning', 'after_prayer', 'gratitude_moment'],
+    tags: ['tawhid', 'dedication', 'prayer', 'life', 'death', 'sincerity', 'salah'],
+  },
+
+  // ── 7. Al-Aʿrāf (additional) ──────────────────────────────────────────────
+  {
+    id: 'dua_sorcerers_faith',
+    titleEn: "The Sorcerers' Prayer — Patience and Muslim Death",
+    titleAr: 'دعاء سحرة فرعون بعد إيمانهم — الصبر والوفاة على الإسلام',
+    surah: 7, ayah: 126,
+    surahNameEn: "Al-Aʿrāf", surahNameAr: 'الأعراف',
+    ayatUthmani: 'رَبَّنَآ أَفْرِغْ عَلَيْنَا صَبْرًۭا وَتَوَفَّنَا مُسْلِمِينَ',
+    meaningEn: 'Our Lord, pour upon us patience and let us die as Muslims in submission to You.',
+    meaningAr: 'لحظةٌ تاريخية: سحرةٌ جاؤوا مأجورين فآمنوا في ثوانٍ وفرعون يُهددهم بالقتل — فطلبوا شيئين فقط: الصبر على العذاب، والوفاة على الإسلام. لم يطلبوا النجاة بل الثبات.',
+    hadithAr: 'قال ابن كثير ﵀: «في ساعة واحدة صاروا كفاراً سحرةً، وفي آخرها صاروا شهداءَ بررةً، نفعتهم تلك اللحظة من الإيمان»',
+    transliterationArabic: 'Rabbanā afrigh ʿalaynā ṣabran wa-tawaffanā muslimīn',
+    contextEn: "One of the most moving Quranic prayers — said by Pharaoh's sorcerers after instant conversion, facing death. A prayer for patience in crisis and dying as Muslims.",
+    contextAr: 'من أعمق أدعية القرآن — قاله السحرةُ في ثوانٍ من إيمانهم وهم يواجهون الموت. دعاء الصبر والخاتمة.',
+    category: 'believers',
+    occasions: ['hardship', 'before_sleep', 'seeking_forgiveness', 'anxiety'],
+    tags: ['sorcerers', 'patience', 'death', 'faith', 'short', 'powerful', 'pharaoh'],
+  },
+  {
+    id: 'dua_musa_sinai',
+    titleEn: "Mūsā's Prayer on Mount Sinai — Forgiveness After the Golden Calf",
+    titleAr: 'دعاء موسى في الطور — المغفرة بعد فتنة العجل',
+    surah: 7, ayah: 155, ayahEnd: 156,
+    surahNameEn: "Al-Aʿrāf", surahNameAr: 'الأعراف',
+    ayatUthmani: 'رَبِّ لَوْ شِئْتَ أَهْلَكْتَهُم مِّن قَبْلُ وَإِيَّٰىَ ۖ أَتُهْلِكُنَا بِمَا فَعَلَ ٱلسُّفَهَآءُ مِنَّآ ۖ إِنْ هِىَ إِلَّا فِتْنَتُكَ تُضِلُّ بِهَا مَن تَشَآءُ وَتَهْدِى مَن تَشَآءُ ۖ أَنتَ وَلِيُّنَا فَٱغْفِرْ لَنَا وَٱرْحَمْنَا ۖ وَأَنتَ خَيْرُ ٱلْغَٰفِرِينَ ۝ وَٱكْتُبْ لَنَا فِى هَٰذِهِ ٱلدُّنْيَا حَسَنَةًۭ وَفِى ٱلْءَاخِرَةِ إِنَّا هُدْنَآ إِلَيْكَ',
+    meaningEn: "My Lord, if You had willed, You could have destroyed them before and me as well. Will You destroy us for what the foolish among us have done?… You are our Protector, so forgive us and have mercy upon us; and You are the best of forgivers. And decree for us in this world that which is good and also in the Hereafter. Indeed we have turned back to You.",
+    meaningAr: 'وقف موسى ﵇ متشفِّعًا لقومه بعد فتنة العجل: احتجَّ بأن الفتنة من علم الله، وأقرَّ بأنه الولي، وطلب الغفران والرحمة والحسنة في الدارين.',
+    transliterationArabic: "Rabbi law shiʾta ahlaktahum min qablu wa-iyyāya... anta waliyyunā fa-ghfir lanā wa-rḥamnā wa-anta khayru al-ghāfirīn · wa-ktub lanā fī al-dunyā ḥasanatan wa-fī al-ākhirati innā hudnā ilayk",
+    contextEn: "Mūsā's eloquent intercession — combining theological argument, submission, and supplication for both worlds. One of the deepest prophetic prayers.",
+    contextAr: 'دعاء موسى الجامع في الطور — يجمع الحجة والتسليم وطلب الدنيا والآخرة.',
+    category: 'prophets', prophet: 'Musa',
+    occasions: ['seeking_forgiveness', 'hardship', 'after_prayer'],
+    tags: ['musa', 'sinai', 'golden calf', 'intercession', 'forgiveness', 'both worlds'],
+  },
+
+  // ── 9. At-Tawbah ──────────────────────────────────────────────────────────
+  {
+    id: 'dua_hasbiyallah',
+    titleEn: 'Ḥasbiyallāh — Allah Alone is My Sufficiency',
+    titleAr: 'حسبي الله — توكل النبي ﷺ المطلق',
+    surah: 9, ayah: 129,
+    surahNameEn: 'At-Tawbah', surahNameAr: 'التوبة',
+    ayatUthmani: 'حَسْبِىَ ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ۖ عَلَيْهِ تَوَكَّلْتُ ۖ وَهُوَ رَبُّ ٱلْعَرْشِ ٱلْعَظِيمِ',
+    meaningEn: 'Sufficient for me is Allah; there is no deity except Him. On Him I have relied, and He is the Lord of the Great Throne.',
+    meaningAr: 'أُمر النبي ﷺ بقولها حين تولَّى المشركون — فيها توحيدٌ وتوكلٌ مطلق. قال النبي ﷺ: مَن قالها سبع مرات صباحًا وسبعًا مساءً كفاه الله ما أهمَّه.',
+    hadithAr: 'عن أبي الدرداء ﵁ قال: قال رسول الله ﷺ: «مَن قال حين يصبح وحين يمسي: حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم — سبع مرات — كفاه الله ما أهمَّه» — رواه أبو داود',
+    transliterationArabic: 'Ḥasbiya allāhu lā ilāha illā huwa, ʿalayhi tawakkaltu, wa-huwa Rabbu al-ʿarshi al-ʿaẓīm',
+    contextEn: "Prescribed by the Prophet ﷺ seven times morning and evening — Allah promises sufficiency for whatever concerns you.",
+    contextAr: 'قالها النبي ﷺ صباحاً ومساءً سبعاً — ووعد بالكفاية في كل ما يهمّك.',
+    category: 'protection',
+    occasions: ['morning', 'evening', 'hardship', 'anxiety', 'after_prayer'],
+    tags: ['hasbiyallah', 'tawakkul', 'morning', 'evening', 'seven', 'short', 'powerful'],
+  },
+
+  // ── 11. Hūd (additional) ──────────────────────────────────────────────────
+  {
+    id: 'dua_shuayb_tawakkul',
+    titleEn: "Shuʿayb's Complete Reliance — My Success Is Only Through Allah",
+    titleAr: 'إعلان شعيب التوكل الكامل — وما توفيقي إلا بالله',
+    surah: 11, ayah: 88,
+    surahNameEn: 'Hūd', surahNameAr: 'هود',
+    ayatUthmani: 'وَمَا تَوْفِيقِىٓ إِلَّا بِٱللَّهِ ۚ عَلَيْهِ تَوَكَّلْتُ وَإِلَيْهِ أُنِيبُ',
+    meaningEn: 'And my success is not but through Allah. Upon Him I have relied, and to Him I return.',
+    meaningAr: 'أعلن شعيب ﵇ أمام قومه الكذابين أن توفيقه كله من الله لا من حوله وقوته — ثم توكَّل على الله وأناب إليه. جملةٌ قصيرة تحمل فلسفة القيادة الربانية.',
+    transliterationArabic: 'Wa-mā tawfīqī illā billāh, ʿalayhi tawakkaltu wa-ilayhi unīb',
+    contextEn: "Shu'ayb's declaration at the peak of opposition — complete reliance on Allah for success. Excellent before any project, leadership challenge, or mission.",
+    contextAr: 'إعلان شعيب أمام المعارضين — تفويضٌ كامل لله في التوفيق. مناسب قبل أي مهمة.',
+    category: 'believers',
+    occasions: ['morning', 'hardship', 'studying', 'after_prayer'],
+    tags: ['shuayb', 'tawakkul', 'success', 'reliance', 'short', 'leadership'],
+  },
+
+  // ── 12. Yūsuf ─────────────────────────────────────────────────────────────
+  {
+    id: 'dua_yusuf_prison',
+    titleEn: "Yūsuf's Prayer in Prison — Preferring Hardship Over Sin",
+    titleAr: 'دعاء يوسف في السجن — السجن أحبُّ إليه من المعصية',
+    surah: 12, ayah: 33,
+    surahNameEn: 'Yūsuf', surahNameAr: 'يوسف',
+    ayatUthmani: 'رَبِّ ٱلسِّجْنُ أَحَبُّ إِلَىَّ مِمَّا يَدْعُونَنِىٓ إِلَيْهِ ۖ وَإِلَّا تَصْرِفْ عَنِّى كَيْدَهُنَّ أَصْبُ إِلَيْهِنَّ وَأَكُن مِّنَ ٱلْجَٰهِلِينَ',
+    meaningEn: "My Lord, prison is more to my liking than what they invite me to. And if You do not avert from me their plan, I might incline toward them and thus be of the ignorant.",
+    meaningAr: 'من أعظم أدعية العفاف في القرآن: يُفضِّل يوسف ﵇ السجنَ على الحرام، ثم يُقرُّ بضعفه الإنساني ويطلب صرف الكيد عنه. درسٌ في التوازن بين الإيمان والاعتراف بضعف النفس.',
+    transliterationArabic: 'Rabbi al-sijnu aḥabbu ilayya mimmā yadʿūnanī ilayhī · wa-illā taṣrif ʿannī kaydahunna aṣbu ilayhinna wa-akun min al-jāhilīn',
+    contextEn: "Yūsuf's powerful prayer against temptation — acknowledging human weakness while choosing honour. For anyone facing moral pressure or temptation.",
+    contextAr: 'دعاء يوسف في وجه الفتنة — اعترافٌ بالضعف وطلبٌ للصرف. مناسب لمواجهة الإغراء.',
+    category: 'prophets', prophet: 'Yusuf',
+    occasions: ['hardship', 'seeking_forgiveness', 'doubt'],
+    tags: ['yusuf', 'prison', 'chastity', 'temptation', 'weakness', 'protection', 'moral'],
+  },
+  {
+    id: 'dua_yusuf_final',
+    titleEn: "Yūsuf's Final Prayer — To Die as a Muslim Among the Righteous",
+    titleAr: 'دعاء يوسف الجامع — التوفِّي مسلماً والإلحاق بالصالحين',
+    surah: 12, ayah: 101,
+    surahNameEn: 'Yūsuf', surahNameAr: 'يوسف',
+    ayatUthmani: 'رَبِّ قَدْ ءَاتَيْتَنِى مِنَ ٱلْمُلْكِ وَعَلَّمْتَنِى مِن تَأْوِيلِ ٱلْأَحَادِيثِ ۚ فَاطِرَ ٱلسَّمَٰوَٰتِ وَٱلْأَرْضِ أَنتَ وَلِيِّۦ فِى ٱلدُّنْيَا وَٱلْءَاخِرَةِ ۖ تَوَفَّنِى مُسْلِمًۭا وَأَلْحِقْنِى بِٱلصَّٰلِحِينَ',
+    meaningEn: "My Lord, You have given me of sovereignty and taught me of the interpretation of dreams. Creator of the heavens and earth, You are my protector in this world and in the Hereafter. Cause me to die a Muslim and join me with the righteous.",
+    meaningAr: 'بعد سنوات البلاء ثم الملك والجمع بأهله — يختم يوسف ﵇ مسيرته بدعاء يُقرُّ فيه بنعم الله، ثم يطلب شيئًا واحدًا: الوفاة على الإسلام والالتحاق بالصالحين.',
+    transliterationArabic: "Rabbi qad ātaytanī min al-mulki wa-ʿallamtanī min taʾwīl al-aḥādīth · Fāṭira al-samāwāti wa-l-arḍ anta waliyyī fī al-dunyā wa-l-ākhirah · tawaffanī musliman wa-alḥiqnī bi-l-ṣāliḥīn",
+    contextEn: "Yūsuf's prayer at the peak of his life — acknowledging blessings and asking for a Muslim death. The ultimate closing prayer for a believer's life.",
+    contextAr: 'دعاء يوسف في ذروة حياته — شكرٌ على النعم وطلبٌ للخاتمة الصالحة.',
+    category: 'prophets', prophet: 'Yusuf',
+    occasions: ['before_sleep', 'after_prayer', 'gratitude_moment'],
+    tags: ['yusuf', 'death', 'muslim', 'righteous', 'gratitude', 'legacy', 'closure'],
+  },
+
+  // ── 14. Ibrāhīm (additional) ──────────────────────────────────────────────
+  {
+    id: 'dua_ibrahim_idol_protection',
+    titleEn: "Ibrahim's Prayer — Protect Me and My Children from Idols",
+    titleAr: 'دعاء إبراهيم — اجنبني وبنيَّ أن نعبد الأصنام',
+    surah: 14, ayah: 35, ayahEnd: 36,
+    surahNameEn: 'Ibrāhīm', surahNameAr: 'إبراهيم',
+    ayatUthmani: 'رَبِّ ٱجْعَلْ هَٰذَا ٱلْبَلَدَ ءَامِنًۭا وَٱجْنُبْنِى وَبَنِىَّ أَن نَّعْبُدَ ٱلْأَصْنَامَ ۝ رَبِّ إِنَّهُنَّ أَضْلَلْنَ كَثِيرًۭا مِّنَ ٱلنَّاسِ ۖ فَمَن تَبِعَنِى فَإِنَّهُۥ مِنِّى ۖ وَمَنْ عَصَانِى فَإِنَّكَ غَفُورٌۭ رَّحِيمٌۭ',
+    meaningEn: "My Lord, make this city secure and keep me and my sons away from worshipping idols. My Lord, indeed they have led astray many among the people. So whoever follows me is of me; and whoever disobeys me — indeed, You are Forgiving and Merciful.",
+    meaningAr: 'قاله إبراهيم ﵇ في أرض مكة يطلب: الأمنَ للبلد، والنجاةَ له ولذريته من الشرك — مُقرًّا بخطورة الأصنام وكثرة من أضلَّت.',
+    transliterationArabic: "Rabbi j'al hādhā al-balada āminan wa-jnubnī wa-baniyya an naʿbuda al-aṣnām · innaka ghafūrun raḥīm",
+    contextEn: "Ibrahim's prayer for protection from idols — both literal and symbolic. Deeply relevant for parents raising children in a materialistic world.",
+    contextAr: 'دعاء إبراهيم من الشرك والإلهاء — مناسب للآباء الذين يُربُّون أبناءهم في وسط مادي مشتِّت.',
+    category: 'prophets', prophet: 'Ibrahim',
+    occasions: ['for_children', 'morning', 'seeking_guidance', 'doubt'],
+    tags: ['ibrahim', 'idols', 'shirk', 'protection', 'makkah', 'family', 'children'],
+  },
+
+  // ── 17. Al-Isrāʾ (additional) ─────────────────────────────────────────────
+  {
+    id: 'dua_isra_entry_exit',
+    titleEn: 'Prayer for Righteous Entry and Exit',
+    titleAr: 'دعاء المدخل الصدق والمخرج الصدق',
+    surah: 17, ayah: 80,
+    surahNameEn: 'Al-Isrāʾ', surahNameAr: 'الإسراء',
+    ayatUthmani: 'رَّبِّ أَدْخِلْنِى مُدْخَلَ صِدْقٍۢ وَأَخْرِجْنِى مُخْرَجَ صِدْقٍۢ وَٱجْعَل لِّى مِن لَّدُنكَ سُلْطَٰنًۭا نَّصِيرًۭا',
+    meaningEn: "My Lord, cause me to enter a sound entrance and to exit a sound exit and grant me from Yourself a supporting authority.",
+    meaningAr: 'دعاءٌ يُقال عند كل مدخل ومخرج في الحياة: دخول مكان، بداية مشروع، قرار جديد — يطلب المرء أن يكون دخوله وخروجه على الحق مع سلطان ونصرة من الله.',
+    hadithAr: 'عن أنس ﵁ قال: «كان رسول الله ﷺ إذا دخل المدينة قال: اللهم أدخلني مُدخَل صدق وأخرجني مُخرَج صدق» — رواه الترمذي وحسَّنه',
+    transliterationArabic: 'Rabbi adkhilnī mudkhala ṣidqin wa-akhrijnī mukhraja ṣidqin wa-jʿal lī min ladunka sulṭānan naṣīrā',
+    contextEn: "Recited for any new beginning — entering a city, starting a job, beginning a journey, making a major decision.",
+    contextAr: 'يُقال عند كل بداية: دخول مدينة، بداية عمل، سفر، قرار مصيري.',
+    category: 'morning_evening',
+    occasions: ['morning', 'travel', 'hardship', 'after_prayer'],
+    tags: ['entry', 'exit', 'transition', 'beginning', 'city', 'journey', 'new start'],
+  },
+
+  // ── 21. Al-Anbiyāʾ (additional) ───────────────────────────────────────────
+  {
+    id: 'dua_anbiyaa_just_judgment',
+    titleEn: "The Prophet's Prayer for Allah's Just Judgment",
+    titleAr: 'دعاء النبي بالحكم بالحق',
+    surah: 21, ayah: 112,
+    surahNameEn: 'Al-Anbiyāʾ', surahNameAr: 'الأنبياء',
+    ayatUthmani: 'رَّبِّ ٱحْكُم بِٱلْحَقِّ ۗ وَرَبُّنَا ٱلرَّحْمَٰنُ ٱلْمُسْتَعَانُ عَلَىٰ مَا تَصِفُونَ',
+    meaningEn: 'My Lord, judge in truth. And our Lord is the Most Merciful, the one sought for help against what you describe.',
+    meaningAr: 'ختم الله سورة الأنبياء بهذا الدعاء: إحالةُ الحكم إلى الله، والتوكلُ عليه في مواجهة الباطل. فيه تبرُّؤٌ من قضاء الخلق واحتكامٌ لقضاء الله.',
+    transliterationArabic: 'Rabbi uḥkum bi-l-ḥaqq · wa-Rabbunā al-Raḥmānu al-mustaʿānu ʿalā mā taṣifūn',
+    contextEn: "The closing prayer of Sūrat Al-Anbiyāʾ — asking Allah for His just judgment when falsely accused or oppressed.",
+    contextAr: 'خاتمة سورة الأنبياء — الاحتكام لقضاء الله حين يُكذَّب المرء أو يُظلم.',
+    category: 'general',
+    occasions: ['hardship', 'after_prayer', 'anxiety'],
+    tags: ['judgment', 'justice', 'truth', 'help', 'accusation', 'oppression'],
+  },
+
+  // ── 23. Al-Muʾminūn (additional) ──────────────────────────────────────────
+  {
+    id: 'dua_muminun_closing',
+    titleEn: "Closing Prayer of Al-Muʾminūn — Forgive and Have Mercy",
+    titleAr: 'خاتمة المؤمنون — رب اغفر وارحم',
+    surah: 23, ayah: 118,
+    surahNameEn: 'Al-Muʾminūn', surahNameAr: 'المؤمنون',
+    ayatUthmani: 'رَّبِّ ٱغْفِرْ وَٱرْحَمْ وَأَنتَ خَيْرُ ٱلرَّٰحِمِينَ',
+    meaningEn: 'My Lord, forgive and have mercy, and You are the best of the merciful.',
+    meaningAr: 'يختم الله سورة المؤمنون بهذا الدعاء الموجز — المغفرة والرحمة لا غير، معترفًا بأن الله خير الراحمين. قصر الكلمات يعكس خضوعًا تامًّا لرحمة الله.',
+    transliterationArabic: 'Rabbi ghfir wa-rḥam wa-anta khayru al-rāḥimīn',
+    contextEn: "The final verse of Sūrat Al-Muʾminūn — three words of pure pleading. One of the shortest and most heartfelt Quranic prayers.",
+    contextAr: 'خاتمة المؤمنون — ثلاث كلمات خالصة للرحمة والمغفرة.',
+    category: 'forgiveness',
+    occasions: ['seeking_forgiveness', 'before_sleep', 'after_prayer'],
+    tags: ['forgiveness', 'mercy', 'short', 'sincere', 'closing', 'comprehensive'],
+  },
+
+  // ── 28. Al-Qaṣaṣ (additional) ─────────────────────────────────────────────
+  {
+    id: 'dua_musa_rescue',
+    titleEn: "Mūsā's Escape Prayer — Save Me from the Oppressors",
+    titleAr: 'دعاء موسى بطلب النجاة من القوم الظالمين',
+    surah: 28, ayah: 21,
+    surahNameEn: 'Al-Qaṣaṣ', surahNameAr: 'القصص',
+    ayatUthmani: 'رَبِّ نَجِّنِى مِنَ ٱلْقَوْمِ ٱلظَّٰلِمِينَ',
+    meaningEn: 'My Lord, save me from the wrongdoing people.',
+    meaningAr: 'قالها موسى ﵇ وهو يُغادر مصر خائفًا يترقَّب بعد حادثة القتل الخطأ — خمس كلمات تخرج من قلب يائس يطلب النجاة من الظلم. استُجيب له وهداه الله إلى مدين.',
+    transliterationArabic: 'Rabbi najjinī min al-qawm al-ẓālimīn',
+    contextEn: "Mūsā's escape prayer fleeing Egypt — five words in total desperation. For anyone fleeing injustice, oppression, or dangerous circumstances.",
+    contextAr: 'دعاء موسى وهو يفرُّ من مصر — خمس كلمات في الضيق التام. مناسب لمن يواجه الظلم.',
+    category: 'prophets', prophet: 'Musa',
+    occasions: ['hardship', 'anxiety'],
+    tags: ['musa', 'escape', 'oppression', 'injustice', 'short', 'rescue'],
+  },
+  {
+    id: 'dua_musa_need',
+    titleEn: "Mūsā's Prayer of Need — I Am Poor to Whatever Good You Bestow",
+    titleAr: 'دعاء موسى في الفقر والحاجة — رب إني لما أنزلت إلي من خير فقير',
+    surah: 28, ayah: 24,
+    surahNameEn: 'Al-Qaṣaṣ', surahNameAr: 'القصص',
+    ayatUthmani: 'رَبِّ إِنِّى لِمَآ أَنزَلْتَ إِلَىَّ مِنْ خَيْرٍۢ فَقِيرٌۭ',
+    meaningEn: 'My Lord, indeed I am, for whatever good You would send down to me, in need.',
+    meaningAr: 'وصل موسى ﵇ إلى مدين غريبًا وحيدًا جائعًا — فسقى غنم البنتين ثم جلس ظليلًا وقال هذا الدعاء. لم يطلب شيئًا محددًا بل أعلن حاجته لله مطلقًا. فأُجيب في الحال.',
+    hadithAr: 'قال ابن عطاء ﵀: «جمع هذا الدعاء الأدبَ والتواضعَ والتوكل؛ لم يُقيِّد الطلب بشيء بل فوَّض الأمر لله في كل خير يُنزِّله»',
+    transliterationArabic: 'Rabbi innī limā anzalta ilayya min khayrin faqīr',
+    contextEn: "One of the most profound prayers of need — Mūsā, alone and hungry in a foreign land, expressed total dependence without asking for anything specific. Answered immediately.",
+    contextAr: 'دعاء موسى في الغربة والجوع — أعلن الحاجة الكاملة دون تقييد. استُجيب فورًا.',
+    category: 'prophets', prophet: 'Musa',
+    occasions: ['hardship', 'anxiety', 'health'],
+    tags: ['musa', 'need', 'poverty', 'provision', 'dependence', 'short', 'heartfelt'],
+  },
+
+  // ── 29. Al-ʿAnkabūt ───────────────────────────────────────────────────────
+  {
+    id: 'dua_lut_victory',
+    titleEn: "Lūṭ's Prayer Against the Corrupters",
+    titleAr: 'دعاء لوط بالنصر على المفسدين',
+    surah: 29, ayah: 30,
+    surahNameEn: "Al-ʿAnkabūt", surahNameAr: 'العنكبوت',
+    ayatUthmani: 'رَبِّ ٱنصُرْنِى عَلَى ٱلْقَوْمِ ٱلْمُفْسِدِينَ',
+    meaningEn: 'My Lord, help me against the corrupting people.',
+    meaningAr: 'قالها لوط ﵇ بعد سنوات من وحدة الدعوة والتكذيب — فنجَّاه الله وأهلك المفسدين. دعاءٌ موجز يطلب النصرة على كل فسادٍ ومفسِد.',
+    transliterationArabic: 'Rabbi nṣurnī ʿalā al-qawm al-mufsidīn',
+    contextEn: "Lūṭ's prayer after years of standing alone against corruption — answered with divine intervention. For those fighting corruption or prolonged injustice.",
+    contextAr: 'دعاء لوط بعد سنوات من الصمود — استُجيب بالنصرة الإلهية.',
+    category: 'prophets', prophet: 'Lut',
+    occasions: ['hardship', 'anxiety', 'after_prayer'],
+    tags: ['lut', 'corruption', 'victory', 'help', 'short', 'perseverance'],
+  },
+
+  // ── 37. Aṣ-Ṣāffāt ────────────────────────────────────────────────────────
+  {
+    id: 'dua_ibrahim_saffat',
+    titleEn: "Ibrahim's Simple Prayer for a Righteous Child",
+    titleAr: 'دعاء إبراهيم الموجز لهبة الصالحين',
+    surah: 37, ayah: 100,
+    surahNameEn: 'Aṣ-Ṣāffāt', surahNameAr: 'الصافات',
+    ayatUthmani: 'رَبِّ هَبْ لِى مِنَ ٱلصَّٰلِحِينَ',
+    meaningEn: 'My Lord, grant me [a child] from among the righteous.',
+    meaningAr: 'طلب إبراهيم ﵇ الولد في خمس كلمات — لم يطلب الذكر ولا الوارث للملك بل طلب من الصالحين. فلمَّا بُشِّر بغلامٍ حليم كان إسماعيل — استجابةٌ فاقت كل توقع.',
+    transliterationArabic: 'Rabbi hab lī mina al-ṣāliḥīn',
+    contextEn: "Ibrahim's shortest prayer for offspring — five words, asking only for righteousness. Answered with Isma'il. A model: ask for pious children, not just any children.",
+    contextAr: 'أقصر دعاء لإبراهيم للذرية — خمس كلمات طلب فيها الصلاح. نموذج في جودة الطلب.',
+    category: 'prophets', prophet: 'Ibrahim',
+    occasions: ['for_children', 'after_prayer', 'hardship'],
+    tags: ['ibrahim', 'ismail', 'children', 'righteous', 'short', 'offspring', 'answered'],
+  },
+
+  // ── 38. Ṣād ───────────────────────────────────────────────────────────────
+  {
+    id: 'dua_sulayman_unique',
+    titleEn: "Sulaymān's Prayer for Forgiveness and a Unique Kingdom",
+    titleAr: 'دعاء سليمان بالمغفرة وملكٍ لا ينبغي لأحد من بعده',
+    surah: 38, ayah: 35,
+    surahNameEn: 'Ṣād', surahNameAr: 'ص',
+    ayatUthmani: 'رَبِّ ٱغْفِرْ لِى وَهَبْ لِى مُلْكًۭا لَّا يَنۢبَغِى لِأَحَدٍۢ مِّنۢ بَعْدِىٓ ۖ إِنَّكَ أَنتَ ٱلْوَهَّابُ',
+    meaningEn: 'My Lord, forgive me and grant me a kingdom such as will not belong to anyone after me. Indeed, You are the Bestower.',
+    meaningAr: 'بدأ سليمان ﵇ دعاءه بالمغفرة قبل طلب الملك — فلم تُغرِّه النعمة عن الاستغفار. ثم طلب ملكًا فريدًا يكون آيةً لا مثيلَ له. فأُعطي ما طلب وزيادة.',
+    hadithAr: 'عن أبي هريرة ﵁ عن النبي ﷺ: «ذكرتُ دعوة أخي سليمان: رب هب لي ملكًا لا ينبغي لأحد من بعدي، فردَدتُ الشيطان أكبَّه الله وجهَه في التراب» — متفق عليه',
+    transliterationArabic: "Rabbi ghfir lī wa-hab lī mulkan lā yanbaghī li-aḥadin min baʿdī, innaka anta al-Wahhāb",
+    contextEn: "Sulaymān's prayer — beginning with forgiveness before asking for the greatest kingdom ever given. Humility even at the height of power.",
+    contextAr: 'دعاء سليمان يبدأ بالمغفرة قبل الملك — نموذجٌ في التواضع عند قمة القوة.',
+    category: 'prophets', prophet: 'Sulayman',
+    occasions: ['seeking_forgiveness', 'gratitude_moment', 'after_prayer'],
+    tags: ['sulayman', 'kingdom', 'forgiveness', 'unique', 'power', 'al-wahhab'],
+  },
+
+  // ── 40. Ghāfir (additional) ───────────────────────────────────────────────
+  {
+    id: 'dua_ghafir_believer_surrender',
+    titleEn: "Believer of Pharaoh's Court — I Entrust My Affair to Allah",
+    titleAr: 'إعلان مؤمن آل فرعون التفويض الكامل لله',
+    surah: 40, ayah: 44,
+    surahNameEn: 'Ghāfir', surahNameAr: 'غافر',
+    ayatUthmani: 'وَأُفَوِّضُ أَمْرِىٓ إِلَى ٱللَّهِ ۚ إِنَّ ٱللَّهَ بَصِيرٌۢ بِٱلْعِبَادِ',
+    meaningEn: 'And I entrust my affair to Allah. Indeed, Allah is Seeing of His servants.',
+    meaningAr: 'قالها المؤمن من آل فرعون بعد أن أعلن إيمانه في حضرة الطاغية — تفويضٌ مطلق يُقرُّ فيه بأن الله يرى كل شيء. فأنجاه الله من شرورهم. نموذجٌ في الاستسلام الواعي.',
+    transliterationArabic: 'Wa-ufawwiḍu amrī ilā allāh, inna allāha baṣīrun bi-l-ʿibād',
+    contextEn: "Spoken by the hidden believer in Pharaoh's court when he declared his faith. Complete surrender when human protection is impossible.",
+    contextAr: 'قالها المؤمن المخفي في قصر فرعون — تفويضٌ كامل حين يُستحيل الحماية البشرية.',
+    category: 'believers',
+    occasions: ['hardship', 'anxiety', 'after_prayer'],
+    tags: ['tawakkul', 'surrender', 'trust', 'pharaoh', 'courage', 'faith', 'short'],
+  },
+
+  // ── 54. Al-Qamar ──────────────────────────────────────────────────────────
+  {
+    id: 'dua_nuh_brief_plea',
+    titleEn: "Nūḥ's Brief Plea After 950 Years — I Am Overcome, Help Me",
+    titleAr: 'دعاء نوح الموجز بعد تسعة وخمسين قرنًا — إني مغلوب فانتصر',
+    surah: 54, ayah: 10,
+    surahNameEn: 'Al-Qamar', surahNameAr: 'القمر',
+    ayatUthmani: 'أَنِّى مَغْلُوبٌۭ فَٱنتَصِرْ',
+    meaningEn: 'Indeed, I am overcome, so help me.',
+    meaningAr: 'أوجز نوح ﵇ حاله بعد 950 سنة من الدعوة في ثلاث كلمات: اعترافٌ بالعجز وطلبٌ للنصر. لم يشرح ولم يُطوِّل — فاستجاب الله وأنزل الطوفان. من أقصر الأدعية وأعظمها أثرًا.',
+    transliterationArabic: 'Annī maghlūbun fa-ntaṣir',
+    contextEn: "The most concise victory prayer in the Quran — three words after 950 years of perseverance. For moments of complete exhaustion when words fail.",
+    contextAr: 'أقصر دعاء نصر في القرآن — ثلاث كلمات بعد 950 عامًا. للحظات الإعياء التام.',
+    category: 'prophets', prophet: 'Nuh',
+    occasions: ['hardship', 'anxiety'],
+    tags: ['nuh', 'victory', 'help', 'exhausted', 'short', 'powerful', 'perseverance'],
   },
 ];
