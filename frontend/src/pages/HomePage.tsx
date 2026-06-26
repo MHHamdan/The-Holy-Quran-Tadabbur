@@ -34,6 +34,7 @@ import {
   GitCompare,
   FlipHorizontal2,
   Sigma,
+  Scroll,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
@@ -181,6 +182,16 @@ const KNOWLEDGE_FEATURES: Feature[] = [
     link: '/surah-atlas',
     color: 'text-purple-700',
     iconBg: 'bg-purple-100',
+  },
+  {
+    icon: Scroll,
+    titleAr: 'أسباب النزول',
+    titleEn: 'Occasions of Revelation',
+    descAr: 'تعرّف على سياق نزول الآيات القرآنية — من كتاب الواحدي (ت 468 هـ)',
+    descEn: 'Discover the historical context of each verse — from al-Wahidi\'s classical Asbab al-Nuzul',
+    link: '/asbab',
+    color: 'text-amber-700',
+    iconBg: 'bg-amber-100',
   },
 ];
 
