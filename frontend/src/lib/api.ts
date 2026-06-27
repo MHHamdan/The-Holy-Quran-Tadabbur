@@ -3449,3 +3449,35 @@ export const prophetsApi = {
       )
       .then((r) => r.data),
 };
+
+// ─── Quiz AI Generator ────────────────────────────────────────────────────────
+
+export interface AIQuizOption {
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface AIQuizQuestion {
+  id: string;
+  question: string;
+  options: AIQuizOption[];
+  explanation: string;
+  surahRef: number;
+  difficulty: string;
+  category: string;
+  isAI: boolean;
+}
+
+export interface GenerateQuestionsResponse {
+  questions: AIQuizQuestion[];
+  surah: number;
+  sourceChunks: number;
+  latency_ms: number;
+}
+
+export const quizApi = {
+  generateQuestions: (surah: number, count = 3, lang: 'ar' | 'en' = 'ar') =>
+    api
+      .post<GenerateQuestionsResponse>('/quiz/generate-questions', { surah, count, lang })
+      .then((r) => r.data),
+};
