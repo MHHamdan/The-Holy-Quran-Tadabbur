@@ -122,6 +122,7 @@ class StatisticsResponse(BaseModel):
     byAddresseeType: dict[str, int]
     byCallerType: dict[str, int]
     topSurahs: list[dict]
+    bySurah: dict[int, int]
     latency_ms: float
 
 
@@ -368,6 +369,13 @@ async def get_statistics():
     t0 = time.monotonic()
     atlas = _load_atlas()
     stats = atlas.get("statistics", {})
+    # Build per-surah call count from the full calls list
+    by_surah: dict[int, int] = {}
+    for c in _calls_list():
+        sn = c.get("surahNumber")
+        if isinstance(sn, int):
+            by_surah[sn] = by_surah.get(sn, 0) + 1
+
     return StatisticsResponse(
         totalCalls=atlas.get("totalCalls", 0),
         totalAyahsWithCalls=atlas.get("totalAyahsWithCalls", 0),
@@ -380,6 +388,7 @@ async def get_statistics():
         byAddresseeType=stats.get("byAddresseeType", {}),
         byCallerType=stats.get("byCallerType", {}),
         topSurahs=stats.get("topSurahs", []),
+        bySurah=by_surah,
         latency_ms=round((time.monotonic() - t0) * 1000, 2),
     )
 

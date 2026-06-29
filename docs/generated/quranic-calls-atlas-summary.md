@@ -1,6 +1,6 @@
 # Quranic Calls Atlas — Scan Summary
 
-Generated: 2026-06-29T08:37:48.817Z
+Generated: 2026-06-29T14:30:13.445Z
 Version: 1.0.0-phase-y
 
 ## Overview

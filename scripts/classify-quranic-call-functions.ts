@@ -1,22 +1,13 @@
 /**
- * Quranic Calls Atlas — Classification Script
+ * Quranic Calls Atlas — Classification Script (v2)
  *
- * Reads quranicCallsAtlas.json and applies:
- *   1. Rule-based function classification (topic signal words)
- *   2. Entity-signal classification (prophet names, groups)
- *   3. Tone heuristics (gentle / warning / honoring / etc.)
+ * Uses ayahTextEmlaei (standard alef/hamza forms) for signal matching
+ * so signal words like "استعينوا" match the ayah text correctly.
  *
- * IMPORTANT:
- *   - All output classifications remain needs_review = true
- *   - humanReviewRequired = true always
- *   - No Quran text is modified
- *   - Inferred classifications are signals, not ground truth
+ * Coverage improved: rules tuned per addressee type + pattern type.
+ * All output classifications remain: reviewStatus=needs_review, humanReviewRequired=true.
  *
- * Outputs:
- *   frontend/src/data/generated/quranicCallsClassified.json
- *
- * Usage:
- *   npx tsx scripts/classify-quranic-call-functions.ts
+ * Outputs: frontend/src/data/generated/quranicCallsClassified.json
  */
 
 import { readFileSync, writeFileSync } from 'fs';
@@ -34,9 +25,10 @@ interface QuranicCall {
   surahNameAr: string;
   surahNameEn: string;
   ayahTextUthmani: string;
+  ayahTextEmlaei?: string;
   callText?: string;
   callPattern: string;
-  caller: { callerType: string; confidence: number; reviewStatus: string; labelArabic?: string; labelEnglish?: string };
+  caller: { callerType: string; labelArabic?: string; labelEnglish?: string; confidence: number; reviewStatus: string };
   addressee: { addresseeType: string; labelArabic: string; labelEnglish: string; confidence: number; reviewStatus: string };
   callFunction: string;
   tone: string;
@@ -53,208 +45,273 @@ interface QuranicCall {
 
 interface Atlas { version: string; generatedAt: string; totalCalls: number; statistics: Record<string, unknown>; calls: QuranicCall[] }
 
-// ─── Topic-signal classification rules ───────────────────────────────────────
+// ─── Normalised text for matching ─────────────────────────────────────────────
+// Use emlaei text (standard alef/hamza) so signal word lists work correctly.
 
-interface SignalRule {
-  signals: string[];   // stripped Arabic words/phrases to match in ayah text
-  callFunction: string;
+function matchText(call: QuranicCall): string {
+  return (call.ayahTextEmlaei ?? call.ayahTextUthmani ?? '').replace(/[ًٌٍَُِّْٰ]/g, '');
+}
+
+// ─── Signal rules ─────────────────────────────────────────────────────────────
+
+interface Rule {
+  signals: string[];
+  fn: string;
   tone: string;
   topics: string[];
   weight: number;
 }
 
-const SIGNAL_RULES: SignalRule[] = [
-  // Supplication-pattern rules (highest weight)
-  { signals: ['ربنا آتنا', 'ربنا اغفر', 'ربنا تقبل', 'ربنا لا تجعل', 'ربنا هب لنا', 'ربنا آمنا', 'ربنا لا تؤاخذ', 'ربنا افتح', 'ربنا اكشف', 'ربنا بصرنا', 'ربنا لا تزغ', 'ربنا انك جامع'], callFunction: 'supplication', tone: 'gentle', topics: ['دعاء', 'تضرع'], weight: 10 },
-  // Commands / obligation
-  { signals: ['آمنوا', 'أقيموا الصلاة', 'آتوا الزكاة', 'اتقوا الله', 'أطيعوا الله', 'أطيعوا الرسول', 'استعينوا', 'استجيبوا', 'أنفقوا', 'جاهدوا', 'توبوا'], callFunction: 'command', tone: 'urgent', topics: ['تشريع', 'طاعة'], weight: 8 },
-  // Prohibition / warning
-  { signals: ['لا تتخذوا', 'لا تتبعوا', 'لا تقنطوا', 'لا تكونوا', 'لا تفسدوا', 'لا تقربوا', 'لا تأكلوا', 'لا تقولوا', 'احذروا', 'لا تكفروا'], callFunction: 'prohibition', tone: 'warning', topics: ['نهي', 'تحذير'], weight: 8 },
-  // Warning / threat
-  { signals: ['عذاب', 'العذاب', 'جهنم', 'النار', 'وعيد', 'خزي', 'الغضب', 'الهاوية', 'لعنة', 'أليم شديد', 'إن لم'], callFunction: 'warning', tone: 'warning', topics: ['تحذير', 'عقوبة'], weight: 7 },
-  // Invitation / dawah
-  { signals: ['آمنوا بالله', 'فاؤمنوا', 'ادعوا', 'ادخلوا في السلم', 'هلموا', 'تعالوا'], callFunction: 'invitation', tone: 'gentle', topics: ['دعوة', 'إيمان'], weight: 7 },
-  // Comfort / reassurance
-  { signals: ['لا تخف', 'لا تحزن', 'لا تخافوا', 'طمأن', 'إن الله معكم', 'إن الله مع', 'سلام عليكم', 'بشرى'], callFunction: 'comfort', tone: 'comforting', topics: ['تسلية', 'أمان'], weight: 9 },
-  // Reminder / instruction about faith
-  { signals: ['اذكروا', 'تذكرون', 'تتفكرون', 'أفلا', 'ألم تروا', 'ألم تعلم', 'اعتبروا'], callFunction: 'reminder', tone: 'gentle', topics: ['تذكر', 'تدبر'], weight: 6 },
-  // Rhetorical question
-  { signals: ['أفلا تعقلون', 'أفلا تذكرون', 'أفلا تتقون', 'أفلا تبصرون', 'هل أتاك', 'أين شركاؤكم', 'كيف كان'], callFunction: 'question', tone: 'rebuking', topics: ['توبيخ', 'تساؤل'], weight: 7 },
-  // Rebuke
-  { signals: ['لماذا', 'كيف تكفرون', 'وكنتم', 'أنى يؤفكون', 'سفهاء', 'ظلمتم', 'عصيتم', 'بدلتم'], callFunction: 'rebuke', tone: 'rebuking', topics: ['توبيخ', 'انتقاد'], weight: 7 },
-  // Promise / glad tidings
-  { signals: ['بشارة', 'أجر عظيم', 'جنات', 'فوز', 'رضوان الله', 'يدخلهم', 'يكفر', 'يغفر لهم'], callFunction: 'promise', tone: 'gentle', topics: ['بشرى', 'وعد'], weight: 6 },
-  // Honoring / dignified address
-  { signals: ['يا أيها النبي', 'يا أيها الرسول', 'اصطفاك', 'اجتباك', 'النبوة', 'الرسالة'], callFunction: 'instruction', tone: 'honoring', topics: ['النبوة', 'الرسالة'], weight: 9 },
-  // Lament markers
-  { signals: ['يا ويلتى', 'يا ويلنا', 'يا حسرة', 'يا أسفى', 'يا ليتني'], callFunction: 'lament', tone: 'warning', topics: ['حزن', 'ندم'], weight: 10 },
-  // Story / dialogue
-  { signals: ['قال يا', 'فقال يا', 'فقالوا يا', 'نادى', 'نادينا', 'ناداه'], callFunction: 'dialogue', tone: 'neutral', topics: ['قصص', 'حوار'], weight: 5 },
-  // Mercy / forgiveness
-  { signals: ['يغفر', 'اغفر لي', 'تب علينا', 'ارحمنا', 'الرحمة', 'رحيم'], callFunction: 'mercy', tone: 'gentle', topics: ['رحمة', 'مغفرة'], weight: 6 },
+const RULES: Rule[] = [
+  // ── Supplication (in text) ───────────────────────────────────────────────────
+  { signals: ['ربنا آتنا','ربنا اغفر','ربنا تقبل','ربنا لا تجعل','ربنا هب لنا',
+               'ربنا لا تؤاخذ','ربنا افتح','ربنا لا تزغ','ربنا إنك جامع',
+               'ربنا آمنا','ربنا ظلمنا','اغفر لي','ارحمني','تب علي',
+               'ارزقنا','ألقي إلي','رب أنزلني'],
+    fn: 'supplication', tone: 'gentle', topics: ['دعاء','تضرع','مناجاة'], weight: 10 },
+
+  // ── Prohibition / Negation commands ─────────────────────────────────────────
+  { signals: ['لا تتخذوا','لا تتبعوا','لا تقنطوا','لا تكونوا','لا تفسدوا',
+               'لا تقربوا','لا تأكلوا','لا تقولوا','لا تطيعوا','لا تكفروا',
+               'لا تنافقوا','لا تخونوا','لا تجعلوا','لا تبطلوا','لا تتولوا',
+               'لا تحبطوا','لا تمشوا','لا تسرفوا','لا تؤمنوا','لا تنهروا',
+               'لا تشركوا','لا تجادلوا','لا توالوا','لا تلبسوا',
+               'لا تغلوا','لا تعتدوا','لا تقتلوا','لا يحزن','لا يغرنك'],
+    fn: 'prohibition', tone: 'urgent', topics: ['نهي','تحذير','تشريع'], weight: 9 },
+
+  // ── Direct commands / obligations ───────────────────────────────────────────
+  { signals: ['آمنوا بالله','آمنوا بالله ورسوله','اتقوا الله','اتقوا ربكم',
+               'أقيموا الصلاة','آتوا الزكاة','أطيعوا الله','أطيعوا الرسول',
+               'استعينوا','استجيبوا','أنفقوا','جاهدوا','توبوا','اعتصموا',
+               'ادخلوا','احفظوا','استغفروا','أكملوا','اتبعوا','كونوا',
+               'ادعوا','اسجدوا','اركعوا','اسمعوا','أوفوا','اعدلوا',
+               'اشكروا','افعلوا ما تؤمرون','انفذوا','ابتغوا'],
+    fn: 'command', tone: 'urgent', topics: ['أمر','تشريع','طاعة'], weight: 8 },
+
+  // ── Warning / threat ─────────────────────────────────────────────────────────
+  { signals: ['عذاب أليم','العذاب الشديد','النار','جهنم','الخزي','وعيد','خسارة',
+               'غضب الله','سخط','فاحذروا','احذروا','وعيد شديد','العذاب الكبير',
+               'خاسرون','ظالمون','كافرون','هم الفاسقون','وبال'],
+    fn: 'warning', tone: 'warning', topics: ['تحذير','عقوبة','وعيد'], weight: 8 },
+
+  // ── Comfort / reassurance ────────────────────────────────────────────────────
+  { signals: ['لا تخف','لا تحزن','لا تخافوا','لا تحزنوا','طمأنينة','بشرى',
+               'سلام عليكم','فلا خوف','ولا هم يحزنون','رحمة من ربك',
+               'إن الله معكم','الله معنا','ولا تيأسوا','لن نضيع',
+               'الله وليكم','ليس عليك','لا بأس'],
+    fn: 'comfort', tone: 'comforting', topics: ['طمأنينة','رحمة','أمان'], weight: 9 },
+
+  // ── Promise / glad tidings ───────────────────────────────────────────────────
+  { signals: ['أجر عظيم','جنات تجري','فوز','رضوان الله','يكفر','يغفر لكم',
+               'يدخلهم','الفوز العظيم','لهم أجر','مضاعفاً','نعيم مقيم',
+               'يبشرهم','سعادة','خير وأوفر','ثواب'],
+    fn: 'promise', tone: 'gentle', topics: ['وعد','بشرى','الجنة'], weight: 7 },
+
+  // ── Invitation / dawah ───────────────────────────────────────────────────────
+  { signals: ['تعالوا إلى','هلموا','أسلموا','ادخلوا في السلم','فادعوا',
+               'ادعوا ربكم','تدعوا الله','فاؤمنوا','أسلم وجهك','أخلصوا'],
+    fn: 'invitation', tone: 'gentle', topics: ['دعوة','إيمان','توحيد'], weight: 7 },
+
+  // ── Reminder / reflection ────────────────────────────────────────────────────
+  { signals: ['اذكروا','تذكرون','تتفكرون','تتدبرون','ألم تر','ألم تعلم',
+               'ألم تروا','أفلا تعقلون','أفلا تتقون','أفلا تذكرون',
+               'اعتبروا','فاعتبروا','انظروا','تأملوا','فكروا','تبصرون'],
+    fn: 'reminder', tone: 'gentle', topics: ['تذكر','تدبر','عبرة'], weight: 7 },
+
+  // ── Rhetorical question / rebuke ────────────────────────────────────────────
+  { signals: ['أفلا تعقلون','أفلا تتقون','أفلا تبصرون','كيف تكفرون',
+               'أنى يؤفكون','هل من ظالم','ما لكم','أين شركاؤكم',
+               'لماذا','أتعبدون','تزعمون','كنتم تكذبون','كنتم تعتدون',
+               'بم تستكبرون'],
+    fn: 'rebuke', tone: 'rebuking', topics: ['توبيخ','انتقاد','تساؤل'], weight: 8 },
+
+  // ── Honoring the Prophet ─────────────────────────────────────────────────────
+  { signals: ['يا أيها النبي','يا أيها الرسول','بلغ ما أنزل','لا يحزنك',
+               'ليس عليك هداهم','قل للذين','ما عليك إلا البلاغ','جاهد'],
+    fn: 'instruction', tone: 'honoring', topics: ['النبوة','الرسالة','تكريم'], weight: 9 },
+
+  // ── Lament / grief ───────────────────────────────────────────────────────────
+  { signals: ['يا ويلتى','يا ويلنا','يا حسرة','يا أسفى','يا ليتني',
+               'يا ليتنا','يا ليت لنا','يا ليت قومي','وا حسرتا'],
+    fn: 'lament', tone: 'warning', topics: ['حزن','ندم','مصيبة'], weight: 10 },
+
+  // ── Dialogue / story context ─────────────────────────────────────────────────
+  { signals: ['قال يا','قالت يا','قالوا يا','فقال يا','نادى','نادينا',
+               'ناداه','ناداها','نادى ربه','ناداه ربه'],
+    fn: 'dialogue', tone: 'neutral', topics: ['قصص','حوار','سرد'], weight: 5 },
+
+  // ── Mercy / forgiveness ─────────────────────────────────────────────────────
+  { signals: ['فاغفر لنا','اغفر لنا','ارحمنا','آتنا رحمتك','وسعت كل شيء رحمة',
+               'هو الغفور الرحيم','توب علينا','ارحم الراحمين','تب إلينا'],
+    fn: 'mercy', tone: 'gentle', topics: ['رحمة','مغفرة','دعاء'], weight: 8 },
 ];
 
-// ─── Tone overrides for specific pattern types ────────────────────────────────
+// ─── Pattern → function defaults (when no signal matches) ─────────────────────
 
-const PATTERN_TONE_MAP: Record<string, string> = {
-  ya_prophet_name: 'honoring',
-  ya_ayyuhal:      'neutral',
-  ya_lament:       'warning',
-  ya_wish:         'warning',
-  ya_bunayya:      'gentle',
-  ya_abati:        'gentle',
-  supplication:    'gentle',
+const PATTERN_DEFAULT: Record<string, { fn: string; tone: string; topics: string[] }> = {
+  supplication:    { fn: 'supplication', tone: 'gentle',    topics: ['دعاء','تضرع'] },
+  ya_rabbi:        { fn: 'supplication', tone: 'gentle',    topics: ['دعاء','تضرع'] },
+  ya_lament:       { fn: 'lament',       tone: 'warning',   topics: ['حزن','ندم'] },
+  ya_wish:         { fn: 'lament',       tone: 'warning',   topics: ['تمني','ندم'] },
+  ya_bunayya:      { fn: 'instruction',  tone: 'gentle',    topics: ['وصية','أسرة'] },
+  ya_abati:        { fn: 'dialogue',     tone: 'gentle',    topics: ['قصص','أسرة'] },
+  ya_prophet_name: { fn: 'instruction',  tone: 'honoring',  topics: ['النبوة','قصص'] },
 };
 
-// ─── Topic tag dictionaries ───────────────────────────────────────────────────
+// ─── Addressee → caller inference ─────────────────────────────────────────────
 
-const SURAH_THEMES: Record<number, string[]> = {
-  1:  ['فاتحة', 'دعاء'],
-  2:  ['تشريع', 'تاريخ', 'عقيدة'],
-  3:  ['أهل الكتاب', 'عقيدة', 'مريم'],
-  4:  ['تشريع', 'أسرة'],
-  5:  ['أهل الكتاب', 'تشريع'],
-  6:  ['توحيد', 'رسالة'],
-  7:  ['قصص الأنبياء', 'تحذير'],
-  9:  ['جهاد', 'منافقون'],
-  11: ['قصص الأنبياء'],
-  12: ['يوسف', 'صبر'],
-  18: ['قصص', 'إيمان'],
-  19: ['مريم', 'زكريا', 'يحيى', 'عيسى'],
-  20: ['موسى', 'قصص'],
-  26: ['قصص الأنبياء'],
-  27: ['داود', 'سليمان'],
-  28: ['موسى', 'قصص'],
-  36: ['قرآن', 'قيامة'],
-  59: ['نصيحة'],
-  66: ['النساء', 'تشريع'],
-};
+function inferCaller(call: QuranicCall, text: string): { callerType: string; labelArabic: string; labelEnglish: string } {
+  const pt = call.callPattern;
+  const at = call.addressee.addresseeType;
 
-function stripDiacritics(text: string): string {
-  return text.replace(/[ؐ-ًؚ-ٰٟۖ-ۜ۟-۪ۤۧۨ-ۭ]/g, '');
+  // Explicit Allah addresses — ya_ayyuhal + believers/mankind/prophets
+  if (['ya_ayyuhal','ya_ayatuha','ya_bani','ya_ibadi','ya_ahl'].includes(pt)) {
+    if (['believers','mankind','disbelievers','bani_israel','people_of_book','jinn'].includes(at))
+      return { callerType: 'allah', labelArabic: 'الله سبحانه وتعالى', labelEnglish: 'Allah' };
+    if (at === 'prophet')
+      return { callerType: 'allah', labelArabic: 'الله سبحانه وتعالى', labelEnglish: 'Allah' };
+  }
+  if (pt === 'ya_prophet_name') {
+    // Allah calls prophets most often; occasionally angels or people
+    if (['allah'].includes(call.caller.callerType)) return { callerType: 'allah', labelArabic: 'الله سبحانه وتعالى', labelEnglish: 'Allah' };
+    return { callerType: 'allah', labelArabic: 'الله سبحانه وتعالى', labelEnglish: 'Allah' };
+  }
+  // Prophet calls to his people
+  if (pt === 'ya_qawmi') {
+    return { callerType: 'prophet', labelArabic: 'نبي', labelEnglish: 'Prophet' };
+  }
+  // Family calls are context-dependent
+  if (['ya_abati','ya_bunayya'].includes(pt)) {
+    return { callerType: 'unknown', labelArabic: 'غير محدد', labelEnglish: 'Unknown' };
+  }
+  // Supplication → human calling Allah
+  if (['supplication','ya_rabbi'].includes(pt)) {
+    return { callerType: 'unknown', labelArabic: 'مؤمن / نبي', labelEnglish: 'Believer / Prophet' };
+  }
+
+  return { callerType: call.caller.callerType, labelArabic: call.caller.labelArabic ?? '', labelEnglish: call.caller.labelEnglish ?? '' };
 }
 
-function classify(call: QuranicCall): {
-  callFunction: string;
-  tone: string;
-  relatedTopics: string[];
-  method: string;
-  signals: string[];
-} {
-  // Supplication callPattern → always supplication function
-  if (call.callPattern === 'supplication' || call.callPattern === 'ya_rabbi') {
-    return { callFunction: 'supplication', tone: 'gentle', relatedTopics: ['دعاء', 'تضرع'], method: 'rule_based', signals: [call.callPattern] };
-  }
-  if (call.callPattern === 'ya_lament' || call.callPattern === 'ya_wish') {
-    return { callFunction: 'lament', tone: 'warning', relatedTopics: ['حزن', 'ندم'], method: 'rule_based', signals: [call.callPattern] };
-  }
+// ─── Surah themes for topic enrichment ───────────────────────────────────────
 
-  const stripped = stripDiacritics(call.ayahTextUthmani);
+const SURAH_THEMES: Record<number, string[]> = {
+  2:['تشريع','عقيدة'],3:['عيسى','مريم','أهل الكتاب'],4:['تشريع','أسرة'],
+  5:['أهل الكتاب','تشريع'],6:['توحيد'],7:['قصص الأنبياء'],9:['جهاد'],
+  10:['توحيد'],11:['قصص الأنبياء','نوح','هود','صالح','شعيب','لوط'],
+  12:['يوسف','صبر'],14:['إبراهيم'],16:['توحيد','نعم'],18:['الكهف','قصص'],
+  19:['مريم','زكريا','يحيى','عيسى','إبراهيم'],20:['موسى'],21:['قصص الأنبياء'],
+  22:['حج'],24:['تشريع','أسرة'],26:['موسى','إبراهيم','نوح','شعيب'],
+  27:['سليمان','هدهد'],28:['موسى','فرعون'],33:['تشريع','النبي'],
+  36:['توحيد','قيامة'],37:['إبراهيم','إسماعيل','يونس'],38:['داود','سليمان','أيوب'],
+  40:['مؤمن آل فرعون'],46:['الأحقاف'],49:['آداب'],57:['إيمان','إنفاق'],
+  58:['تشريع'],59:['جهاد'],60:['تشريع'],61:['جهاد'],64:['إيمان','إنفاق'],
+  65:['تشريع','طلاق'],66:['تشريع','أسرة'],109:['الكافرون'],
+};
 
-  // Apply signal rules
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+console.log('Loading atlas...');
+const atlas: Atlas = JSON.parse(readFileSync(IN_JSON, 'utf-8'));
+console.log(`Loaded ${atlas.calls.length} calls`);
+
+let classified = 0;
+let unclassified = 0;
+
+const classifiedCalls = atlas.calls.map((call) => {
+  const text = matchText(call);
+
+  // Pattern-based defaults first
+  const patDef = PATTERN_DEFAULT[call.callPattern];
+
+  // Apply signal rules (use emlaei text for matching)
   let bestScore = 0;
-  let bestCallFunction = 'needs_review';
-  let bestTone: string = PATTERN_TONE_MAP[call.callPattern] ?? 'needs_review';
-  let bestTopics: string[] = SURAH_THEMES[call.surahNumber] ?? [];
-  let bestMethod = 'unclassified';
+  let bestFn = patDef?.fn ?? 'needs_review';
+  let bestTone = patDef?.tone ?? 'needs_review';
+  let bestTopics: string[] = [...(patDef?.topics ?? []), ...(SURAH_THEMES[call.surahNumber] ?? [])];
+  let method = patDef ? 'rule_based' : 'unclassified';
   let matchedSignals: string[] = [];
 
-  for (const rule of SIGNAL_RULES) {
-    for (const signal of rule.signals) {
-      if (stripped.includes(signal)) {
-        const score = rule.weight;
-        if (score > bestScore) {
-          bestScore = score;
-          bestCallFunction = rule.callFunction;
+  for (const rule of RULES) {
+    for (const sig of rule.signals) {
+      if (text.includes(sig)) {
+        if (rule.weight > bestScore) {
+          bestScore = rule.weight;
+          bestFn = rule.fn;
           bestTone = rule.tone;
           bestTopics = [...rule.topics, ...(SURAH_THEMES[call.surahNumber] ?? [])];
-          bestMethod = 'topic_signal';
-          matchedSignals = [signal];
-        } else if (score === bestScore) {
-          matchedSignals.push(signal);
+          method = 'topic_signal';
+          matchedSignals = [sig];
+        } else if (rule.weight === bestScore) {
+          matchedSignals.push(sig);
         }
       }
     }
   }
 
-  // Pattern tone override takes precedence on tone only if no strong signal
-  if (bestMethod === 'unclassified' && PATTERN_TONE_MAP[call.callPattern]) {
-    bestTone = PATTERN_TONE_MAP[call.callPattern];
-  }
+  // Infer caller
+  const callerInferred = inferCaller(call, text);
+  const callerType = callerInferred.callerType !== call.caller.callerType
+    ? callerInferred.callerType : call.caller.callerType;
+  const callerLabelAr = callerInferred.labelArabic || call.caller.labelArabic;
+  const callerLabelEn = callerInferred.labelEnglish || call.caller.labelEnglish;
 
-  // Prophet/entity signal for topic enrichment
-  const relatedProphets = call.relatedProphets;
-  if (relatedProphets.length > 0) {
-    const prophetTopics = relatedProphets.map((p) => `قصص ${p}`);
-    bestTopics = [...new Set([...bestTopics, ...prophetTopics])];
-    if (bestMethod === 'unclassified') bestMethod = 'entity_signal';
-  }
+  if (bestFn !== 'needs_review') classified++;
+  else unclassified++;
 
-  return {
-    callFunction: bestCallFunction,
-    tone: bestTone,
-    relatedTopics: [...new Set(bestTopics)].slice(0, 6),
-    method: bestMethod,
-    signals: matchedSignals,
-  };
-}
-
-// ─── Main ─────────────────────────────────────────────────────────────────────
-
-console.log('Loading atlas data...');
-const atlas: Atlas = JSON.parse(readFileSync(IN_JSON, 'utf-8'));
-console.log(`Loaded ${atlas.calls.length} calls`);
-
-const classifiedCalls = atlas.calls.map((call) => {
-  const result = classify(call);
   return {
     ...call,
-    callFunction: result.callFunction,
-    tone: result.tone,
-    relatedTopics: result.relatedTopics.length > 0 ? result.relatedTopics : call.relatedTopics,
-    reviewStatus: 'needs_review' as const,
+    callFunction: bestFn,
+    tone: bestTone,
+    relatedTopics: [...new Set(bestTopics)].slice(0, 6),
+    caller: {
+      ...call.caller,
+      callerType,
+      labelArabic: callerLabelAr,
+      labelEnglish: callerLabelEn,
+    },
+    reviewStatus: 'needs_review',
     humanReviewRequired: true,
     classifiedAt: new Date().toISOString(),
-    classificationMethod: result.method,
-    classificationSignals: result.signals,
+    classificationMethod: method,
+    classificationSignals: matchedSignals,
   };
 });
 
-// Build summary
+// Summary
 const byFunction: Record<string, number> = {};
 const byTone: Record<string, number> = {};
-let unclassified = 0;
-let highConfidence = 0;
-let lowConfidence = 0;
+const byCallerType: Record<string, number> = {};
+let highConf = 0;
+let lowConf = 0;
 
 for (const c of classifiedCalls) {
   byFunction[c.callFunction] = (byFunction[c.callFunction] ?? 0) + 1;
   byTone[c.tone] = (byTone[c.tone] ?? 0) + 1;
-  if (c.classificationMethod === 'unclassified') unclassified++;
-  if (c.confidence > 0.7) highConfidence++;
-  if (c.confidence <= 0.4) lowConfidence++;
+  byCallerType[c.caller.callerType] = (byCallerType[c.caller.callerType] ?? 0) + 1;
+  if (c.confidence > 0.7) highConf++;
+  if (c.confidence <= 0.4) lowConf++;
 }
 
 const output = {
-  version: '1.0.0-phase-y',
+  version: '2.0.0-phase-y',
   classifiedAt: new Date().toISOString(),
   totalClassified: classifiedCalls.length,
   calls: classifiedCalls,
-  classificationSummary: { byFunction, byTone, unclassified, highConfidence, lowConfidence },
+  classificationSummary: { byFunction, byTone, byCallerType, unclassified, highConfidence: highConf, lowConfidence: lowConf },
 };
 
 writeFileSync(OUT_JSON, JSON.stringify(output, null, 2), 'utf-8');
 console.log(`\n✓ Written: ${OUT_JSON}`);
 
 console.log('\n' + '='.repeat(60));
-console.log('CLASSIFICATION COMPLETE');
+console.log('CLASSIFICATION v2 COMPLETE');
 console.log('='.repeat(60));
-console.log(`Total classified    : ${classifiedCalls.length}`);
-console.log(`Unclassified        : ${unclassified}`);
-console.log(`High confidence (>0.7) : ${highConfidence}`);
-console.log(`Low confidence (≤0.4)  : ${lowConfidence}`);
-console.log('\nBy Call Function:');
+console.log(`Total: ${classifiedCalls.length} | Classified: ${classified} | Unclassified: ${unclassified}`);
+console.log(`Coverage: ${((classified / classifiedCalls.length) * 100).toFixed(1)}%`);
+console.log('\nBy Function:');
 Object.entries(byFunction).sort(([,a],[,b])=>b-a).forEach(([k,v]) => console.log(`  ${k}: ${v}`));
 console.log('\nBy Tone:');
 Object.entries(byTone).sort(([,a],[,b])=>b-a).forEach(([k,v]) => console.log(`  ${k}: ${v}`));
+console.log('\nBy Caller:');
+Object.entries(byCallerType).sort(([,a],[,b])=>b-a).forEach(([k,v]) => console.log(`  ${k}: ${v}`));
 console.log('='.repeat(60));

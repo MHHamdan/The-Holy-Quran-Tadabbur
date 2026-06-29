@@ -294,6 +294,7 @@ for (const ayah of quranData) {
       surahNameAr: ayah.sura_name_ar,
       surahNameEn: ayah.sura_name_en,
       ayahTextUthmani: ayah.aya_text,  // Original — never modified
+      ayahTextEmlaei: ayah.aya_text_emlaey, // Emla'i form — used for signal matching in classify
       callText: matchedPhrase,
       callPattern: pattern.callPattern,
       caller: {
