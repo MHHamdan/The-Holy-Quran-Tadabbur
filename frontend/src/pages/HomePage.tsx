@@ -35,6 +35,7 @@ import {
   FlipHorizontal2,
   Sigma,
   Scroll,
+  Megaphone,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
@@ -365,6 +366,16 @@ const TOOLS_FEATURES: Feature[] = [
     link: '/learn',
     color: 'text-purple-700',
     iconBg: 'bg-purple-100',
+  },
+  {
+    icon: Megaphone,
+    titleAr: 'أطلس النداءات القرآنية',
+    titleEn: 'Quranic Calls Atlas',
+    descAr: '319 نداءً وخطاباً في القرآن — كل يا أيها ويا قوم وربنا — مع تصنيف المنادَى والسياق',
+    descEn: '319 calls and addresses across the Quran — every يا أيها, يا قوم, ربنا — with addressee & context',
+    link: '/quranic-calls',
+    color: 'text-emerald-700',
+    iconBg: 'bg-emerald-100',
   },
   {
     icon: Trophy,

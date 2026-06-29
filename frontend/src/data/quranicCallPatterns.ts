@@ -1,0 +1,568 @@
+/**
+ * Quranic Call Patterns — Detection Dictionary
+ *
+ * These patterns are used to detect direct vocatives (نداء) and
+ * supplication forms in the Quran text.
+ *
+ * IMPORTANT:
+ * - Patterns are detection aids ONLY — they are NOT final classifications.
+ * - All matches require human review for caller/addressee/function.
+ * - Pattern match confidence ≠ theological confidence.
+ * - "ربنا/ربي" are supplication forms (address to Allah), not ordinary nida.
+ * - Lament/wish forms (يا ويلتى, يا ليت) are rhetorical, classified separately.
+ *
+ * Sources: Quranic Arabic Corpus (VOC tag methodology), Tanzil Quran data,
+ * academic study of Arabic vocatives in classical texts.
+ */
+
+import type { CallPattern, AddresseeType, CallerType } from '../types/quranicCallAtlas';
+
+export interface CallPatternSeed {
+  patternId: string;
+  arabicPattern: string;          // Search string (diacritics stripped)
+  normalizedPattern: string;      // Lowercase, normalized for matching
+  callPattern: CallPattern;
+  defaultAddresseeType: AddresseeType;
+  defaultAddresseeAr: string;
+  defaultAddresseeEn: string;
+  defaultCallerType: CallerType;
+  confidence: number;             // 0–1 — pattern-match confidence only
+  requiresReview: true;           // Always true — theological meaning needs review
+  notes: string;
+}
+
+export const CALL_PATTERNS: CallPatternSeed[] = [
+  // ── يا أيها patterns (most frequent Quranic form) ───────────────────────────
+  {
+    patternId: 'cp_ya_ayyuha_believers',
+    arabicPattern: 'يا أيها الذين آمنوا',
+    normalizedPattern: 'يا أيها الذين آمنوا',
+    callPattern: 'ya_ayyuhal',
+    defaultAddresseeType: 'believers',
+    defaultAddresseeAr: 'الذين آمنوا',
+    defaultAddresseeEn: 'Those Who Believe',
+    defaultCallerType: 'allah',
+    confidence: 0.92,
+    requiresReview: true,
+    notes: 'Most frequent يا أيها pattern in Quran. Caller is Allah in all known instances.',
+  },
+  {
+    patternId: 'cp_ya_ayyuha_people',
+    arabicPattern: 'يا أيها الناس',
+    normalizedPattern: 'يا أيها الناس',
+    callPattern: 'ya_ayyuhal',
+    defaultAddresseeType: 'mankind',
+    defaultAddresseeAr: 'الناس',
+    defaultAddresseeEn: 'Mankind / All People',
+    defaultCallerType: 'allah',
+    confidence: 0.90,
+    requiresReview: true,
+    notes: 'Universal address to all humanity. Caller is Allah or narrative speaker.',
+  },
+  {
+    patternId: 'cp_ya_ayyuha_nabi',
+    arabicPattern: 'يا أيها النبي',
+    normalizedPattern: 'يا أيها النبي',
+    callPattern: 'ya_ayyuhal',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'النبي ﷺ',
+    defaultAddresseeEn: 'The Prophet ﷺ',
+    defaultCallerType: 'allah',
+    confidence: 0.95,
+    requiresReview: true,
+    notes: 'Allah addressing Prophet Muhammad ﷺ directly.',
+  },
+  {
+    patternId: 'cp_ya_ayyuha_rasool',
+    arabicPattern: 'يا أيها الرسول',
+    normalizedPattern: 'يا أيها الرسول',
+    callPattern: 'ya_ayyuhal',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'الرسول ﷺ',
+    defaultAddresseeEn: 'The Messenger ﷺ',
+    defaultCallerType: 'allah',
+    confidence: 0.95,
+    requiresReview: true,
+    notes: 'Allah addressing Prophet Muhammad ﷺ as Messenger.',
+  },
+  {
+    patternId: 'cp_ya_ayyuha_kafiroon',
+    arabicPattern: 'يا أيها الكافرون',
+    normalizedPattern: 'يا أيها الكافرون',
+    callPattern: 'ya_ayyuhal',
+    defaultAddresseeType: 'disbelievers',
+    defaultAddresseeAr: 'الكافرون',
+    defaultAddresseeEn: 'The Disbelievers',
+    defaultCallerType: 'allah',
+    confidence: 0.92,
+    requiresReview: true,
+    notes: 'Address to disbelievers. Appears in Surah Al-Kafirun (109).',
+  },
+  {
+    patternId: 'cp_ya_ayyuha_muzzammil',
+    arabicPattern: 'يا أيها المزمل',
+    normalizedPattern: 'يا أيها المزمل',
+    callPattern: 'ya_ayyuhal',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'المزمل (النبي ﷺ)',
+    defaultAddresseeEn: 'The Enwrapped (Prophet ﷺ)',
+    defaultCallerType: 'allah',
+    confidence: 0.95,
+    requiresReview: true,
+    notes: 'Specific epithet for Prophet ﷺ at beginning of Surah Al-Muzzammil.',
+  },
+  {
+    patternId: 'cp_ya_ayyuha_muddaththir',
+    arabicPattern: 'يا أيها المدثر',
+    normalizedPattern: 'يا أيها المدثر',
+    callPattern: 'ya_ayyuhal',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'المدثر (النبي ﷺ)',
+    defaultAddresseeEn: 'The Enveloped (Prophet ﷺ)',
+    defaultCallerType: 'allah',
+    confidence: 0.95,
+    requiresReview: true,
+    notes: 'Specific epithet for Prophet ﷺ at beginning of Surah Al-Muddaththir.',
+  },
+
+  // ── يا بني patterns ──────────────────────────────────────────────────────────
+  {
+    patternId: 'cp_ya_bani_israel',
+    arabicPattern: 'يا بني إسرائيل',
+    normalizedPattern: 'يا بني إسرائيل',
+    callPattern: 'ya_bani',
+    defaultAddresseeType: 'bani_israel',
+    defaultAddresseeAr: 'بني إسرائيل',
+    defaultAddresseeEn: 'Children of Israel (Bani Israel)',
+    defaultCallerType: 'allah',
+    confidence: 0.92,
+    requiresReview: true,
+    notes: 'Address to Children of Israel. Frequent in Al-Baqarah and other surahs.',
+  },
+  {
+    patternId: 'cp_ya_bani_adam',
+    arabicPattern: 'يا بني آدم',
+    normalizedPattern: 'يا بني آدم',
+    callPattern: 'ya_bani',
+    defaultAddresseeType: 'mankind',
+    defaultAddresseeAr: 'بني آدم',
+    defaultAddresseeEn: "Children of Adam (All Humanity)",
+    defaultCallerType: 'allah',
+    confidence: 0.90,
+    requiresReview: true,
+    notes: 'Address to all humanity as children of Adam. Appears in Al-A\'raf.',
+  },
+
+  // ── يا أهل patterns ──────────────────────────────────────────────────────────
+  {
+    patternId: 'cp_ya_ahl_kitab',
+    arabicPattern: 'يا أهل الكتاب',
+    normalizedPattern: 'يا أهل الكتاب',
+    callPattern: 'ya_ahl',
+    defaultAddresseeType: 'people_of_book',
+    defaultAddresseeAr: 'أهل الكتاب',
+    defaultAddresseeEn: 'People of the Book (Jews & Christians)',
+    defaultCallerType: 'allah',
+    confidence: 0.90,
+    requiresReview: true,
+    notes: 'Address to People of the Book (Jews and Christians).',
+  },
+  {
+    patternId: 'cp_ya_ahl_yathrib',
+    arabicPattern: 'يا أهل يثرب',
+    normalizedPattern: 'يا أهل يثرب',
+    callPattern: 'ya_ahl',
+    defaultAddresseeType: 'people_or_nation',
+    defaultAddresseeAr: 'أهل يثرب',
+    defaultAddresseeEn: 'People of Yathrib (Medina)',
+    defaultCallerType: 'people_group',
+    confidence: 0.88,
+    requiresReview: true,
+    notes: 'Address in Al-Ahzab. Speaker is hypocrites/enemies calling people to flee.',
+  },
+
+  // ── يا عباد patterns ─────────────────────────────────────────────────────────
+  {
+    patternId: 'cp_ya_ibadi',
+    arabicPattern: 'يا عبادي',
+    normalizedPattern: 'يا عبادي',
+    callPattern: 'ya_ibadi',
+    defaultAddresseeType: 'believers',
+    defaultAddresseeAr: 'عبادي المؤمنون',
+    defaultAddresseeEn: 'My Servants (Believers)',
+    defaultCallerType: 'allah',
+    confidence: 0.90,
+    requiresReview: true,
+    notes: 'Allah addressing His servants — often with mercy and assurance.',
+  },
+  {
+    patternId: 'cp_ya_ibad',
+    arabicPattern: 'يا عباد',
+    normalizedPattern: 'يا عباد',
+    callPattern: 'ya_ibadi',
+    defaultAddresseeType: 'believers',
+    defaultAddresseeAr: 'عباد الله',
+    defaultAddresseeEn: 'Servants of Allah',
+    defaultCallerType: 'allah',
+    confidence: 0.80,
+    requiresReview: true,
+    notes: 'Variant without possessive suffix — check context for exact addressee.',
+  },
+
+  // ── يا قوم patterns ──────────────────────────────────────────────────────────
+  {
+    patternId: 'cp_ya_qawmi',
+    arabicPattern: 'يا قوم',
+    normalizedPattern: 'يا قوم',
+    callPattern: 'ya_qawmi',
+    defaultAddresseeType: 'people_or_nation',
+    defaultAddresseeAr: 'القوم',
+    defaultAddresseeEn: 'My People / The People',
+    defaultCallerType: 'prophet',
+    confidence: 0.78,
+    requiresReview: true,
+    notes: 'Prophets addressing their peoples. Context determines specific prophet and people.',
+  },
+  {
+    patternId: 'cp_ya_qawmana',
+    arabicPattern: 'يا قومنا',
+    normalizedPattern: 'يا قومنا',
+    callPattern: 'ya_qawmi',
+    defaultAddresseeType: 'people_or_nation',
+    defaultAddresseeAr: 'قومنا',
+    defaultAddresseeEn: 'Our People',
+    defaultCallerType: 'people_group',
+    confidence: 0.78,
+    requiresReview: true,
+    notes: 'Collective address — jinn or believers speaking to their own people.',
+  },
+
+  // ── يا معشر ──────────────────────────────────────────────────────────────────
+  {
+    patternId: 'cp_ya_mashar_jinn',
+    arabicPattern: 'يا معشر الجن',
+    normalizedPattern: 'يا معشر الجن',
+    callPattern: 'ya_ayyuhal',
+    defaultAddresseeType: 'jinn',
+    defaultAddresseeAr: 'معشر الجن والإنس',
+    defaultAddresseeEn: 'Community of Jinn and Mankind',
+    defaultCallerType: 'allah',
+    confidence: 0.88,
+    requiresReview: true,
+    notes: 'Allah addressing both jinn and mankind together in Al-An\'am and Ar-Rahman.',
+  },
+
+  // ── يا نساء النبي ──────────────────────────────────────────────────────────
+  {
+    patternId: 'cp_ya_nisaa_nabi',
+    arabicPattern: 'يا نساء النبي',
+    normalizedPattern: 'يا نساء النبي',
+    callPattern: 'ya_ayyuhal',
+    defaultAddresseeType: 'family_member',
+    defaultAddresseeAr: 'نساء النبي ﷺ',
+    defaultAddresseeEn: 'Wives of the Prophet ﷺ',
+    defaultCallerType: 'allah',
+    confidence: 0.92,
+    requiresReview: true,
+    notes: 'Allah addressing the wives of the Prophet ﷺ. Appears in Al-Ahzab.',
+  },
+
+  // ── Prophet-name calls (Allah to prophets) ───────────────────────────────────
+  {
+    patternId: 'cp_ya_musa',
+    arabicPattern: 'يا موسى',
+    normalizedPattern: 'يا موسى',
+    callPattern: 'ya_prophet_name',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'موسى عليه السلام',
+    defaultAddresseeEn: 'Moses (Musa) ﷺ',
+    defaultCallerType: 'allah',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: 'Allah addressing Moses directly. Also appears from Pharaoh or others in dialogue.',
+  },
+  {
+    patternId: 'cp_ya_isa',
+    arabicPattern: 'يا عيسى',
+    normalizedPattern: 'يا عيسى',
+    callPattern: 'ya_prophet_name',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'عيسى عليه السلام',
+    defaultAddresseeEn: 'Jesus (Isa) ﷺ',
+    defaultCallerType: 'allah',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: 'Allah addressing Jesus ﷺ. Context determines occasion.',
+  },
+  {
+    patternId: 'cp_ya_maryam',
+    arabicPattern: 'يا مريم',
+    normalizedPattern: 'يا مريم',
+    callPattern: 'ya_prophet_name',
+    defaultAddresseeType: 'specific_person',
+    defaultAddresseeAr: 'مريم عليها السلام',
+    defaultAddresseeEn: 'Mary (Maryam) ﷺ',
+    defaultCallerType: 'unknown',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: 'Address to Mary — caller is angels or people in context. Not a prophet call to people.',
+  },
+  {
+    patternId: 'cp_ya_ibrahim',
+    arabicPattern: 'يا إبراهيم',
+    normalizedPattern: 'يا إبراهيم',
+    callPattern: 'ya_prophet_name',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'إبراهيم عليه السلام',
+    defaultAddresseeEn: 'Abraham (Ibrahim) ﷺ',
+    defaultCallerType: 'allah',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: 'Allah or angels addressing Ibrahim ﷺ. Context determines.',
+  },
+  {
+    patternId: 'cp_ya_nuh',
+    arabicPattern: 'يا نوح',
+    normalizedPattern: 'يا نوح',
+    callPattern: 'ya_prophet_name',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'نوح عليه السلام',
+    defaultAddresseeEn: 'Noah (Nuh) ﷺ',
+    defaultCallerType: 'allah',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: 'Allah addressing Noah ﷺ in the flood narrative.',
+  },
+  {
+    patternId: 'cp_ya_dawud',
+    arabicPattern: 'يا داود',
+    normalizedPattern: 'يا داود',
+    callPattern: 'ya_prophet_name',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'داود عليه السلام',
+    defaultAddresseeEn: 'David (Dawud) ﷺ',
+    defaultCallerType: 'allah',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: 'Allah addressing David ﷺ as khalifah on earth.',
+  },
+  {
+    patternId: 'cp_ya_zakariyya',
+    arabicPattern: 'يا زكريا',
+    normalizedPattern: 'يا زكريا',
+    callPattern: 'ya_prophet_name',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'زكريا عليه السلام',
+    defaultAddresseeEn: 'Zachariah (Zakariyya) ﷺ',
+    defaultCallerType: 'allah',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: 'Allah or angels addressing Zachariah ﷺ announcing Yahya.',
+  },
+  {
+    patternId: 'cp_ya_yahya',
+    arabicPattern: 'يا يحيى',
+    normalizedPattern: 'يا يحيى',
+    callPattern: 'ya_prophet_name',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'يحيى عليه السلام',
+    defaultAddresseeEn: 'John (Yahya) ﷺ',
+    defaultCallerType: 'allah',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: 'Allah addressing John ﷺ with guidance.',
+  },
+  {
+    patternId: 'cp_ya_adam',
+    arabicPattern: 'يا آدم',
+    normalizedPattern: 'يا آدم',
+    callPattern: 'ya_prophet_name',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'آدم عليه السلام',
+    defaultAddresseeEn: 'Adam ﷺ',
+    defaultCallerType: 'allah',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: 'Allah or angels addressing Adam ﷺ.',
+  },
+  {
+    patternId: 'cp_ya_yusuf',
+    arabicPattern: 'يا يوسف',
+    normalizedPattern: 'يا يوسف',
+    callPattern: 'ya_prophet_name',
+    defaultAddresseeType: 'prophet',
+    defaultAddresseeAr: 'يوسف عليه السلام',
+    defaultAddresseeEn: 'Joseph (Yusuf) ﷺ',
+    defaultCallerType: 'unknown',
+    confidence: 0.80,
+    requiresReview: true,
+    notes: 'Address to Yusuf — context includes Aziz\'s wife, brothers, king. Caller varies.',
+  },
+
+  // ── Family address patterns ───────────────────────────────────────────────────
+  {
+    patternId: 'cp_ya_abati',
+    arabicPattern: 'يا أبت',
+    normalizedPattern: 'يا أبت',
+    callPattern: 'ya_abati',
+    defaultAddresseeType: 'family_member',
+    defaultAddresseeAr: 'الأب / الوالد',
+    defaultAddresseeEn: 'Father',
+    defaultCallerType: 'unknown',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: 'Child addressing father. Appears in Ibrahim-Azar dialogue, Yusuf-Jacob, Luqman.',
+  },
+  {
+    patternId: 'cp_ya_bunayya',
+    arabicPattern: 'يا بني',
+    normalizedPattern: 'يا بني',
+    callPattern: 'ya_bunayya',
+    defaultAddresseeType: 'family_member',
+    defaultAddresseeAr: 'الابن',
+    defaultAddresseeEn: 'Son (Dear Son)',
+    defaultCallerType: 'unknown',
+    confidence: 0.78,
+    requiresReview: true,
+    notes: 'Parent addressing son affectionately. Luqman to son, Yaqub to sons, etc.',
+  },
+
+  // ── Prison companions ─────────────────────────────────────────────────────────
+  {
+    patternId: 'cp_ya_sahib_sijn',
+    arabicPattern: 'يا صاحبي السجن',
+    normalizedPattern: 'يا صاحبي السجن',
+    callPattern: 'ya_direct',
+    defaultAddresseeType: 'specific_person',
+    defaultAddresseeAr: 'صاحبا السجن',
+    defaultAddresseeEn: 'Two Prison Companions',
+    defaultCallerType: 'prophet',
+    confidence: 0.90,
+    requiresReview: true,
+    notes: 'Yusuf ﷺ addressing his two prison companions in Surah Yusuf.',
+  },
+
+  // ── Lament / wish forms (rhetorical — NOT ordinary nida) ─────────────────────
+  {
+    patternId: 'cp_ya_wayla',
+    arabicPattern: 'يا ويلتى',
+    normalizedPattern: 'يا ويلتى',
+    callPattern: 'ya_lament',
+    defaultAddresseeType: 'unknown',
+    defaultAddresseeAr: 'لا موجّه — نداء حزن',
+    defaultAddresseeEn: 'Non-directed — Lament',
+    defaultCallerType: 'unknown',
+    confidence: 0.88,
+    requiresReview: true,
+    notes: 'Rhetorical lament exclamation. Not a true vocative address — no real addressee.',
+  },
+  {
+    patternId: 'cp_ya_hasratan',
+    arabicPattern: 'يا حسرة',
+    normalizedPattern: 'يا حسرة',
+    callPattern: 'ya_lament',
+    defaultAddresseeType: 'unknown',
+    defaultAddresseeAr: 'لا موجّه — نداء أسف',
+    defaultAddresseeEn: 'Non-directed — Regret',
+    defaultCallerType: 'unknown',
+    confidence: 0.88,
+    requiresReview: true,
+    notes: 'Rhetorical regret exclamation. Not a true vocative.',
+  },
+  {
+    patternId: 'cp_ya_layta',
+    arabicPattern: 'يا ليت',
+    normalizedPattern: 'يا ليت',
+    callPattern: 'ya_wish',
+    defaultAddresseeType: 'unknown',
+    defaultAddresseeAr: 'لا موجّه — تمنّي',
+    defaultAddresseeEn: 'Non-directed — Wish/Regret',
+    defaultCallerType: 'unknown',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: 'Wish/regret form — not a true vocative. Spoken by people on Day of Judgment etc.',
+  },
+
+  // ── Supplication forms (address to Allah without يا) ──────────────────────────
+  {
+    patternId: 'cp_rabbana',
+    arabicPattern: 'ربنا',
+    normalizedPattern: 'ربنا',
+    callPattern: 'supplication',
+    defaultAddresseeType: 'allah',
+    defaultAddresseeAr: 'الله سبحانه وتعالى',
+    defaultAddresseeEn: 'Allah (Supplication)',
+    defaultCallerType: 'unknown',
+    confidence: 0.85,
+    requiresReview: true,
+    notes: '"Our Lord" — supplication form. Caller is prophets, believers, or narrative voice.',
+  },
+  {
+    patternId: 'cp_rabbi',
+    arabicPattern: 'ربي',
+    normalizedPattern: 'ربي',
+    callPattern: 'supplication',
+    defaultAddresseeType: 'allah',
+    defaultAddresseeAr: 'الله سبحانه وتعالى',
+    defaultAddresseeEn: 'Allah (Supplication)',
+    defaultCallerType: 'unknown',
+    confidence: 0.82,
+    requiresReview: true,
+    notes: '"My Lord" — supplication form. Must check context: can appear in reported speech.',
+  },
+  {
+    patternId: 'cp_rabbi_standalone',
+    arabicPattern: 'رب ',
+    normalizedPattern: 'رب ',
+    callPattern: 'supplication',
+    defaultAddresseeType: 'allah',
+    defaultAddresseeAr: 'الله سبحانه وتعالى',
+    defaultAddresseeEn: 'Allah (Supplication)',
+    defaultCallerType: 'unknown',
+    confidence: 0.70,
+    requiresReview: true,
+    notes: '"O Lord" standalone — lower confidence since "رب" also appears in non-supplication contexts.',
+  },
+
+  // ── Generic يا fallback ──────────────────────────────────────────────────────
+  {
+    patternId: 'cp_ya_generic',
+    arabicPattern: 'يا ',
+    normalizedPattern: 'يا ',
+    callPattern: 'ya_direct',
+    defaultAddresseeType: 'unknown',
+    defaultAddresseeAr: 'غير محدد',
+    defaultAddresseeEn: 'Unknown — Context Required',
+    defaultCallerType: 'unknown',
+    confidence: 0.60,
+    requiresReview: true,
+    notes: 'Generic يا not matching more specific patterns. Context determines all classifications.',
+  },
+];
+
+// Ordered from most specific to least specific for matching priority
+export const CALL_PATTERNS_ORDERED = [...CALL_PATTERNS].sort(
+  (a, b) => b.arabicPattern.length - a.arabicPattern.length
+);
+
+// Pattern lookup by ID
+export const CALL_PATTERN_BY_ID = new Map(
+  CALL_PATTERNS.map((p) => [p.patternId, p])
+);
+
+// All known addressee phrase labels (for UI filtering)
+export const KNOWN_ADDRESSEES = [
+  'الذين آمنوا',
+  'الناس',
+  'بني إسرائيل',
+  'أهل الكتاب',
+  'عبادي',
+  'النبي',
+  'الرسول',
+  'بني آدم',
+  'الكافرون',
+  'معشر الجن والإنس',
+  'نساء النبي',
+] as const;
+
+export type KnownAddressee = (typeof KNOWN_ADDRESSEES)[number];

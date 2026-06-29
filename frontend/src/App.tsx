@@ -105,6 +105,9 @@ const ReadingPlanPage = lazy(() => import('./pages/ReadingPlanPage').then(m => (
 // Quranic Duʿā Explorer
 const DuasPage = lazy(() => import('./pages/DuasPage').then(m => ({ default: m.DuasPage })));
 
+// Quranic Calls Atlas
+const QuranicCallsAtlasPage = lazy(() => import('./pages/QuranicCallsAtlasPage'));
+
 // Juz Navigator
 const JuzNavigatorPage = lazy(() => import('./pages/JuzNavigatorPage').then(m => ({ default: m.JuzNavigatorPage })));
 
@@ -362,6 +365,9 @@ function App() {
 
           {/* Quranic Duʿā Explorer */}
           <Route path="/duas" element={<DuasPage />} />
+
+          {/* Quranic Calls Atlas */}
+          <Route path="/quranic-calls" element={<QuranicCallsAtlasPage />} />
 
           {/* Juz Navigator */}
           <Route path="/juz" element={<JuzNavigatorPage />} />

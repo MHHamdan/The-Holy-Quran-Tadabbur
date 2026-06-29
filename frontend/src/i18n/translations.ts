@@ -125,6 +125,10 @@ export const translations: Translations = {
     ar: 'اختبار قرآني',
     en: 'Quran Quiz',
   },
+  nav_quranic_calls: {
+    ar: 'أطلس النداءات',
+    en: 'Calls Atlas',
+  },
   nav_wonders: {
     ar: 'عجائب القرآن',
     en: 'Wonders',

@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users, Bookmark, Star, Flame, CalendarCheck, HandHeart, BookCopy, GraduationCap, Smile, BarChart2, PenLine, Baby, Wind, AlarmClock, Trophy, Lightbulb, GitCompare, FlipHorizontal2, Sigma, Scroll } from 'lucide-react';
+import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users, Bookmark, Star, Flame, CalendarCheck, HandHeart, BookCopy, GraduationCap, Smile, BarChart2, PenLine, Baby, Wind, AlarmClock, Trophy, Lightbulb, GitCompare, FlipHorizontal2, Sigma, Scroll, Megaphone } from 'lucide-react';
 import { useBookmarksStore } from '../../stores/bookmarksStore';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
@@ -44,6 +44,7 @@ export function Layout({ children }: LayoutProps) {
     { path: '/asbab', label: 'nav_asbab', icon: Scroll },
     { path: '/timeline', label: 'nav_timeline', icon: AlarmClock },
     { path: '/quiz', label: 'nav_quiz', icon: Trophy },
+    { path: '/quranic-calls', label: 'nav_quranic_calls', icon: Megaphone },
     { path: '/guidance', label: 'nav_guidance', icon: Smile },
     { path: '/wonders', label: 'nav_wonders', icon: Lightbulb },
     { path: '/compare', label: 'nav_compare', icon: GitCompare },
