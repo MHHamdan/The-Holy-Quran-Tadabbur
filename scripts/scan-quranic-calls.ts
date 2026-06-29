@@ -212,16 +212,46 @@ const PROPHET_NAME_MAP: Record<string, string> = {
 
 // ─── Main scan logic ──────────────────────────────────────────────────────────
 
-function findMatchInAyah(strippedText: string, pattern: PatternSeed): { found: boolean; matchedPhrase: string } {
-  if (strippedText.includes(pattern.pattern)) {
-    // Extract phrase starting at match point
-    const idx = strippedText.indexOf(pattern.pattern);
-    // Take up to 40 chars after match start or until ، or وَ
-    const after = strippedText.slice(idx);
-    const end = Math.min(after.search(/[،,؛;]/) > 0 ? after.search(/[،,؛;]/) : 50, 50);
-    return { found: true, matchedPhrase: after.slice(0, end).trim() };
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Find a pattern in stripped Quranic text.
+ *
+ * For يا-starting patterns we require يا to be a standalone WORD START —
+ * it must be preceded by start-of-string, whitespace, or Arabic punctuation.
+ * This prevents false positives where يا appears as a suffix in words like
+ * "الدنيا" ("الدنيا على" → substring "يا على" would otherwise match).
+ *
+ * ربنا / ربي patterns do not need this check because they cannot appear as
+ * word suffixes in Arabic orthography.
+ */
+function findMatchInAyah(
+  strippedText: string,
+  pattern: PatternSeed,
+): { found: boolean; matchedPhrase: string } {
+  const pat = pattern.pattern;
+  let idx = -1;
+
+  if (pat.startsWith('يا')) {
+    // Word-boundary check: يا must be preceded by string start, space, or Arabic punctuation
+    const re = new RegExp('(?:^|[\\s،؛ۖۗۚۙۛ۩])' + escapeRegex(pat));
+    const m = re.exec(strippedText);
+    if (m) {
+      // m[0] may include a leading boundary char — advance past it
+      idx = m.index + (m[0].length - pat.length);
+    }
+  } else {
+    idx = strippedText.indexOf(pat);
   }
-  return { found: false, matchedPhrase: '' };
+
+  if (idx === -1) return { found: false, matchedPhrase: '' };
+
+  const after = strippedText.slice(idx);
+  const sepIdx = after.search(/[،,؛;]/);
+  const end = Math.min(sepIdx > 0 ? sepIdx : 50, 50);
+  return { found: true, matchedPhrase: after.slice(0, end).trim() };
 }
 
 function detectRelatedProphets(strippedText: string): string[] {
@@ -268,7 +298,9 @@ for (const ayah of quranData) {
   const matchedPatternIds = new Set<string>();
 
   for (const pattern of PATTERNS_SORTED) {
-    if (!stripped.includes(pattern.pattern)) continue;
+    // Use the same word-boundary-aware finder for both detection and phrase extraction
+    const matchResult = findMatchInAyah(stripped, pattern);
+    if (!matchResult.found) continue;
 
     // Avoid matching sub-patterns of already-matched specific patterns
     const alreadyMatchedMoreSpecific = [...matchedPatternIds].some((pid) => {
@@ -279,7 +311,7 @@ for (const ayah of quranData) {
 
     matchedPatternIds.add(pattern.patternId);
 
-    const { matchedPhrase } = findMatchInAyah(stripped, pattern);
+    const { matchedPhrase } = matchResult;
     const callId = `call_${ayah.sura_no}_${ayah.aya_no}_${callIndexInAyah}`;
     callIndexInAyah++;
 
