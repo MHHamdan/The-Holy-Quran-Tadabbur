@@ -164,7 +164,7 @@ export function ProphetJourneyPage() {
                 {s.ayahReferences.slice(0, 16).map((r, i) => (
                   <Link
                     key={i}
-                    to={`/quran/${r.surahNumber}${r.ayahStart ? `?ayah=${r.ayahStart}` : ''}`}
+                    to={`/quran/${r.surahNumber}${r.ayahStart ? `?aya=${r.ayahStart}` : ''}`}
                     className="text-xs px-2 py-0.5 bg-gray-50 border border-gray-200 rounded hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
                   >
                     {r.surahNumber}:{r.ayahStart}
@@ -245,7 +245,7 @@ export function ProphetJourneyPage() {
                       {st.ayahReferences.slice(0, 8).map((r, i) => (
                         <Link
                           key={i}
-                          to={`/quran/${r.surahNumber}${r.ayahStart ? `?ayah=${r.ayahStart}` : ''}`}
+                          to={`/quran/${r.surahNumber}${r.ayahStart ? `?aya=${r.ayahStart}` : ''}`}
                           className="text-[10px] px-1.5 py-0.5 bg-gray-50 border border-gray-200 rounded hover:border-emerald-300 hover:text-emerald-700 transition-colors"
                         >
                           {r.surahNumber}:{r.ayahStart}

@@ -221,9 +221,12 @@ function SurahExplorer() {
                     className="border border-gray-200 rounded-md p-2 text-sm flex items-center justify-between"
                   >
                     <div>
-                      <span className="font-medium">
+                      <Link
+                        to={`/quran/${selected.surahNumber}?aya=${c.ayahStart}`}
+                        className="font-medium text-emerald-700 hover:text-emerald-900 hover:underline"
+                      >
                         {selected.surahNumber}:{c.ayahStart}-{c.ayahEnd}
-                      </span>
+                      </Link>
                       <span className="text-gray-500 ml-2">
                         {c.entityIds.length} {isArabic ? 'كيان' : 'entities'}
                       </span>

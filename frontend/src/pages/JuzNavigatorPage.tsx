@@ -116,7 +116,7 @@ function JuzCard({ juz, isRtl, visited }: { juz: JuzEntry; isRtl: boolean; visit
               {isRtl ? 'آية مميزة' : 'Featured verse'}:
             </span>
             <Link
-              to={`/quran/${juz.highlightVerseRef.split(':')[0]}`}
+              to={`/quran/${juz.highlightVerseRef.split(':')[0]}?aya=${juz.highlightVerseRef.split(':')[1]}`}
               className="text-xs text-teal-600 hover:text-teal-800 font-medium transition-colors"
               onClick={e => e.stopPropagation()}
             >

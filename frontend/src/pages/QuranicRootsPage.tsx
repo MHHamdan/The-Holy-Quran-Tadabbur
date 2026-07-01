@@ -223,7 +223,7 @@ export function QuranicRootsPage() {
                             <p className="text-xs font-bold text-gray-600">×{d.frequencyInQuran}</p>
                             {ref && (
                               <Link
-                                to={`/quran/${ref.surah}?ayah=${ref.ayah}`}
+                                to={`/quran/${ref.surah}?aya=${ref.ayah}`}
                                 className={clsx('text-[10px] text-blue-500 hover:underline flex items-center gap-0.5', isRtl && 'flex-row-reverse')}
                                 onClick={e => e.stopPropagation()}
                               >

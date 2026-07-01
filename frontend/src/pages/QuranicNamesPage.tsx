@@ -78,7 +78,7 @@ function NameCard({ name, isRtl, expanded, onToggle }: {
           </p>
           <div className={clsx('flex items-center gap-1.5 text-[10px] text-gray-400', isRtl && 'flex-row-reverse')}>
             <Link
-              to={`/quran/${name.surahRef}`}
+              to={`/quran/${name.surahRef}?aya=${name.ayahRef ?? 1}`}
               onClick={e => e.stopPropagation()}
               className="hover:text-violet-500 hover:underline flex items-center gap-0.5"
             >
@@ -145,7 +145,7 @@ function NameCard({ name, isRtl, expanded, onToggle }: {
           )}
 
           <Link
-            to={`/quran/${name.surahRef}`}
+            to={`/quran/${name.surahRef}?aya=${name.ayahRef ?? 1}`}
             onClick={e => e.stopPropagation()}
             className={clsx(
               'inline-flex items-center gap-1 text-[10px] text-violet-600 hover:underline mt-1',

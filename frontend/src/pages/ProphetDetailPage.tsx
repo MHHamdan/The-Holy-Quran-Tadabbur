@@ -117,7 +117,7 @@ function StoryTimeline({ sections, language }: {
                     {s.ayahReferences.slice(0, 10).map((r, i) => (
                       <Link
                         key={i}
-                        to={`/quran/${r.surahNumber}`}
+                        to={`/quran/${r.surahNumber}?aya=${r.ayahStart}`}
                         className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full hover:bg-emerald-100 transition-colors"
                         title={getSurahName(r.surahNumber)[isAr ? 'ar' : 'en']}
                       >
@@ -412,7 +412,7 @@ export function ProphetDetailPage() {
             {data.explicitMentions.slice(0, 12).map((m, idx) => (
               <Link
                 key={idx}
-                to={`/quran/${m.surahNumber}`}
+                to={`/quran/${m.surahNumber}?aya=${m.ayahNumber}`}
                 className="text-xs p-2 rounded-lg bg-gray-50 border border-gray-200 text-center hover:bg-emerald-50 hover:border-emerald-200 transition-colors text-gray-600 hover:text-emerald-700"
                 title={getSurahName(m.surahNumber)[isAr ? 'ar' : 'en']}
               >

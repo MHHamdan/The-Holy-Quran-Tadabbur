@@ -227,7 +227,7 @@ export function AsmaAllahDetailPage() {
               >
                 <div className="flex-1">
                   <Link
-                    to={`/quran/${o.surahNumber}`}
+                    to={`/quran/${o.surahNumber}?aya=${o.ayahNumber}`}
                     className="font-mono text-emerald-700 hover:text-emerald-900"
                   >
                     {getSurahName(o.surahNumber)[language === 'ar' ? 'ar' : 'en']} {o.surahNumber}:{o.ayahNumber}

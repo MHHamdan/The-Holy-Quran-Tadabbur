@@ -40,15 +40,21 @@ export function WhereElseMentionedPanel({ entityId, storyId, maxSurahs = 8 }: Pr
   }
   if (targets.length === 0) return null;
 
-  const surahSet = new Set<number>();
+  // Map surah → first (lowest) ayahStart so links land at the first occurrence
+  const surahFirstAyah = new Map<number, number>();
   for (const t of targets) {
     const entry = scan.entityIndex.find((e) => e.entityId === t);
     if (!entry) continue;
-    for (const occ of entry.occurrences) surahSet.add(occ.surahNumber);
+    for (const occ of entry.occurrences) {
+      const existing = surahFirstAyah.get(occ.surahNumber);
+      if (existing === undefined || occ.ayahStart < existing) {
+        surahFirstAyah.set(occ.surahNumber, occ.ayahStart);
+      }
+    }
   }
-  if (surahSet.size === 0) return null;
+  if (surahFirstAyah.size === 0) return null;
 
-  const surahs = Array.from(surahSet).sort((a, b) => a - b).slice(0, maxSurahs);
+  const surahs = Array.from(surahFirstAyah.keys()).sort((a, b) => a - b).slice(0, maxSurahs);
   const surahLookup = scan.surahs;
 
   return (
@@ -69,25 +75,26 @@ export function WhereElseMentionedPanel({ entityId, storyId, maxSurahs = 8 }: Pr
       <ul className="flex flex-wrap gap-2">
         {surahs.map((s) => {
           const name = surahLookup.find((x) => x.surahNumber === s);
+          const firstAya = surahFirstAyah.get(s) ?? 1;
           return (
             <li key={s}>
               <Link
-                to={`/quran/${s}`}
+                to={`/quran/${s}?aya=${firstAya}`}
                 className="inline-flex items-center text-xs px-2 py-1 rounded border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
               >
-                {s}. {isArabic ? name?.surahNameArabic : name?.surahNameEnglish ?? name?.surahNameArabic}
+                {s}:{firstAya} {isArabic ? name?.surahNameArabic : name?.surahNameEnglish ?? name?.surahNameArabic}
                 <ExternalLink className="w-3 h-3 ml-1" />
               </Link>
             </li>
           );
         })}
-        {surahSet.size > maxSurahs && (
+        {surahFirstAyah.size > maxSurahs && (
           <li>
             <Link
               to="/story-atlas/connections"
               className="text-xs text-emerald-700 underline px-2 py-1"
             >
-              +{surahSet.size - maxSurahs} {isArabic ? 'سور أخرى' : 'more surahs'}
+              +{surahFirstAyah.size - maxSurahs} {isArabic ? 'سور أخرى' : 'more surahs'}
             </Link>
           </li>
         )}
