@@ -9,7 +9,7 @@ Rate-limited to 30 requests/min per IP.
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -222,6 +222,7 @@ class DuaListOut(BaseModel):
 
 @router.get('', response_model=DuaListOut, dependencies=[Depends(_rate_limit)])
 async def list_duas(
+    response: Response,
     category: Optional[str] = Query(None, description="Filter by category slug"),
     prophet:  Optional[str] = Query(None, description="Filter by prophet name"),
     occasion: Optional[str] = Query(None, description="Filter by occasion slug"),
@@ -255,4 +256,5 @@ async def list_duas(
                 or needle in (d.get('prophet') or '').lower())
         ]
 
+    response.headers["Cache-Control"] = "public, max-age=86400"
     return DuaListOut(count=len(results), duas=[DuaOut(**d) for d in results])

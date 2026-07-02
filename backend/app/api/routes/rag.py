@@ -682,18 +682,23 @@ async def expand_topic(
     conversation_context = conv_session.get_context_for_llm(max_messages=4)
 
     try:
+        import asyncio as _asyncio
+
         # Initialize RAG pipeline
         pipeline = RAGPipeline(session)
 
         # Process expansion query
-        result = await pipeline.query(
-            question=expansion_query,
-            language=request.language,
-            include_scholarly_debate=True,
-            preferred_sources=conv_session.preferred_sources,
-            max_sources=7,  # More sources for expansion
-            session_id=conv_session.session_id,
-            conversation_context=conversation_context,
+        result = await _asyncio.wait_for(
+            pipeline.query(
+                question=expansion_query,
+                language=request.language,
+                include_scholarly_debate=True,
+                preferred_sources=conv_session.preferred_sources,
+                max_sources=7,  # More sources for expansion
+                session_id=conv_session.session_id,
+                conversation_context=conversation_context,
+            ),
+            timeout=60.0,
         )
 
         # Store expansion request

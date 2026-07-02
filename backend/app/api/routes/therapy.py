@@ -17,6 +17,7 @@ IMPORTANT DISCLAIMER — included in every response:
   It is NOT a substitute for professional mental health care.
   If you are in crisis, please contact a qualified professional.
 """
+import asyncio
 import json
 import logging
 import uuid
@@ -1330,15 +1331,18 @@ async def chat(
     if llm_available:
         try:
             pipeline = RAGPipeline(db)
-            result = await pipeline.query(
-                question=rag_question,
-                language=body.language,
-                include_scholarly_debate=False,
-                preferred_sources=[],
-                max_sources=3,
-                session_id=session_id,
-                conversation_context=body.conversation_context,
-                tone_directive=directive,
+            result = await asyncio.wait_for(
+                pipeline.query(
+                    question=rag_question,
+                    language=body.language,
+                    include_scholarly_debate=False,
+                    preferred_sources=[],
+                    max_sources=3,
+                    session_id=session_id,
+                    conversation_context=body.conversation_context,
+                    tone_directive=directive,
+                ),
+                timeout=60.0,
             )
 
             citations = [
