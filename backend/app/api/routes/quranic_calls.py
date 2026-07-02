@@ -16,10 +16,18 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel
 
-router = APIRouter()
+_CACHE_HEADER = "public, max-age=86400"
+
+
+async def _set_cache_header(response: Response) -> None:
+    # All endpoints serve pre-generated immutable JSON — safe to cache for a day.
+    response.headers["Cache-Control"] = _CACHE_HEADER
+
+
+router = APIRouter(dependencies=[Depends(_set_cache_header)])
 
 # ─── Data loading (cached) ─────────────────────────────────────────────────────
 
@@ -121,6 +129,8 @@ class StatisticsResponse(BaseModel):
     byPattern: dict[str, int]
     byAddresseeType: dict[str, int]
     byCallerType: dict[str, int]
+    byFunction: dict[str, int]
+    byTone: dict[str, int]
     topSurahs: list[dict]
     bySurah: dict[int, int]
     latency_ms: float
@@ -369,12 +379,18 @@ async def get_statistics():
     t0 = time.monotonic()
     atlas = _load_atlas()
     stats = atlas.get("statistics", {})
-    # Build per-surah call count from the full calls list
+    # Build per-surah / per-function / per-tone counts from the full calls list
     by_surah: dict[int, int] = {}
+    by_function: dict[str, int] = {}
+    by_tone: dict[str, int] = {}
     for c in _calls_list():
         sn = c.get("surahNumber")
         if isinstance(sn, int):
             by_surah[sn] = by_surah.get(sn, 0) + 1
+        fn = c.get("callFunction") or "needs_review"
+        by_function[fn] = by_function.get(fn, 0) + 1
+        tn = c.get("tone") or "needs_review"
+        by_tone[tn] = by_tone.get(tn, 0) + 1
 
     return StatisticsResponse(
         totalCalls=atlas.get("totalCalls", 0),
@@ -387,6 +403,8 @@ async def get_statistics():
         byPattern=stats.get("byPattern", {}),
         byAddresseeType=stats.get("byAddresseeType", {}),
         byCallerType=stats.get("byCallerType", {}),
+        byFunction=by_function,
+        byTone=by_tone,
         topSurahs=stats.get("topSurahs", []),
         bySurah=by_surah,
         latency_ms=round((time.monotonic() - t0) * 1000, 2),

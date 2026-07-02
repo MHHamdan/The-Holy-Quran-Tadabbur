@@ -67,6 +67,8 @@ interface Statistics {
   byPattern: Record<string, number>;
   byAddresseeType: Record<string, number>;
   byCallerType: Record<string, number>;
+  byFunction: Record<string, number>;
+  byTone: Record<string, number>;
   topSurahs: Array<{ surahNumber: number; surahNameEn: string; count: number }>;
   bySurah: Record<number, number>;
 }
@@ -131,6 +133,7 @@ const FUNCTION_CFG: Record<string, { ar: string; en: string; icon: string; color
   storytelling: { ar:'سرد', en:'Narrative', icon:'📖', color:'text-gray-700 bg-gray-50 border-gray-200' },
   lament:       { ar:'حزن', en:'Lament', icon:'😔', color:'text-gray-700 bg-gray-100 border-gray-300' },
   mercy:        { ar:'رحمة', en:'Mercy', icon:'💚', color:'text-green-700 bg-green-50 border-green-200' },
+  tawhid:       { ar:'توحيد', en:'Tawhid', icon:'☝️', color:'text-emerald-800 bg-emerald-50 border-emerald-300' },
   needs_review: { ar:'مراجعة', en:'Review needed', icon:'👁', color:'text-gray-400 bg-gray-50 border-gray-100' },
 };
 
@@ -886,7 +889,7 @@ export default function QuranicCallsAtlasPage() {
                   <Zap className="w-4 h-4 text-emerald-600" />
                   {isRtl ? 'وظائف النداء' : 'Call Functions'}
                 </h3>
-                <FunctionDonutFetcher isRtl={isRtl} onSelect={handleFunctionSelect} />
+                <FunctionBars byFunction={stats.byFunction} isRtl={isRtl} onSelect={handleFunctionSelect} />
               </div>
             </div>
 
@@ -1205,32 +1208,13 @@ function TopSurahList({ topSurahs, onSelect, showAll = false }: {
   );
 }
 
-function FunctionDonutFetcher({ isRtl, onSelect }: { isRtl: boolean; onSelect: (f: string) => void }) {
-  const q = useQuery({
-    queryKey: ['qcalls-fn-summary'],
-    queryFn: async () => {
-      // Fetch per-function counts via by-function endpoint (page_size=1 for total only)
-      const functions = ['command','prohibition','instruction','warning','comfort',
-                         'reminder','invitation','rebuke','supplication','promise','mercy','dialogue','lament'];
-      const counts: Record<string, number> = {};
-      await Promise.all(functions.map(async fn => {
-        const r = await axios.get(`/api/v1/quranic-calls/by-function/${fn}?page_size=1`);
-        counts[fn] = r.data.total;
-      }));
-      return counts;
-    },
-    staleTime: 10 * 60 * 1000,
-  });
-
-  if (!q.data) return (
-    <div className="space-y-2">
-      {[...Array(5)].map((_, i) => <div key={i} className="h-6 bg-gray-100 animate-pulse rounded" />)}
-    </div>
-  );
-
-  const byFn = q.data;
-  const sorted = Object.entries(byFn).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a).slice(0, 8);
+function FunctionBars({ byFunction, isRtl, onSelect }: { byFunction: Record<string, number>; isRtl: boolean; onSelect: (f: string) => void }) {
+  const sorted = Object.entries(byFunction ?? {})
+    .filter(([fn, v]) => v > 0 && fn !== 'needs_review')
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10);
   const total = sorted.reduce((s, [, v]) => s + v, 0);
+  if (sorted.length === 0) return null;
 
   return (
     <div className="space-y-2">

@@ -144,18 +144,56 @@ const RULES: Rule[] = [
   { signals: ['فاغفر لنا','اغفر لنا','ارحمنا','آتنا رحمتك','وسعت كل شيء رحمة',
                'هو الغفور الرحيم','توب علينا','ارحم الراحمين','تب إلينا'],
     fn: 'mercy', tone: 'gentle', topics: ['رحمة','مغفرة','دعاء'], weight: 8 },
+
+  // ── Call to monotheism / tawhid ─────────────────────────────────────────────
+  { signals: ['اعبدوا الله','لا إله إلا الله','لا إله إلا هو','أن لا تشركوا',
+               'لا تشركوا بالله','أخلصوا له الدين','وحده لا شريك','فاعبدوه'],
+    fn: 'tawhid', tone: 'urgent', topics: ['توحيد','عقيدة','عبادة'], weight: 9 },
+
+  // ── Gratitude / thanks ──────────────────────────────────────────────────────
+  { signals: ['اشكروا لله','اشكروا نعمة الله','اذكروا نعمتي','فاذكرون','فاشكروا',
+               'لعلكم تشكرون','لعلكم تذكرون','الحمد لله','فاحمد ربك'],
+    fn: 'reminder', tone: 'gentle', topics: ['شكر','تذكر','نعمة'], weight: 7 },
+
+  // ── Patience / trust in Allah ─────────────────────────────────────────────
+  { signals: ['اصبروا','صابروا','لا تيأسوا','لا تجزع','لن يتركك ربك',
+               'حسبي الله','توكل على الله','فتوكل','فاصبر'],
+    fn: 'comfort', tone: 'comforting', topics: ['صبر','توكل','ثبات'], weight: 8 },
+
+  // ── Prophethood / mission ────────────────────────────────────────────────────
+  { signals: ['يا أيها النبي','يا أيها الرسول','بلغ ما أنزل إليك','قل لأزواجك',
+               'قل للمؤمنين','قل للمؤمنات','قل للذين آمنوا','يا أيها المزمل',
+               'يا أيها المدثر','ألم نشرح لك','إنا أعطيناك'],
+    fn: 'instruction', tone: 'honoring', topics: ['النبوة','رسالة','تكريم'], weight: 10 },
+
+  // ── Tribal / people call (ya qawm context) ────────────────────────────────
+  { signals: ['يا قوم اعبدوا','يا قوم أني','يا قوم اتبعوا','يا قوم لا أسألكم',
+               'يا قوم إن كنتم','يا قوم ما لي','يا قوم استغفروا'],
+    fn: 'instruction', tone: 'gentle', topics: ['دعوة','قصص','نداء قومي'], weight: 9 },
 ];
 
 // ─── Pattern → function defaults (when no signal matches) ─────────────────────
 
 const PATTERN_DEFAULT: Record<string, { fn: string; tone: string; topics: string[] }> = {
+  // Supplication patterns — caller addresses Allah
   supplication:    { fn: 'supplication', tone: 'gentle',    topics: ['دعاء','تضرع'] },
   ya_rabbi:        { fn: 'supplication', tone: 'gentle',    topics: ['دعاء','تضرع'] },
+  // Lament patterns
   ya_lament:       { fn: 'lament',       tone: 'warning',   topics: ['حزن','ندم'] },
   ya_wish:         { fn: 'lament',       tone: 'warning',   topics: ['تمني','ندم'] },
+  // Family address
   ya_bunayya:      { fn: 'instruction',  tone: 'gentle',    topics: ['وصية','أسرة'] },
   ya_abati:        { fn: 'dialogue',     tone: 'gentle',    topics: ['قصص','أسرة'] },
+  // Prophet address — always Allah honoring the Prophet
   ya_prophet_name: { fn: 'instruction',  tone: 'honoring',  topics: ['النبوة','قصص'] },
+  // General يا calls — classified by addressee + signal; fallback = dialogue
+  ya_direct:       { fn: 'dialogue',     tone: 'neutral',   topics: ['نداء','حوار'] },
+  ya_qawmi:        { fn: 'instruction',  tone: 'gentle',    topics: ['نداء','دعوة'] },
+  ya_ahl:          { fn: 'instruction',  tone: 'gentle',    topics: ['نداء','تشريع'] },
+  ya_ayyuhal:      { fn: 'instruction',  tone: 'urgent',    topics: ['نداء','تشريع'] },
+  ya_ayatuha:      { fn: 'instruction',  tone: 'gentle',    topics: ['نداء','الإسلام'] },
+  ya_ibadi:        { fn: 'instruction',  tone: 'gentle',    topics: ['نداء','عبادة','رحمة'] },
+  ya_bani:         { fn: 'instruction',  tone: 'gentle',    topics: ['نداء','تذكير'] },
 };
 
 // ─── Addressee → caller inference ─────────────────────────────────────────────
