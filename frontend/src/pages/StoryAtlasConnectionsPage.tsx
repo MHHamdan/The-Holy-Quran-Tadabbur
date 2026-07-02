@@ -17,7 +17,7 @@
  *   - Every inferred connection shows its review status.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -32,7 +32,6 @@ import {
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import connectionScan from '../data/generated/quranStoryConnections.json';
-import connectionGraph from '../data/generated/quranStoryConnectionGraph.json';
 import { QURAN_STORY_ENTITY_SEEDS } from '../data/quranStoryEntitySeeds';
 import {
   STORY_WORLD_CHRONOLOGY,
@@ -49,7 +48,6 @@ import type {
 } from '../types/quranStoryConnection';
 
 const scan = connectionScan as ScanOutput;
-const graph = connectionGraph as ConnectionGraph;
 
 type TabId = 'surahs' | 'entities' | 'graph' | 'repeated' | 'chronology';
 
@@ -422,26 +420,47 @@ function ConnectionGraphView() {
   const isArabic = language === 'ar';
   const [edgeTypeFilter, setEdgeTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'needs_review' | 'verified'>('all');
+  // The graph JSON is ~3 MB — loaded on demand so it never lands in the page chunk
+  // (a static import pushed this page past the PWA precache limit and broke the build).
+  const [graph, setGraph] = useState<ConnectionGraph | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    import('../data/generated/quranStoryConnectionGraph.json').then((m) => {
+      if (alive) setGraph(m.default as unknown as ConnectionGraph);
+    });
+    return () => { alive = false; };
+  }, []);
 
   const edgeTypes = useMemo(() => {
+    if (!graph) return ['all'];
     const set = new Set<string>();
     for (const e of graph.edges) set.add(e.edgeType);
     return ['all', ...Array.from(set).sort()];
-  }, []);
+  }, [graph]);
 
   const filtered = useMemo(() => {
+    if (!graph) return [];
     return graph.edges.filter((e) => {
       if (edgeTypeFilter !== 'all' && e.edgeType !== edgeTypeFilter) return false;
       if (statusFilter !== 'all' && e.reviewStatus !== statusFilter) return false;
       return true;
     }).slice(0, 200);
-  }, [edgeTypeFilter, statusFilter]);
+  }, [graph, edgeTypeFilter, statusFilter]);
 
   const nodeLabel = (id: string): string => {
-    const n = graph.nodes.find((x) => x.id === id);
+    const n = graph?.nodes.find((x) => x.id === id);
     if (!n) return id;
     return (isArabic ? n.labelArabic : n.labelEnglish) ?? id;
   };
+
+  if (!graph) {
+    return (
+      <div className="space-y-2 py-4">
+        {[...Array(6)].map((_, i) => <div key={i} className="h-8 bg-gray-100 animate-pulse rounded" />)}
+      </div>
+    );
+  }
 
   return (
     <div>
