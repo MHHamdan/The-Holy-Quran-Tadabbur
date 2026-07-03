@@ -257,10 +257,10 @@ def test_explainer_filters_untrusted_sources():
 
 
 def test_app_has_entity_routes() -> None:
+    # Entity routes were consolidated into /concepts in 221f552.
     text = APP_PATH.read_text(encoding="utf-8")
-    assert 'path="/entities"' in text
-    assert 'path="/entities/:entityId"' in text
-    assert 'path="/entities/:entityId/journey"' in text
+    assert 'path="/concepts"' in text
+    assert 'path="/concepts/:conceptId"' in text
 
 
 # ---------------------------------------------------------------------------

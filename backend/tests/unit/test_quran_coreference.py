@@ -278,9 +278,12 @@ def test_api_resolve_returns_warnings_when_no_trusted_source() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_entity_detail_page_renders_implicit_section() -> None:
-    text = ENTITY_PAGE_PATH.read_text(encoding="utf-8")
-    assert "ImplicitConnections" in text
+def test_entity_detail_page_consolidated_into_concepts() -> None:
+    # EntityDetailPage was removed in 221f552 (nav consolidation); entity
+    # browsing now lives in the Concepts pages. Guard the replacement exists.
+    assert not ENTITY_PAGE_PATH.exists(), "EntityDetailPage.tsx was deliberately removed"
+    concept_detail = ROOT / "frontend" / "src" / "pages" / "ConceptDetailPage.tsx"
+    assert concept_detail.exists(), "ConceptDetailPage.tsx must exist (entity consolidation target)"
 
 
 def test_implicit_component_exists_and_renders_filters() -> None:
@@ -297,7 +300,7 @@ def test_implicit_component_exists_and_renders_filters() -> None:
 
 
 def test_app_routes_unchanged() -> None:
+    # Entity routes were consolidated into /concepts in 221f552.
     text = APP_PATH.read_text(encoding="utf-8")
-    assert 'path="/entities"' in text
-    assert 'path="/entities/:entityId"' in text
-    assert 'path="/entities/:entityId/journey"' in text
+    assert 'path="/concepts"' in text
+    assert 'path="/concepts/:conceptId"' in text
