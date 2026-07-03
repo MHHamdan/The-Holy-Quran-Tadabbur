@@ -430,10 +430,16 @@ class VerseEmbeddingService:
                 if response.status_code == 200:
                     data = response.json()
                     result = data.get("result", {})
+                    points = result.get("points_count") or 0
+                    # Newer Qdrant reports vectors_count as null (lazily
+                    # computed) — fall back to points_count so callers
+                    # gating on vectors_count don't treat a populated
+                    # index as empty.
+                    vectors = result.get("vectors_count")
                     return {
                         "exists": True,
-                        "vectors_count": result.get("vectors_count", 0),
-                        "points_count": result.get("points_count", 0),
+                        "vectors_count": vectors if vectors is not None else points,
+                        "points_count": points,
                         "segments_count": len(result.get("segments", [])),
                         "status": result.get("status", "unknown"),
                     }
