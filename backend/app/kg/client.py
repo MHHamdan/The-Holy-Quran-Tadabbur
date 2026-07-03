@@ -8,7 +8,9 @@ Provides:
 - Schema initialization
 """
 
+import json
 import logging
+import re
 from typing import Any, Dict, List, Optional, TypeVar, Type
 from contextlib import asynccontextmanager
 import httpx
@@ -20,6 +22,46 @@ from app.kg.schema import get_schema_sql, get_query, SCHEMA_VERSION
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
+
+
+# A record link is table:id where the table part is a bare identifier
+# (story_cluster:adam, person:musa). Verse refs like "2:34" have a numeric
+# prefix and must stay strings.
+_RECORD_LINK_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*:[A-Za-z0-9_]+$")
+
+
+def _surreal_literal(value: Any) -> str:
+    """Render a Python value as a SurrealQL literal.
+
+    Plain strings use the explicit s'…' prefix: SurrealDB 1.x otherwise
+    coerces any string that looks like a record id (e.g. verse refs like
+    "2:34") into a Thing, which then fails schema string assertions.
+    Strings matching table:id with an identifier table part are emitted
+    bare so record<…>-typed fields (cluster_id, …) still link correctly.
+    None values are dropped from dicts (SurrealDB compatibility) and
+    rendered as NONE elsewhere.
+    """
+    if isinstance(value, str):
+        if _RECORD_LINK_RE.match(value):
+            return value
+        escaped = value.replace("\\", "\\\\").replace("'", "\\'")
+        return f"s'{escaped}'"
+    if isinstance(value, bool):
+        return str(value).lower()
+    if isinstance(value, (int, float)):
+        return str(value)
+    if value is None:
+        return "NONE"
+    if isinstance(value, dict):
+        parts = [
+            f"{json.dumps(str(k))}: {_surreal_literal(v)}"
+            for k, v in value.items()
+            if v is not None
+        ]
+        return "{ " + ", ".join(parts) + " }"
+    if isinstance(value, list):
+        return "[" + ", ".join(_surreal_literal(v) for v in value) + "]"
+    return json.dumps(value)
 
 
 class SurrealDBError(Exception):
@@ -112,32 +154,7 @@ class KGClient:
             if params:
                 for key, value in params.items():
                     placeholder = f"${key}"
-                    if isinstance(value, str):
-                        # Escape single quotes in strings
-                        escaped = value.replace("'", "''")
-                        query_sql = query_sql.replace(placeholder, f"'{escaped}'")
-                    elif isinstance(value, bool):
-                        query_sql = query_sql.replace(placeholder, str(value).lower())
-                    elif isinstance(value, (int, float)):
-                        query_sql = query_sql.replace(placeholder, str(value))
-                    elif isinstance(value, (list, dict)):
-                        # Format as JSON, but filter out None values for SurrealDB compatibility
-                        import json
-
-                        def remove_none(obj):
-                            """Recursively remove None values from dicts."""
-                            if isinstance(obj, dict):
-                                return {k: remove_none(v) for k, v in obj.items() if v is not None}
-                            elif isinstance(obj, list):
-                                return [remove_none(item) for item in obj]
-                            return obj
-
-                        cleaned = remove_none(value)
-                        query_sql = query_sql.replace(placeholder, json.dumps(cleaned))
-                    elif value is None:
-                        query_sql = query_sql.replace(placeholder, "NONE")
-                    else:
-                        query_sql = query_sql.replace(placeholder, str(value))
+                    query_sql = query_sql.replace(placeholder, _surreal_literal(value))
 
             response = await self.client.post(
                 "/sql",
@@ -152,7 +169,11 @@ class KGClient:
             results = []
             for result in data:
                 if result.get("status") == "ERR":
-                    raise SurrealDBQueryError(result.get("detail", "Unknown error"))
+                    # SurrealDB 1.x puts the error message in "result";
+                    # older builds used "detail".
+                    raise SurrealDBQueryError(
+                        result.get("result") or result.get("detail") or "Unknown error"
+                    )
                 if "result" in result:
                     results.extend(result["result"] if isinstance(result["result"], list) else [result["result"]])
 

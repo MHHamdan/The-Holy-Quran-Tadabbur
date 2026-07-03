@@ -13416,11 +13416,11 @@ async def index_verses_for_semantic_search(
 
     verse_service = get_verse_embedding_service()
 
-    # Get all verses from database
+    # Get all verses from database (QuranVerse carries sura/juz/page directly;
+    # there is no QuranSurah model — the previous join referenced an
+    # undefined name and 500'd this endpoint)
     result = await session.execute(
-        select(QuranVerse)
-        .join(QuranSurah, QuranVerse.sura_no == QuranSurah.number)
-        .order_by(QuranVerse.sura_no, QuranVerse.aya_no)
+        select(QuranVerse).order_by(QuranVerse.sura_no, QuranVerse.aya_no)
     )
     verses = result.scalars().all()
 
