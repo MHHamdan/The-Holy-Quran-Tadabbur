@@ -5,7 +5,7 @@ import {
   Megaphone, Users, BookOpen, Filter, Search,
   ChevronRight, AlertTriangle, X,
   Grid, List, BarChart2, Globe2,
-  Book, Star, Heart, Zap, ArrowRight,
+  Book, Star, Heart, Zap, ArrowRight, Volume2,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 
@@ -882,7 +882,7 @@ export default function QuranicCallsAtlasPage() {
               </div>
             </div>
 
-            {/* Middle: function distribution */}
+            {/* Middle: function + tone distribution */}
             <div className="lg:col-span-1 space-y-5">
               <div className="bg-white rounded-2xl border border-gray-200 p-5">
                 <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -890,6 +890,13 @@ export default function QuranicCallsAtlasPage() {
                   {isRtl ? 'وظائف النداء' : 'Call Functions'}
                 </h3>
                 <FunctionBars byFunction={stats.byFunction} isRtl={isRtl} onSelect={handleFunctionSelect} />
+              </div>
+              <div className="bg-white rounded-2xl border border-gray-200 p-5">
+                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <Volume2 className="w-4 h-4 text-emerald-600" />
+                  {isRtl ? 'نبرة النداء' : 'Call Tone'}
+                </h3>
+                <ToneStrip byTone={stats.byTone} isRtl={isRtl} />
               </div>
             </div>
 
@@ -1204,6 +1211,48 @@ function TopSurahList({ topSurahs, onSelect, showAll = false }: {
           <ArrowRight className="w-3.5 h-3.5 text-gray-200 group-hover:text-emerald-500 transition-colors flex-shrink-0" />
         </button>
       ))}
+    </div>
+  );
+}
+
+const TONE_LABELS: Record<string, { ar: string; en: string }> = {
+  gentle:     { ar:'لطيفة',   en:'Gentle' },
+  comforting: { ar:'مطمئنة',  en:'Comforting' },
+  honoring:   { ar:'مكرّمة',  en:'Honoring' },
+  neutral:    { ar:'محايدة',  en:'Neutral' },
+  urgent:     { ar:'حازمة',   en:'Urgent' },
+  warning:    { ar:'محذّرة',  en:'Warning' },
+  rebuking:   { ar:'عاتبة',   en:'Rebuking' },
+};
+
+function ToneStrip({ byTone, isRtl }: { byTone: Record<string, number>; isRtl: boolean }) {
+  const entries = Object.entries(byTone ?? {})
+    .filter(([t, v]) => v > 0 && t !== 'needs_review')
+    .sort(([, a], [, b]) => b - a);
+  const total = entries.reduce((s, [, v]) => s + v, 0);
+  if (total === 0) return null;
+
+  return (
+    <div>
+      <div className="flex h-3 rounded-full overflow-hidden mb-4">
+        {entries.map(([tone, count]) => (
+          <div
+            key={tone}
+            className={(TONE_CFG[tone] ?? TONE_CFG.needs_review).dot}
+            style={{ width: `${(count / total) * 100}%` }}
+            title={`${TONE_LABELS[tone]?.en ?? tone}: ${count}`}
+          />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+        {entries.map(([tone, count]) => (
+          <div key={tone} className="flex items-center gap-2 text-xs">
+            <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${(TONE_CFG[tone] ?? TONE_CFG.needs_review).dot}`} />
+            <span className="text-gray-700 flex-1">{isRtl ? TONE_LABELS[tone]?.ar ?? tone : TONE_LABELS[tone]?.en ?? tone}</span>
+            <span className="text-gray-400 tabular-nums">{count}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
