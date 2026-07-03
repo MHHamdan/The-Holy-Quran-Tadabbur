@@ -127,11 +127,15 @@ class VerseEmbeddingService:
             logger.error(f"Failed to ensure collection: {e}")
             return False
 
-    def compute_embedding(self, text: str) -> List[float]:
-        """Compute embedding for text."""
+    def compute_embedding(self, text: str, kind: str = "query") -> List[float]:
+        """Compute embedding for text.
+
+        multilingual-e5 models REQUIRE the asymmetric "query: " / "passage: "
+        prefixes — without them retrieval quality collapses (verified by the
+        concept-retrieval benchmark: direct-tier MRR was 0.0 unprefixed).
+        """
         model = self._get_model()
-        # For query, add prefix as recommended for E5/multilingual models
-        embedding = model.encode(text, convert_to_numpy=True)
+        embedding = model.encode(f"{kind}: {text}", convert_to_numpy=True)
         return embedding.tolist()
 
     async def index_verses(
@@ -176,8 +180,9 @@ class VerseEmbeddingService:
                     aya_no=aya_no,
                     exclude_bismillah=True
                 )
-                # Combine Arabic text with transliteration for better matching
-                combined_text = f"{text_uthmani} {text_imlaei}"
+                # Combine both scripts; "passage: " prefix is required by
+                # multilingual-e5 for asymmetric retrieval.
+                combined_text = f"passage: {text_uthmani} {text_imlaei}"
                 texts.append(combined_text)
 
             # Generate embeddings for batch

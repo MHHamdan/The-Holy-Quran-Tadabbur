@@ -359,8 +359,10 @@ def main():
                 if not content:
                     continue
 
-                # Generate embedding
-                vector = generate_embedding(embedder, content, dimension)
+                # Generate embedding. multilingual-e5 asymmetric retrieval
+                # requires the "passage: " prefix here — retrieval.py sends
+                # "query: "-prefixed queries against this collection.
+                vector = generate_embedding(embedder, f"passage: {content}", dimension)
 
                 # Create point
                 point = PointStruct(
