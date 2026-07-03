@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Play, Pause, SkipBack, SkipForward, Loader2 } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
 import type { AsmaNameSummary } from '../../lib/api';
@@ -34,9 +35,6 @@ interface PlaylistEntry {
   surahNumber: number;
   ayahNumber: number;
   url: string;
-  /** Canonical ayah text from the Uthmani mushaf — copied verbatim by the
-   *  atlas builder, attributed via quran_uthmani_cloud on the Name record. */
-  ayahText?: string;
 }
 
 function buildPlaylist(names: AsmaNameSummary[]): PlaylistEntry[] {
@@ -52,7 +50,6 @@ function buildPlaylist(names: AsmaNameSummary[]): PlaylistEntry[] {
       surahNumber: ref.surahNumber,
       ayahNumber: ref.ayahStart,
       url: asmaAudioUrl(ref.surahNumber, ref.ayahStart),
-      ayahText: ref.ayahText,
     });
   }
   return out;
@@ -226,19 +223,15 @@ export function AsmaAudioPlayer({ names }: AsmaAudioPlayerProps) {
           )}
         </div>
 
-        {current?.ayahText && (
-          <blockquote
-            className="mt-1 p-3 bg-emerald-50/60 border-s-4 border-emerald-300 rounded-r text-gray-900 font-arabic text-lg leading-loose"
-            dir="rtl"
-            lang="ar"
+        {current && (
+          <Link
+            to={`/quran/${current.surahNumber}?aya=${current.ayahNumber}`}
+            className="inline-flex items-center gap-1 text-xs text-emerald-700 hover:text-emerald-900 hover:underline"
           >
-            {current.ayahText}
-            <footer className="text-[10px] text-gray-500 mt-1 font-sans" dir="ltr">
-              {language === 'ar'
-                ? `المصدر: المصحف العثماني · ${current.surahNumber}:${current.ayahNumber}`
-                : `Source: Uthmani mushaf · ${current.surahNumber}:${current.ayahNumber}`}
-            </footer>
-          </blockquote>
+            {language === 'ar'
+              ? `اقرأ الآية في المصحف · ${current.surahNumber}:${current.ayahNumber}`
+              : `Read the verse in the mushaf · ${current.surahNumber}:${current.ayahNumber}`}
+          </Link>
         )}
 
         {error && (

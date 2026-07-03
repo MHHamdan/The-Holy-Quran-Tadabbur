@@ -60,14 +60,6 @@ export interface QuranReference {
    * directly present.
    */
   note?: string;
-  /**
-   * The canonical Arabic ayah text for surahNumber:ayahStart, copied
-   * verbatim from `data/raw/quran_uthmani.json` by the atlas builder.
-   * NEVER paraphrased or translated; attribution is via the
-   * `quran_uthmani_cloud` sourceId on the containing Name. Optional only
-   * because it was added in atlas v1.2; consumers MUST tolerate absence.
-   */
-  ayahText?: string;
 }
 
 // ---------------------------------------------------------------------------

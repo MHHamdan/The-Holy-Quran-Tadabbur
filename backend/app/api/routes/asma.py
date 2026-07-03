@@ -106,7 +106,6 @@ class AsmaPrimaryReference(BaseModel):
     ayahStart: int
     ayahEnd: Optional[int] = None
     note: Optional[str] = None
-    ayahText: Optional[str] = None
 
 
 class AsmaNameSummary(BaseModel):
@@ -268,7 +267,6 @@ def _primary_refs(n: Dict[str, Any]) -> List[AsmaPrimaryReference]:
                     ayahStart=int(r["ayahStart"]),
                     ayahEnd=r.get("ayahEnd"),
                     note=r.get("note"),
-                    ayahText=r.get("ayahText"),
                 )
             )
         except (KeyError, TypeError, ValueError):

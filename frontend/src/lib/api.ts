@@ -3005,8 +3005,6 @@ export interface AsmaPrimaryReference {
   ayahStart: number;
   ayahEnd?: number;
   note?: string;
-  /** Canonical Arabic ayah text from the Uthmani mushaf (atlas v1.2+). */
-  ayahText?: string;
 }
 
 export interface AsmaNameSummary {
