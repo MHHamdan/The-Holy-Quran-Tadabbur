@@ -36,21 +36,21 @@ from app.models.vocabulary import VocabEntry
 
 SOURCE_ID = "quranic_arabic_corpus"
 
-_DIACRITIC_RE = re.compile(r"[ً-ْٰٱۖ-ۜ۟-۪ۤۧۨ-ۭﹰ-﻿]")
-# Alef normalization: ٱ أ إ آ ء → ا
-_ALEF_RE = re.compile(r"[ٱأإآء]")
+# Diacritics + dagger alef (U+0670). NOTE: must NOT include alef wasla
+# (U+0671) — wasla is a letter, normalised to plain alef by _ALEF_RE below;
+# deleting it made word_ar_bare unmatchable ("\u0671\u0644\u0644\u0647" -> "\u0644\u0644\u0647").
+_DIACRITIC_RE = re.compile("[\u064B-\u0652\u0670\u06D6-\u06DC\u06DF-\u06EA\u06E4\u06E7\u06E8\uFE70-\uFEFF]")
+# Alef normalization: wasla/hamza forms + standalone hamza -> plain alef
+_ALEF_RE = re.compile("[\u0671\u0623\u0625\u0622\u0621]")
 # Tatweel / kashida
-_TATWEEL_RE = re.compile(r"ـ")
-# Small superscript alef (ٰ U+0670) and dagger alef
-_SUPERSCRIPT_RE = re.compile(r"[ٰٱ]")
+_TATWEEL_RE = re.compile("\u0640")
 
 
 def _strip(text: str) -> str:
     """Strip diacritics and normalise Alef variants for dictionary lookup."""
-    t = _DIACRITIC_RE.sub("", text)
-    t = _SUPERSCRIPT_RE.sub("", t)
+    t = _ALEF_RE.sub("\u0627", text)
+    t = _DIACRITIC_RE.sub("", t)
     t = _TATWEEL_RE.sub("", t)
-    t = _ALEF_RE.sub("ا", t)
     return t
 
 

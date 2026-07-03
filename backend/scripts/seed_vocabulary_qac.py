@@ -45,11 +45,18 @@ from app.models.vocabulary import VocabEntry
 # ---------------------------------------------------------------------------
 # Arabic diacritic strip helper
 # ---------------------------------------------------------------------------
-_DIACRITIC_RE = re.compile(r'[ً-ٰٟۖ-ۜ۟-۪ۤۧۨ-ۭ]')
+# Mirrors _strip() in seed_vocabulary_complete.py and _strip_diacritics()
+# in app/api/routes/vocabulary.py — all three must stay identical.
+_DIACRITIC_RE = re.compile("[\u064B-\u0652\u0670\u06D6-\u06DC\u06DF-\u06EA\u06E4\u06E7\u06E8\uFE70-\uFEFF]")
+_ALEF_RE = re.compile("[\u0671\u0623\u0625\u0622\u0621]")
+_TATWEEL_RE = re.compile("\u0640")
 
 
 def _strip_diacritics(text: str) -> str:
-    return _DIACRITIC_RE.sub('', text)
+    t = _ALEF_RE.sub("\u0627", text)
+    t = _DIACRITIC_RE.sub("", t)
+    t = _TATWEEL_RE.sub("", t)
+    return t
 
 
 # ---------------------------------------------------------------------------
@@ -211,9 +218,14 @@ SOURCE_ID = 'quranic_arabic_corpus'
 # ---------------------------------------------------------------------------
 
 def _buckwalter_root_to_arabic(root_bw: str) -> str:
-    """Convert a Buckwalter-encoded root to Arabic script."""
+    """Convert a Buckwalter-encoded root to Arabic script.
+
+    In QAC ROOT notation 'A' denotes the hamza radical in any position
+    (Alh=أله, dAb=دأب, bdA=بدأ) — plain alef is never a root consonant,
+    so 'A' maps to أ, not ا.
+    """
     bw_map = {
-        'A': 'ا', 'b': 'ب', 't': 'ت', 'v': 'ث', 'j': 'ج', 'H': 'ح',
+        'A': 'أ', 'b': 'ب', 't': 'ت', 'v': 'ث', 'j': 'ج', 'H': 'ح',
         'x': 'خ', 'd': 'د', '*': 'ذ', 'r': 'ر', 'z': 'ز', 's': 'س',
         '$': 'ش', 'S': 'ص', 'D': 'ض', 'T': 'ط', 'Z': 'ظ', 'E': 'ع',
         'g': 'غ', 'f': 'ف', 'q': 'ق', 'k': 'ك', 'l': 'ل', 'm': 'م',
@@ -276,8 +288,10 @@ def load_qac_file(path: Path) -> list[dict]:
                 continue
             loc_str, form, tag, features = parts[0], parts[1], parts[2], parts[3]
 
-            # Only process STEM morphemes (these carry the root)
-            if '|STEM|' not in features and 'STEM' not in tag:
+            # Only process STEM morphemes (these carry the root).
+            # In QAC 0.4 the features field STARTS with the morpheme type,
+            # e.g. "STEM|POS:N|LEM:{som|ROOT:smw|M|GEN".
+            if not features.startswith('STEM'):
                 # PREFIX or SUFFIX — skip
                 continue
 
@@ -314,7 +328,18 @@ def load_qac_file(path: Path) -> list[dict]:
                 'source_id': SOURCE_ID,
             })
 
-    return entries
+    # A word can have several STEM segments (e.g. vocative compounds).
+    # ON CONFLICT cannot process duplicate keys within one INSERT, so keep
+    # one entry per (sura, aya, word_position) — preferring the root-bearing
+    # stem, which carries the lexical meaning.
+    deduped: dict[tuple[int, int, int], dict] = {}
+    for e in entries:
+        key = (e['sura_no'], e['aya_no'], e['word_position'])
+        prev = deduped.get(key)
+        if prev is None or (prev['root_ar'] is None and e['root_ar'] is not None):
+            deduped[key] = e
+
+    return list(deduped.values())
 
 
 # ---------------------------------------------------------------------------
@@ -343,21 +368,41 @@ def _build_seed_rows() -> list[dict]:
     return rows
 
 
-def _bulk_insert(session, rows: list[dict]) -> int:
-    """Upsert rows; on duplicate (sura, aya, word_position) update fields."""
+def _bulk_insert(session, rows: list[dict], curated: bool = False) -> int:
+    """Upsert rows; on duplicate (sura, aya, word_position) merge fields.
+
+    curated=False (bulk QAC file): enrich-only — morphology (root/pattern/pos)
+    prefers the incoming QAC value, but meanings already in the DB (Mufradat
+    Arabic meanings, curated glosses) are never overwritten.
+
+    curated=True (built-in hand-verified seed): authoritative — incoming
+    values win wherever present; NULLs never erase existing data.
+    """
     if not rows:
         return 0
+    from sqlalchemy import func
     stmt = pg_insert(VocabEntry).values(rows)
-    stmt = stmt.on_conflict_do_update(
-        index_elements=['sura_no', 'aya_no', 'word_position'],
-        set_={
-            'root_ar': stmt.excluded.root_ar,
-            'pattern_ar': stmt.excluded.pattern_ar,
-            'pos_tag': stmt.excluded.pos_tag,
-            'meaning_en': stmt.excluded.meaning_en,
-            'meaning_ar': stmt.excluded.meaning_ar,
+    if curated:
+        set_ = {
+            'root_ar': func.coalesce(stmt.excluded.root_ar, VocabEntry.root_ar),
+            'pattern_ar': func.coalesce(stmt.excluded.pattern_ar, VocabEntry.pattern_ar),
+            'pos_tag': func.coalesce(stmt.excluded.pos_tag, VocabEntry.pos_tag),
+            'meaning_en': func.coalesce(stmt.excluded.meaning_en, VocabEntry.meaning_en),
+            'meaning_ar': func.coalesce(stmt.excluded.meaning_ar, VocabEntry.meaning_ar),
             'source_id': stmt.excluded.source_id,
         }
+    else:
+        set_ = {
+            'root_ar': func.coalesce(stmt.excluded.root_ar, VocabEntry.root_ar),
+            'pattern_ar': func.coalesce(stmt.excluded.pattern_ar, VocabEntry.pattern_ar),
+            'pos_tag': func.coalesce(stmt.excluded.pos_tag, VocabEntry.pos_tag),
+            'meaning_en': func.coalesce(VocabEntry.meaning_en, stmt.excluded.meaning_en),
+            'meaning_ar': func.coalesce(VocabEntry.meaning_ar, stmt.excluded.meaning_ar),
+            'source_id': stmt.excluded.source_id,
+        }
+    stmt = stmt.on_conflict_do_update(
+        index_elements=['sura_no', 'aya_no', 'word_position'],
+        set_=set_,
     )
     result = session.execute(stmt)
     session.commit()
@@ -383,12 +428,13 @@ def main() -> None:
     session = next(session_gen)
 
     try:
+        curated = not args.qac_file
         if args.qac_file:
             print(f'Loading full QAC data from {args.qac_file} ...')
             rows = load_qac_file(args.qac_file)
             print(f'  Parsed {len(rows):,} STEM morphemes')
         else:
-            print('Loading built-in seed data ...')
+            print('Loading built-in seed data (curated — authoritative) ...')
             rows = _build_seed_rows()
             print(f'  Prepared {len(rows)} seed entries')
 
@@ -401,7 +447,7 @@ def main() -> None:
         batch_size = 1000
         for i in range(0, len(rows), batch_size):
             batch = rows[i:i + batch_size]
-            count = _bulk_insert(session, batch)
+            count = _bulk_insert(session, batch, curated=curated)
             total += count
             print(f'  Inserted/updated batch {i // batch_size + 1}: {count} rows')
 

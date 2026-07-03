@@ -218,12 +218,19 @@ _SOURCE_TITLES: dict[str, str] = {s.source_id: s.title_en for s in _LEXICON_SOUR
 
 import re as _re
 
-_DIACRITIC_RE = _re.compile(r'[ً-ٰٟۖ-ۜ۟-۪ۤۧۨ-ۭ]')
+# Must mirror _strip() in backend/scripts/seed_vocabulary_complete.py — the
+# same normalisation must be applied to queries as was applied when
+# word_ar_bare was seeded, or lookups can never match.
+_DIACRITIC_RE = _re.compile("[\u064B-\u0652\u0670\u06D6-\u06DC\u06DF-\u06EA\u06E4\u06E7\u06E8\uFE70-\uFEFF]")
+_ALEF_RE = _re.compile("[\u0671\u0623\u0625\u0622\u0621]")
+_TATWEEL_RE = _re.compile("\u0640")
 
 
 def _strip_diacritics(text: str) -> str:
-    return _DIACRITIC_RE.sub('', text)
-
+    t = _ALEF_RE.sub("\u0627", text)
+    t = _DIACRITIC_RE.sub("", t)
+    t = _TATWEEL_RE.sub("", t)
+    return t
 
 def _entry_to_response(entry: VocabEntry) -> VocabularyResponse:
     return VocabularyResponse(
@@ -273,11 +280,17 @@ async def vocabulary_lookup(
 
     bare = _strip_diacritics(word)
 
-    # Single query: exact match preferred over bare-text match
+    # Single query: exact match preferred over bare-text match; ties broken
+    # by mushaf order so the first occurrence is returned deterministically.
     result = await db.execute(
         select(VocabEntry)
         .where(or_(VocabEntry.word_ar == word, VocabEntry.word_ar_bare == bare))
-        .order_by(case((VocabEntry.word_ar == word, 0), else_=1))
+        .order_by(
+            case((VocabEntry.word_ar == word, 0), else_=1),
+            VocabEntry.sura_no,
+            VocabEntry.aya_no,
+            VocabEntry.word_position,
+        )
         .limit(1)
     )
     entry = result.scalar_one_or_none()
