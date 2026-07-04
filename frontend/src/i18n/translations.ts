@@ -125,6 +125,10 @@ export const translations: Translations = {
     ar: 'اختبار قرآني',
     en: 'Quran Quiz',
   },
+  nav_challenge: {
+    ar: 'تحدي اليوم',
+    en: 'Daily Challenge',
+  },
   nav_quranic_calls: {
     ar: 'أطلس النداءات',
     en: 'Calls Atlas',
@@ -2292,9 +2296,6 @@ export const themeTranslations: Record<string, { ar: string; en: string }> = {
   trials: { ar: 'الابتلاءات', en: 'trials' },
   anger: { ar: 'الغضب', en: 'anger' },
   disbelief: { ar: 'الكفر', en: 'disbelief' },
-
-  // Daily Challenge nav
-  nav_challenge: { ar: 'تحدي اليوم', en: 'Daily Challenge' },
 
   // Persona labels
   persona_new_muslim: { ar: 'مسلم جديد', en: 'New Muslim' },
