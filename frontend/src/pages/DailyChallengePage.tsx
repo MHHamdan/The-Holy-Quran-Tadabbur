@@ -1,9 +1,11 @@
 /**
- * Daily Quranic Challenge — v2
+ * Daily Quranic Challenge — v3
  *
- * Picks one question per day (date-seeded) from all kidsQuiz entries across
- * QURAN_STORIES_FIRST_BATCH. Tracks daily answers, streak, history, accuracy,
- * and achievements in localStorage.
+ * One question per day, date-seeded from a pool covering the entire Quran:
+ * story quizzes (all batches), verified trivia, and generated surah-metadata
+ * questions for all 114 surahs (see utils/challengePool.ts). Categories rotate
+ * daily. Tracks streaks, history, accuracy, achievements, and cumulative
+ * surah coverage in localStorage.
  */
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
@@ -11,31 +13,25 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Flame, CheckCircle2, XCircle, ChevronRight, BookOpen,
-  Clock, Lightbulb, Share2, Target,
+  Clock, Lightbulb, Share2, Target, Map, Layers,
 } from 'lucide-react';
 import { QURAN_STORIES_FIRST_BATCH } from '../data/quranStories';
+import { SURAH_NAMES } from '../data/surahNames';
+import {
+  getChallengePool, getPoolSize, getQuestionForDate,
+  CATEGORY_META,
+} from '../utils/challengePool';
+import type { ChallengeQuestion, ChallengeCategory } from '../utils/challengePool';
 import { useLanguageStore } from '../stores/languageStore';
 import clsx from 'clsx';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface ChallengeQuestion {
-  questionId: string;
-  storyId: string;
-  storyTitleEn: string;
-  storyTitleAr: string;
-  questionArabic: string;
-  questionEnglish: string;
-  optionsArabic: string[];
-  optionsEnglish: string[];
-  correctOptionIndex: number;
-  explanationArabic: string;
-  explanationEnglish: string;
-}
-
 interface DayRecord {
   correct: boolean;
   answered: boolean;
+  surah?: number;
+  category?: ChallengeCategory;
 }
 
 interface DailyState {
@@ -47,6 +43,7 @@ interface DailyState {
   totalPlayed: number;
   totalCorrect: number;
   history: Record<string, DayRecord>;
+  coveredSurahs: number[];
 }
 
 interface Achievement {
@@ -101,6 +98,15 @@ const ACHIEVEMENTS: Achievement[] = [
     unlocked: (s) => s.totalCorrect >= 10,
   },
   {
+    id: 'explorer',
+    icon: '🗺️',
+    labelEn: 'Quran Explorer',
+    labelAr: 'مستكشف القرآن',
+    descEn: 'Questions from 10 different surahs',
+    descAr: 'أسئلة من ١٠ سور مختلفة',
+    unlocked: (s) => s.coveredSurahs.length >= 10,
+  },
+  {
     id: 'devoted',
     icon: '🏆',
     labelEn: 'Devoted',
@@ -121,14 +127,6 @@ function yesterdayStr(): string {
   const d = new Date();
   d.setDate(d.getDate() - 1);
   return d.toISOString().slice(0, 10);
-}
-
-function dateHash(dateStr: string): number {
-  let h = 5381;
-  for (let i = 0; i < dateStr.length; i++) {
-    h = ((h << 5) + h + dateStr.charCodeAt(i)) >>> 0;
-  }
-  return h;
 }
 
 function toAr(n: number): string {
@@ -164,31 +162,6 @@ function loadState(): DailyState | null {
 
 function saveState(state: DailyState) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-// ─── Collect all questions ─────────────────────────────────────────────────────
-
-function getAllQuestions(): ChallengeQuestion[] {
-  const out: ChallengeQuestion[] = [];
-  for (const story of QURAN_STORIES_FIRST_BATCH) {
-    if (!story.kidsQuiz) continue;
-    for (const q of story.kidsQuiz) {
-      out.push({
-        questionId: q.questionId,
-        storyId: story.storyId,
-        storyTitleEn: story.titleEnglish,
-        storyTitleAr: story.titleArabic,
-        questionArabic: q.questionArabic,
-        questionEnglish: q.questionEnglish,
-        optionsArabic: q.optionsArabic,
-        optionsEnglish: q.optionsEnglish,
-        correctOptionIndex: q.correctOptionIndex,
-        explanationArabic: q.explanationArabic,
-        explanationEnglish: q.explanationEnglish,
-      });
-    }
-  }
-  return out;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -264,22 +237,166 @@ function WeekCalendar({
   );
 }
 
+/** GitHub-style 5-week mini heatmap of past activity (35 days ending today). */
+function ActivityHeatmap({
+  history, today, isRtl,
+}: {
+  history: Record<string, DayRecord>;
+  today: string;
+  isRtl: boolean;
+}) {
+  const cells = [];
+  for (let i = 34; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0, 10);
+    cells.push({ dateStr, record: history[dateStr], isToday: dateStr === today });
+  }
+
+  return (
+    <div>
+      <div className={clsx('flex items-center justify-between mb-2', isRtl && 'flex-row-reverse')}>
+        <span className={clsx('text-[10px] text-gray-400', isRtl && 'font-arabic')}>
+          {isRtl ? 'آخر ٣٥ يوماً' : 'Last 35 days'}
+        </span>
+        <div className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-sm bg-gray-100" />
+          <span className="w-2 h-2 rounded-sm bg-red-300" />
+          <span className="w-2 h-2 rounded-sm bg-emerald-400" />
+          <span className={clsx('text-[10px] text-gray-400 ms-1', isRtl && 'font-arabic')}>
+            {isRtl ? 'خطأ / صواب' : 'wrong / correct'}
+          </span>
+        </div>
+      </div>
+      <div
+        className="grid gap-1"
+        style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', direction: isRtl ? 'rtl' : 'ltr' }}
+      >
+        {cells.map(({ dateStr, record, isToday }) => (
+          <div
+            key={dateStr}
+            title={dateStr}
+            className={clsx(
+              'aspect-square rounded-[4px]',
+              record?.answered
+                ? record.correct ? 'bg-emerald-400' : 'bg-red-300'
+                : 'bg-gray-100',
+              isToday && 'ring-2 ring-primary-400 ring-offset-1',
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** 114-cell map of the Quran — fills in as questions touch each surah. */
+function QuranCoverageMap({
+  covered, todaySurah, isRtl,
+}: {
+  covered: Set<number>;
+  todaySurah?: number;
+  isRtl: boolean;
+}) {
+  return (
+    <div>
+      <div
+        className="grid gap-[3px]"
+        style={{ gridTemplateColumns: 'repeat(19, minmax(0, 1fr))', direction: isRtl ? 'rtl' : 'ltr' }}
+      >
+        {SURAH_NAMES.map((name, idx) => {
+          const surahNo = idx + 1;
+          const isCovered = covered.has(surahNo);
+          const isToday = surahNo === todaySurah;
+          return (
+            <Link
+              key={surahNo}
+              to={`/surah-atlas/${surahNo}`}
+              title={`${surahNo}. ${isRtl ? name.ar : name.en}`}
+              className={clsx(
+                'aspect-square rounded-[3px] transition-colors',
+                isToday
+                  ? 'bg-amber-400 ring-2 ring-amber-500 ring-offset-1 animate-pulse'
+                  : isCovered
+                    ? 'bg-emerald-500 hover:bg-emerald-600'
+                    : 'bg-gray-100 hover:bg-gray-200',
+              )}
+            />
+          );
+        })}
+      </div>
+      <div className={clsx('flex items-center gap-4 mt-3 justify-center', isRtl && 'font-arabic')}>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
+          <span className="text-xs text-gray-400">{isRtl ? 'سورة مغطاة' : 'Covered'}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-sm bg-amber-400" />
+          <span className="text-xs text-gray-400">{isRtl ? 'سؤال اليوم' : "Today's surah"}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-sm bg-gray-100 border border-gray-200" />
+          <span className="text-xs text-gray-400">{isRtl ? 'لم تُغطَّ بعد' : 'Not yet'}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Stacked bar showing how the question pool spans stories / knowledge / surahs. */
+function PoolCompositionBar({ isRtl }: { isRtl: boolean }) {
+  const pool = getChallengePool();
+  const total = getPoolSize();
+  const segments = (Object.keys(CATEGORY_META) as ChallengeCategory[]).map((cat) => ({
+    cat,
+    count: pool[cat].length,
+    pct: (pool[cat].length / total) * 100,
+    ...CATEGORY_META[cat],
+  }));
+
+  return (
+    <div>
+      <div
+        className="flex h-2.5 rounded-full overflow-hidden"
+        style={{ direction: isRtl ? 'rtl' : 'ltr' }}
+      >
+        {segments.map((s) => (
+          <div key={s.cat} className={s.color} style={{ width: `${s.pct}%` }} />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 justify-center">
+        {segments.map((s) => (
+          <div key={s.cat} className="flex items-center gap-1.5">
+            <span className={clsx('w-2.5 h-2.5 rounded-sm', s.color)} />
+            <span className={clsx('text-xs text-gray-500', isRtl && 'font-arabic')}>
+              {isRtl ? s.labelAr : s.labelEn}
+              {' '}
+              <span className="text-gray-400 tabular-nums">
+                ({isRtl ? toAr(s.count) : s.count})
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function DailyChallengePage() {
   const { language } = useLanguageStore();
   const isRtl = language === 'ar';
 
-  const allQuestions = useMemo(() => getAllQuestions(), []);
   const today = todayStr();
-
-  const todayQuestion = useMemo<ChallengeQuestion>(() => {
-    const idx = dateHash(today) % allQuestions.length;
-    return allQuestions[idx];
-  }, [today, allQuestions]);
+  const poolSize = useMemo(() => getPoolSize(), []);
+  const todayQuestion = useMemo<ChallengeQuestion>(() => getQuestionForDate(today), [today]);
+  const categoryMeta = CATEGORY_META[todayQuestion.category];
 
   const storyData = useMemo(
-    () => QURAN_STORIES_FIRST_BATCH.find((s) => s.storyId === todayQuestion.storyId),
+    () => todayQuestion.storyId
+      ? QURAN_STORIES_FIRST_BATCH.find((s) => s.storyId === todayQuestion.storyId)
+      : undefined,
     [todayQuestion.storyId],
   );
 
@@ -288,9 +405,10 @@ export function DailyChallengePage() {
     if (saved && saved.date === today && saved.questionId === todayQuestion.questionId) {
       return {
         ...saved,
-        totalPlayed: (saved as DailyState).totalPlayed ?? 0,
-        totalCorrect: (saved as DailyState).totalCorrect ?? 0,
-        history: (saved as DailyState).history ?? {},
+        totalPlayed: saved.totalPlayed ?? 0,
+        totalCorrect: saved.totalCorrect ?? 0,
+        history: saved.history ?? {},
+        coveredSurahs: saved.coveredSurahs ?? [],
       };
     }
     const prevStreak =
@@ -303,9 +421,10 @@ export function DailyChallengePage() {
       answeredIndex: null,
       streak: prevStreak,
       longestStreak: saved?.longestStreak ?? 0,
-      totalPlayed: (saved as DailyState | null)?.totalPlayed ?? 0,
-      totalCorrect: (saved as DailyState | null)?.totalCorrect ?? 0,
-      history: (saved as DailyState | null)?.history ?? {},
+      totalPlayed: saved?.totalPlayed ?? 0,
+      totalCorrect: saved?.totalCorrect ?? 0,
+      history: saved?.history ?? {},
+      coveredSurahs: saved?.coveredSurahs ?? [],
     };
   });
 
@@ -317,6 +436,7 @@ export function DailyChallengePage() {
   const isCorrect = answered && selected === todayQuestion.correctOptionIndex;
   const accuracy =
     daily.totalPlayed > 0 ? Math.round((daily.totalCorrect / daily.totalPlayed) * 100) : 0;
+  const coveredSet = useMemo(() => new Set(daily.coveredSurahs), [daily.coveredSurahs]);
 
   // Countdown ticks once per second after answering
   useEffect(() => {
@@ -331,6 +451,7 @@ export function DailyChallengePage() {
       const correct = idx === todayQuestion.correctOptionIndex;
       const newStreak = correct ? daily.streak + 1 : 0;
       const newLongest = Math.max(newStreak, daily.longestStreak);
+      const surah = todayQuestion.surahRef;
       const next: DailyState = {
         ...daily,
         answeredIndex: idx,
@@ -338,25 +459,33 @@ export function DailyChallengePage() {
         longestStreak: newLongest,
         totalPlayed: daily.totalPlayed + 1,
         totalCorrect: daily.totalCorrect + (correct ? 1 : 0),
-        history: { ...daily.history, [today]: { correct, answered: true } },
+        history: {
+          ...daily.history,
+          [today]: { correct, answered: true, surah, category: todayQuestion.category },
+        },
+        coveredSurahs:
+          surah && !daily.coveredSurahs.includes(surah)
+            ? [...daily.coveredSurahs, surah]
+            : daily.coveredSurahs,
       };
       setSelected(idx);
       setDaily(next);
       saveState(next);
     },
-    [answered, daily, today, todayQuestion.correctOptionIndex],
+    [answered, daily, today, todayQuestion],
   );
 
   const handleShare = useCallback(() => {
     const emoji = isCorrect ? '✅' : '❌';
+    const coverage = `${coveredSet.size}/114`;
     const text = isRtl
-      ? `${emoji} أجبت على تحدي القرآن اليوم!\nالسلسلة: ${daily.streak} يوم 🔥\n#تدبر`
-      : `${emoji} I completed today's Quran Challenge!\nStreak: ${daily.streak} days 🔥\n#Tadabbur`;
+      ? `${emoji} أجبت على تحدي القرآن اليوم!\nالسلسلة: ${daily.streak} يوم 🔥\nتغطية السور: ${coverage} 🗺️\n#تدبر`
+      : `${emoji} I completed today's Quran Challenge!\nStreak: ${daily.streak} days 🔥\nSurah coverage: ${coverage} 🗺️\n#Tadabbur`;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
-  }, [isCorrect, isRtl, daily.streak]);
+  }, [isCorrect, isRtl, daily.streak, coveredSet.size]);
 
   // First lesson from the story for the post-answer insight
   const storyLesson = useMemo(() => {
@@ -369,6 +498,9 @@ export function DailyChallengePage() {
   }, [storyData, isRtl]);
 
   const options = isRtl ? todayQuestion.optionsArabic : todayQuestion.optionsEnglish;
+  const surahName = todayQuestion.surahRef
+    ? SURAH_NAMES[todayQuestion.surahRef - 1]
+    : undefined;
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8" dir={isRtl ? 'rtl' : 'ltr'}>
@@ -396,79 +528,80 @@ export function DailyChallengePage() {
           labelEn="Streak" labelAr="السلسلة" isRtl={isRtl} />
         <StatCard icon="🏆" value={isRtl ? toAr(daily.longestStreak) : daily.longestStreak}
           labelEn="Best" labelAr="الأفضل" isRtl={isRtl} />
-        <StatCard icon="📅" value={isRtl ? toAr(daily.totalPlayed) : daily.totalPlayed}
-          labelEn="Played" labelAr="مشارك" isRtl={isRtl} />
         <StatCard icon="🎯" value={`${isRtl ? toAr(accuracy) : accuracy}%`}
           labelEn="Accuracy" labelAr="الدقة" isRtl={isRtl} />
+        <StatCard icon="🗺️" value={isRtl ? `${toAr(coveredSet.size)}/${toAr(114)}` : `${coveredSet.size}/114`}
+          labelEn="Surahs" labelAr="السور" isRtl={isRtl} />
       </div>
 
-      {/* ── Week Calendar ── */}
+      {/* ── Activity: week + heatmap ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 mb-5">
         <div className={clsx('text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide', isRtl && 'font-arabic')}>
           {isRtl ? 'تقدم هذا الأسبوع' : 'This Week'}
         </div>
         <WeekCalendar history={daily.history} today={today} isRtl={isRtl} />
-        <div className="flex gap-4 mt-3 justify-center">
-          {[
-            { dot: 'bg-emerald-500', label: isRtl ? 'صواب' : 'Correct' },
-            { dot: 'bg-red-400', label: isRtl ? 'خطأ' : 'Wrong' },
-            { dot: 'bg-gray-200', label: isRtl ? 'لم يُجب' : 'Missed' },
-          ].map(({ dot, label }) => (
-            <div key={label} className="flex items-center gap-1.5">
-              <div className={clsx('w-2.5 h-2.5 rounded-full', dot)} />
-              <span className={clsx('text-xs text-gray-400', isRtl && 'font-arabic')}>{label}</span>
-            </div>
+        <div className="border-t border-gray-50 mt-4 pt-4">
+          <ActivityHeatmap history={daily.history} today={today} isRtl={isRtl} />
+        </div>
+      </div>
+
+      {/* ── Question source context ── */}
+      <div className="bg-gradient-to-br from-primary-50 via-white to-emerald-50 border border-primary-100 rounded-2xl px-5 py-4 mb-4">
+        <div className={clsx('flex items-center justify-between mb-2')}>
+          <div className={clsx('text-[11px] font-semibold text-primary-500 uppercase tracking-widest', isRtl && 'font-arabic')}>
+            {isRtl ? 'مصدر السؤال' : 'Question Source'}
+          </div>
+          <span className={clsx(
+            'text-[11px] font-semibold rounded-full px-2.5 py-0.5 bg-white border border-primary-200 text-primary-700',
+            isRtl && 'font-arabic',
+          )}>
+            {categoryMeta.emoji} {isRtl ? categoryMeta.labelAr : categoryMeta.labelEn}
+          </span>
+        </div>
+        <div className={clsx('font-semibold text-gray-800 text-sm mb-1', isRtl && 'font-arabic')}>
+          {isRtl ? todayQuestion.sourceLabelAr : todayQuestion.sourceLabelEn}
+        </div>
+
+        {storyData && storyData.quranReferences.length > 0 && (
+          <div className={clsx('text-xs text-gray-500 mb-2.5', isRtl && 'font-arabic')}>
+            {storyData.quranReferences.slice(0, 2).map((ref) => ref.referenceLabel).join(' · ')}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2 mt-1.5">
+          {todayQuestion.surahRef && surahName && (
+            <Link
+              to={`/surah-atlas/${todayQuestion.surahRef}`}
+              className={clsx(
+                'text-xs bg-white border border-primary-200 text-primary-700 rounded-full px-2.5 py-1 font-medium hover:bg-primary-50 transition-colors',
+                isRtl && 'font-arabic',
+              )}
+            >
+              📖 {isRtl ? `سورة ${surahName.ar}` : `Surah ${surahName.en}`} ({todayQuestion.surahRef})
+            </Link>
+          )}
+          {storyData?.prophetsMentioned?.slice(0, 2).map((p) => (
+            <span key={p} className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-full px-2.5 py-1">
+              ﷺ {p}
+            </span>
+          ))}
+          {storyData?.themes.slice(0, 3).map((t) => (
+            <span key={t} className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full px-2.5 py-1 capitalize">
+              {formatTheme(t)}
+            </span>
           ))}
         </div>
       </div>
 
-      {/* ── Story Context ── */}
-      {storyData && (
-        <div className="bg-gradient-to-br from-primary-50 via-white to-emerald-50 border border-primary-100 rounded-2xl px-5 py-4 mb-4">
-          <div className={clsx('text-[11px] font-semibold text-primary-500 uppercase tracking-widest mb-2', isRtl && 'font-arabic')}>
-            {isRtl ? 'مصدر السؤال' : 'Question Source'}
-          </div>
-          <div className={clsx('font-semibold text-gray-800 text-sm mb-1', isRtl && 'font-arabic')}>
-            {isRtl ? todayQuestion.storyTitleAr : todayQuestion.storyTitleEn}
-          </div>
-
-          {/* Surah reference */}
-          {storyData.quranReferences.length > 0 && (
-            <div className={clsx('text-xs text-gray-500 mb-2.5', isRtl && 'font-arabic')}>
-              {storyData.quranReferences.slice(0, 2).map((ref) => ref.referenceLabel).join(' · ')}
-            </div>
-          )}
-
-          <div className="flex flex-wrap gap-2">
-            {storyData.quranReferences.slice(0, 1).map((ref, i) => (
-              <span key={i} className="text-xs bg-white border border-primary-200 text-primary-700 rounded-full px-2.5 py-1 font-medium">
-                📖 {isRtl ? 'سورة' : 'Surah'} {ref.surahNumber}
-                :{ref.ayahStart}–{ref.ayahEnd}
-              </span>
-            ))}
-            {storyData.prophetsMentioned?.slice(0, 2).map((p) => (
-              <span key={p} className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-full px-2.5 py-1">
-                ﷺ {p}
-              </span>
-            ))}
-            {storyData.themes.slice(0, 3).map((t) => (
-              <span key={t} className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full px-2.5 py-1 capitalize">
-                {formatTheme(t)}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* ── Question Card ── */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-4">
-        {/* Story label bar */}
+        {/* Source label bar */}
         <div className={clsx(
           'px-5 py-2.5 text-xs font-medium bg-primary-50 text-primary-700 border-b border-primary-100 flex items-center gap-2',
           isRtl && 'font-arabic',
         )}>
           <BookOpen className="w-3.5 h-3.5 flex-shrink-0" />
-          {isRtl ? todayQuestion.storyTitleAr : todayQuestion.storyTitleEn}
+          {isRtl ? todayQuestion.sourceLabelAr : todayQuestion.sourceLabelEn}
         </div>
 
         <div className="px-5 py-5">
@@ -621,7 +754,7 @@ export function DailyChallengePage() {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            {storyData && (
+            {storyData ? (
               <Link
                 to={`/stories/${storyData.storyId}`}
                 className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-amber-50 text-amber-800 border border-amber-200 text-sm rounded-xl hover:bg-amber-100 transition-colors font-medium"
@@ -631,19 +764,54 @@ export function DailyChallengePage() {
                   {isRtl ? 'اقرأ القصة كاملة' : 'Read Full Story'}
                 </span>
               </Link>
-            )}
+            ) : todayQuestion.surahRef && surahName ? (
+              <Link
+                to={`/surah-atlas/${todayQuestion.surahRef}`}
+                className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-amber-50 text-amber-800 border border-amber-200 text-sm rounded-xl hover:bg-amber-100 transition-colors font-medium"
+              >
+                <Layers className="w-4 h-4 flex-shrink-0" />
+                <span className={clsx(isRtl && 'font-arabic')}>
+                  {isRtl ? `استكشف سورة ${surahName.ar}` : `Explore Surah ${surahName.en}`}
+                </span>
+              </Link>
+            ) : null}
             <Link
-              to="/stories"
+              to={todayQuestion.category === 'story' ? '/stories' : '/quiz'}
               className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-primary-700 text-white text-sm rounded-xl hover:bg-primary-800 transition-colors font-medium"
             >
               <span className={clsx(isRtl && 'font-arabic')}>
-                {isRtl ? 'استكشف القصص' : 'Explore Stories'}
+                {todayQuestion.category === 'story'
+                  ? (isRtl ? 'استكشف القصص' : 'Explore Stories')
+                  : (isRtl ? 'المزيد من الأسئلة' : 'More Questions')}
               </span>
               <ChevronRight className={clsx('w-4 h-4', isRtl && 'rotate-180')} />
             </Link>
           </div>
         </>
       )}
+
+      {/* ── Quran coverage map ── */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 mb-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className={clsx('flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide', isRtl && 'font-arabic')}>
+            <Map className="w-3.5 h-3.5 text-emerald-500" />
+            {isRtl ? 'خريطة تغطية القرآن' : 'Quran Coverage Map'}
+          </div>
+          <span className={clsx('text-xs font-bold text-emerald-600 tabular-nums', isRtl && 'font-arabic')}>
+            {isRtl ? `${toAr(coveredSet.size)} / ${toAr(114)} سورة` : `${coveredSet.size} / 114 surahs`}
+          </span>
+        </div>
+        <QuranCoverageMap
+          covered={coveredSet}
+          todaySurah={todayQuestion.surahRef}
+          isRtl={isRtl}
+        />
+        <p className={clsx('text-[11px] text-gray-400 text-center mt-3', isRtl && 'font-arabic')}>
+          {isRtl
+            ? 'كل إجابة تضيء السورة التي يدور حولها السؤال — اضغط على أي مربع لاستكشاف السورة'
+            : 'Each answer lights up the surah it covers — tap any cell to explore that surah'}
+        </p>
+      </div>
 
       {/* ── Achievements ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 mb-5">
@@ -685,7 +853,7 @@ export function DailyChallengePage() {
         )}
       </div>
 
-      {/* ── Pool info + progress bar ── */}
+      {/* ── Pool info + progress ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 mb-2">
         <div className="flex items-center justify-between mb-2">
           <div className={clsx('text-xs font-semibold text-gray-500 uppercase tracking-wide', isRtl && 'font-arabic')}>
@@ -695,27 +863,28 @@ export function DailyChallengePage() {
             <Target className="w-3.5 h-3.5 text-primary-400" />
             <span className={clsx('text-xs text-gray-500', isRtl && 'font-arabic')}>
               {isRtl
-                ? `${toAr(daily.totalPlayed)} من ${toAr(allQuestions.length)}`
-                : `${daily.totalPlayed} of ${allQuestions.length}`}
+                ? `${toAr(daily.totalPlayed)} من ${toAr(poolSize)}`
+                : `${daily.totalPlayed} of ${poolSize}`}
             </span>
           </div>
         </div>
-        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden mb-1">
           <div
             className="bg-gradient-to-r from-primary-500 to-emerald-500 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${Math.min(100, (daily.totalPlayed / allQuestions.length) * 100)}%` }}
+            style={{ width: `${Math.min(100, (daily.totalPlayed / poolSize) * 100)}%` }}
           />
         </div>
-        <div className={clsx('flex justify-between text-[10px] text-gray-400 mt-1', isRtl && 'font-arabic')}>
+        <div className={clsx('flex justify-between text-[10px] text-gray-400 mb-4', isRtl && 'font-arabic')}>
           <span>{isRtl ? 'مبتدئ' : 'Beginner'}</span>
           <span>{isRtl ? 'عالم' : 'Scholar'}</span>
         </div>
+        <PoolCompositionBar isRtl={isRtl} />
       </div>
 
-      <p className="text-center text-xs text-gray-400 mt-4">
+      <p className={clsx('text-center text-xs text-gray-400 mt-4', isRtl && 'font-arabic')}>
         {isRtl
-          ? `${toAr(allQuestions.length)} سؤال في المجموعة • سؤال جديد كل يوم`
-          : `${allQuestions.length} questions in the pool · new question every day`}
+          ? `${toAr(poolSize)} سؤال تغطي القرآن كاملاً • سؤال جديد كل يوم`
+          : `${poolSize} questions covering the entire Quran · new question every day`}
       </p>
     </div>
   );
