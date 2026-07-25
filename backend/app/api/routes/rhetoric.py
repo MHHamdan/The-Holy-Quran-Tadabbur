@@ -14,7 +14,7 @@ All data is grounded in balagha-focused tafsir sources:
 """
 from typing import List, Optional, Dict, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,7 +24,15 @@ from app.services.discourse_classifier import DiscourseClassifier
 from app.services.tone_analyzer import ToneAnalyzer
 from app.core.responses import APIError, ErrorCode, get_request_id
 
-router = APIRouter()
+
+def _cache_immutable(response: Response) -> None:
+    """Every rhetoric endpoint returns immutable reference data (balagha
+    analysis of a fixed corpus), so let browsers/CDN cache for 24 h.
+    Router-level dependency — applies to all handlers without touching each."""
+    response.headers["Cache-Control"] = "public, max-age=86400"
+
+
+router = APIRouter(dependencies=[Depends(_cache_immutable)])
 
 
 # =============================================================================

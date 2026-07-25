@@ -11,7 +11,7 @@ Endpoints:
 """
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +19,14 @@ from app.db.database import get_async_session
 from app.services.story_atlas import StoryAtlasService, get_role_style
 from app.services.similarity import SimilarityService
 
-router = APIRouter()
+
+def _cache_immutable(response: Response) -> None:
+    """All story-atlas endpoints are read-only over a fixed corpus — cache 24 h.
+    Router-level dependency so every handler emits the header."""
+    response.headers["Cache-Control"] = "public, max-age=86400"
+
+
+router = APIRouter(dependencies=[Depends(_cache_immutable)])
 
 
 # =============================================================================
