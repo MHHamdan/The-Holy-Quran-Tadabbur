@@ -1,0 +1,32 @@
+# Secrets — MUST never enter the image
+.env
+.env.*
+*.env
+
+# Python caches / build artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Tests & fixtures (15 MB of audio, not needed at runtime)
+tests/
+reports/
+docs/
+
+# VCS / editor / OS
+.git/
+.gitignore
+*.md
+.DS_Store
+*.log

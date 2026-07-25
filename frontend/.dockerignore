@@ -1,0 +1,22 @@
+# Deps & build output are produced inside the image, never copy the host copies
+node_modules/
+dist/
+dist-ssr/
+
+# Secrets / local env
+.env
+.env.*
+
+# Dev-only assets
+certs/
+e2e/
+coverage/
+playwright-report/
+test-results/
+
+# VCS / editor / OS
+.git/
+.gitignore
+*.log
+.DS_Store
+.vscode/

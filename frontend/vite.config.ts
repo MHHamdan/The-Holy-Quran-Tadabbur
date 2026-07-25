@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { compression } from 'vite-plugin-compression2'
 import fs from 'fs'
 import path from 'path'
 
@@ -55,6 +56,18 @@ export default defineConfig({
         // Keep SW disabled in dev so hot-reload is unaffected
         enabled: false,
       },
+    }),
+    // Build-time precompression: ship .gz (and .br) alongside every text asset so
+    // nginx serves them with zero per-request CPU (gzip_static / brotli_static).
+    // Heavy graph chunks (e.g. the 3.3 MB story-connection JSON→JS) drop ~6-8x
+    // on the wire. Only compress files >1 KB where it actually pays off.
+    compression({
+      // gzip only — the stock nginx image serves .gz via gzip_static but has no
+      // brotli module, so emitting .br would just leave dead files on disk.
+      algorithms: ['gzip'],
+      include: /\.(js|mjs|css|html|json|svg|txt|xml|wasm)$/i,
+      threshold: 1024,
+      deleteOriginalAssets: false,
     }),
   ],
 
