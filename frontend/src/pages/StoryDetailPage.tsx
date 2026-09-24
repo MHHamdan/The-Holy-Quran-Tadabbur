@@ -5,6 +5,7 @@ import { useLanguageStore } from '../stores/languageStore';
 import { t, translateCategory, translateTheme, translateFigure, translateAspect } from '../i18n/translations';
 import { storiesApi, quranApi, StoryDetail, StoryGraph, Verse, StorySegment } from '../lib/api';
 import { ThematicFlow } from '../components/stories/ThematicFlow';
+import { SegmentTafsirPanel } from '../components/stories/SegmentTafsirPanel';
 import { NarrativeInsights } from '../components/stories/NarrativeInsights';
 import { RelatedStories } from '../components/stories/RelatedStories';
 import type { AudienceLevel, QuranStory } from '../types/quranStory';
@@ -167,6 +168,9 @@ export function StoryDetailPage() {
             {summary && <p className={clsx('text-gray-600', language === 'ar' && 'font-arabic')}>{summary}</p>}
           </div>
         </div>
+
+        {/* Coverage stats — derived from the story's segments */}
+        <StoryCoverageStats story={story} language={language} />
 
         {/* Meta Info */}
         <div className="flex flex-wrap gap-6 text-sm">
@@ -472,9 +476,6 @@ export function StoryDetailPage() {
           {story.segments
             .sort((a, b) => a.narrative_order - b.narrative_order)
             .map((segment) => {
-              const segSummary =
-                language === 'ar' ? segment.summary_ar : segment.summary_en;
-
               const isExpanded = expandedSegments.has(segment.id);
               const isLoading = loadingVerses.has(segment.id);
               const verses = segmentVerses[segment.id];
@@ -503,9 +504,7 @@ export function StoryDetailPage() {
                             {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                           </span>
                         </div>
-                        {segSummary && (
-                          <p className={clsx('text-gray-600 text-sm', language === 'ar' && 'font-arabic')}>{segSummary}</p>
-                        )}
+                        <SegmentSummary segment={segment} language={language} />
                       </div>
                     </div>
                   </button>
@@ -568,6 +567,13 @@ export function StoryDetailPage() {
                           {language === 'ar' ? 'لا توجد آيات متاحة' : 'No verses available'}
                         </p>
                       )}
+
+                      <SegmentTafsirPanel
+                        suraNo={segment.sura_no}
+                        ayaStart={segment.aya_start}
+                        ayaEnd={segment.aya_end}
+                        language={language}
+                      />
                     </div>
                   )}
                 </div>
@@ -733,17 +739,155 @@ function StoryFallbackView({
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center">
-          <Clock className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-          <p className={clsx('text-gray-500 text-sm mb-1', isAr && 'font-arabic')}>
+          <AlertTriangle className="w-10 h-10 mx-auto mb-3 text-amber-300" />
+          <p className={clsx('text-gray-600 text-sm mb-1 font-medium', isAr && 'font-arabic')}>
             {isAr
-              ? 'المحتوى التفصيلي لهذه القصة سيكون متاحاً قريباً.'
-              : 'Full story content will be available soon.'}
+              ? 'تعذّر تحميل تفاصيل هذه القصة من الخادم.'
+              : 'This story’s details could not be loaded from the server.'}
           </p>
-          <p className="text-xs text-gray-400">
+          <p className={clsx('text-xs text-gray-500 mb-4', isAr && 'font-arabic')}>
             {isAr
-              ? 'تسجيل الدخول يتيح الوصول الكامل إلى كل القصص.'
-              : 'Sign in for full access to all story content.'}
+              ? 'المواضع القرآنية أعلاه مأخوذة من بيانات محفوظة داخل التطبيق، ويمكنك قراءتها مباشرة من المصحف.'
+              : 'The Quranic references above come from data bundled with the app, and you can read them directly in the Mushaf.'}
           </p>
+          <button
+            onClick={() => window.location.reload()}
+            className={clsx(
+              'inline-flex items-center gap-2 text-sm font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-lg px-4 py-2 hover:bg-primary-100 transition-colors',
+              isAr && 'font-arabic',
+            )}
+          >
+            {isAr ? 'إعادة المحاولة' : 'Try again'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Segment summary.
+//
+// Most seeded segments carry an English summary but no Arabic one. Rendering
+// only the active language left ~89% of segments visually blank for Arabic
+// readers, so the other language is shown instead, explicitly labelled and
+// wrapped in its own `dir` so the bidi algorithm does not reorder the
+// surrounding RTL layout.
+// ---------------------------------------------------------------------------
+
+function SegmentSummary({
+  segment,
+  language,
+}: {
+  segment: StorySegment;
+  language: 'ar' | 'en';
+}) {
+  const isAr = language === 'ar';
+  const preferred = isAr ? segment.summary_ar : segment.summary_en;
+  const alternate = isAr ? segment.summary_en : segment.summary_ar;
+
+  const text = preferred || alternate;
+  if (!text) return null;
+
+  const isAlternate = !preferred;
+  const textLang: 'ar' | 'en' = isAlternate ? (isAr ? 'en' : 'ar') : language;
+
+  return (
+    <div className="space-y-1">
+      <p
+        dir={textLang === 'ar' ? 'rtl' : 'ltr'}
+        lang={textLang}
+        className={clsx('text-gray-600 text-sm', textLang === 'ar' && 'font-arabic')}
+      >
+        {text}
+      </p>
+      {isAlternate && (
+        <span
+          className={clsx(
+            'inline-block text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5',
+            isAr && 'font-arabic',
+          )}
+        >
+          {isAr ? 'الملخّص متاح بالإنجليزية فقط' : 'Summary available in Arabic only'}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Coverage stats — how much of the Quran a story actually spans.
+//
+// `total_verses` is derived server-side from the union of the story's segment
+// ranges, so overlapping segments are not double-counted.
+// ---------------------------------------------------------------------------
+
+function StoryCoverageStats({
+  story,
+  language,
+}: {
+  story: StoryDetail & { segments: StorySegment[] };
+  language: 'ar' | 'en';
+}) {
+  const isAr = language === 'ar';
+  const suras = story.suras_mentioned ?? [];
+  const segmentCount = story.segments?.length ?? 0;
+
+  if (!story.total_verses && !suras.length && !segmentCount) return null;
+
+  const stats: { key: string; value: number; label: string }[] = [
+    { key: 'verses', value: story.total_verses, label: isAr ? 'آية' : 'Verses' },
+    { key: 'suras', value: suras.length, label: isAr ? 'سورة' : 'Surahs' },
+    { key: 'passages', value: segmentCount, label: isAr ? 'مقطع' : 'Passages' },
+  ].filter((s) => s.value > 0);
+
+  return (
+    <div className="mb-6 border-t border-gray-100 pt-5">
+      <div className="flex flex-wrap gap-3 mb-4">
+        {stats.map((stat) => (
+          <div
+            key={stat.key}
+            className="flex-1 min-w-[96px] bg-gray-50 border border-gray-100 rounded-xl px-4 py-3"
+          >
+            <div className="text-xl font-bold text-primary-700 tabular-nums" dir="ltr">
+              {stat.value}
+            </div>
+            <div className={clsx('text-xs text-gray-500 mt-0.5', isAr && 'font-arabic')}>
+              {stat.label}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {suras.length > 0 && (
+        <div>
+          <h3
+            className={clsx(
+              'text-xs font-bold text-gray-500 uppercase tracking-wide mb-2',
+              isAr && 'font-arabic',
+            )}
+          >
+            {isAr ? 'السور التي وردت فيها القصة' : 'Surahs this story appears in'}
+          </h3>
+          <div className="flex flex-wrap gap-1.5">
+            {suras.map((suraNo) => {
+              const surah = getSurahName(suraNo);
+              return (
+                <Link
+                  key={suraNo}
+                  to={`/surah-atlas/${suraNo}`}
+                  className="inline-flex items-center gap-1.5 text-xs bg-primary-50 text-primary-700 border border-primary-100 rounded-full px-2.5 py-1 hover:bg-primary-100 transition-colors"
+                >
+                  <span className="tabular-nums" dir="ltr">
+                    {suraNo}
+                  </span>
+                  <span className={clsx(isAr && 'font-arabic')}>
+                    {isAr ? surah.ar : surah.en}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
