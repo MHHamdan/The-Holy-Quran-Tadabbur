@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Video, Newspaper, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar, Library, ShieldCheck } from 'lucide-react';
+import { Video, Newspaper, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar, Library, ShieldCheck, Brain } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import clsx from 'clsx';
 
@@ -109,11 +109,21 @@ const TOOL_MODULES: ToolModule[] = [
     id: 'vocabulary',
     name_en: 'Quranic Vocabulary',
     name_ar: 'غريب القرآن',
-    description_en: 'Look up Quranic word meanings from verified classical Arabic lexicons',
-    description_ar: 'البحث في معاني الكلمات القرآنية من المعاجم الكلاسيكية الموثوقة (قريباً)',
+    description_en: 'Look up Quranic word roots, morphology and grammar from the Quranic Arabic Corpus',
+    description_ar: 'البحث في معاني الكلمات القرآنية: الجذر والوزن والإعراب من مدونة القرآن الصرفية',
     icon: Library,
     path: '/tools/vocabulary',
     color: 'teal',
+  },
+  {
+    id: 'surah-memory-atlas',
+    name_en: 'Surah Memory Atlas',
+    name_ar: 'أطلس حفظ السور',
+    description_en: 'Memorisation map for all 114 surahs: length, juz placement, pages and revelation order',
+    description_ar: 'خريطة حفظ السور الـ114: الطول وموضع الجزء والصفحات وترتيب النزول',
+    icon: Brain,
+    path: '/tools/surah-memory-atlas',
+    color: 'rose',
   },
   {
     id: 'prompt-guide',
@@ -176,6 +186,7 @@ function ToolCard({ tool, language }: ToolCardProps) {
     indigo: { bg: 'bg-indigo-50', icon: 'text-indigo-600', border: 'border-indigo-200', hover: 'hover:border-indigo-400' },
     cyan: { bg: 'bg-cyan-50', icon: 'text-cyan-600', border: 'border-cyan-200', hover: 'hover:border-cyan-400' },
     violet: { bg: 'bg-violet-50', icon: 'text-violet-600', border: 'border-violet-200', hover: 'hover:border-violet-400' },
+    rose: { bg: 'bg-rose-50', icon: 'text-rose-600', border: 'border-rose-200', hover: 'hover:border-rose-400' },
   };
 
   const colors = colorClasses[tool.color] || colorClasses.blue;
