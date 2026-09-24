@@ -6,7 +6,8 @@ Enhanced API with:
 - Timeline endpoint for step-by-step learning
 - Cross-story connections for thematic exploration
 """
-from typing import List, Optional
+from collections import defaultdict
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field
@@ -20,6 +21,63 @@ from app.services.story_graph import StoryGraphService
 from app.services.similarity import SimilarityService
 
 router = APIRouter()
+
+
+# ---------------------------------------------------------------------------
+# Derived verse coverage
+#
+# Story.total_verses is an unmaintained column that is 0 for every seeded
+# story, so the figure is derived from the segments instead.  Segments of the
+# same story routinely overlap (Badr covers 8:5-14 and again 8:9-12), so the
+# count is the size of the union of (sura, aya) pairs rather than the sum of
+# the range widths, which would double-count the overlap.
+# ---------------------------------------------------------------------------
+
+
+def _segment_verse_keys(
+    sura_no: Optional[int], aya_start: Optional[int], aya_end: Optional[int]
+) -> Set[Tuple[int, int]]:
+    """Every (sura, aya) pair a single segment covers."""
+    if sura_no is None or aya_start is None:
+        return set()
+    last = aya_start if aya_end is None else aya_end
+    first, last = min(aya_start, last), max(aya_start, last)
+    return {(sura_no, aya) for aya in range(first, last + 1)}
+
+
+async def _verse_counts_by_story(
+    session: AsyncSession, story_ids: Iterable[str]
+) -> Dict[str, int]:
+    """
+    Distinct Quranic verses covered by each story, in one batched query.
+
+    Returns an empty mapping for story ids that have no segments.
+    """
+    ids = list(story_ids)
+    if not ids:
+        return {}
+
+    result = await session.execute(
+        select(
+            StorySegment.story_id,
+            StorySegment.sura_no,
+            StorySegment.aya_start,
+            StorySegment.aya_end,
+        ).where(StorySegment.story_id.in_(ids))
+    )
+
+    covered: Dict[str, Set[Tuple[int, int]]] = defaultdict(set)
+    for story_id, sura_no, aya_start, aya_end in result.all():
+        covered[story_id] |= _segment_verse_keys(sura_no, aya_start, aya_end)
+
+    return {story_id: len(keys) for story_id, keys in covered.items()}
+
+
+def _resolve_total_verses(stored: Optional[int], derived: Optional[int]) -> int:
+    """Prefer the figure derived from segments; fall back to the stored column."""
+    if derived:
+        return derived
+    return stored or 0
 
 
 # Pydantic schemas
@@ -191,7 +249,17 @@ async def list_stories(
     result = await session.execute(query)
     stories = result.scalars().all()
 
-    return [StoryResponse.model_validate(s) for s in stories]
+    verse_counts = await _verse_counts_by_story(session, [s.id for s in stories])
+
+    responses = []
+    for story in stories:
+        payload = StoryResponse.model_validate(story)
+        payload.total_verses = _resolve_total_verses(
+            story.total_verses, verse_counts.get(story.id)
+        )
+        responses.append(payload)
+
+    return responses
 
 
 @router.get("/categories")
@@ -259,6 +327,19 @@ async def get_story(
             [SegmentResponse.model_validate(s) for s in story.segments],
             key=lambda x: x.narrative_order,
         )
+
+    if include_segments:
+        # Segments are already loaded — count without a second round trip.
+        covered: Set[Tuple[int, int]] = set()
+        for segment in story.segments:
+            covered |= _segment_verse_keys(
+                segment.sura_no, segment.aya_start, segment.aya_end
+            )
+        derived = len(covered)
+    else:
+        derived = (await _verse_counts_by_story(session, [story.id])).get(story.id)
+
+    response.total_verses = _resolve_total_verses(story.total_verses, derived)
 
     return response
 
