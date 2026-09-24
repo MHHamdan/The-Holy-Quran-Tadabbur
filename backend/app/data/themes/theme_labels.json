@@ -1,0 +1,408 @@
+{
+  "name": "Quranic Theme Labels",
+  "version": "1.0.0",
+  "description": "Single source of truth for theme labels (Arabic and English)",
+  "methodology": "Sunni Orthodox - 4 Madhabs Only",
+  "labels": {
+    "theme_tawheed": {
+      "title_ar": "التوحيد",
+      "title_en": "Tawheed (Oneness of Allah)",
+      "short_title_ar": "التوحيد",
+      "short_title_en": "Tawheed",
+      "category": "aqidah",
+      "slug": "tawheed"
+    },
+    "theme_tawheed_rububiyyah": {
+      "title_ar": "توحيد الربوبية",
+      "title_en": "Tawheed of Lordship",
+      "short_title_ar": "توحيد الربوبية",
+      "short_title_en": "Tawheed of Lordship",
+      "category": "aqidah",
+      "slug": "tawheed-rububiyyah"
+    },
+    "theme_tawheed_uluhiyyah": {
+      "title_ar": "توحيد الألوهية",
+      "title_en": "Tawheed of Worship",
+      "short_title_ar": "توحيد الألوهية",
+      "short_title_en": "Tawheed of Worship",
+      "category": "aqidah",
+      "slug": "tawheed-uluhiyyah"
+    },
+    "theme_asma_sifat": {
+      "title_ar": "الأسماء والصفات",
+      "title_en": "Names and Attributes of Allah",
+      "short_title_ar": "الأسماء والصفات",
+      "short_title_en": "Names and Attributes of Allah",
+      "category": "aqidah",
+      "slug": "asma-wa-sifat"
+    },
+    "theme_shirk": {
+      "title_ar": "الشرك وخطره",
+      "title_en": "Shirk (Polytheism) and Its Dangers",
+      "short_title_ar": "الشرك وخطره",
+      "short_title_en": "Shirk (Polytheism) and Its Dangers",
+      "category": "aqidah",
+      "slug": "shirk"
+    },
+    "theme_iman_billah": {
+      "title_ar": "الإيمان بالله",
+      "title_en": "Belief in Allah",
+      "short_title_ar": "الإيمان بالله",
+      "short_title_en": "Belief in Allah",
+      "category": "iman",
+      "slug": "iman-billah"
+    },
+    "theme_iman_malaika": {
+      "title_ar": "الإيمان بالملائكة",
+      "title_en": "Belief in Angels",
+      "short_title_ar": "الإيمان بالملائكة",
+      "short_title_en": "Belief in Angels",
+      "category": "iman",
+      "slug": "iman-malaika"
+    },
+    "theme_iman_kutub": {
+      "title_ar": "الإيمان بالكتب",
+      "title_en": "Belief in Divine Books",
+      "short_title_ar": "الإيمان بالكتب",
+      "short_title_en": "Belief in Divine Books",
+      "category": "iman",
+      "slug": "iman-kutub"
+    },
+    "theme_iman_rusul": {
+      "title_ar": "الإيمان بالرسل",
+      "title_en": "Belief in Messengers",
+      "short_title_ar": "الإيمان بالرسل",
+      "short_title_en": "Belief in Messengers",
+      "category": "iman",
+      "slug": "iman-rusul"
+    },
+    "theme_iman_yawm_akhir": {
+      "title_ar": "الإيمان باليوم الآخر",
+      "title_en": "Belief in the Last Day",
+      "short_title_ar": "الإيمان باليوم الآخر",
+      "short_title_en": "Belief in the Last Day",
+      "category": "iman",
+      "slug": "iman-yawm-akhir"
+    },
+    "theme_iman_qadr": {
+      "title_ar": "الإيمان بالقدر",
+      "title_en": "Belief in Divine Decree",
+      "short_title_ar": "الإيمان بالقدر",
+      "short_title_en": "Belief in Divine Decree",
+      "category": "iman",
+      "slug": "iman-qadr"
+    },
+    "theme_jannah": {
+      "title_ar": "الجنة ونعيمها",
+      "title_en": "Paradise and Its Bliss",
+      "short_title_ar": "الجنة ونعيمها",
+      "short_title_en": "Paradise and Its Bliss",
+      "category": "iman",
+      "slug": "jannah"
+    },
+    "theme_nar": {
+      "title_ar": "النار وعذابها",
+      "title_en": "Hellfire and Its Punishment",
+      "short_title_ar": "النار وعذابها",
+      "short_title_en": "Hellfire and Its Punishment",
+      "category": "iman",
+      "slug": "nar"
+    },
+    "theme_salah": {
+      "title_ar": "الصلاة",
+      "title_en": "Prayer (Salah)",
+      "short_title_ar": "الصلاة",
+      "short_title_en": "Prayer (Salah)",
+      "category": "ibadat",
+      "slug": "salah"
+    },
+    "theme_zakah": {
+      "title_ar": "الزكاة",
+      "title_en": "Obligatory Charity (Zakah)",
+      "short_title_ar": "الزكاة",
+      "short_title_en": "Obligatory Charity (Zakah)",
+      "category": "ibadat",
+      "slug": "zakah"
+    },
+    "theme_siyam": {
+      "title_ar": "الصيام",
+      "title_en": "Fasting (Siyam)",
+      "short_title_ar": "الصيام",
+      "short_title_en": "Fasting (Siyam)",
+      "category": "ibadat",
+      "slug": "siyam"
+    },
+    "theme_hajj": {
+      "title_ar": "الحج",
+      "title_en": "Pilgrimage (Hajj)",
+      "short_title_ar": "الحج",
+      "short_title_en": "Pilgrimage (Hajj)",
+      "category": "ibadat",
+      "slug": "hajj"
+    },
+    "theme_dua": {
+      "title_ar": "الدعاء",
+      "title_en": "Supplication (Du'a)",
+      "short_title_ar": "الدعاء",
+      "short_title_en": "Supplication (Du'a)",
+      "category": "ibadat",
+      "slug": "dua"
+    },
+    "theme_dhikr": {
+      "title_ar": "الذكر",
+      "title_en": "Remembrance of Allah (Dhikr)",
+      "short_title_ar": "الذكر",
+      "short_title_en": "Remembrance of Allah (Dhikr)",
+      "category": "ibadat",
+      "slug": "dhikr"
+    },
+    "theme_tawbah": {
+      "title_ar": "التوبة",
+      "title_en": "Repentance (Tawbah)",
+      "short_title_ar": "التوبة",
+      "short_title_en": "Repentance (Tawbah)",
+      "category": "ibadat",
+      "slug": "tawbah"
+    },
+    "theme_sidq": {
+      "title_ar": "الصدق",
+      "title_en": "Truthfulness (Sidq)",
+      "short_title_ar": "الصدق",
+      "short_title_en": "Truthfulness (Sidq)",
+      "category": "akhlaq_fardi",
+      "slug": "sidq"
+    },
+    "theme_sabr": {
+      "title_ar": "الصبر",
+      "title_en": "Patience (Sabr)",
+      "short_title_ar": "الصبر",
+      "short_title_en": "Patience (Sabr)",
+      "category": "akhlaq_fardi",
+      "slug": "sabr"
+    },
+    "theme_ikhlas": {
+      "title_ar": "الإخلاص",
+      "title_en": "Sincerity (Ikhlas)",
+      "short_title_ar": "الإخلاص",
+      "short_title_en": "Sincerity (Ikhlas)",
+      "category": "akhlaq_fardi",
+      "slug": "ikhlas"
+    },
+    "theme_tawadu": {
+      "title_ar": "التواضع",
+      "title_en": "Humility (Tawadu')",
+      "short_title_ar": "التواضع",
+      "short_title_en": "Humility (Tawadu')",
+      "category": "akhlaq_fardi",
+      "slug": "tawadu"
+    },
+    "theme_shukr": {
+      "title_ar": "الشكر",
+      "title_en": "Gratitude (Shukr)",
+      "short_title_ar": "الشكر",
+      "short_title_en": "Gratitude (Shukr)",
+      "category": "akhlaq_fardi",
+      "slug": "shukr"
+    },
+    "theme_taqwa": {
+      "title_ar": "التقوى",
+      "title_en": "God-Consciousness (Taqwa)",
+      "short_title_ar": "التقوى",
+      "short_title_en": "God-Consciousness (Taqwa)",
+      "category": "akhlaq_fardi",
+      "slug": "taqwa"
+    },
+    "theme_tawakkul": {
+      "title_ar": "التوكل على الله",
+      "title_en": "Reliance on Allah (Tawakkul)",
+      "short_title_ar": "التوكل على الله",
+      "short_title_en": "Reliance on Allah (Tawakkul)",
+      "category": "akhlaq_fardi",
+      "slug": "tawakkul"
+    },
+    "theme_khushu": {
+      "title_ar": "الخشوع",
+      "title_en": "Humility and Devotion (Khushu')",
+      "short_title_ar": "الخشوع",
+      "short_title_en": "Humility and Devotion (Khushu')",
+      "category": "akhlaq_fardi",
+      "slug": "khushu"
+    },
+    "theme_birr_walidayn": {
+      "title_ar": "بر الوالدين",
+      "title_en": "Kindness to Parents",
+      "short_title_ar": "بر الوالدين",
+      "short_title_en": "Kindness to Parents",
+      "category": "akhlaq_ijtima",
+      "slug": "birr-walidayn"
+    },
+    "theme_silat_rahim": {
+      "title_ar": "صلة الرحم",
+      "title_en": "Maintaining Family Ties",
+      "short_title_ar": "صلة الرحم",
+      "short_title_en": "Maintaining Family Ties",
+      "category": "akhlaq_ijtima",
+      "slug": "silat-rahim"
+    },
+    "theme_adl": {
+      "title_ar": "العدل",
+      "title_en": "Justice",
+      "short_title_ar": "العدل",
+      "short_title_en": "Justice",
+      "category": "akhlaq_ijtima",
+      "slug": "adl"
+    },
+    "theme_ihsan": {
+      "title_ar": "الإحسان",
+      "title_en": "Excellence and Benevolence (Ihsan)",
+      "short_title_ar": "الإحسان",
+      "short_title_en": "Excellence and Benevolence (Ihsan)",
+      "category": "akhlaq_ijtima",
+      "slug": "ihsan"
+    },
+    "theme_amanah": {
+      "title_ar": "الأمانة",
+      "title_en": "Trustworthiness (Amanah)",
+      "short_title_ar": "الأمانة",
+      "short_title_en": "Trustworthiness (Amanah)",
+      "category": "akhlaq_ijtima",
+      "slug": "amanah"
+    },
+    "theme_infaq": {
+      "title_ar": "الإنفاق في سبيل الله",
+      "title_en": "Spending in Allah's Cause",
+      "short_title_ar": "الإنفاق في سبيل الله",
+      "short_title_en": "Spending in Allah's Cause",
+      "category": "akhlaq_ijtima",
+      "slug": "infaq"
+    },
+    "theme_islah": {
+      "title_ar": "الإصلاح",
+      "title_en": "Reconciliation and Reform",
+      "short_title_ar": "الإصلاح",
+      "short_title_en": "Reconciliation and Reform",
+      "category": "akhlaq_ijtima",
+      "slug": "islah"
+    },
+    "theme_zulm": {
+      "title_ar": "الظلم",
+      "title_en": "Oppression and Injustice (Zulm)",
+      "short_title_ar": "الظلم",
+      "short_title_en": "Oppression and Injustice (Zulm)",
+      "category": "muharramat",
+      "slug": "zulm"
+    },
+    "theme_kidhb": {
+      "title_ar": "الكذب",
+      "title_en": "Lying",
+      "short_title_ar": "الكذب",
+      "short_title_en": "Lying",
+      "category": "muharramat",
+      "slug": "kidhb"
+    },
+    "theme_ghish": {
+      "title_ar": "الغش والخداع",
+      "title_en": "Cheating and Deception",
+      "short_title_ar": "الغش والخداع",
+      "short_title_en": "Cheating and Deception",
+      "category": "muharramat",
+      "slug": "ghish"
+    },
+    "theme_riba": {
+      "title_ar": "الربا",
+      "title_en": "Usury (Riba)",
+      "short_title_ar": "الربا",
+      "short_title_en": "Usury (Riba)",
+      "category": "muharramat",
+      "slug": "riba"
+    },
+    "theme_kibr": {
+      "title_ar": "الكبر",
+      "title_en": "Arrogance (Kibr)",
+      "short_title_ar": "الكبر",
+      "short_title_en": "Arrogance (Kibr)",
+      "category": "muharramat",
+      "slug": "kibr"
+    },
+    "theme_uquq_walidayn": {
+      "title_ar": "عقوق الوالدين",
+      "title_en": "Disobedience to Parents",
+      "short_title_ar": "عقوق الوالدين",
+      "short_title_en": "Disobedience to Parents",
+      "category": "muharramat",
+      "slug": "uquq-walidayn"
+    },
+    "theme_nifaq": {
+      "title_ar": "النفاق",
+      "title_en": "Hypocrisy (Nifaq)",
+      "short_title_ar": "النفاق",
+      "short_title_en": "Hypocrisy (Nifaq)",
+      "category": "muharramat",
+      "slug": "nifaq"
+    },
+    "theme_fasad": {
+      "title_ar": "الفساد في الأرض",
+      "title_en": "Corruption on Earth",
+      "short_title_ar": "الفساد في الأرض",
+      "short_title_en": "Corruption on Earth",
+      "category": "muharramat",
+      "slug": "fasad"
+    },
+    "theme_sunnah_nasr": {
+      "title_ar": "سنة النصر والتمكين",
+      "title_en": "Divine Law of Victory",
+      "short_title_ar": "سنة النصر والتمكين",
+      "short_title_en": "Divine Law of Victory",
+      "category": "sunan_ilahiyyah",
+      "slug": "sunnah-nasr"
+    },
+    "theme_sunnah_ihlak": {
+      "title_ar": "سنة إهلاك الأمم",
+      "title_en": "Divine Law of Destroying Nations",
+      "short_title_ar": "سنة إهلاك الأمم",
+      "short_title_en": "Divine Law of Destroying Nations",
+      "category": "sunan_ilahiyyah",
+      "slug": "sunnah-ihlak"
+    },
+    "theme_sunnah_istidraj": {
+      "title_ar": "سنة الاستدراج",
+      "title_en": "Divine Law of Gradual Lead (Istidraj)",
+      "short_title_ar": "سنة الاستدراج",
+      "short_title_en": "Divine Law of Gradual Lead (Istidraj)",
+      "category": "sunan_ilahiyyah",
+      "slug": "sunnah-istidraj"
+    },
+    "theme_sunnah_taghyir": {
+      "title_ar": "سنة التغيير",
+      "title_en": "Divine Law of Change",
+      "short_title_ar": "سنة التغيير",
+      "short_title_en": "Divine Law of Change",
+      "category": "sunan_ilahiyyah",
+      "slug": "sunnah-taghyir"
+    },
+    "theme_maghfira": {
+      "title_ar": "المغفرة والرحمة",
+      "title_en": "Forgiveness and Mercy",
+      "short_title_ar": "المغفرة والرحمة",
+      "short_title_en": "Forgiveness and Mercy",
+      "category": "sunan_ilahiyyah",
+      "slug": "maghfira"
+    },
+    "theme_rahma": {
+      "title_ar": "رحمة الله",
+      "title_en": "Mercy of Allah",
+      "short_title_ar": "رحمة الله",
+      "short_title_en": "Mercy of Allah",
+      "category": "sunan_ilahiyyah",
+      "slug": "rahma"
+    },
+    "theme_sunnah_ibtila": {
+      "title_ar": "سنة الابتلاء",
+      "title_en": "Divine Law of Testing",
+      "short_title_ar": "سنة الابتلاء",
+      "short_title_en": "Divine Law of Testing",
+      "category": "sunan_ilahiyyah",
+      "slug": "sunnah-ibtila"
+    }
+  }
+}

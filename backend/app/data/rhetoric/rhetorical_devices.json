@@ -1,0 +1,704 @@
+{
+  "schema_version": "1.0",
+  "description": "Arabic Rhetorical Devices (علم البلاغة) - Canonical Registry",
+  "sources": [
+    "الكشاف - الزمخشري",
+    "التفسير الكبير - الفخر الرازي",
+    "إرشاد العقل السليم - أبو السعود",
+    "التحرير والتنوير - ابن عاشور",
+    "البلاغة الواضحة - علي الجارم ومصطفى أمين"
+  ],
+  "categories": [
+    {
+      "id": "bayaan",
+      "name_ar": "علم البيان",
+      "name_en": "Figures of Speech",
+      "description_ar": "علم يُعرف به إيراد المعنى الواحد بطرق مختلفة في وضوح الدلالة عليه",
+      "description_en": "The science of expressing a single meaning through different methods with varying degrees of clarity"
+    },
+    {
+      "id": "maani",
+      "name_ar": "علم المعاني",
+      "name_en": "Semantics",
+      "description_ar": "علم يُعرف به أحوال اللفظ العربي التي بها يطابق مقتضى الحال",
+      "description_en": "The science of understanding how Arabic expressions conform to the requirements of context"
+    },
+    {
+      "id": "badeea",
+      "name_ar": "علم البديع",
+      "name_en": "Embellishment",
+      "description_ar": "علم يُعرف به وجوه تحسين الكلام بعد رعاية المطابقة ووضوح الدلالة",
+      "description_en": "The science of beautifying speech after ensuring contextual appropriateness and clarity"
+    }
+  ],
+  "devices": [
+    {
+      "id": "istiaara",
+      "slug": "istiaara",
+      "name_ar": "استعارة",
+      "name_en": "Metaphor",
+      "category": "bayaan",
+      "definition_ar": "استعمال اللفظ في غير ما وضع له لعلاقة المشابهة مع قرينة مانعة من إرادة المعنى الأصلي",
+      "definition_en": "Using a word in a non-literal sense based on similarity, with a contextual indicator preventing the literal meaning",
+      "sub_types": [
+        {"id": "istiaara_tasrihiyya", "name_ar": "استعارة تصريحية", "name_en": "Explicit Metaphor", "description_ar": "ما صُرّح فيها بلفظ المشبه به"},
+        {"id": "istiaara_makniyya", "name_ar": "استعارة مكنية", "name_en": "Implied Metaphor", "description_ar": "ما حُذف فيها المشبه به ورُمز إليه بشيء من لوازمه"}
+      ],
+      "examples": [
+        {
+          "sura_no": 2,
+          "ayah_no": 16,
+          "text_ar": "اشْتَرَوُا الضَّلَالَةَ بِالْهُدَىٰ",
+          "explanation_ar": "استعارة تصريحية - شُبّه اختيار الضلالة على الهدى بالتجارة والشراء",
+          "explanation_en": "Explicit metaphor - choosing misguidance over guidance is likened to a commercial transaction",
+          "evidence_sources": ["zamakhshari", "razi"]
+        },
+        {
+          "sura_no": 36,
+          "ayah_no": 12,
+          "text_ar": "وَكُلَّ شَيْءٍ أَحْصَيْنَاهُ فِي إِمَامٍ مُبِينٍ",
+          "explanation_ar": "استعارة - سُمي اللوح المحفوظ إماماً لأن الملائكة تتبعه وتقتدي به",
+          "explanation_en": "Metaphor - the Preserved Tablet is called 'Imam' because angels follow and emulate it",
+          "evidence_sources": ["zamakhshari"]
+        }
+      ],
+      "display_order": 1
+    },
+    {
+      "id": "tashbih",
+      "slug": "tashbih",
+      "name_ar": "تشبيه",
+      "name_en": "Simile",
+      "category": "bayaan",
+      "definition_ar": "عقد مماثلة بين شيئين أو أكثر قُصد اشتراكهما في صفة أو أكثر بأداة لغرض يقصده المتكلم",
+      "definition_en": "Drawing a comparison between two or more things sharing a common quality using a comparison particle for a rhetorical purpose",
+      "sub_types": [
+        {"id": "tashbih_mursal", "name_ar": "تشبيه مرسل", "name_en": "Explicit Simile", "description_ar": "ما ذُكرت فيه أداة التشبيه"},
+        {"id": "tashbih_muakad", "name_ar": "تشبيه مؤكد", "name_en": "Confirmed Simile", "description_ar": "ما حُذفت منه أداة التشبيه"},
+        {"id": "tashbih_mujmal", "name_ar": "تشبيه مجمل", "name_en": "Summary Simile", "description_ar": "ما حُذف منه وجه الشبه"},
+        {"id": "tashbih_baligh", "name_ar": "تشبيه بليغ", "name_en": "Compressed Simile", "description_ar": "ما حُذفت منه الأداة ووجه الشبه"},
+        {"id": "tashbih_tamthili", "name_ar": "تشبيه تمثيلي", "name_en": "Extended Simile", "description_ar": "ما كان وجه الشبه فيه صورة منتزعة من متعدد"}
+      ],
+      "examples": [
+        {
+          "sura_no": 2,
+          "ayah_no": 17,
+          "text_ar": "مَثَلُهُمْ كَمَثَلِ الَّذِي اسْتَوْقَدَ نَارًا",
+          "explanation_ar": "تشبيه تمثيلي - شُبّه حال المنافقين الذين أظهروا الإيمان ثم ارتدوا بمن أوقد ناراً ثم انطفأت",
+          "explanation_en": "Extended simile - the hypocrites who showed faith then reverted are likened to one who kindled a fire that was then extinguished",
+          "evidence_sources": ["ibn_kathir", "zamakhshari", "razi"]
+        },
+        {
+          "sura_no": 2,
+          "ayah_no": 261,
+          "text_ar": "مَثَلُ الَّذِينَ يُنْفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنْبَتَتْ سَبْعَ سَنَابِلَ",
+          "explanation_ar": "تشبيه تمثيلي - شُبّه ثواب المنفق في سبيل الله بحبة أنبتت سبع سنابل",
+          "explanation_en": "Extended simile - the reward of spending in Allah's way is likened to a seed producing seven ears",
+          "evidence_sources": ["ibn_kathir", "razi"]
+        }
+      ],
+      "display_order": 2
+    },
+    {
+      "id": "kinaya",
+      "slug": "kinaya",
+      "name_ar": "كناية",
+      "name_en": "Metonymy",
+      "category": "bayaan",
+      "definition_ar": "لفظ أُطلق وأُريد به لازم معناه مع جواز إرادة ذلك المعنى",
+      "definition_en": "An expression used to convey an implied meaning through one of its concomitants, while the literal meaning remains possible",
+      "sub_types": [
+        {"id": "kinaya_sifa", "name_ar": "كناية عن صفة", "name_en": "Metonymy of Attribute"},
+        {"id": "kinaya_mawsuf", "name_ar": "كناية عن موصوف", "name_en": "Metonymy of Subject"},
+        {"id": "kinaya_nisba", "name_ar": "كناية عن نسبة", "name_en": "Metonymy of Relation"}
+      ],
+      "examples": [
+        {
+          "sura_no": 17,
+          "ayah_no": 29,
+          "text_ar": "وَلَا تَجْعَلْ يَدَكَ مَغْلُولَةً إِلَىٰ عُنُقِكَ وَلَا تَبْسُطْهَا كُلَّ الْبَسْطِ",
+          "explanation_ar": "كناية عن البخل والإسراف - اليد المغلولة كناية عن البخل، وبسطها كل البسط كناية عن الإسراف",
+          "explanation_en": "Metonymy for miserliness and extravagance - the chained hand represents miserliness, and fully extended hand represents extravagance",
+          "evidence_sources": ["zamakhshari", "abu_suud"]
+        }
+      ],
+      "display_order": 3
+    },
+    {
+      "id": "majaz",
+      "slug": "majaz",
+      "name_ar": "مجاز",
+      "name_en": "Trope",
+      "category": "bayaan",
+      "definition_ar": "الكلمة المستعملة في غير ما وضعت له في اصطلاح التخاطب لعلاقة مع قرينة مانعة من إرادة المعنى الوضعي",
+      "definition_en": "A word used in a meaning other than its original designation, based on a relationship, with a contextual indicator preventing the literal meaning",
+      "sub_types": [
+        {"id": "majaz_mursal", "name_ar": "مجاز مرسل", "name_en": "Loose Metonymy", "description_ar": "ما كانت علاقته غير المشابهة"},
+        {"id": "majaz_aqli", "name_ar": "مجاز عقلي", "name_en": "Mental Trope", "description_ar": "إسناد الفعل إلى غير ما هو له"}
+      ],
+      "examples": [
+        {
+          "sura_no": 12,
+          "ayah_no": 82,
+          "text_ar": "وَاسْأَلِ الْقَرْيَةَ",
+          "explanation_ar": "مجاز مرسل علاقته المحلية - أي اسأل أهل القرية، فأطلق المحل وأراد الحال فيه",
+          "explanation_en": "Metonymy by locality - meaning 'ask the people of the town', using the container for the contained",
+          "evidence_sources": ["zamakhshari", "razi"]
+        }
+      ],
+      "display_order": 4
+    },
+    {
+      "id": "itnaab",
+      "slug": "itnaab",
+      "name_ar": "إطناب",
+      "name_en": "Amplification",
+      "category": "maani",
+      "definition_ar": "زيادة اللفظ على المعنى لفائدة",
+      "definition_en": "Increasing words beyond the basic meaning for a rhetorical benefit",
+      "sub_types": [
+        {"id": "itnaab_dhikr_khas", "name_ar": "إطناب بذكر الخاص بعد العام", "name_en": "Amplification by specifying after generalizing"},
+        {"id": "itnaab_dhikr_am", "name_ar": "إطناب بذكر العام بعد الخاص", "name_en": "Amplification by generalizing after specifying"},
+        {"id": "itnaab_iidah", "name_ar": "إطناب بالإيضاح", "name_en": "Amplification by explanation"},
+        {"id": "itnaab_takrar", "name_ar": "إطناب بالتكرار", "name_en": "Amplification by repetition"}
+      ],
+      "examples": [
+        {
+          "sura_no": 2,
+          "ayah_no": 238,
+          "text_ar": "حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ",
+          "explanation_ar": "إطناب بذكر الخاص بعد العام - ذكر الصلاة الوسطى بعد الصلوات للتأكيد على أهميتها",
+          "explanation_en": "Amplification by specifying - mentioning the middle prayer after all prayers to emphasize its importance",
+          "evidence_sources": ["ibn_ashur"]
+        }
+      ],
+      "display_order": 5
+    },
+    {
+      "id": "ijaz",
+      "slug": "ijaz",
+      "name_ar": "إيجاز",
+      "name_en": "Brevity",
+      "category": "maani",
+      "definition_ar": "جمع المعاني الكثيرة تحت اللفظ القليل",
+      "definition_en": "Expressing many meanings with few words",
+      "sub_types": [
+        {"id": "ijaz_hazf", "name_ar": "إيجاز بالحذف", "name_en": "Brevity by Ellipsis", "description_ar": "حذف كلمة أو جملة مع بقاء المعنى واضحاً"},
+        {"id": "ijaz_qisar", "name_ar": "إيجاز بالقصر", "name_en": "Brevity by Compression", "description_ar": "التعبير عن المعاني الكثيرة بعبارات قليلة"}
+      ],
+      "examples": [
+        {
+          "sura_no": 12,
+          "ayah_no": 82,
+          "text_ar": "وَاسْأَلِ الْقَرْيَةَ",
+          "explanation_ar": "إيجاز بالحذف - حُذف المضاف 'أهل' وأُقيم المضاف إليه مقامه",
+          "explanation_en": "Ellipsis - the word 'people of' is omitted, with the village standing for its inhabitants",
+          "evidence_sources": ["zamakhshari"]
+        },
+        {
+          "sura_no": 16,
+          "ayah_no": 90,
+          "text_ar": "إِنَّ اللَّهَ يَأْمُرُ بِالْعَدْلِ وَالْإِحْسَانِ",
+          "explanation_ar": "إيجاز بالقصر - جمعت هذه الآية أصول الشريعة كلها في ألفاظ قليلة",
+          "explanation_en": "Compression - this verse encompasses all principles of Islamic law in few words",
+          "evidence_sources": ["ibn_ashur", "abu_suud"]
+        }
+      ],
+      "display_order": 6
+    },
+    {
+      "id": "taqdim",
+      "slug": "taqdim",
+      "name_ar": "تقديم وتأخير",
+      "name_en": "Inversion/Fronting",
+      "category": "maani",
+      "definition_ar": "تغيير ترتيب الكلام عن أصله لأغراض بلاغية كالتخصيص والاهتمام",
+      "definition_en": "Changing the normal word order for rhetorical purposes such as emphasis or specification",
+      "examples": [
+        {
+          "sura_no": 1,
+          "ayah_no": 5,
+          "text_ar": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+          "explanation_ar": "تقديم المفعول به للتخصيص والحصر - أي لا نعبد إلا إياك",
+          "explanation_en": "Fronting the object for exclusivity - meaning 'we worship none but You'",
+          "evidence_sources": ["zamakhshari", "razi", "ibn_kathir"]
+        },
+        {
+          "sura_no": 2,
+          "ayah_no": 3,
+          "text_ar": "وَمِمَّا رَزَقْنَاهُمْ يُنْفِقُونَ",
+          "explanation_ar": "تقديم الجار والمجرور للاهتمام - تقديم ما ينفقون منه للدلالة على الإنفاق من بعض ما رزقهم الله",
+          "explanation_en": "Fronting for emphasis - indicating they spend from part of what Allah provided",
+          "evidence_sources": ["zamakhshari"]
+        }
+      ],
+      "display_order": 7
+    },
+    {
+      "id": "qasr",
+      "slug": "qasr",
+      "name_ar": "قصر",
+      "name_en": "Restriction",
+      "category": "maani",
+      "definition_ar": "تخصيص شيء بشيء بطريق مخصوص",
+      "definition_en": "Restricting something to something else through a specific method",
+      "sub_types": [
+        {"id": "qasr_nafiy_istithna", "name_ar": "قصر بالنفي والاستثناء", "name_en": "Restriction by Negation and Exception"},
+        {"id": "qasr_innama", "name_ar": "قصر بإنما", "name_en": "Restriction by 'innama'"},
+        {"id": "qasr_taqdim", "name_ar": "قصر بالتقديم", "name_en": "Restriction by Fronting"}
+      ],
+      "examples": [
+        {
+          "sura_no": 12,
+          "ayah_no": 40,
+          "text_ar": "إِنِ الْحُكْمُ إِلَّا لِلَّهِ",
+          "explanation_ar": "قصر بالنفي والاستثناء - قصر الحكم على الله وحده",
+          "explanation_en": "Restriction by negation and exception - limiting judgment to Allah alone",
+          "evidence_sources": ["zamakhshari", "razi"]
+        },
+        {
+          "sura_no": 2,
+          "ayah_no": 11,
+          "text_ar": "إِنَّمَا نَحْنُ مُصْلِحُونَ",
+          "explanation_ar": "قصر بإنما - ادعاء المنافقين قصر أنفسهم على الإصلاح",
+          "explanation_en": "Restriction by 'innama' - hypocrites' claim of limiting themselves to reform",
+          "evidence_sources": ["zamakhshari"]
+        }
+      ],
+      "display_order": 8
+    },
+    {
+      "id": "istifham",
+      "slug": "istifham",
+      "name_ar": "استفهام بلاغي",
+      "name_en": "Rhetorical Question",
+      "category": "maani",
+      "definition_ar": "سؤال لا يُراد منه الاستفهام الحقيقي بل غرض بلاغي آخر",
+      "definition_en": "A question not seeking an actual answer but serving a rhetorical purpose",
+      "sub_types": [
+        {"id": "istifham_inkari", "name_ar": "استفهام إنكاري", "name_en": "Denying Question"},
+        {"id": "istifham_taqriri", "name_ar": "استفهام تقريري", "name_en": "Affirming Question"},
+        {"id": "istifham_taajub", "name_ar": "استفهام تعجبي", "name_en": "Wondering Question"},
+        {"id": "istifham_tawbikh", "name_ar": "استفهام توبيخي", "name_en": "Reproaching Question"},
+        {"id": "istifham_tahqir", "name_ar": "استفهام تحقير", "name_en": "Belittling Question"}
+      ],
+      "examples": [
+        {
+          "sura_no": 2,
+          "ayah_no": 44,
+          "text_ar": "أَتَأْمُرُونَ النَّاسَ بِالْبِرِّ وَتَنْسَوْنَ أَنْفُسَكُمْ",
+          "explanation_ar": "استفهام توبيخي - توبيخ من يأمر بالخير ولا يفعله",
+          "explanation_en": "Reproaching question - rebuking those who command good but don't practice it",
+          "evidence_sources": ["zamakhshari", "razi"]
+        },
+        {
+          "sura_no": 67,
+          "ayah_no": 3,
+          "text_ar": "هَلْ تَرَىٰ مِنْ فُطُورٍ",
+          "explanation_ar": "استفهام إنكاري - نفي وجود أي خلل في خلق السماوات",
+          "explanation_en": "Denying question - negating any flaw in the creation of the heavens",
+          "evidence_sources": ["ibn_kathir"]
+        }
+      ],
+      "display_order": 9
+    },
+    {
+      "id": "nida",
+      "slug": "nida",
+      "name_ar": "نداء",
+      "name_en": "Vocative/Apostrophe",
+      "category": "maani",
+      "definition_ar": "طلب إقبال المدعو على الداعي بحرف نائب مناب أدعو",
+      "definition_en": "Calling upon someone to attend to the speaker using vocative particles",
+      "examples": [
+        {
+          "sura_no": 2,
+          "ayah_no": 21,
+          "text_ar": "يَا أَيُّهَا النَّاسُ اعْبُدُوا رَبَّكُمُ",
+          "explanation_ar": "نداء للتنبيه والتهييج على ما يُلقى إليهم",
+          "explanation_en": "Vocative for alerting and stirring attention to what follows",
+          "evidence_sources": ["zamakhshari"]
+        }
+      ],
+      "display_order": 10
+    },
+    {
+      "id": "tibaq",
+      "slug": "tibaq",
+      "name_ar": "طباق",
+      "name_en": "Antithesis",
+      "category": "badeea",
+      "definition_ar": "الجمع بين الشيء وضده في الكلام",
+      "definition_en": "Combining a thing and its opposite in speech",
+      "sub_types": [
+        {"id": "tibaq_ijabi", "name_ar": "طباق إيجابي", "name_en": "Positive Antithesis", "description_ar": "ما لم يختلف فيه الضدان إيجاباً وسلباً"},
+        {"id": "tibaq_salbi", "name_ar": "طباق سلبي", "name_en": "Negative Antithesis", "description_ar": "ما اختلف فيه الضدان إيجاباً وسلباً"}
+      ],
+      "examples": [
+        {
+          "sura_no": 2,
+          "ayah_no": 164,
+          "text_ar": "وَاخْتِلَافِ اللَّيْلِ وَالنَّهَارِ",
+          "explanation_ar": "طباق إيجابي بين الليل والنهار",
+          "explanation_en": "Positive antithesis between night and day",
+          "evidence_sources": ["abu_suud"]
+        },
+        {
+          "sura_no": 2,
+          "ayah_no": 19,
+          "text_ar": "يَجْعَلُونَ أَصَابِعَهُمْ فِي آذَانِهِم مِّنَ الصَّوَاعِقِ حَذَرَ الْمَوْتِ",
+          "explanation_ar": "طباق بين ظلمات ونور، بين الصم والسمع",
+          "explanation_en": "Antithesis between darkness and light, deafness and hearing",
+          "evidence_sources": ["abu_suud", "zamakhshari"]
+        },
+        {
+          "sura_no": 35,
+          "ayah_no": 19,
+          "text_ar": "وَمَا يَسْتَوِي الْأَعْمَىٰ وَالْبَصِيرُ",
+          "explanation_ar": "طباق إيجابي بين الأعمى والبصير",
+          "explanation_en": "Positive antithesis between the blind and the seeing",
+          "evidence_sources": ["ibn_kathir"]
+        }
+      ],
+      "display_order": 11
+    },
+    {
+      "id": "muqabala",
+      "slug": "muqabala",
+      "name_ar": "مقابلة",
+      "name_en": "Parallelism",
+      "category": "badeea",
+      "definition_ar": "أن يُؤتى بمعنيين متوافقين أو أكثر ثم يُؤتى بما يقابلهما على الترتيب",
+      "definition_en": "Bringing two or more parallel meanings, then their counterparts in the same order",
+      "examples": [
+        {
+          "sura_no": 2,
+          "ayah_no": 81,
+          "text_ar": "مَنْ كَسَبَ سَيِّئَةً وَأَحَاطَتْ بِهِ خَطِيئَتُهُ فَأُولَٰئِكَ أَصْحَابُ النَّارِ... وَالَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ أُولَٰئِكَ أَصْحَابُ الْجَنَّةِ",
+          "explanation_ar": "مقابلة بين أصحاب السيئات وأصحاب الجنة، والنار والجنة",
+          "explanation_en": "Parallelism between evil-doers and believers, hellfire and paradise",
+          "evidence_sources": ["ibn_ashur"]
+        }
+      ],
+      "display_order": 12
+    },
+    {
+      "id": "jinas",
+      "slug": "jinas",
+      "name_ar": "جناس",
+      "name_en": "Paronomasia",
+      "category": "badeea",
+      "definition_ar": "تشابه لفظين في النطق مع اختلاف في المعنى",
+      "definition_en": "Similarity in pronunciation of two words with different meanings",
+      "sub_types": [
+        {"id": "jinas_tam", "name_ar": "جناس تام", "name_en": "Perfect Paronomasia", "description_ar": "ما اتفق فيه اللفظان في نوع الحروف وعددها وهيئتها وترتيبها"},
+        {"id": "jinas_naqis", "name_ar": "جناس ناقص", "name_en": "Imperfect Paronomasia", "description_ar": "ما اختلف فيه اللفظان في شيء من ذلك"}
+      ],
+      "examples": [
+        {
+          "sura_no": 30,
+          "ayah_no": 55,
+          "text_ar": "وَيَوْمَ تَقُومُ السَّاعَةُ يُقْسِمُ الْمُجْرِمُونَ مَا لَبِثُوا غَيْرَ سَاعَةٍ",
+          "explanation_ar": "جناس تام بين الساعة (القيامة) والساعة (الوقت القصير)",
+          "explanation_en": "Perfect paronomasia between 'Hour' (Day of Judgment) and 'hour' (short time)",
+          "evidence_sources": ["abu_suud", "zamakhshari"]
+        },
+        {
+          "sura_no": 2,
+          "ayah_no": 30,
+          "text_ar": "إِنِّي أَعْلَمُ مَا لَا تَعْلَمُونَ",
+          "explanation_ar": "جناس اشتقاقي بين أعلم وتعلمون من جذر واحد",
+          "explanation_en": "Derived paronomasia between 'I know' and 'you know' from the same root",
+          "evidence_sources": ["zamakhshari"]
+        }
+      ],
+      "display_order": 13
+    },
+    {
+      "id": "saj",
+      "slug": "saj",
+      "name_ar": "سجع",
+      "name_en": "Rhymed Prose",
+      "category": "badeea",
+      "definition_ar": "توافق الفاصلتين أو الفواصل في الحرف الأخير",
+      "definition_en": "Agreement of verse endings in the final letter or sound",
+      "examples": [
+        {
+          "sura_no": 55,
+          "ayah_no": 1,
+          "text_ar": "الرَّحْمَٰنُ * عَلَّمَ الْقُرْآنَ * خَلَقَ الْإِنسَانَ * عَلَّمَهُ الْبَيَانَ",
+          "explanation_ar": "سجع متوالي في الفواصل: الرحمن، القرآن، الإنسان، البيان",
+          "explanation_en": "Consecutive rhymed prose in the verse endings",
+          "evidence_sources": ["abu_suud"]
+        },
+        {
+          "sura_no": 91,
+          "ayah_no": 1,
+          "text_ar": "وَالشَّمْسِ وَضُحَاهَا * وَالْقَمَرِ إِذَا تَلَاهَا",
+          "explanation_ar": "سجع في فواصل سورة الشمس",
+          "explanation_en": "Rhymed prose in the endings of Surah Al-Shams",
+          "evidence_sources": ["ibn_ashur"]
+        }
+      ],
+      "display_order": 14
+    },
+    {
+      "id": "iltifat",
+      "slug": "iltifat",
+      "name_ar": "التفات",
+      "name_en": "Person/Tense Shift",
+      "category": "badeea",
+      "definition_ar": "الانتقال من ضمير إلى آخر أو من زمن إلى آخر لأغراض بلاغية",
+      "definition_en": "Transitioning from one pronoun or tense to another for rhetorical effect",
+      "sub_types": [
+        {"id": "iltifat_mutakallim_ghaib", "name_ar": "التفات من التكلم إلى الغيبة", "name_en": "Shift from first to third person"},
+        {"id": "iltifat_khitab_ghaib", "name_ar": "التفات من الخطاب إلى الغيبة", "name_en": "Shift from second to third person"},
+        {"id": "iltifat_ghaib_khitab", "name_ar": "التفات من الغيبة إلى الخطاب", "name_en": "Shift from third to second person"}
+      ],
+      "examples": [
+        {
+          "sura_no": 1,
+          "ayah_no": 5,
+          "text_ar": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ... إِيَّاكَ نَعْبُدُ",
+          "explanation_ar": "التفات من الغيبة (لله) إلى الخطاب (إياك) - للدلالة على القرب من الله بعد ذكر صفاته",
+          "explanation_en": "Shift from third person (Allah) to second person (You) - indicating closeness to Allah after mentioning His attributes",
+          "evidence_sources": ["zamakhshari", "razi", "ibn_kathir"]
+        },
+        {
+          "sura_no": 10,
+          "ayah_no": 22,
+          "text_ar": "هُوَ الَّذِي يُسَيِّرُكُمْ... حَتَّىٰ إِذَا كُنْتُمْ فِي الْفُلْكِ وَجَرَيْنَ بِهِمْ",
+          "explanation_ar": "التفات من الخطاب (يسيركم، كنتم) إلى الغيبة (بهم) - للإشارة إلى غفلتهم",
+          "explanation_en": "Shift from second person to third person - indicating their heedlessness",
+          "evidence_sources": ["zamakhshari"]
+        }
+      ],
+      "display_order": 15
+    },
+    {
+      "id": "tawriya",
+      "slug": "tawriya",
+      "name_ar": "تورية",
+      "name_en": "Double Entendre",
+      "category": "badeea",
+      "definition_ar": "ذكر لفظ له معنيان قريب وبعيد، ويُراد البعيد",
+      "definition_en": "Using a word with two meanings - one obvious and one hidden - intending the hidden meaning",
+      "examples": [
+        {
+          "sura_no": 21,
+          "ayah_no": 63,
+          "text_ar": "بَلْ فَعَلَهُ كَبِيرُهُمْ هَٰذَا",
+          "explanation_ar": "تورية - الظاهر أن إبراهيم نسب الفعل للصنم الكبير، والمراد التهكم وإقامة الحجة",
+          "explanation_en": "Double entendre - apparently attributing the act to the large idol, but intending mockery and establishing proof",
+          "evidence_sources": ["zamakhshari", "razi"]
+        }
+      ],
+      "display_order": 16
+    },
+    {
+      "id": "liff_wa_nashr",
+      "slug": "liff_wa_nashr",
+      "name_ar": "لف ونشر",
+      "name_en": "Chiasmus",
+      "category": "badeea",
+      "definition_ar": "ذكر متعدد ثم ذكر ما لكل واحد من غير تعيين ثقة بأن السامع يرده إلى ما يليق به",
+      "definition_en": "Mentioning multiple items then their attributes without explicit assignment, trusting the listener to match them correctly",
+      "sub_types": [
+        {"id": "liff_murattab", "name_ar": "لف ونشر مرتب", "name_en": "Ordered Chiasmus"},
+        {"id": "liff_mushawwash", "name_ar": "لف ونشر مشوش", "name_en": "Reversed Chiasmus"}
+      ],
+      "examples": [
+        {
+          "sura_no": 17,
+          "ayah_no": 12,
+          "text_ar": "وَجَعَلْنَا اللَّيْلَ وَالنَّهَارَ آيَتَيْنِ ۖ فَمَحَوْنَا آيَةَ اللَّيْلِ وَجَعَلْنَا آيَةَ النَّهَارِ مُبْصِرَةً",
+          "explanation_ar": "لف ونشر مرتب - ذكر الليل والنهار ثم فصّل أن الليل للمحو والنهار للإبصار",
+          "explanation_en": "Ordered chiasmus - mentioning night and day, then detailing that night is for darkness and day for sight",
+          "evidence_sources": ["abu_suud"]
+        }
+      ],
+      "display_order": 17
+    },
+    {
+      "id": "taqsim",
+      "slug": "taqsim",
+      "name_ar": "تقسيم",
+      "name_en": "Division",
+      "category": "badeea",
+      "definition_ar": "ذكر متعدد ثم إضافة ما لكل واحد إليه على التعيين",
+      "definition_en": "Mentioning multiple items then explicitly assigning their attributes to each",
+      "examples": [
+        {
+          "sura_no": 56,
+          "ayah_no": 7,
+          "text_ar": "وَكُنْتُمْ أَزْوَاجًا ثَلَاثَةً * فَأَصْحَابُ الْمَيْمَنَةِ... وَأَصْحَابُ الْمَشْأَمَةِ... وَالسَّابِقُونَ",
+          "explanation_ar": "تقسيم - قسّم الناس إلى ثلاثة أصناف ثم فصّل حال كل صنف",
+          "explanation_en": "Division - dividing people into three groups then detailing the state of each",
+          "evidence_sources": ["ibn_kathir", "ibn_ashur"]
+        }
+      ],
+      "display_order": 18
+    },
+    {
+      "id": "radd_al_ajz",
+      "slug": "radd_al_ajz",
+      "name_ar": "رد العجز على الصدر",
+      "name_en": "Envelope Structure",
+      "category": "badeea",
+      "definition_ar": "أن يكون في آخر الكلام ما يناسب أوله لفظاً أو معنى",
+      "definition_en": "Having the end of speech correspond to its beginning in word or meaning",
+      "examples": [
+        {
+          "sura_no": 78,
+          "ayah_no": 40,
+          "text_ar": "يَوْمَ يَنْظُرُ الْمَرْءُ مَا قَدَّمَتْ يَدَاهُ وَيَقُولُ الْكَافِرُ يَا لَيْتَنِي كُنْتُ تُرَابًا",
+          "explanation_ar": "رد العجز على الصدر - بدأت السورة بـ 'عَمَّ يَتَسَاءَلُونَ' وانتهت بجواب السؤال",
+          "explanation_en": "Envelope structure - the surah begins with 'What are they asking about?' and ends with the answer",
+          "evidence_sources": ["ibn_ashur"]
+        }
+      ],
+      "display_order": 19
+    },
+    {
+      "id": "tamanni",
+      "slug": "tamanni",
+      "name_ar": "تمني",
+      "name_en": "Optative Expression",
+      "category": "maani",
+      "definition_ar": "طلب حصول شيء محبوب لا يُرجى حصوله أو يُرجى بصعوبة",
+      "definition_en": "Expressing a wish for something desirable that is unlikely or difficult to attain",
+      "examples": [
+        {
+          "sura_no": 4,
+          "ayah_no": 73,
+          "text_ar": "يَا لَيْتَنِي كُنْتُ مَعَهُمْ فَأَفُوزَ فَوْزًا عَظِيمًا",
+          "explanation_ar": "تمني من المنافق الذي تخلف عن الجهاد",
+          "explanation_en": "Optative expression from the hypocrite who stayed behind from jihad",
+          "evidence_sources": ["ibn_kathir"]
+        }
+      ],
+      "display_order": 20
+    },
+    {
+      "id": "amr",
+      "slug": "amr",
+      "name_ar": "أمر بلاغي",
+      "name_en": "Rhetorical Command",
+      "category": "maani",
+      "definition_ar": "صيغة الأمر التي تخرج عن معناها الأصلي إلى معانٍ بلاغية أخرى",
+      "definition_en": "Command form used for meanings other than its original imperative sense",
+      "sub_types": [
+        {"id": "amr_dua", "name_ar": "أمر للدعاء", "name_en": "Command for Supplication"},
+        {"id": "amr_tahdid", "name_ar": "أمر للتهديد", "name_en": "Command for Threatening"},
+        {"id": "amr_ibaha", "name_ar": "أمر للإباحة", "name_en": "Command for Permission"},
+        {"id": "amr_tahqir", "name_ar": "أمر للتحقير", "name_en": "Command for Belittling"}
+      ],
+      "examples": [
+        {
+          "sura_no": 2,
+          "ayah_no": 60,
+          "text_ar": "كُلُوا وَاشْرَبُوا مِنْ رِزْقِ اللَّهِ",
+          "explanation_ar": "أمر للإباحة - إباحة الأكل والشرب من رزق الله",
+          "explanation_en": "Command for permission - permitting eating and drinking from Allah's provision",
+          "evidence_sources": ["zamakhshari"]
+        },
+        {
+          "sura_no": 2,
+          "ayah_no": 23,
+          "text_ar": "فَأْتُوا بِسُورَةٍ مِنْ مِثْلِهِ",
+          "explanation_ar": "أمر للتعجيز - تحدٍّ للكفار بالإتيان بمثل القرآن",
+          "explanation_en": "Command for challenging - challenging disbelievers to produce something like the Quran",
+          "evidence_sources": ["zamakhshari", "razi"]
+        }
+      ],
+      "display_order": 21
+    },
+    {
+      "id": "nahy",
+      "slug": "nahy",
+      "name_ar": "نهي بلاغي",
+      "name_en": "Rhetorical Prohibition",
+      "category": "maani",
+      "definition_ar": "صيغة النهي التي تخرج عن معناها الأصلي إلى معانٍ بلاغية أخرى",
+      "definition_en": "Prohibition form used for meanings other than its original prohibitive sense",
+      "sub_types": [
+        {"id": "nahy_dua", "name_ar": "نهي للدعاء", "name_en": "Prohibition for Supplication"},
+        {"id": "nahy_iltimas", "name_ar": "نهي للالتماس", "name_en": "Prohibition for Request"},
+        {"id": "nahy_taysir", "name_ar": "نهي للتيسير", "name_en": "Prohibition for Ease"}
+      ],
+      "examples": [
+        {
+          "sura_no": 15,
+          "ayah_no": 88,
+          "text_ar": "لَا تَمُدَّنَّ عَيْنَيْكَ إِلَىٰ مَا مَتَّعْنَا بِهِ أَزْوَاجًا مِنْهُمْ",
+          "explanation_ar": "نهي للتحذير والإرشاد",
+          "explanation_en": "Prohibition for warning and guidance",
+          "evidence_sources": ["ibn_kathir"]
+        }
+      ],
+      "display_order": 22
+    },
+    {
+      "id": "wasil",
+      "slug": "wasil",
+      "name_ar": "وصل",
+      "name_en": "Syndeton",
+      "category": "maani",
+      "definition_ar": "عطف بعض الجمل على بعض بالواو",
+      "definition_en": "Connecting sentences using the conjunction 'and'",
+      "examples": [
+        {
+          "sura_no": 2,
+          "ayah_no": 164,
+          "text_ar": "إِنَّ فِي خَلْقِ السَّمَاوَاتِ وَالْأَرْضِ وَاخْتِلَافِ اللَّيْلِ وَالنَّهَارِ وَالْفُلْكِ...",
+          "explanation_ar": "وصل بين آيات الله الكونية بالواو للجمع والتأكيد",
+          "explanation_en": "Connecting Allah's cosmic signs with 'and' for comprehensive enumeration",
+          "evidence_sources": ["zamakhshari"]
+        }
+      ],
+      "display_order": 23
+    },
+    {
+      "id": "fasil",
+      "slug": "fasil",
+      "name_ar": "فصل",
+      "name_en": "Asyndeton",
+      "category": "maani",
+      "definition_ar": "ترك العطف بين الجمل لأغراض بلاغية",
+      "definition_en": "Omitting conjunction between sentences for rhetorical purposes",
+      "examples": [
+        {
+          "sura_no": 27,
+          "ayah_no": 25,
+          "text_ar": "أَلَّا يَسْجُدُوا لِلَّهِ الَّذِي يُخْرِجُ الْخَبْءَ فِي السَّمَاوَاتِ وَالْأَرْضِ",
+          "explanation_ar": "فصل بين جمل الهدهد لسرعة العرض وتتابع المعاني",
+          "explanation_en": "Asyndeton in the hoopoe's speech for rapid presentation",
+          "evidence_sources": ["zamakhshari"]
+        }
+      ],
+      "display_order": 24
+    },
+    {
+      "id": "tansiq_al_sifat",
+      "slug": "tansiq_al_sifat",
+      "name_ar": "تنسيق الصفات",
+      "name_en": "Attribute Ordering",
+      "category": "badeea",
+      "definition_ar": "ترتيب الصفات بحسب أهميتها أو تسلسلها المنطقي",
+      "definition_en": "Ordering attributes by importance or logical sequence",
+      "examples": [
+        {
+          "sura_no": 59,
+          "ayah_no": 23,
+          "text_ar": "هُوَ اللَّهُ الَّذِي لَا إِلَٰهَ إِلَّا هُوَ الْمَلِكُ الْقُدُّوسُ السَّلَامُ الْمُؤْمِنُ الْمُهَيْمِنُ الْعَزِيزُ الْجَبَّارُ الْمُتَكَبِّرُ",
+          "explanation_ar": "تنسيق صفات الله تعالى بترتيب دقيق يبدأ بالألوهية ثم الملك ثم التقديس",
+          "explanation_en": "Precise ordering of Allah's attributes starting with divinity, then sovereignty, then sanctity",
+          "evidence_sources": ["ibn_ashur", "razi"]
+        }
+      ],
+      "display_order": 25
+    }
+  ],
+  "total_devices": 25,
+  "note": "This is a foundational set. Additional devices will be added through tafsir extraction."
+}

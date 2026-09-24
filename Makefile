@@ -459,6 +459,24 @@ pipeline: ## End-to-end setup from scratch
 	@echo "  Backend  : http://$(HOST_IP):$(BACKEND_PORT)/docs"
 
 # =============================================================================
+# Data bundle — self-contained deployment artifact
+# =============================================================================
+
+bundle-export: ensure-services ## Export all datastores to a portable bundle
+	@echo "$(GREEN)Exporting data bundle...$(NC)"
+	scripts/data_bundle/export_bundle.sh $(if $(OUT),$(OUT),)
+
+bundle-restore: ensure-services ## Restore a bundle (BUNDLE=path [FORCE=1])
+	@test -n "$(BUNDLE)" || { echo "$(RED)ERROR: set BUNDLE=path/to/bundle.tar.zst$(NC)"; exit 1; }
+	scripts/data_bundle/restore_bundle.sh "$(BUNDLE)" $(if $(FORCE),--force,)
+
+bundle-verify: ## Verify a bundle's checksums without restoring (BUNDLE=path)
+	@test -n "$(BUNDLE)" || { echo "$(RED)ERROR: set BUNDLE=path/to/bundle.tar.zst$(NC)"; exit 1; }
+	@tmp=$$(mktemp -d); trap 'rm -rf "$$tmp"' EXIT; \
+	tar -C "$$tmp" -xf "$(BUNDLE)"; \
+	python3 scripts/data_bundle/verify_bundle.py "$$tmp"
+
+# =============================================================================
 # Cleanup
 # =============================================================================
 

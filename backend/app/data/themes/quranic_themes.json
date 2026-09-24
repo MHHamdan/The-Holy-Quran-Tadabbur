@@ -1,0 +1,1026 @@
+{
+  "name": "Quranic Thematic Classification (المحاور القرآنية)",
+  "version": "1.0.0",
+  "methodology": "Sunni Orthodox - 4 Madhabs Only",
+  "description": "Systematic organization of Quranic themes following classical Islamic methodology",
+  "approved_tafsir_sources": [
+    "ibn_kathir_ar",
+    "tabari_ar",
+    "qurtubi_ar",
+    "nasafi_ar",
+    "shinqiti_ar"
+  ],
+  "last_updated": "2026-01-13",
+
+  "themes": [
+    {
+      "id": "theme_tawheed",
+      "slug": "tawheed",
+      "title_ar": "التوحيد",
+      "title_en": "Tawheed (Oneness of Allah)",
+      "short_title_ar": "التوحيد",
+      "short_title_en": "Tawheed",
+      "category": "aqidah",
+      "order_of_importance": 1,
+      "key_concepts": ["التوحيد", "الله", "الإله", "الرب", "العبادة"],
+      "description_ar": "توحيد الله في ربوبيته وألوهيته وأسمائه وصفاته - أساس الدين وأعظم ما أُمر به",
+      "description_en": "The Oneness of Allah in His Lordship, Divinity, and Names & Attributes - the foundation of the religion",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_shirk", "theme_iman_billah", "theme_asma_sifat"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar"],
+      "subthemes": ["theme_tawheed_rububiyyah", "theme_tawheed_uluhiyyah", "theme_asma_sifat"]
+    },
+    {
+      "id": "theme_tawheed_rububiyyah",
+      "slug": "tawheed-rububiyyah",
+      "title_ar": "توحيد الربوبية",
+      "title_en": "Tawheed of Lordship",
+      "category": "aqidah",
+      "order_of_importance": 1,
+      "key_concepts": ["الربوبية", "الخلق", "الرزق", "التدبير", "الملك"],
+      "description_ar": "إفراد الله بأفعاله من الخلق والرزق والتدبير والإحياء والإماتة",
+      "description_en": "Affirming Allah alone as the Creator, Sustainer, and Controller of all affairs",
+      "parent_theme_id": "theme_tawheed",
+      "related_theme_ids": ["theme_tawheed_uluhiyyah"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar"]
+    },
+    {
+      "id": "theme_tawheed_uluhiyyah",
+      "slug": "tawheed-uluhiyyah",
+      "title_ar": "توحيد الألوهية",
+      "title_en": "Tawheed of Worship",
+      "category": "aqidah",
+      "order_of_importance": 2,
+      "key_concepts": ["الألوهية", "العبادة", "الدعاء", "الاستعانة", "التوكل"],
+      "description_ar": "إفراد الله بالعبادة - لا يُعبد إلا الله ولا يُدعى إلا هو",
+      "description_en": "Directing all worship to Allah alone - no one is worshipped except Him",
+      "parent_theme_id": "theme_tawheed",
+      "related_theme_ids": ["theme_tawheed_rububiyyah", "theme_ibadat"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_asma_sifat",
+      "slug": "asma-wa-sifat",
+      "title_ar": "الأسماء والصفات",
+      "title_en": "Names and Attributes of Allah",
+      "category": "aqidah",
+      "order_of_importance": 3,
+      "key_concepts": ["الأسماء الحسنى", "الصفات العلى", "الرحمن", "الرحيم", "الحي", "القيوم"],
+      "description_ar": "إثبات ما أثبته الله لنفسه من الأسماء والصفات من غير تحريف ولا تعطيل ولا تكييف ولا تمثيل",
+      "description_en": "Affirming Allah's Names and Attributes as He described Himself without distortion or denial",
+      "parent_theme_id": "theme_tawheed",
+      "related_theme_ids": ["theme_tawheed"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar"]
+    },
+    {
+      "id": "theme_shirk",
+      "slug": "shirk",
+      "title_ar": "الشرك وخطره",
+      "title_en": "Shirk (Polytheism) and Its Dangers",
+      "category": "aqidah",
+      "order_of_importance": 4,
+      "key_concepts": ["الشرك", "الكفر", "الأصنام", "الأوثان", "الطاغوت"],
+      "description_ar": "التحذير من الشرك بالله - أعظم الذنوب وأكبر الظلم",
+      "description_en": "Warning against associating partners with Allah - the greatest sin",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_tawheed"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_iman_billah",
+      "slug": "iman-billah",
+      "title_ar": "الإيمان بالله",
+      "title_en": "Belief in Allah",
+      "category": "iman",
+      "order_of_importance": 1,
+      "key_concepts": ["الإيمان", "اليقين", "التصديق", "الله"],
+      "description_ar": "الإيمان بوجود الله وربوبيته وألوهيته وأسمائه وصفاته",
+      "description_en": "Belief in Allah's existence, Lordship, right to worship, and His Names and Attributes",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_tawheed", "theme_iman_malaika"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar"]
+    },
+    {
+      "id": "theme_iman_malaika",
+      "slug": "iman-malaika",
+      "title_ar": "الإيمان بالملائكة",
+      "title_en": "Belief in Angels",
+      "category": "iman",
+      "order_of_importance": 2,
+      "key_concepts": ["الملائكة", "جبريل", "ميكائيل", "الكرام الكاتبون"],
+      "description_ar": "الإيمان بوجود الملائكة وأعمالهم وصفاتهم كما جاء في القرآن والسنة",
+      "description_en": "Belief in the angels, their existence, roles, and attributes as described in revelation",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_iman_billah", "theme_iman_kutub"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_iman_kutub",
+      "slug": "iman-kutub",
+      "title_ar": "الإيمان بالكتب",
+      "title_en": "Belief in Divine Books",
+      "category": "iman",
+      "order_of_importance": 3,
+      "key_concepts": ["الكتب", "القرآن", "التوراة", "الإنجيل", "الزبور"],
+      "description_ar": "الإيمان بالكتب المنزلة من عند الله وأن القرآن ناسخ لما قبله ومهيمن عليه",
+      "description_en": "Belief in the revealed books, with the Quran being the final and preserved revelation",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_iman_rusul"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar"]
+    },
+    {
+      "id": "theme_iman_rusul",
+      "slug": "iman-rusul",
+      "title_ar": "الإيمان بالرسل",
+      "title_en": "Belief in Messengers",
+      "category": "iman",
+      "order_of_importance": 4,
+      "key_concepts": ["الرسل", "الأنبياء", "محمد", "عيسى", "موسى", "إبراهيم"],
+      "description_ar": "الإيمان بجميع الأنبياء والرسل وأن محمداً خاتمهم",
+      "description_en": "Belief in all prophets and messengers, with Muhammad being the final one",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_iman_kutub"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_iman_yawm_akhir",
+      "slug": "iman-yawm-akhir",
+      "title_ar": "الإيمان باليوم الآخر",
+      "title_en": "Belief in the Last Day",
+      "category": "iman",
+      "order_of_importance": 5,
+      "key_concepts": ["اليوم الآخر", "القيامة", "البعث", "الحساب", "الجنة", "النار"],
+      "description_ar": "الإيمان بالبعث والنشور والحساب والجزاء والجنة والنار",
+      "description_en": "Belief in resurrection, accountability, Paradise, and Hellfire",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_jannah", "theme_nar"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_iman_qadr",
+      "slug": "iman-qadr",
+      "title_ar": "الإيمان بالقدر",
+      "title_en": "Belief in Divine Decree",
+      "category": "iman",
+      "order_of_importance": 6,
+      "key_concepts": ["القدر", "القضاء", "المشيئة", "العلم", "الكتابة"],
+      "description_ar": "الإيمان بأن الله علم كل شيء وكتبه وشاءه وخلقه",
+      "description_en": "Belief that Allah knows, records, wills, and creates all things",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_iman_billah", "theme_tawakkul"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar"]
+    },
+    {
+      "id": "theme_jannah",
+      "slug": "jannah",
+      "title_ar": "الجنة ونعيمها",
+      "title_en": "Paradise and Its Bliss",
+      "category": "iman",
+      "order_of_importance": 7,
+      "key_concepts": ["الجنة", "النعيم", "الخلود", "الفردوس"],
+      "description_ar": "وصف الجنة ونعيمها وأهلها وسبل الوصول إليها",
+      "description_en": "Description of Paradise, its bliss, inhabitants, and the path to attaining it",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_iman_yawm_akhir", "theme_nar"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_nar",
+      "slug": "nar",
+      "title_ar": "النار وعذابها",
+      "title_en": "Hellfire and Its Punishment",
+      "category": "iman",
+      "order_of_importance": 8,
+      "key_concepts": ["النار", "جهنم", "العذاب", "السعير"],
+      "description_ar": "وصف النار وعذابها والتحذير من أسباب دخولها",
+      "description_en": "Description of Hellfire and warning against the causes of entering it",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_iman_yawm_akhir", "theme_jannah"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar"]
+    },
+    {
+      "id": "theme_salah",
+      "slug": "salah",
+      "title_ar": "الصلاة",
+      "title_en": "Prayer (Salah)",
+      "category": "ibadat",
+      "order_of_importance": 1,
+      "key_concepts": ["الصلاة", "الخشوع", "القيام", "الركوع", "السجود"],
+      "description_ar": "فرضية الصلاة وفضلها وأركانها وآدابها - عمود الدين",
+      "description_en": "The obligation, virtue, pillars, and etiquettes of prayer - the pillar of the religion",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_khushu", "theme_dhikr"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_zakah",
+      "slug": "zakah",
+      "title_ar": "الزكاة",
+      "title_en": "Obligatory Charity (Zakah)",
+      "category": "ibadat",
+      "order_of_importance": 2,
+      "key_concepts": ["الزكاة", "الإنفاق", "الصدقة", "المال"],
+      "description_ar": "فرضية الزكاة ومصارفها وفضل الإنفاق في سبيل الله",
+      "description_en": "The obligation of Zakah, its recipients, and the virtue of spending in Allah's cause",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_infaq", "theme_bukhl"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_siyam",
+      "slug": "siyam",
+      "title_ar": "الصيام",
+      "title_en": "Fasting (Siyam)",
+      "category": "ibadat",
+      "order_of_importance": 3,
+      "key_concepts": ["الصيام", "رمضان", "التقوى", "الإمساك"],
+      "description_ar": "فرضية صيام رمضان وفضله وحكمه وآدابه",
+      "description_en": "The obligation of fasting Ramadan, its virtues, rulings, and etiquettes",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_taqwa"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_hajj",
+      "slug": "hajj",
+      "title_ar": "الحج",
+      "title_en": "Pilgrimage (Hajj)",
+      "category": "ibadat",
+      "order_of_importance": 4,
+      "key_concepts": ["الحج", "العمرة", "الكعبة", "مكة", "المشاعر"],
+      "description_ar": "فرضية الحج ومناسكه وفضائله وأحكامه",
+      "description_en": "The obligation of Hajj, its rituals, virtues, and rulings",
+      "parent_theme_id": null,
+      "related_theme_ids": [],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_dua",
+      "slug": "dua",
+      "title_ar": "الدعاء",
+      "title_en": "Supplication (Du'a)",
+      "category": "ibadat",
+      "order_of_importance": 5,
+      "key_concepts": ["الدعاء", "الاستجابة", "التضرع", "الابتهال"],
+      "description_ar": "فضل الدعاء وآدابه وأوقات الإجابة",
+      "description_en": "The virtue of supplication, its etiquettes, and times of acceptance",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_tawakkul", "theme_dhikr"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar"]
+    },
+    {
+      "id": "theme_dhikr",
+      "slug": "dhikr",
+      "title_ar": "الذكر",
+      "title_en": "Remembrance of Allah (Dhikr)",
+      "category": "ibadat",
+      "order_of_importance": 6,
+      "key_concepts": ["الذكر", "التسبيح", "الاستغفار", "الحمد"],
+      "description_ar": "فضل ذكر الله وأنواعه وآثاره على القلب",
+      "description_en": "The virtue of remembering Allah, its types, and effects on the heart",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_dua", "theme_khushu"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_tawbah",
+      "slug": "tawbah",
+      "title_ar": "التوبة",
+      "title_en": "Repentance (Tawbah)",
+      "category": "ibadat",
+      "order_of_importance": 7,
+      "key_concepts": ["التوبة", "الاستغفار", "الإنابة", "الندم"],
+      "description_ar": "وجوب التوبة وشروطها وفضلها وقبول الله لها",
+      "description_en": "The obligation of repentance, its conditions, virtues, and Allah's acceptance of it",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_rahma", "theme_maghfira"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_sidq",
+      "slug": "sidq",
+      "title_ar": "الصدق",
+      "title_en": "Truthfulness (Sidq)",
+      "category": "akhlaq_fardi",
+      "order_of_importance": 1,
+      "key_concepts": ["الصدق", "الصادقون", "الصادقين"],
+      "description_ar": "فضل الصدق في القول والعمل والنية - من صفات المؤمنين",
+      "description_en": "The virtue of truthfulness in speech, action, and intention - a quality of believers",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_kidhb", "theme_amanah"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_sabr",
+      "slug": "sabr",
+      "title_ar": "الصبر",
+      "title_en": "Patience (Sabr)",
+      "category": "akhlaq_fardi",
+      "order_of_importance": 2,
+      "key_concepts": ["الصبر", "الصابرون", "الصابرين", "الاحتساب"],
+      "description_ar": "فضل الصبر وأنواعه: الصبر على الطاعة، وعن المعصية، وعلى أقدار الله",
+      "description_en": "The virtue of patience and its types: in obedience, from sin, and upon Allah's decree",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_shukr", "theme_tawakkul"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_ikhlas",
+      "slug": "ikhlas",
+      "title_ar": "الإخلاص",
+      "title_en": "Sincerity (Ikhlas)",
+      "category": "akhlaq_fardi",
+      "order_of_importance": 3,
+      "key_concepts": ["الإخلاص", "النية", "الرياء"],
+      "description_ar": "إخلاص العبادة لله وحده والتحذير من الرياء والشرك الخفي",
+      "description_en": "Dedicating worship purely to Allah and warning against showing off",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_tawheed_uluhiyyah"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_tawadu",
+      "slug": "tawadu",
+      "title_ar": "التواضع",
+      "title_en": "Humility (Tawadu')",
+      "category": "akhlaq_fardi",
+      "order_of_importance": 4,
+      "key_concepts": ["التواضع", "الخشوع", "اللين"],
+      "description_ar": "فضل التواضع لله وللناس وذم الكبر والعجب",
+      "description_en": "The virtue of humility before Allah and people, and condemning arrogance",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_kibr"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_shukr",
+      "slug": "shukr",
+      "title_ar": "الشكر",
+      "title_en": "Gratitude (Shukr)",
+      "category": "akhlaq_fardi",
+      "order_of_importance": 5,
+      "key_concepts": ["الشكر", "الحمد", "النعمة", "الشاكرون"],
+      "description_ar": "فضل شكر النعم وأنواعه: شكر القلب واللسان والجوارح",
+      "description_en": "The virtue of gratitude: through heart, tongue, and limbs",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_sabr", "theme_kufr_nimah"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar"]
+    },
+    {
+      "id": "theme_taqwa",
+      "slug": "taqwa",
+      "title_ar": "التقوى",
+      "title_en": "God-Consciousness (Taqwa)",
+      "category": "akhlaq_fardi",
+      "order_of_importance": 6,
+      "key_concepts": ["التقوى", "المتقون", "المتقين", "الخشية"],
+      "description_ar": "حقيقة التقوى وثمراتها وأنها وصية الله للأولين والآخرين",
+      "description_en": "The reality of Taqwa, its fruits, and that it is Allah's advice to all",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_khashya", "theme_ikhlas"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_tawakkul",
+      "slug": "tawakkul",
+      "title_ar": "التوكل على الله",
+      "title_en": "Reliance on Allah (Tawakkul)",
+      "category": "akhlaq_fardi",
+      "order_of_importance": 7,
+      "key_concepts": ["التوكل", "المتوكلون", "الاعتماد"],
+      "description_ar": "حقيقة التوكل وأنه اعتماد القلب على الله مع الأخذ بالأسباب",
+      "description_en": "The reality of reliance: trusting in Allah while taking means",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_iman_qadr", "theme_sabr"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_khushu",
+      "slug": "khushu",
+      "title_ar": "الخشوع",
+      "title_en": "Humility and Devotion (Khushu')",
+      "category": "akhlaq_fardi",
+      "order_of_importance": 8,
+      "key_concepts": ["الخشوع", "الخاشعون", "السكينة"],
+      "description_ar": "الخشوع في الصلاة وعند ذكر الله - من صفات المؤمنين",
+      "description_en": "Khushu' in prayer and when remembering Allah - a quality of believers",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_salah", "theme_taqwa"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_birr_walidayn",
+      "slug": "birr-walidayn",
+      "title_ar": "بر الوالدين",
+      "title_en": "Kindness to Parents",
+      "category": "akhlaq_ijtima",
+      "order_of_importance": 1,
+      "key_concepts": ["الوالدين", "البر", "الإحسان", "الأم", "الأب"],
+      "description_ar": "وجوب بر الوالدين والإحسان إليهما - مقرون بعبادة الله",
+      "description_en": "The obligation of honoring parents - mentioned alongside worshipping Allah",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_uquq_walidayn", "theme_silat_rahim"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_silat_rahim",
+      "slug": "silat-rahim",
+      "title_ar": "صلة الرحم",
+      "title_en": "Maintaining Family Ties",
+      "category": "akhlaq_ijtima",
+      "order_of_importance": 2,
+      "key_concepts": ["الرحم", "القرابة", "الأهل", "صلة"],
+      "description_ar": "وجوب صلة الرحم والتحذير من قطيعتها",
+      "description_en": "The obligation of maintaining family ties and warning against severing them",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_birr_walidayn"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_adl",
+      "slug": "adl",
+      "title_ar": "العدل",
+      "title_en": "Justice",
+      "category": "akhlaq_ijtima",
+      "order_of_importance": 3,
+      "key_concepts": ["العدل", "القسط", "الميزان", "الحق"],
+      "description_ar": "الأمر بالعدل والقسط في كل شيء - من أعظم ما أمر الله به",
+      "description_en": "The command for justice in all matters - one of the greatest divine commands",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_zulm", "theme_ihsan"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_ihsan",
+      "slug": "ihsan",
+      "title_ar": "الإحسان",
+      "title_en": "Excellence and Benevolence (Ihsan)",
+      "category": "akhlaq_ijtima",
+      "order_of_importance": 4,
+      "key_concepts": ["الإحسان", "المحسنون", "المحسنين"],
+      "description_ar": "الإحسان في العبادة والمعاملة - أن تعبد الله كأنك تراه",
+      "description_en": "Excellence in worship and dealings - to worship Allah as if you see Him",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_adl"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_amanah",
+      "slug": "amanah",
+      "title_ar": "الأمانة",
+      "title_en": "Trustworthiness (Amanah)",
+      "category": "akhlaq_ijtima",
+      "order_of_importance": 5,
+      "key_concepts": ["الأمانة", "الأمين", "الوفاء"],
+      "description_ar": "وجوب أداء الأمانات إلى أهلها والتحذير من الخيانة",
+      "description_en": "The obligation of fulfilling trusts and warning against betrayal",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_khiyanah", "theme_sidq"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_infaq",
+      "slug": "infaq",
+      "title_ar": "الإنفاق في سبيل الله",
+      "title_en": "Spending in Allah's Cause",
+      "category": "akhlaq_ijtima",
+      "order_of_importance": 6,
+      "key_concepts": ["الإنفاق", "الصدقة", "البذل", "الجود"],
+      "description_ar": "فضل الإنفاق في سبيل الله والتحذير من البخل",
+      "description_en": "The virtue of spending in Allah's cause and warning against stinginess",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_zakah", "theme_bukhl"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_islah",
+      "slug": "islah",
+      "title_ar": "الإصلاح",
+      "title_en": "Reconciliation and Reform",
+      "category": "akhlaq_ijtima",
+      "order_of_importance": 7,
+      "key_concepts": ["الإصلاح", "المصلحون", "الصلح"],
+      "description_ar": "فضل الإصلاح بين الناس وإزالة الفساد",
+      "description_en": "The virtue of reconciliation between people and removing corruption",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_fasad"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_zulm",
+      "slug": "zulm",
+      "title_ar": "الظلم",
+      "title_en": "Oppression and Injustice (Zulm)",
+      "category": "muharramat",
+      "order_of_importance": 1,
+      "key_concepts": ["الظلم", "الظالمون", "الظالمين", "البغي"],
+      "description_ar": "التحذير الشديد من الظلم وأنه محرم على الله نفسه وعلى عباده",
+      "description_en": "Severe warning against oppression - forbidden by Allah upon Himself and His servants",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_adl"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_kidhb",
+      "slug": "kidhb",
+      "title_ar": "الكذب",
+      "title_en": "Lying",
+      "category": "muharramat",
+      "order_of_importance": 2,
+      "key_concepts": ["الكذب", "الكاذبون", "الكاذبين", "الافتراء"],
+      "description_ar": "التحذير من الكذب وأنه من صفات المنافقين",
+      "description_en": "Warning against lying - a quality of the hypocrites",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_sidq", "theme_nifaq"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_ghish",
+      "slug": "ghish",
+      "title_ar": "الغش والخداع",
+      "title_en": "Cheating and Deception",
+      "category": "muharramat",
+      "order_of_importance": 3,
+      "key_concepts": ["الغش", "الخداع", "المكر"],
+      "description_ar": "التحذير من الغش في المعاملات والكيل والميزان",
+      "description_en": "Warning against cheating in transactions, weights, and measures",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_amanah", "theme_kidhb"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_riba",
+      "slug": "riba",
+      "title_ar": "الربا",
+      "title_en": "Usury (Riba)",
+      "category": "muharramat",
+      "order_of_importance": 4,
+      "key_concepts": ["الربا", "الفائدة", "البيع"],
+      "description_ar": "تحريم الربا والتحذير الشديد منه - حرب من الله ورسوله",
+      "description_en": "The prohibition of usury - war from Allah and His Messenger",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_infaq"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_kibr",
+      "slug": "kibr",
+      "title_ar": "الكبر",
+      "title_en": "Arrogance (Kibr)",
+      "category": "muharramat",
+      "order_of_importance": 5,
+      "key_concepts": ["الكبر", "التكبر", "العجب", "الاستكبار"],
+      "description_ar": "ذم الكبر والمتكبرين - أول ذنب عُصي الله به",
+      "description_en": "Condemnation of arrogance - the first sin of disobedience to Allah",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_tawadu"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_uquq_walidayn",
+      "slug": "uquq-walidayn",
+      "title_ar": "عقوق الوالدين",
+      "title_en": "Disobedience to Parents",
+      "category": "muharramat",
+      "order_of_importance": 6,
+      "key_concepts": ["العقوق", "الوالدين"],
+      "description_ar": "التحذير من عقوق الوالدين - من أكبر الكبائر",
+      "description_en": "Warning against disobeying parents - one of the greatest major sins",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_birr_walidayn"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_nifaq",
+      "slug": "nifaq",
+      "title_ar": "النفاق",
+      "title_en": "Hypocrisy (Nifaq)",
+      "category": "muharramat",
+      "order_of_importance": 7,
+      "key_concepts": ["النفاق", "المنافقون", "المنافقين"],
+      "description_ar": "صفات المنافقين والتحذير من النفاق",
+      "description_en": "Characteristics of hypocrites and warning against hypocrisy",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_iman_billah", "theme_kidhb"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_fasad",
+      "slug": "fasad",
+      "title_ar": "الفساد في الأرض",
+      "title_en": "Corruption on Earth",
+      "category": "muharramat",
+      "order_of_importance": 8,
+      "key_concepts": ["الفساد", "المفسدون", "المفسدين"],
+      "description_ar": "التحذير من الإفساد في الأرض وعاقبة المفسدين",
+      "description_en": "Warning against corruption on earth and the fate of corrupters",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_islah"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_sunnah_nasr",
+      "slug": "sunnah-nasr",
+      "title_ar": "سنة النصر والتمكين",
+      "title_en": "Divine Law of Victory",
+      "category": "sunan_ilahiyyah",
+      "order_of_importance": 1,
+      "key_concepts": ["النصر", "التمكين", "الغلبة"],
+      "description_ar": "سنة الله في نصر المؤمنين الصادقين وتمكينهم في الأرض",
+      "description_en": "Allah's law of granting victory and establishment to true believers",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_sunnah_ihlak"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_sunnah_ihlak",
+      "slug": "sunnah-ihlak",
+      "title_ar": "سنة إهلاك الأمم",
+      "title_en": "Divine Law of Destroying Nations",
+      "category": "sunan_ilahiyyah",
+      "order_of_importance": 2,
+      "key_concepts": ["الإهلاك", "العذاب", "الانتقام"],
+      "description_ar": "سنة الله في إهلاك الأمم المكذبة الظالمة",
+      "description_en": "Allah's law of destroying nations that deny and oppress",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_sunnah_nasr"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar"]
+    },
+    {
+      "id": "theme_sunnah_istidraj",
+      "slug": "sunnah-istidraj",
+      "title_ar": "سنة الاستدراج",
+      "title_en": "Divine Law of Gradual Lead (Istidraj)",
+      "category": "sunan_ilahiyyah",
+      "order_of_importance": 3,
+      "key_concepts": ["الاستدراج", "الإملاء"],
+      "description_ar": "سنة الله في استدراج الظالمين وإمهالهم قبل أخذهم",
+      "description_en": "Allah's law of gradually leading oppressors before seizing them",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_sunnah_ihlak"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_sunnah_taghyir",
+      "slug": "sunnah-taghyir",
+      "title_ar": "سنة التغيير",
+      "title_en": "Divine Law of Change",
+      "category": "sunan_ilahiyyah",
+      "order_of_importance": 4,
+      "key_concepts": ["التغيير", "التبديل"],
+      "description_ar": "إن الله لا يغير ما بقوم حتى يغيروا ما بأنفسهم",
+      "description_en": "Allah does not change a people's condition until they change themselves",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_tawbah"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_maghfira",
+      "slug": "maghfira",
+      "title_ar": "المغفرة والرحمة",
+      "title_en": "Forgiveness and Mercy",
+      "category": "sunan_ilahiyyah",
+      "order_of_importance": 5,
+      "key_concepts": ["المغفرة", "الرحمة", "العفو", "الغفور"],
+      "description_ar": "سعة مغفرة الله ورحمته لمن تاب وأناب",
+      "description_en": "The vastness of Allah's forgiveness and mercy for those who repent",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_tawbah", "theme_rahma"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    },
+    {
+      "id": "theme_rahma",
+      "slug": "rahma",
+      "title_ar": "رحمة الله",
+      "title_en": "Mercy of Allah",
+      "category": "sunan_ilahiyyah",
+      "order_of_importance": 6,
+      "key_concepts": ["الرحمة", "الرحمن", "الرحيم"],
+      "description_ar": "سعة رحمة الله التي وسعت كل شيء",
+      "description_en": "The vastness of Allah's mercy which encompasses all things",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_maghfira", "theme_asma_sifat"],
+      "tafsir_sources": ["ibn_kathir_ar", "tabari_ar"]
+    },
+    {
+      "id": "theme_sunnah_ibtila",
+      "slug": "sunnah-ibtila",
+      "title_ar": "سنة الابتلاء",
+      "title_en": "Divine Law of Testing",
+      "category": "sunan_ilahiyyah",
+      "order_of_importance": 7,
+      "key_concepts": ["الابتلاء", "الفتنة", "الامتحان"],
+      "description_ar": "سنة الله في ابتلاء المؤمنين ليتميز الصادق من الكاذب",
+      "description_en": "Allah's law of testing believers to distinguish the truthful from the liars",
+      "parent_theme_id": null,
+      "related_theme_ids": ["theme_sabr"],
+      "tafsir_sources": ["ibn_kathir_ar", "qurtubi_ar"]
+    }
+  ],
+
+  "segments": [
+    {
+      "id": "theme_tawheed:112:1-4",
+      "theme_id": "theme_tawheed",
+      "segment_order": 1,
+      "sura_no": 112,
+      "ayah_start": 1,
+      "ayah_end": 4,
+      "title_ar": "سورة الإخلاص - خلاصة التوحيد",
+      "title_en": "Surah Al-Ikhlas - The Essence of Tawheed",
+      "summary_ar": "سورة الإخلاص تعدل ثلث القرآن لأنها جمعت التوحيد كله: إثبات الوحدانية والصمدية ونفي الولد والوالد والند",
+      "summary_en": "Surah Al-Ikhlas equals one-third of the Quran as it encompasses all of Tawheed: affirming Oneness, Self-Sufficiency, and negating offspring, parent, and equal",
+      "semantic_tags": ["tawheed", "oneness", "attributes"],
+      "revelation_context": "makki",
+      "is_entry_point": true,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "chunk_id": "ibn_kathir:112:1",
+          "snippet": "هذه السورة تعدل ثلث القرآن كما جاء في الأحاديث الصحيحة"
+        }
+      ]
+    },
+    {
+      "id": "theme_tawheed:2:255",
+      "theme_id": "theme_tawheed",
+      "segment_order": 2,
+      "sura_no": 2,
+      "ayah_start": 255,
+      "ayah_end": 255,
+      "title_ar": "آية الكرسي - أعظم آية في القرآن",
+      "title_en": "Ayat al-Kursi - The Greatest Verse",
+      "summary_ar": "آية الكرسي أعظم آية في القرآن لما اشتملت عليه من توحيد الله وأسمائه وصفاته",
+      "summary_en": "Ayat al-Kursi is the greatest verse due to its comprehensive declaration of Allah's Oneness, Names, and Attributes",
+      "semantic_tags": ["tawheed", "names", "attributes", "knowledge", "power"],
+      "revelation_context": "madani",
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "chunk_id": "ibn_kathir:2:255",
+          "snippet": "هذه آية الكرسي ولها شأن عظيم وقد صح الحديث عن رسول الله صلى الله عليه وسلم بأنها أعظم آية في كتاب الله"
+        }
+      ]
+    },
+    {
+      "id": "theme_tawheed:2:21-22",
+      "theme_id": "theme_tawheed",
+      "segment_order": 3,
+      "sura_no": 2,
+      "ayah_start": 21,
+      "ayah_end": 22,
+      "title_ar": "دعوة للعبادة بدليل الربوبية",
+      "title_en": "Call to Worship with Evidence of Lordship",
+      "summary_ar": "أمر الناس بعبادة ربهم الذي خلقهم وخلق من قبلهم مستدلاً على استحقاقه للعبادة بأفعاله من الخلق والرزق",
+      "summary_en": "Command to worship the Lord who created them, using His acts of creation and provision as evidence for His right to be worshipped",
+      "semantic_tags": ["worship", "creation", "evidence"],
+      "revelation_context": "madani",
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "tabari_ar",
+          "chunk_id": "tabari:2:21",
+          "snippet": "يا أيها الناس اعبدوا ربكم الذي خلقكم"
+        }
+      ]
+    },
+    {
+      "id": "theme_birr_walidayn:17:23-24",
+      "theme_id": "theme_birr_walidayn",
+      "segment_order": 1,
+      "sura_no": 17,
+      "ayah_start": 23,
+      "ayah_end": 24,
+      "title_ar": "الأمر ببر الوالدين",
+      "title_en": "Command to Honor Parents",
+      "summary_ar": "قرن الله بر الوالدين بعبادته مما يدل على عظم منزلتهما، وأمر بالإحسان إليهما خاصة عند الكبر",
+      "summary_en": "Allah paired honoring parents with His worship, showing their great status, and commanded kindness especially in old age",
+      "semantic_tags": ["parents", "worship", "kindness", "old_age"],
+      "revelation_context": "makki",
+      "is_entry_point": true,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "chunk_id": "ibn_kathir:17:23",
+          "snippet": "قرن الله تعالى بين عبادته وبين الإحسان إلى الوالدين"
+        },
+        {
+          "source_id": "qurtubi_ar",
+          "chunk_id": "qurtubi:17:23",
+          "snippet": "أمر الله سبحانه بعبادته وتوحيده وجعل بر الوالدين مقرونا بذلك"
+        }
+      ]
+    },
+    {
+      "id": "theme_birr_walidayn:31:14",
+      "theme_id": "theme_birr_walidayn",
+      "segment_order": 2,
+      "sura_no": 31,
+      "ayah_start": 14,
+      "ayah_end": 14,
+      "title_ar": "حمل الأم وتخصيصها",
+      "title_en": "The Mother's Sacrifice",
+      "summary_ar": "تخصيص الأم بالذكر لبيان عظم حقها بسبب الحمل والوضع والرضاعة",
+      "summary_en": "Special mention of the mother to show her great right due to pregnancy, delivery, and nursing",
+      "semantic_tags": ["mother", "pregnancy", "nursing", "gratitude"],
+      "revelation_context": "makki",
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "chunk_id": "ibn_kathir:31:14",
+          "snippet": "ووصينا الإنسان بوالديه حملته أمه وهنا على وهن"
+        }
+      ]
+    },
+    {
+      "id": "theme_sabr:2:155-157",
+      "theme_id": "theme_sabr",
+      "segment_order": 1,
+      "sura_no": 2,
+      "ayah_start": 155,
+      "ayah_end": 157,
+      "title_ar": "الابتلاء والصبر عليه",
+      "title_en": "Trial and Patience Upon It",
+      "summary_ar": "بيان أن الابتلاء سنة إلهية وأن الصابرين لهم البشارة بالصلوات والرحمة والهداية",
+      "summary_en": "Clarification that trials are a divine law and that the patient will receive blessings, mercy, and guidance",
+      "semantic_tags": ["trial", "patience", "blessing", "mercy"],
+      "revelation_context": "madani",
+      "is_entry_point": true,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "chunk_id": "ibn_kathir:2:155",
+          "snippet": "أخبر تعالى أنه يبتلي عباده المؤمنين"
+        },
+        {
+          "source_id": "qurtubi_ar",
+          "chunk_id": "qurtubi:2:155",
+          "snippet": "ولنبلونكم بشيء من الخوف والجوع"
+        }
+      ]
+    },
+    {
+      "id": "theme_sabr:3:200",
+      "theme_id": "theme_sabr",
+      "segment_order": 2,
+      "sura_no": 3,
+      "ayah_start": 200,
+      "ayah_end": 200,
+      "title_ar": "الأمر بالصبر والمصابرة",
+      "title_en": "Command to Be Patient and Persevere",
+      "summary_ar": "الأمر بالصبر على الطاعة وعن المعصية والمصابرة للأعداء والمرابطة في سبيل الله",
+      "summary_en": "Command to be patient in obedience, from sin, to persevere against enemies, and guard the cause of Allah",
+      "semantic_tags": ["patience", "perseverance", "obedience"],
+      "revelation_context": "madani",
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "chunk_id": "ibn_kathir:3:200",
+          "snippet": "يا أيها الذين آمنوا اصبروا وصابروا ورابطوا"
+        }
+      ]
+    },
+    {
+      "id": "theme_salah:2:43",
+      "theme_id": "theme_salah",
+      "segment_order": 1,
+      "sura_no": 2,
+      "ayah_start": 43,
+      "ayah_end": 43,
+      "title_ar": "الأمر بإقامة الصلاة",
+      "title_en": "Command to Establish Prayer",
+      "summary_ar": "الأمر بإقامة الصلاة وإيتاء الزكاة - ركنا الإسلام العمليان",
+      "summary_en": "Command to establish prayer and give Zakah - the two practical pillars of Islam",
+      "semantic_tags": ["prayer", "zakah", "pillars"],
+      "revelation_context": "madani",
+      "is_entry_point": true,
+      "evidence_sources": [
+        {
+          "source_id": "tabari_ar",
+          "chunk_id": "tabari:2:43",
+          "snippet": "وأقيموا الصلاة وآتوا الزكاة"
+        }
+      ]
+    },
+    {
+      "id": "theme_tawbah:39:53",
+      "theme_id": "theme_tawbah",
+      "segment_order": 1,
+      "sura_no": 39,
+      "ayah_start": 53,
+      "ayah_end": 53,
+      "title_ar": "سعة رحمة الله للتائبين",
+      "title_en": "Allah's Vast Mercy for the Repentant",
+      "summary_ar": "نداء الله لعباده المسرفين ألا يقنطوا من رحمته فإنه يغفر الذنوب جميعاً",
+      "summary_en": "Allah's call to His servants who have transgressed not to despair of His mercy, for He forgives all sins",
+      "semantic_tags": ["mercy", "forgiveness", "hope", "repentance"],
+      "revelation_context": "makki",
+      "is_entry_point": true,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "chunk_id": "ibn_kathir:39:53",
+          "snippet": "قل يا عبادي الذين أسرفوا على أنفسهم لا تقنطوا من رحمة الله"
+        },
+        {
+          "source_id": "qurtubi_ar",
+          "chunk_id": "qurtubi:39:53",
+          "snippet": "هذه الآية أرجى آية في كتاب الله تعالى"
+        }
+      ]
+    },
+    {
+      "id": "theme_zulm:14:42",
+      "theme_id": "theme_zulm",
+      "segment_order": 1,
+      "sura_no": 14,
+      "ayah_start": 42,
+      "ayah_end": 42,
+      "title_ar": "إمهال الظالمين لا إهمالهم",
+      "title_en": "Respiting the Oppressors, Not Neglecting Them",
+      "summary_ar": "بيان أن الله ليس بغافل عن الظالمين وإنما يؤخرهم ليوم تشخص فيه الأبصار",
+      "summary_en": "Clarification that Allah is not unaware of the oppressors but delays them for a Day when eyes will stare in horror",
+      "semantic_tags": ["oppression", "judgment", "delay", "punishment"],
+      "revelation_context": "makki",
+      "is_entry_point": true,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "chunk_id": "ibn_kathir:14:42",
+          "snippet": "ولا تحسبن الله غافلا عما يعمل الظالمون"
+        }
+      ]
+    }
+  ],
+
+  "consequences": [
+    {
+      "theme_id": "theme_tawheed",
+      "consequence_type": "reward",
+      "description_ar": "من مات لا يشرك بالله شيئاً دخل الجنة",
+      "description_en": "Whoever dies without associating anything with Allah will enter Paradise",
+      "supporting_verses": [
+        {"sura": 4, "ayah": 48, "relevance": "primary"},
+        {"sura": 4, "ayah": 116, "relevance": "primary"}
+      ],
+      "display_order": 1
+    },
+    {
+      "theme_id": "theme_tawheed",
+      "consequence_type": "punishment",
+      "description_ar": "إن الله لا يغفر أن يشرك به ويغفر ما دون ذلك لمن يشاء",
+      "description_en": "Allah does not forgive associating partners with Him, but forgives what is less than that for whom He wills",
+      "supporting_verses": [
+        {"sura": 4, "ayah": 48, "relevance": "primary"},
+        {"sura": 4, "ayah": 116, "relevance": "supporting"}
+      ],
+      "display_order": 2
+    },
+    {
+      "theme_id": "theme_birr_walidayn",
+      "consequence_type": "blessing",
+      "description_ar": "رضا الله في رضا الوالدين وسخطه في سخطهما",
+      "description_en": "Allah's pleasure is in the pleasure of parents, and His anger is in their anger",
+      "supporting_verses": [
+        {"sura": 17, "ayah": 23, "relevance": "primary"}
+      ],
+      "display_order": 1
+    },
+    {
+      "theme_id": "theme_sabr",
+      "consequence_type": "reward",
+      "description_ar": "الصابرون يوفون أجرهم بغير حساب",
+      "description_en": "The patient will be given their reward without measure",
+      "supporting_verses": [
+        {"sura": 39, "ayah": 10, "relevance": "primary"},
+        {"sura": 2, "ayah": 157, "relevance": "supporting"}
+      ],
+      "display_order": 1
+    },
+    {
+      "theme_id": "theme_zulm",
+      "consequence_type": "punishment",
+      "description_ar": "الله يمهل الظالم حتى إذا أخذه لم يفلته",
+      "description_en": "Allah gives respite to the oppressor, but when He seizes him, He does not let him escape",
+      "supporting_verses": [
+        {"sura": 11, "ayah": 102, "relevance": "primary"},
+        {"sura": 14, "ayah": 42, "relevance": "supporting"}
+      ],
+      "display_order": 1
+    },
+    {
+      "theme_id": "theme_tawbah",
+      "consequence_type": "promise",
+      "description_ar": "إن الله يغفر الذنوب جميعاً للتائب الصادق",
+      "description_en": "Allah forgives all sins for the sincere repentant",
+      "supporting_verses": [
+        {"sura": 39, "ayah": 53, "relevance": "primary"},
+        {"sura": 25, "ayah": 70, "relevance": "supporting"}
+      ],
+      "display_order": 1
+    }
+  ]
+}

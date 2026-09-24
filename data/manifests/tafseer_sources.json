@@ -1,0 +1,422 @@
+{
+  "name": "Tafseer Sources Manifest",
+  "version": "2.1.0",
+  "description": "Manifest of available tafseer sources with explicit licensing and rate limits",
+  "last_updated": "2026-01-02",
+
+  "sources": [
+    {
+      "id": "ibn_kathir_en",
+      "name_ar": "تفسير ابن كثير",
+      "name_en": "Tafsir Ibn Kathir (English)",
+      "author_ar": "إسماعيل بن عمر بن كثير",
+      "author_en": "Ismail ibn Umar ibn Kathir",
+      "death_year_hijri": 774,
+      "era": "classical",
+      "methodology": "bil_mathur",
+      "language": "en",
+      "reliability_score": 0.95,
+      "is_primary_source": true,
+      "status": "available_via_api",
+
+      "api_source": {
+        "provider": "quran_tafsir_api",
+        "base_url": "https://api.quran-tafsir.com/tafsir",
+        "tafsir_id": 169,
+        "endpoint_pattern": "/{tafsir_id}/{surah_number}/{ayah_number}",
+        "documentation_url": "https://github.com/spa5k/quran_api",
+        "rate_limit": {
+          "requests_per_second": 2,
+          "requests_per_minute": 60,
+          "daily_limit": null,
+          "requires_auth": false
+        },
+        "cache_duration_hours": 168
+      },
+
+      "license": {
+        "type": "public_api_access",
+        "license_url": null,
+        "tos_url": "https://api.quran-tafsir.com",
+        "allowed_use": ["educational", "non_commercial", "research"],
+        "attribution_required": true,
+        "commercial_use": "pending_user_input",
+        "notes": "API provides access; underlying tafseer (Ibn Kathir) is classical Islamic text. Verify commercial use terms.",
+        "verified_date": null
+      },
+
+      "fallback": {
+        "type": "manual",
+        "status": "pending_user_input",
+        "message": "If API unavailable, user must provide verified JSON source"
+      },
+
+      "validation": {
+        "expected_surah_count": 114,
+        "min_ayah_coverage": 0.95,
+        "required_fields": ["text", "surah", "ayah"],
+        "response_schema": {
+          "type": "object",
+          "required_fields": ["text"]
+        }
+      }
+    },
+    {
+      "id": "ibn_kathir_ar",
+      "name_ar": "تفسير ابن كثير",
+      "name_en": "Tafsir Ibn Kathir (Arabic)",
+      "author_ar": "إسماعيل بن عمر بن كثير",
+      "author_en": "Ismail ibn Umar ibn Kathir",
+      "death_year_hijri": 774,
+      "era": "classical",
+      "methodology": "bil_mathur",
+      "language": "ar",
+      "reliability_score": 0.98,
+      "is_primary_source": true,
+      "status": "available_via_api",
+
+      "api_source": {
+        "provider": "quran_tafsir_api",
+        "base_url": "https://api.quran-tafsir.com/tafsir",
+        "tafsir_id": 1,
+        "endpoint_pattern": "/{tafsir_id}/{surah_number}/{ayah_number}",
+        "documentation_url": "https://github.com/spa5k/quran_api",
+        "rate_limit": {
+          "requests_per_second": 2,
+          "requests_per_minute": 60,
+          "daily_limit": null,
+          "requires_auth": false
+        },
+        "cache_duration_hours": 168
+      },
+
+      "license": {
+        "type": "public_domain_classical",
+        "license_url": null,
+        "tos_url": "https://api.quran-tafsir.com",
+        "allowed_use": ["educational", "non_commercial", "research", "commercial"],
+        "attribution_required": true,
+        "commercial_use": "allowed",
+        "notes": "Original Arabic classical text - public domain due to age",
+        "verified_date": "2026-01-02"
+      },
+
+      "validation": {
+        "expected_surah_count": 114,
+        "min_ayah_coverage": 0.95,
+        "required_fields": ["text", "surah", "ayah"],
+        "response_schema": {
+          "type": "object",
+          "required_fields": ["text"]
+        }
+      }
+    },
+    {
+      "id": "muyassar_ar",
+      "name_ar": "التفسير الميسر",
+      "name_en": "Al-Tafsir Al-Muyassar (Simplified)",
+      "author_ar": "مجمع الملك فهد لطباعة المصحف الشريف",
+      "author_en": "King Fahd Complex for Printing the Holy Quran",
+      "era": "modern",
+      "methodology": "simplified",
+      "language": "ar",
+      "reliability_score": 0.92,
+      "is_primary_source": true,
+      "status": "pending_user_input",
+
+      "api_source": {
+        "provider": "quran_tafsir_api",
+        "base_url": "https://api.quran-tafsir.com/tafsir",
+        "tafsir_id": 16,
+        "endpoint_pattern": "/{tafsir_id}/{surah_number}/{ayah_number}",
+        "documentation_url": "https://github.com/spa5k/quran_api",
+        "rate_limit": {
+          "requests_per_second": 2,
+          "requests_per_minute": 60,
+          "daily_limit": null,
+          "requires_auth": false
+        },
+        "cache_duration_hours": 168
+      },
+
+      "license": {
+        "type": "pending_verification",
+        "license_url": "NEED_VERIFICATION",
+        "tos_url": "https://qurancomplex.gov.sa",
+        "allowed_use": ["educational"],
+        "attribution_required": true,
+        "commercial_use": "pending_user_input",
+        "notes": "King Fahd Complex publication - verify educational/non-commercial terms before use",
+        "verified_date": null
+      },
+
+      "fallback": {
+        "type": "manual",
+        "status": "pending_user_input",
+        "message": "Blocked until license verified. User must confirm allowed_use from King Fahd Complex."
+      },
+
+      "validation": {
+        "expected_surah_count": 114,
+        "min_ayah_coverage": 0.98,
+        "required_fields": ["text", "surah", "ayah"],
+        "response_schema": {
+          "type": "object",
+          "required_fields": ["text"]
+        }
+      }
+    },
+    {
+      "id": "saadi_ar",
+      "name_ar": "تفسير السعدي",
+      "name_en": "Tafsir As-Sa'di (Arabic)",
+      "author_ar": "عبدالرحمن بن ناصر السعدي",
+      "author_en": "Abdur-Rahman ibn Nasir As-Sa'di",
+      "death_year_hijri": 1376,
+      "era": "modern",
+      "methodology": "bil_rai",
+      "language": "ar",
+      "reliability_score": 0.90,
+      "is_primary_source": true,
+      "status": "pending_user_input",
+
+      "download": {
+        "url": "NEED_USER_PROVIDED_SOURCE_URL",
+        "format": "json"
+      },
+
+      "license": {
+        "type": "pending_verification",
+        "license_url": "NEED_USER_PROVIDED",
+        "tos_url": "NEED_USER_PROVIDED",
+        "allowed_use": [],
+        "attribution_required": true,
+        "commercial_use": "pending_user_input",
+        "notes": "As-Sa'di Arabic - requires verified source with clear license from user",
+        "verified_date": null
+      },
+
+      "fallback": {
+        "type": "manual",
+        "status": "pending_user_input",
+        "required_fields": ["source_url", "license_url", "allowed_use"],
+        "message": "Blocked. User must provide: 1) Source URL, 2) License URL, 3) Allowed use terms"
+      }
+    },
+    {
+      "id": "saadi_en",
+      "name_ar": "تفسير السعدي - إنجليزي",
+      "name_en": "Tafsir As-Sa'di (English Translation)",
+      "author_ar": "عبدالرحمن بن ناصر السعدي",
+      "author_en": "Abdur-Rahman ibn Nasir As-Sa'di",
+      "translator": "Nasiruddin al-Khattab",
+      "death_year_hijri": 1376,
+      "era": "modern",
+      "methodology": "bil_rai",
+      "language": "en",
+      "reliability_score": 0.88,
+      "is_primary_source": false,
+      "status": "pending_user_input",
+
+      "download": {
+        "url": "NEED_USER_PROVIDED_SOURCE_URL",
+        "format": "json"
+      },
+
+      "license": {
+        "type": "pending_verification",
+        "license_url": "NEED_USER_PROVIDED",
+        "tos_url": "NEED_USER_PROVIDED",
+        "allowed_use": [],
+        "attribution_required": true,
+        "commercial_use": "pending_user_input",
+        "notes": "IIPH publication - requires publisher permission verification",
+        "verified_date": null
+      },
+
+      "fallback": {
+        "type": "manual",
+        "status": "pending_user_input",
+        "required_fields": ["source_url", "license_url", "publisher_permission"],
+        "message": "Blocked. User must provide: 1) Source URL, 2) License URL, 3) IIPH permission"
+      }
+    },
+    {
+      "id": "sahih_international",
+      "name_ar": "صحيح انترناشيونال",
+      "name_en": "Sahih International Translation",
+      "author_en": "Sahih International",
+      "era": "modern",
+      "methodology": "translation",
+      "language": "en",
+      "reliability_score": 0.90,
+      "is_primary_source": false,
+      "status": "available",
+
+      "download": {
+        "url": "https://tanzil.net/trans/en.sahih",
+        "format": "text",
+        "sha256_checksum": null
+      },
+
+      "license": {
+        "type": "creative_commons",
+        "license_url": "https://creativecommons.org/licenses/by-nc-nd/3.0/",
+        "tos_url": "https://tanzil.net/terms-of-use/",
+        "allowed_use": ["educational", "non_commercial", "research"],
+        "attribution_required": true,
+        "commercial_use": "prohibited",
+        "notes": "Creative Commons BY-NC-ND 3.0 - no derivatives, non-commercial only",
+        "verified_date": "2026-01-02"
+      },
+
+      "parser": {
+        "type": "tanzil_translation",
+        "separator": "|",
+        "fields": ["sura_no", "aya_no", "text"],
+        "encoding": "utf-8"
+      },
+
+      "validation": {
+        "expected_verse_count": 6236,
+        "min_file_size_bytes": 500000
+      }
+    },
+    {
+      "id": "tafheem_en",
+      "name_ar": "تفهيم القرآن",
+      "name_en": "Tafheem-ul-Quran (Understanding the Quran)",
+      "author_ar": "أبو الأعلى المودودي",
+      "author_en": "Abul A'la Mawdudi",
+      "death_year_hijri": 1399,
+      "era": "modern",
+      "methodology": "comprehensive",
+      "language": "en",
+      "reliability_score": 0.88,
+      "is_primary_source": true,
+      "status": "pending_user_input",
+
+      "api_source": {
+        "provider": "quran_tafsir_api",
+        "base_url": "https://api.quran-tafsir.com/tafsir",
+        "tafsir_id": 95,
+        "endpoint_pattern": "/{tafsir_id}/{surah_number}/{ayah_number}",
+        "documentation_url": "https://github.com/spa5k/quran_api",
+        "rate_limit": {
+          "requests_per_second": 2,
+          "requests_per_minute": 60,
+          "daily_limit": null,
+          "requires_auth": false
+        },
+        "cache_duration_hours": 168
+      },
+
+      "license": {
+        "type": "pending_verification",
+        "license_url": "NEED_VERIFICATION",
+        "tos_url": "NEED_VERIFICATION",
+        "allowed_use": [],
+        "attribution_required": true,
+        "commercial_use": "pending_user_input",
+        "notes": "Islamic Foundation publication - verify usage rights before download",
+        "verified_date": null
+      },
+
+      "fallback": {
+        "type": "manual",
+        "status": "pending_user_input",
+        "message": "Blocked. User must verify license from Islamic Foundation UK."
+      },
+
+      "validation": {
+        "expected_surah_count": 114,
+        "min_ayah_coverage": 0.90,
+        "response_schema": {
+          "type": "object",
+          "required_fields": ["text"]
+        }
+      }
+    }
+  ],
+
+  "placeholder_sources": [
+    {
+      "id": "tabari_ar",
+      "name_ar": "جامع البيان عن تأويل آي القرآن",
+      "name_en": "Tafsir al-Tabari",
+      "status": "available_via_api",
+      "priority": "high",
+      "api_edition": "ar.tabari",
+      "api_provider": "alquran.cloud",
+      "license": "public_domain_classical",
+      "notes": "Classical tafseer - primary source for bil-mathur methodology. Available via alquran.cloud ar.tabari edition."
+    },
+    {
+      "id": "qurtubi_ar",
+      "name_ar": "الجامع لأحكام القرآن",
+      "name_en": "Tafsir al-Qurtubi",
+      "status": "available_via_api",
+      "priority": "high",
+      "api_edition": "ar.qurtubi",
+      "api_provider": "alquran.cloud",
+      "license": "public_domain_classical",
+      "notes": "Classical tafseer with fiqh emphasis. Available via alquran.cloud ar.qurtubi edition."
+    },
+    {
+      "id": "baghawi_ar",
+      "name_ar": "معالم التنزيل",
+      "name_en": "Tafsir al-Baghawi",
+      "status": "available_via_api",
+      "priority": "high",
+      "api_edition": "ar.baghawi",
+      "api_provider": "alquran.cloud",
+      "license": "public_domain_classical",
+      "notes": "Classical tafseer (d. 510 AH) with hadith focus. Available via alquran.cloud ar.baghawi edition."
+    },
+    {
+      "id": "mukhtasar_ar",
+      "name_ar": "المختصر في التفسير",
+      "name_en": "Al-Mukhtasar fi al-Tafsir (Concise Tafsir)",
+      "author_ar": "مركز تفسير للدراسات القرآنية",
+      "author_en": "Tafsir Center for Quranic Studies",
+      "status": "pending_user_input",
+      "priority": "medium",
+      "license": "pending_verification",
+      "notes": "Modern concise tafsir. Verify terms from Tafsir Center before use."
+    },
+    {
+      "id": "asbab_wahidi",
+      "name_ar": "أسباب النزول",
+      "name_en": "Asbab al-Nuzul — Occasions of Revelation",
+      "author_ar": "أبو الحسن الواحدي",
+      "author_en": "Abu al-Hasan al-Wahidi",
+      "death_year_hijri": 468,
+      "era": "classical",
+      "status": "available_via_api",
+      "priority": "high",
+      "api_edition": "ar.wahidi",
+      "api_provider": "alquran.cloud",
+      "license": "public_domain_classical",
+      "notes": "Classical asbab al-nuzul text. Served at /api/v1/quran/asbab/{surah}."
+    }
+  ],
+
+  "ingestion_config": {
+    "chunk_strategy": "ayah_anchored",
+    "max_chunk_words": 500,
+    "overlap_words": 50,
+    "preserve_ayah_boundaries": true,
+    "prevent_cross_surah": true,
+    "preserve_raw_text": true,
+    "include_verse_reference_in_chunk": true,
+    "metadata_fields": ["source_id", "surah", "ayah_start", "ayah_end", "language", "raw_text_hash"]
+  },
+
+  "api_config": {
+    "global_rate_limit_per_minute": 60,
+    "retry_attempts": 3,
+    "retry_delay_seconds": 5,
+    "timeout_seconds": 30,
+    "cache_directory": "data/cache/tafseer_api"
+  }
+}

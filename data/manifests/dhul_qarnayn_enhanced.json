@@ -1,0 +1,577 @@
+{
+  "name": "Dhul-Qarnayn Story Graph - Enhanced Ontology",
+  "version": "3.0.0",
+  "description": "Fully reconstructed story graph for Surah Al-Kahf (18:83-98) with semantic ordering, narrative roles, and tafsir evidence",
+  "last_updated": "2026-01-04",
+
+  "story": {
+    "id": "story_dhulqarnayn",
+    "name_ar": "قصة ذي القرنين",
+    "name_en": "Story of Dhul-Qarnayn",
+    "category": "historical",
+    "main_figures": ["Dhul-Qarnayn", "Yajuj", "Majuj"],
+    "themes": ["power", "justice", "travel", "protection", "humility", "divine_empowerment"],
+    "summary_ar": "قصة الملك الصالح الذي مكّنه الله في الأرض فسافر مشرقاً ومغرباً ناشراً العدل، وبنى السد حماية للمستضعفين من يأجوج ومأجوج",
+    "summary_en": "The story of a righteous ruler whom Allah empowered on earth. He traveled east and west spreading justice, and built a barrier to protect the oppressed from Yajuj and Majuj.",
+    "timeline_era": "pre_islamic_ancient",
+    "lessons_ar": "القوة مسؤولية، العدل واجب، التواضع مع النعمة، والتوكل على الله",
+    "lessons_en": "Power is responsibility, justice is duty, humility with blessing, and reliance on Allah",
+    "suras_mentioned": [18],
+    "total_verses": 16
+  },
+
+  "segments": [
+    {
+      "id": "dhulqarnayn_question",
+      "story_id": "story_dhulqarnayn",
+      "narrative_order": 1,
+      "chronological_index": 1,
+      "narrative_role": "introduction",
+      "aspect": "question_posed",
+      "sura_no": 18,
+      "aya_start": 83,
+      "aya_end": 83,
+      "title_ar": "السؤال عن ذي القرنين",
+      "title_en": "The Question About Dhul-Qarnayn",
+      "summary_ar": "يُسأل النبي ﷺ عن ذي القرنين، وهذا يدل على شهرته وأهمية قصته",
+      "summary_en": "The Prophet (PBUH) is asked about Dhul-Qarnayn, indicating his fame and the importance of his story.",
+      "key_points_en": ["Quraysh asked to test the Prophet", "Dhul-Qarnayn was known to People of the Book"],
+      "semantic_tags": ["revelation", "question", "historical_inquiry"],
+      "is_entry_point": true,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "reference": "18:83",
+          "snippet": "سألوا النبي ﷺ عن ذي القرنين بإيعاز من اليهود لاختباره"
+        }
+      ],
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:83"],
+      "memorization_cue_en": "Why did they ask? To test the Prophet."
+    },
+    {
+      "id": "dhulqarnayn_empowerment",
+      "story_id": "story_dhulqarnayn",
+      "narrative_order": 2,
+      "chronological_index": 2,
+      "narrative_role": "divine_mission",
+      "aspect": "divine_establishment",
+      "sura_no": 18,
+      "aya_start": 84,
+      "aya_end": 84,
+      "title_ar": "التمكين الإلهي",
+      "title_en": "Divine Empowerment",
+      "summary_ar": "مكّن الله ذا القرنين في الأرض وآتاه من كل شيء سبباً - القوة والعلم والموارد",
+      "summary_en": "Allah established Dhul-Qarnayn on earth and gave him the means to everything - power, knowledge, and resources.",
+      "key_points_en": ["Tamkeen = establishment with authority", "Given 'means to everything' = comprehensive capability", "This was divine blessing, not self-made"],
+      "semantic_tags": ["divine_empowerment", "tamkeen", "authority", "resources"],
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "reference": "18:84",
+          "snippet": "مكناه في الأرض أي ملّكناه وأعطيناه سلطاناً واسعاً"
+        },
+        {
+          "source_id": "tabari_ar",
+          "reference": "18:84",
+          "snippet": "وآتيناه من كل شيء سبباً: أي علماً بالطرق والوسائل"
+        }
+      ],
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:84", "tabari_ar:18:84"],
+      "memorization_cue_en": "Tamkeen + Sabab = Power + Means"
+    },
+    {
+      "id": "dhulqarnayn_west_journey",
+      "story_id": "story_dhulqarnayn",
+      "narrative_order": 3,
+      "chronological_index": 3,
+      "narrative_role": "journey_phase",
+      "aspect": "journey_to_west",
+      "sura_no": 18,
+      "aya_start": 85,
+      "aya_end": 86,
+      "title_ar": "الرحلة إلى الغرب",
+      "title_en": "Journey to the West",
+      "summary_ar": "اتبع سبباً حتى وصل مغرب الشمس فوجدها تغرب في عين حمئة ووجد عندها قوماً",
+      "summary_en": "He followed a way until he reached the setting of the sun, which appeared to set in a murky spring, and found a people there.",
+      "key_points_en": ["'Followed a sabab' = used the means Allah gave", "Murky spring = perception from horizon", "Found a people = civilization at western limit"],
+      "semantic_tags": ["travel", "west", "sun_setting", "exploration"],
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "reference": "18:85-86",
+          "snippet": "سار حتى انتهى إلى أقصى ما يسلكه من أرض المغرب"
+        }
+      ],
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:85-86"],
+      "memorization_cue_en": "West journey: Sun sets, people found"
+    },
+    {
+      "id": "dhulqarnayn_west_justice",
+      "story_id": "story_dhulqarnayn",
+      "narrative_order": 4,
+      "chronological_index": 4,
+      "narrative_role": "test_or_trial",
+      "aspect": "justice_test_west",
+      "sura_no": 18,
+      "aya_start": 86,
+      "aya_end": 88,
+      "title_ar": "اختبار العدل في الغرب",
+      "title_en": "The Justice Test - West",
+      "summary_ar": "خُيّر بين العقاب والإحسان، فاختار العدل: يُعذّب الظالم ويُحسن للمؤمن",
+      "summary_en": "Given choice between punishment and kindness, he chose justice: punish the oppressor, reward the believer.",
+      "key_points_en": ["Allah gave him choice = test of character", "Punish wrongdoers = justice", "Reward believers = mercy", "His response shows balanced leadership"],
+      "semantic_tags": ["justice", "test", "moral_decision", "leadership", "punishment", "mercy"],
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "reference": "18:87-88",
+          "snippet": "قلنا يا ذا القرنين إما أن تعذب وإما أن تتخذ فيهم حسنا - خيره الله بين الأمرين"
+        },
+        {
+          "source_id": "qurtubi_ar",
+          "reference": "18:87",
+          "snippet": "هذا تخيير بين القتال والدعوة، وهو اختبار لعدله"
+        }
+      ],
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:87-88", "qurtubi_ar:18:87"],
+      "memorization_cue_en": "TEST 1: Punish oppressor, reward believer"
+    },
+    {
+      "id": "dhulqarnayn_east_journey",
+      "story_id": "story_dhulqarnayn",
+      "narrative_order": 5,
+      "chronological_index": 5,
+      "narrative_role": "journey_phase",
+      "aspect": "journey_to_east",
+      "sura_no": 18,
+      "aya_start": 89,
+      "aya_end": 90,
+      "title_ar": "الرحلة إلى الشرق",
+      "title_en": "Journey to the East",
+      "summary_ar": "اتبع سبباً آخر حتى بلغ مطلع الشمس على قوم لم يجعل لهم من دونها ستراً",
+      "summary_en": "He followed another way until he reached the rising of the sun over a people for whom Allah had not made any shield against it.",
+      "key_points_en": ["Continued using means Allah gave", "Found primitive people", "No shelter = testing different conditions"],
+      "semantic_tags": ["travel", "east", "sun_rising", "primitive_people"],
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "reference": "18:89-90",
+          "snippet": "قوم لا بناء لهم ولا أشجار تظلهم من الشمس"
+        }
+      ],
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:89-90"],
+      "memorization_cue_en": "East journey: No shelter people"
+    },
+    {
+      "id": "dhulqarnayn_east_restraint",
+      "story_id": "story_dhulqarnayn",
+      "narrative_order": 6,
+      "chronological_index": 6,
+      "narrative_role": "moral_decision",
+      "aspect": "restraint_test",
+      "sura_no": 18,
+      "aya_start": 91,
+      "aya_end": 91,
+      "title_ar": "اختبار ضبط النفس",
+      "title_en": "The Restraint Test - East",
+      "summary_ar": "كذلك - لم يظلمهم ولم يستغلهم رغم ضعفهم، وأحاط الله علماً بما لديه",
+      "summary_en": "Kadhalika (thus it was) - he did not oppress or exploit them despite their vulnerability. Allah encompassed what he had.",
+      "key_points_en": ["'Kadhalika' = he acted similarly (with justice)", "Did not exploit the weak", "Allah witnessed his restraint"],
+      "semantic_tags": ["restraint", "justice", "test", "humility", "self_control"],
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "tabari_ar",
+          "reference": "18:91",
+          "snippet": "كذلك أي كما فعل بأهل المغرب فعل بأهل المشرق"
+        },
+        {
+          "source_id": "ibn_kathir_ar",
+          "reference": "18:91",
+          "snippet": "وقد أحطنا بما لديه خبراً - الله شاهد على أعماله"
+        }
+      ],
+      "evidence_chunk_ids": ["tabari_ar:18:91", "ibn_kathir_ar:18:91"],
+      "memorization_cue_en": "TEST 2: Power over weak, chose restraint"
+    },
+    {
+      "id": "dhulqarnayn_barrier_encounter",
+      "story_id": "story_dhulqarnayn",
+      "narrative_order": 7,
+      "chronological_index": 7,
+      "narrative_role": "encounter",
+      "aspect": "meeting_oppressed",
+      "sura_no": 18,
+      "aya_start": 92,
+      "aya_end": 93,
+      "title_ar": "لقاء المستضعفين",
+      "title_en": "Encounter with the Oppressed",
+      "summary_ar": "وجد قوماً بين السدين لا يكادون يفقهون قولاً، يشكون من إفساد يأجوج ومأجوج",
+      "summary_en": "He found a people between two mountains who could barely understand speech, suffering from the corruption of Yajuj and Majuj.",
+      "key_points_en": ["Third journey = between mountains", "Language barrier = different civilization", "Yajuj/Majuj = recurring corruption", "People sought help"],
+      "semantic_tags": ["encounter", "oppressed", "yajuj_majuj", "corruption", "plea_for_help"],
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "reference": "18:92-93",
+          "snippet": "قوم بين جبلين لا يفهمون لغة غيرهم، يشكون فساد يأجوج ومأجوج"
+        },
+        {
+          "source_id": "qurtubi_ar",
+          "reference": "18:94",
+          "snippet": "يأجوج ومأجوج قبيلتان من ولد يافث بن نوح"
+        }
+      ],
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:92-93", "qurtubi_ar:18:94"],
+      "memorization_cue_en": "Third stop: Oppressed ask for help"
+    },
+    {
+      "id": "dhulqarnayn_barrier_request",
+      "story_id": "story_dhulqarnayn",
+      "narrative_order": 8,
+      "chronological_index": 8,
+      "narrative_role": "moral_decision",
+      "aspect": "tribute_offer",
+      "sura_no": 18,
+      "aya_start": 94,
+      "aya_end": 94,
+      "title_ar": "عرض الخراج",
+      "title_en": "The Tribute Offer",
+      "summary_ar": "عرضوا عليه جزية مقابل بناء سد، وهذا اختبار للطمع والاستغلال",
+      "summary_en": "They offered him tribute in exchange for building a barrier - a test of greed and exploitation.",
+      "key_points_en": ["People offered payment", "Third test: accept money or serve freely?", "Vulnerable people offering what little they have"],
+      "semantic_tags": ["tribute", "offer", "test", "generosity", "service"],
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "reference": "18:94",
+          "snippet": "نجعل لك خرجاً - أي أجرة ومالاً"
+        }
+      ],
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:94"],
+      "memorization_cue_en": "They offer money: Will he take it?"
+    },
+    {
+      "id": "dhulqarnayn_refuses_tribute",
+      "story_id": "story_dhulqarnayn",
+      "narrative_order": 9,
+      "chronological_index": 9,
+      "narrative_role": "moral_decision",
+      "aspect": "refusing_tribute",
+      "sura_no": 18,
+      "aya_start": 95,
+      "aya_end": 95,
+      "title_ar": "رفض الخراج - التوكل",
+      "title_en": "Refusing Tribute - Tawakkul",
+      "summary_ar": "قال ما مكني فيه ربي خير، يكفيني ما آتاني الله، فأعينوني بقوة",
+      "summary_en": "He said: What my Lord has established me in is better. Just help me with labor, and I will make a barrier.",
+      "key_points_en": ["Refused payment", "Attributed power to Allah", "Asked only for labor", "Model of selfless leadership"],
+      "semantic_tags": ["tawakkul", "generosity", "selfless_service", "humility", "refusing_payment"],
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "reference": "18:95",
+          "snippet": "ما مكني فيه ربي خير - اعترف بأن كل ما عنده من الله"
+        },
+        {
+          "source_id": "tabari_ar",
+          "reference": "18:95",
+          "snippet": "لا أريد منكم مالاً، أكتفي بما آتاني الله"
+        }
+      ],
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:95", "tabari_ar:18:95"],
+      "memorization_cue_en": "TEST 3 PASSED: 'Allah's blessing is enough'"
+    },
+    {
+      "id": "dhulqarnayn_engineering",
+      "story_id": "story_dhulqarnayn",
+      "narrative_order": 10,
+      "chronological_index": 10,
+      "narrative_role": "outcome",
+      "aspect": "building_barrier",
+      "sura_no": 18,
+      "aya_start": 96,
+      "aya_end": 97,
+      "title_ar": "الهندسة والبناء",
+      "title_en": "Engineering the Barrier",
+      "summary_ar": "أمرهم بإحضار زبر الحديد ثم النفخ والإذابة والقطر، حتى بُني سد لا يُتسلق",
+      "summary_en": "He commanded them to bring iron blocks, then blow until red-hot, pour molten copper, creating an insurmountable barrier.",
+      "key_points_en": ["Iron + copper = advanced metallurgy", "Collaborative effort with locals", "Engineering genius as divine gift", "Practical solution, not magic"],
+      "semantic_tags": ["engineering", "construction", "iron", "copper", "teamwork", "technology"],
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "reference": "18:96-97",
+          "snippet": "زبر الحديد: قطع الحديد الكبيرة، ثم أذابها بالنار وصب عليها النحاس المذاب"
+        },
+        {
+          "source_id": "qurtubi_ar",
+          "reference": "18:96",
+          "snippet": "هذا دليل على علمه بالصناعات والهندسة"
+        }
+      ],
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:96-97", "qurtubi_ar:18:96"],
+      "memorization_cue_en": "Iron blocks + fire + copper = barrier"
+    },
+    {
+      "id": "dhulqarnayn_humility",
+      "story_id": "story_dhulqarnayn",
+      "narrative_order": 11,
+      "chronological_index": 11,
+      "narrative_role": "reflection",
+      "aspect": "attributing_to_allah",
+      "sura_no": 18,
+      "aya_start": 98,
+      "aya_end": 98,
+      "title_ar": "التواضع والإرجاع لله",
+      "title_en": "Humility and Attribution to Allah",
+      "summary_ar": "قال هذا رحمة من ربي، فإذا جاء وعد ربي جعله دكاء، وكان وعد ربي حقاً",
+      "summary_en": "He said: This is mercy from my Lord. When my Lord's promise comes, He will level it. And my Lord's promise is truth.",
+      "key_points_en": ["Credits Allah, not himself", "Acknowledges temporality of his work", "Connects to eschatology (Day of Judgment)", "Ultimate humility after great achievement"],
+      "semantic_tags": ["humility", "tawakkul", "mercy", "eschatology", "gratitude", "impermanence"],
+      "is_entry_point": false,
+      "evidence_sources": [
+        {
+          "source_id": "ibn_kathir_ar",
+          "reference": "18:98",
+          "snippet": "هذا رحمة من ربي - نسب الفضل لله بعد إتمام العمل العظيم"
+        },
+        {
+          "source_id": "tabari_ar",
+          "reference": "18:98",
+          "snippet": "فإذا جاء وعد ربي - يعني يوم القيامة حين يخرج يأجوج ومأجوج"
+        }
+      ],
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:98", "tabari_ar:18:98"],
+      "memorization_cue_en": "After success: 'This is mercy from my Lord'"
+    }
+  ],
+
+  "connections": [
+    {
+      "id": "conn_dq_1",
+      "source_segment_id": "dhulqarnayn_question",
+      "target_segment_id": "dhulqarnayn_empowerment",
+      "edge_type": "chronological_next",
+      "is_chronological": true,
+      "strength": 1.0,
+      "explanation_en": "The question introduces him, then Allah describes his empowerment",
+      "justification_en": "Quranic narrative order: question (83) immediately followed by description (84)",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:83-84"],
+      "shared_themes": ["introduction", "divine_blessing"]
+    },
+    {
+      "id": "conn_dq_2",
+      "source_segment_id": "dhulqarnayn_empowerment",
+      "target_segment_id": "dhulqarnayn_west_journey",
+      "edge_type": "cause_effect",
+      "is_chronological": true,
+      "strength": 1.0,
+      "explanation_en": "Divine empowerment enabled the journeys - he 'followed a sabab' using what Allah gave",
+      "justification_en": "Verse 85 'fa-atba'a sababan' (he followed a means) directly references the 'sabab' given in verse 84",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:84-85"],
+      "shared_themes": ["divine_empowerment", "journey"]
+    },
+    {
+      "id": "conn_dq_3",
+      "source_segment_id": "dhulqarnayn_west_journey",
+      "target_segment_id": "dhulqarnayn_west_justice",
+      "edge_type": "chronological_next",
+      "is_chronological": true,
+      "strength": 1.0,
+      "explanation_en": "Arriving at the west, he faced the first test of justice",
+      "justification_en": "Sequential narrative: arrival (85-86a) then moral choice (86b-88)",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:85-88"],
+      "shared_themes": ["journey", "justice", "test"]
+    },
+    {
+      "id": "conn_dq_4",
+      "source_segment_id": "dhulqarnayn_west_justice",
+      "target_segment_id": "dhulqarnayn_east_journey",
+      "edge_type": "chronological_next",
+      "is_chronological": true,
+      "strength": 1.0,
+      "explanation_en": "After completing the western mission, he journeyed east",
+      "justification_en": "Verse 89 'thumma atba'a sababan' (then he followed another means) indicates sequence",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:88-89"],
+      "shared_themes": ["journey", "continuation"]
+    },
+    {
+      "id": "conn_dq_5",
+      "source_segment_id": "dhulqarnayn_east_journey",
+      "target_segment_id": "dhulqarnayn_east_restraint",
+      "edge_type": "chronological_next",
+      "is_chronological": true,
+      "strength": 1.0,
+      "explanation_en": "Upon reaching the east, he exercised restraint with the vulnerable people",
+      "justification_en": "Verses 89-91: arrival at east, then 'kadhalika' indicating his similar just treatment",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:89-91", "tabari_ar:18:91"],
+      "shared_themes": ["journey", "justice", "restraint"]
+    },
+    {
+      "id": "conn_dq_6",
+      "source_segment_id": "dhulqarnayn_east_restraint",
+      "target_segment_id": "dhulqarnayn_barrier_encounter",
+      "edge_type": "chronological_next",
+      "is_chronological": true,
+      "strength": 1.0,
+      "explanation_en": "After the eastern lands, he continued to the barrier region",
+      "justification_en": "Verse 92 'thumma atba'a sababan' indicates third journey",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:91-92"],
+      "shared_themes": ["journey", "continuation"]
+    },
+    {
+      "id": "conn_dq_7",
+      "source_segment_id": "dhulqarnayn_barrier_encounter",
+      "target_segment_id": "dhulqarnayn_barrier_request",
+      "edge_type": "chronological_next",
+      "is_chronological": true,
+      "strength": 1.0,
+      "explanation_en": "The oppressed people made their request for help",
+      "justification_en": "Verse 94: direct speech 'qalu' (they said) follows encounter description",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:93-94"],
+      "shared_themes": ["encounter", "plea"]
+    },
+    {
+      "id": "conn_dq_8",
+      "source_segment_id": "dhulqarnayn_barrier_request",
+      "target_segment_id": "dhulqarnayn_refuses_tribute",
+      "edge_type": "cause_effect",
+      "is_chronological": true,
+      "strength": 1.0,
+      "explanation_en": "Their tribute offer was tested; he refused, showing his character",
+      "justification_en": "Verse 95 'qala' (he said) is direct response to their offer in 94",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:94-95"],
+      "shared_themes": ["test", "generosity", "tawakkul"]
+    },
+    {
+      "id": "conn_dq_9",
+      "source_segment_id": "dhulqarnayn_refuses_tribute",
+      "target_segment_id": "dhulqarnayn_engineering",
+      "edge_type": "cause_effect",
+      "is_chronological": true,
+      "strength": 1.0,
+      "explanation_en": "After refusing payment, he proceeded to build with their labor",
+      "justification_en": "Verse 95 ends with 'fa-a'inuni bi-quwwatin' then 96 describes construction",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:95-96"],
+      "shared_themes": ["leadership", "construction"]
+    },
+    {
+      "id": "conn_dq_10",
+      "source_segment_id": "dhulqarnayn_engineering",
+      "target_segment_id": "dhulqarnayn_humility",
+      "edge_type": "cause_effect",
+      "is_chronological": true,
+      "strength": 1.0,
+      "explanation_en": "Upon completing the great work, he attributed it to Allah's mercy",
+      "justification_en": "Verse 98 'qala' follows completion in 97; humility after achievement",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:97-98"],
+      "shared_themes": ["completion", "humility", "gratitude"]
+    },
+    {
+      "id": "conn_dq_thematic_1",
+      "source_segment_id": "dhulqarnayn_west_justice",
+      "target_segment_id": "dhulqarnayn_east_restraint",
+      "edge_type": "parallel",
+      "is_chronological": false,
+      "strength": 0.9,
+      "explanation_en": "Both are tests of his character when given power over people",
+      "justification_en": "Tabari: 'kadhalika' (18:91) explicitly links his behavior in east to west",
+      "evidence_chunk_ids": ["tabari_ar:18:91", "ibn_kathir_ar:18:87-91"],
+      "shared_themes": ["test", "justice", "leadership"]
+    },
+    {
+      "id": "conn_dq_thematic_2",
+      "source_segment_id": "dhulqarnayn_empowerment",
+      "target_segment_id": "dhulqarnayn_humility",
+      "edge_type": "contrast",
+      "is_chronological": false,
+      "strength": 0.85,
+      "explanation_en": "Divine empowerment at start vs. humility at end - arc of righteous leadership",
+      "justification_en": "Narrative arc: given everything (84) yet attributes all to Allah (98)",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:84", "ibn_kathir_ar:18:98"],
+      "shared_themes": ["divine_blessing", "humility", "gratitude"]
+    },
+    {
+      "id": "conn_dq_thematic_3",
+      "source_segment_id": "dhulqarnayn_refuses_tribute",
+      "target_segment_id": "dhulqarnayn_humility",
+      "edge_type": "thematic_link",
+      "is_chronological": false,
+      "strength": 0.8,
+      "explanation_en": "Both moments show his tawakkul and attribution to Allah",
+      "justification_en": "Same phrase pattern: 'ma makkani fihi rabbi' (95) echoes 'hadha rahmah min rabbi' (98)",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:95", "ibn_kathir_ar:18:98"],
+      "shared_themes": ["tawakkul", "humility", "attribution_to_allah"]
+    }
+  ],
+
+  "cross_story_connections": [
+    {
+      "id": "cross_dq_musa",
+      "source_story_id": "story_dhulqarnayn",
+      "target_story_id": "story_musa_khidr",
+      "connection_type": "thematic_link",
+      "strength": 0.85,
+      "label_en": "Shared theme: Journey & Divine Knowledge",
+      "explanation_en": "Both stories in Surah Al-Kahf feature journeys seeking/using divine knowledge. Musa learns humility from Khidr; Dhul-Qarnayn demonstrates it through action.",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:60-82", "ibn_kathir_ar:18:83-98"],
+      "shared_themes": ["journey", "knowledge", "humility"],
+      "shared_figures": []
+    },
+    {
+      "id": "cross_dq_sulayman",
+      "source_story_id": "story_dhulqarnayn",
+      "target_story_id": "story_sulayman",
+      "connection_type": "parallel",
+      "strength": 0.9,
+      "label_en": "Parallel: Righteous rulers given power",
+      "explanation_en": "Both were given extraordinary means by Allah and used power justly. Sulayman controlled jinn and wind; Dhul-Qarnayn had means to everything.",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:84", "ibn_kathir_ar:27:15-44"],
+      "shared_themes": ["divine_empowerment", "just_rule", "humility"],
+      "shared_figures": []
+    },
+    {
+      "id": "cross_dq_yajuj",
+      "source_story_id": "story_dhulqarnayn",
+      "target_story_id": "story_yajuj_majuj_endtimes",
+      "connection_type": "continuation",
+      "strength": 1.0,
+      "label_en": "Continuation: Barrier until Day of Judgment",
+      "explanation_en": "The barrier's destruction signals end-times events. Dhul-Qarnayn himself prophecied: 'When my Lord's promise comes, He will level it.'",
+      "evidence_chunk_ids": ["ibn_kathir_ar:18:98", "ibn_kathir_ar:21:96-97"],
+      "shared_themes": ["eschatology", "yajuj_majuj", "divine_promise"],
+      "shared_figures": ["Yajuj", "Majuj"]
+    }
+  ],
+
+  "graph_metadata": {
+    "entry_node_id": "dhulqarnayn_question",
+    "exit_node_id": "dhulqarnayn_humility",
+    "total_segments": 11,
+    "total_chronological_edges": 10,
+    "total_thematic_edges": 3,
+    "narrative_arc": "empowerment → tests → service → humility",
+    "key_lessons": [
+      "Power is from Allah and must be used for justice",
+      "True leadership means serving without seeking payment",
+      "All achievements must be attributed to Allah's mercy",
+      "Physical constructs are temporary; divine promise is eternal"
+    ],
+    "memorization_structure": {
+      "phase_1": "Question & Empowerment (83-84)",
+      "phase_2": "West: Journey & Justice Test (85-88)",
+      "phase_3": "East: Journey & Restraint Test (89-91)",
+      "phase_4": "Barrier: Encounter & Service (92-97)",
+      "phase_5": "Conclusion: Humility & Prophecy (98)"
+    }
+  }
+}

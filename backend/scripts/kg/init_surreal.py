@@ -100,11 +100,41 @@ async def import_concepts(manifest_path: Path) -> Dict[str, Any]:
     with open(manifest_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    concepts = data.get('concepts', [])
+    # curated_concepts.json groups entries by category rather than exposing a
+    # flat "concepts" list, so reading data['concepts'] silently imported zero
+    # rows. Flatten the category buckets, tagging each entry with its category.
+    # Values must satisfy the concept_tag.category ASSERT in the KG schema:
+    # ['theme', 'moral', 'miracle', 'rhetorical', 'historical', 'theological'].
+    # persons/nations/places collapse to 'historical' — the schema has no finer
+    # bucket for them, and person/place already exist as first-class KG tables.
+    CONCEPT_BUCKETS = {
+        'persons': 'historical',
+        'nations': 'historical',
+        'places': 'historical',
+        'miracles': 'miracle',
+        'themes': 'theme',
+        'moral_patterns': 'moral',
+    }
+
+    if isinstance(data.get('concepts'), list):
+        concepts = list(data['concepts'])  # flat shape, if a manifest ever uses it
+    else:
+        concepts = [
+            {**entry, 'category': entry.get('category', category)}
+            for bucket, category in CONCEPT_BUCKETS.items()
+            for entry in (data.get(bucket) or [])
+        ]
+
+    if not concepts:
+        print(f"   No concepts found in {manifest_path.name} — "
+              f"expected a 'concepts' list or one of: {', '.join(CONCEPT_BUCKETS)}")
+        return {"imported": 0, "skipped": 0}
+
     kg = get_kg_client()
 
     imported = 0
     skipped = 0
+    first_error = ""
 
     for concept in concepts:
         key = concept.get('key', concept.get('id', ''))
@@ -122,7 +152,7 @@ async def import_concepts(manifest_path: Path) -> Dict[str, Any]:
             "category": concept.get('category', 'theme'),
             "description_ar": concept.get('description_ar', ''),
             "description_en": concept.get('description_en', ''),
-            "icon_hint": concept.get('icon', ''),
+            "icon_hint": concept.get('icon_hint', concept.get('icon', '')),
             "_hash": hashlib.md5(json.dumps(concept, sort_keys=True).encode()).hexdigest()[:12],
             "_version": "1.0.0",
             "_source": "curated",
@@ -137,9 +167,15 @@ async def import_concepts(manifest_path: Path) -> Dict[str, Any]:
             imported += 1
         except Exception as e:
             logger.debug(f"Concept {key} error: {e}")
+            if not first_error:
+                first_error = f"{key}: {e}"
             skipped += 1
 
     print(f"   Imported {imported} concepts, skipped {skipped}")
+    if skipped:
+        # Silent skips previously hid a schema ASSERT rejecting every entry in
+        # four of the six category buckets. Always show why at least one failed.
+        print(f"   WARNING: {skipped} concept(s) not imported. First error — {first_error}")
     return {"imported": imported, "skipped": skipped}
 
 

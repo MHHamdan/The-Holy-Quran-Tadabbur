@@ -1,0 +1,34 @@
+{
+  "name": "Memorization Intelligence Sources Manifest",
+  "version": "1.0.0",
+  "description": "Source policy for memorization links, confusion pairs, and repeated phrases",
+  "last_updated": "2026-06-06",
+  "review_status": "needs_review",
+  "sources": [
+    {
+      "source_id": "structural_analysis",
+      "title_en": "Structural/Textual Analysis — Internal",
+      "title_ar": "التحليل البنوي/النصي — داخلي",
+      "author": "Tadabbur-AI (auto-generated)",
+      "language": "both",
+      "source_type": "internal_mapping",
+      "url": null,
+      "license_status": "internal",
+      "reliability_notes": "Generated from textual structure analysis of the Quran. Not theological interpretation. Requires review by Quran memorization specialists.",
+      "intended_usage": ["memorization_links", "confusion_pairs", "repeated_phrases"],
+      "suitable_for_tafsir": false,
+      "suitable_for_translation": false,
+      "suitable_for_vocabulary": false,
+      "suitable_for_story_extraction": false,
+      "human_review_required": true,
+      "status": "needs_review"
+    }
+  ],
+  "content_policy": {
+    "all_links_are_needs_review": true,
+    "similarity_reasons_are_structural_only": true,
+    "no_theological_interpretation": true,
+    "difference_notes_are_factual_only": true,
+    "review_warning_required_in_ui": true
+  }
+}

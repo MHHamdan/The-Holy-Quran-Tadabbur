@@ -1,0 +1,70 @@
+{
+  "name": "Surah Atlas Sources Manifest",
+  "version": "1.0.0",
+  "description": "Source policy and audit record for the Surah Atlas feature",
+  "last_updated": "2026-06-07",
+  "review_status": "needs_review",
+  "sources": [
+    {
+      "source_id": "surah_atlas_metadata",
+      "title_en": "Surah Atlas — Internal Metadata Layer",
+      "title_ar": "أطلس السور — طبقة البيانات الداخلية",
+      "author": "Tadabbur-AI (auto-generated from surahMemoryAtlas.json)",
+      "language": "both",
+      "source_type": "internal_mapping",
+      "url": null,
+      "license_status": "internal",
+      "reliability_notes": "Auto-generated from verified Quran metadata. Names and ayah counts from quran_uthmani.json. Revelation types from curated scholarly metadata.",
+      "intended_usage": ["surah_atlas", "memorization_links"],
+      "suitable_for_tafsir": false,
+      "suitable_for_translation": false,
+      "suitable_for_vocabulary": false,
+      "suitable_for_story_extraction": false,
+      "human_review_required": true,
+      "status": "needs_review"
+    },
+    {
+      "source_id": "quran_hafs_local",
+      "title_en": "Quran Hafs Local — Uthmani Rasm",
+      "title_ar": "المصحف برواية حفص — محلي",
+      "author": "Tanzil Project (quran_uthmani.json)",
+      "language": "ar",
+      "source_type": "quran_text",
+      "url": "https://tanzil.net",
+      "license_status": "permissive (non-commercial)",
+      "reliability_notes": "Verified Uthmani rasm, cross-checked against Tanzil database. Used for ayah previews only — no modification permitted.",
+      "intended_usage": ["ayah_previews", "surah_metadata"],
+      "suitable_for_tafsir": false,
+      "suitable_for_translation": false,
+      "suitable_for_vocabulary": true,
+      "suitable_for_story_extraction": false,
+      "human_review_required": false,
+      "status": "approved"
+    }
+  ],
+    {
+      "source_id": "maududi_tafhim",
+      "title_en": "Tafhim al-Qur'an — The Meaning of the Quran",
+      "title_ar": "تفهيم القرآن — معنى القرآن",
+      "author": "Sayyid Abul Ala Maududi",
+      "language": "en",
+      "source_type": "tafsir_summary",
+      "url": "https://api.quran.com/api/v4/chapters/{id}/info?language=en",
+      "license_status": "open_access_via_quran_com",
+      "reliability_notes": "Sunni Deobandi-aligned tafsir, widely accepted. Summaries fetched from quran.com public API. English introductions to each surah only — not verse-by-verse tafsir. Requires scholarly cross-check for theological nuance.",
+      "intended_usage": ["surah_summaries_english"],
+      "suitable_for_tafsir": false,
+      "suitable_for_translation": false,
+      "suitable_for_vocabulary": false,
+      "suitable_for_story_extraction": false,
+      "human_review_required": true,
+      "status": "needs_review"
+    }
+  ],
+  "content_policy": {
+    "summaries_are_placeholders": true,
+    "summaries_require_scholarly_review": true,
+    "no_tafsir_reproduced": true,
+    "review_warning_required_in_ui": true
+  }
+}

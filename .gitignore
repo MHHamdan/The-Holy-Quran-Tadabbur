@@ -13,8 +13,19 @@ node_modules/
 dist/
 build/
 
-# Data (usually large / private)
-data/
+# Data — bulk corpora stay out of git and ship in the data bundle instead
+# (scripts/data_bundle/). The manifests and curated concepts are small policy
+# inputs, not bulk data: the integrity validator mandated by CLAUDE.md reads
+# data/manifests/, so excluding them made that gate unrunnable on a fresh
+# clone or in CI. data/* (not data/) so the negations below can re-include.
+data/*
+!data/manifests/
+!data/concepts/
+# The Quran text itself is tracked so the integrity validator can run on a
+# fresh clone; the 123 MB of tafsir corpora beside it are not.
+!data/raw/
+data/raw/*
+!data/raw/quran_uthmani.json
 
 # But INCLUDE streamlit_data for cloud deployment
 !streamlit_data/
