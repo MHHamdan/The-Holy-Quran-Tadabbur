@@ -1,0 +1,1794 @@
+{
+  "name": "Quranic Duʿā catalogue",
+  "description": "Generated from frontend/src/data/quranicDuas.ts by scripts/export-duas-to-backend.ts. Do not edit by hand.",
+  "generatedAt": "2026-09-24",
+  "count": 66,
+  "duas": [
+    {
+      "id": "dua_fatiha_guidance",
+      "surah": 1,
+      "ayah": 6,
+      "ayahEnd": 7,
+      "category": "guidance",
+      "prophet": null,
+      "titleEn": "Prayer for Guidance — Al-Fatihah",
+      "titleAr": "الاستهداء في الفاتحة",
+      "surahNameEn": "Al-Fatihah",
+      "surahNameAr": "الفاتحة",
+      "meaningEn": "Guide us to the straight path — the path of those upon whom You have bestowed favour, not of those who have evoked [Your] anger or of those who are astray.",
+      "meaningAr": "اهدنا إلى الطريق القويم، طريق الأنبياء والصديقين والشهداء والصالحين، وجنِّبنا طريق من استحق الغضب أو ضلَّ عن الهدى.",
+      "occasions": [
+        "morning",
+        "evening",
+        "after_prayer",
+        "seeking_guidance"
+      ],
+      "tags": [
+        "fatihah",
+        "sirat",
+        "guidance",
+        "salah",
+        "daily"
+      ]
+    },
+    {
+      "id": "dua_baqarah_knowledge_humility",
+      "surah": 2,
+      "ayah": 32,
+      "ayahEnd": null,
+      "category": "guidance",
+      "prophet": null,
+      "titleEn": "Angels' Humility Before Allah's Knowledge",
+      "titleAr": "تسبيح الملائكة واعترافهم بمحدودية علمهم",
+      "surahNameEn": "Al-Baqarah",
+      "surahNameAr": "البقرة",
+      "meaningEn": "Exalted are You; we have no knowledge except what You have taught us. Indeed, it is You who is the Knowing, the Wise.",
+      "meaningAr": "قالها الملائكة حين عجزوا عن الإجابة — اعترافٌ بأن كل علم عند الله وحده. نموذجٌ في التواضع العلمي والاستسلام لله في باب المعرفة.",
+      "occasions": [
+        "studying",
+        "seeking_guidance",
+        "after_prayer"
+      ],
+      "tags": [
+        "knowledge",
+        "humility",
+        "angels",
+        "studying",
+        "ilm",
+        "short"
+      ]
+    },
+    {
+      "id": "dua_ibrahim_makkah",
+      "surah": 2,
+      "ayah": 126,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Ibrahim",
+      "titleEn": "Ibrahim's Prayer for Makkah",
+      "titleAr": "دعاء إبراهيم لمكة",
+      "surahNameEn": "Al-Baqarah",
+      "surahNameAr": "البقرة",
+      "meaningEn": "My Lord, make this a secure city and provide its people with fruits — those among them who believe in Allah and the Last Day.",
+      "meaningAr": "سأل إبراهيم ﵇ ربه أن يجعل مكة بلدًا آمنًا مطمئنًا، وأن يرزق أهله من الثمرات، خاصةً المؤمنين بالله واليوم الآخر.",
+      "occasions": [
+        "hardship",
+        "seeking_guidance"
+      ],
+      "tags": [
+        "ibrahim",
+        "makkah",
+        "security",
+        "provision",
+        "city"
+      ]
+    },
+    {
+      "id": "dua_ibrahim_kaabah",
+      "surah": 2,
+      "ayah": 127,
+      "ayahEnd": 129,
+      "category": "prophets",
+      "prophet": "Ibrahim",
+      "titleEn": "Ibrahim & Isma'il Building the Ka'bah",
+      "titleAr": "دعاء إبراهيم وإسماعيل عند بناء الكعبة",
+      "surahNameEn": "Al-Baqarah",
+      "surahNameAr": "البقرة",
+      "meaningEn": "Our Lord, accept [this] from us. Indeed You are the Hearing, the Knowing. Our Lord, and make us Muslims [in submission] to You and from our descendants a Muslim nation. Show us our rites and accept our repentance. Indeed, You are the Accepting of repentance, the Merciful. Our Lord, send among them a messenger from themselves who will recite to them Your verses and teach them the Book and wisdom and purify them.",
+      "meaningAr": "دعاء مشترك بين إبراهيم وإسماعيل ﵉ لقبول بناء الكعبة، وأن يجعلهما مسلمَين مخلصَين، وأن يُبعث في ذريتهما نبيٌّ يعلِّمهم الكتاب والحكمة. استُجيب هذا الدعاء ببعثة النبي محمد ﷺ.",
+      "occasions": [
+        "after_prayer",
+        "seeking_guidance",
+        "gratitude_moment"
+      ],
+      "tags": [
+        "ibrahim",
+        "ismail",
+        "kaabah",
+        "submission",
+        "accepted",
+        "prophet",
+        "ummah"
+      ]
+    },
+    {
+      "id": "dua_tawbah_acceptance",
+      "surah": 2,
+      "ayah": 128,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Ibrahim",
+      "titleEn": "Prayer for Submission & Accepted Worship",
+      "titleAr": "دعاء الإسلام وقبول العبادة",
+      "surahNameEn": "Al-Baqarah",
+      "surahNameAr": "البقرة",
+      "meaningEn": "Our Lord, and make us Muslims [in submission] to You and from our descendants a Muslim nation [in submission] to You. And show us our rites and accept our repentance. Indeed, You are the Accepting of repentance, the Merciful.",
+      "meaningAr": "طلب إبراهيم وإسماعيل ﵉ من الله أن يُثبِّتهما على الإسلام الخالص، وأن يرزقهما ذريةً مسلمةً مخلصة، وأن يُعلِّمهما مناسك العبادة، وأن يقبل توبتهما.",
+      "occasions": [
+        "after_prayer",
+        "seeking_forgiveness"
+      ],
+      "tags": [
+        "ibrahim",
+        "kaabah",
+        "submission",
+        "repentance",
+        "accepted",
+        "ummah"
+      ]
+    },
+    {
+      "id": "dua_baqarah_good_world_akhira",
+      "surah": 2,
+      "ayah": 201,
+      "ayahEnd": null,
+      "category": "general",
+      "prophet": null,
+      "titleEn": "The Comprehensive Worldly & Hereafter Prayer",
+      "titleAr": "دعاء الدنيا والآخرة",
+      "surahNameEn": "Al-Baqarah",
+      "surahNameAr": "البقرة",
+      "meaningEn": "Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire.",
+      "meaningAr": "دعاء يجمع خيرَي الدنيا والآخرة والنجاةَ من النار في كلمات قليلة، قال عنه العلماء: إنه يتضمن كل ما يُطلب ويُرجى.",
+      "occasions": [
+        "morning",
+        "evening",
+        "after_prayer"
+      ],
+      "tags": [
+        "dunya",
+        "akhira",
+        "fire",
+        "comprehensive",
+        "hajj",
+        "prophet"
+      ]
+    },
+    {
+      "id": "dua_talut_victory",
+      "surah": 2,
+      "ayah": 250,
+      "ayahEnd": null,
+      "category": "protection",
+      "prophet": null,
+      "titleEn": "Ṭālūt's Prayer for Patience in Battle",
+      "titleAr": "دعاء طالوت وجنوده عند لقاء العدو",
+      "surahNameEn": "Al-Baqarah",
+      "surahNameAr": "البقرة",
+      "meaningEn": "Our Lord, pour upon us patience and plant firmly our feet and give us victory over the disbelieving people.",
+      "meaningAr": "تضرَّع جيش طالوت قبل مواجهة جالوت، يطلبون الصبر الذي يُملأ به الصدر، وثباتَ الأقدام عند اللقاء، والنصرَ على القوم الكافرين رغم قلَّة عددهم.",
+      "occasions": [
+        "hardship",
+        "anxiety"
+      ],
+      "tags": [
+        "talut",
+        "sabr",
+        "patience",
+        "steadfast",
+        "victory",
+        "battle"
+      ]
+    },
+    {
+      "id": "dua_baqarah_forgiveness",
+      "surah": 2,
+      "ayah": 285,
+      "ayahEnd": 286,
+      "category": "forgiveness",
+      "prophet": null,
+      "titleEn": "Al-Baqarah's Closing Supplication",
+      "titleAr": "خاتمة البقرة",
+      "surahNameEn": "Al-Baqarah",
+      "surahNameAr": "البقرة",
+      "meaningEn": "Our Lord, do not impose blame upon us if we have forgotten or erred. Our Lord, and lay not upon us a burden like that which You laid upon those before us. Our Lord, and burden us not with that which we have no ability to bear. And pardon us; and forgive us; and have mercy upon us. You are our protector, so give us victory over the disbelieving people.",
+      "meaningAr": "آيتان تجمعان الإيمان والتسليم وطلب العفو؛ يسأل المؤمنون فيهما ألا يُؤاخَذوا على النسيان والخطأ، وألا يُحمَّلوا ما لا طاقة لهم به، ويختتمون بطلب العفو والمغفرة والرحمة والنصر.",
+      "occasions": [
+        "evening",
+        "before_sleep",
+        "seeking_forgiveness"
+      ],
+      "tags": [
+        "baqarah",
+        "khatimah",
+        "forgiveness",
+        "mercy",
+        "comprehensive",
+        "evening"
+      ]
+    },
+    {
+      "id": "dua_imran_heart_stability",
+      "surah": 3,
+      "ayah": 8,
+      "ayahEnd": 9,
+      "category": "guidance",
+      "prophet": null,
+      "titleEn": "Prayer Against Heart Deviation",
+      "titleAr": "دعاء ثبات القلب على الهداية",
+      "surahNameEn": "Āl ʿImrān",
+      "surahNameAr": "آل عمران",
+      "meaningEn": "Our Lord, let not our hearts deviate after You have guided us and grant us from Yourself mercy. Indeed, You are the Bestower. Our Lord, surely You will gather the people for a Day about which there is no doubt.",
+      "meaningAr": "دعاء الراسخين في العلم ألا تنزلق قلوبهم عن الهداية بعد أن رُزقوها، وأن يمنحهم الله من عنده رحمةً تُثبِّتهم، مع اليقين بأن الله يجمع الناس ليوم الحساب.",
+      "occasions": [
+        "morning",
+        "after_prayer",
+        "doubt"
+      ],
+      "tags": [
+        "heart",
+        "guidance",
+        "deviation",
+        "stability",
+        "iman",
+        "mercy"
+      ]
+    },
+    {
+      "id": "dua_imran_simple_belief",
+      "surah": 3,
+      "ayah": 16,
+      "ayahEnd": null,
+      "category": "forgiveness",
+      "prophet": null,
+      "titleEn": "Believers' Simple Prayer — Faith, Forgiveness, Fire",
+      "titleAr": "دعاء المؤمنين المقتصد — الإيمان والمغفرة والنجاة",
+      "surahNameEn": "Āl ʿImrān",
+      "surahNameAr": "آل عمران",
+      "meaningEn": "Our Lord, indeed we have believed, so forgive us our sins and protect us from the punishment of the Fire.",
+      "meaningAr": "من أوجز الأدعية القرآنية وأكثرها جمعًا: إعلانُ الإيمان، يعقبه طلب المغفرة، ثم الاستعاذة من النار. يصلح شعارًا للمؤمن في كل مجلس.",
+      "occasions": [
+        "morning",
+        "evening",
+        "after_prayer",
+        "seeking_forgiveness"
+      ],
+      "tags": [
+        "faith",
+        "forgiveness",
+        "fire",
+        "short",
+        "comprehensive",
+        "iman"
+      ]
+    },
+    {
+      "id": "dua_imran_sovereignty",
+      "surah": 3,
+      "ayah": 26,
+      "ayahEnd": 27,
+      "category": "general",
+      "prophet": null,
+      "titleEn": "Prayer of Allah's Absolute Sovereignty",
+      "titleAr": "دعاء ملك الله المطلق",
+      "surahNameEn": "Āl ʿImrān",
+      "surahNameAr": "آل عمران",
+      "meaningEn": "Say, 'O Allah, Owner of Sovereignty, You give sovereignty to whom You will and You take sovereignty away from whom You will. You honour whom You will and You humble whom You will. In Your hand is all good. Indeed, You are over all things competent.'",
+      "meaningAr": "يُعلِّمنا الله أن ندعوه بوصف سلطانه المطلق — فالملك كله له: يُعطيه من يشاء وينزعه متى يشاء، والعزة والذلة بيده. فيه إقرارٌ بضعف الإنسان وعظمة الله.",
+      "occasions": [
+        "morning",
+        "after_prayer",
+        "hardship",
+        "gratitude_moment"
+      ],
+      "tags": [
+        "sovereignty",
+        "power",
+        "honour",
+        "comprehensive",
+        "morning",
+        "daily"
+      ]
+    },
+    {
+      "id": "dua_hanna_maryam",
+      "surah": 3,
+      "ayah": 35,
+      "ayahEnd": 36,
+      "category": "family",
+      "prophet": null,
+      "titleEn": "Hannah's Vow — Dedicating the Unborn Child to Allah",
+      "titleAr": "دعاء حنَّة بنذر الطفل لله وتعويذ مريم من الشيطان",
+      "surahNameEn": "Āl ʿImrān",
+      "surahNameAr": "آل عمران",
+      "meaningEn": "My Lord, I have pledged to You what is in my womb, consecrated for Your service, so accept this from me. Indeed, You are the Hearing, the Knowing. My Lord, I have delivered a female… I have named her Mary, and I seek refuge for her in You and her descendants from Satan, the expelled.",
+      "meaningAr": "نذرت حنَّة ما في بطنها محرَّرًا لله، ثم لمَّا وُلدت أنثى سمَّتها مريم واستعاذت لها ولذريتها — فاستُجيب دعاؤها وكانت مريم أفضل نساء العالمين، وكان ابنها عيسى ﵇ من أولي العزم.",
+      "occasions": [
+        "for_children",
+        "for_parents",
+        "hardship"
+      ],
+      "tags": [
+        "hanna",
+        "maryam",
+        "vow",
+        "dedication",
+        "protection",
+        "children",
+        "family",
+        "mother"
+      ]
+    },
+    {
+      "id": "dua_zakariyya_child",
+      "surah": 3,
+      "ayah": 38,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Zakariyya",
+      "titleEn": "Zakariyyā's Prayer for an Heir",
+      "titleAr": "دعاء زكريا طلباً للولد",
+      "surahNameEn": "Āl ʿImrān",
+      "surahNameAr": "آل عمران",
+      "meaningEn": "My Lord, grant me from Yourself a good offspring. Indeed, You are the Hearer of supplication.",
+      "meaningAr": "دعا زكريا ﵇ في محرابه لمَّا رأى رزق مريم يأتيها من عند الله؛ فانبعثت في قلبه شوقٌ إلى الذرية الصالحة، فطلب من الله الهبةَ لا بالأسباب بل من عنده مباشرةً، وتوكَّل على سميعيَّته.",
+      "occasions": [
+        "for_children",
+        "hardship"
+      ],
+      "tags": [
+        "zakariyya",
+        "yahya",
+        "children",
+        "offspring",
+        "answered",
+        "family"
+      ]
+    },
+    {
+      "id": "dua_hawaariyoon",
+      "surah": 3,
+      "ayah": 53,
+      "ayahEnd": null,
+      "category": "believers",
+      "prophet": null,
+      "titleEn": "The Disciples of Jesus — Register Us Among the Witnesses",
+      "titleAr": "دعاء الحواريين — اكتبنا مع الشاهدين",
+      "surahNameEn": "Āl ʿImrān",
+      "surahNameAr": "آل عمران",
+      "meaningEn": "Our Lord, we have believed in what You revealed and have followed the messenger, so register us among the witnesses to truth.",
+      "meaningAr": "يجمع هذا الدعاء القصير ثلاثة أصول: الإيمان بالوحي، واتباع الرسول، وطلب الانتساب إلى الشاهدين على الحق. قاله حواريو عيسى ﵇ حين آمنوا.",
+      "occasions": [
+        "after_prayer",
+        "seeking_guidance",
+        "doubt"
+      ],
+      "tags": [
+        "hawaariyoon",
+        "witnesses",
+        "faith",
+        "followers",
+        "testimony",
+        "isa"
+      ]
+    },
+    {
+      "id": "dua_imran_battle_prayer",
+      "surah": 3,
+      "ayah": 147,
+      "ayahEnd": null,
+      "category": "believers",
+      "prophet": null,
+      "titleEn": "Prophets' Companions' Battle Prayer",
+      "titleAr": "دعاء الربانيين عند الجهاد",
+      "surahNameEn": "Āl ʿImrān",
+      "surahNameAr": "آل عمران",
+      "meaningEn": "Our Lord, forgive us our sins and the excess [committed] in our affairs and plant firmly our feet and give us victory over the disbelieving people.",
+      "meaningAr": "دعاء الربانيين الذين جاهدوا مع الأنبياء: يبدؤون بطلب المغفرة على ذنوبهم وإسرافهم قبل أن يطلبوا الثبات والنصر، تعليمًا بأن صلاح القلب مقدَّم على طلب العون.",
+      "occasions": [
+        "hardship",
+        "seeking_forgiveness"
+      ],
+      "tags": [
+        "battle",
+        "steadfastness",
+        "victory",
+        "forgiveness",
+        "companions"
+      ]
+    },
+    {
+      "id": "dua_hasbunallah",
+      "surah": 3,
+      "ayah": 173,
+      "ayahEnd": null,
+      "category": "protection",
+      "prophet": null,
+      "titleEn": "Ḥasbunallāh — Allah is Sufficient for Us",
+      "titleAr": "حسبنا الله ونعم الوكيل",
+      "surahNameEn": "Āl ʿImrān",
+      "surahNameAr": "آل عمران",
+      "meaningEn": "Allah is sufficient for us, and He is the best Disposer of affairs.",
+      "meaningAr": "قالها المؤمنون حين جاءهم من يُخوِّفهم من جيش عرمرم مقبل، فلم يزدادوا إلا إيمانًا وقالوا هذه الكلمات — فانقلبوا بنعمة من الله وفضل لم يمسَّهم سوء.",
+      "occasions": [
+        "hardship",
+        "anxiety",
+        "morning",
+        "after_prayer"
+      ],
+      "tags": [
+        "hasbunallah",
+        "tawakkul",
+        "trust",
+        "short",
+        "powerful",
+        "companions",
+        "ibrahim"
+      ]
+    },
+    {
+      "id": "dua_uli_albab",
+      "surah": 3,
+      "ayah": 191,
+      "ayahEnd": 194,
+      "category": "believers",
+      "prophet": null,
+      "titleEn": "The People of Understanding — Full Prayer",
+      "titleAr": "دعاء أولي الألباب الكامل",
+      "surahNameEn": "Āl ʿImrān",
+      "surahNameAr": "آل عمران",
+      "meaningEn": "Our Lord, You did not create this without purpose — exalted are You. So protect us from the punishment of the Fire. Our Lord, whomever You admit to the Fire, You have certainly disgraced. Our Lord, indeed we have heard a caller calling to faith. Our Lord, forgive us our sins and remove from us our misdeeds and cause us to die with the righteous. Our Lord, grant us what You promised us through Your messengers and do not disgrace us on the Day of Resurrection.",
+      "meaningAr": "يبدأ الدعاء بالتفكُّر في خَلق الكون وتنزيه الله، ثم ينتقل إلى طلب النجاة من النار والمغفرة ومحو السيئات والموت مع الأبرار وتحقيق ما وعد الله على ألسنة رسله — وهو من أجمع الأدعية القرآنية.",
+      "occasions": [
+        "after_prayer",
+        "seeking_forgiveness",
+        "hardship"
+      ],
+      "tags": [
+        "uli al-albab",
+        "forgiveness",
+        "death",
+        "righteous",
+        "comprehensive",
+        "fire"
+      ]
+    },
+    {
+      "id": "dua_gospel_believers",
+      "surah": 5,
+      "ayah": 83,
+      "ayahEnd": 84,
+      "category": "believers",
+      "prophet": null,
+      "titleEn": "Gospel Believers' Prayer — Register Us Among the Witnesses",
+      "titleAr": "دعاء مؤمني أهل الإنجيل — اكتبنا مع الشاهدين",
+      "surahNameEn": "Al-Māʾidah",
+      "surahNameAr": "المائدة",
+      "meaningEn": "Our Lord, we have believed, so register us among the witnesses.",
+      "meaningAr": "قاله مؤمنو أهل الإنجيل لمَّا سمعوا القرآن فذرفت أعينهم من الحق — طلبوا أن يُكتبوا في زمرة الشاهدين على الحق.",
+      "occasions": [
+        "after_prayer",
+        "seeking_guidance",
+        "doubt"
+      ],
+      "tags": [
+        "gospel",
+        "believers",
+        "witnesses",
+        "faith",
+        "sincerity",
+        "short"
+      ]
+    },
+    {
+      "id": "dua_eesa_table",
+      "surah": 5,
+      "ayah": 114,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Isa",
+      "titleEn": "ʿĪsā's Prayer for the Heavenly Table",
+      "titleAr": "دعاء عيسى بن مريم للمائدة من السماء",
+      "surahNameEn": "Al-Māʾidah",
+      "surahNameAr": "المائدة",
+      "meaningEn": "O Allah, our Lord, send down to us a table spread with food from the heaven to be for us a festival for the first of us and the last of us and a sign from You. And provide for us, and You are the best of providers.",
+      "meaningAr": "طلب عيسى ﵇ من الله مائدةً من السماء تكون آيةً ويومًا يتجدَّد ذكره ورزقًا من عنده — يجمع الدعاء بين طلب الآية والرزق والعيد المشترك للأمة.",
+      "occasions": [
+        "hardship",
+        "gratitude_moment",
+        "seeking_guidance"
+      ],
+      "tags": [
+        "isa",
+        "table",
+        "provision",
+        "sustenance",
+        "sign",
+        "festival",
+        "maidah"
+      ]
+    },
+    {
+      "id": "dua_life_dedication",
+      "surah": 6,
+      "ayah": 162,
+      "ayahEnd": 163,
+      "category": "gratitude",
+      "prophet": null,
+      "titleEn": "Complete Life Dedication to Allah",
+      "titleAr": "إخلاص الحياة كلها لله",
+      "surahNameEn": "Al-Anʿām",
+      "surahNameAr": "الأنعام",
+      "meaningEn": "Say, 'Indeed, my prayer, my rites of sacrifice, my living and my dying are for Allah, Lord of the worlds. No partner has He. And this I have been commanded, and I am the first of the Muslims.'",
+      "meaningAr": "يُعلِّم الله نبيَّه ﷺ أن يُخلص وجوده كله له: الصلاةُ والعبادةُ والحياةُ والموتُ — كل شيء لله. إعلانٌ لتوحيد الإرادة وإخلاص الوجود من أوله إلى آخره.",
+      "occasions": [
+        "morning",
+        "after_prayer",
+        "gratitude_moment"
+      ],
+      "tags": [
+        "tawhid",
+        "dedication",
+        "prayer",
+        "life",
+        "death",
+        "sincerity",
+        "salah"
+      ]
+    },
+    {
+      "id": "dua_adam_forgiveness",
+      "surah": 7,
+      "ayah": 23,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Adam",
+      "titleEn": "Adam & Eve's Repentance",
+      "titleAr": "دعاء آدم وحواء",
+      "surahNameEn": "Al-Aʿrāf",
+      "surahNameAr": "الأعراف",
+      "meaningEn": "Our Lord, we have wronged ourselves, and if You do not forgive us and have mercy upon us, we will surely be among the losers.",
+      "meaningAr": "أوَّل دعاء توبة في تاريخ البشر: اعترف آدم وحواء بظلمهما لأنفسهما، ولم يُلقيا باللوم على الشيطان، بل فوَّضا أمرهما لله وسألاه المغفرة والرحمة دون مراء.",
+      "occasions": [
+        "seeking_forgiveness",
+        "hardship"
+      ],
+      "tags": [
+        "tawbah",
+        "forgiveness",
+        "adam",
+        "repentance"
+      ]
+    },
+    {
+      "id": "dua_shuaib_judgement",
+      "surah": 7,
+      "ayah": 89,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Shu'ayb",
+      "titleEn": "Shuʿayb's Prayer for Allah's Judgement",
+      "titleAr": "دعاء شعيب طلباً لحكم الله",
+      "surahNameEn": "Al-Aʿrāf",
+      "surahNameAr": "الأعراف",
+      "meaningEn": "In Allah we have relied. Our Lord, decide between us and our people in truth, and You are the best of those who give decision.",
+      "meaningAr": "حين هدَّد قومُ شعيب ﵇ بطرده أسلَم أمره لله كاملًا، وطلب الفصلَ بينه وبين قومه بالحق لا بالقوة — وهو نموذج في طلب العدل الإلهي عند الظلم البشري.",
+      "occasions": [
+        "hardship",
+        "anxiety"
+      ],
+      "tags": [
+        "shuayb",
+        "tawakkul",
+        "justice",
+        "judgement",
+        "truth"
+      ]
+    },
+    {
+      "id": "dua_sorcerers_faith",
+      "surah": 7,
+      "ayah": 126,
+      "ayahEnd": null,
+      "category": "believers",
+      "prophet": null,
+      "titleEn": "The Sorcerers' Prayer — Patience and Muslim Death",
+      "titleAr": "دعاء سحرة فرعون بعد إيمانهم — الصبر والوفاة على الإسلام",
+      "surahNameEn": "Al-Aʿrāf",
+      "surahNameAr": "الأعراف",
+      "meaningEn": "Our Lord, pour upon us patience and let us die as Muslims in submission to You.",
+      "meaningAr": "لحظةٌ تاريخية: سحرةٌ جاؤوا مأجورين فآمنوا في ثوانٍ وفرعون يُهددهم بالقتل — فطلبوا شيئين فقط: الصبر على العذاب، والوفاة على الإسلام. لم يطلبوا النجاة بل الثبات.",
+      "occasions": [
+        "hardship",
+        "before_sleep",
+        "seeking_forgiveness",
+        "anxiety"
+      ],
+      "tags": [
+        "sorcerers",
+        "patience",
+        "death",
+        "faith",
+        "short",
+        "powerful",
+        "pharaoh"
+      ]
+    },
+    {
+      "id": "dua_musa_forgiveness",
+      "surah": 7,
+      "ayah": 151,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Musa",
+      "titleEn": "Mūsā's Prayer After His Slip",
+      "titleAr": "دعاء موسى بعد الزلة",
+      "surahNameEn": "Al-Aʿrāf",
+      "surahNameAr": "الأعراف",
+      "meaningEn": "My Lord, forgive me and my brother and admit us into Your mercy, for You are the most merciful of the merciful.",
+      "meaningAr": "بعد حادثة الألواح استغاث موسى ﵇ بربه طالبًا المغفرة لنفسه ولأخيه هارون، ولم يقتصر على طلب العفو بل طلب الدخولَ في رحمة الله الواسعة.",
+      "occasions": [
+        "seeking_forgiveness",
+        "anger"
+      ],
+      "tags": [
+        "musa",
+        "harun",
+        "forgiveness",
+        "mercy",
+        "siblings"
+      ]
+    },
+    {
+      "id": "dua_musa_sinai",
+      "surah": 7,
+      "ayah": 155,
+      "ayahEnd": 156,
+      "category": "prophets",
+      "prophet": "Musa",
+      "titleEn": "Mūsā's Prayer on Mount Sinai — Forgiveness After the Golden Calf",
+      "titleAr": "دعاء موسى في الطور — المغفرة بعد فتنة العجل",
+      "surahNameEn": "Al-Aʿrāf",
+      "surahNameAr": "الأعراف",
+      "meaningEn": "My Lord, if You had willed, You could have destroyed them before and me as well. Will You destroy us for what the foolish among us have done?… You are our Protector, so forgive us and have mercy upon us; and You are the best of forgivers. And decree for us in this world that which is good and also in the Hereafter. Indeed we have turned back to You.",
+      "meaningAr": "وقف موسى ﵇ متشفِّعًا لقومه بعد فتنة العجل: احتجَّ بأن الفتنة من علم الله، وأقرَّ بأنه الولي، وطلب الغفران والرحمة والحسنة في الدارين.",
+      "occasions": [
+        "seeking_forgiveness",
+        "hardship",
+        "after_prayer"
+      ],
+      "tags": [
+        "musa",
+        "sinai",
+        "golden calf",
+        "intercession",
+        "forgiveness",
+        "both worlds"
+      ]
+    },
+    {
+      "id": "dua_hasbiyallah",
+      "surah": 9,
+      "ayah": 129,
+      "ayahEnd": null,
+      "category": "protection",
+      "prophet": null,
+      "titleEn": "Ḥasbiyallāh — Allah Alone is My Sufficiency",
+      "titleAr": "حسبي الله — توكل النبي ﷺ المطلق",
+      "surahNameEn": "At-Tawbah",
+      "surahNameAr": "التوبة",
+      "meaningEn": "Sufficient for me is Allah; there is no deity except Him. On Him I have relied, and He is the Lord of the Great Throne.",
+      "meaningAr": "أُمر النبي ﷺ بقولها حين تولَّى المشركون — فيها توحيدٌ وتوكلٌ مطلق. قال النبي ﷺ: مَن قالها سبع مرات صباحًا وسبعًا مساءً كفاه الله ما أهمَّه.",
+      "occasions": [
+        "morning",
+        "evening",
+        "hardship",
+        "anxiety",
+        "after_prayer"
+      ],
+      "tags": [
+        "hasbiyallah",
+        "tawakkul",
+        "morning",
+        "evening",
+        "seven",
+        "short",
+        "powerful"
+      ]
+    },
+    {
+      "id": "dua_musa_followers_protection",
+      "surah": 10,
+      "ayah": 85,
+      "ayahEnd": 86,
+      "category": "believers",
+      "prophet": null,
+      "titleEn": "Mūsā's Followers: Trust & Protection",
+      "titleAr": "دعاء أتباع موسى في مواجهة الظالمين",
+      "surahNameEn": "Yūnus",
+      "surahNameAr": "يونس",
+      "meaningEn": "In Allah we rely. Our Lord, make us not [objects of] trial for the wrongdoing people. And save us by Your mercy from the disbelieving people.",
+      "meaningAr": "آمن فتيةٌ من قوم موسى مع خوف شديد من فرعون، فتوكَّلوا على الله، وطلبوا ألا يكونوا فتنةً يُعذَّبون بها أمام الظالمين ليَفتنوا بهم، وأن ينجيهم الله برحمته.",
+      "occasions": [
+        "hardship",
+        "anxiety"
+      ],
+      "tags": [
+        "musa",
+        "tawakkul",
+        "protection",
+        "persecution",
+        "deliverance"
+      ]
+    },
+    {
+      "id": "dua_nuh_tawbah",
+      "surah": 11,
+      "ayah": 47,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Nuh",
+      "titleEn": "Nūḥ's Repentance & Seeking Refuge",
+      "titleAr": "دعاء نوح بعد الزلة",
+      "surahNameEn": "Hūd",
+      "surahNameAr": "هود",
+      "meaningEn": "My Lord, I seek refuge with You from asking You for that which I have no knowledge. And unless You forgive me and have mercy upon me, I will be among the losers.",
+      "meaningAr": "لمَّا ردَّ الله دعاء نوح ﵇ لابنه الكافر، أسرع نوح إلى التوبة واستعاذ بالله أن يسأله ما لا علم له به، مُسلِّمًا لقضاء الله ومعترفًا بقصور فهمه.",
+      "occasions": [
+        "seeking_forgiveness",
+        "doubt"
+      ],
+      "tags": [
+        "nuh",
+        "tawbah",
+        "refuge",
+        "knowledge",
+        "decree",
+        "submission"
+      ]
+    },
+    {
+      "id": "dua_shuayb_tawakkul",
+      "surah": 11,
+      "ayah": 88,
+      "ayahEnd": null,
+      "category": "believers",
+      "prophet": null,
+      "titleEn": "Shuʿayb's Complete Reliance — My Success Is Only Through Allah",
+      "titleAr": "إعلان شعيب التوكل الكامل — وما توفيقي إلا بالله",
+      "surahNameEn": "Hūd",
+      "surahNameAr": "هود",
+      "meaningEn": "And my success is not but through Allah. Upon Him I have relied, and to Him I return.",
+      "meaningAr": "أعلن شعيب ﵇ أمام قومه الكذابين أن توفيقه كله من الله لا من حوله وقوته — ثم توكَّل على الله وأناب إليه. جملةٌ قصيرة تحمل فلسفة القيادة الربانية.",
+      "occasions": [
+        "morning",
+        "hardship",
+        "studying",
+        "after_prayer"
+      ],
+      "tags": [
+        "shuayb",
+        "tawakkul",
+        "success",
+        "reliance",
+        "short",
+        "leadership"
+      ]
+    },
+    {
+      "id": "dua_yusuf_prison",
+      "surah": 12,
+      "ayah": 33,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Yusuf",
+      "titleEn": "Yūsuf's Prayer in Prison — Preferring Hardship Over Sin",
+      "titleAr": "دعاء يوسف في السجن — السجن أحبُّ إليه من المعصية",
+      "surahNameEn": "Yūsuf",
+      "surahNameAr": "يوسف",
+      "meaningEn": "My Lord, prison is more to my liking than what they invite me to. And if You do not avert from me their plan, I might incline toward them and thus be of the ignorant.",
+      "meaningAr": "من أعظم أدعية العفاف في القرآن: يُفضِّل يوسف ﵇ السجنَ على الحرام، ثم يُقرُّ بضعفه الإنساني ويطلب صرف الكيد عنه. درسٌ في التوازن بين الإيمان والاعتراف بضعف النفس.",
+      "occasions": [
+        "hardship",
+        "seeking_forgiveness",
+        "doubt"
+      ],
+      "tags": [
+        "yusuf",
+        "prison",
+        "chastity",
+        "temptation",
+        "weakness",
+        "protection",
+        "moral"
+      ]
+    },
+    {
+      "id": "dua_yusuf_final",
+      "surah": 12,
+      "ayah": 101,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Yusuf",
+      "titleEn": "Yūsuf's Final Prayer — To Die as a Muslim Among the Righteous",
+      "titleAr": "دعاء يوسف الجامع — التوفِّي مسلماً والإلحاق بالصالحين",
+      "surahNameEn": "Yūsuf",
+      "surahNameAr": "يوسف",
+      "meaningEn": "My Lord, You have given me of sovereignty and taught me of the interpretation of dreams. Creator of the heavens and earth, You are my protector in this world and in the Hereafter. Cause me to die a Muslim and join me with the righteous.",
+      "meaningAr": "بعد سنوات البلاء ثم الملك والجمع بأهله — يختم يوسف ﵇ مسيرته بدعاء يُقرُّ فيه بنعم الله، ثم يطلب شيئًا واحدًا: الوفاة على الإسلام والالتحاق بالصالحين.",
+      "occasions": [
+        "before_sleep",
+        "after_prayer",
+        "gratitude_moment"
+      ],
+      "tags": [
+        "yusuf",
+        "death",
+        "muslim",
+        "righteous",
+        "gratitude",
+        "legacy",
+        "closure"
+      ]
+    },
+    {
+      "id": "dua_ibrahim_idol_protection",
+      "surah": 14,
+      "ayah": 35,
+      "ayahEnd": 36,
+      "category": "prophets",
+      "prophet": "Ibrahim",
+      "titleEn": "Ibrahim's Prayer — Protect Me and My Children from Idols",
+      "titleAr": "دعاء إبراهيم — اجنبني وبنيَّ أن نعبد الأصنام",
+      "surahNameEn": "Ibrāhīm",
+      "surahNameAr": "إبراهيم",
+      "meaningEn": "My Lord, make this city secure and keep me and my sons away from worshipping idols. My Lord, indeed they have led astray many among the people. So whoever follows me is of me; and whoever disobeys me — indeed, You are Forgiving and Merciful.",
+      "meaningAr": "قاله إبراهيم ﵇ في أرض مكة يطلب: الأمنَ للبلد، والنجاةَ له ولذريته من الشرك — مُقرًّا بخطورة الأصنام وكثرة من أضلَّت.",
+      "occasions": [
+        "for_children",
+        "morning",
+        "seeking_guidance",
+        "doubt"
+      ],
+      "tags": [
+        "ibrahim",
+        "idols",
+        "shirk",
+        "protection",
+        "makkah",
+        "family",
+        "children"
+      ]
+    },
+    {
+      "id": "dua_ibrahim_dhuriyya",
+      "surah": 14,
+      "ayah": 40,
+      "ayahEnd": 41,
+      "category": "prophets",
+      "prophet": "Ibrahim",
+      "titleEn": "Ibrahim's Prayer for His Progeny",
+      "titleAr": "دعاء إبراهيم لذريته والمؤمنين",
+      "surahNameEn": "Ibrāhīm",
+      "surahNameAr": "إبراهيم",
+      "meaningEn": "My Lord, make me an establisher of prayer, and from my descendants. Our Lord, accept my supplication. Our Lord, forgive me and my parents and the believers the Day the account is established.",
+      "meaningAr": "طلب إبراهيم ﵇ ثلاثة أشياء: أن يجعله وذريته مقيمي الصلاة، وأن يقبل دعاءه، وأن يغفر له ولوالديه وجميع المؤمنين والمؤمنات يوم الحساب.",
+      "occasions": [
+        "after_prayer",
+        "for_parents",
+        "for_children"
+      ],
+      "tags": [
+        "ibrahim",
+        "prayer",
+        "family",
+        "forgiveness",
+        "parents",
+        "judgment"
+      ]
+    },
+    {
+      "id": "dua_isra_parents_mercy",
+      "surah": 17,
+      "ayah": 24,
+      "ayahEnd": null,
+      "category": "family",
+      "prophet": null,
+      "titleEn": "Prayer of Mercy for Parents",
+      "titleAr": "دعاء الرحمة للوالدين",
+      "surahNameEn": "Al-Isrāʾ",
+      "surahNameAr": "الإسراء",
+      "meaningEn": "My Lord, have mercy upon them as they brought me up [when I was] small.",
+      "meaningAr": "أوجز القرآن دعاءَ البرِّ للوالدين في خمس كلمات، يطلب فيها الولدُ لوالديه رحمةً تساوي رحمتهما به وهو طفل عاجز — وهي مقايسةٌ توقِّد القلب على الدوام.",
+      "occasions": [
+        "after_prayer",
+        "for_parents"
+      ],
+      "tags": [
+        "parents",
+        "mercy",
+        "upbringing",
+        "children",
+        "family",
+        "deceased"
+      ]
+    },
+    {
+      "id": "dua_isra_entry_exit",
+      "surah": 17,
+      "ayah": 80,
+      "ayahEnd": null,
+      "category": "morning_evening",
+      "prophet": null,
+      "titleEn": "Prayer for Righteous Entry and Exit",
+      "titleAr": "دعاء المدخل الصدق والمخرج الصدق",
+      "surahNameEn": "Al-Isrāʾ",
+      "surahNameAr": "الإسراء",
+      "meaningEn": "My Lord, cause me to enter a sound entrance and to exit a sound exit and grant me from Yourself a supporting authority.",
+      "meaningAr": "دعاءٌ يُقال عند كل مدخل ومخرج في الحياة: دخول مكان، بداية مشروع، قرار جديد — يطلب المرء أن يكون دخوله وخروجه على الحق مع سلطان ونصرة من الله.",
+      "occasions": [
+        "morning",
+        "travel",
+        "hardship",
+        "after_prayer"
+      ],
+      "tags": [
+        "entry",
+        "exit",
+        "transition",
+        "beginning",
+        "city",
+        "journey",
+        "new start"
+      ]
+    },
+    {
+      "id": "dua_kahf_mercy_guidance",
+      "surah": 18,
+      "ayah": 10,
+      "ayahEnd": null,
+      "category": "believers",
+      "prophet": null,
+      "titleEn": "Prayer of the Companions of the Cave",
+      "titleAr": "دعاء أصحاب الكهف",
+      "surahNameEn": "Al-Kahf",
+      "surahNameAr": "الكهف",
+      "meaningEn": "Our Lord, grant us from Yourself mercy and prepare for us from our affair right guidance.",
+      "meaningAr": "استغاث أصحاب الكهف بربهم حين فرُّوا بدينهم إلى الكهف طالبين: رحمةً من عنده تُؤمِّن خوفهم وتُغنيهم عن الخلق، ورشدًا يُهيِّئ لهم الأمر في شأنهم.",
+      "occasions": [
+        "hardship",
+        "seeking_guidance",
+        "anxiety"
+      ],
+      "tags": [
+        "kahf",
+        "youth",
+        "guidance",
+        "mercy",
+        "refuge",
+        "faith"
+      ]
+    },
+    {
+      "id": "dua_zakariyya_detail",
+      "surah": 19,
+      "ayah": 4,
+      "ayahEnd": 6,
+      "category": "prophets",
+      "prophet": "Zakariyya",
+      "titleEn": "Zakariyyā's Intimate Prayer for an Heir",
+      "titleAr": "دعاء زكريا المفصّل في مريم",
+      "surahNameEn": "Maryam",
+      "surahNameAr": "مريم",
+      "meaningEn": "My Lord, indeed my bones have weakened, and my head has filled with white, and never have I been in my supplication to You, my Lord, unhappy. And indeed I fear the successors after me… so give me from Yourself a heir who will inherit from me and inherit from the family of Yaʿqūb. And make him, my Lord, pleasing [to You].",
+      "meaningAr": "أفصح زكريا ﵇ لربه عن كل ضعفه بتفصيل عميق: وهَن العظم، واشتعل الشيب، وامرأته عاقر، مع ذلك لم ييأس، بل ذكَّر ربَّه بسابقة الاستجابة ليطلب وليًّا يرث النبوة والعلم.",
+      "occasions": [
+        "hardship",
+        "for_children",
+        "health"
+      ],
+      "tags": [
+        "zakariyya",
+        "old age",
+        "trust",
+        "heir",
+        "intimate",
+        "heartfelt"
+      ]
+    },
+    {
+      "id": "dua_musa_guidance",
+      "surah": 20,
+      "ayah": 25,
+      "ayahEnd": 28,
+      "category": "prophets",
+      "prophet": "Musa",
+      "titleEn": "Mūsā's Prayer for Eloquence & Ease",
+      "titleAr": "دعاء موسى لشرح الصدر",
+      "surahNameEn": "Ṭā Hā",
+      "surahNameAr": "طه",
+      "meaningEn": "My Lord, expand for me my breast [with assurance] and ease for me my task and untie the knot from my tongue that they may understand my speech.",
+      "meaningAr": "دعا موسى ﵇ ربه قبل مواجهة فرعون طالبًا: انشراحَ الصدر ليحمل الرسالة، وتيسيرَ الأمر، وحلَّ عقدة اللسان ليُفهِم قوله — وهو مناسب لكل من يواجه امتحانًا أو خطابًا أو موقفًا عسيرًا.",
+      "occasions": [
+        "studying",
+        "hardship",
+        "anxiety"
+      ],
+      "tags": [
+        "musa",
+        "eloquence",
+        "ease",
+        "clarity",
+        "speech",
+        "confidence",
+        "exam"
+      ]
+    },
+    {
+      "id": "dua_nur_knowledge",
+      "surah": 20,
+      "ayah": 114,
+      "ayahEnd": null,
+      "category": "guidance",
+      "prophet": null,
+      "titleEn": "Prayer to Increase Knowledge",
+      "titleAr": "الدعاء بالزيادة في العلم",
+      "surahNameEn": "Ṭā Hā",
+      "surahNameAr": "طه",
+      "meaningEn": "My Lord, increase me in knowledge.",
+      "meaningAr": "أقصر دعاء قرآني وأبلغه في الوقت ذاته؛ يُعلِّمنا أن الازدياد من العلم غايةٌ لا نهاية لها، وأنه لا يُعان عليها إلا بالله — فلا يغترَّ عالم بما تعلَّم.",
+      "occasions": [
+        "morning",
+        "studying",
+        "after_prayer"
+      ],
+      "tags": [
+        "knowledge",
+        "ilm",
+        "learning",
+        "students",
+        "short",
+        "daily"
+      ]
+    },
+    {
+      "id": "dua_ayyub_relief",
+      "surah": 21,
+      "ayah": 83,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Ayyub",
+      "titleEn": "Ayyūb's Prayer in Affliction",
+      "titleAr": "دعاء أيوب في البلاء",
+      "surahNameEn": "Al-Anbiyāʾ",
+      "surahNameAr": "الأنبياء",
+      "meaningEn": "Indeed, adversity has touched me, and you are the Most Merciful of the merciful.",
+      "meaningAr": "أوجز أيوب ﵇ حاله في كلمتين بعد سنوات طويلة من الابتلاء: أخبر ربه بالضر ولم يشكُ، ثم توسَّل بوصف الرحمة — وهو نموذج في الكرامة عند الضراء.",
+      "occasions": [
+        "hardship",
+        "health",
+        "anxiety"
+      ],
+      "tags": [
+        "ayyub",
+        "illness",
+        "hardship",
+        "mercy",
+        "relief",
+        "affliction"
+      ]
+    },
+    {
+      "id": "dua_yunus_distress",
+      "surah": 21,
+      "ayah": 87,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Yunus",
+      "titleEn": "Yūnus's Prayer in the Darkness",
+      "titleAr": "دعاء يونس في الظلمات",
+      "surahNameEn": "Al-Anbiyāʾ",
+      "surahNameAr": "الأنبياء",
+      "meaningEn": "There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.",
+      "meaningAr": "نادى يونس ﵇ ربه من ظلمات ثلاث — بطن الحوت والبحر والليل — ببضع كلمات تجمع التوحيد والتنزيه والاعتراف بالذنب، فاستُجيب له ونجا.",
+      "occasions": [
+        "hardship",
+        "anxiety",
+        "seeking_forgiveness"
+      ],
+      "tags": [
+        "yunus",
+        "distress",
+        "kurbah",
+        "tahlil",
+        "whale",
+        "darkness",
+        "repentance"
+      ]
+    },
+    {
+      "id": "dua_zakariyya_anbiya",
+      "surah": 21,
+      "ayah": 89,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Zakariyya",
+      "titleEn": "Zakariyyā's Prayer for Inheritance",
+      "titleAr": "دعاء زكريا وطلب الوارث في الأنبياء",
+      "surahNameEn": "Al-Anbiyāʾ",
+      "surahNameAr": "الأنبياء",
+      "meaningEn": "My Lord, do not leave me alone [with no heir], while you are the best of inheritors.",
+      "meaningAr": "دعاء زكريا ﵇ الموجز في سورة الأنبياء — يطلب ألا يُذَر وحيدًا بلا عقب، ويُقرُّ في الوقت ذاته بأن الله خير الوارثين لكل شيء، فدعاؤه لا يخلو من التوكل حتى في أعمق لحظات الشوق.",
+      "occasions": [
+        "hardship",
+        "for_children"
+      ],
+      "tags": [
+        "zakariyya",
+        "children",
+        "inheritor",
+        "alone",
+        "trust"
+      ]
+    },
+    {
+      "id": "dua_anbiyaa_just_judgment",
+      "surah": 21,
+      "ayah": 112,
+      "ayahEnd": null,
+      "category": "general",
+      "prophet": null,
+      "titleEn": "The Prophet's Prayer for Allah's Just Judgment",
+      "titleAr": "دعاء النبي بالحكم بالحق",
+      "surahNameEn": "Al-Anbiyāʾ",
+      "surahNameAr": "الأنبياء",
+      "meaningEn": "My Lord, judge in truth. And our Lord is the Most Merciful, the one sought for help against what you describe.",
+      "meaningAr": "ختم الله سورة الأنبياء بهذا الدعاء: إحالةُ الحكم إلى الله، والتوكلُ عليه في مواجهة الباطل. فيه تبرُّؤٌ من قضاء الخلق واحتكامٌ لقضاء الله.",
+      "occasions": [
+        "hardship",
+        "after_prayer",
+        "anxiety"
+      ],
+      "tags": [
+        "judgment",
+        "justice",
+        "truth",
+        "help",
+        "accusation",
+        "oppression"
+      ]
+    },
+    {
+      "id": "dua_muminun_refuge",
+      "surah": 23,
+      "ayah": 97,
+      "ayahEnd": 98,
+      "category": "protection",
+      "prophet": null,
+      "titleEn": "Seeking Refuge from Whispers",
+      "titleAr": "الاستعاذة من وساوس الشيطان",
+      "surahNameEn": "Al-Muʾminūn",
+      "surahNameAr": "المؤمنون",
+      "meaningEn": "My Lord, I seek refuge in You from the incitements of the devils, and I seek refuge in You, my Lord, lest they be present with me.",
+      "meaningAr": "استعاذةٌ من نَخَسات الشياطين التي تُوقِع في الوسواس والغفلة، ومن حضورهم عند المرء في الخلوة والصلاة والمنام.",
+      "occasions": [
+        "morning",
+        "evening",
+        "before_sleep",
+        "anger"
+      ],
+      "tags": [
+        "shaytan",
+        "waswas",
+        "protection",
+        "refuge",
+        "prayer",
+        "distraction"
+      ]
+    },
+    {
+      "id": "dua_muminun_closing",
+      "surah": 23,
+      "ayah": 118,
+      "ayahEnd": null,
+      "category": "forgiveness",
+      "prophet": null,
+      "titleEn": "Closing Prayer of Al-Muʾminūn — Forgive and Have Mercy",
+      "titleAr": "خاتمة المؤمنون — رب اغفر وارحم",
+      "surahNameEn": "Al-Muʾminūn",
+      "surahNameAr": "المؤمنون",
+      "meaningEn": "My Lord, forgive and have mercy, and You are the best of the merciful.",
+      "meaningAr": "يختم الله سورة المؤمنون بهذا الدعاء الموجز — المغفرة والرحمة لا غير، معترفًا بأن الله خير الراحمين. قصر الكلمات يعكس خضوعًا تامًّا لرحمة الله.",
+      "occasions": [
+        "seeking_forgiveness",
+        "before_sleep",
+        "after_prayer"
+      ],
+      "tags": [
+        "forgiveness",
+        "mercy",
+        "short",
+        "sincere",
+        "closing",
+        "comprehensive"
+      ]
+    },
+    {
+      "id": "dua_furqan_fire_protection",
+      "surah": 25,
+      "ayah": 65,
+      "ayahEnd": 66,
+      "category": "forgiveness",
+      "prophet": null,
+      "titleEn": "Prayer of the ʿIbād al-Raḥmān — Away from Hellfire",
+      "titleAr": "دعاء عباد الرحمن بصرف عذاب جهنم",
+      "surahNameEn": "Al-Furqān",
+      "surahNameAr": "الفرقان",
+      "meaningEn": "Our Lord, avert from us the punishment of Hell. Indeed, its punishment is ever adhering. Indeed, it is evil as a settlement and residence.",
+      "meaningAr": "من سمات عباد الرحمن أنهم يعيشون يقظةً دائمةً من النار؛ يدعون الله أن يصرف عنهم عذابها اللازم الملازم الذي لا يُفارق أصحابه، وأنها بئس المستقر والمقام.",
+      "occasions": [
+        "after_prayer",
+        "evening"
+      ],
+      "tags": [
+        "ibad al-rahman",
+        "hellfire",
+        "protection",
+        "fire",
+        "akhira"
+      ]
+    },
+    {
+      "id": "dua_furqan_family",
+      "surah": 25,
+      "ayah": 74,
+      "ayahEnd": null,
+      "category": "family",
+      "prophet": null,
+      "titleEn": "Prayer for Righteous Family",
+      "titleAr": "دعاء الذرية الصالحة",
+      "surahNameEn": "Al-Furqān",
+      "surahNameAr": "الفرقان",
+      "meaningEn": "Our Lord, grant us from among our wives and offspring comfort to our eyes and make us a leader [i.e., example] for the righteous.",
+      "meaningAr": "يطلب عباد الرحمن ما يُقرُّ العين حقًّا: زوجةٌ وذريةٌ تسعد القلب وتُقرُّ الأعين بالطاعة والصلاح، ثم يطلبون فوق ذلك أن يُجعَلوا قدوةً للمتقين.",
+      "occasions": [
+        "for_children",
+        "after_prayer"
+      ],
+      "tags": [
+        "family",
+        "spouse",
+        "children",
+        "offspring",
+        "ibad al-rahman",
+        "leadership"
+      ]
+    },
+    {
+      "id": "dua_ibrahim_comprehensive",
+      "surah": 26,
+      "ayah": 83,
+      "ayahEnd": 89,
+      "category": "prophets",
+      "prophet": "Ibrahim",
+      "titleEn": "Ibrahim's Comprehensive Legacy Prayer",
+      "titleAr": "دعاء إبراهيم الجامع في الشعراء",
+      "surahNameEn": "Al-Shuʿarāʾ",
+      "surahNameAr": "الشعراء",
+      "meaningEn": "My Lord, grant me wisdom and join me with the righteous. And grant me a reputation of honour among later generations. And place me among the inheritors of the Garden of Pleasure. And forgive my father — indeed he has been of those astray. And do not disgrace me on the Day they are [all] resurrected — the Day when neither wealth nor children will avail, except one who comes to Allah with a sound heart.",
+      "meaningAr": "أشمل دعاء لإبراهيم ﵇ يضمُّ: الحكمة، والالتحاق بالصالحين، والذِّكر الحسن في الأجيال، وميراث الجنة، والمغفرة للأب، والنجاة من الخزي يوم القيامة — ويختم بأن الناجي هو مَن يأتي الله بقلب سليم.",
+      "occasions": [
+        "after_prayer",
+        "seeking_forgiveness",
+        "gratitude_moment"
+      ],
+      "tags": [
+        "ibrahim",
+        "wisdom",
+        "paradise",
+        "legacy",
+        "sound heart",
+        "judgment"
+      ]
+    },
+    {
+      "id": "dua_naml_gratitude",
+      "surah": 27,
+      "ayah": 19,
+      "ayahEnd": null,
+      "category": "gratitude",
+      "prophet": "Sulayman",
+      "titleEn": "Sulaymān's Prayer of Gratitude",
+      "titleAr": "دعاء سليمان شكراً وطلباً للصلاح",
+      "surahNameEn": "Al-Naml",
+      "surahNameAr": "النمل",
+      "meaningEn": "My Lord, enable me to be grateful for Your favour which You have bestowed upon me and upon my parents and to do righteousness of which You approve. And admit me by Your mercy into [the ranks of] Your righteous servants.",
+      "meaningAr": "أُلهم سليمان ﵇ لمَّا سمع النملة أن يطلب القدرةَ على أداء الشكر لا الشكر وحده — وهو تواضعٌ عجيب من ملكٍ يملك ما لم يُملَّك لأحد قبله.",
+      "occasions": [
+        "after_prayer",
+        "gratitude_moment",
+        "for_parents"
+      ],
+      "tags": [
+        "sulayman",
+        "shukr",
+        "gratitude",
+        "parents",
+        "righteous",
+        "enabling"
+      ]
+    },
+    {
+      "id": "dua_musa_after_slip",
+      "surah": 28,
+      "ayah": 16,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Musa",
+      "titleEn": "Mūsā's Instant Repentance",
+      "titleAr": "توبة موسى الفورية في القصص",
+      "surahNameEn": "Al-Qaṣaṣ",
+      "surahNameAr": "القصص",
+      "meaningEn": "My Lord, indeed I have wronged myself, so forgive me.",
+      "meaningAr": "لمَّا أدرك موسى ﵇ ما صدر منه بادر إلى التوبة في الحال بأربع كلمات — اعتراف بالذنب وسرعة الإنابة واليقين بالمغفرة — فغفر الله له في الحين.",
+      "occasions": [
+        "seeking_forgiveness",
+        "anger"
+      ],
+      "tags": [
+        "musa",
+        "tawbah",
+        "repentance",
+        "forgiveness",
+        "short",
+        "sincere"
+      ]
+    },
+    {
+      "id": "dua_musa_rescue",
+      "surah": 28,
+      "ayah": 21,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Musa",
+      "titleEn": "Mūsā's Escape Prayer — Save Me from the Oppressors",
+      "titleAr": "دعاء موسى بطلب النجاة من القوم الظالمين",
+      "surahNameEn": "Al-Qaṣaṣ",
+      "surahNameAr": "القصص",
+      "meaningEn": "My Lord, save me from the wrongdoing people.",
+      "meaningAr": "قالها موسى ﵇ وهو يُغادر مصر خائفًا يترقَّب بعد حادثة القتل الخطأ — خمس كلمات تخرج من قلب يائس يطلب النجاة من الظلم. استُجيب له وهداه الله إلى مدين.",
+      "occasions": [
+        "hardship",
+        "anxiety"
+      ],
+      "tags": [
+        "musa",
+        "escape",
+        "oppression",
+        "injustice",
+        "short",
+        "rescue"
+      ]
+    },
+    {
+      "id": "dua_musa_need",
+      "surah": 28,
+      "ayah": 24,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Musa",
+      "titleEn": "Mūsā's Prayer of Need — I Am Poor to Whatever Good You Bestow",
+      "titleAr": "دعاء موسى في الفقر والحاجة — رب إني لما أنزلت إلي من خير فقير",
+      "surahNameEn": "Al-Qaṣaṣ",
+      "surahNameAr": "القصص",
+      "meaningEn": "My Lord, indeed I am, for whatever good You would send down to me, in need.",
+      "meaningAr": "وصل موسى ﵇ إلى مدين غريبًا وحيدًا جائعًا — فسقى غنم البنتين ثم جلس ظليلًا وقال هذا الدعاء. لم يطلب شيئًا محددًا بل أعلن حاجته لله مطلقًا. فأُجيب في الحال.",
+      "occasions": [
+        "hardship",
+        "anxiety",
+        "health"
+      ],
+      "tags": [
+        "musa",
+        "need",
+        "poverty",
+        "provision",
+        "dependence",
+        "short",
+        "heartfelt"
+      ]
+    },
+    {
+      "id": "dua_lut_victory",
+      "surah": 29,
+      "ayah": 30,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Lut",
+      "titleEn": "Lūṭ's Prayer Against the Corrupters",
+      "titleAr": "دعاء لوط بالنصر على المفسدين",
+      "surahNameEn": "Al-ʿAnkabūt",
+      "surahNameAr": "العنكبوت",
+      "meaningEn": "My Lord, help me against the corrupting people.",
+      "meaningAr": "قالها لوط ﵇ بعد سنوات من وحدة الدعوة والتكذيب — فنجَّاه الله وأهلك المفسدين. دعاءٌ موجز يطلب النصرة على كل فسادٍ ومفسِد.",
+      "occasions": [
+        "hardship",
+        "anxiety",
+        "after_prayer"
+      ],
+      "tags": [
+        "lut",
+        "corruption",
+        "victory",
+        "help",
+        "short",
+        "perseverance"
+      ]
+    },
+    {
+      "id": "dua_ibrahim_saffat",
+      "surah": 37,
+      "ayah": 100,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Ibrahim",
+      "titleEn": "Ibrahim's Simple Prayer for a Righteous Child",
+      "titleAr": "دعاء إبراهيم الموجز لهبة الصالحين",
+      "surahNameEn": "Aṣ-Ṣāffāt",
+      "surahNameAr": "الصافات",
+      "meaningEn": "My Lord, grant me [a child] from among the righteous.",
+      "meaningAr": "طلب إبراهيم ﵇ الولد في خمس كلمات — لم يطلب الذكر ولا الوارث للملك بل طلب من الصالحين. فلمَّا بُشِّر بغلامٍ حليم كان إسماعيل — استجابةٌ فاقت كل توقع.",
+      "occasions": [
+        "for_children",
+        "after_prayer",
+        "hardship"
+      ],
+      "tags": [
+        "ibrahim",
+        "ismail",
+        "children",
+        "righteous",
+        "short",
+        "offspring",
+        "answered"
+      ]
+    },
+    {
+      "id": "dua_sulayman_unique",
+      "surah": 38,
+      "ayah": 35,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Sulayman",
+      "titleEn": "Sulaymān's Prayer for Forgiveness and a Unique Kingdom",
+      "titleAr": "دعاء سليمان بالمغفرة وملكٍ لا ينبغي لأحد من بعده",
+      "surahNameEn": "Ṣād",
+      "surahNameAr": "ص",
+      "meaningEn": "My Lord, forgive me and grant me a kingdom such as will not belong to anyone after me. Indeed, You are the Bestower.",
+      "meaningAr": "بدأ سليمان ﵇ دعاءه بالمغفرة قبل طلب الملك — فلم تُغرِّه النعمة عن الاستغفار. ثم طلب ملكًا فريدًا يكون آيةً لا مثيلَ له. فأُعطي ما طلب وزيادة.",
+      "occasions": [
+        "seeking_forgiveness",
+        "gratitude_moment",
+        "after_prayer"
+      ],
+      "tags": [
+        "sulayman",
+        "kingdom",
+        "forgiveness",
+        "unique",
+        "power",
+        "al-wahhab"
+      ]
+    },
+    {
+      "id": "dua_ghafir_angels_believers",
+      "surah": 40,
+      "ayah": 7,
+      "ayahEnd": 9,
+      "category": "general",
+      "prophet": null,
+      "titleEn": "Angels Praying for the Believers",
+      "titleAr": "دعاء الملائكة للمؤمنين",
+      "surahNameEn": "Ghāfir",
+      "surahNameAr": "غافر",
+      "meaningEn": "Our Lord, You have encompassed all things in mercy and knowledge, so forgive those who have repented and followed Your way and protect them from the punishment of Hellfire. Our Lord, admit them to gardens of perpetual residence and whoever was righteous among their fathers, spouses and offspring. Indeed it is You who is the Exalted in Might, the Wise. And protect them from the evil consequences. And whoever You protect from evil consequences that Day — You will have given him mercy. And that is the great attainment.",
+      "meaningAr": "الملائكةُ حاملو العرش يتوسَّطون للمؤمنين التائبين ويطلبون لهم المغفرة ودخول جنات الخلد مع ذرياتهم وأزواجهم وآبائهم الصالحين — فيا لعظمة هذه الشفاعة الملائكية!",
+      "occasions": [
+        "after_prayer",
+        "seeking_forgiveness"
+      ],
+      "tags": [
+        "angels",
+        "paradise",
+        "forgiveness",
+        "families",
+        "intercession",
+        "comprehensive"
+      ]
+    },
+    {
+      "id": "dua_ghafir_believer_surrender",
+      "surah": 40,
+      "ayah": 44,
+      "ayahEnd": null,
+      "category": "believers",
+      "prophet": null,
+      "titleEn": "Believer of Pharaoh's Court — I Entrust My Affair to Allah",
+      "titleAr": "إعلان مؤمن آل فرعون التفويض الكامل لله",
+      "surahNameEn": "Ghāfir",
+      "surahNameAr": "غافر",
+      "meaningEn": "And I entrust my affair to Allah. Indeed, Allah is Seeing of His servants.",
+      "meaningAr": "قالها المؤمن من آل فرعون بعد أن أعلن إيمانه في حضرة الطاغية — تفويضٌ مطلق يُقرُّ فيه بأن الله يرى كل شيء. فأنجاه الله من شرورهم. نموذجٌ في الاستسلام الواعي.",
+      "occasions": [
+        "hardship",
+        "anxiety",
+        "after_prayer"
+      ],
+      "tags": [
+        "tawakkul",
+        "surrender",
+        "trust",
+        "pharaoh",
+        "courage",
+        "faith",
+        "short"
+      ]
+    },
+    {
+      "id": "dua_travel",
+      "surah": 43,
+      "ayah": 13,
+      "ayahEnd": 14,
+      "category": "protection",
+      "prophet": null,
+      "titleEn": "Prayer for Safe Journey",
+      "titleAr": "دعاء السفر",
+      "surahNameEn": "Al-Zukhruf",
+      "surahNameAr": "الزخرف",
+      "meaningEn": "Exalted is He who has subjected this to us, and we could not have [otherwise] subdued it. And indeed we, to our Lord, will [surely] return.",
+      "meaningAr": "دعاء ركوب المركبة: تنزيهٌ لله الذي سخَّر هذا المخلوق ونحن لم نكن قادرين على تسخيره، ثم استحضارٌ لحقيقة الرجوع إلى الله في كل لحظة.",
+      "occasions": [
+        "travel"
+      ],
+      "tags": [
+        "travel",
+        "journey",
+        "vehicle",
+        "safety",
+        "safar",
+        "car",
+        "flight"
+      ]
+    },
+    {
+      "id": "dua_ahqaf_gratitude",
+      "surah": 46,
+      "ayah": 15,
+      "ayahEnd": null,
+      "category": "gratitude",
+      "prophet": null,
+      "titleEn": "Al-Aḥqāf's Prayer at Age Forty",
+      "titleAr": "دعاء بلوغ الأربعين",
+      "surahNameEn": "Al-Aḥqāf",
+      "surahNameAr": "الأحقاف",
+      "meaningEn": "My Lord, enable me to be grateful for Your favour which You have bestowed upon me and upon my parents and to work righteousness of which You will approve and make righteous for me my offspring. Indeed, I have repented to You, and indeed, I am of the Muslims.",
+      "meaningAr": "وصف القرآن ما يقوله المؤمن حين يبلغ الأربعين: شكرٌ على النعمة، وعملٌ صالحٌ مرضيٌّ، وإصلاحٌ للذرية، وتوبةٌ خالصة — دعاء جامع يناسب من أدركه أشُدُّه.",
+      "occasions": [
+        "gratitude_moment",
+        "for_parents",
+        "for_children"
+      ],
+      "tags": [
+        "forty",
+        "maturity",
+        "gratitude",
+        "parents",
+        "children",
+        "repentance",
+        "comprehensive"
+      ]
+    },
+    {
+      "id": "dua_nuh_brief_plea",
+      "surah": 54,
+      "ayah": 10,
+      "ayahEnd": null,
+      "category": "prophets",
+      "prophet": "Nuh",
+      "titleEn": "Nūḥ's Brief Plea After 950 Years — I Am Overcome, Help Me",
+      "titleAr": "دعاء نوح الموجز بعد تسعة وخمسين قرنًا — إني مغلوب فانتصر",
+      "surahNameEn": "Al-Qamar",
+      "surahNameAr": "القمر",
+      "meaningEn": "Indeed, I am overcome, so help me.",
+      "meaningAr": "أوجز نوح ﵇ حاله بعد 950 سنة من الدعوة في ثلاث كلمات: اعترافٌ بالعجز وطلبٌ للنصر. لم يشرح ولم يُطوِّل — فاستجاب الله وأنزل الطوفان. من أقصر الأدعية وأعظمها أثرًا.",
+      "occasions": [
+        "hardship",
+        "anxiety"
+      ],
+      "tags": [
+        "nuh",
+        "victory",
+        "help",
+        "exhausted",
+        "short",
+        "powerful",
+        "perseverance"
+      ]
+    },
+    {
+      "id": "dua_hashr_believers",
+      "surah": 59,
+      "ayah": 10,
+      "ayahEnd": null,
+      "category": "believers",
+      "prophet": null,
+      "titleEn": "Prayer of Brotherly Forgiveness — Al-Ḥashr",
+      "titleAr": "دعاء المؤمنين للإخوان في الحشر",
+      "surahNameEn": "Al-Ḥashr",
+      "surahNameAr": "الحشر",
+      "meaningEn": "Our Lord, forgive us and our brothers who preceded us in faith and put not in our hearts [any] resentment toward those who have believed. Our Lord, indeed You are Kind and Merciful.",
+      "meaningAr": "يدعو المؤمنون الذين جاؤوا بعد المهاجرين لإخوانهم السابقين بالإيمان، ويطلبون من الله أن ينزع من صدورهم كل غلٍّ وحقدٍ على المؤمنين — ففي ذلك صفاءٌ للقلوب وتوحيدٌ للأمة.",
+      "occasions": [
+        "after_prayer",
+        "seeking_forgiveness",
+        "for_parents"
+      ],
+      "tags": [
+        "brotherhood",
+        "forgiveness",
+        "resentment",
+        "unity",
+        "iman",
+        "predecessors"
+      ]
+    },
+    {
+      "id": "dua_mumtahanah_ibrahim_example",
+      "surah": 60,
+      "ayah": 4,
+      "ayahEnd": 5,
+      "category": "prophets",
+      "prophet": "Ibrahim",
+      "titleEn": "Ibrahim's Example — Reliance & Repentance",
+      "titleAr": "دعاء إبراهيم في الممتحنة — التوكل والإنابة",
+      "surahNameEn": "Al-Mumtaḥanah",
+      "surahNameAr": "الممتحنة",
+      "meaningEn": "Our Lord, upon You we have relied, and to You we have returned, and to You is the destination. Our Lord, make us not [objects of] trial for the disbelievers and forgive us, our Lord. Indeed, it is You who is the Exalted in Might, the Wise.",
+      "meaningAr": "دعاء إبراهيم ﵇ في الممتحنة يجمع ثلاثة أصول: التوكل على الله وحده، والإنابة والرجوع إليه، ثم طلب ألا يكون المؤمنون سببًا في فتنة الكافرين، مع طلب المغفرة.",
+      "occasions": [
+        "hardship",
+        "seeking_forgiveness"
+      ],
+      "tags": [
+        "ibrahim",
+        "tawakkul",
+        "repentance",
+        "trial",
+        "return",
+        "protection"
+      ]
+    },
+    {
+      "id": "dua_tahrim_noor",
+      "surah": 66,
+      "ayah": 8,
+      "ayahEnd": null,
+      "category": "general",
+      "prophet": null,
+      "titleEn": "Prayer for Complete Light on Judgment Day",
+      "titleAr": "دعاء إتمام النور يوم القيامة",
+      "surahNameEn": "Al-Taḥrīm",
+      "surahNameAr": "التحريم",
+      "meaningEn": "Our Lord, perfect for us our light and forgive us. Indeed, You are over all things competent.",
+      "meaningAr": "يدعو المؤمنون يوم القيامة على الصراط بإتمام نورهم الذي يمشون به وتغفر لهم خطاياهم — وهو دعاءٌ يُستحب أن يُقال في الدنيا تعجُّلًا لنور الآخرة.",
+      "occasions": [
+        "after_prayer",
+        "evening"
+      ],
+      "tags": [
+        "judgment day",
+        "noor",
+        "light",
+        "forgiveness",
+        "completion",
+        "akhira"
+      ]
+    },
+    {
+      "id": "dua_nuh_parents_believers",
+      "surah": 71,
+      "ayah": 28,
+      "ayahEnd": null,
+      "category": "family",
+      "prophet": "Nuh",
+      "titleEn": "Nūḥ's Prayer for All Believers",
+      "titleAr": "دعاء نوح للمؤمنين",
+      "surahNameEn": "Nūḥ",
+      "surahNameAr": "نوح",
+      "meaningEn": "My Lord, forgive me and my parents and whoever enters my house a believer and the believing men and believing women.",
+      "meaningAr": "يبدأ دعاء نوح ﵇ بنفسه ثم يتَّسع ليشمل والديه ثم كل من دخل بيته مؤمنًا ثم عموم المؤمنين والمؤمنات في كل زمان ومكان — وهو نموذج في سعة الدعاء وشمول الرحمة.",
+      "occasions": [
+        "after_prayer",
+        "for_parents"
+      ],
+      "tags": [
+        "nuh",
+        "parents",
+        "family",
+        "household",
+        "believers",
+        "forgiveness",
+        "community"
+      ]
+    },
+    {
+      "id": "dua_falaq",
+      "surah": 113,
+      "ayah": 1,
+      "ayahEnd": 5,
+      "category": "protection",
+      "prophet": null,
+      "titleEn": "Al-Falaq — Refuge from All Evil",
+      "titleAr": "سورة الفلق — الاستعاذة من شر المخلوقات",
+      "surahNameEn": "Al-Falaq",
+      "surahNameAr": "الفلق",
+      "meaningEn": "Say, 'I seek refuge in the Lord of daybreak, from the evil of that which He created, and from the evil of darkness when it settles, and from the evil of those who blow on knots, and from the evil of an envier when he envies.'",
+      "meaningAr": "استعاذةٌ شاملة برب الفجر من أربعة شرور: شر المخلوقات عمومًا، وشر ظلام الليل، وشر أهل السحر، وشر الحاسد — وهي تغطي الأذى الظاهر والخفي.",
+      "occasions": [
+        "morning",
+        "evening",
+        "before_sleep"
+      ],
+      "tags": [
+        "falaq",
+        "morning",
+        "evening",
+        "sleep",
+        "evil",
+        "protection",
+        "sihr",
+        "envy"
+      ]
+    },
+    {
+      "id": "dua_nas",
+      "surah": 114,
+      "ayah": 1,
+      "ayahEnd": 6,
+      "category": "protection",
+      "prophet": null,
+      "titleEn": "An-Nās — Refuge from Whispers",
+      "titleAr": "سورة الناس — الاستعاذة من الوسواس",
+      "surahNameEn": "An-Nās",
+      "surahNameAr": "الناس",
+      "meaningEn": "Say, 'I seek refuge in the Lord of mankind, the Sovereign of mankind, the God of mankind, from the evil of the retreating whisperer — who whispers [evil] into the breasts of mankind — from among the jinn and mankind.'",
+      "meaningAr": "استعاذةٌ بالله بثلاثة أسماء له على الناس — ربٌّ ومليكٌ وإله — من الوسواس الخنَّاس الذي ينكمش عند الذكر ويعود عند الغفلة، سواءٌ أكان من الجن أم من الإنس.",
+      "occasions": [
+        "morning",
+        "evening",
+        "before_sleep",
+        "anxiety"
+      ],
+      "tags": [
+        "nas",
+        "waswas",
+        "morning",
+        "evening",
+        "sleep",
+        "jinn",
+        "protection",
+        "anxiety"
+      ]
+    }
+  ]
+}
