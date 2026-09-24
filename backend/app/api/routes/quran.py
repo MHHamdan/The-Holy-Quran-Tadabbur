@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Response
 from pydantic import BaseModel, Field
-from sqlalchemy import select, or_, and_
+from sqlalchemy import select, or_, and_, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -3282,6 +3282,11 @@ async def get_cross_story_themes():
 # SEMANTIC EMBEDDINGS & ADVANCED SIMILARITY
 # =============================================================================
 
+# Candidates encoded per request when the Qdrant verse index is unavailable.
+# Encoding all 6,236 verses in-process would take seconds per call, so the
+# fallback is deliberately partial — responses say so via `coverage`.
+SIMILARITY_FALLBACK_CANDIDATES = 500
+
 
 @router.get("/similarity/semantic/{sura_no}/{aya_no}")
 async def get_semantic_similarity(
@@ -3300,6 +3305,7 @@ async def get_semantic_similarity(
     Arabic: البحث عن آيات متشابهة دلالياً باستخدام التضمينات السياقية
     """
     from app.services.semantic_embeddings import semantic_embedding_service, contextual_enhancer
+    from app.services.verse_embedding_service import get_verse_embedding_service
 
     # Get source verse
     source_result = await session.execute(
@@ -3313,21 +3319,58 @@ async def get_semantic_similarity(
     if not source_verse:
         raise HTTPException(status_code=404, detail=f"Verse {sura_no}:{aya_no} not found")
 
-    # Get candidate verses (sample for performance)
-    candidates_result = await session.execute(
-        select(QuranVerse.id, QuranVerse.text_uthmani)
-        .where(QuranVerse.id != source_verse.id)
-        .limit(500)  # Sample for performance
-    )
-    candidates = [(row.id, row.text_uthmani) for row in candidates_result.fetchall()]
+    # Prefer the Qdrant index: it holds all 6,236 verses embedded with
+    # multilingual-e5-large. The in-process path below can only afford to
+    # encode a sample of candidates per request, and sampling without an
+    # ORDER BY returned an arbitrary ~8% of the Quran skewed toward the
+    # earliest surahs — so 112:1 was matched only against surahs 1-3 and 23.
+    similar_ids: List[tuple] = []
+    coverage = "partial"
+    candidates_considered = 0
 
-    # Find similar by embedding
-    similar_ids = await semantic_embedding_service.find_similar_by_embedding(
-        source_verse.text_uthmani,
-        candidates,
-        top_k=limit,
-        min_similarity=min_similarity,
+    verse_service = get_verse_embedding_service()
+    indexed = await verse_service.find_similar_to_verse(
+        sura_no=sura_no,
+        aya_no=aya_no,
+        limit=limit,
+        min_score=min_similarity,
     )
+    if indexed:
+        coverage = "full"
+        stats = await verse_service.get_collection_stats()
+        candidates_considered = stats.get("points_count", 0) or 0
+        id_result = await session.execute(
+            select(QuranVerse.id, QuranVerse.sura_no, QuranVerse.aya_no).where(
+                tuple_(QuranVerse.sura_no, QuranVerse.aya_no).in_(
+                    [(r.sura_no, r.aya_no) for r in indexed]
+                )
+            )
+        )
+        db_id = {(row.sura_no, row.aya_no): row.id for row in id_result.fetchall()}
+        similar_ids = [
+            (db_id[(r.sura_no, r.aya_no)], r.similarity_score)
+            for r in indexed
+            if (r.sura_no, r.aya_no) in db_id
+        ]
+
+    if not similar_ids:
+        # Qdrant unavailable or the verse is not indexed. Fall back to an
+        # in-process scan, and say so in the response rather than presenting
+        # a sampled result as if it covered the whole Quran.
+        candidates_result = await session.execute(
+            select(QuranVerse.id, QuranVerse.text_uthmani)
+            .where(QuranVerse.id != source_verse.id)
+            .order_by(QuranVerse.id)
+            .limit(SIMILARITY_FALLBACK_CANDIDATES)
+        )
+        candidates = [(row.id, row.text_uthmani) for row in candidates_result.fetchall()]
+        candidates_considered = len(candidates)
+        similar_ids = await semantic_embedding_service.find_similar_by_embedding(
+            source_verse.text_uthmani,
+            candidates,
+            top_k=limit,
+            min_similarity=min_similarity,
+        )
 
     # Batch-fetch all similar verses in one query (not N+1)
     sim_id_list = [vid for vid, _ in similar_ids]
@@ -3371,7 +3414,15 @@ async def get_semantic_similarity(
         },
         "results": results,
         "count": len(results),
-        "model_info": semantic_embedding_service.get_model_info(),
+        # Tells the caller whether this ranking saw the whole Quran or only a
+        # sample — the two are not comparable and should not be presented alike.
+        "coverage": coverage,
+        "candidates_considered": candidates_considered,
+        "model_info": (
+            {"model_name": "intfloat/multilingual-e5-large", "source": "qdrant_index"}
+            if coverage == "full"
+            else semantic_embedding_service.get_model_info()
+        ),
     }
 
 

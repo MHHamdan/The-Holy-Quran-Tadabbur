@@ -346,22 +346,41 @@ class VerseEmbeddingService:
         Returns:
             List of similar verses
         """
-        # Get the verse vector from Qdrant
-        point_id = sura_no * 1000 + aya_no
-
+        # Look the source verse up by payload rather than by a derived point
+        # id. index_verses() keys points on the database verse id, so the
+        # previous `sura_no * 1000 + aya_no` guess never resolved and this
+        # function always returned [] — silently, because the caller treats an
+        # empty list as "no similar verses" rather than as a failure.
         try:
+            scroll_body = {
+                "limit": 1,
+                "with_vector": True,
+                "with_payload": False,
+                "filter": {
+                    "must": [
+                        {"key": "sura_no", "match": {"value": sura_no}},
+                        {"key": "aya_no", "match": {"value": aya_no}},
+                    ]
+                },
+            }
             async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get(
-                    f"{self.qdrant_url}/collections/{VERSE_COLLECTION}/points/{point_id}"
+                response = await client.post(
+                    f"{self.qdrant_url}/collections/{VERSE_COLLECTION}/points/scroll",
+                    json=scroll_body,
                 )
 
                 if response.status_code != 200:
-                    logger.warning(f"Verse {sura_no}:{aya_no} not found in index")
+                    logger.warning(
+                        "Verse %s:%s lookup failed (%s)", sura_no, aya_no, response.status_code
+                    )
                     return []
 
-                data = response.json()
-                verse_vector = data.get("result", {}).get("vector", [])
+                points = response.json().get("result", {}).get("points", [])
+                if not points:
+                    logger.warning("Verse %s:%s not found in index", sura_no, aya_no)
+                    return []
 
+                verse_vector = points[0].get("vector") or []
                 if not verse_vector:
                     return []
 
