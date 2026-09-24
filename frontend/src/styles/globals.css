@@ -389,12 +389,18 @@
   line-height: 2.1;
 }
 
-/* Mixed-direction number/reference badges — always LTR */
+/* Mixed-direction number/reference badges — always LTR.
+ *
+ * isolate, not embed: embed is the CSS analogue of the deprecated LRE/RLE
+ * control characters and does NOT isolate, so a verse reference like "2:255"
+ * sitting inside an Arabic paragraph can still reorder the neutral characters
+ * around it (UAX #9 rule N2). It is also a downgrade from the UA default,
+ * which already gives [dir] and <bdi> a value of isolate. */
 .verse-ref,
 .source-id,
 code {
   direction: ltr;
-  unicode-bidi: embed;
+  unicode-bidi: isolate;
 }
 
 /* ============================

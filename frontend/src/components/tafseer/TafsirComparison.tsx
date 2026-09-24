@@ -95,6 +95,7 @@ function SourceHeader({
               uiLanguage === 'ar' && 'font-arabic text-lg',
             )}
             dir={uiLanguage === 'ar' ? 'rtl' : 'ltr'}
+            lang={uiLanguage}
           >
             {title}
           </span>
@@ -112,14 +113,19 @@ function SourceHeader({
               uiLanguage === 'ar' && 'font-arabic',
             )}
             dir={uiLanguage === 'ar' ? 'rtl' : 'ltr'}
+            lang={uiLanguage}
           >
             {author}
             {entry.death_year_hijri != null && (
-              <span className="text-stone-400" dir="ltr">
+              <span className="text-stone-400">
                 {' · '}
                 {t('tafsir_compare_died', uiLanguage)}{' '}
-                {entry.death_year_hijri} {t('tafsir_compare_hijri', uiLanguage)}
-                {entry.death_year_ce != null && ` / ${entry.death_year_ce} CE`}
+                {/* European digits inside an Arabic run reorder under UAX #9
+                    rule N2 unless isolated, which is what <bdi> is for. */}
+                <bdi>
+                  {entry.death_year_hijri} {t('tafsir_compare_hijri', uiLanguage)}
+                  {entry.death_year_ce != null && ` / ${entry.death_year_ce} CE`}
+                </bdi>
               </span>
             )}
           </div>
@@ -142,8 +148,9 @@ function SourceHeader({
             {eraLabel}
           </span>
         )}
-        <span className="text-xs text-stone-400 tabular-nums" dir="ltr">
-          {entry.word_count.toLocaleString()} {t('tafsir_compare_words', uiLanguage)}
+        <span className="text-xs text-stone-400 tabular-nums">
+          <bdi>{entry.word_count.toLocaleString()}</bdi>{' '}
+          {t('tafsir_compare_words', uiLanguage)}
         </span>
       </div>
     </div>
@@ -274,7 +281,7 @@ function ComparisonStats({
   return (
     <section className="rounded-xl border border-stone-200 bg-stone-50 p-4">
       <h3 className="flex items-center gap-1.5 text-sm font-semibold text-stone-800">
-        <Layers className="h-4 w-4 text-stone-500" />
+        <Layers className="h-4 w-4 text-stone-500" aria-hidden="true" />
         {t('tafsir_compare_overlap_title', uiLanguage)}
       </h3>
 
@@ -302,7 +309,7 @@ function ComparisonStats({
       {/* The API ships this wording; it is a content-policy requirement that an
           overlap figure never appears without it. Render it verbatim. */}
       <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-stone-500">
-        <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-px text-stone-400" />
+        <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-px text-stone-400" aria-hidden="true" />
         <span>{disclaimer}</span>
       </p>
 
@@ -405,7 +412,7 @@ export function TafsirComparison({ surah, ayah, className }: Props) {
     <div className={clsx('space-y-4', className)}>
       <header>
         <h2 className="flex items-center gap-2 text-base font-semibold text-stone-900">
-          <BookOpen className="h-4.5 w-4.5 text-primary-600" />
+          <BookOpen className="h-4.5 w-4.5 text-primary-600" aria-hidden="true" />
           {t('tafsir_compare_title', language)}
           <span className="text-sm font-normal text-stone-400 tabular-nums" dir="ltr">
             ({data.sources_returned} {t('tafsir_compare_sources_count', language)})
@@ -419,7 +426,7 @@ export function TafsirComparison({ surah, ayah, className }: Props) {
       {/* Filters. Sources are listed in the same chronological order as the
           entries so the control and the list stay legible against each other. */}
       <div className="flex flex-wrap items-center gap-1.5">
-        <Languages className="h-3.5 w-3.5 text-stone-400" />
+        <Languages className="h-3.5 w-3.5 text-stone-400" aria-hidden="true" />
         {(
           [
             ['all', t('tafsir_compare_all_languages', language)],
