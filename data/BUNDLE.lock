@@ -1,0 +1,22 @@
+{
+  "_comment": "Records the data bundle this checkout expects. The tarball itself is not in git (217 MB); build one with `make bundle-export`, or fetch the release asset named below, then `make bundle-restore BUNDLE=<path>`. restore_bundle.sh verifies every member against the bundle's own BUNDLE.json; compare that file's tarball.sha256 to the value here to confirm you have the bundle this commit was built against.",
+  "bundle_version": "20260924T023920Z",
+  "built_from_git_sha": "5672e8d",
+  "alembic_revision": "p5q6r7s8t9u0",
+  "counts": {
+    "postgres_rows": 206041,
+    "qdrant_points": 43652,
+    "surreal_statements": 607
+  },
+  "tarball": {
+    "name": "tadabbur-data-20260924T023920Z.tar.zst",
+    "sha256": "ad8427048f26282bff46193656ec8241bf5953c2674ecf1f9152c8e5e8af1210",
+    "bytes": 262140354
+  },
+  "contents": {
+    "postgres": "pg_dump -Fc \u2014 24 seeded tables",
+    "qdrant": "tafseer_chunks (37,416 pts) + quran_verses (6,236 pts), multilingual-e5-large, 1024-dim",
+    "surrealdb": "knowledge graph \u2014 124 story clusters, 319 events, 104 persons, 60 concept tags, incl. analyzer definitions",
+    "corpora": "data/raw (122M tafsir + QAC morphology), data/manifests, data/concepts"
+  }
+}

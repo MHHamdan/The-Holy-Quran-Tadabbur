@@ -26,6 +26,8 @@ data/*
 !data/raw/
 data/raw/*
 !data/raw/quran_uthmani.json
+# Which data bundle this checkout expects (the tarball itself stays out).
+!data/BUNDLE.lock
 
 # But INCLUDE streamlit_data for cloud deployment
 !streamlit_data/
