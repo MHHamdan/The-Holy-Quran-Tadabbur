@@ -311,14 +311,16 @@ def load_qac_file(path: Path) -> list[dict]:
             root_ar = _buckwalter_root_to_arabic(root_bw) if root_bw else None
             pos_ar = _qac_pos_to_arabic(tag, features)
 
-            # Convert Buckwalter form to Arabic (QAC ships Buckwalter forms)
-            # We store the Buckwalter form as-is; the UI will show Arabic from
-            # our quran_uthmani table, not from here.
+            # QAC ships Buckwalter forms. Storing them verbatim makes
+            # /vocabulary/lookup unmatchable, because callers query Arabic
+            # script. The Arabic form is filled in from mushaf_words after
+            # parsing (see _attach_arabic_forms); `form` is only the fallback
+            # when that table has not been seeded.
             entries.append({
                 'sura_no': sura_no,
                 'aya_no': aya_no,
                 'word_position': word_pos,
-                'word_ar': form,       # BW form — Arabic form comes from quran table
+                'word_ar': form,
                 'word_ar_bare': _strip_diacritics(form),
                 'root_ar': root_ar,
                 'pattern_ar': None,
@@ -368,7 +370,7 @@ def _build_seed_rows() -> list[dict]:
     return rows
 
 
-def _bulk_insert(session, rows: list[dict], curated: bool = False) -> int:
+def _bulk_insert(session, rows: list[dict], curated: bool = False, update_word_forms: bool = False) -> int:
     """Upsert rows; on duplicate (sura, aya, word_position) merge fields.
 
     curated=False (bulk QAC file): enrich-only — morphology (root/pattern/pos)
@@ -400,6 +402,12 @@ def _bulk_insert(session, rows: list[dict], curated: bool = False) -> int:
             'meaning_ar': func.coalesce(VocabEntry.meaning_ar, stmt.excluded.meaning_ar),
             'source_id': stmt.excluded.source_id,
         }
+    if update_word_forms:
+        # Only set by callers that verified the incoming form is Arabic script.
+        # Left out by default so a Buckwalter fallback can never overwrite a
+        # good Uthmani form already in the table.
+        set_['word_ar'] = stmt.excluded.word_ar
+        set_['word_ar_bare'] = stmt.excluded.word_ar_bare
     stmt = stmt.on_conflict_do_update(
         index_elements=['sura_no', 'aya_no', 'word_position'],
         set_=set_,
@@ -412,6 +420,47 @@ def _bulk_insert(session, rows: list[dict], curated: bool = False) -> int:
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
+
+def _attach_arabic_forms(session, rows: list[dict]) -> int:
+    """Replace Buckwalter forms with real Uthmani script from mushaf_words.
+
+    QAC is transliterated, but /vocabulary/lookup is queried with Arabic, so
+    rows keyed on a Buckwalter form can never be found. mushaf_words carries
+    the same (sura, aya, word_position) addressing with text_uthmani, and is
+    seeded from local data — so this needs no network, unlike
+    seed_vocabulary_complete.py which fetches the same forms from
+    api.qurancdn.com.
+
+    Returns the number of rows given an Arabic form.
+    """
+    from sqlalchemy import text as _sql
+
+    lookup = {
+        (r[0], r[1], r[2]): r[3]
+        for r in session.execute(_sql(
+            "SELECT sura_no, aya_no, word_pos, text_uthmani "
+            "FROM mushaf_words WHERE char_type = 'word'"
+        )).all()
+    }
+    if not lookup:
+        print('  WARNING: mushaf_words is empty — keeping Buckwalter forms. '
+              'Run scripts/ingest/seed_mushaf_words.py first, then re-run this '
+              'script, or /vocabulary/lookup will not match Arabic queries.')
+        return 0
+
+    attached = 0
+    for row in rows:
+        arabic = lookup.get((row['sura_no'], row['aya_no'], row['word_position']))
+        if arabic:
+            row['word_ar'] = arabic
+            row['word_ar_bare'] = _strip_diacritics(arabic)
+            row['_arabic'] = True
+            attached += 1
+    missing = len(rows) - attached
+    print(f'  Arabic forms attached from mushaf_words: {attached:,}'
+          + (f' ({missing:,} kept Buckwalter — no mushaf_words match)' if missing else ''))
+    return attached
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='Seed Quranic vocabulary entries')
@@ -433,6 +482,7 @@ def main() -> None:
             print(f'Loading full QAC data from {args.qac_file} ...')
             rows = load_qac_file(args.qac_file)
             print(f'  Parsed {len(rows):,} STEM morphemes')
+            _attach_arabic_forms(session, rows)
         else:
             print('Loading built-in seed data (curated — authoritative) ...')
             rows = _build_seed_rows()
@@ -442,14 +492,23 @@ def main() -> None:
             print('Dry run — no writes performed.')
             return
 
-        # Batch insert in chunks of 1000
+        # Rows that picked up an Arabic form from mushaf_words may correct
+        # word_ar/word_ar_bare in place; rows still on a Buckwalter fallback
+        # must not, or they would overwrite good Uthmani script.
+        with_arabic = [r for r in rows if r.pop('_arabic', False)]
+        without_arabic = [r for r in rows if not r.get('_arabic')]
+
         total = 0
         batch_size = 1000
-        for i in range(0, len(rows), batch_size):
-            batch = rows[i:i + batch_size]
-            count = _bulk_insert(session, batch, curated=curated)
-            total += count
-            print(f'  Inserted/updated batch {i // batch_size + 1}: {count} rows')
+        for group, update_forms in ((with_arabic, True), (without_arabic, False)):
+            for i in range(0, len(group), batch_size):
+                batch = group[i:i + batch_size]
+                count = _bulk_insert(
+                    session, batch, curated=curated, update_word_forms=update_forms,
+                )
+                total += count
+                print(f'  Inserted/updated batch {i // batch_size + 1}'
+                      f'{" (arabic)" if update_forms else ""}: {count} rows')
 
         print(f'Done — {total:,} rows written to vocabulary_entries.')
 
