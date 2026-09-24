@@ -5,8 +5,13 @@
   "language": "ar",
   "script": "uthmani",
   "recitation": "hafs_an_asim",
-  "license": "Public Domain",
-  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "license": "Creative Commons Attribution 3.0 (CC BY 3.0) — verbatim redistribution only",
+  "license_url": "https://tanzil.net/docs/text_license",
+  "license_status": "partially_verified",
+  "attribution_required": true,
+  "modification_allowed": false,
+  "attribution_notice": "Quran text from the Tanzil project (https://tanzil.net). Licensed CC BY 3.0. Verbatim copies only — modification of the text is not permitted. Attribution and a link to tanzil.net must be preserved wherever this text is displayed or redistributed.",
+  "license_notes": "Corrected 2026-09-23. This manifest previously declared 'Public Domain' with a CC0 URL, which overstated the grant: the Tanzil corpus is CC BY 3.0 with an explicit no-modification clause, and the KFGQPC-derived local corpus (local_hafs_smart) carries no verified licence. The effective terms are the most restrictive of the constituent sources. See sources[].license below.",
   "citation": "مجمع الملك فهد لطباعة المصحف الشريف — المدينة المنورة",
   "citation_en": "King Fahd Complex for the Printing of the Holy Quran, Madinah al-Munawwarah",
 
@@ -27,7 +32,10 @@
       "encoding": "utf-8",
       "description": "Local corpus verified against the King Fahd Madinah Mushaf. Uses Alef Wasla (ٱ) and full tashkeel (diacritics) matching the printed Mushaf exactly.",
       "is_primary": true,
-      "verified_against": "King Fahd Complex Madinah Mushaf (1404 AH edition)"
+      "verified_against": "King Fahd Complex Madinah Mushaf (1404 AH edition)",
+      "license": "Unverified",
+      "license_status": "unverified",
+      "license_notes": "Derived from King Fahd Complex (KFGQPC) digital output. KFGQPC publishes no machine-readable licence and its servers refuse automated retrieval, so the redistribution terms for this file could not be confirmed as of 2026-09-23. Treat as all-rights-reserved until written confirmation is obtained from KFGQPC. Blocks any public or commercial deployment that ships this file."
     },
     {
       "id": "tanzil_quran_uthmani",
@@ -37,7 +45,11 @@
       "encoding": "utf-8",
       "description": "Tanzil project digital corpus — a widely-used faithful digital reproduction of the Madinah Mushaf.",
       "license": "Creative Commons BY 3.0",
-      "notes": "Fallback/cross-reference source"
+      "license_url": "https://tanzil.net/docs/text_license",
+      "license_status": "verified",
+      "attribution_required": true,
+      "modification_allowed": false,
+      "notes": "Fallback/cross-reference source. Licence verified 2026-09-23 at https://tanzil.net/docs/text_license: verbatim copies may be copied and distributed, but changing the text is NOT allowed; the source must be indicated with a link to tanzil.net."
     }
   ],
 

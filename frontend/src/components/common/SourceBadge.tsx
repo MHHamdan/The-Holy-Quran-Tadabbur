@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { ShieldCheck, ShieldAlert, ShieldX, Clock, ExternalLink } from 'lucide-react';
-import { type ReliabilityLevel, type Source } from '../../data/sourceRegistry';
+import { isSourceDisplayBlocked, type ReliabilityLevel, type Source } from '../../data/sourceRegistry';
 import { t } from '../../i18n/translations';
 
 interface SourceBadgeProps {
@@ -77,6 +77,24 @@ interface SourceAttributionProps {
 export function SourceAttribution({ source, language = 'en', compact = false, className }: SourceAttributionProps) {
   const title = language === 'ar' ? source.titleArabic : source.titleEnglish;
   const isUnverified = source.lastVerifiedAt === 'unverified';
+
+  // Licence gate. A source whose terms forbid display is withheld here rather
+  // than at every call site, so the block cannot be bypassed by forgetting it.
+  if (isSourceDisplayBlocked(source)) {
+    return (
+      <div
+        className={clsx(
+          'flex items-start gap-2 rounded-lg border border-stone-300 bg-stone-100 px-3 py-2 text-xs text-stone-600',
+          className,
+        )}
+        role="note"
+        dir={language === 'ar' ? 'rtl' : 'ltr'}
+      >
+        <ShieldX className="h-4 w-4 shrink-0 mt-0.5 text-stone-500" />
+        <span>{t('source_license_blocked', language)}</span>
+      </div>
+    );
+  }
 
   if (compact) {
     return (

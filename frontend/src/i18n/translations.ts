@@ -887,6 +887,10 @@ export const translations: Translations = {
   source_unverified: { ar: 'غير موثق', en: 'Unverified' },
   source_verified_on: { ar: 'موثق بتاريخ', en: 'Verified' },
   source_link: { ar: 'المصدر', en: 'Source' },
+  source_license_blocked: {
+    ar: 'هذا المصدر محجوب حتى يتم التحقق من ترخيصه.',
+    en: 'This source is withheld pending licence verification.',
+  },
 
   // Accessibility / ARIA labels
   aria_helpful: { ar: 'مفيد', en: 'Helpful' },

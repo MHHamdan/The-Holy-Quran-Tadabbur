@@ -24,6 +24,18 @@ export type ReliabilityLevel =
   | 'supporting'  // Useful supplementary material; license pending or informal
   | 'experimental'; // Not yet validated for production display
 
+/**
+ * Licence clearance, tracked separately from scholarly reliability.
+ *
+ * A source can be scholarly impeccable and still be legally unshippable, so
+ * reliabilityLevel alone must never decide whether something is displayed.
+ */
+export type LicenseStatus =
+  | 'cleared'      // Terms confirmed at source and permit display in this product
+  | 'restricted'   // Terms confirmed but limit use (non-commercial, no-derivatives, ...)
+  | 'unverified'   // Terms could not be confirmed at source
+  | 'blocked';     // Must not be shown to users until cleared
+
 export interface Source {
   sourceId: string;
   titleArabic: string;
@@ -36,6 +48,11 @@ export interface Source {
   sourceUrl: string;
   lastVerifiedAt: string;   // ISO 8601 date string; 'unverified' if not yet checked
   notes: string;
+  /**
+   * Licence clearance. Optional for legacy entries; when absent, the display
+   * gate falls back to the 'DO NOT DISPLAY' marker in `notes`.
+   */
+  licenseStatus?: LicenseStatus;
 }
 
 // ---------------------------------------------------------------------------
@@ -52,10 +69,11 @@ export const SOURCE_REGISTRY: Source[] = [
     language: 'ar',
     type: 'quran_text',
     reliabilityLevel: 'canonical',
-    licenseOrTerms: 'Public domain — the text of the Quran is not subject to copyright',
+    licenseOrTerms: 'The revealed Arabic text is not subject to copyright. The digital transcription is governed by its distributor: AlQuran.Cloud permits free reproduction including commercially, with acknowledgement requested, on condition that Uthmani diacritics and orthography are preserved and the text is not commingled with non-Quranic text.',
     sourceUrl: 'https://api.alquran.cloud/v1/quran/quran-uthmani',
-    lastVerifiedAt: '2026-01-02',
-    notes: 'Uthmani rasm with full diacritics (tashkeel). Downloaded once and stored locally in data/raw/quran_uthmani.json. Never modify this file directly.',
+    lastVerifiedAt: '2026-09-23',
+    licenseStatus: 'cleared',
+    notes: 'Uthmani rasm with full diacritics (tashkeel). Downloaded once and stored locally in data/raw/quran_uthmani.json. Never modify this file directly. Distributor terms verified 2026-09-23 at alquran.cloud. The preserve-orthography and no-commingling conditions are already enforced by the content policy and the integrity validator.',
   },
   {
     sourceId: 'quran_hafs_local',
@@ -65,10 +83,11 @@ export const SOURCE_REGISTRY: Source[] = [
     language: 'ar',
     type: 'quran_text',
     reliabilityLevel: 'supporting',
-    licenseOrTerms: 'Public domain',
+    licenseOrTerms: 'Unverified. Derived from King Fahd Complex (KFGQPC) digital output; KFGQPC publishes no machine-readable licence and its servers refuse automated retrieval, so redistribution terms could not be confirmed.',
     sourceUrl: 'assets/hafs_smart_v8.json',
     lastVerifiedAt: 'unverified',
-    notes: 'Backup copy. Use quran_uthmani_cloud as primary. Do not serve this without cross-checking against the primary. Marked supporting until independently verified against quran_uthmani_cloud.',
+    licenseStatus: 'unverified',
+    notes: 'Backup copy. Use quran_uthmani_cloud as primary. Do not serve this without cross-checking against the primary. Marked supporting until independently verified against quran_uthmani_cloud. DEPLOYMENT RISK (assessed 2026-09-23): this file ships in the repo and backs the mushaf page layout, but its licence is unconfirmed — treat as all-rights-reserved until KFGQPC confirms in writing. Not blocked from display, because blanking it would break the reader; resolve before any public deployment. Same caveat applies to the KFGQPC glyph fonts.',
   },
 
   // === English Translations ===
@@ -80,10 +99,11 @@ export const SOURCE_REGISTRY: Source[] = [
     language: 'en',
     type: 'translation',
     reliabilityLevel: 'verified',
-    licenseOrTerms: 'Creative Commons Attribution-NonCommercial-NoDerivatives 3.0 (CC BY-NC-ND 3.0). Non-commercial use only, no modifications, attribution required.',
+    licenseOrTerms: 'All rights reserved by the translator/publisher. Tanzil serves it for non-commercial purposes only, with permission from the translator or publisher required for any other use. Attribution required; no modifications.',
     sourceUrl: 'https://tanzil.net/trans/en.sahih',
-    lastVerifiedAt: '2026-01-02',
-    notes: 'Primary English translation. Must be labeled as "Translation" in the UI — never displayed as Quran text itself. License prohibits commercial use.',
+    lastVerifiedAt: '2026-09-23',
+    licenseStatus: 'restricted',
+    notes: 'Primary English translation. Must be labeled as "Translation" in the UI — never displayed as Quran text itself. DEPLOYMENT BLOCKER: this is the hardwired English default across backend/app/core/config.py:107, services/cache_warmer.py:49, rag/retrieval.py:788, api/routes/quiz.py:175 and rag/source_validator.py:36, and it is non-commercial-only. Any public deployment that accepts donations or carries any commercial aspect needs a replacement default. Reassessed 2026-09-23: Tanzil applies a blanket non-commercial clause to every translation it hosts and grants nothing itself; the CC BY-NC-ND label previously recorded here understated this, as the underlying work is simply all-rights-reserved. Intended replacement: QuranEnc, the only bulk translation source found with an affirmative republication grant.',
   },
 
   // === Tafsir (Arabic) ===
@@ -125,10 +145,11 @@ export const SOURCE_REGISTRY: Source[] = [
     language: 'ar',
     type: 'tafsir',
     reliabilityLevel: 'supporting',
-    licenseOrTerms: 'License not yet confirmed. Requires permission from King Fahd Complex before use.',
+    licenseOrTerms: 'Published by the King Fahd Complex as waqf (endowed for free distribution). Freely redistributed by the Quran Foundation API and mirrored widely; no restrictive terms located at source. Attribution to KFGQPC required.',
     sourceUrl: 'https://api.quran-tafsir.com/tafsir/16',
-    lastVerifiedAt: 'unverified',
-    notes: 'DO NOT DISPLAY to users until license is verified. tafsir_id=16. Status: pending_user_input.',
+    lastVerifiedAt: '2026-09-23',
+    licenseStatus: 'restricted',
+    notes: 'tafsir_id=16. Production default for Arabic (see backend/app/core/config.py:107). Assessed 2026-09-23: KFGQPC waqf publication, low redistribution risk, no restrictive terms found. Residual caveat: qurancomplex.gov.sa refuses automated retrieval, so this is an assessment from downstream redistributors rather than a grant confirmed at source. Written confirmation from KFGQPC still wanted before commercial use. Previously carried a display block that contradicted its use as the production default.',
   },
   {
     sourceId: 'tafheem_mawdudi_en',
@@ -138,10 +159,11 @@ export const SOURCE_REGISTRY: Source[] = [
     language: 'en',
     type: 'tafsir',
     reliabilityLevel: 'experimental',
-    licenseOrTerms: 'License not yet confirmed. Status: pending_user_input.',
+    licenseOrTerms: 'All rights reserved. Tafhim-ul-Quran is actively published in English by Kube Publishing / The Islamic Foundation, which maintains a rights and permissions process. Not redistributable without written permission.',
     sourceUrl: 'https://api.quran-tafsir.com/tafsir/95',
-    lastVerifiedAt: 'unverified',
-    notes: 'DO NOT DISPLAY to users until license is verified. tafsir_id=95.',
+    lastVerifiedAt: '2026-09-23',
+    licenseStatus: 'blocked',
+    notes: 'DO NOT DISPLAY to users until license is verified. tafsir_id=95. Assessed 2026-09-23: confirmed under active commercial copyright (Mawdudi d. 1979); the English edition is sold by Kube Publishing. Requires written permission from the publisher, not merely from the API provider.',
   },
 
   // === Metadata & Internal Mappings ===
@@ -274,10 +296,10 @@ export const SOURCE_REGISTRY: Source[] = [
     language: 'en',
     type: 'lexicon',
     reliabilityLevel: 'experimental',
-    licenseOrTerms: 'Public domain — 19th century work. No digital edition rights issues expected. Available at lane.quran.com.',
-    sourceUrl: 'https://lane.quran.com',
+    licenseOrTerms: 'Public domain — compiled 1863-1893, Lane d. 1876. No digital edition rights expected for the original text.',
+    sourceUrl: 'https://archive.org/details/ArabicEnglishLexicon.CopiousEasternSources',
     lastVerifiedAt: 'unverified',
-    notes: 'DO NOT DISPLAY to users — no data integrated yet. The most comprehensive Arabic-English lexicon ever compiled — 8 volumes. Extensively cites Lisan Al-Arab and other classical sources. Standard English reference for Quranic Arabic.',
+    notes: 'DO NOT DISPLAY to users — no data integrated yet. The most comprehensive Arabic-English lexicon ever compiled — 8 volumes. Extensively cites Lisan Al-Arab and other classical sources. Standard English reference for Quranic Arabic. Registry corrected 2026-09-23: the previous sourceUrl (lane.quran.com) no longer resolves, and laneslexicon.org is also down. Two further caveats before integration — no structured JSON edition of Lane is known to exist, and Lane died at the letter qaf, so volumes VI-VIII are posthumous and materially incomplete.',
   },
   {
     sourceId: 'quranic_arabic_corpus',
@@ -286,11 +308,12 @@ export const SOURCE_REGISTRY: Source[] = [
     author: 'Kais Dukes, University of Leeds (2009–2011)',
     language: 'ar,en',
     type: 'lexicon',
-    reliabilityLevel: 'experimental',
-    licenseOrTerms: 'GNU General Public License (GPL). Open-source data available at corpus.quran.com.',
+    reliabilityLevel: 'verified',
+    licenseOrTerms: 'GNU General Public License (GPL), with the same verbatim-only clause as Tanzil: copies may be distributed but the annotation data may not be changed. Attribution and a link to corpus.quran.com required. (c) Kais Dukes.',
     sourceUrl: 'https://corpus.quran.com',
-    lastVerifiedAt: 'unverified',
-    notes: 'DO NOT DISPLAY to users — no data integrated yet. Word-by-word morphological and syntactic annotation of all 77,430 Quranic words. Modern digital resource; most permissive license among planned sources. Priority for morphology/root lookups.',
+    lastVerifiedAt: '2026-09-23',
+    licenseStatus: 'restricted',
+    notes: 'INTEGRATED AND LIVE. All 77,430 QAC v0.4 words are seeded and served via /api/v1/vocabulary (see backend/app/api/routes/vocabulary.py). Registry corrected 2026-09-23 — this entry previously carried a display block and claimed no data was integrated, which had been false since the Phase H vocabulary seeding. Constraint to respect: the no-modification clause means any normalised or derived form of the morphology must be stored alongside, not in place of, the verbatim original. Upstream is frozen (last release v0.4) and its syntactic layer covers only part of the Quran; EQTB (CC BY 4.0, complete) is the intended successor.',
   },
 
   // === Surah Atlas Metadata (Makki/Madani, English meanings) ===
@@ -370,13 +393,51 @@ export function getVerifiedSources(): Source[] {
   );
 }
 
+/**
+ * True when a source must not be rendered to users.
+ *
+ * An explicit licence block, or a 'DO NOT DISPLAY' marker in notes, overrides
+ * every other signal. The notes fallback keeps legacy entries (which predate
+ * `licenseStatus`) enforced rather than silently permitted.
+ *
+ * 'unverified' deliberately does NOT block. Unconfirmed terms are a deployment
+ * risk to resolve before shipping publicly, not a reason to blank the reader —
+ * they surface as the "unverified" badge in SourceAttribution instead.
+ */
+export const DISPLAY_BLOCK_MARKER = 'DO NOT DISPLAY';
+
+export function isSourceDisplayBlocked(source: Source): boolean {
+  if (source.licenseStatus === 'blocked') return true;
+  // Anchored to the start of `notes` on purpose: an unanchored substring match
+  // also fires on prose that merely refers to the marker.
+  return source.notes.trimStart().startsWith(DISPLAY_BLOCK_MARKER);
+}
+
+/**
+ * Display gate for content attribution.
+ *
+ * Gates on licence clearance first, then scholarly reliability. An unknown
+ * sourceId is never displayable — an unregistered source is an unattributable
+ * one, which the content policy forbids.
+ *
+ * 'supporting' is displayable: it is the level used for scholarly material
+ * whose licence is informal rather than absent, and it is what the production
+ * tafsir defaults sit at.
+ */
 export function isSourceSafeToDisplay(sourceId: string): boolean {
   const source = getSourceById(sourceId);
   if (!source) return false;
+  if (isSourceDisplayBlocked(source)) return false;
   return (
     source.reliabilityLevel === 'canonical' ||
-    source.reliabilityLevel === 'verified'
+    source.reliabilityLevel === 'verified' ||
+    source.reliabilityLevel === 'supporting'
   );
+}
+
+/** Every registry entry currently blocked from display, for admin/audit views. */
+export function getDisplayBlockedSources(): Source[] {
+  return SOURCE_REGISTRY.filter(isSourceDisplayBlocked);
 }
 
 // ---------------------------------------------------------------------------
@@ -416,13 +477,36 @@ export function validateSourceRegistry(registry: Source[]): string[] {
     seenIds.add(source.sourceId);
 
     // Experimental sources must have a warning in notes
-    if (source.reliabilityLevel === 'experimental' && !source.notes.includes('DO NOT DISPLAY')) {
-      errors.push(`Source "${source.sourceId}": experimental sources must include "DO NOT DISPLAY" warning in notes`);
+    if (source.reliabilityLevel === 'experimental' && !isSourceDisplayBlocked(source)) {
+      errors.push(`Source "${source.sourceId}": experimental sources must open notes with "${DISPLAY_BLOCK_MARKER}" or set licenseStatus="blocked"`);
     }
 
     // Unverified sources should not be canonical
     if (source.lastVerifiedAt === 'unverified' && source.reliabilityLevel === 'canonical') {
       errors.push(`Source "${source.sourceId}": cannot be "canonical" with lastVerifiedAt="unverified"`);
+    }
+
+    // A cleared licence and an active display block cannot both be true
+    if (source.licenseStatus === 'cleared' && isSourceDisplayBlocked(source)) {
+      errors.push(`Source "${source.sourceId}": licenseStatus="cleared" contradicts its display block`);
+    }
+
+    // The marker only takes effect at the start of notes; anywhere else it is
+    // inert prose and would give a false sense of being enforced.
+    if (
+      source.notes.includes(DISPLAY_BLOCK_MARKER) &&
+      !source.notes.trimStart().startsWith(DISPLAY_BLOCK_MARKER) &&
+      source.licenseStatus !== 'blocked'
+    ) {
+      errors.push(
+        `Source "${source.sourceId}": "${DISPLAY_BLOCK_MARKER}" appears mid-note and is not enforced. ` +
+        `Move it to the start of notes, or set licenseStatus="blocked".`,
+      );
+    }
+
+    // Experimental sources must be blocked at the licence layer too, not just by note
+    if (source.reliabilityLevel === 'experimental' && source.licenseStatus === 'cleared') {
+      errors.push(`Source "${source.sourceId}": experimental sources cannot have licenseStatus="cleared"`);
     }
   }
 
