@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users, Bookmark, Star, Flame, CalendarCheck, HandHeart, BookCopy, GraduationCap, Smile, BarChart2, PenLine, Baby, Wind, AlarmClock, Trophy, Lightbulb, GitCompare, FlipHorizontal2, Sigma, Scroll, Megaphone } from 'lucide-react';
+import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users, Bookmark, Star, Flame, CalendarCheck, HandHeart, BookCopy, GraduationCap, Smile, BarChart2, PenLine, Baby, Wind, AlarmClock, Trophy, Lightbulb, GitCompare, FlipHorizontal2, Sigma, Scroll, Megaphone, Columns3 } from 'lucide-react';
 import { useBookmarksStore } from '../../stores/bookmarksStore';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
@@ -34,6 +34,7 @@ export function Layout({ children }: LayoutProps) {
     { path: '/miracles', label: 'nav_miracles', icon: Sparkles },
     { path: '/asma-allah', label: 'nav_asma_allah', icon: Star },
     { path: '/similarity', label: 'nav_similarity', icon: Link2 },
+    { path: '/tafsir/compare', label: 'nav_tafsir_compare', icon: Columns3 },
     { path: '/search', label: 'nav_search', icon: Search },
     { path: '/ask', label: 'nav_ask', icon: MessageCircle },
     { path: '/tasmee', label: 'nav_tasmee', icon: Mic },

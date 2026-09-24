@@ -496,6 +496,126 @@ export const ALLAH_NAME_CATEGORIES: Record<AllahNameCategory, { ar: string; en: 
   "af'al": { ar: 'الأفعال', en: 'Actions' },
 };
 
+// ---------------------------------------------------------------------------
+// Multi-source tafsir comparison (local corpus)
+// ---------------------------------------------------------------------------
+
+/**
+ * One source's tafsir for a verse, with the provenance needed to attribute it.
+ *
+ * Served from the seeded corpus, not a third-party API, so `chunkId` resolves
+ * to a stored chunk and the citation is stable.
+ */
+export interface TafsirComparisonEntry {
+  source_id: string;
+  name_ar: string;
+  name_en: string;
+  author_ar: string | null;
+  author_en: string | null;
+  language: 'ar' | 'en';
+  era: string | null;
+  era_label_ar: string | null;
+  era_label_en: string | null;
+  death_year_hijri: number | null;
+  death_year_ce: number | null;
+  methodology: string | null;
+  methodology_label_ar: string | null;
+  methodology_label_en: string | null;
+  description_ar: string | null;
+  description_en: string | null;
+  strengths: string[];
+  reliability_score: number | null;
+  license_type: string | null;
+  license_verified: boolean;
+  chunk_id: string;
+  text: string;
+  word_count: number;
+  char_count: number;
+  scholarly_consensus: string | null;
+  covers_ayat: string;
+}
+
+/**
+ * Descriptive statistics over the retrieved texts.
+ *
+ * `lexical_overlap` is shared vocabulary between two same-language texts. It
+ * is NOT a claim that scholars agree; always render it with the disclaimer
+ * the API supplies rather than inventing wording for it.
+ */
+export interface TafsirComparisonStats {
+  methodology_groups: Record<string, string[]>;
+  length: {
+    shortest_source_id?: string;
+    shortest_word_count?: number;
+    longest_source_id?: string;
+    longest_word_count?: number;
+    total_word_count?: number;
+  };
+  lexical_overlap: Array<{
+    a: string;
+    b: string;
+    language: 'ar' | 'en';
+    jaccard: number;
+  }>;
+  disclaimer_ar: string;
+  disclaimer_en: string;
+}
+
+export interface TafsirComparisonResponse {
+  ok: boolean;
+  verse_key: string;
+  surah: number;
+  ayah: number;
+  verse: {
+    text_uthmani: string | null;
+    sura_name_ar: string | null;
+    sura_name_en: string | null;
+  };
+  sources_returned: number;
+  entries: TafsirComparisonEntry[];
+  comparison: TafsirComparisonStats;
+}
+
+export type TafsirComparisonSource = Pick<
+  TafsirComparisonEntry,
+  | 'source_id' | 'name_ar' | 'name_en' | 'author_ar' | 'author_en' | 'language'
+  | 'era' | 'era_label_ar' | 'era_label_en' | 'death_year_hijri'
+  | 'death_year_ce' | 'methodology' | 'methodology_label_ar'
+  | 'methodology_label_en' | 'word_count' | 'license_verified'
+>;
+
+export interface TafsirComparisonSourcesResponse {
+  ok: boolean;
+  verse_key: string;
+  sources: TafsirComparisonSource[];
+  total: number;
+}
+
+export const tafsirComparisonApi = {
+  /** Every seeded tafsir for one verse, oldest author first. */
+  compare: (
+    surah: number,
+    ayah: number,
+    opts?: { sources?: string[]; language?: 'ar' | 'en' },
+  ) =>
+    api.get<TafsirComparisonResponse>(`/tafseer/compare/${surah}/${ayah}`, {
+      params: {
+        sources: opts?.sources?.length ? opts.sources.join(',') : undefined,
+        language: opts?.language,
+      },
+    }),
+
+  /**
+   * Which sources cover this verse, without their text — the full payload runs
+   * to tens of thousands of words on heavily commented verses, so pickers and
+   * counts should use this instead.
+   */
+  listSources: (surah: number, ayah: number) =>
+    api.get<TafsirComparisonSourcesResponse>(
+      `/tafseer/compare/${surah}/${ayah}/sources`,
+    ),
+};
+
 // API functions
 export const quranApi = {
   getSuraVerses: (suraNo: number) =>

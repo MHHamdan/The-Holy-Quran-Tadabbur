@@ -887,6 +887,43 @@ export const translations: Translations = {
   source_unverified: { ar: 'غير موثق', en: 'Unverified' },
   source_verified_on: { ar: 'موثق بتاريخ', en: 'Verified' },
   source_link: { ar: 'المصدر', en: 'Source' },
+  nav_tafsir_compare: { ar: 'مقارنة التفاسير', en: 'Compare Tafsir' },
+
+  // Multi-source tafsir comparison
+  tafsir_compare_title: { ar: 'مقارنة التفاسير', en: 'Compare Tafsir' },
+  tafsir_compare_subtitle: {
+    ar: 'كل تفسير متاح لهذه الآية، مرتّبًا من الأقدم إلى الأحدث',
+    en: 'Every available tafsir for this verse, oldest scholar first',
+  },
+  tafsir_compare_sources_count: { ar: 'مصادر', en: 'sources' },
+  tafsir_compare_words: { ar: 'كلمة', en: 'words' },
+  tafsir_compare_total_words: { ar: 'إجمالي الكلمات', en: 'Total words' },
+  tafsir_compare_died: { ar: 'ت', en: 'd.' },
+  tafsir_compare_hijri: { ar: 'هـ', en: 'AH' },
+  tafsir_compare_show_more: { ar: 'عرض المزيد', en: 'Show more' },
+  tafsir_compare_show_less: { ar: 'عرض أقل', en: 'Show less' },
+  tafsir_compare_all_languages: { ar: 'كل اللغات', en: 'All languages' },
+  tafsir_compare_arabic_only: { ar: 'العربية فقط', en: 'Arabic only' },
+  tafsir_compare_english_only: { ar: 'الإنجليزية فقط', en: 'English only' },
+  tafsir_compare_methodology: { ar: 'المنهج', en: 'Method' },
+  tafsir_compare_overlap_title: { ar: 'التشابه اللفظي', en: 'Lexical overlap' },
+  tafsir_compare_overlap_shared: { ar: 'ألفاظ مشتركة', en: 'shared wording' },
+  tafsir_compare_shortest: { ar: 'الأقصر', en: 'Shortest' },
+  tafsir_compare_longest: { ar: 'الأطول', en: 'Longest' },
+  tafsir_compare_loading: { ar: 'جارٍ تحميل التفاسير…', en: 'Loading tafsir…' },
+  tafsir_compare_error: {
+    ar: 'تعذّر تحميل التفاسير لهذه الآية.',
+    en: 'Could not load tafsir for this verse.',
+  },
+  tafsir_compare_empty: {
+    ar: 'لا يوجد تفسير مُخزَّن لهذه الآية.',
+    en: 'No stored tafsir for this verse.',
+  },
+  tafsir_compare_retry: { ar: 'إعادة المحاولة', en: 'Retry' },
+  tafsir_compare_copy_citation: { ar: 'نسخ الاستشهاد', en: 'Copy citation' },
+  tafsir_compare_citation_copied: { ar: 'تم النسخ', en: 'Copied' },
+  tafsir_compare_filter_all: { ar: 'الكل', en: 'All' },
+
   source_license_blocked: {
     ar: 'هذا المصدر محجوب حتى يتم التحقق من ترخيصه.',
     en: 'This source is withheld pending licence verification.',

@@ -67,6 +67,7 @@ const ThemeAdminPage = lazy(() => import('./pages/ThemeAdminPage').then(m => ({ 
 const MiraclesPage = lazy(() => import('./pages/MiraclesPage').then(m => ({ default: m.MiraclesPage })));
 const SimilarityPage = lazy(() => import('./pages/SimilarityPage').then(m => ({ default: m.SimilarityPage })));
 const SourcesPage = lazy(() => import('./pages/SourcesPage').then(m => ({ default: m.SourcesPage })));
+const TafsirComparePage = lazy(() => import('./pages/TafsirComparePage').then(m => ({ default: m.TafsirComparePage })));
 
 // Tasmeeʿ (Memorization) - Audio recording with STT
 const TasmeePage = lazy(() => import('./pages/TasmeePage'));
@@ -282,6 +283,8 @@ function App() {
           <Route path="/miracles" element={<MiraclesPage />} />
           <Route path="/similarity" element={<SimilarityPage />} />
           <Route path="/sources" element={<SourcesPage />} />
+          <Route path="/tafsir/compare" element={<TafsirComparePage />} />
+          <Route path="/tafsir/compare/:surah/:ayah" element={<TafsirComparePage />} />
 
           {/* Surah Atlas */}
           <Route path="/surah-atlas" element={<SurahAtlasPage />} />
