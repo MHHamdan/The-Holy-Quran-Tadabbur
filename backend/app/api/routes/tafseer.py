@@ -16,9 +16,10 @@ Endpoints:
 - GET /surah/{surah} - Get tafseer for entire surah
 - GET /health - Check tafseer service health
 """
-from typing import List, Optional
-from fastapi import APIRouter, Query, HTTPException, Response
+from typing import Any, Dict, List, Optional
+from fastapi import APIRouter, Depends, Query, HTTPException, Response
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 import asyncio
 import hashlib
@@ -31,6 +32,8 @@ from app.services.tafseer_api import (
 )
 from app.services.tafsir_api import external_tafsir_service, tafsir_llm_service, TAFSIR_EDITIONS
 from app.services.redis_cache import get_hybrid_cache
+from app.services.tafsir_comparison import tafsir_comparison_service
+from app.db.database import get_async_session
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -556,6 +559,111 @@ async def compare_external_tafsirs(
         "tafsirs": results,
         "editions_requested": len(edition_list),
         "editions_found": len(results),
+    }
+
+
+@router.get("/compare/{surah}/{ayah}")
+async def compare_seeded_tafsirs(
+    surah: int,
+    ayah: int,
+    response: Response,
+    sources: Optional[str] = Query(
+        None,
+        description="Comma-separated source ids (default: every enabled source)",
+    ),
+    language: Optional[str] = Query(
+        None, pattern="^(ar|en)$", description="Restrict to one language"
+    ),
+    session: AsyncSession = Depends(get_async_session),
+) -> Dict[str, Any]:
+    """
+    Compare every seeded tafsir for one verse, side by side.
+
+    Unlike /external/compare, this reads the local corpus — all six seeded
+    sources across all 6,236 verses — so it needs no third-party API and
+    returns the chunk_id of each passage for citation.
+
+    Entries are ordered oldest author first, and each carries its author, era,
+    death year, methodology and licence status. The `comparison` block reports
+    descriptive statistics only; see the disclaimer it carries.
+
+    Arabic: مقارنة التفاسير المتاحة لآية واحدة
+    """
+    if not 1 <= surah <= 114:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "INVALID_SURAH",
+                "message": "Surah must be between 1 and 114",
+                "message_ar": "رقم السورة يجب أن يكون بين 1 و 114",
+            },
+        )
+    if ayah < 1:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "INVALID_AYAH",
+                "message": "Ayah must be 1 or greater",
+                "message_ar": "رقم الآية يجب أن يكون 1 أو أكثر",
+            },
+        )
+
+    source_ids = [s.strip() for s in sources.split(",") if s.strip()] if sources else None
+
+    result = await tafsir_comparison_service.compare_verse(
+        session, surah=surah, ayah=ayah, source_ids=source_ids, language=language
+    )
+
+    if not result["entries"]:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "NO_TAFSIR_FOUND",
+                "message": f"No seeded tafsir found for {surah}:{ayah}",
+                "message_ar": f"لا يوجد تفسير مُخزَّن للآية {surah}:{ayah}",
+            },
+        )
+
+    # Seeded tafsir is immutable once ingested (see models/tafseer.py), so it
+    # is safe to cache hard.
+    response.headers["Cache-Control"] = "public, max-age=86400"
+    return result
+
+
+@router.get("/compare/{surah}/{ayah}/sources")
+async def list_comparable_sources(
+    response: Response,
+    surah: int,
+    ayah: int,
+    session: AsyncSession = Depends(get_async_session),
+) -> Dict[str, Any]:
+    """
+    List which sources carry tafsir for this verse, without their text.
+
+    Lets the UI render source pickers and counts before paying for the full
+    payload, which runs to tens of thousands of words on well-commented verses.
+
+    Arabic: قائمة المصادر المتاحة للآية
+    """
+    result = await tafsir_comparison_service.compare_verse(session, surah=surah, ayah=ayah)
+    response.headers["Cache-Control"] = "public, max-age=86400"
+    return {
+        "ok": True,
+        "verse_key": result["verse_key"],
+        "sources": [
+            {
+                k: entry[k]
+                for k in (
+                    "source_id", "name_ar", "name_en", "author_ar", "author_en",
+                    "language", "era", "era_label_ar", "era_label_en",
+                    "death_year_hijri", "death_year_ce", "methodology",
+                    "methodology_label_ar", "methodology_label_en",
+                    "word_count", "license_verified",
+                )
+            }
+            for entry in result["entries"]
+        ],
+        "total": result["sources_returned"],
     }
 
 
