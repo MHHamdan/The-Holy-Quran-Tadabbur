@@ -22,9 +22,44 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 PID_DIR="$PROJECT_DIR/.pids"
 LOG_DIR="$PROJECT_DIR/logs"
 
-HOST_IP="172.24.50.21"
-BACKEND_PORT=8002
-FRONTEND_PORT=3000
+# Primary LAN address, detected rather than hardcoded. This used to be pinned
+# to 172.24.50.21; the host now answers on 172.24.50.31, so every readiness
+# probe dialled an address that does not exist here and reported the API and
+# frontend as "not ready" however healthy they were, while the banner printed
+# URLs nobody could open. Export TADABBUR_HOST_IP to override.
+detect_host_ip() {
+    local ip
+    ip="$(ip -4 route get 1.1.1.1 2>/dev/null | grep -oP 'src \K\S+' || true)"
+    [[ -z "$ip" ]] && ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
+    printf '%s' "${ip:-127.0.0.1}"
+}
+
+HOST_IP="${TADABBUR_HOST_IP:-$(detect_host_ip)}"
+
+# Ports come from one file so the Makefile, this script and .env cannot drift.
+# See the header of scripts/ports.env for why this block was chosen.
+# shellcheck source=./ports.env
+source "$SCRIPT_DIR/ports.env"
+
+BACKEND_PORT="$TADABBUR_BACKEND_PORT"
+FRONTEND_PORT="$TADABBUR_FRONTEND_PORT"
+POSTGRES_PORT="$TADABBUR_POSTGRES_PORT"
+QDRANT_HTTP_PORT="$TADABBUR_QDRANT_HTTP_PORT"
+QDRANT_GRPC_PORT="$TADABBUR_QDRANT_GRPC_PORT"
+REDIS_PORT="$TADABBUR_REDIS_PORT"
+SURREAL_PORT="$TADABBUR_SURREAL_PORT"
+
+# Datastore URLs every child process inherits, built from the ports above so a
+# stale default in config.py or a service module can never point a Tadabbur
+# process at another platform's database.
+export DATABASE_URL="postgresql://tadabbur:tadabbur_dev@localhost:${POSTGRES_PORT}/tadabbur"
+export QDRANT_HOST="localhost"
+export QDRANT_PORT="$QDRANT_HTTP_PORT"
+export QDRANT_URL="http://localhost:${QDRANT_HTTP_PORT}"
+export REDIS_URL="redis://localhost:${REDIS_PORT}/0"
+export SURREAL_HOST="localhost"
+export SURREAL_PORT="$SURREAL_PORT"
+export SURREAL_URL="http://localhost:${SURREAL_PORT}"
 
 # All Python sub-processes must see Tadabbur's app/ before the conda .pth injects
 # LEXIFORGE/backend onto sys.path.
@@ -57,7 +92,13 @@ die() { printf '\n%b✗ FATAL:%b %s\n\n' "$RED" "$NC" "$*" >&2; exit 1; }
 
 write_pid() { printf '%s\n' "$2" > "$PID_DIR/$1.pid"; }
 
-port_pid() { lsof -ti :"$1" 2>/dev/null | head -1 || true; }
+# PID of the process LISTENING on a port.
+#
+# -sTCP:LISTEN is essential: a bare `lsof -ti :PORT` also matches processes that
+# merely hold a client connection to it. Another platform's service that had an
+# open connection to Ollama on 11434 was therefore recorded as our ollama PID,
+# and stop_all.sh then killed that unrelated service. Only the listener counts.
+port_pid() { lsof -ti :"$1" -sTCP:LISTEN 2>/dev/null | head -1 || true; }
 
 # Wait until host:port accepts TCP, or timeout.
 # Optional 5th arg: a PID to watch — exits early if the process dies.
@@ -81,10 +122,41 @@ wait_for_port() {
     printf ' %bready%b\n' "$GREEN" "$NC"
 }
 
+# True when the running container already publishes every host port that this
+# invocation's -p arguments ask for.
+container_ports_match() {
+    local name="$1"; shift
+    local published arg want
+
+    published="$(podman inspect \
+        --format '{{range $p, $c := .NetworkSettings.Ports}}{{range $c}}{{.HostPort}} {{end}}{{end}}' \
+        "$name" 2>/dev/null || true)"
+
+    while [[ $# -gt 0 ]]; do
+        if [[ "$1" == "-p" ]]; then
+            # Accepts "host:ctr" and "0.0.0.0:host:ctr".
+            arg="${2//\"/}"
+            want="$(printf '%s' "$arg" | awk -F: '{print $(NF-1)}')"
+            if [[ -n "$want" ]] && ! grep -qw "$want" <<<"$published"; then
+                return 1
+            fi
+            shift 2
+            continue
+        fi
+        shift
+    done
+    return 0
+}
+
 # Start a named Podman container.
 #   • Already running  → record PID, skip.
 #   • Exists but stopped (possibly with stale resource limits) → rm + recreate.
 #   • Does not exist   → create fresh.
+#
+# A running container is only reused when it already publishes the host ports
+# this run expects. Without that check, editing scripts/ports.env would appear
+# to work while every datastore stayed on its old, possibly contended port,
+# because "already running" skipped the remap.
 start_container() {
     local name="$1"; shift
     local short="${name#tadabbur-}"
@@ -92,9 +164,15 @@ start_container() {
     local status
     status=$(podman inspect --format '{{.State.Status}}' "$name" 2>/dev/null || echo "absent")
 
+    if [[ "$status" == "running" ]] && ! container_ports_match "$name" "$@"; then
+        echo -e "  ${YELLOW}~${NC} $name is on stale ports — recreating to match ports.env"
+        podman rm -f "$name" >/dev/null 2>&1 || true
+        status="absent"
+    fi
+
     case "$status" in
         running)
-            echo -e "  ${YELLOW}~${NC} $name already running — updating PID file"
+            echo -e "  ${YELLOW}~${NC} $name already running on the expected ports"
             ;;
         absent)
             if ! podman run -d --name "$name" "$@" >> "$LOG_DIR/podman.log" 2>&1; then
@@ -136,8 +214,8 @@ print_banner() {
         "$GREEN" "$NC" "$BLUE" "$HOST_IP" "$BACKEND_PORT"  "$NC" "$GREEN" "$NC"
     printf '%b║%b  API Docs    %bhttp://%s:%s/docs%b                 %b║%b\n' \
         "$GREEN" "$NC" "$BLUE" "$HOST_IP" "$BACKEND_PORT"  "$NC" "$GREEN" "$NC"
-    printf '%b║%b  Qdrant      %bhttp://localhost:6333%b                        %b║%b\n' \
-        "$GREEN" "$NC" "$BLUE" "$NC" "$GREEN" "$NC"
+    printf '%b║%b  Qdrant      %bhttp://localhost:%s%b                       %b║%b\n' \
+        "$GREEN" "$NC" "$BLUE" "$QDRANT_HTTP_PORT" "$NC" "$GREEN" "$NC"
     printf '%b╚══════════════════════════════════════════════════════════╝%b\n' "$GREEN" "$NC"
     echo ""
 }
@@ -155,6 +233,84 @@ echo ""
 podman info >/dev/null 2>&1 || die "Podman is not running.
   Start with: systemctl --user start podman.socket
   Or enable:  systemctl --user enable --now podman.socket"
+
+# ── 0. Port preflight ─────────────────────────────────────────────────────────
+# Several unrelated platforms share this machine. Before touching anything,
+# check that nothing other than Tadabbur itself holds a port we are about to
+# bind, and say exactly who does. Previously a taken port surfaced as an opaque
+# "rootlessport bind: address already in use" from deep inside Podman, or worse,
+# as a readiness timeout after the run had already half-reconfigured things.
+preflight_ports() {
+    local conflicts=0 entry port label pid owner
+
+    for entry in \
+        "$FRONTEND_PORT:frontend" \
+        "$BACKEND_PORT:backend API" \
+        "$POSTGRES_PORT:postgres" \
+        "$QDRANT_HTTP_PORT:qdrant HTTP" \
+        "$QDRANT_GRPC_PORT:qdrant gRPC" \
+        "$REDIS_PORT:redis" \
+        "$SURREAL_PORT:surrealdb"
+    do
+        port="${entry%%:*}"; label="${entry#*:}"
+        pid="$(port_pid "$port")"
+        [[ -z "$pid" ]] && continue
+
+        owner="$(ps -p "$pid" -o comm= 2>/dev/null || echo unknown)"
+
+        # Ours already, or Podman's published-port shim for our own container.
+        if is_own_process "$pid" "$owner"; then
+            continue
+        fi
+
+        printf '  %b✗%b %s port %s is held by %s (PID %s) — not a Tadabbur process\n' \
+            "$RED" "$NC" "$label" "$port" "$owner" "$pid"
+        conflicts=$((conflicts + 1))
+    done
+
+    if [[ $conflicts -gt 0 ]]; then
+        die "$conflicts port(s) are owned by another platform.
+  Tadabbur's ports are defined in scripts/ports.env — change the value there,
+  or export e.g. TADABBUR_BACKEND_PORT=19801 before running make start.
+  Nothing was started, so no other platform was disturbed."
+    fi
+
+    printf '  %b✓%b  all 7 Tadabbur ports clear (%s)\n' "$GREEN" "$NC" \
+        "frontend ${FRONTEND_PORT}, api ${BACKEND_PORT}, pg ${POSTGRES_PORT}, qdrant ${QDRANT_HTTP_PORT}/${QDRANT_GRPC_PORT}, redis ${REDIS_PORT}, surreal ${SURREAL_PORT}"
+}
+
+# True when the PID on one of our ports is Tadabbur's own.
+#
+# The listener is often a child of what we recorded — `npm run dev` is the PID
+# in frontend.pid, but the socket belongs to the node process it spawns — so
+# the parent chain is walked, not just the PID itself. Podman's published-port
+# shims front our own containers and count as ours too.
+is_own_process() {
+    local pid="$1" owner="$2" pidfile recorded cursor depth
+
+    if [[ "$owner" == "rootlessport" || "$owner" == "pasta" || "$owner" == "slirp4netns" ]]; then
+        return 0
+    fi
+
+    for pidfile in "$PID_DIR"/*.pid; do
+        [[ -f "$pidfile" ]] || continue
+        recorded="$(head -1 "$pidfile" 2>/dev/null || true)"
+        [[ "$recorded" =~ ^[0-9]+$ ]] || continue
+
+        cursor="$pid"
+        depth=0
+        while [[ "$cursor" =~ ^[0-9]+$ ]] && [[ "$cursor" -gt 1 ]] && [[ $depth -lt 8 ]]; do
+            [[ "$cursor" == "$recorded" ]] && return 0
+            cursor="$(ps -o ppid= -p "$cursor" 2>/dev/null | tr -d ' ')"
+            depth=$((depth + 1))
+        done
+    done
+    return 1
+}
+
+echo -e "${GREEN}[0/5] Port preflight${NC}"
+preflight_ports
+echo ""
 
 # ── 1. Volumes ────────────────────────────────────────────────────────────────
 echo -e "${GREEN}[1/5] Volumes${NC}"
@@ -185,7 +341,7 @@ start_container tadabbur-postgres \
     -e POSTGRES_PASSWORD=tadabbur_dev \
     -e POSTGRES_DB=tadabbur \
     -e POSTGRES_INITDB_ARGS="--encoding=UTF8" \
-    -p 5432:5432 \
+    -p "0.0.0.0:${POSTGRES_PORT}:5432" \
     -v tadabbur_postgres_data:/var/lib/postgresql/data \
     docker.io/library/postgres:15-alpine \
     postgres \
@@ -201,14 +357,14 @@ start_container tadabbur-postgres \
 # Publish explicitly to 0.0.0.0 so the port is reachable on all interfaces,
 # not just loopback (Podman's rootless default is 127.0.0.1-only).
 start_container tadabbur-qdrant \
-    -p 0.0.0.0:6333:6333 \
-    -p 0.0.0.0:6334:6334 \
+    -p "0.0.0.0:${QDRANT_HTTP_PORT}:6333" \
+    -p "0.0.0.0:${QDRANT_GRPC_PORT}:6334" \
     -v tadabbur_qdrant_data:/qdrant/storage \
     docker.io/qdrant/qdrant:v1.7.4
 
 # ── Redis ──
 start_container tadabbur-redis \
-    -p 6379:6379 \
+    -p "0.0.0.0:${REDIS_PORT}:6379" \
     -v tadabbur_redis_data:/data \
     docker.io/library/redis:7-alpine \
     redis-server \
@@ -221,7 +377,7 @@ start_container tadabbur-redis \
 # ── SurrealDB ──
 start_container tadabbur-surrealdb \
     --user root \
-    -p 8529:8000 \
+    -p "0.0.0.0:${SURREAL_PORT}:8000" \
     docker.io/surrealdb/surrealdb:v1.5.0 \
     start --log trace --user root --pass root memory
 
@@ -269,7 +425,7 @@ if [[ "$_verse_count" == "0" ]]; then
 
     # 2. Normalize text for search
     python -c "
-import re, sys; sys.path.insert(0,'backend')
+import os, re, sys; sys.path.insert(0,'backend')
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 def norm(t):
@@ -277,7 +433,7 @@ def norm(t):
     t=re.sub(r'[ً-ٰٟ]','',t)
     t=re.sub(r'[آأإٱ]','ا',t)
     return t.replace('ة','ه').replace('ى','ي').strip()
-e=create_engine('postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur')
+e=create_engine(os.environ['DATABASE_URL'])
 s=Session(e)
 rows=s.execute(text('SELECT id,text_uthmani FROM quran_verses')).all()
 s.execute(text('UPDATE quran_verses SET text_normalized=:n WHERE id=:i'),[{'i':r,'n':norm(t or '')} for r,t in rows])
@@ -305,10 +461,12 @@ echo ""
 echo -e "${GREEN}[4/5] Application services${NC}"
 
 # Ollama LLM server — required for the Ask/RAG feature
-existing=$(port_pid 11434)
+existing=$(port_pid "$TADABBUR_OLLAMA_PORT")
 if [[ -n "$existing" ]]; then
-    echo -e "  ${YELLOW}~${NC} ollama already on :11434 (PID ${existing}) — updating PID file"
-    write_pid "ollama" "$existing"
+    echo -e "  ${YELLOW}~${NC} ollama already on :${TADABBUR_OLLAMA_PORT} (PID ${existing}) — shared service, reusing"
+    # Recorded as shared, not owned: Ollama is machine-wide and other platforms
+    # depend on it, so stop_all.sh must leave a reused instance running.
+    printf 'shared:%s\n' "$existing" > "$PID_DIR/ollama.pid"
 elif ! command -v ollama >/dev/null 2>&1; then
     echo -e "  ${YELLOW}~${NC} ollama not installed — Ask page will be unavailable"
 else
@@ -320,18 +478,34 @@ else
     sleep 2
 fi
 
-# Backend (uvicorn) — PYTHONPATH already exported
-existing=$(port_pid "$BACKEND_PORT")
-if [[ -n "$existing" ]]; then
-    echo -e "  ${YELLOW}~${NC} backend already on :${BACKEND_PORT} (PID ${existing}) — updating PID file"
-    write_pid "backend" "$existing"
-else
+# Backend (uvicorn) — PYTHONPATH already exported.
+#
+# A process holding the port is not the same as a working API: a half-dead or
+# wedged uvicorn keeps the socket bound, and simply recording its PID used to
+# make the run "succeed" here and then fail the readiness check 60s later. The
+# port holder is asked for /health first, and only a real answer counts as up.
+start_backend() {
     cd "$PROJECT_DIR/backend"
     uvicorn app.main:app --host 0.0.0.0 --port "$BACKEND_PORT" \
         >> "$LOG_DIR/backend.log" 2>&1 &
-    _pid=$!
-    write_pid "backend" "$_pid"
-    echo -e "  ${GREEN}✓${NC} backend started (PID $_pid)"
+    local pid=$!
+    write_pid "backend" "$pid"
+    echo -e "  ${GREEN}✓${NC} backend started (PID $pid)"
+}
+
+existing=$(port_pid "$BACKEND_PORT")
+if [[ -z "$existing" ]]; then
+    start_backend
+elif curl -fsS -m 5 "http://localhost:${BACKEND_PORT}/health" >/dev/null 2>&1; then
+    echo -e "  ${YELLOW}~${NC} backend already healthy on :${BACKEND_PORT} (PID ${existing}) — updating PID file"
+    write_pid "backend" "$existing"
+else
+    echo -e "  ${YELLOW}~${NC} backend on :${BACKEND_PORT} (PID ${existing}) is not answering /health — replacing it"
+    kill "$existing" 2>/dev/null || true
+    sleep 2
+    kill -9 "$existing" 2>/dev/null || true
+    sleep 1
+    start_backend
 fi
 
 # Frontend (Vite dev server) — always kill stale process and start fresh
@@ -351,18 +525,52 @@ _pid=$!
 write_pid "frontend" "$_pid"
 echo -e "  ${GREEN}✓${NC} frontend started fresh (PID $_pid)"
 
-# RQ worker — PYTHONPATH already exported; Redis is process-to-process (localhost ok)
-existing=$(pgrep -f "rq.cli worker" 2>/dev/null | head -1 || true)
+# RQ worker.
+#
+# Matched on our own Redis URL, not on "rq.cli worker" alone: that pattern also
+# matches another platform's worker on this host, and it let a worker still
+# attached to the old shared Redis on 6379 survive a port change and keep
+# consuming from a queue that is no longer ours.
+_rq_url="redis://localhost:${REDIS_PORT}/0"
+existing=$(pgrep -f "rq.cli worker --url ${_rq_url}" 2>/dev/null | head -1 || true)
+_rq_stale=$(pgrep -f "rq.cli worker" 2>/dev/null \
+    | grep -v "^${existing:-0}$" | head -1 || true)
+
+if [[ -n "$_rq_stale" ]] \
+   && tr '\0' ' ' < "/proc/$_rq_stale/cmdline" 2>/dev/null | grep -q "$PROJECT_DIR\|rq.cli worker" \
+   && ! tr '\0' ' ' < "/proc/$_rq_stale/cmdline" 2>/dev/null | grep -q "$_rq_url"; then
+    echo -e "  ${YELLOW}~${NC} rq-worker (PID ${_rq_stale}) is on a stale Redis — replacing it"
+    kill "$_rq_stale" 2>/dev/null || true
+    sleep 1
+    kill -9 "$_rq_stale" 2>/dev/null || true
+    existing=""
+fi
+
 if [[ -n "$existing" ]]; then
-    echo -e "  ${YELLOW}~${NC} rq-worker already running (PID ${existing}) — updating PID file"
+    echo -e "  ${YELLOW}~${NC} rq-worker already on ${_rq_url} (PID ${existing})"
     write_pid "rq-worker" "$existing"
 else
-    cd "$PROJECT_DIR/backend"
-    python -m rq.cli worker --url redis://localhost:6379/0 high default low \
-        >> "$LOG_DIR/rq-worker.log" 2>&1 &
-    _pid=$!
-    write_pid "rq-worker" "$_pid"
-    echo -e "  ${GREEN}✓${NC} rq-worker started (PID $_pid)"
+    # `python` on PATH here is miniconda's, which has no rq; the package lives
+    # in the project venv. Pick the first interpreter that can actually import
+    # it rather than spawning a worker that exits on ModuleNotFoundError.
+    _rq_python=""
+    for _candidate in "$PROJECT_DIR/.venv/bin/python" "$(command -v python || true)"; do
+        [[ -x "$_candidate" ]] || continue
+        if "$_candidate" -c "import rq" >/dev/null 2>&1; then
+            _rq_python="$_candidate"; break
+        fi
+    done
+
+    if [[ -z "$_rq_python" ]]; then
+        echo -e "  ${YELLOW}~${NC} rq not installed in any interpreter — background jobs unavailable"
+    else
+        cd "$PROJECT_DIR/backend"
+        "$_rq_python" -m rq.cli worker --url "$_rq_url" high default low \
+            >> "$LOG_DIR/rq-worker.log" 2>&1 &
+        _pid=$!
+        write_pid "rq-worker" "$_pid"
+        echo -e "  ${GREEN}✓${NC} rq-worker started on ${_rq_url} (PID $_pid)"
+    fi
 fi
 
 # ── 5. Readiness checks ───────────────────────────────────────────────────────
@@ -376,6 +584,6 @@ wait_for_port "$HOST_IP" "$BACKEND_PORT" "API (${HOST_IP}:${BACKEND_PORT})" 60 "
 
 wait_for_port "$HOST_IP" "$FRONTEND_PORT" "Frontend (${HOST_IP}:${FRONTEND_PORT})" 45
 
-wait_for_port "localhost" "6333" "Qdrant (localhost:6333)" 20
+wait_for_port "localhost" "$QDRANT_HTTP_PORT" "Qdrant (localhost:${QDRANT_HTTP_PORT})" 20
 
 print_banner

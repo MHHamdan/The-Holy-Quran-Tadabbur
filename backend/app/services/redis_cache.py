@@ -58,7 +58,7 @@ class RedisCache:
 
     def __init__(
         self,
-        url: str = "redis://localhost:6379/0",
+        url: str = "redis://localhost:19379/0",
         key_prefix: str = "tadabbur:",
         default_ttl: int = 3600,
         max_connections: int = 10,
@@ -376,7 +376,7 @@ class HybridCache:
 
     def __init__(
         self,
-        redis_url: str = "redis://localhost:6379/0",
+        redis_url: str = "redis://localhost:19379/0",
         l1_max_size: int = 10000,
         l1_default_ttl: int = 300,      # 5 minutes for L1
         l2_default_ttl: int = 3600,     # 1 hour for L2

@@ -6,7 +6,7 @@ Checks: backend health, database rows, Quran text, tafseer, miracles,
         Ollama model availability, and frontend build artefacts.
 
 Usage:
-    python3 scripts/sanity_check.py [--base-url http://localhost:8002]
+    python3 scripts/sanity_check.py [--base-url http://localhost:19800]
 
 Exit code 0 = all critical checks passed.
 Exit code 1 = one or more critical checks failed.
@@ -96,7 +96,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
 
 async def run():
-    url = 'postgresql+asyncpg://tadabbur:tadabbur_dev@localhost:5432/tadabbur'
+    url = 'postgresql+asyncpg://tadabbur:tadabbur_dev@localhost:19432/tadabbur'
     engine = create_async_engine(url)
     out = {}
     async with engine.connect() as conn:
@@ -170,7 +170,7 @@ def ollama_generate(model: str, prompt: str, timeout: int = 30) -> Optional[str]
 # ─────────────────────────────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(description="Tadabbur sanity check")
-    parser.add_argument("--base-url", default="http://localhost:8002",
+    parser.add_argument("--base-url", default="http://localhost:19800",
                         help="Tadabbur backend base URL")
     parser.add_argument("--token", default="test_admin_token_dev",
                         help="Admin bearer token")

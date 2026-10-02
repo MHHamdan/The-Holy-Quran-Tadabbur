@@ -13,7 +13,7 @@ services:
       POSTGRES_PASSWORD: tadabbur_pass
       POSTGRES_DB: tadabbur
     ports:
-      - "5432:5432"
+      - "${TADABBUR_POSTGRES_PORT:-19432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -27,7 +27,7 @@ services:
     image: redis:7-alpine
     container_name: tadabbur-redis
     ports:
-      - "6379:6379"
+      - "${TADABBUR_REDIS_PORT:-19379}:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -41,8 +41,8 @@ services:
     image: qdrant/qdrant:v1.7.4
     container_name: tadabbur-qdrant
     ports:
-      - "6333:6333"
-      - "6334:6334"
+      - "${TADABBUR_QDRANT_HTTP_PORT:-19633}:6333"
+      - "${TADABBUR_QDRANT_GRPC_PORT:-19634}:6334"
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
@@ -58,7 +58,7 @@ services:
     container_name: tadabbur-surrealdb
     user: root
     ports:
-      - "8529:8000"
+      - "${TADABBUR_SURREAL_PORT:-19529}:8000"
     command: start --log trace --user root --pass root memory
     healthcheck:
       test: ["CMD", "/surreal", "isready", "--conn", "http://localhost:8000"]
@@ -71,7 +71,7 @@ services:
     image: 440930/tadabbur-backend:latest
     container_name: tadabbur-backend
     ports:
-      - "8000:8000"
+      - "${TADABBUR_BACKEND_PORT:-19800}:8000"
     environment:
       - DATABASE_URL=postgresql://tadabbur:tadabbur_pass@postgres:5432/tadabbur
       - REDIS_URL=redis://redis:6379
@@ -100,7 +100,7 @@ services:
     image: 440930/tadabbur-frontend:latest
     container_name: tadabbur-frontend
     ports:
-      - "3000:80"
+      - "${TADABBUR_FRONTEND_PORT:-19300}:80"
     depends_on:
       - backend
     healthcheck:

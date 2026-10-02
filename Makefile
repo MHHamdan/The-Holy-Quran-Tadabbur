@@ -27,8 +27,18 @@ BLUE   := \033[0;34m
 NC     := \033[0m
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-HOST_IP      ?= localhost
-BACKEND_PORT := 8002
+# Ports live in scripts/ports.env so this file, start_all.sh and .env cannot
+# drift apart. See that file's header for why this block avoids the other
+# platforms on this machine.
+HOST_IP       ?= localhost
+PORTS_ENV     := scripts/ports.env
+BACKEND_PORT  := $(shell . ./$(PORTS_ENV) && echo $$TADABBUR_BACKEND_PORT)
+FRONTEND_PORT := $(shell . ./$(PORTS_ENV) && echo $$TADABBUR_FRONTEND_PORT)
+POSTGRES_PORT := $(shell . ./$(PORTS_ENV) && echo $$TADABBUR_POSTGRES_PORT)
+QDRANT_PORT   := $(shell . ./$(PORTS_ENV) && echo $$TADABBUR_QDRANT_HTTP_PORT)
+QDRANT_GRPC   := $(shell . ./$(PORTS_ENV) && echo $$TADABBUR_QDRANT_GRPC_PORT)
+REDIS_PORT    := $(shell . ./$(PORTS_ENV) && echo $$TADABBUR_REDIS_PORT)
+SURREAL_PORT  := $(shell . ./$(PORTS_ENV) && echo $$TADABBUR_SURREAL_PORT)
 
 # =============================================================================
 # Help
@@ -51,7 +61,7 @@ help: ## Show this help
 	@echo "  make logs-container  # Follow a container's log (SERVICE=postgres)"
 	@echo ""
 	@echo "$(BLUE)Access URLs:$(NC)"
-	@echo "  Frontend : http://$(HOST_IP):3000"
+	@echo "  Frontend : http://$(HOST_IP):$(FRONTEND_PORT)"
 	@echo "  Backend  : http://$(HOST_IP):$(BACKEND_PORT)/docs"
 
 # =============================================================================
@@ -93,7 +103,7 @@ doctor: ## Health-check all services
 	done
 	@echo ""
 	@echo "$(BLUE)── User-facing ports ($(HOST_IP)) ────────────────────────$(NC)"
-	@for pair in "API:$(HOST_IP):$(BACKEND_PORT)" "Frontend:$(HOST_IP):3000" "Qdrant:$(HOST_IP):6333"; do \
+	@for pair in "API:$(HOST_IP):$(BACKEND_PORT)" "Frontend:$(HOST_IP):$(FRONTEND_PORT)" "Qdrant:$(HOST_IP):$(QDRANT_PORT)"; do \
 		label=$$(echo "$$pair" | cut -d: -f1); \
 		host=$$(echo  "$$pair" | cut -d: -f2); \
 		port=$$(echo  "$$pair" | cut -d: -f3); \
@@ -103,7 +113,7 @@ doctor: ## Health-check all services
 	done
 	@echo ""
 	@echo "$(BLUE)── Internal ports (localhost — process-to-process) ────────$(NC)"
-	@for pair in "Postgres:5432" "Redis:6379" "SurrealDB:8529"; do \
+	@for pair in "Postgres:$(POSTGRES_PORT)" "Redis:$(REDIS_PORT)" "SurrealDB:$(SURREAL_PORT)"; do \
 		label=$$(echo "$$pair" | cut -d: -f1); \
 		port=$$(echo  "$$pair" | cut -d: -f2); \
 		nc -z localhost "$$port" 2>/dev/null \
@@ -169,7 +179,7 @@ check-podman:
 
 check-ports: ## Check if Tadabbur ports are free
 	@echo "$(BLUE)Checking port availability...$(NC)"
-	@for port in 5432 6333 6379 8529 $(BACKEND_PORT) 3000; do \
+	@for port in $(POSTGRES_PORT) $(QDRANT_PORT) $(QDRANT_GRPC) $(REDIS_PORT) $(SURREAL_PORT) $(BACKEND_PORT) $(FRONTEND_PORT); do \
 		pid=$$(lsof -ti :$$port 2>/dev/null | head -1 || true); \
 		if [ -n "$$pid" ]; then \
 			echo "  $(YELLOW)BUSY$(NC)  :$$port  →  PID $$pid"; \
@@ -223,7 +233,7 @@ def norm(t): \
     t=re.sub(r'[\u064b-\u065f\u0670]','',t); \
     t=re.sub(r'[\u0622\u0623\u0625\u0671]','\u0627',t); \
     return t.replace('\u0629','\u0647').replace('\u0649','\u064a').strip(); \
-e=create_engine('postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur'); \
+e=create_engine('postgresql://tadabbur:tadabbur_dev@localhost:$(POSTGRES_PORT)/tadabbur'); \
 s=Session(e); rows=s.execute(text('SELECT id,text_uthmani FROM quran_verses')).all(); \
 s.execute(text('UPDATE quran_verses SET text_normalized=:n WHERE id=:i'),[{'i':r,'n':norm(t or '')} for r,t in rows]); \
 s.commit(); print(f'Normalized {len(rows)} verses')"
@@ -392,7 +402,7 @@ dev: check-podman ## Start infra containers then run backend & frontend locally
 			|| echo "  $(RED)✗$(NC)  tadabbur-$$svc not found — run 'make start' first"; \
 	done
 	@echo "$(BLUE)  Backend : http://$(HOST_IP):$(BACKEND_PORT)/docs$(NC)"
-	@echo "$(BLUE)  Frontend: http://$(HOST_IP):3000$(NC)"
+	@echo "$(BLUE)  Frontend: http://$(HOST_IP):$(FRONTEND_PORT)$(NC)"
 	@trap 'kill 0' INT; \
 	(cd backend && uvicorn app.main:app --reload --host 0.0.0.0 --port $(BACKEND_PORT)) & \
 	(cd frontend && npm run dev) & \
@@ -455,7 +465,7 @@ pipeline: ## End-to-end setup from scratch
 	@echo "$(GREEN)  PIPELINE COMPLETE                     $(NC)"
 	@echo "$(BLUE)========================================$(NC)"
 	@echo ""
-	@echo "  Frontend : http://$(HOST_IP):3000"
+	@echo "  Frontend : http://$(HOST_IP):$(FRONTEND_PORT)"
 	@echo "  Backend  : http://$(HOST_IP):$(BACKEND_PORT)/docs"
 
 # =============================================================================

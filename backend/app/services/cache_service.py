@@ -735,7 +735,7 @@ class HybridCacheService:
 
     def __init__(
         self,
-        redis_url: str = "redis://localhost:6379/0",
+        redis_url: str = "redis://localhost:19379/0",
         key_prefix: str = "tadabbur:",
         l1_max_size: int = 10000,
         l1_ttl: int = 300,

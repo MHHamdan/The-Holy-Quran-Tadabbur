@@ -26,12 +26,16 @@ def _cors_origins() -> list[str]:
     env = os.getenv("CORS_ORIGINS", "")
     if env.strip():
         return [o.strip() for o in env.split(",") if o.strip()]
+    # Fallback for when CORS_ORIGINS is unset. Ports come from
+    # scripts/ports.env; 3000 and 8002 are deliberately absent because other
+    # platforms on this host own them.
     return [
-        "http://localhost:3000",
+        "http://localhost:19300",
+        "http://127.0.0.1:19300",
+        "http://localhost:19800",
+        "http://127.0.0.1:19800",
         "http://localhost:5173",
         "http://localhost:5174",
-        "http://localhost:8002",
-        "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
     ]

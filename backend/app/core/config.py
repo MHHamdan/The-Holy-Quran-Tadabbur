@@ -28,16 +28,16 @@ class Settings(BaseSettings):
     debug: bool = True
 
     # Database
-    database_url: str = "postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur"
+    database_url: str = "postgresql://tadabbur:tadabbur_dev@localhost:19432/tadabbur"
 
     # Qdrant
     qdrant_host: str = "localhost"
-    qdrant_port: int = 6333
+    qdrant_port: int = 19633
     qdrant_collection_tafseer: str = "tafseer_chunks"
     qdrant_collection_verses: str = "quran_verses"
 
     # Redis Cache Configuration
-    redis_url: str = "redis://localhost:6379/0"
+    redis_url: str = "redis://localhost:19379/0"
     redis_key_prefix: str = "tadabbur:"  # Namespace prefix for all keys
     redis_max_connections: int = 10  # Connection pool size
     redis_socket_timeout: float = 5.0  # Socket timeout in seconds

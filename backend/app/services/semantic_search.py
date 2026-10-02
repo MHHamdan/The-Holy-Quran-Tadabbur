@@ -366,7 +366,7 @@ class SemanticSearchService:
         if settings:
             self.qdrant_url = f"http://{settings.qdrant_host}:{settings.qdrant_port}"
         else:
-            self.qdrant_url = "http://localhost:6333"
+            self.qdrant_url = "http://localhost:19633"
         self._embedding_model = None
         self._similarity_service = None
 

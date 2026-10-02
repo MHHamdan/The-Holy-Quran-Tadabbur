@@ -72,8 +72,15 @@ export default defineConfig({
   ],
 
   server: {
-    port: 3000,
+    // Ports are defined in scripts/ports.env and passed through by
+    // scripts/start_all.sh. This machine runs several unrelated platforms, so
+    // the defaults here match that block rather than Vite's usual 3000, which
+    // other dev servers on the box take first.
+    port: Number(process.env.TADABBUR_FRONTEND_PORT ?? 19300),
     host: '0.0.0.0',
+    // Fail loudly instead of silently hopping to the next free port, which
+    // would leave the backend's CORS list and the printed URL pointing nowhere.
+    strictPort: true,
     // Tell the browser never to cache dev assets — ensures every page
     // load after 'make start' gets the latest code, not a stale copy.
     headers: {
@@ -89,7 +96,10 @@ export default defineConfig({
     } : undefined,
     proxy: {
       '/api': {
-        target: process.env.CONTAINER_ENV === 'true' ? 'http://backend:8000' : 'http://localhost:8002',
+        target:
+          process.env.CONTAINER_ENV === 'true'
+            ? 'http://backend:8000'
+            : `http://localhost:${process.env.TADABBUR_BACKEND_PORT ?? 19800}`,
         changeOrigin: true,
         ws: true,  // Enable WebSocket proxying
       },

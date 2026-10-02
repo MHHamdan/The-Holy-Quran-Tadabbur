@@ -16,6 +16,34 @@ PID_DIR="$PROJECT_DIR/.pids"
 
 GREEN='\033[0;32m'; YELLOW='\033[0;33m'; RED='\033[0;31m'; BLUE='\033[0;34m'; NC='\033[0m'
 
+# PIDs matching <pattern> that belong to this checkout — judged by the process's
+# cwd or its command line mentioning PROJECT_DIR. Keeps the fallback from
+# reaching another platform's uvicorn or vite on the same machine.
+project_pids() {
+    local pattern="$1" pid cwd cmdline out=""
+
+    for pid in $(pgrep -f "$pattern" 2>/dev/null || true); do
+        [[ "$pid" == "$$" ]] && continue
+        cwd="$(readlink -f "/proc/$pid/cwd" 2>/dev/null || true)"
+        cmdline="$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null || true)"
+        if [[ "$cwd" == "$PROJECT_DIR"* ]] || [[ "$cmdline" == *"$PROJECT_DIR"* ]]; then
+            out+="$pid "
+        fi
+    done
+    printf '%s' "$out"
+}
+
+# Kill a PID along with the children it spawned. `npm run dev` holds the PID we
+# record while the socket belongs to the node process underneath it, so killing
+# the parent alone left the frontend port bound after a stop.
+kill_tree() {
+    local pid="$1" child
+    for child in $(pgrep -P "$pid" 2>/dev/null || true); do
+        kill_tree "$child"
+    done
+    kill "$pid" 2>/dev/null || true
+}
+
 # kill_service <display-name> <pgrep-fallback-pattern>
 kill_service() {
     local name="$1" pattern="$2"
@@ -23,6 +51,14 @@ kill_service() {
 
     if [[ -f "$pid_file" ]]; then
         local content; content=$(cat "$pid_file")
+
+        # "shared:<pid>" — a machine-wide service (Ollama) that we reused rather
+        # than started. Other platforms depend on it, so it is left running.
+        if [[ "$content" == shared:* ]]; then
+            echo -e "  ${BLUE}·${NC} $name left running (shared service, PID ${content#shared:})"
+            rm -f "$pid_file"
+            return 0
+        fi
 
         if [[ "$content" == container:* ]]; then
             local container="${content#container:}"
@@ -32,7 +68,7 @@ kill_service() {
         else
             local pid="$content"
             if kill -0 "$pid" 2>/dev/null; then
-                kill "$pid" 2>/dev/null || true
+                kill_tree "$pid"
                 sleep 1
                 kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
                 echo -e "  ${GREEN}✓${NC} $name stopped (PID $pid)"
@@ -42,9 +78,13 @@ kill_service() {
         fi
         rm -f "$pid_file"
     else
-        # No PID file — try pgrep first, then direct podman stop
+        # No PID file — fall back to pgrep, but only for processes whose command
+        # line or working directory sits inside THIS project. Patterns like
+        # "uvicorn app.main:app" and "vite" match other platforms on this host
+        # just as well, and killing their services is far worse than failing to
+        # stop ours.
         local pids
-        pids=$(pgrep -f "$pattern" 2>/dev/null | tr '\n' ' ' || true)
+        pids=$(project_pids "$pattern")
         if [[ -n "${pids// /}" ]]; then
             # shellcheck disable=SC2086
             kill $pids 2>/dev/null || true
