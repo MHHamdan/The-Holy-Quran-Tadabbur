@@ -18,7 +18,9 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 # Test database URL
-DATABASE_URL = "postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur"
+# Derived from settings so a port change in scripts/ports.env propagates here.
+from app.core.config import settings as _settings
+DATABASE_URL = _settings.database_url
 
 
 @pytest.fixture(scope="module")

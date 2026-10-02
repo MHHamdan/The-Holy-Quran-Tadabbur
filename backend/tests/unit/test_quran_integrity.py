@@ -73,7 +73,8 @@ EXPECTED_QURAN_TYPE = "uthmani"
 @pytest.fixture(scope="module")
 def db_session():
     """Create database session."""
-    db_url = os.getenv("DATABASE_URL", "postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur")
+    from app.core.config import settings as _settings
+    db_url = os.getenv("DATABASE_URL", _settings.database_url)
     engine = create_engine(db_url)
     with Session(engine) as session:
         yield session

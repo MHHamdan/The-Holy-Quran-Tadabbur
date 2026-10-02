@@ -59,7 +59,10 @@ from app.models.therapy import EmotionCategory
 
 pytestmark = pytest.mark.asyncio(loop_scope="module")
 
-_DB_URL = "postgresql+asyncpg://tadabbur:tadabbur_dev@localhost:5432/tadabbur"
+# Derived from settings so a port change in scripts/ports.env does not
+# strand these tests on a stale port.
+from app.core.config import settings as _settings
+_DB_URL = _settings.database_url.replace("postgresql://", "postgresql+asyncpg://")
 
 
 async def _clean_sessions(ids: list[str]) -> None:
