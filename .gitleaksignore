@@ -1,0 +1,5 @@
+# Reviewed false positives (fingerprints are commit:file:rule:line).
+# localStorage key name, not a credential
+78a85d9870f8bfc72c7eda4a2eee551270dcb55f:frontend/src/pages/DhikrPage.tsx:generic-api-key:28
+# deliberately wrong admin key used by an authentication test
+8d851c6e90396359d75f12b4eb4d2a4eefaf24b2:backend/tests/unit/test_admin_authentication_phase_s.py:generic-api-key:30

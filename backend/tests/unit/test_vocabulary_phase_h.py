@@ -66,20 +66,24 @@ _UNSEED_WORD = "غريبةجداً"   # definitely not in seed
 # ---------------------------------------------------------------------------
 
 class TestVocabularyLookup:
+    @pytest.mark.requires_data("vocabulary")
     async def test_lookup_seeded_word_found(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/lookup", params={"word": "ٱلرَّحْمَٰنِ"})
         assert r.status_code == 200
         assert r.json()["status"] == "found"
 
+    @pytest.mark.requires_data("vocabulary")
     async def test_lookup_seeded_word_has_root(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/lookup", params={"word": "ٱلرَّحْمَٰنِ"})
         body = r.json()
         assert body["root"] == "رحم"
 
+    @pytest.mark.requires_data("vocabulary")
     async def test_lookup_seeded_word_has_meaning_en(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/lookup", params={"word": "ٱلرَّحْمَٰنِ"})
         assert r.json()["meaning_en"]
 
+    @pytest.mark.requires_data("vocabulary")
     async def test_lookup_seeded_word_message_is_empty(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/lookup", params={"word": "ٱلرَّحْمَٰنِ"})
         body = r.json()
@@ -101,12 +105,14 @@ class TestVocabularyLookup:
         assert body["meaning_en"] is None
         assert body["example_verses"] == []
 
+    @pytest.mark.requires_data("vocabulary")
     async def test_lookup_source_attribution(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/lookup", params={"word": "ٱلرَّحْمَٰنِ"})
         body = r.json()
         assert body["source_id"] == "quranic_arabic_corpus"
         assert "Quranic Arabic Corpus" in (body.get("source_title_en") or "")
 
+    @pytest.mark.requires_data("vocabulary")
     async def test_lookup_example_verses_contains_ref(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/lookup", params={"word": "ٱلرَّحْمَٰنِ"})
         body = r.json()
@@ -135,11 +141,13 @@ class TestVocabularyLookup:
 # ---------------------------------------------------------------------------
 
 class TestVocabularyByRef:
+    @pytest.mark.requires_data("vocabulary")
     async def test_by_ref_found(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/by-ref", params=_FATIHA_1_1)
         assert r.status_code == 200
         assert r.json()["status"] == "found"
 
+    @pytest.mark.requires_data("vocabulary")
     async def test_by_ref_allah_word(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/by-ref", params=_FATIHA_1_2)
         body = r.json()
@@ -147,6 +155,7 @@ class TestVocabularyByRef:
         assert body["root"] == "أله"
         assert body["meaning_en"] == "Allah"
 
+    @pytest.mark.requires_data("vocabulary")
     async def test_by_ref_samad_word(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/by-ref", params=_IKHLAS_2_2)
         body = r.json()
@@ -169,6 +178,7 @@ class TestVocabularyByRef:
                              params={"sura": 1, "aya": 1, "pos": 0})
         assert r.status_code == 422
 
+    @pytest.mark.requires_data("vocabulary")
     async def test_by_ref_pos_tag_present(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/by-ref", params=_FATIHA_1_2)
         assert r.json().get("pos_tag")
@@ -183,10 +193,12 @@ class TestVocabularyStatus:
         r = await client.get("/api/v1/vocabulary/status")
         assert r.status_code == 200
 
+    @pytest.mark.requires_data("vocabulary")
     async def test_status_available_true(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/status")
         assert r.json()["available"] is True
 
+    @pytest.mark.requires_data("vocabulary")
     async def test_status_entry_count_positive(self, client: AsyncClient):
         r = await client.get("/api/v1/vocabulary/status")
         assert r.json()["entry_count"] > 0

@@ -107,7 +107,7 @@ class TestReinforcementBank:
     async def test_index_9_is_valid(self, client):
         d = await _ask(client, "I feel very sad and lonely today", reinforcement_index=9)
         self._ids.append(d["session_id"])
-        assert r.status_code == 200 if False else len(d["reinforcement_en"]) > 10
+        assert len(d["reinforcement_en"]) > 10
 
     async def test_index_10_is_rejected_422(self, client):
         r = await client.post(

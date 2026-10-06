@@ -4,6 +4,7 @@ Mocked tests for the Hugging Face-backed ML components (no network).
 Embeddings, reranker and speech-to-text must work against HF and degrade to
 their deterministic fallbacks when HF is unavailable.
 """
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -22,6 +23,7 @@ def token(monkeypatch):
 
 
 # ------------------------------------------------------------------ embeddings
+
 
 class _FakeFeatureClient:
     def __init__(self, dim=1024, fail=None):
@@ -101,12 +103,13 @@ async def test_similarity_service_falls_back_and_clears_cache(token):
 
     vec = await svc.compute_embedding("الحمد لله رب العالمين")
 
-    assert svc._model is None                # switched to fallback for the process
+    assert svc._model is None  # switched to fallback for the process
     assert "stale" not in svc._embedding_cache
-    assert vec.shape == (1024,)              # fallback shares the HF dimension
+    assert vec.shape == (1024,)  # fallback shares the HF dimension
 
 
 # -------------------------------------------------------------------- reranker
+
 
 def _chunk(text, score=0.5):
     return SimpleNamespace(content=text, content_en=None, content_ar=text, relevance_score=score)
@@ -137,11 +140,14 @@ def test_rerank_uses_hf_scores(token):
     assert ranked[0].relevance_score == pytest.approx(0.5)
 
 
-@pytest.mark.parametrize("failure", [
-    HFInferenceError(HFErrorKind.QUOTA, "rerank"),
-    TimeoutError(),
-    ValueError("garbage"),
-])
+@pytest.mark.parametrize(
+    "failure",
+    [
+        HFInferenceError(HFErrorKind.QUOTA, "rerank"),
+        TimeoutError(),
+        ValueError("garbage"),
+    ],
+)
 def test_rerank_falls_back_to_keyword_bm25(token, failure):
     from app.rag import reranker
 
@@ -164,6 +170,7 @@ def test_rerank_without_token_never_calls_hf():
 
 # -------------------------------------------------------------- speech-to-text
 
+
 class _FakeASR:
     def __init__(self, output=None, fail=None):
         self.output, self.fail, self.calls = output, fail, []
@@ -185,7 +192,11 @@ def _asr_output(words):
 def test_stt_transcribe_builds_words_and_wav(token, monkeypatch):
     from app.stt.providers import huggingface as hfstt
 
-    fake = _FakeASR(_asr_output([("قل", 0.0, 0.36), ("هو", 0.36, 0.64), ("الله", 0.64, 1.32), ("أحد", 1.32, None)]))
+    fake = _FakeASR(
+        _asr_output(
+            [("قل", 0.0, 0.36), ("هو", 0.36, 0.64), ("الله", 0.64, 1.32), ("أحد", 1.32, None)]
+        )
+    )
     monkeypatch.setattr(hfstt, "task_client", lambda task, **kw: fake)
     audio = np.zeros(16000 * 2, dtype=np.float32)
 
@@ -214,7 +225,9 @@ def test_stt_without_timestamps_spreads_words(token, monkeypatch):
 def test_stt_silence_gives_no_segments(token, monkeypatch):
     from app.stt.providers import huggingface as hfstt
 
-    monkeypatch.setattr(hfstt, "task_client", lambda task, **kw: _FakeASR(SimpleNamespace(text="", chunks=[])))
+    monkeypatch.setattr(
+        hfstt, "task_client", lambda task, **kw: _FakeASR(SimpleNamespace(text="", chunks=[]))
+    )
     result = hfstt.HuggingFaceSTTProvider().transcribe(np.zeros(8000, dtype=np.float32))
     assert result.segments == [] and result.full_text == ""
 

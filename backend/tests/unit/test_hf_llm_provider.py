@@ -5,6 +5,7 @@ Covers the upstream failure matrix required for production: valid response,
 timeout, 401, 403, 402/429 quota, unavailable model, malformed response,
 network outage, missing token, and that no error ever carries the token.
 """
+
 import asyncio
 from types import SimpleNamespace
 
@@ -82,6 +83,7 @@ def _generate(llm, **kw):
 
 # ---------------------------------------------------------------- success path
 
+
 def test_valid_response_preserves_messages_and_usage(fake_router):
     outcomes, calls = fake_router
     outcomes.append(_completion())
@@ -119,6 +121,7 @@ def test_json_mode_falls_back_when_provider_rejects_response_format(fake_router)
 
 
 # --------------------------------------------------------------- failure matrix
+
 
 @pytest.mark.parametrize(
     "status,kind",
@@ -177,8 +180,12 @@ def test_timeout_is_enforced(fake_router):
     "payload",
     [
         SimpleNamespace(model="m", choices=[], usage=None),
-        SimpleNamespace(model="m", choices=[SimpleNamespace(message=SimpleNamespace(content=""))], usage=None),
-        SimpleNamespace(model="m", choices=[SimpleNamespace(message=SimpleNamespace(content=None))], usage=None),
+        SimpleNamespace(
+            model="m", choices=[SimpleNamespace(message=SimpleNamespace(content=""))], usage=None
+        ),
+        SimpleNamespace(
+            model="m", choices=[SimpleNamespace(message=SimpleNamespace(content=None))], usage=None
+        ),
         SimpleNamespace(model="m"),
     ],
 )
@@ -214,6 +221,7 @@ def test_classify_unknown_exception_is_upstream():
 
 
 # --------------------------------------------------------------- configuration
+
 
 def test_token_aliases_and_secret_masking(monkeypatch):
     monkeypatch.delenv("HF_TOKEN", raising=False)
@@ -259,10 +267,12 @@ def test_model_not_served_by_enabled_provider_is_unavailable(fake_router):
     outcomes, _ = fake_router
     request = httpx.Request("POST", "https://router.huggingface.co/v1/chat/completions")
     response = httpx.Response(400, request=request)
-    outcomes.append(HfHubHTTPError(
-        "400 Bad Request: The requested model 'x/y' is not supported by any provider you have enabled.",
-        response=response,
-    ))
+    outcomes.append(
+        HfHubHTTPError(
+            "400 Bad Request: The requested model 'x/y' is not supported by any provider you have enabled.",
+            response=response,
+        )
+    )
     with pytest.raises(HFInferenceError) as info:
         _generate(HuggingFaceLLM())
     assert info.value.kind == HFErrorKind.MODEL_UNAVAILABLE

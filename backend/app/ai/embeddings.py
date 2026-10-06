@@ -10,6 +10,7 @@ is the same model that produced the vectors already stored in Qdrant, so
 existing collections stay valid. E5 models expect ``query: `` / ``passage: ``
 prefixes; callers keep adding them exactly as before.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -60,7 +61,7 @@ class HFEmbeddingModel:
         Raises ``HFInferenceError`` on any upstream failure.
         """
         single = isinstance(sentences, str)
-        texts: List[str] = [sentences] if single else list(sentences)
+        texts: List[str] = [sentences] if isinstance(sentences, str) else list(sentences)
         if not texts:
             return np.zeros((0, self._dimension), dtype=np.float32)
 
@@ -68,7 +69,7 @@ class HFEmbeddingModel:
         client = task_client("embeddings")
         vectors = []
         for start in range(0, len(texts), size):
-            batch = texts[start:start + size]
+            batch = texts[start : start + size]
             out = self._request(client, batch)
             arr = np.asarray(out, dtype=np.float32)
             # Some backends return per-token vectors; mean-pool to one vector per text.
@@ -84,12 +85,15 @@ class HFEmbeddingModel:
         if result.shape[1] != self._dimension:
             logger.error(
                 "Embedding dimension %d does not match configured %d for %s",
-                result.shape[1], self._dimension, self.model_name,
+                result.shape[1],
+                self._dimension,
+                self.model_name,
             )
             raise HFInferenceError(HFErrorKind.MALFORMED, "embeddings")
         if normalize_embeddings:
             norms = np.linalg.norm(result, axis=1, keepdims=True)
-            result = result / np.where(norms == 0, 1.0, norms)
+            norms[norms == 0] = 1.0  # in place, so the result stays float32
+            result = result / norms
         return result[0] if single else result
 
     def _request(self, client, batch: List[str]):
@@ -99,7 +103,11 @@ class HFEmbeddingModel:
                 return client.feature_extraction(batch, model=self.model_name, truncate=True)
             except Exception as exc:  # noqa: BLE001
                 err = classify_exception(exc, "embeddings")
-                retryable = err.kind in (HFErrorKind.UPSTREAM, HFErrorKind.NETWORK, HFErrorKind.TIMEOUT)
+                retryable = err.kind in (
+                    HFErrorKind.UPSTREAM,
+                    HFErrorKind.NETWORK,
+                    HFErrorKind.TIMEOUT,
+                )
                 if retryable and attempt < MAX_ATTEMPTS:
                     logger.info("Embedding request failed (%s); retry %d", err, attempt)
                     time.sleep(RETRY_BACKOFF_SECONDS * attempt)

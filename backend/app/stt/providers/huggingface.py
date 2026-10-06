@@ -9,6 +9,7 @@ Audio arrives as 16 kHz mono float32 (or 16-bit PCM bytes, or a file path);
 it is wrapped in a WAV container and sent once per call. Streaming is
 emulated by buffering windows, exactly like the previous local provider.
 """
+
 from __future__ import annotations
 
 import io
@@ -19,7 +20,13 @@ from typing import Iterator, List, Optional, Union
 
 import numpy as np
 
-from app.ai.hf_client import HFErrorKind, HFInferenceError, classify_exception, hf_configured, task_client
+from app.ai.hf_client import (
+    HFErrorKind,
+    HFInferenceError,
+    classify_exception,
+    hf_configured,
+    task_client,
+)
 from app.stt.providers.base import (
     STTProvider,
     STTResult,
@@ -60,7 +67,9 @@ class HuggingFaceSTTProvider(STTProvider):
         model: Optional[str] = None,
         timeout: Optional[float] = None,
     ):
-        super().__init__(model_size=model_size, language=language, device=device, compute_type=compute_type)
+        super().__init__(
+            model_size=model_size, language=language, device=device, compute_type=compute_type
+        )
         from app.core.config import settings
 
         self.model_id = model or settings.hf_stt_model
@@ -97,13 +106,19 @@ class HuggingFaceSTTProvider(STTProvider):
         return pcm_to_wav_bytes(audio, sample_rate)
 
     def _request(self, payload: Union[bytes, str], word_timestamps: bool):
-        params = {"generate_kwargs": {"language": "arabic" if self.language == "ar" else self.language,
-                                      "task": "transcribe"}}
+        params = {
+            "generate_kwargs": {
+                "language": "arabic" if self.language == "ar" else self.language,
+                "task": "transcribe",
+            }
+        }
         if word_timestamps:
             params["return_timestamps"] = "word"
         client = task_client("speech-to-text", timeout=self.timeout)
         try:
-            return client.automatic_speech_recognition(payload, model=self.model_id, extra_body=params)
+            return client.automatic_speech_recognition(
+                payload, model=self.model_id, extra_body=params
+            )
         except Exception as exc:  # noqa: BLE001
             raise classify_exception(exc, "speech-to-text") from None
 
@@ -137,28 +152,40 @@ class HuggingFaceSTTProvider(STTProvider):
             ts = list(getattr(chunk, "timestamp", None) or [None, None]) + [None, None]
             begin = float(ts[0]) if ts[0] is not None else last_end
             end = float(ts[1]) if ts[1] is not None else max(begin, duration or begin)
-            words.append(WordInfo(word=word, start_time=begin, end_time=end,
-                                  confidence=DEFAULT_WORD_CONFIDENCE))
+            words.append(
+                WordInfo(
+                    word=word, start_time=begin, end_time=end, confidence=DEFAULT_WORD_CONFIDENCE
+                )
+            )
             last_end = end
 
         if word_timestamps and text and not words:
             # No timestamps returned: spread words evenly so alignment still works.
             tokens = text.split()
             step = (duration or len(tokens)) / max(len(tokens), 1)
-            words = [WordInfo(word=t, start_time=i * step, end_time=(i + 1) * step,
-                              confidence=DEFAULT_WORD_CONFIDENCE) for i, t in enumerate(tokens)]
+            words = [
+                WordInfo(
+                    word=t,
+                    start_time=i * step,
+                    end_time=(i + 1) * step,
+                    confidence=DEFAULT_WORD_CONFIDENCE,
+                )
+                for i, t in enumerate(tokens)
+            ]
 
         segments = []
         if text:
-            segments.append(TranscriptionSegment(
-                text=text,
-                start_time=words[0].start_time if words else 0.0,
-                end_time=words[-1].end_time if words else duration,
-                words=words,
-                state=TranscriptionState.FINAL,
-                language=self.language,
-                confidence=DEFAULT_WORD_CONFIDENCE,
-            ))
+            segments.append(
+                TranscriptionSegment(
+                    text=text,
+                    start_time=words[0].start_time if words else 0.0,
+                    end_time=words[-1].end_time if words else duration,
+                    words=words,
+                    state=TranscriptionState.FINAL,
+                    language=self.language,
+                    confidence=DEFAULT_WORD_CONFIDENCE,
+                )
+            )
 
         return STTResult(
             segments=segments,
@@ -192,9 +219,16 @@ class HuggingFaceSTTProvider(STTProvider):
                     text=seg.text,
                     start_time=seg.start_time + offset,
                     end_time=seg.end_time + offset,
-                    words=[WordInfo(word=w.word, start_time=w.start_time + offset,
-                                    end_time=w.end_time + offset, confidence=w.confidence,
-                                    normalized=w.normalized) for w in seg.words],
+                    words=[
+                        WordInfo(
+                            word=w.word,
+                            start_time=w.start_time + offset,
+                            end_time=w.end_time + offset,
+                            confidence=w.confidence,
+                            normalized=w.normalized,
+                        )
+                        for w in seg.words
+                    ],
                     state=state,
                     language=seg.language,
                     confidence=seg.confidence,

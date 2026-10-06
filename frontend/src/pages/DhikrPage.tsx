@@ -26,7 +26,7 @@ import {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY    = 'tadabbur_dhikr_v1';
-const REWARDS_KEY    = 'tadabbur_dhikr_rewards_v1';
+const REWARDS_KEY    = 'tadabbur_dhikr_rewards_v1'; // gitleaks:allow (storage key name)
 const TODAY          = new Date().toISOString().slice(0, 10);
 const API_BASE       = apiUrl('/api/v1/dhikr');
 

@@ -10,10 +10,10 @@ credits are exhausted the test is skipped with that reason rather than
 failing, since that is an account state, not a code defect. All other upstream
 errors fail the test.
 """
+
 import asyncio
 from pathlib import Path
 
-import numpy as np
 import pytest
 
 from app.ai.hf_client import HFErrorKind, HFInferenceError, hf_configured
@@ -47,14 +47,18 @@ def _run(coro_factory):
 
 # ----------------------------------------------------------------------- chat
 
+
 def test_chat_english():
     from app.rag.llm_provider import get_llm
 
-    r = _run(lambda: get_llm().generate(
-        system_prompt="Answer in one short English sentence.",
-        user_message="What is the name of the first surah of the Quran?",
-        max_tokens=40, temperature=0.0,
-    ))
+    r = _run(
+        lambda: get_llm().generate(
+            system_prompt="Answer in one short English sentence.",
+            user_message="What is the name of the first surah of the Quran?",
+            max_tokens=40,
+            temperature=0.0,
+        )
+    )
     assert r.content and len(LATIN.findall(r.content)) > len(ARABIC.findall(r.content))
     assert r.provider == "huggingface" and r.model
 
@@ -62,11 +66,14 @@ def test_chat_english():
 def test_chat_arabic():
     from app.rag.llm_provider import get_llm
 
-    r = _run(lambda: get_llm().generate(
-        system_prompt="أجب بجملة عربية قصيرة واحدة فقط.",
-        user_message="ما اسم السورة الأولى في المصحف؟",
-        max_tokens=40, temperature=0.0,
-    ))
+    r = _run(
+        lambda: get_llm().generate(
+            system_prompt="أجب بجملة عربية قصيرة واحدة فقط.",
+            user_message="ما اسم السورة الأولى في المصحف؟",
+            max_tokens=40,
+            temperature=0.0,
+        )
+    )
     assert len(ARABIC.findall(r.content)) > len(LATIN.findall(r.content))
 
 
@@ -83,15 +90,20 @@ def test_unknown_model_maps_to_model_unavailable():
 
 # ------------------------------------------------------- embeddings / rerank
 
+
 def test_embeddings_match_index_dimension_and_rank_sensibly():
     from app.ai.embeddings import HFEmbeddingModel
     from app.core.config import settings
 
-    vecs = _call(lambda: HFEmbeddingModel().encode([
-        "query: الصبر عند المصيبة",
-        "passage: الصبر حبس النفس عن الجزع عند المصيبة",
-        "passage: أحكام البيع والشراء في الأسواق",
-    ]))
+    vecs = _call(
+        lambda: HFEmbeddingModel().encode(
+            [
+                "query: الصبر عند المصيبة",
+                "passage: الصبر حبس النفس عن الجزع عند المصيبة",
+                "passage: أحكام البيع والشراء في الأسواق",
+            ]
+        )
+    )
     assert vecs.shape == (3, settings.embedding_dimension)
     assert float(vecs[0] @ vecs[1]) > float(vecs[0] @ vecs[2])
 
@@ -99,10 +111,15 @@ def test_embeddings_match_index_dimension_and_rank_sensibly():
 def test_reranker_orders_relevant_passage_first():
     from app.rag.reranker import _hf_rerank_scores
 
-    scores = _call(lambda: _hf_rerank_scores("ما معنى الصبر؟", [
-        "الزكاة ركن من أركان الإسلام",
-        "الصبر حبس النفس على طاعة الله وعن معصيته",
-    ]))
+    scores = _call(
+        lambda: _hf_rerank_scores(
+            "ما معنى الصبر؟",
+            [
+                "الزكاة ركن من أركان الإسلام",
+                "الصبر حبس النفس على طاعة الله وعن معصيته",
+            ],
+        )
+    )
     assert scores[1] > scores[0]
 
 
@@ -117,6 +134,7 @@ def test_zero_shot_emotion():
 
 # --------------------------------------------------------------- speech-to-text
 
+
 def test_speech_to_text_on_recitation_fixture():
     from app.stt.providers.huggingface import HuggingFaceSTTProvider
 
@@ -130,6 +148,7 @@ def test_speech_to_text_on_recitation_fixture():
 
 # ----------------------------------------------------------- grounded RAG (AR/EN)
 
+
 async def _evidence_for(sura: int, ayat: range):
     """Real retrieved-evidence stand-in: stored tafsir chunks for these ayat."""
     from sqlalchemy import select
@@ -138,27 +157,40 @@ async def _evidence_for(sura: int, ayat: range):
     from app.rag.types import RetrievedChunk
 
     async with AsyncSessionLocal() as s:
-        rows = (await s.execute(
-            select(TafseerChunk, TafseerSource)
-            .join(TafseerSource, TafseerChunk.source_id == TafseerSource.id)
-            .where(TafseerChunk.sura_no == sura, TafseerChunk.aya_start.in_(list(ayat)))
-            .limit(6)
-        )).all()
+        rows = (
+            await s.execute(
+                select(TafseerChunk, TafseerSource)
+                .join(TafseerSource, TafseerChunk.source_id == TafseerSource.id)
+                .where(TafseerChunk.sura_no == sura, TafseerChunk.aya_start.in_(list(ayat)))
+                .limit(6)
+            )
+        ).all()
     return [
         RetrievedChunk(
-            chunk_id=c.chunk_id, source_id=c.source_id, source_name=src.name_en,
-            source_name_ar=src.name_ar, verse_reference=c.verse_reference, sura_no=c.sura_no,
-            aya_start=c.aya_start, aya_end=c.aya_end, content=c.content_ar or c.content_en or "",
-            content_ar=c.content_ar, content_en=c.content_en, relevance_score=0.9,
+            chunk_id=c.chunk_id,
+            source_id=c.source_id,
+            source_name=src.name_en,
+            source_name_ar=src.name_ar,
+            verse_reference=c.verse_reference,
+            sura_no=c.sura_no,
+            aya_start=c.aya_start,
+            aya_end=c.aya_end,
+            content=c.content_ar or c.content_en or "",
+            content_ar=c.content_ar,
+            content_en=c.content_en,
+            relevance_score=0.9,
         )
         for c, src in rows
     ]
 
 
-@pytest.mark.parametrize("language,question", [
-    ("en", "What does Surah Al-Ikhlas say about Allah?"),
-    ("ar", "ماذا تقول سورة الإخلاص عن الله تعالى؟"),
-])
+@pytest.mark.parametrize(
+    "language,question",
+    [
+        ("en", "What does Surah Al-Ikhlas say about Allah?"),
+        ("ar", "ماذا تقول سورة الإخلاص عن الله تعالى؟"),
+    ],
+)
 def test_grounded_rag_answer_cites_only_retrieved_chunks(language, question):
     from unittest.mock import AsyncMock
     from app.db.database import AsyncSessionLocal

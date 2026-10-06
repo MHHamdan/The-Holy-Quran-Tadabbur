@@ -11,6 +11,7 @@ SECURITY: the token is held in a pydantic ``SecretStr`` and is only ever handed
 to the HTTP client. Error messages produced here never include the token,
 request headers, or raw upstream response bodies.
 """
+
 from __future__ import annotations
 
 import logging
@@ -25,23 +26,28 @@ logger = logging.getLogger(__name__)
 class HFErrorKind(str, Enum):
     """Controlled failure categories for upstream HF calls."""
 
-    NOT_CONFIGURED = "not_configured"      # no token on the server
-    AUTH = "auth"                          # 401 — token invalid/revoked
-    FORBIDDEN = "forbidden"                # 403 — token lacks permission / gated model
-    QUOTA = "quota"                        # 402 / 429 — credits exhausted or rate limited
+    NOT_CONFIGURED = "not_configured"  # no token on the server
+    AUTH = "auth"  # 401 — token invalid/revoked
+    FORBIDDEN = "forbidden"  # 403 — token lacks permission / gated model
+    QUOTA = "quota"  # 402 / 429 — credits exhausted or rate limited
     MODEL_UNAVAILABLE = "model_unavailable"  # 404 / 503 / no provider serves the model
     TIMEOUT = "timeout"
-    NETWORK = "network"                    # DNS / connection failure
-    BAD_REQUEST = "bad_request"            # 400 / 422 — our request was rejected
-    MALFORMED = "malformed"                # 2xx with an unusable body
-    UPSTREAM = "upstream"                  # other 5xx
+    NETWORK = "network"  # DNS / connection failure
+    BAD_REQUEST = "bad_request"  # 400 / 422 — our request was rejected
+    MALFORMED = "malformed"  # 2xx with an unusable body
+    UPSTREAM = "upstream"  # other 5xx
 
 
 # Kinds worth retrying later (as opposed to configuration problems)
-TRANSIENT_KINDS = frozenset({
-    HFErrorKind.QUOTA, HFErrorKind.MODEL_UNAVAILABLE, HFErrorKind.TIMEOUT,
-    HFErrorKind.NETWORK, HFErrorKind.UPSTREAM,
-})
+TRANSIENT_KINDS = frozenset(
+    {
+        HFErrorKind.QUOTA,
+        HFErrorKind.MODEL_UNAVAILABLE,
+        HFErrorKind.TIMEOUT,
+        HFErrorKind.NETWORK,
+        HFErrorKind.UPSTREAM,
+    }
+)
 
 
 class HFInferenceError(Exception):
@@ -136,14 +142,19 @@ def classify_exception(exc: BaseException, task: str) -> HFInferenceError:
 
     try:
         from huggingface_hub.errors import InferenceTimeoutError
+
         if isinstance(exc, InferenceTimeoutError):
             return HFInferenceError(HFErrorKind.TIMEOUT, task)
     except ImportError:  # pragma: no cover - huggingface_hub is a hard dependency
         pass
 
-    if isinstance(exc, (httpx.TimeoutException, TimeoutError)) or _is_transport(exc, "TimeoutException"):
+    if isinstance(exc, (httpx.TimeoutException, TimeoutError)) or _is_transport(
+        exc, "TimeoutException"
+    ):
         return HFInferenceError(HFErrorKind.TIMEOUT, task)
-    if isinstance(exc, (httpx.TransportError, ConnectionError, OSError)) or _is_transport(exc, "TransportError"):
+    if isinstance(exc, (httpx.TransportError, ConnectionError, OSError)) or _is_transport(
+        exc, "TransportError"
+    ):
         return HFInferenceError(HFErrorKind.NETWORK, task)
     if isinstance(exc, (KeyError, IndexError, TypeError, ValueError, AttributeError)):
         return HFInferenceError(HFErrorKind.MALFORMED, task)
@@ -155,6 +166,7 @@ def classify_exception(exc: BaseException, task: str) -> HFInferenceError:
 
 def _timeout() -> float:
     from app.core.config import settings
+
     return settings.hf_timeout_seconds
 
 

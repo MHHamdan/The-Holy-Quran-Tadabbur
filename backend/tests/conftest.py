@@ -12,6 +12,10 @@ Markers:
 - @pytest.mark.requires_stt: Tests that require STT model
 - @pytest.mark.requires_audio: Tests that require audio fixtures
 - @pytest.mark.live_hf: Calls real Hugging Face Inference Providers (spends credit)
+- @pytest.mark.requires_data("key", ...): needs reference data that is not in
+  the repository (tafsir corpus, QAC vocabulary, verse vectors). Skipped with
+  the missing key as the reason when that data is absent; set
+  REQUIRE_DATA_BUNDLE=1 to make absence a failure instead.
 
 Running tests:
 - pytest                       # Run all tests
@@ -78,6 +82,89 @@ def pytest_configure(config):
         "live_hf: calls real Hugging Face Inference Providers; run only with "
         "`pytest -m live_hf` (or RUN_LIVE_HF=1)"
     )
+    config.addinivalue_line(
+        "markers",
+        "requires_data(*keys): needs external reference data (see _data_present)"
+    )
+
+
+# -----------------------------------------------------------------------------
+# External reference data
+# -----------------------------------------------------------------------------
+# Some tests assert on data that is ingested from external sources and is not
+# committed (tafsir corpora, QAC vocabulary, the verse vector index). They
+# declare exactly what they need; when it is absent they skip with that key as
+# the reason instead of failing on an empty table. Keys:
+#   vocabulary            any row in vocabulary_entries
+#   tafsir_corpus         any row in tafseer_chunks
+#   tafsir:S:A            a tafsir chunk covering surah S, ayah A
+#   tafsir_en:S:A         ... with English content
+#   verse_vector:S:A      verse S:A present in the Qdrant quran_verses collection
+_DATA_CACHE: dict = {}
+
+
+def _sql_exists(query: str, params: tuple) -> bool:
+    import psycopg2
+    from app.core.config import settings
+
+    url = settings.database_url.replace("+asyncpg", "")
+    with psycopg2.connect(url, connect_timeout=5) as conn, conn.cursor() as cur:
+        cur.execute(query, params)
+        return bool(cur.fetchone()[0])
+
+
+def _data_present(key: str) -> bool:
+    if key in _DATA_CACHE:
+        return _DATA_CACHE[key]
+    kind, _, ref = key.partition(":")
+    try:
+        if kind == "vocabulary":
+            ok = _sql_exists("SELECT EXISTS (SELECT 1 FROM vocabulary_entries)", ())
+        elif kind == "tafsir_corpus":
+            ok = _sql_exists("SELECT EXISTS (SELECT 1 FROM tafseer_chunks)", ())
+        elif kind in ("tafsir", "tafsir_en"):
+            sura, aya = (int(x) for x in ref.split(":"))
+            extra = " AND COALESCE(content_en, '') <> ''" if kind == "tafsir_en" else ""
+            ok = _sql_exists(
+                "SELECT EXISTS (SELECT 1 FROM tafseer_chunks WHERE sura_no = %s "
+                "AND aya_start <= %s AND COALESCE(aya_end, aya_start) >= %s" + extra + ")",
+                (sura, aya, aya),
+            )
+        elif kind == "verse_vector":
+            import httpx
+            from app.core.config import settings
+
+            sura, aya = (int(x) for x in ref.split(":"))
+            r = httpx.post(
+                f"http://{settings.qdrant_host}:{settings.qdrant_port}"
+                "/collections/quran_verses/points/scroll",
+                json={"limit": 1, "filter": {"must": [
+                    {"key": "sura_no", "match": {"value": sura}},
+                    {"key": "aya_no", "match": {"value": aya}},
+                ]}},
+                timeout=5,
+            )
+            ok = r.status_code == 200 and bool(r.json()["result"]["points"])
+        else:
+            raise ValueError(f"unknown requires_data key: {key}")
+    except ValueError:
+        raise
+    except Exception:
+        # Infrastructure is unreachable: let the test run and fail visibly
+        # rather than hiding an outage behind a skip.
+        ok = True
+    _DATA_CACHE[key] = ok
+    return ok
+
+
+def pytest_runtest_setup(item):
+    for marker in item.iter_markers("requires_data"):
+        for key in marker.args:
+            if not _data_present(key):
+                msg = f"requires_data: {key} not loaded (external data bundle)"
+                if os.environ.get("REQUIRE_DATA_BUNDLE") == "1":
+                    pytest.fail(msg, pytrace=False)
+                pytest.skip(msg)
 
 
 def _live_hf_enabled(config) -> bool:

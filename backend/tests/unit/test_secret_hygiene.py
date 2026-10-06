@@ -7,6 +7,7 @@ Secret hygiene guards (Phase 11).
 - No env file other than the templates may be tracked by git.
 - Known historical default credentials must not reappear.
 """
+
 import re
 import subprocess
 from pathlib import Path
@@ -17,7 +18,9 @@ REPO = Path(__file__).resolve().parents[3]
 FRONTEND = REPO / "frontend"
 
 _SECRET_VITE = re.compile(r"VITE_[A-Z0-9_]*(KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL)", re.IGNORECASE)
-_HF_IN_FRONTEND = re.compile(r"HF_TOKEN|HUGGINGFACE_TOKEN|router\.huggingface\.co|api-inference\.huggingface\.co")
+_HF_IN_FRONTEND = re.compile(
+    r"HF_TOKEN|HUGGINGFACE_TOKEN|router\.huggingface\.co|api-inference\.huggingface\.co"
+)
 
 
 def _frontend_files():
@@ -26,7 +29,11 @@ def _frontend_files():
         if root.is_file():
             yield root
         elif root.is_dir():
-            yield from (p for p in root.rglob("*") if p.suffix in {".ts", ".tsx", ".js", ".jsx", ".html", ".json"})
+            yield from (
+                p
+                for p in root.rglob("*")
+                if p.suffix in {".ts", ".tsx", ".js", ".jsx", ".html", ".json"}
+            )
     for extra in ("capacitor.config.ts", "capacitor.config.json"):
         if (FRONTEND / extra).exists():
             yield FRONTEND / extra
@@ -42,7 +49,10 @@ def test_no_secret_bearing_vite_variables_or_hf_access_in_frontend():
     assert not offenders, offenders
 
 
-_PERSISTED_SECRET = re.compile(r"localStorage\.(?:setItem|getItem)\(\s*[A-Za-z_'\"]*(?:TOKEN|ADMIN|SECRET|API_KEY)", re.IGNORECASE)
+_PERSISTED_SECRET = re.compile(
+    r"localStorage\.(?:setItem|getItem)\(\s*[A-Za-z_'\"]*(?:TOKEN|ADMIN|SECRET|API_KEY)",
+    re.IGNORECASE,
+)
 
 
 def test_admin_credentials_are_not_persisted_in_local_storage():
@@ -63,7 +73,9 @@ def test_env_example_has_no_secret_vite_variable_or_value():
 
 def _git_ls_files():
     try:
-        out = subprocess.run(["git", "ls-files"], cwd=REPO, capture_output=True, text=True, check=True)
+        out = subprocess.run(
+            ["git", "ls-files"], cwd=REPO, capture_output=True, text=True, check=True
+        )
     except (OSError, subprocess.CalledProcessError):
         pytest.skip("git not available")
     return out.stdout.splitlines()
@@ -82,7 +94,9 @@ def test_public_default_admin_token_is_gone():
         if "/tests/" in f:  # regression tests assert the old token is rejected
             continue
         path = REPO / f
-        if path.is_file() and "tadabbur-admin-dev-token" in path.read_text(encoding="utf-8", errors="ignore"):
+        if path.is_file() and "tadabbur-admin-dev-token" in path.read_text(
+            encoding="utf-8", errors="ignore"
+        ):
             hits.append(f)
     # Only the explanatory comment in kg.py may mention it.
     assert hits in ([], ["backend/app/api/routes/kg.py"]), hits

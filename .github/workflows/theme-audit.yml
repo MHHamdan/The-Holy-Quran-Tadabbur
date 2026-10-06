@@ -21,8 +21,13 @@ on:
   workflow_dispatch:
     # Allow manual trigger
 
+permissions:
+  contents: read
+
 env:
   DATABASE_URL: postgresql://tadabbur:tadabbur_test@localhost:5432/tadabbur_test
+  # No Hugging Face access in CI.
+  HF_TOKEN: ""
 
 jobs:
   theme-audit:
@@ -53,21 +58,23 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: backend/pyproject.toml
 
       - name: Install dependencies
         working-directory: backend
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -e ".[dev]"
 
       - name: Run migrations
         working-directory: backend
         run: |
           alembic upgrade head
 
-      - name: Seed theme data
+      - name: Seed Qur'an and theme data
         working-directory: backend
         run: |
+          python scripts/ingest/seed_quran.py
           python scripts/ingest/seed_themes.py
 
       - name: Run Theme Audit (Unit Tests)
@@ -111,6 +118,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: backend/pyproject.toml
 
       - name: Install test dependencies
         working-directory: backend
