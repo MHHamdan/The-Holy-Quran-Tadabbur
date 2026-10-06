@@ -339,3 +339,21 @@ def reliability_float_to_level(score: float) -> str:
     if score >= 0.5:
         return "supporting"
     return "experimental"
+
+# Hugging Face synthesis unavailable — the retrieved sources are still returned
+# verbatim (tafsir_by_source / evidence); only the AI summary is withheld.
+AI_UNAVAILABLE_EN = (
+    "The AI summary is temporarily unavailable. The retrieved tafsir sources "
+    "are shown below without an AI summary."
+)
+AI_UNAVAILABLE_AR = (
+    "الملخص الآلي غير متاح مؤقتاً. تُعرض مصادر التفسير المسترجعة أدناه دون ملخص آلي."
+)
+AI_QUOTA_EN = (
+    "The AI service has reached its usage limit. The retrieved tafsir sources "
+    "are shown below without an AI summary. Please try again later."
+)
+AI_QUOTA_AR = (
+    "بلغت خدمة الذكاء الاصطناعي حد الاستخدام. تُعرض مصادر التفسير المسترجعة أدناه "
+    "دون ملخص آلي. يرجى المحاولة لاحقاً."
+)

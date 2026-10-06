@@ -3,6 +3,7 @@ Application configuration with Pydantic Settings.
 """
 from functools import lru_cache
 from typing import Optional
+from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -53,25 +54,34 @@ class Settings(BaseSettings):
     surreal_namespace: str = "tadabbur"
     surreal_database: str = "quran_kg"
 
-    # Anthropic
-    anthropic_api_key: Optional[str] = None
-    anthropic_model: str = "claude-sonnet-4-20250514"
+    # ------------------------------------------------------------------
+    # Hugging Face — the ONLY AI/model platform (server side only)
+    # ------------------------------------------------------------------
+    # HF_TOKEN is the documented variable; HUGGINGFACE_TOKEN is accepted for
+    # compatibility. It is never logged, returned by an endpoint, or exposed
+    # to the frontend (no VITE_* variable may carry it).
+    hf_token: Optional[SecretStr] = Field(
+        default=None,
+        validation_alias=AliasChoices("HF_TOKEN", "HUGGINGFACE_TOKEN"),
+    )
+    # OpenAI-compatible router used for chat completion.
+    hf_router_url: str = "https://router.huggingface.co/v1"
+    # Chat model for RAG synthesis, grammar, quiz, verification assistant.
+    # Chosen by scripts/bench/bench_hf_llm.py — see docs/migration/HF_MODEL_SELECTION.md.
+    hf_llm_model: str = "meta-llama/Llama-3.3-70B-Instruct"
+    # Provider routing: "auto" (router default), a provider name
+    # (e.g. "novita", "together"), or a policy ("cheapest", "fastest").
+    hf_llm_provider: str = "auto"
+    hf_llm_max_tokens: int = 1500
+    hf_timeout_seconds: float = 60.0
+    # Embeddings must match the vectors already stored in Qdrant
+    # (multilingual-e5-large, 1024-d).
+    hf_embedding_model: str = "intfloat/multilingual-e5-large"
+    hf_reranker_model: str = "BAAI/bge-reranker-v2-m3"
+    hf_stt_model: str = "openai/whisper-large-v3-turbo"
+    hf_zero_shot_model: str = "facebook/bart-large-mnli"
 
-    # LLM Provider Selection
-    # Options: "ollama" (local, cost-free) or "claude" (API, paid)
-    llm_provider: str = "ollama"
-
-    # Ollama Configuration (for local LLM inference)
-    ollama_model: str = "qwen2.5:32b"
-    ollama_model_fast: str = "qwen2.5:14b"        # GPU path: fast model for RAG
-    ollama_model_cpu_fallback: str = "llama3.2:3b" # CPU path: small model when no GPU detected
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_rag_max_tokens: int = 1500     # GPU path token limit
-    ollama_rag_max_tokens_cpu: int = 800  # CPU path token limit (shorter = faster)
-    ollama_rag_use_fast_model: bool = True  # Use fast/fallback model for RAG by default
-
-    # Embedding Model
-    embedding_model_multilingual: str = "intfloat/multilingual-e5-large"
+    # Embedding dimension of hf_embedding_model (Qdrant collection size)
     embedding_dimension: int = 1024
 
     # RAG Configuration
@@ -118,13 +128,20 @@ class Settings(BaseSettings):
     feature_cache_warming: bool = True  # Enable cache warming service
 
     # Emotion Classifier — Phase T4
-    # NLI model used for transformer-based emotion classification (English).
+    # Zero-shot NLI emotion classification (English) via HF (hf_zero_shot_model).
     # Set emotion_classifier_enabled=false to force keyword-only mode.
-    emotion_model_name: str = "facebook/bart-large-mnli"
     emotion_classifier_enabled: bool = True
     # Minimum entailment probability to accept the NLI prediction.
     # Below this threshold the keyword classifier is used as fallback.
     emotion_confidence_threshold: float = 0.40
+
+    @property
+    def hf_llm_model_id(self) -> str:
+        """Model id with the provider-routing suffix the HF router expects."""
+        provider = (self.hf_llm_provider or "auto").strip()
+        if provider == "auto" or ":" in self.hf_llm_model:
+            return self.hf_llm_model
+        return f"{self.hf_llm_model}:{provider}"
 
 
 @lru_cache

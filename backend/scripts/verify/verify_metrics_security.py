@@ -360,7 +360,7 @@ def test_no_secret_exposure():
 
     # Check for potential secret exposure patterns
     dangerous_patterns = [
-        "anthropic_api_key",  # Should not expose full key
+        "hf_token",  # Must never be exposed
         "secret =",  # Should not assign secret to response
     ]
 

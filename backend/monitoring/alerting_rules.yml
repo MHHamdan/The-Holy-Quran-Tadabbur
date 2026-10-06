@@ -18,7 +18,7 @@ groups:
         annotations:
           summary: "RAG query latency is high"
           description: "95th percentile RAG query latency is {{ $value | printf \"%.2f\" }}s (threshold: 5s)"
-          runbook: "Check Ollama/Claude API latency, vector search performance, and cache hit rate"
+          runbook: "Check Hugging Face Inference Providers latency/status, vector search performance, and cache hit rate"
 
       # Critical RAG latency
       - alert: RAGQueryLatencyCritical
@@ -230,14 +230,3 @@ groups:
           description: "{{ $value | printf \"%.2f\" }}% of requests are failing"
           runbook: "Check application logs for error patterns"
 
-      # Ollama LLM unavailable
-      - alert: OllamaUnavailable
-        expr: up{job="ollama"} == 0
-        for: 2m
-        labels:
-          severity: critical
-          component: llm
-        annotations:
-          summary: "Ollama LLM service is unavailable"
-          description: "Cannot connect to Ollama. RAG responses will fail."
-          runbook: "Check Ollama container and GPU availability"

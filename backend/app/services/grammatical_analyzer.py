@@ -1,7 +1,7 @@
 """
 Grammatical Analyzer - Arabic sentence structure analysis using LLM.
 
-Uses Ollama to analyze:
+Uses the Hugging Face chat model to analyze:
 - Word grammatical roles (فاعل، مفعول، خبر، إلخ)
 - Sentence types (جملة فعلية، جملة اسمية، إلخ)
 - Morphological analysis
@@ -16,8 +16,6 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
 from enum import Enum
 
-import httpx
-
 from app.services.quran_search import (
     GrammaticalRole,
     SentenceType,
@@ -29,13 +27,20 @@ from app.services.quran_search import (
 logger = logging.getLogger(__name__)
 
 
+def _safe_error(exc: Exception) -> str:
+    """User-visible error label that never carries upstream response text."""
+    from app.ai.hf_client import HFInferenceError
+
+    if isinstance(exc, HFInferenceError):
+        return f"AI service {exc.kind.value}"
+    return "AI analysis unavailable"
+
+
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
-OLLAMA_BASE_URL = "http://localhost:11434"
-DEFAULT_MODEL = "qwen2.5:32b"  # Good Arabic support
-TIMEOUT_SECONDS = 60
+GENERATION_MAX_TOKENS = 2000
 
 
 # =============================================================================
@@ -184,7 +189,7 @@ BATCH_CATEGORIZATION_PROMPT = """أنت عالم في النحو العربي. �
 
 class GrammaticalAnalyzer:
     """
-    Arabic grammatical analyzer using Ollama LLM.
+    Arabic grammatical analyzer using the Hugging Face LLM.
 
     Analyzes:
     - Word roles in sentences (إعراب)
@@ -192,14 +197,11 @@ class GrammaticalAnalyzer:
     - Morphological structure (الصرف)
     """
 
-    def __init__(
-        self,
-        base_url: str = OLLAMA_BASE_URL,
-        model: str = DEFAULT_MODEL,
-    ):
-        self.base_url = base_url
-        self.model = model
-        self.client = httpx.AsyncClient(timeout=TIMEOUT_SECONDS)
+    def __init__(self, llm=None):
+        from app.rag.llm_provider import get_llm
+
+        self.llm = llm or get_llm()
+        self.model = self.llm.model
 
     async def analyze_word(
         self,
@@ -225,7 +227,7 @@ class GrammaticalAnalyzer:
         )
 
         try:
-            response = await self._call_ollama(prompt)
+            response = await self._call_llm(prompt)
             parsed = self._parse_json_response(response)
 
             if not parsed:
@@ -254,7 +256,7 @@ class GrammaticalAnalyzer:
 
         except Exception as e:
             logger.error(f"Error analyzing word '{word}': {e}")
-            return self._default_analysis(word, verse_text, verse_reference, str(e))
+            return self._default_analysis(word, verse_text, verse_reference, _safe_error(e))
 
     async def analyze_verse(
         self,
@@ -274,7 +276,7 @@ class GrammaticalAnalyzer:
         )
 
         try:
-            response = await self._call_ollama(prompt)
+            response = await self._call_llm(prompt)
             parsed = self._parse_json_response(response)
 
             if not parsed:
@@ -303,7 +305,7 @@ class GrammaticalAnalyzer:
 
         except Exception as e:
             logger.error(f"Error analyzing verse {verse_reference}: {e}")
-            return self._default_verse_analysis(sura_no, aya_no, verse_text, str(e))
+            return self._default_verse_analysis(sura_no, aya_no, verse_text, _safe_error(e))
 
     async def categorize_search_results(
         self,
@@ -340,7 +342,7 @@ class GrammaticalAnalyzer:
             )
 
             try:
-                response = await self._call_ollama(prompt)
+                response = await self._call_llm(prompt)
                 parsed = self._parse_json_response(response)
 
                 if parsed and "analyses" in parsed:
@@ -384,32 +386,16 @@ class GrammaticalAnalyzer:
     # PRIVATE HELPERS
     # =========================================================================
 
-    async def _call_ollama(self, prompt: str) -> str:
-        """Call Ollama API for text generation."""
-        try:
-            response = await self.client.post(
-                f"{self.base_url}/api/generate",
-                json={
-                    "model": self.model,
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {
-                        "temperature": 0.1,  # Low temperature for deterministic output
-                        "num_predict": 2000,
-                    }
-                }
-            )
-            response.raise_for_status()
-
-            data = response.json()
-            return data.get("response", "")
-
-        except httpx.HTTPError as e:
-            logger.error(f"Ollama HTTP error: {e}")
-            raise
-        except Exception as e:
-            logger.error(f"Ollama error: {e}")
-            raise
+    async def _call_llm(self, prompt: str) -> str:
+        """Generate with the HF chat model (raises HFInferenceError on failure)."""
+        response = await self.llm.generate(
+            system_prompt="You are an expert in Arabic grammar (nahw and sarf). Reply with JSON only.",
+            user_message=prompt,
+            max_tokens=GENERATION_MAX_TOKENS,
+            temperature=0.1,  # Low temperature for deterministic output
+            json_mode=True,
+        )
+        return response.content
 
     def _parse_json_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Parse JSON from LLM response."""
@@ -500,8 +486,8 @@ class GrammaticalAnalyzer:
         )
 
     async def close(self):
-        """Close HTTP client."""
-        await self.client.aclose()
+        """No persistent resources (HF clients are per request)."""
+        return None
 
 
 # =============================================================================
@@ -512,14 +498,13 @@ async def analyze_word_grammar(
     word: str,
     verse_text: str,
     verse_reference: str,
-    model: str = DEFAULT_MODEL,
 ) -> GrammaticalAnalysis:
     """
     Convenience function to analyze a word's grammar.
 
     Creates temporary analyzer, runs analysis, and closes.
     """
-    analyzer = GrammaticalAnalyzer(model=model)
+    analyzer = GrammaticalAnalyzer()
     try:
         return await analyzer.analyze_word(word, verse_text, verse_reference)
     finally:

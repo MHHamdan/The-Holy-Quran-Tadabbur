@@ -976,13 +976,13 @@ def precompute_embedding(text: str, model=None) -> List[float]:
         import torch
         from sentence_transformers import SentenceTransformer
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = SentenceTransformer(settings.embedding_model_multilingual, device=device)
+        model = SentenceTransformer(settings.hf_embedding_model, device=device)
 
     # Normalize Arabic text
     normalized_text = normalize_arabic_text(text)
 
     # Add E5 query prefix for multilingual-e5 models
-    if "e5" in settings.embedding_model_multilingual.lower():
+    if "e5" in settings.hf_embedding_model.lower():
         normalized_text = f"query: {normalized_text}"
 
     embedding = model.encode(normalized_text, convert_to_numpy=True).tolist()
@@ -1024,9 +1024,9 @@ async def semantic_vector_search(
 
     if embedding is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = SentenceTransformer(settings.embedding_model_multilingual, device=device)
+        model = SentenceTransformer(settings.hf_embedding_model, device=device)
 
-        if "e5" in settings.embedding_model_multilingual.lower():
+        if "e5" in settings.hf_embedding_model.lower():
             normalized_query = f"query: {normalized_query}"
 
         import asyncio

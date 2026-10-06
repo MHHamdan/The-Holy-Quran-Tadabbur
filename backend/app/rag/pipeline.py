@@ -85,13 +85,18 @@ from app.rag.types import (
     SAFE_REFUSAL_CLARIFICATION_AR,
     RAG_SUPPORTED_LANGUAGES,
     reliability_float_to_level,
+    AI_UNAVAILABLE_EN,
+    AI_UNAVAILABLE_AR,
+    AI_QUOTA_EN,
+    AI_QUOTA_AR,
 )
 from app.rag.retrieval import HybridRetriever, extract_verse_reference, FAMOUS_VERSES
 from app.rag.prompts import GROUNDED_SYSTEM_PROMPT, build_user_prompt
 from app.rag.query_expander import expand_query, ExpandedQuery
 from app.rag.confidence import confidence_scorer, get_confidence_message, ConfidenceBreakdown
 from app.validators.citation_validator import CitationValidator
-from app.rag.llm_provider import get_llm, LLMProvider, BaseLLM, _detect_gpu
+from app.ai.hf_client import HFErrorKind, HFInferenceError
+from app.rag.llm_provider import get_llm, BaseLLM, PROVIDER_NAME
 from app.rag.source_validator import source_validator
 from app.safety.quran_question_classifier import (
     quran_question_classifier,
@@ -123,42 +128,15 @@ class RAGPipeline:
     def __init__(
         self,
         session: AsyncSession,
-        llm_provider: LLMProvider = None,
+        llm: Optional[BaseLLM] = None,
     ):
         self.session = session
         self.retriever = HybridRetriever(session)
         self.validator = CitationValidator(session)
-
-        # Initialize LLM provider (defaults to configured provider)
-        if llm_provider is None:
-            llm_provider = LLMProvider(settings.llm_provider)
-
-        try:
-            ollama_model = None
-            if llm_provider == LLMProvider.OLLAMA and settings.ollama_rag_use_fast_model:
-                gpu_available = _detect_gpu()
-                if gpu_available:
-                    ollama_model = settings.ollama_model_fast
-                    self.max_tokens = settings.ollama_rag_max_tokens
-                    logger.info(f"GPU detected — RAG using fast model: {ollama_model} (max_tokens={self.max_tokens})")
-                else:
-                    ollama_model = settings.ollama_model_cpu_fallback
-                    self.max_tokens = settings.ollama_rag_max_tokens_cpu
-                    logger.warning(
-                        f"No GPU detected — RAG falling back to CPU model: {ollama_model} "
-                        f"(max_tokens={self.max_tokens})"
-                    )
-            else:
-                self.max_tokens = settings.ollama_rag_max_tokens
-
-            self.llm = get_llm(provider=llm_provider, ollama_model=ollama_model)
-            self.llm_provider = llm_provider
-            logger.info(f"RAG Pipeline initialized with {llm_provider.value} provider (max_tokens={self.max_tokens})")
-        except Exception as e:
-            logger.warning(f"Failed to initialize {llm_provider}: {e}")
-            self.llm = None
-            self.llm_provider = None
-            self.max_tokens = 1500  # Default
+        # Hugging Face is the only LLM platform; tests inject a fake BaseLLM.
+        self.llm: BaseLLM = llm or get_llm()
+        self.llm_provider = PROVIDER_NAME
+        self.max_tokens = settings.hf_llm_max_tokens
 
     async def _try_fast_path_verse_query(
         self,
@@ -514,6 +492,8 @@ class RAGPipeline:
             Other languages will be coerced to English. For display-only
             translations in other languages, use the /translations endpoint.
         """
+        start_time = time.time()
+
         # Validate language - RAG only supports ar/en
         if language not in RAG_SUPPORTED_LANGUAGES:
             language = "en"  # Coerce to English (validation logged in retriever)
@@ -594,14 +574,21 @@ class RAGPipeline:
             context = conversation_context + "\n\n" + context
 
         # 7. Generate grounded response
-        raw_response, llm_latency_ms = await self._generate_response(
-            question=question,
-            context=context,
-            intent=intent,
-            language=language,
-            include_scholarly_debate=include_scholarly_debate,
-            tone_directive=tone_directive,
-        )
+        try:
+            raw_response, llm_latency_ms = await self._generate_response(
+                question=question,
+                context=context,
+                intent=intent,
+                language=language,
+                include_scholarly_debate=include_scholarly_debate,
+                tone_directive=tone_directive,
+            )
+        except HFInferenceError as err:
+            # The AI summary is withheld, but the retrieved sources are still
+            # returned verbatim so the user is never shown invented content.
+            return self._ai_unavailable_response(
+                err, chunks, intent, language, session_id, expanded, start_time,
+            )
 
         # 8. Parse and validate response with enhanced confidence scoring
         chunk_ids = [c.chunk_id for c in chunks]
@@ -1120,9 +1107,6 @@ class RAGPipeline:
         Returns:
             Tuple of (response_text, latency_ms)
         """
-        if not self.llm:
-            return SAFE_REFUSAL_NO_SOURCES, 0
-
         # Build user prompt
         user_prompt = build_user_prompt(
             question=question,
@@ -1133,24 +1117,59 @@ class RAGPipeline:
             tone_directive=tone_directive,
         )
 
-        try:
-            response = await self.llm.generate(
-                system_prompt=GROUNDED_SYSTEM_PROMPT,
-                user_message=user_prompt,
-                max_tokens=self.max_tokens,  # Use configured RAG token limit
-                temperature=0.3,  # Lower for factual/grounded responses
-            )
+        # Raises HFInferenceError on any upstream failure; the caller turns it
+        # into a controlled response. Error text is never used as an answer.
+        response = await self.llm.generate(
+            system_prompt=GROUNDED_SYSTEM_PROMPT,
+            user_message=user_prompt,
+            max_tokens=self.max_tokens,
+            temperature=0.3,  # Low for factual/grounded responses
+        )
+        self.last_llm_response = response
 
-            logger.info(
-                f"LLM response: provider={self.llm_provider.value}, "
-                f"tokens={response.tokens_used}, latency={response.latency_ms}ms"
-            )
+        logger.info(
+            "LLM response: provider=%s model=%s tokens=%s latency=%sms",
+            self.llm_provider, response.model, response.tokens_used, response.latency_ms,
+        )
 
-            return response.content, response.latency_ms
+        return response.content, response.latency_ms
 
-        except Exception as e:
-            logger.error(f"LLM generation error: {e}")
-            return f"Error generating response: {str(e)}", 0
+    def _ai_unavailable_response(
+        self,
+        err: HFInferenceError,
+        chunks: List[RetrievedChunk],
+        intent: QueryIntent,
+        language: str,
+        session_id: Optional[str],
+        expanded: Optional[ExpandedQuery],
+        start_time: float,
+    ) -> GroundedResponse:
+        """Controlled response when HF generation fails (quota, outage, timeout…)."""
+        quota = err.kind == HFErrorKind.QUOTA
+        if language == "ar":
+            answer = AI_QUOTA_AR if quota else AI_UNAVAILABLE_AR
+        else:
+            answer = AI_QUOTA_EN if quota else AI_UNAVAILABLE_EN
+        logger.warning("RAG synthesis unavailable: %s", err)
+        return GroundedResponse(
+            answer=answer,
+            citations=[],
+            confidence=0.0,
+            confidence_level="insufficient",
+            status="ai_unavailable",
+            answer_language=language,
+            intent=intent.value,
+            warnings=["ai_quota_exceeded" if quota else "ai_unavailable"],
+            degradation_reasons=[f"llm_{err.kind.value}"],
+            query_expansion=expanded.expansion_applied if expanded and expanded.expansion_applied else None,
+            session_id=session_id,
+            evidence=chunks,
+            evidence_chunk_count=len({c.chunk_id for c in chunks}),
+            evidence_source_count=len({c.source_id for c in chunks}),
+            tafsir_by_source=self._group_tafsir_by_source(chunks, language),
+            processing_time_ms=int((time.time() - start_time) * 1000),
+            api_version=settings.api_version,
+        )
 
     def _is_vague_question(self, question: str) -> bool:
         """Return True if the question lacks enough context to retrieve targeted sources."""

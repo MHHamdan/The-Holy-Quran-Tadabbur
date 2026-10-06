@@ -381,9 +381,9 @@ function BackendScreen({ language }: { language: 'ar' | 'en' }) {
 
   const services = [
     { name: 'FastAPI Server', nameAr: 'خادم FastAPI', port: 8002, status: health ? 'ok' as const : 'checking' as const },
-    { name: 'Ollama LLM', nameAr: 'Ollama LLM', port: 11434, detail: 'qwen2.5:32b / 14b' },
-    { name: 'Embedding Model', nameAr: 'نموذج التضمين', port: null, detail: 'intfloat/multilingual-e5-large' },
-    { name: 'Faster-Whisper STT', nameAr: 'تحويل صوت لنص', port: null, detail: 'Arabic speech recognition' },
+    { name: 'Hugging Face LLM', nameAr: 'نموذج Hugging Face', port: null, detail: 'HF Inference Providers (server side)' },
+    { name: 'Embedding Model', nameAr: 'نموذج التضمين', port: null, detail: 'intfloat/multilingual-e5-large (Hugging Face)' },
+    { name: 'Speech-to-Text', nameAr: 'تحويل صوت لنص', port: null, detail: 'Hugging Face ASR (Arabic)' },
   ];
 
   useEffect(() => {

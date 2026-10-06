@@ -1,8 +1,9 @@
 """
-Arabic Grammar Analysis Service using Local Ollama.
+Arabic Grammar Analysis Service (LLM via Hugging Face Inference Providers).
 
-This service provides إعراب (grammatical analysis) for Quranic text
-using local Ollama with Qwen2.5 model.
+This service provides إعراب (grammatical analysis) for Quranic text using
+the configured Hugging Face chat model. Scholar-verified Quranic Arabic Corpus
+morphology (static fallback) is always preferred where available.
 
 GROUNDING RULES:
 ================
@@ -23,9 +24,8 @@ import json
 import logging
 import re
 from typing import List, Optional, Dict, Any
-import httpx
 
-from app.core.config import settings
+from app.rag.llm_provider import BaseLLM, get_llm, llm_configured
 from app.models.grammar import (
     TokenAnalysis,
     GrammarAnalysis,
@@ -115,18 +115,26 @@ def build_grammar_prompt(text: str, verse_ref: Optional[str] = None) -> str:
 
 class GrammarService:
     """
-    Service for Arabic grammar analysis using Ollama.
+    Service for Arabic grammar analysis using the Hugging Face LLM.
     """
 
     def __init__(
         self,
-        model: str = None,
-        base_url: str = None,
+        llm: Optional[BaseLLM] = None,
         timeout: float = 60.0,
     ):
-        self.model = model or settings.ollama_model
-        self.base_url = base_url or settings.ollama_base_url
+        self._llm = llm
         self.timeout = timeout
+
+    @property
+    def llm(self) -> BaseLLM:
+        if self._llm is None:
+            self._llm = get_llm()
+        return self._llm
+
+    @property
+    def model(self) -> str:
+        return self.llm.model
 
     async def analyze(
         self,
@@ -147,8 +155,7 @@ class GrammarService:
         user_prompt = build_grammar_prompt(text, verse_reference)
 
         try:
-            # Call Ollama
-            raw_response = await self._call_ollama(
+            raw_response = await self._call_llm(
                 system_prompt=GRAMMAR_SYSTEM_PROMPT,
                 user_prompt=user_prompt,
             )
@@ -165,36 +172,24 @@ class GrammarService:
             return self._to_grammar_analysis(parsed, text, verse_reference)
 
         except Exception as e:
-            logger.error(f"Grammar analysis failed: {e}")
-            # Return fallback with unknown labels
-            return self._create_fallback_analysis(text, verse_reference, str(e))
+            logger.error("Grammar analysis failed: %s", e)
+            # Return fallback with unknown labels (no upstream details to clients)
+            return self._create_fallback_analysis(text, verse_reference, type(e).__name__)
 
-    async def _call_ollama(
+    async def _call_llm(
         self,
         system_prompt: str,
         user_prompt: str,
     ) -> str:
-        """Call Ollama API and return raw response."""
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(
-                f"{self.base_url}/api/chat",
-                json={
-                    "model": self.model,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt},
-                    ],
-                    "stream": False,
-                    "options": {
-                        "temperature": 0.1,  # Very low for consistency
-                        "top_p": 0.9,
-                    },
-                    "format": "json",  # Request JSON output
-                },
-            )
-            response.raise_for_status()
-            data = response.json()
-            return data["message"]["content"]
+        """Call the HF chat model and return the raw response text."""
+        response = await self.llm.generate(
+            system_prompt=system_prompt,
+            user_message=user_prompt,
+            max_tokens=2000,
+            temperature=0.1,  # Very low for consistency
+            json_mode=True,
+        )
+        return response.content
 
     def _parse_response(self, raw: str) -> Dict[str, Any]:
         """Parse JSON response from LLM."""
@@ -303,13 +298,8 @@ class GrammarService:
         )
 
     async def health_check(self) -> bool:
-        """Check if Ollama is available."""
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(f"{self.base_url}/api/tags")
-                return response.status_code == 200
-        except Exception:
-            return False
+        """True when the HF LLM is configured (no paid call is made)."""
+        return llm_configured()
 
 
 # Singleton instance

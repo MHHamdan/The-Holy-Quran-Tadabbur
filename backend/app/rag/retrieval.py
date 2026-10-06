@@ -870,7 +870,7 @@ class HybridRetriever:
 
             logger.info(f"Loading embedding model on device: {device}")
             self.embedding_model = SentenceTransformer(
-                settings.embedding_model_multilingual,
+                settings.hf_embedding_model,
                 device=device,
             )
         return self.embedding_model

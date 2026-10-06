@@ -369,7 +369,7 @@ def test_rag_query() -> E2ETestResult:
                 return E2ETestResult(
                     test_name="rag_query",
                     passed=False,
-                    message="RAG service unavailable - ANTHROPIC_API_KEY may not be set"
+                    message="RAG service unavailable - HF_TOKEN may not be set on the backend"
                 )
 
             return E2ETestResult(
@@ -626,14 +626,14 @@ def main():
     print("\n[7/7] RAG QUERY TEST")
     print("-" * 40)
 
-    if os.getenv("ANTHROPIC_API_KEY"):
+    if os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_TOKEN"):
         rag_test = test_rag_query()
         results.append(rag_test)
         print(f"  {'PASS' if rag_test.passed else 'FAIL'}: {rag_test.message} ({rag_test.duration_ms:.0f}ms)")
         if rag_test.details:
             print(f"    {rag_test.details}")
     else:
-        print("  SKIP: ANTHROPIC_API_KEY not set")
+        print("  SKIP: HF_TOKEN not set")
 
     # Cleanup
     if not skip_teardown:

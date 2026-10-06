@@ -1,55 +1,64 @@
 """
-LLM Provider abstraction for RAG response generation.
+LLM generation through Hugging Face Inference Providers.
 
-Supports both Claude API (Anthropic) and local Ollama models.
-This allows cost-effective local inference with Qwen2.5 while
-maintaining the option to use Claude for production.
+Hugging Face is the only LLM platform. ``BaseLLM`` is kept as a thin seam so
+tests (and the verification assistant) can inject a fake model without
+network access; production always uses ``HuggingFaceLLM``.
+
+Requests go to the HF router's OpenAI-compatible chat endpoint. The model id
+carries the provider-routing suffix (``model:cheapest``, ``model:novita``…),
+so the app is not tied to a single upstream vendor and the model stays
+environment-configurable (``HF_LLM_MODEL`` / ``HF_LLM_PROVIDER``).
+
+Failures surface as ``HFInferenceError`` with a controlled ``kind``; callers
+map that to their own user-facing error. Upstream response bodies and the
+token never leave this module.
 """
-from abc import ABC, abstractmethod
-from typing import Optional, AsyncIterator
-from dataclasses import dataclass
-from enum import Enum
-from functools import lru_cache
-import subprocess
-import time
+from __future__ import annotations
+
+import asyncio
 import logging
-import httpx
+import re
+import time
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Optional
+
+from app.ai.hf_client import (
+    HFErrorKind,
+    HFInferenceError,
+    classify_exception,
+    hf_configured,
+    router_chat_client,
+)
 
 logger = logging.getLogger(__name__)
 
+PROVIDER_NAME = "huggingface"
 
-@lru_cache(maxsize=1)
-def _detect_gpu() -> bool:
-    """Return True if an NVIDIA GPU is accessible. Cached for process lifetime."""
-    try:
-        result = subprocess.run(
-            ["nvidia-smi", "-L"],
-            capture_output=True,
-            timeout=3,
-        )
-        return result.returncode == 0 and b"GPU" in result.stdout
-    except Exception:
-        return False
-
-
-class LLMProvider(str, Enum):
-    """Available LLM providers."""
-    CLAUDE = "claude"
-    OLLAMA = "ollama"
+# Reasoning models may emit a hidden chain of thought; it must never reach users.
+_THINK_BLOCK = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
 
 
 @dataclass
 class LLMResponse:
-    """Response from an LLM provider."""
+    """Response from an LLM call."""
     content: str
     model: str
-    provider: LLMProvider
+    provider: str = PROVIDER_NAME
     tokens_used: Optional[int] = None
+    prompt_tokens: Optional[int] = None
+    completion_tokens: Optional[int] = None
     latency_ms: int = 0
+    # Upstream inference provider that served the request, when reported.
+    upstream_provider: Optional[str] = None
+    finish_reason: Optional[str] = None
 
 
 class BaseLLM(ABC):
-    """Abstract base class for LLM providers."""
+    """Interface for chat-style generation."""
+
+    model: str = ""
 
     @abstractmethod
     async def generate(
@@ -58,33 +67,29 @@ class BaseLLM(ABC):
         user_message: str,
         max_tokens: int = 2000,
         temperature: float = 0.3,
+        json_mode: bool = False,
     ) -> LLMResponse:
-        """Generate a response from the LLM."""
-        pass
+        """Generate a response. Raises ``HFInferenceError`` on failure."""
 
     @abstractmethod
     async def health_check(self) -> bool:
-        """Check if the LLM provider is available."""
-        pass
+        """True when the provider is configured (no paid call is made)."""
 
 
-class OllamaLLM(BaseLLM):
-    """
-    Local Ollama LLM provider.
-
-    Optimized for Qwen2.5:32b on multi-GPU setup.
-    Uses lower temperature for factual responses.
-    """
+class HuggingFaceLLM(BaseLLM):
+    """Chat generation via HF Inference Providers (router, OpenAI-compatible)."""
 
     def __init__(
         self,
-        model: str = "qwen2.5:32b",
-        base_url: str = "http://localhost:11434",
-        timeout: float = 180.0,  # 3 minutes for large models
+        model: Optional[str] = None,
+        timeout: Optional[float] = None,
+        max_retries: int = 1,
     ):
-        self.model = model
-        self.base_url = base_url
-        self.timeout = timeout
+        from app.core.config import settings
+
+        self.model = model or settings.hf_llm_model_id
+        self.timeout = timeout or settings.hf_timeout_seconds
+        self.max_retries = max_retries
 
     async def generate(
         self,
@@ -92,198 +97,89 @@ class OllamaLLM(BaseLLM):
         user_message: str,
         max_tokens: int = 2000,
         temperature: float = 0.3,
+        json_mode: bool = False,
     ) -> LLMResponse:
-        """
-        Generate response using Ollama API.
+        start = time.perf_counter()
+        # System and user content stay in separate messages so retrieved
+        # source text can never be promoted to system-level instructions.
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message},
+        ]
+        kwargs = dict(
+            messages=messages,
+            model=self.model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+        if json_mode:
+            kwargs["response_format"] = {"type": "json_object"}
 
-        Uses the /api/chat endpoint for proper system/user message handling.
-        """
-        start_time = time.perf_counter()
-
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        attempt = 0
+        while True:
+            attempt += 1
             try:
-                response = await client.post(
-                    f"{self.base_url}/api/chat",
-                    json={
-                        "model": self.model,
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_message},
-                        ],
-                        "stream": False,
-                        "options": {
-                            "num_predict": max_tokens,
-                            "temperature": temperature,
-                            "top_p": 0.9,
-                            "repeat_penalty": 1.1,
-                        },
-                    },
-                )
-                response.raise_for_status()
-                data = response.json()
+                async with router_chat_client(async_=True) as client:
+                    output = await asyncio.wait_for(
+                        client.chat_completion(**kwargs), timeout=self.timeout
+                    )
+                return self._to_response(output, start)
+            except Exception as exc:  # noqa: BLE001 - classified below
+                if isinstance(exc, asyncio.TimeoutError):
+                    err = HFInferenceError(HFErrorKind.TIMEOUT, "chat")
+                else:
+                    err = classify_exception(exc, "chat")
+                # json_mode is optional for some providers — retry once without it.
+                if json_mode and err.kind == HFErrorKind.BAD_REQUEST and "response_format" in kwargs:
+                    kwargs.pop("response_format")
+                    continue
+                retryable = err.kind in (HFErrorKind.NETWORK, HFErrorKind.UPSTREAM)
+                if retryable and attempt <= self.max_retries:
+                    await asyncio.sleep(0.5 * attempt)
+                    continue
+                logger.warning("LLM generation failed: %s (model=%s)", err, self.model)
+                raise err from None
 
-                latency_ms = int((time.perf_counter() - start_time) * 1000)
+    def _to_response(self, output, start: float) -> LLMResponse:
+        try:
+            choice = output.choices[0]
+            content = choice.message.content
+        except (AttributeError, IndexError, TypeError) as exc:
+            raise HFInferenceError(HFErrorKind.MALFORMED, "chat") from exc
+        if not isinstance(content, str) or not content.strip():
+            raise HFInferenceError(HFErrorKind.MALFORMED, "chat")
 
-                return LLMResponse(
-                    content=data["message"]["content"],
-                    model=self.model,
-                    provider=LLMProvider.OLLAMA,
-                    tokens_used=data.get("eval_count"),
-                    latency_ms=latency_ms,
-                )
+        content = _THINK_BLOCK.sub("", content).strip()
+        if not content:
+            raise HFInferenceError(HFErrorKind.MALFORMED, "chat")
 
-            except httpx.TimeoutException:
-                logger.error(f"Ollama request timed out after {self.timeout}s")
-                raise
-            except httpx.HTTPStatusError as e:
-                logger.error(f"Ollama HTTP error: {e.response.status_code}")
-                raise
-            except Exception as e:
-                logger.error(f"Ollama error: {e}")
-                raise
+        usage = getattr(output, "usage", None)
+        prompt_tokens = getattr(usage, "prompt_tokens", None)
+        completion_tokens = getattr(usage, "completion_tokens", None)
+        total = getattr(usage, "total_tokens", None)
+        if total is None and prompt_tokens is not None and completion_tokens is not None:
+            total = prompt_tokens + completion_tokens
+
+        return LLMResponse(
+            content=content,
+            model=getattr(output, "model", None) or self.model,
+            tokens_used=total,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            latency_ms=int((time.perf_counter() - start) * 1000),
+            upstream_provider=getattr(output, "provider", None),
+            finish_reason=getattr(choice, "finish_reason", None),
+        )
 
     async def health_check(self) -> bool:
-        """Check if Ollama is running and model is available."""
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(f"{self.base_url}/api/tags")
-                if response.status_code == 200:
-                    data = response.json()
-                    models = [m["name"] for m in data.get("models", [])]
-                    return self.model in models
-                return False
-        except Exception:
-            return False
+        return hf_configured()
 
 
-class ClaudeLLM(BaseLLM):
-    """
-    Anthropic Claude API provider.
-
-    Uses the official anthropic SDK for API calls.
-    """
-
-    def __init__(
-        self,
-        api_key: str,
-        model: str = "claude-sonnet-4-20250514",
-    ):
-        import anthropic
-        self.client = anthropic.Anthropic(api_key=api_key)
-        self.model = model
-
-    async def generate(
-        self,
-        system_prompt: str,
-        user_message: str,
-        max_tokens: int = 2000,
-        temperature: float = 0.3,
-    ) -> LLMResponse:
-        """Generate response using Claude API."""
-        start_time = time.perf_counter()
-
-        try:
-            # Note: anthropic SDK is sync, but we can use it in async context
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=max_tokens,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_message}],
-            )
-
-            latency_ms = int((time.perf_counter() - start_time) * 1000)
-
-            return LLMResponse(
-                content=response.content[0].text,
-                model=self.model,
-                provider=LLMProvider.CLAUDE,
-                tokens_used=response.usage.input_tokens + response.usage.output_tokens,
-                latency_ms=latency_ms,
-            )
-
-        except Exception as e:
-            logger.error(f"Claude API error: {e}")
-            raise
-
-    async def health_check(self) -> bool:
-        """Check if Claude API is accessible."""
-        try:
-            # Simple validation - just check if key format is valid
-            return bool(self.client.api_key and len(self.client.api_key) > 10)
-        except Exception:
-            return False
+def get_llm(model: Optional[str] = None) -> BaseLLM:
+    """Return the configured LLM (Hugging Face)."""
+    return HuggingFaceLLM(model=model)
 
 
-def get_llm(
-    provider: LLMProvider = None,
-    ollama_model: str = None,
-    ollama_base_url: str = None,
-) -> BaseLLM:
-    """
-    Factory function to get the configured LLM provider.
-
-    Reads from settings if parameters not provided.
-    Defaults to Ollama for cost-effective local inference.
-    """
-    from app.core.config import settings
-
-    # Determine provider
-    if provider is None:
-        provider_str = getattr(settings, 'llm_provider', 'ollama')
-        provider = LLMProvider(provider_str)
-
-    if provider == LLMProvider.OLLAMA:
-        return OllamaLLM(
-            model=ollama_model or getattr(settings, 'ollama_model', 'qwen2.5:32b'),
-            base_url=ollama_base_url or getattr(settings, 'ollama_base_url', 'http://localhost:11434'),
-        )
-
-    elif provider == LLMProvider.CLAUDE:
-        if not settings.anthropic_api_key:
-            raise ValueError("ANTHROPIC_API_KEY not configured")
-        return ClaudeLLM(
-            api_key=settings.anthropic_api_key,
-            model=settings.anthropic_model,
-        )
-
-    else:
-        raise ValueError(f"Unknown LLM provider: {provider}")
-
-
-async def test_ollama_connection(model: str = "qwen2.5:32b") -> dict:
-    """
-    Test Ollama connection and model availability.
-
-    Returns status information for diagnostics.
-    """
-    llm = OllamaLLM(model=model)
-
-    result = {
-        "provider": "ollama",
-        "model": model,
-        "available": False,
-        "response_test": None,
-        "latency_ms": None,
-    }
-
-    # Check if model is available
-    if not await llm.health_check():
-        result["error"] = f"Model {model} not found in Ollama"
-        return result
-
-    result["available"] = True
-
-    # Test with a simple prompt
-    try:
-        response = await llm.generate(
-            system_prompt="You are a helpful assistant.",
-            user_message="Say 'Bismillah' in Arabic and English. Keep it brief.",
-            max_tokens=100,
-        )
-        result["response_test"] = response.content[:200]
-        result["latency_ms"] = response.latency_ms
-        result["tokens_used"] = response.tokens_used
-    except Exception as e:
-        result["error"] = str(e)
-
-    return result
+def llm_configured() -> bool:
+    """True when the server has an HF token. Makes no network call."""
+    return hf_configured()

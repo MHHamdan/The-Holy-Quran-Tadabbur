@@ -85,11 +85,15 @@ services:
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
       - REDIS_URL=redis://redis:6379/0
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - ENVIRONMENT=production
-      - LLM_PROVIDER=ollama
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5:32b}
+      # Hugging Face Inference Providers — the only AI platform. HF_TOKEN is a
+      # server-side secret: supply it from the host environment / secret store.
+      - HF_TOKEN=${HF_TOKEN:?HF_TOKEN must be set on the host}
+      - HF_LLM_MODEL=${HF_LLM_MODEL:-meta-llama/Llama-3.3-70B-Instruct}
+      - HF_LLM_PROVIDER=${HF_LLM_PROVIDER:-auto}
+      - HF_EMBEDDING_MODEL=${HF_EMBEDDING_MODEL:-intfloat/multilingual-e5-large}
+      - HF_RERANKER_MODEL=${HF_RERANKER_MODEL:-BAAI/bge-reranker-v2-m3}
+      - HF_STT_MODEL=${HF_STT_MODEL:-openai/whisper-large-v3-turbo}
       - ADMIN_TOKEN=${ADMIN_TOKEN:-change_this_in_production}
       - SURREAL_HOST=surrealdb
       - SURREAL_PORT=8000

@@ -1,3 +1,6 @@
+> **HISTORICAL.** Audit snapshot from before the Hugging Face migration; LLM
+> synthesis is now performed only via Hugging Face Inference Providers.
+
 # Phase 2 RAG Audit — Tadabbur Al-Quran
 
 **Audit date:** 2026-04-24  

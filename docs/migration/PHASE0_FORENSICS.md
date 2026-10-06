@@ -1,5 +1,8 @@
 # Phase 0 — Repository forensics (HF migration)
 
+> **HISTORICAL record** of the repository state *before* the migration. Every
+> Ollama / Anthropic / GPU item listed here has since been removed.
+
 Date: 2026-10-06 · Branch: `feat/huggingface-mobile-production` · Base: `main@59cbcfe`
 
 Code and executable tests were treated as authoritative; README claims were not.

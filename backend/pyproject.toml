@@ -27,8 +27,8 @@ dependencies = [
     "redis>=5.0.0",
     "rq>=1.16.0",
 
-    # AI/ML
-    "anthropic>=0.18.0",
+    # AI/ML — Hugging Face Inference Providers is the only model platform
+    "huggingface_hub>=1.0.0",
     "sentence-transformers>=2.3.0",
     "torch>=2.1.0",
 
@@ -73,6 +73,7 @@ pythonpath = ["."]
 markers = [
     "integration: marks tests as integration tests",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "live_hf: calls real Hugging Face Inference Providers (run with -m live_hf)",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",

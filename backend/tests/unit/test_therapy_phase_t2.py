@@ -82,6 +82,7 @@ def _make_rag_result(emotion: str = "anxiety", language: str = "en") -> MagicMoc
         "يقدم القرآن الكريم توجيهاً عميقاً لمن يعاني من القلق."
     )
     result.answer_language = language
+    result.status = "answered"
     result.citations = [citation]
     result.related_verses = [rv]
     result.follow_up_suggestions = [
@@ -171,21 +172,14 @@ class TestChatFallback:
 
         @contextlib.asynccontextmanager
         async def _ctx():
-            mock_resp = MagicMock()
-            mock_resp.status_code = 200
-            mock_hc = AsyncMock()
-            mock_hc.__aenter__ = AsyncMock(return_value=mock_hc)
-            mock_hc.__aexit__ = AsyncMock(return_value=False)
-            mock_hc.get = AsyncMock(return_value=mock_resp)
-
             rag_result = result or _make_rag_result()
             mock_inst = AsyncMock()
             mock_inst.query = AsyncMock(return_value=rag_result)
 
-            # Patch httpx at the module level (import inside the function uses module-level httpx)
+            # The route imports both names inside the function, so patch the source modules.
             with (
                 patch("app.rag.pipeline.RAGPipeline", return_value=mock_inst),
-                patch("httpx.AsyncClient", return_value=mock_hc),
+                patch("app.rag.llm_provider.llm_configured", return_value=True),
             ):
                 yield
 

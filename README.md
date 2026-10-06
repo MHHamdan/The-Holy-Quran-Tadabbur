@@ -29,10 +29,10 @@ Tadabbur-AI is a scholarly Quranic knowledge platform that:
 ### Setup
 
 1. **Clone and configure:**
-   ```bashcontinue
+   ```bash
    cd tadabbur
    cp .env.example .env
-   # Edit .env and add ANTHROPIC_API_KEY
+   # Edit .env and set HF_TOKEN (Hugging Face; server side only)
    ```
 
 2. **Create virtual environment:**
@@ -286,7 +286,7 @@ tadabbur/
 - **Cache:** Redis 7
 - **Frontend:** React, TypeScript, Tailwind CSS
 - **Visualization:** Cytoscape.js
-- **LLM:** Anthropic Claude
+- **AI models:** Hugging Face Inference Providers (chat, embeddings, reranking, STT) — no local GPU or model files
 
 ## Environment Variables
 
@@ -294,20 +294,17 @@ tadabbur/
 # Required
 DATABASE_URL=postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur
 
-# LLM Provider (choose one)
-LLM_PROVIDER=ollama                        # Use local Ollama (default, free)
-# LLM_PROVIDER=claude                      # Use Anthropic Claude (API, paid)
-# ANTHROPIC_API_KEY=your_key_here          # Required if LLM_PROVIDER=claude
-
-# Ollama Configuration (if LLM_PROVIDER=ollama)
-OLLAMA_MODEL=qwen2.5:32b
-OLLAMA_BASE_URL=http://localhost:11434
+# Hugging Face — the only AI platform (backend environment only, never VITE_*)
+HF_TOKEN=                                   # required for AI answers
+HF_LLM_MODEL=meta-llama/Llama-3.3-70B-Instruct
+HF_LLM_PROVIDER=auto                        # auto | cheapest | fastest | <provider>
+HF_HF_RERANKER_MODEL=BAAI/bge-reranker-v2-m3
+HF_STT_MODEL=openai/whisper-large-v3-turbo
 
 # Optional
 QDRANT_HOST=localhost
 QDRANT_PORT=6333
 REDIS_URL=redis://localhost:6379/0
-EMBEDDING_MODEL=intfloat/multilingual-e5-large
 
 # Production (for protected endpoints)
 ENVIRONMENT=production

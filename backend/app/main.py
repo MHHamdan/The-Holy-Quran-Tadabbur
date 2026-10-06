@@ -87,7 +87,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         async def _warmup_emotion_classifier() -> None:
             try:
                 clf = get_classifier(
-                    model_name=settings.emotion_model_name,
+                    model_name=settings.hf_zero_shot_model,
                     confidence_threshold=settings.emotion_confidence_threshold,
                 )
                 ok = await asyncio.to_thread(clf.warmup)

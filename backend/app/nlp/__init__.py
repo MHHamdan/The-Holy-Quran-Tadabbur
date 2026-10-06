@@ -5,7 +5,7 @@ Supports multiple NLP backends with graceful fallback:
 - Farasa (primary, Quranic Arabic optimized)
 - CAMeL Tools (secondary, dialectal support)
 - Stanza (fallback, general Arabic)
-- LLM (final fallback via Ollama)
+- LLM (final fallback via Hugging Face)
 """
 from app.nlp.base import (
     NLPProvider,

@@ -1467,7 +1467,7 @@ export interface GrammarLabels {
 
 export interface GrammarHealth {
   status: string;
-  ollama_available: boolean;
+  llm_available: boolean;
   model: string;
   message_ar: string;
   message_en: string;
@@ -1510,7 +1510,7 @@ export const grammarApi = {
   analyzeAyah: (suraAyah: string) =>
     api.get<GrammarAnalysis>(`/grammar/ayah/${suraAyah}`),
 
-  // QAC-based scholar-verified I'rab (preferred when Ollama unavailable)
+  // QAC-based scholar-verified I'rab (preferred over AI analysis)
   analyzeIrab: (suraAyah: string) =>
     api.get<GrammarAnalysis>(`/grammar/irab/${suraAyah}`),
 

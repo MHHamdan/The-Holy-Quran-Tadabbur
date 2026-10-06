@@ -69,7 +69,7 @@ def _classify_with_confidence(message: str) -> tuple[str, float]:
 
     if settings.emotion_classifier_enabled and not is_arabic_dominant(message):
         clf = get_classifier(
-            model_name=settings.emotion_model_name,
+            model_name=settings.hf_zero_shot_model,
             confidence_threshold=settings.emotion_confidence_threshold,
         )
         emotion, confidence = clf.classify(message)
@@ -1287,7 +1287,7 @@ async def chat(
     when the RAG pipeline / LLM is not configured.
     """
     from app.rag.pipeline import RAGPipeline
-    from app.core.config import settings
+    from app.rag.llm_provider import llm_configured
 
     if body.emotion_override:
         emotion, emotion_confidence = body.emotion_override, 1.0
@@ -1316,17 +1316,7 @@ async def chat(
             "Please include relevant verses and scholarly tafsir."
         )
 
-    llm_available = False
-    if settings.llm_provider == "claude" and settings.anthropic_api_key:
-        llm_available = True
-    elif settings.llm_provider == "ollama":
-        import httpx as _httpx
-        try:
-            async with _httpx.AsyncClient(timeout=3.0) as _hc:
-                _resp = await _hc.get(f"{settings.ollama_base_url}/api/tags")
-                llm_available = _resp.status_code == 200
-        except Exception:
-            llm_available = False
+    llm_available = llm_configured()
 
     if llm_available:
         try:
@@ -1344,6 +1334,9 @@ async def chat(
                 ),
                 timeout=60.0,
             )
+            if result.status == "ai_unavailable":
+                # HF quota/outage: use the curated guidance cards below instead.
+                raise RuntimeError(f"AI synthesis unavailable: {result.degradation_reasons}")
 
             citations = [
                 ChatCitation(

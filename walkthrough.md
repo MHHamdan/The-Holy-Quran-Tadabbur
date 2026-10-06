@@ -1,3 +1,8 @@
+> **HISTORICAL (pre-Hugging Face migration).** This page records the original
+> owner-workstation setup (local GPUs, Anthropic API key). It is not current:
+> all AI now runs on Hugging Face Inference Providers with `HF_TOKEN` on the
+> backend, and no GPU is required. See README.md.
+
 # Tadabbur-AI Project Context for Claude Code
 
 ## Project Overview

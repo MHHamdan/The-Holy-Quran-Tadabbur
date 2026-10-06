@@ -690,42 +690,28 @@ class TafsirLLMService:
     - Question answering about verses
     """
 
-    def __init__(self, ollama_base: str = None):
-        # For Docker: use OLLAMA_BASE_URL from environment
-        import os
-        default_ollama = os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
-        self.ollama_base = ollama_base or default_ollama
-        self.model = os.getenv("OLLAMA_MODEL", "qwen2.5:32b")  # Use the model from docker-compose
-        self.timeout = 60.0
-        self._client: Optional[httpx.AsyncClient] = None
+    def __init__(self, llm=None):
+        self._llm = llm
 
-    async def _get_client(self) -> httpx.AsyncClient:
-        if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(timeout=self.timeout)
-        return self._client
+    @property
+    def llm(self):
+        if self._llm is None:
+            from app.rag.llm_provider import get_llm
+            self._llm = get_llm()
+        return self._llm
 
     async def _call_llm(self, prompt: str, system: str = "") -> Optional[str]:
-        """Make LLM API call with error handling"""
+        """Generate with the HF chat model; None on any failure (callers degrade)."""
         try:
-            client = await self._get_client()
-            response = await client.post(
-                f"{self.ollama_base}/api/generate",
-                json={
-                    "model": self.model,
-                    "prompt": prompt,
-                    "system": system,
-                    "stream": False,
-                    "options": {
-                        "temperature": 0.3,
-                        "top_p": 0.9,
-                        "num_predict": 500,
-                    }
-                }
+            response = await self.llm.generate(
+                system_prompt=system,
+                user_message=prompt,
+                max_tokens=500,
+                temperature=0.3,
             )
-            response.raise_for_status()
-            return response.json().get("response", "")
+            return response.content
         except Exception as e:
-            logger.error(f"LLM call failed: {e}")
+            logger.error("LLM call failed: %s", e)
             return None
 
     async def summarize_tafsir(
@@ -834,9 +820,8 @@ Answer:"""
         return await self._call_llm(prompt, system)
 
     async def close(self):
-        """Clean up resources"""
-        if self._client and not self._client.is_closed:
-            await self._client.aclose()
+        """No persistent resources (HF clients are per request)."""
+        return None
 
 
 # =============================================================================

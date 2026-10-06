@@ -13,7 +13,7 @@ SAFETY:
 - No hallucination of grammar rules
 
 FALLBACK STRATEGY:
-- Primary: Ollama LLM analysis
+- Primary: LLM analysis (Hugging Face Inference Providers)
 - Fallback: Static morphology dataset for common verses
 """
 import logging
@@ -28,7 +28,7 @@ import httpx
 from app.core.config import settings
 from app.db.database import get_async_session
 from app.models.quran import QuranVerse
-from app.services.grammar_ollama import get_grammar_service
+from app.services.grammar_llm import get_grammar_service
 from app.services.grammar_fallback import get_static_analysis
 from app.models.grammar import (
     VALID_POS_TAGS,
@@ -112,17 +112,17 @@ async def analyze_text(
     - source: Where the analysis came from
 
     Fallback Strategy:
-    1. Primary: Ollama LLM analysis
+    1. Primary: LLM analysis (Hugging Face)
     2. Fallback: Static morphology dataset for known verses
     """
     request_id = getattr(req.state, "request_id", None)
     service = get_grammar_service()
 
-    # Check Ollama availability
-    ollama_available = await service.health_check()
+    # Check LLM availability (configured on the server)
+    llm_available = await service.health_check()
 
-    if not ollama_available:
-        logger.warning(f"[{request_id}] Ollama unavailable, using static fallback")
+    if not llm_available:
+        logger.warning(f"[{request_id}] LLM unavailable, using static fallback")
         # Try static fallback for known verses
         static_result = get_static_analysis(request.text, request.verse_reference)
         if static_result:
@@ -162,7 +162,7 @@ async def analyze_text(
         )
 
     try:
-        logger.info(f"[{request_id}] Analyzing text with Ollama")
+        logger.info(f"[{request_id}] Analyzing text with LLM")
         result = await service.analyze(
             text=request.text,
             verse_reference=request.verse_reference,
@@ -287,7 +287,7 @@ async def analyze_ayah(
     Returns grammatical analysis for the verse text.
 
     Fallback Strategy:
-    1. Primary: Ollama LLM analysis
+    1. Primary: LLM analysis (Hugging Face)
     2. Fallback: Static morphology dataset for known verses
     """
     request_id = getattr(req.state, "request_id", None)
@@ -334,12 +334,12 @@ async def analyze_ayah(
             }
         )
 
-    # Check Ollama availability
+    # Check LLM availability (configured on the server)
     service = get_grammar_service()
-    ollama_available = await service.health_check()
+    llm_available = await service.health_check()
 
-    if not ollama_available:
-        logger.warning(f"[{request_id}] Ollama unavailable for ayah {verse_ref}, using static fallback")
+    if not llm_available:
+        logger.warning(f"[{request_id}] LLM unavailable for ayah {verse_ref}, using static fallback")
         # Try static fallback
         static_result = get_static_analysis(verse_text, verse_ref)
         if static_result:
@@ -378,7 +378,7 @@ async def analyze_ayah(
         )
 
     try:
-        logger.info(f"[{request_id}] Analyzing ayah {verse_ref} with Ollama")
+        logger.info(f"[{request_id}] Analyzing ayah {verse_ref} with LLM")
         result = await service.analyze(verse_text, verse_ref)
 
         return GrammarResponse(
@@ -601,7 +601,7 @@ async def get_irab(
             source="static",
         )
 
-    # No data — return immediately without invoking Ollama; UI will offer AI option
+    # No data — return immediately without invoking the LLM; UI will offer AI option
     http_response.headers["Cache-Control"] = "public, max-age=3600"
     return GrammarResponse(
         verse_reference=verse_ref,
@@ -621,21 +621,21 @@ async def grammar_health(req: Request):
 
     Returns:
     - status: "ok" | "degraded" | "static_only"
-    - ollama_available: boolean
+    - llm_available: boolean (Hugging Face configured on the server)
     - static_fallback_available: boolean
-    - model: Ollama model name
+    - model: Hugging Face chat model id
     - message_ar/message_en: User-friendly status message
     """
     request_id = getattr(req.state, "request_id", None)
     service = get_grammar_service()
-    ollama_ok = await service.health_check()
+    llm_ok = await service.health_check()
 
     # Check static fallback availability
     from app.services.grammar_fallback import get_static_verse_count
     static_count = get_static_verse_count()
     static_available = static_count > 0
 
-    if ollama_ok:
+    if llm_ok:
         status = "ok"
         message_ar = "خدمة التحليل النحوي متاحة بالكامل"
         message_en = "Grammar analysis service fully available"
@@ -652,11 +652,11 @@ async def grammar_health(req: Request):
 
     return {
         "status": status,
-        "ollama_available": ollama_ok,
+        "llm_available": llm_ok,
+        "llm_provider": "huggingface",
         "static_fallback_available": static_available,
         "static_verse_count": static_count,
-        "model": settings.ollama_model,
-        "ollama_base_url": settings.ollama_base_url,
+        "model": settings.hf_llm_model,
         "message_ar": message_ar,
         "message_en": message_en,
     }

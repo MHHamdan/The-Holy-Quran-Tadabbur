@@ -3,7 +3,7 @@
 Tadabbur Al-Quran — Full Stack Sanity Check
 ============================================
 Checks: backend health, database rows, Quran text, tafseer, miracles,
-        Ollama model availability, and frontend build artefacts.
+        Hugging Face AI configuration, and frontend build artefacts.
 
 Usage:
     python3 scripts/sanity_check.py [--base-url http://localhost:19800]
@@ -130,49 +130,13 @@ asyncio.run(run())
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Ollama helper
-# ─────────────────────────────────────────────────────────────────────────────
-OLLAMA_URL = "http://localhost:11434"
-
-# Models that genuinely support Arabic text generation well
-ARABIC_CAPABLE_MODELS = {
-    "qwen2.5:32b", "qwen2.5:14b", "qwen2.5:7b",
-    "qwen2.5vl:7b",
-    "llama3.1:8b", "llama3.2:latest", "llama3.2:3b",
-    "mistral:latest",
-}
-
-def ollama_list() -> list[str]:
-    status, body = http_get(f"{OLLAMA_URL}/api/tags")
-    if status == 200 and isinstance(body, dict):
-        return [m["name"] for m in body.get("models", [])]
-    return []
-
-def ollama_generate(model: str, prompt: str, timeout: int = 30) -> Optional[str]:
-    payload = json.dumps({"model": model, "prompt": prompt, "stream": False,
-                          "options": {"temperature": 0.0, "num_predict": 50}}).encode()
-    req = urllib.request.Request(
-        f"{OLLAMA_URL}/api/generate",
-        data=payload,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            body = json.loads(resp.read().decode())
-            return body.get("response", "").strip()
-    except Exception as e:
-        return None
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Main checks
 # ─────────────────────────────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(description="Tadabbur sanity check")
     parser.add_argument("--base-url", default="http://localhost:19800",
                         help="Tadabbur backend base URL")
-    parser.add_argument("--token", default="test_admin_token_dev",
+    parser.add_argument("--token", default=os.environ.get("ADMIN_TOKEN", ""),
                         help="Admin bearer token")
     args = parser.parse_args()
 
@@ -293,36 +257,19 @@ def main():
         check("At least 20 miracles returned", len(items) >= 20,
               critical=False, detail=f"{len(items)} miracles")
 
-    # ── 6. Ollama models ─────────────────────────────────────────────────────
-    print(f"\n{BOLD}[6] Ollama — Arabic-capable Models{RESET}")
+    # ── 6. Hugging Face AI configuration ─────────────────────────────────────
+    # The backend reports whether HF_TOKEN is configured; no paid call is made
+    # and the token itself is never exposed.
+    print(f"\n{BOLD}[6] Hugging Face — AI configuration{RESET}")
 
-    models = ollama_list()
-    if not models:
-        fail("Cannot reach Ollama at localhost:11434")
-        results.append(Result("ollama", False, False, "not reachable"))
+    status, body = http_get(f"{BASE}/api/v1/grammar/health")
+    if status != 200 or not isinstance(body, dict):
+        warn(f"Grammar health endpoint unavailable (HTTP {status})")
     else:
-        info(f"Ollama running — {len(models)} models available")
-
-        available_arabic = [m for m in models if m in ARABIC_CAPABLE_MODELS]
-        check("At least one Arabic-capable model available",
-              len(available_arabic) > 0,
+        check("Hugging Face LLM configured on the backend",
+              bool(body.get("llm_available")),
               critical=False,
-              detail=", ".join(available_arabic) if available_arabic else "none found")
-
-        best = next((m for m in ["qwen2.5:32b","qwen2.5:14b","llama3.1:8b"] if m in models), None)
-        if best:
-            info(f"Testing Arabic generation with {best} …")
-            resp = ollama_generate(best, "قل بسم الله الرحمن — أكمل الآية:")
-            has_arabic = resp and any('؀' <= c <= 'ۿ' for c in resp)
-            check(f"{best} produces Arabic output", bool(has_arabic),
-                  critical=False, detail=resp[:80] if resp else "no response")
-        else:
-            warn("No preferred Arabic model available for generation test")
-
-        # Flag dhakira-* models as manuscript-analysis only
-        dhakira = [m for m in models if "dhakira" in m]
-        if dhakira:
-            warn(f"dhakira-* models are manuscript-analysis tools, NOT general Arabic LLMs: {dhakira}")
+              detail=f"model={body.get('model')}")
 
     # ── 7. Data files on disk ────────────────────────────────────────────────
     print(f"\n{BOLD}[7] Critical Data Files on Disk{RESET}")

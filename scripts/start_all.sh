@@ -65,21 +65,14 @@ export SURREAL_URL="http://localhost:${SURREAL_PORT}"
 # LEXIFORGE/backend onto sys.path.
 export PYTHONPATH="$PROJECT_DIR/backend"
 
-# ── GPU selection: prefer GPU 3, fall back to CPU ─────────────────────────────
-# CUDA_VISIBLE_DEVICES=3 maps physical GPU 3 to logical device 0 for all child
-# processes. torch.cuda.is_available() returns False when the device index is
-# absent or CUDA is not installed, so services that check it directly (e.g.
-# semantic_search.py, emotion_classifier.py) get CPU automatically.
-if command -v nvidia-smi >/dev/null 2>&1 \
-   && nvidia-smi -i 3 --query-gpu=index --format=csv,noheader 2>/dev/null \
-      | grep -q '^3$'; then
-    export CUDA_VISIBLE_DEVICES=3
-    export EMBEDDING_DEVICE=cuda
-    _GPU_MSG="GPU 3 detected → CUDA_VISIBLE_DEVICES=3, EMBEDDING_DEVICE=cuda"
+# ── AI models ────────────────────────────────────────────────────────────────
+# All model inference (chat, embeddings, reranking, STT, classification) runs on
+# Hugging Face Inference Providers. Nothing here needs a GPU or local model
+# files; the backend only needs HF_TOKEN in its environment (backend/.env).
+if [[ -z "${HF_TOKEN:-}${HUGGINGFACE_TOKEN:-}" ]] && ! grep -qs '^HF_TOKEN=.\+' "$PROJECT_DIR/backend/.env" "$PROJECT_DIR/.env"; then
+    _HF_MSG="HF_TOKEN not set — AI answers will be unavailable (sources still shown)"
 else
-    export CUDA_VISIBLE_DEVICES=""
-    export EMBEDDING_DEVICE=cpu
-    _GPU_MSG="GPU 3 not available → CPU fallback (EMBEDDING_DEVICE=cpu)"
+    _HF_MSG="HF_TOKEN configured (value not shown)"
 fi
 
 GREEN='\033[0;32m'; YELLOW='\033[0;33m'; RED='\033[0;31m'; BLUE='\033[0;34m'; NC='\033[0m'
@@ -95,9 +88,8 @@ write_pid() { printf '%s\n' "$2" > "$PID_DIR/$1.pid"; }
 # PID of the process LISTENING on a port.
 #
 # -sTCP:LISTEN is essential: a bare `lsof -ti :PORT` also matches processes that
-# merely hold a client connection to it. Another platform's service that had an
-# open connection to Ollama on 11434 was therefore recorded as our ollama PID,
-# and stop_all.sh then killed that unrelated service. Only the listener counts.
+# merely hold a client connection to it, which would record (and later kill) an
+# unrelated service. Only the listener counts.
 port_pid() { lsof -ti :"$1" -sTCP:LISTEN 2>/dev/null | head -1 || true; }
 
 # Wait until host:port accepts TCP, or timeout.
@@ -228,7 +220,7 @@ printf '%b╚══════════════════════�
 echo ""
 
 command -v podman >/dev/null 2>&1 || die "podman not found — install podman first"
-printf '  %b⚙%b  %s\n' "$BLUE" "$NC" "$_GPU_MSG"
+printf '  %b⚙%b  %s\n' "$BLUE" "$NC" "$_HF_MSG"
 echo ""
 podman info >/dev/null 2>&1 || die "Podman is not running.
   Start with: systemctl --user start podman.socket
@@ -459,24 +451,6 @@ fi
 # ── 4. Application services ───────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}[4/5] Application services${NC}"
-
-# Ollama LLM server — required for the Ask/RAG feature
-existing=$(port_pid "$TADABBUR_OLLAMA_PORT")
-if [[ -n "$existing" ]]; then
-    echo -e "  ${YELLOW}~${NC} ollama already on :${TADABBUR_OLLAMA_PORT} (PID ${existing}) — shared service, reusing"
-    # Recorded as shared, not owned: Ollama is machine-wide and other platforms
-    # depend on it, so stop_all.sh must leave a reused instance running.
-    printf 'shared:%s\n' "$existing" > "$PID_DIR/ollama.pid"
-elif ! command -v ollama >/dev/null 2>&1; then
-    echo -e "  ${YELLOW}~${NC} ollama not installed — Ask page will be unavailable"
-else
-    ollama serve >> "$LOG_DIR/ollama.log" 2>&1 &
-    _pid=$!
-    write_pid "ollama" "$_pid"
-    echo -e "  ${GREEN}✓${NC} ollama started (PID $_pid)"
-    # Brief pause so ollama socket is ready before backend connects
-    sleep 2
-fi
 
 # Backend (uvicorn) — PYTHONPATH already exported.
 #

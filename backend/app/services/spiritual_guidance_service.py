@@ -816,7 +816,7 @@ def classify_emotion(text: str) -> str:
     settings = get_settings()
     if settings.emotion_classifier_enabled:
         clf = get_classifier(
-            model_name=settings.emotion_model_name,
+            model_name=settings.hf_zero_shot_model,
             confidence_threshold=settings.emotion_confidence_threshold,
         )
         predicted, _confidence = clf.classify(text)

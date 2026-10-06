@@ -11,6 +11,7 @@ Markers:
 - @pytest.mark.slow: Slow tests (e.g., LLM calls, vectorization)
 - @pytest.mark.requires_stt: Tests that require STT model
 - @pytest.mark.requires_audio: Tests that require audio fixtures
+- @pytest.mark.live_hf: Calls real Hugging Face Inference Providers (spends credit)
 
 Running tests:
 - pytest                       # Run all tests
@@ -18,6 +19,12 @@ Running tests:
 - pytest tests/integration/    # Run integration tests
 - pytest -m "unit"             # Run only unit-marked tests
 - pytest -m "not slow"         # Skip slow tests
+- pytest -m "not live_hf"      # Normal/CI run — never calls Hugging Face
+- pytest -m live_hf            # Live HF smoke tests (needs HF_TOKEN + credit)
+
+Every test NOT marked live_hf runs with the HF token cleared, so a missing
+mock can never turn into a paid upstream call; HF code paths take their
+"not configured" fallbacks instead.
 """
 import os
 import pytest
@@ -66,11 +73,25 @@ def pytest_configure(config):
         "markers",
         "requires_audio: Tests that require audio fixtures from EveryAyah.com"
     )
+    config.addinivalue_line(
+        "markers",
+        "live_hf: calls real Hugging Face Inference Providers; run only with "
+        "`pytest -m live_hf` (or RUN_LIVE_HF=1)"
+    )
+
+
+def _live_hf_enabled(config) -> bool:
+    markexpr = (config.option.markexpr or "").strip()
+    return os.environ.get("RUN_LIVE_HF") == "1" or markexpr == "live_hf"
 
 
 def pytest_collection_modifyitems(config, items):
-    """Auto-mark tests based on their location."""
+    """Auto-mark tests based on their location; gate live HF tests."""
+    live = _live_hf_enabled(config)
+    skip_live = pytest.mark.skip(reason="live_hf: run with `pytest -m live_hf` (spends HF credit)")
     for item in items:
+        if "live_hf" in item.keywords and not live:
+            item.add_marker(skip_live)
         # Auto-mark tests in unit/ directory
         if "unit" in str(item.fspath):
             item.add_marker(pytest.mark.unit)
@@ -117,6 +138,17 @@ def _patch_db_nullpool():
         database.AsyncSessionLocal = original_session
     except Exception:
         yield
+
+
+@pytest.fixture(autouse=True)
+def _no_live_hf(request, monkeypatch):
+    """Clear the HF token for every test that is not explicitly live_hf."""
+    if request.node.get_closest_marker("live_hf"):
+        yield
+        return
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "hf_token", None)
+    yield
 
 
 @pytest.fixture(scope="module", autouse=True)

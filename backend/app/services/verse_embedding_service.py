@@ -54,7 +54,7 @@ class VerseEmbeddingService:
 
     def __init__(self):
         self._model = None
-        self._model_name = settings.embedding_model_multilingual
+        self._model_name = settings.hf_embedding_model
         self.qdrant_url = f"http://{settings.qdrant_host}:{settings.qdrant_port}"
         self._collection_ready = False
 

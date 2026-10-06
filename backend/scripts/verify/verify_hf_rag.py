@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Test RAG pipeline with Ollama LLM provider.
+Live check of the RAG pipeline against Hugging Face Inference Providers.
 
-Verifies:
-1. Ollama connection and model availability
+Spends a small amount of HF credit. Verifies:
+1. The HF chat model answers a one-line prompt
 2. RAG pipeline integration
 3. Response quality with citations
 4. Performance metrics
@@ -21,36 +21,37 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 from app.rag.pipeline import RAGPipeline
-from app.rag.llm_provider import LLMProvider, test_ollama_connection
+from app.rag.llm_provider import get_llm
 
 
-async def test_ollama_direct():
-    """Test Ollama connection directly."""
+async def test_hf_direct():
+    """One short generation through the HF router."""
     print("\n" + "="*60)
-    print("1. TESTING OLLAMA CONNECTION")
+    print("1. TESTING HUGGING FACE CHAT COMPLETION")
     print("="*60)
 
-    result = await test_ollama_connection("qwen2.5:32b")
-
-    print(f"  Provider: {result['provider']}")
-    print(f"  Model: {result['model']}")
-    print(f"  Available: {result['available']}")
-
-    if result.get('error'):
-        print(f"  ERROR: {result['error']}")
+    llm = get_llm()
+    print(f"  Model: {llm.model}")
+    try:
+        response = await llm.generate(
+            system_prompt="Answer in one short sentence.",
+            user_message="Say 'Bismillah' in Arabic and English.",
+            max_tokens=60,
+            temperature=0.0,
+        )
+    except Exception as e:
+        print(f"  ERROR: {e}")
         return False
 
-    print(f"  Test Response: {result.get('response_test', 'N/A')[:100]}")
-    print(f"  Latency: {result.get('latency_ms', 'N/A')}ms")
-    print(f"  Tokens: {result.get('tokens_used', 'N/A')}")
-
-    return result['available']
+    print(f"  Response: {response.content[:100]}")
+    print(f"  Latency: {response.latency_ms}ms  Tokens: {response.tokens_used}")
+    return True
 
 
 async def test_rag_pipeline():
-    """Test the full RAG pipeline with Ollama."""
+    """Test the full RAG pipeline with the HF model."""
     print("\n" + "="*60)
-    print("2. TESTING RAG PIPELINE WITH OLLAMA")
+    print("2. TESTING RAG PIPELINE WITH HUGGING FACE")
     print("="*60)
 
     # Create async database connection
@@ -61,8 +62,8 @@ async def test_rag_pipeline():
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     async with async_session() as session:
-        # Initialize RAG pipeline with Ollama
-        pipeline = RAGPipeline(session, llm_provider=LLMProvider.OLLAMA)
+        # Initialize RAG pipeline (Hugging Face LLM)
+        pipeline = RAGPipeline(session)
 
         # Test queries
         test_queries = [
@@ -134,16 +135,15 @@ async def test_rag_pipeline():
 
 async def main():
     print("\n" + "#"*60)
-    print("# TADABBUR-AI: OLLAMA RAG INTEGRATION TEST")
-    print(f"# LLM Provider: {settings.llm_provider}")
-    print(f"# Model: {settings.ollama_model}")
+    print("# TADABBUR-AI: HUGGING FACE RAG INTEGRATION TEST")
+    print(f"# Model: {settings.hf_llm_model_id}")
     print("#"*60)
 
-    # Test 1: Direct Ollama connection
-    ollama_ok = await test_ollama_direct()
+    # Test 1: Direct HF generation
+    hf_ok = await test_hf_direct()
 
-    if not ollama_ok:
-        print("\n❌ Ollama connection failed. Exiting.")
+    if not hf_ok:
+        print("\n❌ Hugging Face generation failed. Exiting.")
         sys.exit(1)
 
     # Test 2: Full RAG pipeline
@@ -174,7 +174,7 @@ async def main():
             print(f"    - {r['query']}: {r.get('error', 'Unknown error')}")
 
     if len(successful) == len(results):
-        print("\n✅ All tests passed! Ollama RAG integration is working.")
+        print("\n✅ All tests passed! Hugging Face RAG integration is working.")
     else:
         print("\n⚠️ Some tests failed. Check errors above.")
 

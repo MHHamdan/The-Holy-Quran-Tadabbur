@@ -132,7 +132,7 @@ range check).
 - `_compose_anchored_query` builds the expected reference token
 
 All tests stub `RAGPipeline.query` so the suite runs in <10 seconds
-without hitting Ollama.
+without calling the LLM.
 
 ## Migration / deprecation note
 

@@ -5,7 +5,7 @@ Manages multiple NLP providers with graceful degradation:
 1. Farasa (primary) - Best for Quranic Arabic
 2. CAMeL Tools (secondary) - Good dialectal support
 3. Stanza (fallback) - General Arabic
-4. LLM (final) - Uses Ollama/Claude for analysis
+4. LLM (final) - Hugging Face chat model
 5. Static (last resort) - Simple tokenization
 
 Each provider is tried in order until one succeeds with
@@ -45,7 +45,7 @@ class ChainConfig:
 
 class LLMNLPProvider(BaseNLPProvider):
     """
-    LLM-based NLP provider using existing grammar_ollama service.
+    LLM-based NLP provider using the grammar_llm service (Hugging Face).
 
     Uses the same LLM infrastructure as the grammar service
     but returns TokenResult format for chain compatibility.
@@ -67,7 +67,7 @@ class LLMNLPProvider(BaseNLPProvider):
     async def pos_tag(self, text: str) -> List[TokenResult]:
         """POS tagging using LLM via grammar service."""
         try:
-            from app.services.grammar_ollama import GrammarService
+            from app.services.grammar_llm import GrammarService
 
             service = GrammarService()
             if not await service.health_check():
@@ -133,7 +133,7 @@ class LLMNLPProvider(BaseNLPProvider):
             return self._is_available
 
         try:
-            from app.services.grammar_ollama import GrammarService
+            from app.services.grammar_llm import GrammarService
             service = GrammarService()
             self._is_available = await service.health_check()
         except Exception:
@@ -145,7 +145,7 @@ class LLMNLPProvider(BaseNLPProvider):
         return {
             "name": self.provider_name.value,
             "available": self._is_available or False,
-            "description": "LLM-based analysis (Ollama/Qwen2.5)",
+            "description": "LLM-based analysis (Hugging Face Inference Providers)",
         }
 
 
@@ -157,7 +157,7 @@ class NLPFallbackChain:
     1. Farasa - Optimized for MSA/Quranic Arabic
     2. CAMeL - Good general Arabic with dialectal support
     3. Stanza - Neural models, slower but robust
-    4. LLM - Uses existing grammar_ollama service
+    4. LLM - Uses the grammar_llm service (Hugging Face)
     5. Static - Simple tokenization (always available)
 
     Results are cached using hybrid L1/L2 caching (in-memory + Redis)
