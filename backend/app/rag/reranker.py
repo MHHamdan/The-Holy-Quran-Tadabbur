@@ -360,8 +360,13 @@ def _rerank_with_cross_encoder(
     reranked_chunks = [chunk for chunk, _ in scored_chunks[:top_k]]
     reranked_scores = [score for _, score in scored_chunks[:top_k]]
 
+    # The cross-encoder decides ORDER only. Its probabilities live on a
+    # different scale (a correct classical-Arabic passage can score ~0.08
+    # while unrelated ones score ~0.001), so they must not replace
+    # relevance_score, which the confidence gate's thresholds were calibrated
+    # against. Keep the probability alongside for transparency.
     for chunk, score in zip(reranked_chunks, reranked_scores):
-        chunk.relevance_score = float(score)
+        chunk.rerank_score = float(score)
 
     logger.info(
         "HF reranker scored %d chunks, top score %.3f", len(chunks),

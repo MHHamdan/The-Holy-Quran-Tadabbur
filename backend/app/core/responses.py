@@ -42,6 +42,7 @@ class ErrorCode(str, Enum):
     NOT_FOUND = "not_found"
     VALIDATION_ERROR = "validation_error"
     CONFLICT = "conflict"
+    RATE_LIMITED = "rate_limited"
 
     # Server errors (5xx)
     INTERNAL_ERROR = "internal_error"
@@ -67,6 +68,7 @@ ERROR_MESSAGES_AR: Dict[ErrorCode, str] = {
     ErrorCode.NOT_FOUND: "المورد غير موجود",
     ErrorCode.VALIDATION_ERROR: "خطأ في التحقق من البيانات",
     ErrorCode.CONFLICT: "تعارض في البيانات",
+    ErrorCode.RATE_LIMITED: "تم تجاوز حد الطلبات. انتظر قليلاً ثم حاول مجدداً.",
     ErrorCode.INTERNAL_ERROR: "حدث خطأ داخلي. تم تسجيل المشكلة.",
     ErrorCode.DATABASE_ERROR: "خطأ في قاعدة البيانات",
     ErrorCode.SERVICE_UNAVAILABLE: "الخدمة غير متاحة حالياً",

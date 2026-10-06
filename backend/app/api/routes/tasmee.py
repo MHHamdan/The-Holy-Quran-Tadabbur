@@ -43,6 +43,7 @@ from app.models.tasmee import (
 from app.ai.hf_client import HFErrorKind, HFInferenceError
 from app.core.config import settings
 from app.stt import get_stt_provider
+from app.services.quran_text_utils import is_first_verse_with_bismillah, remove_bismillah
 from app.stt.alignment import MistakeType, RecitationAligner
 from app.stt.arabic_normalizer import tokenize_with_positions
 
@@ -182,8 +183,10 @@ async def create_session(
             f"ayat {request.aya_start}-{request.aya_end}",
         )
 
-    # Combine verse texts
-    expected_text = " ".join(v.text_uthmani for v in verses)
+    # Combine verse texts. The canonical store prefixes the Basmala to ayah 1
+    # of every surah except Al-Fatiha (where it IS ayah 1) and At-Tawbah; it is
+    # not part of that ayah, so it must not be graded as missing words.
+    expected_text = " ".join(_recitable_text(v) for v in verses)
     words = tokenize_with_positions(expected_text)
 
     # Get surah name from first verse
@@ -372,6 +375,13 @@ async def list_sessions(
         "offset": offset,
         "limit": limit,
     }
+
+
+def _recitable_text(verse) -> str:
+    """Ayah text as recited: no Basmala prefix except for Al-Fatiha 1:1."""
+    if verse.sura_no != 1 and is_first_verse_with_bismillah(verse.sura_no, verse.aya_no):
+        return remove_bismillah(verse.text_uthmani)
+    return verse.text_uthmani
 
 
 # ============================================================================

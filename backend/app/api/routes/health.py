@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import httpx
 import os
 
+from app.core.admin_auth import require_admin_api_key
 from app.db.database import get_async_session
 from app.core.config import settings
 from app.rag.llm_provider import llm_configured
@@ -539,6 +540,7 @@ async def cache_health_check(request: Request):
 async def warm_cache(
     request: Request,
     include_surahs: bool = False,
+    _admin: None = Depends(require_admin_api_key),
 ):
     """
     Trigger cache warming for popular content.

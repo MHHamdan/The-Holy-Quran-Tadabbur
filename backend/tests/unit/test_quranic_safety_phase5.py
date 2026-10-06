@@ -420,3 +420,76 @@ class TestTafsirLLMEndpoints:
         req = tafseer.LLMExplainWordRequest(word="الصمد", verse_text="الله الصمد", language="en")
         r = await tafseer.explain_word(req)
         assert r.ok is False and "internal detail" not in (r.error or "")
+
+
+class TestTrustedSourceFiltering:
+    def test_policy_verified_baghawi_is_trusted(self):
+        from app.rag.source_validator import source_validator
+        assert source_validator.is_trusted_source_id("baghawi_ar")
+        assert not source_validator.is_trusted_source_id("random_blog")
+
+    async def test_untrusted_chunks_never_reach_the_model(self):
+        rogue = _chunk("blog:2:255", "random_blog", "Random Blog", "مدونة",
+                       content="TEST-EVIDENCE: rogue commentary")
+        llm = FakeLLM("Allah alone is worshipped [Al-Muyassar, 2:255].")
+        r = await _query(llm, chunks=[CHUNKS[0], rogue])
+        assert "rogue commentary" not in llm.calls[0]["user"]
+        assert r.status == "answered" and {c.source_id for c in r.citations} == {"muyassar_ar"}
+
+
+class TestThematicFastPathMatching:
+    """The no-LLM thematic shortcut must only fire on genuine topic words."""
+
+    @pytest.mark.parametrize("question", [
+        "ما الحكمة من تحويل القبلة كما ذكرها المفسرون؟",   # ذكرها ≠ ذكر (remembrance)
+        "ما فهم العلماء منهم في هذه الآية؟",              # فهم / منهم ≠ هم (worry)
+    ])
+    def test_substrings_of_other_words_do_not_match(self, question):
+        from app.rag.retrieval import thematic_keyword_matches
+        assert thematic_keyword_matches(question) == []
+
+    @pytest.mark.parametrize("question,expected", [
+        ("آيات للتخلص من الهم", "الهم"),
+        ("وبالصبر ننال الفرج", "صبر"),
+        ("What does the Quran say about patience?", "patience"),
+    ])
+    def test_genuine_topic_words_match(self, question, expected):
+        from app.rag.retrieval import thematic_keyword_matches
+        assert expected in thematic_keyword_matches(question)
+
+
+class TestUnsupportedClaims:
+    async def test_sentence_backed_only_by_rejected_citation_is_removed(self):
+        r = await _validate(
+            "Allah alone is worshipped [Al-Muyassar, 2:255]. "
+            "Al-Razi says this verse abrogates all others [Al-Razi, 2:255].\n\n"
+            "It is the greatest verse [Ibn Kathir, 2:255] [Al-Razi, 2:255]."
+        )
+        assert "abrogates" not in r.answer                       # claim removed entirely
+        assert "It is the greatest verse [Ibn Kathir, 2:255]" in r.answer  # mixed: keep valid part
+        assert "[Al-Razi" not in r.answer
+        assert "\n\n" in r.answer                                # paragraphs preserved
+
+    async def test_zero_confidence_returns_fallback_not_ai_text(self):
+        p = _pipeline(FakeLLM("Allah alone is worshipped [Al-Muyassar, 2:255]."))
+        p._try_fast_path_verse_query = AsyncMock(return_value=None)
+        p._try_fast_path_thematic_query = AsyncMock(return_value=None)
+        p.retriever.retrieve = AsyncMock(return_value=list(CHUNKS))
+        p._rerank_chunks = lambda c, q, m: c
+        p._extract_related_verses = AsyncMock(return_value=[])
+        original = p._validate_and_parse_response
+
+        async def zero_conf(*a, **k):
+            r = await original(*a, **k)
+            r.confidence = 0.0
+            return r
+
+        p._validate_and_parse_response = zero_conf
+        r = await p.query(question="What is the meaning of Ayat al-Kursi?", language="en")
+        assert r.status == "no_verified_source" and r.answer == SAFE_REFUSAL_NO_SOURCES_EN
+        assert r.answer_kind == "refusal" and r.citations == []
+
+    async def test_wisdom_question_is_not_classified_as_ruling(self):
+        p = _pipeline()
+        assert await p._classify_intent("ما الحكمة من تحويل القبلة؟") != QueryIntent.RULING
+        assert await p._classify_intent("ما حكم صيام المسافر؟") == QueryIntent.RULING

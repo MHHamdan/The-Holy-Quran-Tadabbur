@@ -19,13 +19,21 @@ from pydantic import ValidationError
 import os
 
 from app.core.config import settings
+from app.ai.hf_client import HFErrorKind, HFInferenceError
+from app.kg.client import SurrealDBError
+from app.core.production_checks import production_config_problems, safe_cors_origins
 
 
 def _cors_origins() -> list[str]:
-    """CORS origins from env (CORS_ORIGINS=url1,url2) with localhost fallback."""
+    """
+    CORS origins from env (CORS_ORIGINS=url1,url2) with localhost fallback.
+
+    Production must list the web origin(s) and, for the mobile apps, the
+    Capacitor WebView origins (capacitor://localhost, https://localhost).
+    """
     env = os.getenv("CORS_ORIGINS", "")
     if env.strip():
-        return [o.strip() for o in env.split(",") if o.strip()]
+        return safe_cors_origins([o.strip() for o in env.split(",")], settings.environment)
     # Fallback for when CORS_ORIGINS is unset. Ports come from
     # scripts/ports.env; 3000 and 8002 are deliberately absent because other
     # platforms on this host own them.
@@ -60,6 +68,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     print(f"Starting {settings.app_name}...")
     print(f"Environment: {settings.environment}")
     print(f"Debug: {settings.debug}")
+    for problem in production_config_problems(
+        settings, _cors_origins(), bool(os.getenv("CORS_ORIGINS", "").strip())
+    ):
+        logger.error(f"PRODUCTION CONFIG: {problem}")
 
     # Initialize fast similarity service in background
     from app.services.fast_similarity import get_fast_similarity_service
@@ -231,6 +243,37 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
         request_id=request_id,
         status_code=422,
         details=details
+    )
+
+
+@app.exception_handler(SurrealDBError)
+async def knowledge_graph_error_handler(request: Request, exc: SurrealDBError):
+    """Knowledge-graph store unreachable or failing: 503, not a raw 500."""
+    request_id = getattr(request.state, 'request_id', str(uuid.uuid4()))
+    logger.error(f"[{request_id}] Knowledge graph error: {type(exc).__name__}")
+    return error_response(
+        code=ErrorCode.SERVICE_UNAVAILABLE,
+        message_en="The knowledge graph service is temporarily unavailable.",
+        message_ar="خدمة الرسم المعرفي غير متاحة مؤقتاً.",
+        request_id=request_id,
+        status_code=503,
+    )
+
+
+@app.exception_handler(HFInferenceError)
+async def hf_inference_error_handler(request: Request, exc: HFInferenceError):
+    """An uncaught Hugging Face failure: 429 for quota, otherwise 503."""
+    request_id = getattr(request.state, 'request_id', str(uuid.uuid4()))
+    logger.error(f"[{request_id}] {exc}")
+    quota = exc.kind == HFErrorKind.QUOTA
+    return error_response(
+        code=ErrorCode.SERVICE_UNAVAILABLE,
+        message_en=("The AI service has reached its usage limit. Please try again later."
+                    if quota else "The AI service is temporarily unavailable."),
+        message_ar=("بلغت خدمة الذكاء الاصطناعي حد الاستخدام. حاول لاحقاً."
+                    if quota else "خدمة الذكاء الاصطناعي غير متاحة مؤقتاً."),
+        request_id=request_id,
+        status_code=429 if quota else 503,
     )
 
 

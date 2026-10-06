@@ -804,7 +804,7 @@ class SemanticSearchService:
                         "reference": m.reference,
                         "text_uthmani": m.text_uthmani,
                         "text_imlaei": m.text_imlaei,
-                        "combined_score": m.combined_score,
+                        "combined_score": m.scores.combined,
                         "connection_type": m.connection_type.value if hasattr(m.connection_type, 'value') else str(m.connection_type),
                         "themes": m.shared_themes,
                     } for m in result.matches],
@@ -849,7 +849,7 @@ class SemanticSearchService:
                         text_imlaei=m.text_imlaei,
                         themes=m.shared_themes,
                         connection_type=m.connection_type.value if hasattr(m.connection_type, 'value') else str(m.connection_type),
-                        similarity_score=m.combined_score,
+                        similarity_score=m.scores.combined,
                     ))
                 dominant_themes = result.source_themes[:5]
             except Exception as e:

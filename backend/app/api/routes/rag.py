@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.admin_auth import require_admin_api_key
 from app.db.database import get_async_session
 from app.core.config import settings
 from app.core.rate_limit import rag_rate_limit
@@ -894,6 +895,7 @@ async def clear_rag_cache():
 
 @router.post("/cache/warm")
 async def warm_rag_cache_endpoint(
+    _admin: None = Depends(require_admin_api_key),
     languages: List[str] = Query(["en", "ar"], description="Languages to warm"),
     max_questions: Optional[int] = Query(None, description="Max questions per language"),
     session: AsyncSession = Depends(get_async_session),

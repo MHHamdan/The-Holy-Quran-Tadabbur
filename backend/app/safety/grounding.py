@@ -174,6 +174,36 @@ def strip_citation_markers(answer: str, markers: Iterable[str]) -> str:
     return re.sub(r"[ \t]{2,}", " ", answer)
 
 
+# Split on sentence ends and line breaks, keeping the separators.
+_SENTENCE_SPLIT = re.compile(r"(\n+|(?<=[.!?؟۔])[ \t]+)")
+
+
+def drop_unsupported_sentences(answer: str, invalid_markers: Iterable[str], citation_pattern: str) -> str:
+    """
+    Remove sentences whose only citations were rejected; elsewhere just strip
+    the rejected markers. A claim attributed to a source that was not
+    retrieved must not survive as unattributed text.
+    """
+    invalid = set(invalid_markers)
+    if not invalid:
+        return answer
+    cite_re = re.compile(citation_pattern)
+    parts = _SENTENCE_SPLIT.split(answer)
+    out = []
+    for i, part in enumerate(parts):
+        if i % 2 == 1:  # separator
+            out.append(part)
+            continue
+        markers = [m.group(0) for m in cite_re.finditer(part)]
+        bad = [m for m in markers if m in invalid]
+        if bad and len(bad) == len(markers):
+            continue  # every citation in this sentence was rejected
+        out.append(strip_citation_markers(part, bad) if bad else part)
+    text = "".join(out)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return re.sub(r"[ \t]+\n", "\n", text).strip()
+
+
 def contains_fiqh_disclaimer(answer: str) -> bool:
     low = (answer or "").lower()
     return "fatwa" in low or "فتوى" in low or "الفتوى" in low

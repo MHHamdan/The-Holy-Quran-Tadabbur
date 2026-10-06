@@ -367,7 +367,7 @@ async def get_rhetorical_device(
 
     if not device:
         raise APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
+            code=ErrorCode.NOT_FOUND,
             message_en=f"Rhetorical device '{device_id}' not found",
             message_ar=f"الأسلوب البلاغي '{device_id}' غير موجود",
             request_id=get_request_id(request),
@@ -629,7 +629,7 @@ async def get_discourse_segment(
 
     if not segment:
         raise APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
+            code=ErrorCode.NOT_FOUND,
             message_en=f"Discourse segment {segment_id} not found",
             message_ar=f"المقطع الخطابي {segment_id} غير موجود",
             request_id=get_request_id(request),
@@ -839,7 +839,7 @@ async def get_tone_annotation(
 
     if not annotation:
         raise APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
+            code=ErrorCode.NOT_FOUND,
             message_en=f"Tone annotation {annotation_id} not found",
             message_ar=f"تصنيف النبرة {annotation_id} غير موجود",
             request_id=get_request_id(request),

@@ -105,7 +105,7 @@ from app.safety.grounding import (
     fence_conversation,
     fence_source,
     is_quran_self_citation,
-    strip_citation_markers,
+    drop_unsupported_sentences,
     verify_quotations,
 )
 from app.safety.quran_answer_guard import QuranAnswerGuard
@@ -347,18 +347,12 @@ class RAGPipeline:
         without LLM synthesis.  Returns None if the index has no match for this query.
         """
         import time
-        from app.rag.retrieval import THEMATIC_VERSE_INDEX, normalize_arabic
+        from app.rag.retrieval import thematic_keyword_matches
 
         start_time = time.time()
-        q_lower = question.lower()
-        q_norm = normalize_arabic(q_lower)
 
-        # Check if any thematic keyword matches the query
-        has_match = any(
-            normalize_arabic(kw.lower()) in q_norm or kw.lower() in q_lower
-            for kw in THEMATIC_VERSE_INDEX
-        )
-        if not has_match:
+        # Whole-word keyword match (see thematic_keyword_matches)
+        if not thematic_keyword_matches(question):
             return None
 
         chunks = await self.retriever._thematic_verse_lookup(
@@ -567,6 +561,13 @@ class RAGPipeline:
         # 4. Rerank chunks based on relevance and source reliability
         chunks = self._rerank_chunks(chunks, question, max_sources)
 
+        # Only trusted sources may reach the model (defence in depth: the
+        # citation validator would otherwise refuse the answer after generation).
+        untrusted = [c.source_id for c in chunks if not source_validator.is_trusted_source_id(c.source_id)]
+        if untrusted:
+            logger.warning(f"Dropping chunks from untrusted sources before generation: {sorted(set(untrusted))}")
+            chunks = [c for c in chunks if source_validator.is_trusted_source_id(c.source_id)]
+
         # 5. Check if we have enough evidence
         if not chunks:
             refusal_text = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
@@ -651,12 +652,18 @@ class RAGPipeline:
         # Determine status based on citations and question
         if not validated.citations:
             validated.status = "no_verified_source"
+            validated.answer_kind = "refusal"
             # Override answer with language-specific safe refusal text
             validated.answer = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
         elif self._is_vague_question(question):
             validated.status = "needs_clarification"
         elif validated.confidence == 0.0:
+            # Insufficient grounding: do not show the AI text under a
+            # "no verified source" label — return the safe fallback instead.
             validated.status = "no_verified_source"
+            validated.answer_kind = "refusal"
+            validated.answer = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
+            validated.citations = []
         else:
             validated.status = "answered"
 
@@ -857,24 +864,29 @@ class RAGPipeline:
         then LLM if needed.
         """
         q_lower = question.lower()
+        from app.rag.retrieval import contains_keyword
+
+        def has(*words):
+            # Whole-word match: "حكم" (ruling) must not fire on "الحكمة" (wisdom).
+            return any(contains_keyword(question, w) for w in words)
 
         # Rule-based classification
-        if any(word in q_lower for word in ["meaning", "tafseer", "explain", "معنى", "تفسير"]):
+        if has("meaning", "tafseer", "explain", "معنى", "تفسير"):
             return QueryIntent.VERSE_MEANING
 
-        if any(word in q_lower for word in ["story", "prophet", "قصة", "نبي"]):
+        if has("story", "prophet", "قصة", "نبي"):
             return QueryIntent.STORY_EXPLORATION
 
-        if any(word in q_lower for word in ["theme", "topic", "about", "موضوع"]):
+        if has("theme", "topic", "about", "موضوع"):
             return QueryIntent.THEME_SEARCH
 
-        if any(word in q_lower for word in ["compare", "difference", "مقارنة", "فرق"]):
+        if has("compare", "difference", "مقارنة", "فرق"):
             return QueryIntent.COMPARATIVE
 
-        if any(word in q_lower for word in ["root", "word", "grammar", "جذر", "كلمة"]):
+        if has("root", "word", "grammar", "جذر", "كلمة"):
             return QueryIntent.LINGUISTIC
 
-        if any(word in q_lower for word in ["ruling", "halal", "haram", "allowed", "حكم", "حلال", "حرام"]):
+        if has("ruling", "halal", "haram", "allowed", "حكم", "حلال", "حرام"):
             return QueryIntent.RULING
 
         # Default to verse meaning for Quran-related questions
@@ -1365,7 +1377,7 @@ class RAGPipeline:
                 m.group(0) for m in re.finditer(citation_pattern, raw_response)
                 if f"[{m.group(1)}, {m.group(2)}]" in invalid_markers
             ]
-            raw_response = strip_citation_markers(raw_response, raw_invalid)
+            raw_response = drop_unsupported_sentences(raw_response, raw_invalid, citation_pattern)
 
         # An answer without a single valid citation to retrieved evidence is not
         # grounded. Return the safe fallback (sources are still shown verbatim)

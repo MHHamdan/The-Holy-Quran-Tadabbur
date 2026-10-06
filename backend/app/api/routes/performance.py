@@ -121,15 +121,21 @@ async def get_db_pool_status() -> Dict[str, Any]:
 
     Arabic: حالة مجموعة اتصالات قاعدة البيانات
     """
+    # Only public QueuePool methods: private attributes (_invalidated,
+    # _max_overflow) differ between SQLAlchemy releases and raised 500s.
     pool = async_engine.pool
+
+    def _call(name):
+        fn = getattr(pool, name, None)
+        return fn() if callable(fn) else None
+
     return {
         "status": "healthy",
-        "pool_size": pool.size(),
-        "max_overflow": async_engine.pool._max_overflow,
-        "checked_out": pool.checkedout(),
-        "checked_in": pool.checkedin(),
-        "overflow": pool.overflow(),
-        "invalid": pool._invalidated,
+        "pool_class": type(pool).__name__,
+        "pool_size": _call("size"),
+        "checked_out": _call("checkedout"),
+        "checked_in": _call("checkedin"),
+        "overflow": _call("overflow"),
     }
 
 

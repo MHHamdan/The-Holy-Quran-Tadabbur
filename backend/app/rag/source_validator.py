@@ -18,7 +18,13 @@ from app.rag.types import Citation
 # Trusted source registry — built once at import time
 # ---------------------------------------------------------------------------
 
-_BASE_IDS: frozenset = frozenset(TAFSIR_CATALOG.keys())
+# Classical works that docs/sunni-source-review-policy.md lists as canonical or
+# verified, and that the ingestion manifest ships, but that have no entry in
+# the display catalogue. Without this, any answer touching their chunks was
+# refused outright.
+_POLICY_VERIFIED_IDS: frozenset = frozenset({"baghawi"})
+
+_BASE_IDS: frozenset = frozenset(TAFSIR_CATALOG.keys()) | _POLICY_VERIFIED_IDS
 
 # DB stores language-suffixed variants (e.g. "ibn_kathir_ar", "ibn_kathir_en").
 # Accept both the base ID and the two suffix forms.

@@ -28,7 +28,7 @@ EMBEDDING_CONFIG = {
     # Hosted on Hugging Face (HF_EMBEDDING_MODEL); TF-IDF hashing is the fallback.
     "max_sequence_length": 512,
     "embedding_dimension": 1024,
-    "batch_size": 32,
+    "batch_size": 64,  # HF latency is per call, not per item
 }
 
 # Semantic similarity thresholds
@@ -285,6 +285,25 @@ class SemanticEmbeddingService:
         # Sort and return top k
         similarities.sort(key=lambda x: x[1], reverse=True)
         return similarities[:top_k]
+
+    def find_similar_lexical(
+        self,
+        query_text: str,
+        candidate_texts: List[Tuple[int, str]],
+        top_k: int = 20,
+        min_similarity: float = 0.3,
+    ) -> List[Tuple[int, float]]:
+        """Deterministic hashed TF-IDF ranking (no model call), for time-boxed fallbacks."""
+        query = self._compute_tfidf_embedding(query_text)
+        scored = []
+        for verse_id, text in candidate_texts:
+            emb = self._compute_tfidf_embedding(text)
+            denom = float(np.linalg.norm(query) * np.linalg.norm(emb))
+            sim = float(np.dot(query, emb) / denom) if denom else 0.0
+            if sim >= min_similarity:
+                scored.append((verse_id, sim))
+        scored.sort(key=lambda x: x[1], reverse=True)
+        return scored[:top_k]
 
     def get_confidence_level(self, similarity: float) -> str:
         """Get confidence level string from similarity score."""

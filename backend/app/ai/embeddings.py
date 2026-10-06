@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from typing import List, Optional, Sequence, Union
 
 import numpy as np
@@ -24,8 +25,12 @@ logger = logging.getLogger(__name__)
 
 TextInput = Union[str, Sequence[str]]
 
-# hf-inference accepts batched inputs; keep requests comfortably small.
-DEFAULT_BATCH_SIZE = 32
+# hf-inference accepts batched inputs; latency is dominated per call, not per item.
+DEFAULT_BATCH_SIZE = 64
+# Transient upstream errors (502/503, resets, timeouts) are retried; quota
+# and auth errors are not.
+MAX_ATTEMPTS = 3
+RETRY_BACKOFF_SECONDS = 2.0
 
 
 class HFEmbeddingModel:
@@ -64,12 +69,7 @@ class HFEmbeddingModel:
         vectors = []
         for start in range(0, len(texts), size):
             batch = texts[start:start + size]
-            try:
-                out = client.feature_extraction(batch, model=self.model_name, truncate=True)
-            except Exception as exc:  # noqa: BLE001
-                err = classify_exception(exc, "embeddings")
-                logger.warning("Embedding request failed: %s", err)
-                raise err from None
+            out = self._request(client, batch)
             arr = np.asarray(out, dtype=np.float32)
             # Some backends return per-token vectors; mean-pool to one vector per text.
             if arr.ndim == 3:
@@ -91,6 +91,21 @@ class HFEmbeddingModel:
             norms = np.linalg.norm(result, axis=1, keepdims=True)
             result = result / np.where(norms == 0, 1.0, norms)
         return result[0] if single else result
+
+    def _request(self, client, batch: List[str]):
+        """One feature-extraction call, retried on transient upstream errors."""
+        for attempt in range(1, MAX_ATTEMPTS + 1):
+            try:
+                return client.feature_extraction(batch, model=self.model_name, truncate=True)
+            except Exception as exc:  # noqa: BLE001
+                err = classify_exception(exc, "embeddings")
+                retryable = err.kind in (HFErrorKind.UPSTREAM, HFErrorKind.NETWORK, HFErrorKind.TIMEOUT)
+                if retryable and attempt < MAX_ATTEMPTS:
+                    logger.info("Embedding request failed (%s); retry %d", err, attempt)
+                    time.sleep(RETRY_BACKOFF_SECONDS * attempt)
+                    continue
+                logger.warning("Embedding request failed: %s", err)
+                raise err from None
 
     async def aencode(self, sentences: TextInput, **kwargs) -> np.ndarray:
         """Async wrapper (the HTTP call runs in a worker thread)."""

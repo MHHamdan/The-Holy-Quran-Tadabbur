@@ -11,6 +11,7 @@ Features:
 Arabic: خدمة البحث في القرآن الكريم
 """
 
+from functools import lru_cache
 import re
 import math
 import logging
@@ -86,6 +87,7 @@ ARABIC_STOP_WORDS = {
 }
 
 
+@lru_cache(maxsize=500_000)
 def normalize_arabic(
     text: str,
     remove_diacritics: bool = True,
@@ -298,9 +300,13 @@ ARABIC_ROOTS: Dict[str, List[str]] = {
 }
 
 
+@lru_cache(maxsize=200_000)
 def extract_root(word: str) -> Optional[str]:
     """
     Extract the probable Arabic root from a word.
+
+    Pure and memoised: it scans every ARABIC_ROOTS form for each word, and
+    similarity ranking calls it for all ~6,200 verses per request.
 
     Uses pattern matching and a root dictionary for common words.
     Returns the 3-letter root if found.

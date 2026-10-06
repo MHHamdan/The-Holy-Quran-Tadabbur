@@ -3,7 +3,7 @@ Application configuration with Pydantic Settings.
 """
 from functools import lru_cache
 from typing import Optional
-from pydantic import AliasChoices, Field, SecretStr
+from pydantic import AliasChoices, Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,7 +26,8 @@ class Settings(BaseSettings):
     # Frontend should warn if MAJOR version differs from expected
     api_version: str = "1.0.0"
     environment: str = "development"
-    debug: bool = True
+    # Debug exposes /docs and raw exception messages; never on in production.
+    debug: bool = False
 
     # Database
     database_url: str = "postgresql://tadabbur:tadabbur_dev@localhost:19432/tadabbur"
@@ -137,6 +138,13 @@ class Settings(BaseSettings):
     # Minimum entailment probability to accept the NLI prediction.
     # Below this threshold the keyword classifier is used as fallback.
     emotion_confidence_threshold: float = 0.40
+
+    @model_validator(mode="after")
+    def _production_hardening(self):
+        if self.environment.lower() == "production":
+            # Never leak exception text or expose interactive docs in production.
+            self.debug = False
+        return self
 
     @property
     def hf_llm_model_id(self) -> str:

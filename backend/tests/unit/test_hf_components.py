@@ -46,7 +46,7 @@ def test_encode_single_and_batch_are_normalised(token, monkeypatch):
     assert one.shape == (1024,)
     assert many.shape == (70, 1024)
     assert np.allclose(np.linalg.norm(many, axis=1), 1.0, atol=1e-5)
-    assert [len(c[0]) for c in client.calls] == [1, 32, 32, 6]  # batched
+    assert [len(c[0]) for c in client.calls] == [1, 32, 32, 6]  # explicit batch_size=32
     assert all(c[1] == settings.hf_embedding_model and c[2] is True for c in client.calls)
 
 
@@ -58,10 +58,25 @@ def test_encode_rejects_wrong_dimension(token, monkeypatch):
 
 
 def test_encode_maps_upstream_errors(token, monkeypatch):
-    monkeypatch.setattr(emb, "task_client", lambda task, **kw: _FakeFeatureClient(fail=TimeoutError()))
+    monkeypatch.setattr(emb, "RETRY_BACKOFF_SECONDS", 0)
+    client = _FakeFeatureClient(fail=TimeoutError())
+    monkeypatch.setattr(emb, "task_client", lambda task, **kw: client)
     with pytest.raises(HFInferenceError) as info:
         emb.HFEmbeddingModel().encode("x")
     assert info.value.kind == HFErrorKind.TIMEOUT
+    assert len(client.calls) == emb.MAX_ATTEMPTS  # transient errors retried
+
+
+def test_encode_does_not_retry_quota(token, monkeypatch):
+    import httpx
+    from huggingface_hub.errors import HfHubHTTPError
+
+    resp = httpx.Response(402, request=httpx.Request("POST", "https://router.huggingface.co"))
+    client = _FakeFeatureClient(fail=HfHubHTTPError("402", response=resp))
+    monkeypatch.setattr(emb, "task_client", lambda task, **kw: client)
+    with pytest.raises(HFInferenceError) as info:
+        emb.HFEmbeddingModel().encode("x")
+    assert info.value.kind == HFErrorKind.QUOTA and len(client.calls) == 1
 
 
 def test_encode_without_token_is_not_configured():
@@ -117,7 +132,9 @@ def test_rerank_uses_hf_scores(token):
 
     assert result.method == "cross_encoder" and result.reranked
     assert ranked[0].content == "الصبر حبس النفس"
-    assert ranked[0].relevance_score == pytest.approx(0.97)
+    assert ranked[0].rerank_score == pytest.approx(0.97)
+    # Retrieval relevance (the confidence gate's scale) is left untouched.
+    assert ranked[0].relevance_score == pytest.approx(0.5)
 
 
 @pytest.mark.parametrize("failure", [
