@@ -52,7 +52,7 @@ No assertion was changed or weakened.
 | Frontend from a clean `npm ci` | typecheck 0, lint 0, build OK, bundle clean |
 | `actionlint` | 0 findings |
 | gitleaks, 218 commits | 0 after reviewing 2 false positives (a localStorage key name and a deliberately wrong test key), allow-listed by fingerprint in `.gitleaksignore` and inline |
-| pip-audit | no known vulnerabilities |
+| pip-audit | no known vulnerabilities (after upgrading the audit venv's own pip 24.0 / setuptools 79.0.1, which carried advisories; the backend image upgrades both too) |
 | npm audit (shipped deps) | 0 high/critical. `npm audit fix` raised axios 1.18 → 1.20 to fix a high-severity prototype-pollution issue. 2 moderate remain (react-router open redirect via backslash URLs); the only fix is a major upgrade to v7 |
 
 ## Known debt, not gated

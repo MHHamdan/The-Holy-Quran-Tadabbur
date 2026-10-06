@@ -24,7 +24,7 @@ COPY app ./app
 # intercepting proxy. It is mounted only for this step and never stored in a layer.
 RUN --mount=type=secret,id=extra_ca \
     if [ -s /run/secrets/extra_ca ]; then export PIP_CERT=/run/secrets/extra_ca; fi; \
-    pip install --upgrade pip && pip install . && pip uninstall -y tadabbur-ai
+    pip install --upgrade pip setuptools && pip install . && pip uninstall -y tadabbur-ai
 
 # ------------------------------------------------------------ development
 # Used by docker-compose.portable.yml for local work only (auto-reload).
