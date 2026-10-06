@@ -80,6 +80,9 @@ class Settings(BaseSettings):
     hf_reranker_model: str = "BAAI/bge-reranker-v2-m3"
     hf_stt_model: str = "openai/whisper-large-v3-turbo"
     hf_zero_shot_model: str = "facebook/bart-large-mnli"
+    # Tasmee speech-to-text: "huggingface" (hosted) or "faster-whisper"
+    # (optional local extra for self-hosters; not installed by default).
+    stt_provider: str = "huggingface"
 
     # Embedding dimension of hf_embedding_model (Qdrant collection size)
     embedding_dimension: int = 1024

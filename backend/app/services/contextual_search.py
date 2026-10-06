@@ -24,6 +24,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
+# Matches HF_EMBEDDING_MODEL (multilingual-e5-large) so fallback vectors share its shape.
+FALLBACK_DIM = 1024
+
 
 # =============================================================================
 # CONFIGURATION
@@ -264,22 +267,28 @@ class ContextualSearchService:
         if self._initialized:
             return self._model is not None
 
-        try:
-            from sentence_transformers import SentenceTransformer
+        from app.ai.embeddings import HFEmbeddingModel
+        from app.ai.hf_client import hf_configured
 
-            # Use multilingual model for cross-language understanding
-            self._model = SentenceTransformer(
-                "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-            )
-            self._model_name = "paraphrase-multilingual-MiniLM-L12-v2"
-            logger.info(f"Loaded contextual model: {self._model_name}")
-
-        except ImportError:
-            logger.warning("sentence-transformers not installed")
+        if hf_configured():
+            self._model = HFEmbeddingModel()
+            self._model_name = self._model.model_name
+            logger.info(f"Using HF embedding model: {self._model_name}")
+        else:
+            logger.warning("HF_TOKEN not configured, using fallback embeddings")
             self._model = None
 
         self._initialized = True
         return self._model is not None
+
+    def _disable_model(self, error: Exception) -> None:
+        """Switch to the fallback embedding for the rest of the process.
+
+        Cached vectors are dropped so HF and fallback vectors are never compared.
+        """
+        logger.warning("HF embeddings unavailable, switching to fallback: %s", error)
+        self._model = None
+        self._embedding_cache.clear()
 
     def detect_query_intent(self, query: str) -> Tuple[QueryIntent, float]:
         """
@@ -412,10 +421,13 @@ class ContextualSearchService:
         if not self._initialized:
             await self.initialize()
 
+        embedding = None
         if self._model is not None:
-            import asyncio
-            embedding = await asyncio.to_thread(self._model.encode, text, convert_to_numpy=True)
-        else:
+            try:
+                embedding = await self._model.aencode(f"query: {text}")
+            except Exception as e:
+                self._disable_model(e)
+        if embedding is None:
             # Fallback embedding
             embedding = self._compute_fallback_embedding(text)
 
@@ -425,15 +437,15 @@ class ContextualSearchService:
 
     def _compute_fallback_embedding(self, text: str) -> np.ndarray:
         """Compute fallback embedding when model unavailable."""
-        embedding = np.zeros(384)  # MiniLM dimension
+        embedding = np.zeros(FALLBACK_DIM)
 
         words = text.split()
         for i, word in enumerate(words):
             word_hash = int(hashlib.md5(word.encode('utf-8')).hexdigest(), 16)
             positions = [
-                word_hash % 384,
-                (word_hash * 7) % 384,
-                (word_hash * 13) % 384,
+                word_hash % FALLBACK_DIM,
+                (word_hash * 7) % FALLBACK_DIM,
+                (word_hash * 13) % FALLBACK_DIM,
             ]
             weight = 1.0 / (i + 1)
             for pos in positions:

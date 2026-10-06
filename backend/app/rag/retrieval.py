@@ -857,22 +857,11 @@ class HybridRetriever:
         return list(set(expanded))
 
     def _get_embedding_model(self):
-        """Lazy-load the embedding model."""
+        """Embedding client (Hugging Face feature-extraction, HF_EMBEDDING_MODEL)."""
         if self.embedding_model is None:
-            import os
-            import torch
-            from sentence_transformers import SentenceTransformer
+            from app.ai.embeddings import get_embedding_model
 
-            # Use GPU if available, otherwise CPU
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            # Allow override via environment variable
-            device = os.environ.get("EMBEDDING_DEVICE", device)
-
-            logger.info(f"Loading embedding model on device: {device}")
-            self.embedding_model = SentenceTransformer(
-                settings.hf_embedding_model,
-                device=device,
-            )
+            self.embedding_model = get_embedding_model()
         return self.embedding_model
 
     async def _vector_search(
@@ -898,7 +887,7 @@ class HybridRetriever:
             model = self._get_embedding_model()
             # E5 models need "query: " prefix for queries
             query_text = f"query: {query}"
-            query_vector = model.encode(query_text).tolist()
+            query_vector = (await model.aencode(query_text)).tolist()
 
             # Build search request - fetch extra to account for filtering
             search_body = {

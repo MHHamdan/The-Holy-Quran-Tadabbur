@@ -123,7 +123,7 @@ class TasmeeSession(Base):
     total_duration_seconds = Column(Float, default=0.0)
 
     # STT configuration
-    stt_provider = Column(String(50), default="faster-whisper")
+    stt_provider = Column(String(50), default="huggingface")
     stt_model = Column(String(50), default="base")
 
     # Additional data (JSON) - stores expected_text and other session data

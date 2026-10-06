@@ -1054,7 +1054,7 @@ async def ask(
     if body.emotion_override:
         emotion, emotion_confidence = body.emotion_override, 1.0
     else:
-        emotion, emotion_confidence = _classify_with_confidence(body.message)
+        emotion, emotion_confidence = await asyncio.to_thread(_classify_with_confidence, body.message)
 
     tone = get_tone_profile(emotion, emotion_confidence)
     # In crisis mode, force the safest themes (mercy / hope / trust) so we
@@ -1292,7 +1292,7 @@ async def chat(
     if body.emotion_override:
         emotion, emotion_confidence = body.emotion_override, 1.0
     else:
-        emotion, emotion_confidence = _classify_with_confidence(body.message)
+        emotion, emotion_confidence = await asyncio.to_thread(_classify_with_confidence, body.message)
 
     tone = get_tone_profile(emotion, emotion_confidence)
     directive = build_tone_directive(emotion, emotion_confidence, body.language)

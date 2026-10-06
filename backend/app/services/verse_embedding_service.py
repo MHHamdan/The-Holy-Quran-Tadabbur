@@ -59,17 +59,12 @@ class VerseEmbeddingService:
         self._collection_ready = False
 
     def _get_model(self):
-        """Lazy load the embedding model."""
+        """Embedding client (Hugging Face feature-extraction)."""
         if self._model is None:
-            import os
-            import torch
-            from sentence_transformers import SentenceTransformer
+            from app.ai.embeddings import HFEmbeddingModel
 
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            device = os.environ.get("EMBEDDING_DEVICE", device)
-
-            logger.info(f"Loading verse embedding model: {self._model_name} on {device}")
-            self._model = SentenceTransformer(self._model_name, device=device)
+            logger.info(f"Using HF verse embedding model: {self._model_name}")
+            self._model = HFEmbeddingModel(model=self._model_name)
         return self._model
 
     async def ensure_collection_exists(self) -> bool:
@@ -186,7 +181,7 @@ class VerseEmbeddingService:
                 texts.append(combined_text)
 
             # Generate embeddings for batch
-            embeddings = model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
+            embeddings = await model.aencode(texts)
 
             # Prepare points for Qdrant
             points = []

@@ -8,8 +8,8 @@ This module provides endpoints for:
 4. Progress tracking
 5. Session history
 
-All STT processing is done locally using faster-whisper (MIT license).
-No paid APIs or cloud services required.
+Speech-to-text runs on Hugging Face Inference Providers (hosted Whisper,
+HF_STT_MODEL) from the backend; the HF token never reaches the client.
 """
 
 import asyncio
@@ -40,6 +40,8 @@ from app.models.tasmee import (
     TasmeeProgress,
     TasmeeSession,
 )
+from app.ai.hf_client import HFErrorKind, HFInferenceError
+from app.core.config import settings
 from app.stt import get_stt_provider
 from app.stt.alignment import MistakeType, RecitationAligner
 from app.stt.arabic_normalizer import tokenize_with_positions
@@ -418,20 +420,23 @@ async def transcribe_audio(
 
     # Get or create STT provider
     stt_provider = get_stt_provider(
-        "faster-whisper",
         model_size=tasmee_session.stt_model,
         language="ar",
     )
 
-    # Transcribe
+    # Transcribe (HTTP call to HF — run off the event loop)
     try:
-        stt_result = stt_provider.transcribe(audio_array, word_timestamps=True)
+        stt_result = await asyncio.to_thread(
+            stt_provider.transcribe, audio_array, word_timestamps=True
+        )
+    except HFInferenceError as e:
+        logger.error(f"Transcription failed: {e}")
+        if e.kind == HFErrorKind.QUOTA:
+            raise HTTPException(status_code=429, detail="Speech recognition usage limit reached. Please try again later.")
+        raise HTTPException(status_code=503, detail="Speech recognition is temporarily unavailable.")
     except Exception as e:
         logger.error(f"Transcription failed: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Transcription failed: {str(e)}",
-        )
+        raise HTTPException(status_code=500, detail="Transcription failed.")
 
     # Get expected text
     expected_text = tasmee_session.extra_data.get("expected_text", "") if tasmee_session.extra_data else ""
@@ -593,11 +598,16 @@ async def websocket_transcription(
 
         # Initialize STT and aligner
         stt_provider = get_stt_provider(
-            "faster-whisper",
             model_size=tasmee_session.stt_model,
             language="ar",
         )
-        stt_provider.load_model()
+        try:
+            stt_provider.load_model()
+        except HFInferenceError as e:
+            logger.error(f"STT unavailable for session {session_id}: {e}")
+            await websocket.close(code=4003, reason="stt_unavailable")
+            return
+        stt_failures = 0
 
         aligner = RecitationAligner(expected_text)
         aligner.state.current_position = tasmee_session.words_completed
@@ -770,8 +780,23 @@ async def websocket_transcription(
 
                     if window is not None:
                         logger.info(f"[TasmeeAudio] Buffer ready for STT: {len(window)} samples ({len(window)/16000:.2f}s)")
-                        # Transcribe the window
-                        stt_result = stt_provider.transcribe(window, word_timestamps=True)
+                        # Transcribe the window (HTTP call to HF — off the event loop)
+                        try:
+                            stt_result = await asyncio.to_thread(
+                                stt_provider.transcribe, window, word_timestamps=True
+                            )
+                            stt_failures = 0
+                        except HFInferenceError as e:
+                            stt_failures += 1
+                            logger.warning(f"[TasmeeSTT] window failed ({stt_failures}): {e}")
+                            await websocket.send_json({
+                                "type": "stt_unavailable",
+                                "reason": "ai_quota_exceeded" if e.kind == HFErrorKind.QUOTA else e.kind.value,
+                            })
+                            if stt_failures >= 3:
+                                await websocket.close(code=4003, reason="stt_unavailable")
+                                return
+                            continue
 
                         if stt_result.segments:
                             # Log transcription result
@@ -856,7 +881,7 @@ async def websocket_transcription(
         except Exception as e:
             logger.error(f"WebSocket error: {e}")
             try:
-                await websocket.close(code=4000, reason=str(e)[:120])
+                await websocket.close(code=4000, reason="internal_error")
             except RuntimeError:
                 pass  # Connection already closed
         finally:
@@ -973,18 +998,23 @@ async def get_statistics(
 @router.get("/health", tags=["Health"])
 async def health_check():
     """Check if Tasmee service is healthy."""
-    # Check if STT provider can be loaded
+    # STT runs on Hugging Face; availability = provider constructs and HF is configured.
     try:
-        provider = get_stt_provider("faster-whisper", model_size="tiny")
+        provider = get_stt_provider()
+        provider.load_model()
         stt_available = True
         stt_error = None
-    except Exception as e:
+    except HFInferenceError as e:
         stt_available = False
-        stt_error = str(e)
+        stt_error = e.kind.value
+    except Exception:
+        stt_available = False
+        stt_error = "provider_error"
 
     return {
         "status": "healthy" if stt_available else "degraded",
-        "stt_provider": "faster-whisper",
+        "stt_provider": settings.stt_provider,
+        "stt_model": settings.hf_stt_model if settings.stt_provider == "huggingface" else None,
         "stt_available": stt_available,
         "stt_error": stt_error,
         "audio_storage_dir": AUDIO_STORAGE_DIR,

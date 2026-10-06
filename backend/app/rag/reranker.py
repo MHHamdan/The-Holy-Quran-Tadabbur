@@ -1,21 +1,14 @@
 """
-Cross-Encoder Reranker for RAG Retrieval.
+Reranker for RAG retrieval (Hugging Face hosted cross-encoder).
 
-Uses a cross-encoder model to rerank retrieved chunks based on
-semantic relevance to the query. Cross-encoders process query-document
-pairs together, providing more accurate relevance scores than bi-encoders.
+A cross-encoder scores each (query, passage) pair jointly, which is more
+accurate than bi-encoder similarity alone. The model runs on Hugging Face
+Inference Providers (``HF_RERANKER_MODEL``, default ``BAAI/bge-reranker-v2-m3``
+— multilingual, handles Arabic and English); nothing is loaded locally and no
+GPU is needed.
 
-MODELS (in order of preference):
-- Primary: cross-encoder/ms-marco-MiniLM-L-6-v2 (fast, multilingual)
-- Arabic: amberoad/bert-multilingual-passage-reranking-msmarco
-- Fallback: Simple keyword overlap scoring
-
-OPTIMIZATIONS:
-- GPU acceleration with automatic device selection
-- Batch processing for throughput
-- Model warmup for consistent latency
-- Configurable model selection
-- Prometheus metrics integration
+If the HF call fails (no token, quota, outage) the deterministic hybrid
+keyword-overlap + BM25 scorer below is used instead.
 
 FLOW:
 1. Bi-encoder (embedding model) retrieves candidate chunks
@@ -31,18 +24,9 @@ from typing import List, Optional, Tuple, Dict, Any
 from dataclasses import dataclass, field
 from enum import Enum
 import re
-from functools import lru_cache
 import threading
 
 logger = logging.getLogger(__name__)
-
-
-class RerankerModel(str, Enum):
-    """Available reranker models."""
-    MS_MARCO_MINILM = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-    MS_MARCO_DISTILBERT = "cross-encoder/ms-marco-TinyBERT-L-2-v2"
-    MULTILINGUAL_MSMARCO = "amberoad/bert-multilingual-passage-reranking-msmarco"
-    ARABIC_BERT = "aubmindlab/bert-base-arabertv02"  # For Arabic-specific fine-tuning
 
 
 @dataclass
@@ -105,21 +89,20 @@ class RerankerStats:
 
 
 # Global state
-_cross_encoder = None
-_model_load_attempted = False
 _reranker_stats = RerankerStats()
-_model_lock = threading.Lock()
+
+
+def _reranker_model() -> str:
+    from app.core.config import settings
+    return os.getenv("RERANKER_MODEL") or settings.hf_reranker_model
 
 
 # Configuration with environment variable overrides
 RERANKER_CONFIG = {
     "enabled": os.getenv("RERANKER_ENABLED", "true").lower() == "true",
     "use_cross_encoder": os.getenv("RERANKER_USE_CROSS_ENCODER", "true").lower() == "true",
-    "model": os.getenv("RERANKER_MODEL", RerankerModel.MS_MARCO_MINILM.value),
     "max_input_length": int(os.getenv("RERANKER_MAX_INPUT_LENGTH", "512")),
     "batch_size": int(os.getenv("RERANKER_BATCH_SIZE", "32")),
-    "warmup_on_load": os.getenv("RERANKER_WARMUP", "true").lower() == "true",
-    "use_fp16": os.getenv("RERANKER_USE_FP16", "true").lower() == "true",  # Half precision for GPU
     "fallback_weight": float(os.getenv("RERANKER_FALLBACK_WEIGHT", "0.3")),  # Weight for keyword overlap
 }
 
@@ -129,108 +112,76 @@ def get_reranker_stats() -> RerankerStats:
     return _reranker_stats
 
 
-def _detect_device() -> str:
-    """Detect best available device (CUDA > MPS > CPU)."""
-    try:
-        import torch
-        if torch.cuda.is_available():
-            # Check CUDA memory
-            gpu_mem = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-            logger.info(f"CUDA available with {gpu_mem:.1f}GB memory")
-            return "cuda"
-        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-            logger.info("Apple MPS available")
-            return "mps"
-    except ImportError:
-        pass
-    return "cpu"
-
-
-def _warmup_model(cross_encoder, device: str) -> bool:
+def _hf_rerank_scores(query: str, passages: List[str]) -> List[float]:
     """
-    Warmup model with sample queries for consistent latency.
+    Score (query, passage) pairs with the hosted cross-encoder.
 
-    First inference is typically slower due to JIT compilation,
-    memory allocation, etc. Warmup ensures consistent performance.
+    Returns one relevance probability (0–1) per passage, in input order.
+    Raises HFInferenceError on any upstream failure.
     """
-    try:
-        warmup_pairs = [
-            ["What is patience in Islam?", "Patience (sabr) is a virtue in Islam..."],
-            ["Tell me about Moses", "Prophet Musa (Moses) was sent to Pharaoh..."],
-            ["ما معنى الصبر", "الصبر من أعظم الفضائل في الإسلام..."],
-        ]
+    from app.ai.hf_client import HFErrorKind, HFInferenceError, classify_exception
 
-        logger.info(f"Warming up cross-encoder on {device}...")
-        start = time.perf_counter()
-
-        # Run warmup inference
-        _ = cross_encoder.predict(warmup_pairs)
-
-        warmup_time = (time.perf_counter() - start) * 1000
-        logger.info(f"Cross-encoder warmup complete in {warmup_time:.1f}ms")
-
-        return True
-    except Exception as e:
-        logger.warning(f"Warmup failed: {e}")
-        return False
-
-
-def get_cross_encoder(force_reload: bool = False):
-    """
-    Lazy-load the cross-encoder model with GPU optimization.
-
-    Features:
-    - Automatic device selection (CUDA > MPS > CPU)
-    - Half-precision (FP16) for GPU inference
-    - Model warmup for consistent latency
-    - Thread-safe loading
-    """
-    global _cross_encoder, _model_load_attempted, _reranker_stats
-
-    with _model_lock:
-        if _model_load_attempted and not force_reload:
-            return _cross_encoder
-
-        _model_load_attempted = True
-
+    model = _reranker_model()
+    scores: List[float] = []
+    size = RERANKER_CONFIG["batch_size"]
+    for start in range(0, len(passages), size):
+        batch = passages[start:start + size]
+        payload = [{"text": query, "text_pair": p} for p in batch]
         try:
-            import torch
-            from sentence_transformers import CrossEncoder
+            out = _post_pairs(model, payload)
+        except Exception as exc:  # noqa: BLE001
+            raise classify_exception(exc, "rerank") from None
+        batch_scores = _parse_rerank_output(out, len(batch))
+        if batch_scores is None:
+            raise HFInferenceError(HFErrorKind.MALFORMED, "rerank")
+        scores.extend(batch_scores)
+    return scores
 
-            # Detect best device
-            device = _detect_device()
-            _reranker_stats.gpu_available = device in ("cuda", "mps")
 
-            model_name = RERANKER_CONFIG["model"]
-            logger.info(f"Loading cross-encoder model: {model_name} on {device}")
+HF_INFERENCE_BASE = "https://router.huggingface.co/hf-inference/models"
 
-            # Load model
-            _cross_encoder = CrossEncoder(model_name, device=device)
 
-            # Enable half-precision on GPU for faster inference
-            if device == "cuda" and RERANKER_CONFIG["use_fp16"]:
-                try:
-                    _cross_encoder.model.half()
-                    logger.info("Enabled FP16 (half-precision) for GPU inference")
-                except Exception as e:
-                    logger.warning(f"Could not enable FP16: {e}")
+def _post_pairs(model: str, payload: list):
+    """
+    POST (text, text_pair) inputs to the hf-inference text-classification
+    endpoint. huggingface_hub's typed client has no pair-input helper, so
+    this one request is made with httpx directly.
+    """
+    import httpx
+    from app.ai.hf_client import require_hf_token
+    from app.core.config import settings
 
-            _reranker_stats.model_loaded = True
-            _reranker_stats.model_name = model_name
+    response = httpx.post(
+        f"{HF_INFERENCE_BASE}/{model}",
+        headers={"Authorization": f"Bearer {require_hf_token('rerank')}"},
+        json={"inputs": payload},
+        timeout=settings.hf_timeout_seconds,
+    )
+    response.raise_for_status()
+    return response.json()
 
-            # Warmup if configured
-            if RERANKER_CONFIG["warmup_on_load"]:
-                _reranker_stats.warmup_complete = _warmup_model(_cross_encoder, device)
 
-            logger.info(f"Cross-encoder model loaded successfully on {device}")
-            return _cross_encoder
-
-        except ImportError as e:
-            logger.warning(f"sentence-transformers not available: {e}")
+def _parse_rerank_output(out, expected: int) -> Optional[List[float]]:
+    """
+    Accept the shapes hf-inference returns for pair classification:
+    ``[[{"label","score"}, ...]]`` (one list per pair or one wrapping list),
+    or ``[{"label","score"}, ...]``.
+    """
+    if isinstance(out, (bytes, str)):
+        import json
+        out = json.loads(out)
+    if isinstance(out, list) and len(out) == 1 and isinstance(out[0], list) and expected != 1:
+        out = out[0]
+    if not isinstance(out, list) or len(out) != expected:
+        return None
+    scores = []
+    for item in out:
+        if isinstance(item, list):
+            item = item[0] if item else None
+        if not isinstance(item, dict) or "score" not in item:
             return None
-        except Exception as e:
-            logger.error(f"Failed to load cross-encoder model: {e}")
-            return None
+        scores.append(float(item["score"]))
+    return scores
 
 
 def compute_keyword_overlap_score(query: str, text: str) -> float:
@@ -338,23 +289,22 @@ def rerank_chunks(
     if not chunks:
         return [], RerankResult(reranked=False, method="none", scores=[])
 
-    # Try cross-encoder if enabled
-    if use_cross_encoder and RERANKER_CONFIG["use_cross_encoder"]:
-        cross_encoder = get_cross_encoder()
+    # Try the hosted cross-encoder if enabled and HF is configured
+    from app.ai.hf_client import hf_configured
 
-        if cross_encoder is not None:
-            try:
-                result = _rerank_with_cross_encoder(query, chunks, top_k, cross_encoder)
-                latency_ms = (time.perf_counter() - start_time) * 1000
-                result[1].latency_ms = latency_ms
+    if use_cross_encoder and RERANKER_CONFIG["use_cross_encoder"] and hf_configured():
+        try:
+            result = _rerank_with_cross_encoder(query, chunks, top_k)
+            latency_ms = (time.perf_counter() - start_time) * 1000
+            result[1].latency_ms = latency_ms
 
-                # Record metrics
-                _reranker_stats.record_request(latency_ms, "cross_encoder", len(chunks))
-                _record_prometheus_metrics(latency_ms, "cross_encoder", len(chunks))
+            # Record metrics
+            _reranker_stats.record_request(latency_ms, "cross_encoder", len(chunks))
+            _record_prometheus_metrics(latency_ms, "cross_encoder", len(chunks))
 
-                return result
-            except Exception as e:
-                logger.warning(f"Cross-encoder reranking failed, using fallback: {e}")
+            return result
+        except Exception as e:
+            logger.warning(f"HF reranking failed, using fallback: {e}")
 
     # Fallback to hybrid keyword/BM25 scoring
     result = _rerank_with_hybrid_fallback(query, chunks, top_k)
@@ -382,90 +332,47 @@ def _rerank_with_cross_encoder(
     query: str,
     chunks: List,
     top_k: int,
-    cross_encoder,
 ) -> Tuple[List, RerankResult]:
-    """
-    Rerank using cross-encoder model with batch processing.
-
-    Creates query-document pairs and computes relevance scores.
-    Uses batched inference for better GPU utilization.
-    """
-    import torch
-
+    """Rerank with the HF-hosted cross-encoder (scores are probabilities 0–1)."""
     max_input_length = RERANKER_CONFIG["max_input_length"]
-    batch_size = RERANKER_CONFIG["batch_size"]
 
-    # Prepare query-document pairs
-    pairs = []
-    valid_indices = []
-
+    passages, valid_indices = [], []
     for i, chunk in enumerate(chunks):
-        # Use the most relevant content field
         text = chunk.content or chunk.content_en or chunk.content_ar or ""
         if text:
-            # Truncate to max input length
-            pairs.append([query, text[:max_input_length]])
+            passages.append(text[:max_input_length])
             valid_indices.append(i)
 
-    if not pairs:
+    model = _reranker_model()
+    if not passages:
         return chunks[:top_k], RerankResult(
-            reranked=False,
-            method="cross_encoder",
-            scores=[0.0] * len(chunks[:top_k]),
-            model_used=RERANKER_CONFIG["model"]
+            reranked=False, method="cross_encoder",
+            scores=[0.0] * len(chunks[:top_k]), model_used=model,
         )
 
-    # Batch inference for better GPU utilization
-    all_scores = []
-    for i in range(0, len(pairs), batch_size):
-        batch = pairs[i:i + batch_size]
+    scores = _hf_rerank_scores(query, passages)
 
-        with torch.no_grad():
-            batch_scores = cross_encoder.predict(batch, show_progress_bar=False)
-
-        if hasattr(batch_scores, 'tolist'):
-            batch_scores = batch_scores.tolist()
-
-        all_scores.extend(batch_scores)
-
-    # Map scores back to chunks
     chunk_scores = [0.0] * len(chunks)
-    for idx, score in zip(valid_indices, all_scores):
+    for idx, score in zip(valid_indices, scores):
         chunk_scores[idx] = float(score)
 
-    # Pair chunks with scores and sort
-    scored_chunks = list(zip(chunks, chunk_scores))
-    scored_chunks.sort(key=lambda x: x[1], reverse=True)
-
-    # Extract reranked chunks and scores
+    scored_chunks = sorted(zip(chunks, chunk_scores), key=lambda x: x[1], reverse=True)
     reranked_chunks = [chunk for chunk, _ in scored_chunks[:top_k]]
-    raw_scores = [score for _, score in scored_chunks[:top_k]]
+    reranked_scores = [score for _, score in scored_chunks[:top_k]]
 
-    # Normalize scores to 0-1 range using sigmoid
-    # Cross-encoder outputs raw logits that can be negative
-    import math
-    def sigmoid(x):
-        """Convert logit to probability 0-1."""
-        try:
-            return 1 / (1 + math.exp(-x))
-        except OverflowError:
-            return 0.0 if x < 0 else 1.0
+    for chunk, score in zip(reranked_chunks, reranked_scores):
+        chunk.relevance_score = float(score)
 
-    reranked_scores = [sigmoid(score) for score in raw_scores]
-
-    # Update relevance scores in chunks with normalized scores
-    for i, chunk in enumerate(reranked_chunks):
-        chunk.relevance_score = float(reranked_scores[i])
-
-    device = _detect_device()
-    logger.info(f"Cross-encoder reranked {len(chunks)} chunks on {device}, top raw score: {raw_scores[0]:.3f}, normalized: {reranked_scores[0]:.3f}")
-
+    logger.info(
+        "HF reranker scored %d chunks, top score %.3f", len(chunks),
+        reranked_scores[0] if reranked_scores else 0.0,
+    )
     return reranked_chunks, RerankResult(
         reranked=True,
         method="cross_encoder",
         scores=reranked_scores,
-        model_used=RERANKER_CONFIG["model"],
-        device=device
+        model_used=model,
+        device="huggingface",
     )
 
 
@@ -522,29 +429,20 @@ _rerank_with_keyword_overlap = _rerank_with_hybrid_fallback
 
 def is_reranker_available() -> dict:
     """
-    Check if reranker is available and what method will be used.
-
-    Returns dict with:
-    - available: bool
-    - method: str ("cross_encoder", "keyword_overlap")
-    - model: str (model name if cross-encoder)
-    - device: str ("cuda", "mps", or "cpu")
-    - stats: dict (performance statistics)
+    Report which reranking method will be used. Makes no network call.
     """
-    cross_encoder = get_cross_encoder()
-    stats = _reranker_stats.to_dict()
+    from app.ai.hf_client import hf_configured
 
-    if cross_encoder is not None:
-        device = _detect_device()
+    stats = _reranker_stats.to_dict()
+    if RERANKER_CONFIG["use_cross_encoder"] and hf_configured():
         return {
             "available": True,
             "method": "cross_encoder",
-            "model": RERANKER_CONFIG["model"],
-            "device": device,
+            "model": _reranker_model(),
+            "device": "huggingface",
             "config": {
                 "max_input_length": RERANKER_CONFIG["max_input_length"],
                 "batch_size": RERANKER_CONFIG["batch_size"],
-                "use_fp16": RERANKER_CONFIG["use_fp16"],
             },
             "stats": stats,
         }
@@ -556,18 +454,3 @@ def is_reranker_available() -> dict:
         "device": "cpu",
         "stats": stats,
     }
-
-
-def preload_model():
-    """
-    Preload model at application startup.
-
-    Call this during app initialization to avoid cold-start latency
-    on the first reranking request.
-    """
-    logger.info("Preloading cross-encoder model...")
-    encoder = get_cross_encoder()
-    if encoder:
-        logger.info("Cross-encoder model preloaded successfully")
-    else:
-        logger.warning("Cross-encoder model not available, will use fallback")

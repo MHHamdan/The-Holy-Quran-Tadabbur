@@ -973,10 +973,8 @@ def precompute_embedding(text: str, model=None) -> List[float]:
 
     # Compute embedding
     if model is None:
-        import torch
-        from sentence_transformers import SentenceTransformer
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = SentenceTransformer(settings.hf_embedding_model, device=device)
+        from app.ai.embeddings import get_embedding_model
+        model = get_embedding_model()
 
     # Normalize Arabic text
     normalized_text = normalize_arabic_text(text)
@@ -1013,8 +1011,7 @@ async def semantic_vector_search(
     Returns:
         List of search results with scores
     """
-    import torch
-    from sentence_transformers import SentenceTransformer
+    from app.ai.embeddings import get_embedding_model
 
     # Normalize query
     normalized_query = normalize_arabic_text(query)
@@ -1023,16 +1020,12 @@ async def semantic_vector_search(
     embedding = _embedding_cache.get(normalized_query)
 
     if embedding is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = SentenceTransformer(settings.hf_embedding_model, device=device)
+        model = get_embedding_model()
 
         if "e5" in settings.hf_embedding_model.lower():
             normalized_query = f"query: {normalized_query}"
 
-        import asyncio
-        embedding = await asyncio.to_thread(
-            lambda: model.encode(normalized_query, convert_to_numpy=True).tolist()
-        )
+        embedding = (await model.aencode(normalized_query)).tolist()
         _embedding_cache.set(query, embedding)
 
     # Build Qdrant search request

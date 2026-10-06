@@ -28,9 +28,10 @@ dependencies = [
     "rq>=1.16.0",
 
     # AI/ML — Hugging Face Inference Providers is the only model platform
+    # No torch / sentence-transformers / local model files: embeddings,
+    # reranking, STT and classification all run on HF Inference Providers.
     "huggingface_hub>=1.0.0",
-    "sentence-transformers>=2.3.0",
-    "torch>=2.1.0",
+    "numpy>=1.24.0",
 
     # Data Processing
     "httpx>=0.26.0",
@@ -54,9 +55,10 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.8.0",
 ]
-stt = [
+# Optional local speech-to-text for self-hosters (STT_PROVIDER=faster-whisper).
+# Not used by the default deployment, which needs no GPU or model files.
+stt-local = [
     "faster-whisper>=0.10.0",
-    "numpy>=1.24.0",
 ]
 
 [build-system]

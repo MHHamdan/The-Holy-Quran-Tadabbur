@@ -8,7 +8,7 @@
         seed seed-quran seed-stories \
         download-tafseer download-tafseer-source \
         ingest-tafseer ingest-tafseer-source tafseer-pipeline \
-        index index-tafseer index-cpu index-small index-gpu \
+        index index-tafseer \
         verify verify-services verify-downloads verify-db verify-qdrant \
         verify-rag verify-tafseer-api verify-chunking verify-translation \
         verify-security verify-e2e verify-e2e-full \
@@ -294,21 +294,9 @@ tafseer-pipeline: download-tafseer ingest-tafseer ## Full tafseer pipeline
 
 index: index-tafseer ## Index all vectors
 
-index-tafseer: ensure-services ## Index tafseer into Qdrant
-	@echo "$(GREEN)Indexing tafseer chunks...$(NC)"
+index-tafseer: ensure-services ## Index tafseer into Qdrant (HF embeddings; needs HF_TOKEN)
+	@echo "$(GREEN)Indexing tafseer chunks (Hugging Face embeddings)...$(NC)"
 	cd backend && python scripts/index/index_tafseer.py
-
-index-cpu: ensure-services ## Index using CPU only
-	@echo "$(GREEN)Indexing (CPU mode)...$(NC)"
-	cd backend && EMBEDDING_DEVICE=cpu python scripts/index/index_tafseer.py
-
-index-small: ensure-services ## Index using small model (fastest)
-	@echo "$(GREEN)Indexing (small model, CPU)...$(NC)"
-	cd backend && EMBEDDING_DEVICE=cpu EMBEDDING_MODEL=intfloat/multilingual-e5-small python scripts/index/index_tafseer.py
-
-index-gpu: ensure-services ## Index using GPU + large model
-	@echo "$(GREEN)Indexing (GPU, large model)...$(NC)"
-	cd backend && EMBEDDING_DEVICE=cuda EMBEDDING_MODEL=intfloat/multilingual-e5-large python scripts/index/index_tafseer.py
 
 # =============================================================================
 # Verification
