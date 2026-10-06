@@ -111,3 +111,6 @@ docs/quran-prophet*.md
 docs/quran-topic*.md
 docs/implicit-*.md
 docs/prophets-atlas-*.md
+
+# TypeScript incremental build info
+*.tsbuildinfo

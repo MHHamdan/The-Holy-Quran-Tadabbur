@@ -7,7 +7,7 @@
 # proxied by nginx). Never pass a secret as a build arg: VITE_* values are
 # compiled into the public JavaScript bundle.
 
-ARG NODE_IMAGE=node:20-alpine
+ARG NODE_IMAGE=node:22-alpine
 ARG NGINX_IMAGE=nginxinc/nginx-unprivileged:1.27-alpine
 
 # ------------------------------------------------------------------- deps

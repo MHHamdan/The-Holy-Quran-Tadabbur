@@ -5,6 +5,10 @@
  * downloaded in the background but only activated when the user chooses to
  * reload, so an update never swaps code under an in-progress recitation or
  * question. Without this, old lazy chunks could disappear mid-session.
+ *
+ * The native apps (Capacitor) ship their assets inside the app package and
+ * have no service worker: they mount NativeConnectivityBanner instead, which
+ * only shows the offline notice.
  */
 import { useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
@@ -13,11 +17,21 @@ import { useLanguageStore } from '../../stores/languageStore';
 
 const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000;
 
-export function AppUpdateBanner() {
-  const { language } = useLanguageStore();
-  const isAr = language === 'ar';
+function useOnline(): boolean {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+  return online;
+}
 
+/** Web/PWA: update prompt + offline notice. */
+export function AppUpdateBanner() {
+  const online = useOnline();
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
@@ -27,14 +41,30 @@ export function AppUpdateBanner() {
       if (registration) setInterval(() => { registration.update().catch(() => undefined); }, UPDATE_CHECK_INTERVAL_MS);
     },
   });
+  return (
+    <Banners
+      online={online}
+      needRefresh={needRefresh}
+      onReload={() => updateServiceWorker(true)}
+      onDismiss={() => setNeedRefresh(false)}
+    />
+  );
+}
 
-  useEffect(() => {
-    const on = () => setOnline(true);
-    const off = () => setOnline(false);
-    window.addEventListener('online', on);
-    window.addEventListener('offline', off);
-    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
-  }, []);
+/** Android/iOS: offline notice only (no service worker in the native apps). */
+export function NativeConnectivityBanner() {
+  const online = useOnline();
+  return <Banners online={online} needRefresh={false} onReload={() => undefined} onDismiss={() => undefined} />;
+}
+
+function Banners({ online, needRefresh, onReload, onDismiss }: {
+  online: boolean;
+  needRefresh: boolean;
+  onReload: () => void;
+  onDismiss: () => void;
+}) {
+  const { language } = useLanguageStore();
+  const isAr = language === 'ar';
 
   if (!needRefresh && online) return null;
 
@@ -58,13 +88,13 @@ export function AppUpdateBanner() {
           <RefreshCw className="w-4 h-4 text-primary-600 flex-shrink-0" />
           <span className="flex-1">{isAr ? 'يتوفر إصدار جديد من التطبيق.' : 'A new version of the app is available.'}</span>
           <button
-            onClick={() => updateServiceWorker(true)}
+            onClick={onReload}
             className="rounded-lg bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 text-xs font-medium"
           >
             {isAr ? 'تحديث' : 'Reload'}
           </button>
           <button
-            onClick={() => setNeedRefresh(false)}
+            onClick={onDismiss}
             aria-label={isAr ? 'لاحقاً' : 'Later'}
             className="p-1 rounded text-gray-400 hover:text-gray-600"
           >

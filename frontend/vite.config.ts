@@ -20,32 +20,58 @@ import path from 'path'
  * - For localhost, HTTP works fine (browser exception)
  */
 /**
- * Production builds must point at a reachable backend. VITE_API_URL is either
- * empty (same-origin: the web app behind nginx) or a public https origin
- * (Capacitor/mobile builds). A loopback address baked into a release bundle
- * only works on the developer's machine, so the build refuses it.
- * Set ALLOW_LOCAL_API_URL=true for a deliberate local release build.
+ * Build-time API origin policy (VITE_API_URL is public: never a secret).
+ *
+ * - web build (default mode): '' (same origin, nginx proxies /api) or a
+ *   public origin. A loopback address is refused, since it would only work on
+ *   the developer's machine (override: ALLOW_LOCAL_API_URL=true).
+ * - `--mode mobile` (Android/iOS release): the app has no same origin to fall
+ *   back on, so VITE_API_URL is REQUIRED, must be https://, must not be a
+ *   loopback address and must not be the placeholder from mobile.env.example.
+ * - `--mode mobile-dev` (debug builds against a development backend, e.g.
+ *   http://10.0.2.2:8000 from the Android emulator): required, any scheme.
  */
-const rejectLoopbackApiUrl = {
-  name: 'tadabbur-reject-loopback-api-url',
+export const MOBILE_API_URL_PLACEHOLDER = 'https://REPLACE_WITH_PRODUCTION_API_HOST'
+const LOOPBACK = /\/\/(localhost|127\.\d+\.\d+\.\d+|0\.0\.0\.0|\[::1\])(:|\/|$)/i
+
+export function apiUrlProblem(mode: string, rawUrl: string | undefined): string | null {
+  const url = (rawUrl ?? '').trim()
+  if (mode === 'mobile') {
+    if (!url) return 'VITE_API_URL is not set. Mobile release builds need the public HTTPS API origin (see frontend/mobile.env.example).'
+    if (url.includes('REPLACE_WITH_PRODUCTION_API_HOST')) return 'VITE_API_URL is still the placeholder; set the real production API origin.'
+    if (LOOPBACK.test(url)) return `VITE_API_URL=${url} is a loopback address; a phone cannot reach it.`
+    if (!/^https:\/\/[^/\s]+/i.test(url)) return `VITE_API_URL=${url} must be an https:// origin for mobile release builds.`
+    return null
+  }
+  if (mode === 'mobile-dev') {
+    return url ? null : 'VITE_API_URL is not set. Mobile debug builds need the development API origin, e.g. http://10.0.2.2:8000 for the Android emulator.'
+  }
+  if (LOOPBACK.test(url) && process.env.ALLOW_LOCAL_API_URL !== 'true') {
+    return `VITE_API_URL=${url} is a loopback address; production bundles must use '' (same origin) or a public origin`
+  }
+  return null
+}
+
+const enforceApiUrlPolicy = {
+  name: 'tadabbur-api-url-policy',
   apply: 'build' as const,
-  configResolved(config: { env: Record<string, unknown> }) {
-    const url = String(config.env.VITE_API_URL ?? '')
-    if (/\/\/(localhost|127\.\d+\.\d+\.\d+|0\.0\.0\.0|\[::1\])(:|\/|$)/i.test(url)
-        && process.env.ALLOW_LOCAL_API_URL !== 'true') {
-      throw new Error(`VITE_API_URL=${url} is a loopback address; production bundles must use '' (same origin) or a public origin`)
-    }
+  configResolved(config: { mode: string; env: Record<string, unknown> }) {
+    const problem = apiUrlProblem(config.mode, config.env.VITE_API_URL as string | undefined)
+    if (problem) throw new Error(problem)
   },
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
-    rejectLoopbackApiUrl,
+    enforceApiUrlPolicy,
     react(),
     VitePWA({
       // "prompt": a new build is downloaded in the background and activated
       // only when the user accepts the in-app banner (AppUpdateBanner).
       registerType: 'prompt',
+      // Native apps ship their assets inside the app package: no service
+      // worker (it would only serve stale copies after an app update).
+      disable: mode === 'mobile' || mode === 'mobile-dev',
       injectRegister: false,
       includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: false, // we manage manifest.json ourselves in /public
@@ -121,14 +147,16 @@ export default defineConfig({
     // nginx serves them with zero per-request CPU (gzip_static / brotli_static).
     // Heavy graph chunks (e.g. the 3.3 MB story-connection JSON→JS) drop ~6-8x
     // on the wire. Only compress files >1 KB where it actually pays off.
-    compression({
+    // Not for the native apps: there is no nginx in the app package, and the
+    // Android asset merger rejects x.js next to x.js.gz as duplicate resources.
+    ...(mode === 'mobile' || mode === 'mobile-dev' ? [] : [compression({
       // gzip only — the stock nginx image serves .gz via gzip_static but has no
       // brotli module, so emitting .br would just leave dead files on disk.
-      algorithms: ['gzip'],
+      algorithm: 'gzip',
       include: /\.(js|mjs|css|html|json|svg|txt|xml|wasm)$/i,
       threshold: 1024,
       deleteOriginalAssets: false,
-    }),
+    })]),
   ],
 
   server: {
@@ -255,4 +283,4 @@ export default defineConfig({
   css: {
     devSourcemap: true,
   },
-})
+}))

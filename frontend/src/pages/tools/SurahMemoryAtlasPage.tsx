@@ -1481,7 +1481,7 @@ export function SurahMemoryAtlasPage() {
             onClick={closePanel}
           />
           {/* Sheet */}
-          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[80vh] overflow-hidden flex flex-col safe-area-bottom">
             {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-1 shrink-0">
               <div className="w-10 h-1 bg-gray-200 rounded-full" />

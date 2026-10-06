@@ -237,6 +237,15 @@ export default function TasmeePage() {
     }
   };
 
+  // The hook can stop streaming on its own (interruption, lost connection,
+  // app backgrounded): stop the timer with it.
+  useEffect(() => {
+    if (!ws.isStreaming && timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, [ws.isStreaming]);
+
   // Stop recording
   const stopRecording = () => {
     ws.stopStreaming();
@@ -619,7 +628,11 @@ export default function TasmeePage() {
                       "font-semibold",
                       ws.error.includes('HTTPS_REQUIRED') ? "text-amber-700" : "text-red-700"
                     )}>
-                      {ws.error.includes('HTTPS_REQUIRED') ? '🔒 HTTPS Required for Microphone' : 'Microphone Error'}
+                      {ws.error.includes('HTTPS_REQUIRED') ? '🔒 HTTPS Required for Microphone'
+                        : ws.error.startsWith('CONNECTION_LOST') ? (isArabic ? 'انقطع الاتصال بالخادم' : 'Connection lost')
+                        : ws.error.startsWith('RECORDING_INTERRUPTED') ? (isArabic ? 'توقّف التسجيل' : 'Recording interrupted')
+                        : ws.error.startsWith('PERMISSION_DENIED') ? (isArabic ? 'لم يُسمح باستخدام الميكروفون' : 'Microphone permission denied')
+                        : 'Microphone Error'}
                     </div>
                     <div className={clsx(
                       "text-sm mt-1",
@@ -772,6 +785,7 @@ export default function TasmeePage() {
                   <button
                     onClick={startRecording}
                     disabled={!ws.isConnected}
+                    aria-label={isArabic ? 'ابدأ التسجيل' : 'Start recording'}
                     className="p-6 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-lg disabled:bg-gray-400"
                   >
                     <Mic className="w-8 h-8" />
@@ -781,6 +795,7 @@ export default function TasmeePage() {
                     {/* Stop */}
                     <button
                       onClick={stopRecording}
+                      aria-label={isArabic ? 'أوقف التسجيل' : 'Stop recording'}
                       className="p-6 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors shadow-lg animate-pulse"
                     >
                       <MicOff className="w-8 h-8" />

@@ -7,11 +7,12 @@
  * 3. Preloading for predictive navigation
  */
 
-import { Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect, memo } from 'react';
 import { Layout } from './components/layout/Layout';
-import { AppUpdateBanner } from './components/pwa/AppUpdateBanner';
+import { AppUpdateBanner, NativeConnectivityBanner } from './components/pwa/AppUpdateBanner';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { initNativeShell, isNativeApp } from './lib/native';
 import { OnboardingModal } from './components/onboarding/OnboardingModal';
 import { usePersonaStore } from './stores/personaStore';
 import { Loader2 } from 'lucide-react';
@@ -245,11 +246,17 @@ function useRoutePreloader() {
 function App() {
   useRoutePreloader();
   const { hasChosen } = usePersonaStore();
+  const navigate = useNavigate();
+
+  // Android/iOS shell: status bar, splash, hardware back button (no-op on web).
+  useEffect(() => {
+    initNativeShell(() => navigate(-1)).catch(() => undefined);
+  }, [navigate]);
 
   return (
     <Layout>
       {!hasChosen && <OnboardingModal />}
-      <AppUpdateBanner />
+      {isNativeApp ? <NativeConnectivityBanner /> : <AppUpdateBanner />}
       <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>

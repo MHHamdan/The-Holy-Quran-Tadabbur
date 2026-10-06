@@ -358,7 +358,7 @@ const VersePanel = memo(function VersePanel({
   );
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-amber-400 shadow-2xl z-50 max-h-[50vh] overflow-y-auto">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-amber-400 shadow-2xl z-50 max-h-[50vh] overflow-y-auto safe-area-bottom">
       {/* Header */}
       <div className="sticky top-0 bg-gradient-to-r from-emerald-700 to-emerald-600 text-white px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">

@@ -64,6 +64,51 @@ def test_admin_credentials_are_not_persisted_in_local_storage():
     assert not offenders, offenders
 
 
+def _native_project_files():
+    """Tracked-source files of the Capacitor Android/iOS projects (no build output)."""
+    skip = ("/build/", "/.gradle/", "/public/", "/DerivedData/", "/xcuserdata/")
+    for root in (FRONTEND / "android", FRONTEND / "ios"):
+        if not root.is_dir():
+            continue
+        for p in root.rglob("*"):
+            if (
+                p.is_file()
+                and p.suffix
+                in {
+                    ".xml",
+                    ".gradle",
+                    ".properties",
+                    ".plist",
+                    ".json",
+                    ".swift",
+                    ".java",
+                    ".kt",
+                    ".pbxproj",
+                    ".xcconfig",
+                }
+                and not any(part in str(p) for part in skip)
+            ):
+                yield p
+
+
+def test_native_projects_carry_no_hf_credentials_or_remote_server_url():
+    """Android resources/Gradle and iOS plist/source must not hold HF credentials,
+    and the Capacitor shell must not load remote code (server.url) or allow cleartext."""
+    offenders = []
+    for path in _native_project_files():
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for pattern in (_SECRET_VITE, _HF_IN_FRONTEND, re.compile(r"hf_[A-Za-z0-9]{30,}")):
+            offenders += [f"{path.relative_to(REPO)}: {m.group(0)}" for m in pattern.finditer(text)]
+    cap = (FRONTEND / "capacitor.config.ts").read_text(encoding="utf-8")
+    assert not re.search(
+        r"^\s*(server|cleartext)\s*:", cap, re.M
+    ), "no server.url / cleartext in the app shell"
+    release_nsc = FRONTEND / "android/app/src/main/res/xml/network_security_config.xml"
+    if release_nsc.exists():
+        assert 'cleartextTrafficPermitted="true"' not in release_nsc.read_text(encoding="utf-8")
+    assert not offenders, offenders
+
+
 def test_env_example_has_no_secret_vite_variable_or_value():
     text = (REPO / ".env.example").read_text(encoding="utf-8")
     assert not _SECRET_VITE.search(text)
