@@ -11,13 +11,14 @@ This script:
 import sys
 import os
 import json
+import re
 from pathlib import Path
 from datetime import datetime
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
 from app.models.quran import QuranVerse
@@ -121,6 +122,25 @@ def seed_verses(session: Session, verses: list) -> int:
     return count
 
 
+def normalize_for_search(t: str) -> str:
+    """Search key: no tatweel/diacritics, unified alef, ta marbuta -> ha, alef maqsura -> ya."""
+    t = t.replace("\ufeff", "").replace("\u0640", "")
+    t = re.sub(r"[\u064b-\u065f\u0670]", "", t)
+    t = re.sub(r"[\u0622\u0623\u0625\u0671]", "\u0627", t)
+    return t.replace("\u0629", "\u0647").replace("\u0649", "\u064a").strip()
+
+
+def populate_text_normalized(session: Session) -> int:
+    """Fill quran_verses.text_normalized (used by text search) for every verse."""
+    rows = session.execute(text("SELECT id, text_uthmani FROM quran_verses")).all()
+    session.execute(
+        text("UPDATE quran_verses SET text_normalized = :n WHERE id = :i"),
+        [{"i": i, "n": normalize_for_search(t or "")} for i, t in rows],
+    )
+    session.commit()
+    return len(rows)
+
+
 def main():
     """Main entry point."""
     print("=" * 60)
@@ -168,6 +188,9 @@ def main():
                 duration_ms=int((datetime.now() - start_time).total_seconds() * 1000),
             )
             session.commit()
+
+            normalized = populate_text_normalized(session)
+            print(f"  Normalized {normalized} verses for text search")
 
         # Summary
         duration = (datetime.now() - start_time).total_seconds()

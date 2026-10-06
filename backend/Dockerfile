@@ -27,7 +27,7 @@ RUN --mount=type=secret,id=extra_ca \
     pip install --upgrade pip setuptools && pip install . && pip uninstall -y tadabbur-ai
 
 # ------------------------------------------------------------ development
-# Used by docker-compose.portable.yml for local work only (auto-reload).
+# Local development only (auto-reload); never used by docker-compose.prod.yml.
 FROM ${PYTHON_IMAGE} AS development
 ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app

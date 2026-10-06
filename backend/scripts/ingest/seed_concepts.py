@@ -466,7 +466,7 @@ def create_concept_associations(
         )
 
         try:
-            session.merge(association)
+            _save_association(session, association)
             count += 1
         except Exception:
             # Skip if duplicate
@@ -545,7 +545,7 @@ def link_miracles_to_persons(session: Session, curated: dict) -> int:
             )
 
             try:
-                session.merge(association)
+                _save_association(session, association)
                 count += 1
             except Exception:
                 session.rollback()
@@ -577,7 +577,7 @@ def link_miracles_to_persons(session: Session, curated: dict) -> int:
             )
 
             try:
-                session.merge(association)
+                _save_association(session, association)
                 count += 1
             except Exception:
                 session.rollback()
@@ -590,6 +590,30 @@ def link_miracles_to_persons(session: Session, curated: dict) -> int:
 # =============================================================================
 # MAIN
 # =============================================================================
+
+def _save_association(session: Session, association: Association) -> None:
+    """Insert or update by the natural key (a, b, relation_type) so re-runs are idempotent.
+
+    ``session.merge`` keys on the autoincrement id, so it always inserted a new
+    row and a second run failed on the uq_association_pair constraint.
+    """
+    existing = session.execute(
+        select(Association).where(
+            Association.concept_a_id == association.concept_a_id,
+            Association.concept_b_id == association.concept_b_id,
+            Association.relation_type == association.relation_type,
+        )
+    ).scalar_one_or_none()
+    if existing is None:
+        session.add(association)
+        session.flush()
+        return
+    for column in Association.__table__.columns:
+        if column.name != "id":
+            value = getattr(association, column.key, None)
+            if value is not None:
+                setattr(existing, column.key, value)
+
 
 def main():
     import argparse

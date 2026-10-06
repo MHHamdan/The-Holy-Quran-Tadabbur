@@ -1,348 +1,246 @@
 # Tadabbur-AI
 
-RAG-grounded Quranic knowledge platform with story connections.
+A Qur'an study platform for the web, Android and iOS. It answers questions using retrieved tafsir only, with citations that must point to that evidence. It also covers story and theme atlases, a mushaf reader and Tasmeeʿ (recitation practice).
 
-## Overview
+All AI runs on **Hugging Face Inference Providers** from the backend. No GPU, local model files, Ollama or Anthropic API are needed. The HF token never leaves the server.
 
-Tadabbur-AI is a scholarly Quranic knowledge platform that:
-- Provides **grounded answers** with mandatory citations from authenticated tafseer sources
-- Maps **Quranic stories** and their connections across different surahs
-- Supports **bilingual interface** (Arabic/English) with RTL support
-- Uses **RAG (Retrieval-Augmented Generation)** to avoid AI hallucinations
+## Safety rules (enforced in code and tests)
 
-## Safety Rules
+1. The model may only summarise retrieved tafsir; it never invents tafsir. A refusal is the fallback.
+2. Every citation must reference a retrieved `chunk_id`; citations outside the evidence are removed.
+3. Qur'an quotations in AI output are verified against the stored text; unverifiable quotations are stripped.
+4. Questions about rulings get an informational summary only, never fatwa language.
+5. AI-generated text is labelled as such in the UI. When the AI is unavailable or out of quota, the app shows the sources verbatim, labelled.
 
-1. **NEVER** invent tafseer - LLM may ONLY summarize retrieved evidence
-2. Every paragraph **MUST** include at least one citation referencing a retrieved `chunk_id`
-3. Citations are **validated** - cited chunks must exist in retrieved set
-4. For insufficient evidence: "This requires further scholarly consultation"
-5. For fiqh/rulings: informational summary only, no fatwa language
+## Architecture
 
-## Quick Start
+```
+ Web (React/Vite PWA)   Android / iOS (Capacitor shell, same React build)
+            \                  /
+             \  HTTPS (VITE_API_URL; same origin on the web)
+              v              v
+     nginx (web container: static app + /api proxy, unprivileged)
+                     |
+                     v
+     FastAPI backend (HF_TOKEN lives ONLY here)
+        |-- Hugging Face Inference Providers: chat, embeddings, reranker, zero-shot, speech-to-text
+        |-- PostgreSQL  (Qur'an, tafsir chunks, stories, themes, sessions)
+        |-- Qdrant      (tafsir + verse vectors, 1024-d multilingual-e5-large)
+        |-- Redis       (cache, rate limiting)
+        `-- SurrealDB   (story knowledge graph)
+```
 
-### Prerequisites
-- Docker & Docker Compose V2 (uses `docker compose`, not `docker-compose`)
-- Python 3.11+
-- Node.js 20+
-- Make
+| Component | Hugging Face model (env var) | When HF is unavailable |
+|---|---|---|
+| Answer synthesis, tafsir summary/explain, quiz | `meta-llama/Llama-3.3-70B-Instruct` (`HF_LLM_MODEL`, routed by `HF_LLM_PROVIDER`) | `status: ai_unavailable`; sources shown verbatim |
+| Embeddings (query + index) | `intfloat/multilingual-e5-large` (`HF_EMBEDDING_MODEL`) | keyword / database retrieval |
+| Reranking | `BAAI/bge-reranker-v2-m3` (`HF_RERANKER_MODEL`) | BM25 + keyword overlap |
+| Emotion classification (guidance) | `facebook/bart-large-mnli` (`HF_ZERO_SHOT_MODEL`) | keyword classifier |
+| Tasmeeʿ speech-to-text | `openai/whisper-large-v3-turbo` (`HF_STT_MODEL`) | "speech recognition unavailable" notice |
 
-### Setup
+Model choice, benchmarks and the evaluation of CPU embeddings: `docs/migration/` (PHASE3, PHASE4, EMBEDDING_CPU_VS_HOSTED).
 
-1. **Clone and configure:**
-   ```bash
-   cd tadabbur
-   cp .env.example .env
-   # Edit .env and set HF_TOKEN (Hugging Face; server side only)
-   ```
+## Repository layout
 
-2. **Create virtual environment:**
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install -e "./backend[dev]"
-   ```
+```
+backend/            FastAPI app (app/), Alembic migrations, seed/index scripts, tests
+frontend/           React + Vite app, Capacitor projects (android/, ios/), nginx config
+data/               manifests, curated concepts, Qur'an text copy; data/raw/* inputs are git-ignored
+assets/             hafs_smart_v8.json (Qur'an text source, see Licensing)
+docker-compose.prod.yml   production stack
+scripts/            dev stack (Podman) start/stop, ports.env, data-bundle tools, TS data builders
+docs/migration/     per-phase engineering notes and verification evidence
+```
 
-3. **Run the full pipeline:**
-   ```bash
-   make pipeline
-   ```
+## Configuration
 
-   This will:
-   - Check Docker is running
-   - Start all services (postgres, qdrant, redis)
-   - Wait for services to be healthy
-   - Run database migrations
-   - Seed Quran verses and stories
-   - Verify all components
-   - Run tests
+Copy `.env.example` to `.env` (git-ignored) and fill it in. Everything is configured through environment variables; no secret is ever committed.
 
-4. **Access the application:**
-   - Backend API: http://localhost:8000
-   - API Docs: http://localhost:8000/docs
-   - Frontend: http://localhost:3000 (if started)
+| Variable | Where | Required | Purpose |
+|---|---|---|---|
+| `HF_TOKEN` | backend | yes, for AI | Fine-grained HF token with "Make calls to Inference Providers". **Server only.** |
+| `HF_LLM_MODEL`, `HF_LLM_PROVIDER`, `HF_EMBEDDING_MODEL`, `HF_RERANKER_MODEL`, `HF_ZERO_SHOT_MODEL`, `HF_STT_MODEL`, `HF_TIMEOUT_SECONDS` | backend | no | Model selection (defaults above), 60 s request timeout |
+| `STT_PROVIDER` | backend | no | `huggingface` (default) or `faster-whisper` (opt-in, local; `pip install ".[stt-local]"`) |
+| `DATABASE_URL`, `REDIS_URL`, `QDRANT_HOST`, `QDRANT_PORT`, `SURREAL_HOST/PORT/USER/PASS` | backend | yes | Datastores |
+| `ENVIRONMENT` | backend | yes in prod | `production` disables `/docs`, forces `DEBUG` off, rejects wildcard CORS, logs config problems at startup |
+| `CORS_ORIGINS` | backend | yes in prod | Comma-separated web origin(s) **plus** `https://localhost` (Android app) and `capacitor://localhost` (iOS app) |
+| `ADMIN_TOKEN` | backend | prod | `X-Admin-Token` for RAG source administration |
+| `ADMIN_API_KEY` | backend | prod | `X-Admin-API-Key` for `/api/v1/admin/*`, cost-incurring endpoints (re-indexing, cache warming) |
+| `KG_ADMIN_TOKEN` | backend | prod | `X-Admin-Token` for `/api/v1/kg/init-schema` and `/import-stories`; unset means 503 |
+| `METRICS_SECRET` | backend | no | Enables `/metrics`, `/health/detailed` (`X-Metrics-Secret`) in production |
+| `VITE_API_URL` | frontend build | mobile: yes | **Public** API origin compiled into the bundle. Web: empty (same origin). Never a secret. |
 
-## Makefile Commands
+Admin keys typed into the web UI are kept in `sessionStorage` for that tab only.
 
-### Quick Reference
+## Development
+
+Prerequisites: Python 3.11, Node 22, and Podman (the dev stack script) or Docker.
 
 ```bash
-# ONE COMMAND TO RULE THEM ALL
-make pipeline        # Full setup from scratch (starts services, seeds data, verifies)
+cp .env.example .env                      # set HF_TOKEN for AI features
+python3.11 -m venv .venv && . .venv/bin/activate
+pip install -e "./backend[dev]"
+(cd frontend && npm ci)
 
-# Docker Services
-make up              # Start all services
-make down            # Stop all services
-make ps              # Show running containers
-make logs            # View all logs (follow mode)
-make logs-service SERVICE=postgres   # View specific service logs
-make restart         # Restart all services
-make ensure-services # Auto-start services if not running
-
-# Database
-make migrate         # Run migrations
-make seed            # Seed all data (quran + stories)
-make seed-quran      # Seed Quran verses only
-make seed-stories    # Seed stories only
-
-# Verification
-make verify          # Run ALL verifications (auto-starts services)
-make verify-services # Check services health with diagnostics
-make verify-db       # Check database seeding + story manifest
-make verify-qdrant   # Check vector database
-make verify-rag      # Check RAG pipeline
-make verify-security # Check metrics endpoint security
-make verify-e2e      # Run Docker E2E verification
-
-# Tafseer Pipeline
-make download-tafseer     # Download tafseer from APIs
-make ingest-tafseer       # Ingest tafseer into DB + Qdrant
-make index-tafseer        # Index tafseer vectors
-make tafseer-pipeline     # Full tafseer pipeline
-
-# Development
-make dev-backend     # Run backend in dev mode
-make dev-frontend    # Run frontend in dev mode
-make test            # Run all tests
-make test-quick      # Run tests (no verbose)
-
-# Diagnostics
-make status          # Show full system status
-make check-ports     # Check if required ports are available
+make start            # Podman: Postgres, Qdrant, Redis, SurrealDB + backend + frontend (ports in scripts/ports.env)
+make migrate          # alembic upgrade head
+make seed             # reference data (see "Data seeding")
 ```
 
-### Example Workflows
+- **Frontend:** `http://localhost:19300`. The Vite dev server proxies `/api` to the backend.
+- **Backend:** `http://localhost:19800`. API docs are at `/docs` in development only.
+- **Run the pieces yourself:** `make dev-backend` (`uvicorn --reload`) and `make dev-frontend`.
+- **Without Podman:** point `DATABASE_URL`, `REDIS_URL`, `QDRANT_*` and `SURREAL_*` at any running instances.
 
-**Fresh Setup:**
-```bash
-make pipeline
-```
-
-**Just Start Services:**
-```bash
-make up
-```
-
-**Services Already Running, Run Verification:**
-```bash
-make verify
-```
-
-**Troubleshoot Service Issues:**
-```bash
-make status
-make logs-service SERVICE=postgres
-```
-
-## Troubleshooting
-
-### Docker Not Running
-```bash
-# Check Docker status
-sudo systemctl status docker
-
-# Start Docker
-sudo systemctl start docker
-
-# Verify Docker is working
-docker ps
-```
-
-### Port Conflicts
-```bash
-# Check which ports are in use
-make check-ports
-
-# Common ports:
-# 5432 - PostgreSQL
-# 6333 - Qdrant
-# 6379 - Redis
-
-# Find what's using a port
-lsof -i :5432
-```
-
-### Services Won't Start
-```bash
-# View service logs
-make logs-service SERVICE=postgres
-make logs-service SERVICE=qdrant
-make logs-service SERVICE=redis
-
-# Restart everything
-make restart
-
-# Nuclear option: remove volumes and start fresh
-make clean-all
-make up
-```
-
-### Database Connection Refused
-```bash
-# Ensure services are healthy
-make ensure-services
-
-# Check container status
-docker inspect tadabbur-postgres --format='{{.State.Health.Status}}'
-```
-
-## Project Structure
-
-```
-tadabbur/
-├── backend/
-│   ├── app/
-│   │   ├── api/routes/       # API endpoints
-│   │   ├── core/             # Configuration
-│   │   ├── db/               # Database setup
-│   │   ├── models/           # SQLAlchemy models
-│   │   ├── rag/              # RAG pipeline
-│   │   ├── services/         # Business logic
-│   │   └── validators/       # Citation validators
-│   ├── alembic/              # Database migrations
-│   ├── scripts/
-│   │   ├── datasets/         # Data download scripts
-│   │   ├── verify/           # Verification scripts
-│   │   ├── ingest/           # Data seeding scripts
-│   │   └── index/            # Vector indexing scripts
-│   └── tests/
-├── frontend/
-│   └── src/
-│       ├── components/       # React components
-│       ├── pages/            # Page components
-│       ├── i18n/             # Translations
-│       ├── lib/              # API client
-│       └── stores/           # State management
-├── data/
-│   ├── raw/                  # Raw downloaded data
-│   ├── processed/            # Processed data
-│   └── manifests/            # Dataset manifests
-├── docker-compose.yml
-├── Makefile
-└── README.md
-```
-
-## API Endpoints
-
-### Quran
-- `GET /api/v1/quran/suras/{sura_no}` - Get verses for a sura
-- `GET /api/v1/quran/verses/{sura}/{aya}` - Get specific verse
-- `GET /api/v1/quran/tafseer/{sura}/{aya}` - Get tafseer for verse
-
-### Stories
-- `GET /api/v1/stories` - List all stories
-- `GET /api/v1/stories/{id}` - Get story with segments
-- `GET /api/v1/stories/{id}/graph` - Get story graph data
-
-### RAG
-- `POST /api/v1/rag/ask` - Ask a question
-  ```json
-  {
-    "question": "What is the meaning of Ayat al-Kursi?",
-    "language": "en",
-    "include_scholarly_debate": true,
-    "preferred_sources": []
-  }
-  ```
-
-  Response includes:
-  - `answer`: Grounded response with citations
-  - `citations`: List of source citations
-  - `confidence`: Confidence score (0-1)
-  - `evidence`: Raw evidence chunks for transparency
-  - `evidence_density`: Count of chunks and sources used
-  - `api_version`: API version for compatibility checking
-
-### Sources
-- `GET /api/v1/rag/sources` - Get available tafseer sources (enabled only)
-- `GET /api/v1/rag/admin/sources` - Get all sources (requires admin token)
-- `PUT /api/v1/rag/admin/sources/{id}/toggle` - Enable/disable source (requires admin token)
-
-### Health
-- `GET /health` - Basic health check (public)
-- `GET /ready` - Readiness check (public)
-- `GET /health/detailed` - Detailed health (protected in production)
-- `GET /metrics` - Application metrics (protected in production)
-
-## Adding Data Sources
-
-### Adding Tafseer Sources
-
-1. Edit `data/manifests/tafseer_sources.json`
-2. Add source with URL and license information
-3. Run `make tafseer-pipeline`
-
-### Adding Stories
-
-1. Edit `data/manifests/stories.json`
-2. Add story with segments and verse references
-3. Ensure minimum 25 total connections (to prevent regression to "catalog only")
-4. Run `make seed-stories`
-
-## Tech Stack
-
-- **Backend:** FastAPI, SQLAlchemy, Pydantic v2
-- **Database:** PostgreSQL 15
-- **Vector DB:** Qdrant
-- **Cache:** Redis 7
-- **Frontend:** React, TypeScript, Tailwind CSS
-- **Visualization:** Cytoscape.js
-- **AI models:** Hugging Face Inference Providers (chat, embeddings, reranking, STT) — no local GPU or model files
-
-## Environment Variables
-
-```env
-# Required
-DATABASE_URL=postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur
-
-# Hugging Face — the only AI platform (backend environment only, never VITE_*)
-HF_TOKEN=                                   # required for AI answers
-HF_LLM_MODEL=meta-llama/Llama-3.3-70B-Instruct
-HF_LLM_PROVIDER=auto                        # auto | cheapest | fastest | <provider>
-HF_HF_RERANKER_MODEL=BAAI/bge-reranker-v2-m3
-HF_STT_MODEL=openai/whisper-large-v3-turbo
-
-# Optional
-QDRANT_HOST=localhost
-QDRANT_PORT=6333
-REDIS_URL=redis://localhost:6379/0
-
-# Production (for protected endpoints)
-ENVIRONMENT=production
-METRICS_SECRET=your_secret_here            # Required for /metrics, /health/detailed
-ADMIN_TOKEN=your_admin_token_here          # Required for admin source management
-```
-
-## Production Deployment
-
-### Security Notes
-
-**Metrics Endpoints** (in production, `ENVIRONMENT=production`):
-- `/health/detailed`, `/health/data`, `/health/rag`, `/metrics` require `X-Metrics-Secret` header
-- Set `METRICS_SECRET` environment variable
-- Secrets are never logged (constant-time comparison used)
-- Endpoints return 503 if `METRICS_SECRET` not configured
-
-**Admin Mode** (source management):
-- Admin endpoints (`/api/v1/rag/admin/*`) require `X-Admin-Token` header
-- Set `ADMIN_TOKEN` environment variable
-- Token is sent via header only (never in query parameters - prevents log exposure)
-- Frontend stores admin token in localStorage (never in URL)
-- Used for enabling/disabling tafseer sources
-
-### Running Tests
+## Production deployment (Docker)
 
 ```bash
-# Run all tests
-make test
-
-# Run unit tests only (fast, no external dependencies)
-cd backend && pytest -m "unit" -v
-
-# Run acceptance tests
-cd backend && pytest tests/test_acceptance.py -v
+cp .env.example .env    # set POSTGRES_PASSWORD, SURREAL_PASS, HF_TOKEN, ADMIN_TOKEN,
+                        # ADMIN_API_KEY, KG_ADMIN_TOKEN, CORS_ORIGINS (all strong, unique)
+docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-## License
+- **Startup order:** `migrate` runs `alembic upgrade head` once; `backend` starts only after it succeeds. All services have health checks and `restart: unless-stopped`.
+- **Exposure:** only the `web` container publishes a port (`WEB_PORT`, default 8080). Put a TLS-terminating reverse proxy or load balancer in front of it; the mobile apps require HTTPS.
+- **Images:**
+  - Backend: non-root uid 10001, read-only root filesystem, no compiler, no torch, no model weights.
+  - Web: `nginx-unprivileged` with security headers.
+  - Both images: `no-new-privileges`, CPU and memory limits, rotated JSON logs.
+- **Mounts:** `data/`, `assets/` and `frontend/src/data/generated/` are mounted read-only into the backend (reference data the API reads).
+- **Behind a TLS-intercepting proxy:** builds take an optional `extra_ca` BuildKit secret (`--secret id=extra_ca,src=ca.crt`); it is never stored in a layer.
+- **Details and verification:** `docs/migration/PHASE10_DOCKER.md`.
 
-This project respects all source licenses. Quran text is public domain.
-Tafseer sources must be verified for license compliance before use.
+### Database migrations
+
+`alembic upgrade head` (from `backend/`, or the `migrate` service). There is a single head; CI checks upgrade, then downgrade -1, then upgrade on a fresh Postgres.
+
+## Data seeding (production)
+
+The commands below were run against `docker-compose.prod.yml` on an empty stack. Every step was then **re-run on the same database to confirm it is idempotent**. Run them in order after the stack is up:
+
+```bash
+DC="docker compose -f docker-compose.prod.yml"
+RUN="$DC run --rm --no-deps backend"
+
+# 1. Qur'an text (6,236 verses + search normalisation)          -- from assets/hafs_smart_v8.json
+$RUN python scripts/ingest/seed_quran.py
+
+# 2. Tafsir: fetch 5 Arabic works from the HF dataset riotu-lab/Quran-Tafseers (Apache-2.0,
+#    pinned revision, SHA-256 checked) into data/raw/, then seed them (31,081 chunks).
+#    Run the fetch on the host checkout (it writes data/raw/; needs huggingface.co access):
+python backend/scripts/datasets/fetch_hf_tafseers.py            # add --exclude muyassar_ar, see Licensing
+$RUN python scripts/ingest/seed_tafseer.py ibn_kathir_ar tabari_ar qurtubi_ar baghawi_ar muyassar_ar
+
+# 3. Stories, story atlas and graphs, concepts, themes, rhetorical devices (committed data)
+for s in seed_stories seed_story_atlas seed_story_graphs seed_concepts seed_themes seed_rhetorical_devices; do
+  $RUN python scripts/ingest/$s.py
+done
+
+# 4. Knowledge graph (SurrealDB, persistent volume)
+curl -X POST -H "X-Admin-Token: $KG_ADMIN_TOKEN" https://<host>/api/v1/kg/init-schema
+curl -X POST -H "X-Admin-Token: $KG_ADMIN_TOKEN" https://<host>/api/v1/kg/import-stories
+
+# 5. Vector indexes (Hugging Face embeddings; costs HF credit; resumable)
+$RUN python scripts/index/index_tafseer.py                       # tafsir chunks -> Qdrant
+curl -X POST -H "X-Admin-API-Key: $ADMIN_API_KEY" https://<host>/api/v1/quran/search/semantic/index   # verse index
+
+# 6. Mushaf word layout (needs api.qurancdn.com)
+$RUN python scripts/ingest/seed_mushaf_words.py
+```
+
+Results of steps 1–4 on the production stack:
+
+| Data set | Count |
+|---|---|
+| verses | 6,236 (all normalised) |
+| tafsir chunks | 31,081 from 5 sources |
+| stories | 124 |
+| concepts | 60 |
+| concept associations | 126 |
+| themes | 50 |
+| knowledge graph | 124 stories, 325 events, 104 persons, 1,164 edges, 0 errors |
+
+The step-1–4 data then served `/quran/*`, `/tafseer/compare/*`, `/rag/ask` (8 citations), `/kg/*` and the atlas endpoints with HTTP 200.
+
+### Data availability
+
+| Data | Status |
+|---|---|
+| Qur'an text (Hafs, Uthmani) | **Available, licence unverified.** The primary source `assets/hafs_smart_v8.json` is derived from KFGQPC output, and its redistribution terms are unconfirmed (see `data/manifests/quran_hafs.json`). The licence-verified alternative (Tanzil, CC BY 3.0) is listed in the manifest but has no importer yet. |
+| Arabic tafsir: Ibn Kathir, al-Tabari, al-Qurtubi, al-Baghawi | Available (HF dataset above; classical, public domain). |
+| Al-Tafsir al-Muyassar | Available technically. **Licence pending** (King Fahd Complex, "educational and non-commercial"; manifest status `pending_user_input`). |
+| English tafsir (Ibn Kathir EN, al-Jalalayn, Tafheem, al-Saʿdi EN) | **Not available.** The CDN/API downloaders exist (`make download-tafseer`) but were not verified. Several of these are marked pending licence verification. |
+| Tafsir and verse vector indexes | Reproducible with HF credit (step 5). Not rebuilt here: the account's HF credits are exhausted. Without them, retrieval falls back to keyword search. |
+| Mushaf word layout, QAC vocabulary (`seed_mushaf_words.py`, `scripts/seed_vocabulary_complete.py`) | Depend on `api.qurancdn.com`. **Not verified**: the host was unreachable from the build environment. |
+| Knowledge-graph concept tags | **Not available:** no importer exists (the earlier data bundle contained 60). Thematic graph endpoints return empty results until one is written. |
+| Generated atlas/graph JSON (26 files) | Available (committed under `frontend/src/data/generated/`). |
+| Earlier full data bundle (`data/BUNDLE.lock`, 262 MB) | **Not available:** no release asset is published. |
+
+## Web build
+
+```bash
+cd frontend && npm ci && npm run build     # dist/: PWA (service worker, offline Qur'an/tafsir cache)
+```
+
+`VITE_API_URL` empty means the app calls `/api` on its own origin (nginx proxies it). A loopback `VITE_API_URL` fails the build.
+
+## Android and iOS (Capacitor)
+
+The apps ship the same React build inside the app package. They have no remote code, no service worker, and talk to the API over HTTPS. App ID `com.mhamdan.tadabbur`, name "Tadabbur".
+
+**The production API URL is not decided yet.** Copy `frontend/mobile.env.example` to `frontend/.env.mobile` and set `VITE_API_URL`. `npm run build:mobile` refuses to build if the URL is unset, still the placeholder, not `https://`, or a loopback address.
+
+```bash
+cd frontend
+# Android debug APK against a development backend (emulator reaches the host at 10.0.2.2):
+export ANDROID_HOME=/path/to/android-sdk          # platform 36, build-tools 36, JDK 21
+VITE_API_URL=http://10.0.2.2:8000 npm run android:debug   # -> android/app/build/outputs/apk/debug/app-debug.apk
+
+# Android release (needs the owner's upload keystore, not in the repository):
+npm run android:release                            # bundleRelease (sign with your keystore)
+
+# iOS (macOS + Xcode 16 required):
+npm run ios:sync && npx cap open ios               # set signing team, archive, upload
+```
+
+- **Permissions:** only the microphone, for Tasmeeʿ, requested when recording starts.
+- **Network security:** release builds allow HTTPS only. Debug builds allow cleartext only to `10.0.2.2` and `localhost`. iOS keeps App Transport Security defaults.
+- **Details:** `docs/migration/PHASE8_MOBILE.md`.
+
+## Tests
+
+| Command | Scope |
+|---|---|
+| `cd backend && pytest -m "not live_hf"` | All backend tests. They never call Hugging Face (the token is cleared per test). Tests needing externally ingested data declare `@pytest.mark.requires_data(...)` and skip when it is absent; set `REQUIRE_DATA_BUNDLE=1` to make that a failure. |
+| `cd frontend && npm run typecheck && npm run lint && npm run build` | Frontend gates |
+| `node frontend/e2e/tasmee-microphone.e2e.cjs` | Microphone behaviour (needs a served build and a running backend) |
+| CI (`.github/workflows/ci.yml`) | On every push/PR, with no secrets: backend (lint, mypy on the HF layer, migrations, seeded tests), frontend, mobile (APK + iOS sync + API-URL guard), production image builds, gitleaks, pip-audit, npm audit |
+
+### Live Hugging Face smoke test
+
+```bash
+cd backend && HF_TOKEN=... pytest -m live_hf tests/live -v
+```
+
+These tests spend a little HF credit. They cover chat (Arabic and English), embeddings, reranking, zero-shot classification, speech-to-text on a recitation fixture, and grounded RAG with citation checks. With exhausted credits (HTTP 402/429) they skip with that reason.
+
+## Secret management
+
+- `HF_TOKEN` and all admin credentials exist only in the backend environment. They are held as `SecretStr` and never logged or returned in errors.
+- Nothing secret goes into `VITE_*`, the JS bundle, Capacitor config, Android resources or iOS plists. `tests/unit/test_secret_hygiene.py` enforces this, including for the native projects.
+- `.env` files are git-ignored. CI scans the full history with gitleaks.
+- Rotate a leaked HF token at huggingface.co → Settings → Access Tokens, then update the server environment.
+
+## Limitations and cost
+
+- **HF costs:** every AI answer, embedding, rerank and transcription is billed to the HF account's Inference Providers credits.
+  - When credits run out (HTTP 402), the app degrades as described in the Architecture table.
+  - Hosted embedding latency was about 0.2 s warm; a CPU ONNX option is evaluated in `docs/migration/EMBEDDING_CPU_VS_HOSTED.md`.
+- **External runtime APIs:**
+  - Some optional features call external APIs at runtime: asbab al-nuzul and external tafsir editions (`FEATURE_EXTERNAL_TAFSEER`).
+  - They return a clean 503 when those hosts are unreachable.
+- **Licensing:** content licensing must be resolved before a public or commercial release (see Data availability).
+
+## Licensing
+
+Code: see repository licence. Content licences are tracked per source in `data/manifests/`. The Qur'an text currently used (`assets/hafs_smart_v8.json`) and Al-Muyassar **have unverified redistribution licences**; the manifest marks the Qur'an file as blocking public or commercial deployment until KFGQPC confirms the terms in writing.

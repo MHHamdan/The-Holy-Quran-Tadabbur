@@ -164,4 +164,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    from app.ai.hf_client import HFInferenceError
+
+    try:
+        main()
+    except HFInferenceError as err:
+        # Nothing is written for a failed batch; already-indexed chunks keep
+        # is_embedded=true, so re-running resumes where this stopped.
+        print(f"ERROR: {err}. Check HF_TOKEN, network access and HF credits, then re-run.", file=sys.stderr)
+        sys.exit(2)

@@ -21,7 +21,7 @@ RUN --mount=type=secret,id=extra_ca \
     npm ci --no-audit --no-fund
 
 # ------------------------------------------------------------ development
-# Used by docker-compose.portable.yml for local work only (Vite dev server).
+# Local development only (Vite dev server); never used by docker-compose.prod.yml.
 FROM ${NODE_IMAGE} AS development
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules

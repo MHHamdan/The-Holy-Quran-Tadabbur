@@ -22,7 +22,7 @@ User → AskPage.tsx
         5. HybridRetriever.retrieve() → tafseer_chunks (vector + keyword)
         6. Reranker: relevance + source reliability + query term overlap
         7. No-chunks guard → SAFE_REFUSAL_NO_SOURCES (English only)
-        8. LLM synthesis (Ollama or Claude) with GROUNDED_SYSTEM_PROMPT
+        8. LLM synthesis (at the time Ollama or Claude; now Hugging Face) with GROUNDED_SYSTEM_PROMPT
         9. Citation extraction (regex on [Source, Ref] patterns)
        10. ConfidenceScorer → float score + level string
        11. GroundedResponse.to_dict()

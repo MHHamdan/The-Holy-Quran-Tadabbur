@@ -47,6 +47,8 @@ x-backend-env: &backend-env
   ADMIN_API_KEY: ${ADMIN_API_KEY:?ADMIN_API_KEY must be set}
   KG_ADMIN_TOKEN: ${KG_ADMIN_TOKEN:?KG_ADMIN_TOKEN must be set}
   CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS must list the web and app origins}
+  # Optional: enables /metrics and /health/detailed (X-Metrics-Secret); unset = 503.
+  METRICS_SECRET: ${METRICS_SECRET:-}
   FEATURE_REDIS_CACHE: "true"
 
 services:
@@ -100,7 +102,12 @@ services:
   surrealdb:
     image: surrealdb/surrealdb:v1.5.0
     <<: [*restart, *logging, *hardening]
-    command: ["start", "--log", "info", "--user", "${SURREAL_USER:-tadabbur}", "--pass", "${SURREAL_PASS:?SURREAL_PASS must be set}", "memory"]
+    # Persistent RocksDB storage (the knowledge graph survives restarts). The
+    # image's non-root user cannot write a fresh named volume, hence root.
+    user: root
+    command: ["start", "--log", "info", "--user", "${SURREAL_USER:-tadabbur}", "--pass", "${SURREAL_PASS:?SURREAL_PASS must be set}", "file:/data/surreal.db"]
+    volumes:
+      - surreal_data:/data
     healthcheck:
       test: ["CMD", "/surreal", "isready", "--conn", "http://127.0.0.1:8000"]
       interval: 10s
@@ -142,7 +149,16 @@ services:
     tmpfs: [/tmp]
     volumes:
       - backend_state:/var/lib/tadabbur
-      - ./data:/app/data:ro
+      # Reference data (manifests, Qur'an text, tafsir inputs). The code
+      # resolves the repository's data/ directory as /data in the image.
+      - ./data:/data:ro
+      # Qur'an text source used by scripts/ingest/seed_quran.py (see README:
+      # its redistribution licence is unverified).
+      - ./assets:/assets:ro
+      # Generated atlas/graph JSON (committed under frontend/) that the Asma,
+      # story-atlas, topics, entities and prophets endpoints read; the code
+      # resolves it relative to the repository root.
+      - ./frontend/src/data/generated:/frontend/src/data/generated:ro
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -180,4 +196,5 @@ volumes:
   postgres_data:
   qdrant_data:
   redis_data:
+  surreal_data:
   backend_state:
