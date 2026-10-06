@@ -120,7 +120,7 @@ The commands below were run against `docker-compose.prod.yml` on an empty stack.
 
 ```bash
 DC="docker compose -f docker-compose.prod.yml"
-RUN="$DC run --rm --no-deps backend"
+RUN="$DC run --rm --no-deps backend"   # paths after $RUN are inside the backend image (= backend/)
 
 # 1. Qur'an text (6,236 verses + search normalisation)          -- from assets/hafs_smart_v8.json
 $RUN python scripts/ingest/seed_quran.py
@@ -171,7 +171,7 @@ The step-1–4 data then served `/quran/*`, `/tafseer/compare/*`, `/rag/ask` (8 
 | Al-Tafsir al-Muyassar | Available technically. **Licence pending** (King Fahd Complex, "educational and non-commercial"; manifest status `pending_user_input`). |
 | English tafsir (Ibn Kathir EN, al-Jalalayn, Tafheem, al-Saʿdi EN) | **Not available.** The CDN/API downloaders exist (`make download-tafseer`) but were not verified. Several of these are marked pending licence verification. |
 | Tafsir and verse vector indexes | Reproducible with HF credit (step 5). Not rebuilt here: the account's HF credits are exhausted. Without them, retrieval falls back to keyword search. |
-| Mushaf word layout, QAC vocabulary (`seed_mushaf_words.py`, `scripts/seed_vocabulary_complete.py`) | Depend on `api.qurancdn.com`. **Not verified**: the host was unreachable from the build environment. |
+| Mushaf word layout, QAC vocabulary (`backend/scripts/ingest/seed_mushaf_words.py`, `backend/scripts/seed_vocabulary_complete.py`) | Depend on `api.qurancdn.com`. **Not verified**: the host was unreachable from the build environment. |
 | Knowledge-graph concept tags | **Not available:** no importer exists (the earlier data bundle contained 60). Thematic graph endpoints return empty results until one is written. |
 | Generated atlas/graph JSON (26 files) | Available (committed under `frontend/src/data/generated/`). |
 | Earlier full data bundle (`data/BUNDLE.lock`, 262 MB) | **Not available:** no release asset is published. |
