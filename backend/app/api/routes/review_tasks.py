@@ -45,9 +45,12 @@ router = APIRouter(dependencies=[Depends(require_admin_api_key)])
 # File paths
 # ---------------------------------------------------------------------------
 
-_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "app" / "data"
+_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"  # app/data
 _TASKS_FILE = _DATA_DIR / "review_tasks.json"
-_DECISIONS_FILE = _DATA_DIR / "review_decisions.json"
+# Reviewer decisions are mutable state. In containers the code directory is
+# read-only, so REVIEW_STATE_DIR points at a writable volume.
+_STATE_DIR = Path(os.environ.get("REVIEW_STATE_DIR") or _DATA_DIR)
+_DECISIONS_FILE = _STATE_DIR / "review_decisions.json"
 
 # ---------------------------------------------------------------------------
 # Valid enums
@@ -213,7 +216,7 @@ class ReviewTaskStore:
         self._loaded = True
 
     def _save_decisions(self) -> None:
-        _DATA_DIR.mkdir(parents=True, exist_ok=True)
+        _STATE_DIR.mkdir(parents=True, exist_ok=True)
         _DECISIONS_FILE.write_text(
             json.dumps(self._decisions, indent=2, ensure_ascii=False),
             encoding="utf-8",

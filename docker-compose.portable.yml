@@ -1,7 +1,9 @@
 version: '3.8'
 
-# Portable Tadabbur Docker Compose
-# Use this file on any device after pulling images from Docker Hub
+# Portable Tadabbur Docker Compose — LOCAL DEMO ONLY, NOT FOR PRODUCTION
+# Pulls prebuilt third-party images (440930/tadabbur-*) that were built from an
+# older revision; they are not built from this branch and are not covered by
+# the production hardening. Use docker-compose.prod.yml for deployments.
 
 services:
   # PostgreSQL Database
