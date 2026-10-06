@@ -20,7 +20,7 @@ import os
 
 from app.core.config import settings
 from app.ai.hf_client import HFErrorKind, HFInferenceError
-from app.kg.client import SurrealDBError
+from app.kg.client import SurrealDBError, KGInvalidIdentifier
 from app.core.production_checks import production_config_problems, safe_cors_origins
 
 
@@ -244,6 +244,15 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
         status_code=422,
         details=details
     )
+
+
+@app.exception_handler(KGInvalidIdentifier)
+async def kg_invalid_identifier_handler(request: Request, exc: KGInvalidIdentifier):
+    """A table name or record id that is not safe for SurrealQL: client error, never executed."""
+    return JSONResponse(status_code=400, content={
+        "ok": False,
+        "error": {"code": "invalid_identifier", "message": "Invalid identifier.", "message_ar": "معرّف غير صالح."},
+    })
 
 
 @app.exception_handler(SurrealDBError)

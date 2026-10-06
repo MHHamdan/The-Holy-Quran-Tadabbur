@@ -17,7 +17,7 @@ from typing import List, Optional
 import re
 from fastapi import APIRouter, HTTPException, Query, Header, Depends, Path
 
-from app.kg.client import get_kg_client
+from app.kg.client import get_kg_client, check_record_id
 
 # Admin token from the environment. There is deliberately no default: the
 # previous public fallback ("tadabbur-admin-dev-token") left KG admin
@@ -218,7 +218,7 @@ async def get_stories_by_sura(
         cluster_id = s.get("id")
         events = await kg.select(
             "story_event",
-            where=f"cluster_id = {cluster_id} AND sura_no = {sura_no}",
+            where=f"cluster_id = {check_record_id(cluster_id)} AND sura_no = {int(sura_no)}",
             order_by="chronological_index",
         )
 
@@ -266,6 +266,7 @@ async def get_story_cluster(
 
     # Get cluster
     full_id = f"story_cluster:{cluster_id}" if ":" not in cluster_id else cluster_id
+    check_record_id(full_id)  # path input; 400 unless a plain record id
     cluster = await kg.get(full_id)
 
     if not cluster:
@@ -356,6 +357,7 @@ async def get_story_graph(
     kg = get_kg_client()
 
     full_id = f"story_cluster:{cluster_id}" if ":" not in cluster_id else cluster_id
+    check_record_id(full_id)  # path input; 400 unless a plain record id
 
     # Get events
     events = await kg.select(
@@ -497,6 +499,7 @@ async def get_story_timeline(
     kg = get_kg_client()
 
     full_id = f"story_cluster:{cluster_id}" if ":" not in cluster_id else cluster_id
+    check_record_id(full_id)  # path input; 400 unless a plain record id
 
     # Get cluster for title
     cluster = await kg.get(full_id)
@@ -760,6 +763,7 @@ async def get_story_events(
     kg = get_kg_client()
 
     full_id = f"story_cluster:{cluster_id}" if ":" not in cluster_id else cluster_id
+    check_record_id(full_id)  # path input; 400 unless a plain record id
 
     # Verify cluster exists
     cluster = await kg.get(full_id)

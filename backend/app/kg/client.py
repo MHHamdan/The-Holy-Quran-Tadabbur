@@ -17,7 +17,7 @@ import httpx
 from pydantic import BaseModel
 
 from app.core.config import settings
-from app.kg.schema import get_schema_sql, get_query, SCHEMA_VERSION
+from app.kg.schema import get_schema_sql, get_query, iter_schema_statements, SCHEMA_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,29 @@ T = TypeVar("T", bound=BaseModel)
 # (story_cluster:adam, person:musa). Verse refs like "2:34" have a numeric
 # prefix and must stay strings.
 _RECORD_LINK_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*:[A-Za-z0-9_]+$")
+_FIELD_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+# Table / edge names, and record ids "table:id" where id is a plain word,
+# "sura:ayah" numbers (ayah:18:83) or a ⟨…⟩-escaped literal. Everything that is
+# interpolated into SurrealQL goes through these checks; values go through
+# query parameters (escaped by _surreal_literal).
+_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_RECORD_ID = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*:(?:[A-Za-z0-9_]+(?::[0-9]+)?|⟨[^⟩;]+⟩)$")
+
+
+class KGInvalidIdentifier(ValueError):
+    """A table name or record id that is not safe to place in SurrealQL."""
+
+
+def check_ident(name: str) -> str:
+    if not isinstance(name, str) or not _IDENT.match(name):
+        raise KGInvalidIdentifier(f"invalid KG table/edge name: {name!r}"[:120])
+    return name
+
+
+def check_record_id(record_id: str) -> str:
+    if not isinstance(record_id, str) or not _RECORD_ID.match(record_id):
+        raise KGInvalidIdentifier(f"invalid KG record id: {record_id!r}"[:120])
+    return record_id
 
 
 def _surreal_literal(value: Any) -> str:
@@ -152,7 +175,8 @@ class KGClient:
             # SurrealDB REST API expects plain text SQL
             query_sql = sql
             if params:
-                for key, value in params.items():
+                # Longest names first, so "$p1" never rewrites part of "$p10".
+                for key, value in sorted(params.items(), key=lambda kv: -len(kv[0])):
                     placeholder = f"${key}"
                     query_sql = query_sql.replace(placeholder, _surreal_literal(value))
 
@@ -234,8 +258,7 @@ class KGClient:
 
         schema_sql = get_schema_sql()
 
-        # Split by semicolons and execute each statement
-        statements = [s.strip() for s in schema_sql.split(";") if s.strip() and not s.strip().startswith("--")]
+        statements = list(iter_schema_statements(schema_sql))
 
         for stmt in statements:
             if stmt:
@@ -277,7 +300,9 @@ class KGClient:
         Returns:
             Created record
         """
+        check_ident(table)
         if record_id:
+            check_record_id(f"{table}:{record_id}")
             sql = f"CREATE {table}:{record_id} CONTENT $data;"
         else:
             sql = f"CREATE {table} CONTENT $data;"
@@ -295,6 +320,7 @@ class KGClient:
         Returns:
             Record data or None
         """
+        check_record_id(record_id)
         results = await self.query(f"SELECT * FROM {record_id};")
         return results[0] if results else None
 
@@ -309,6 +335,7 @@ class KGClient:
         Returns:
             Updated record
         """
+        check_record_id(record_id)
         results = await self.query(f"UPDATE {record_id} MERGE $data;", {"data": data})
         return results[0] if results else {}
 
@@ -329,7 +356,8 @@ class KGClient:
         Returns:
             Upserted record
         """
-        full_id = f"{table}:{record_id}"
+        check_ident(table)
+        full_id = check_record_id(f"{table}:{record_id}")
         # SurrealDB 1.x: UPDATE MERGE creates if not exists, merges if exists
         results = await self.query(
             f"UPDATE {full_id} MERGE $data;",
@@ -347,6 +375,7 @@ class KGClient:
         Returns:
             True if deleted
         """
+        check_record_id(record_id)
         await self.query(f"DELETE {record_id};")
         return True
 
@@ -357,9 +386,13 @@ class KGClient:
         order_by: str = None,
         limit: int = None,
         offset: int = None,
+        params: Dict[str, Any] = None,
     ) -> List[Dict[str, Any]]:
         """
         Select records from a table.
+
+        ``where`` must be built from trusted fragments; put any caller-supplied
+        value in ``params`` and reference it as ``$name``.
 
         Args:
             table: Table name
@@ -371,18 +404,19 @@ class KGClient:
         Returns:
             List of records
         """
+        check_ident(table)
         sql = f"SELECT * FROM {table}"
         if where:
             sql += f" WHERE {where}"
         if order_by:
             sql += f" ORDER BY {order_by}"
         if limit:
-            sql += f" LIMIT {limit}"
+            sql += f" LIMIT {int(limit)}"
         if offset:
-            sql += f" START {offset}"
+            sql += f" START {int(offset)}"
         sql += ";"
 
-        return await self.query(sql)
+        return await self.query(sql, params)
 
     # =========================================================================
     # EDGE OPERATIONS
@@ -407,9 +441,20 @@ class KGClient:
         Returns:
             Created edge
         """
+        # SET, not CONTENT: CONTENT replaces the whole edge record including
+        # `in`/`out`, which typed relation tables (TYPE RELATION IN .. OUT ..)
+        # then reject ("Found NONE for field `in`").
         content = data or {}
-        sql = f"RELATE {from_id}->{edge_type}->{to_id} CONTENT $content;"
-        results = await self.query(sql, {"content": content})
+        check_ident(edge_type)
+        check_record_id(from_id)
+        check_record_id(to_id)
+        bad = [k for k in content if not _FIELD_NAME.match(k)]
+        if bad:
+            raise ValueError(f"invalid edge field name(s): {bad}")
+        params = {f"p{i}": v for i, v in enumerate(content.values())}
+        assignments = ", ".join(f"{k} = $p{i}" for i, k in enumerate(content))
+        sql = f"RELATE {from_id}->{edge_type}->{to_id}" + (f" SET {assignments}" if assignments else "") + ";"
+        results = await self.query(sql, params)
         return results[0] if results else {}
 
     async def get_edges(
@@ -429,6 +474,11 @@ class KGClient:
         Returns:
             List of edges
         """
+        if edge_type:
+            check_ident(edge_type)
+        for rid in (from_id, to_id):
+            if rid:
+                check_record_id(rid)
         if from_id and to_id:
             sql = f"SELECT * FROM {edge_type or '*'} WHERE in = {from_id} AND out = {to_id};"
         elif from_id:
@@ -452,6 +502,9 @@ class KGClient:
         Returns:
             True if deleted
         """
+        check_ident(edge_type)
+        check_record_id(from_id)
+        check_record_id(to_id)
         await self.query(f"DELETE {edge_type} WHERE in = {from_id} AND out = {to_id};")
         return True
 
@@ -478,6 +531,8 @@ class KGClient:
         Returns:
             List of reached nodes
         """
+        check_record_id(start_id)
+        check_ident(edge_type)
         arrow = "->" if direction == "out" else "<-"
         path = f"{arrow}{edge_type}{arrow}" * depth
 
@@ -503,7 +558,9 @@ class KGClient:
 
         types = edge_types or ["next", "thematic_link", "explains", "supported_by", "involves", "located_in", "tagged_with"]
 
+        check_record_id(record_id)
         for edge_type in types:
+            check_ident(edge_type)
             # Outgoing
             out_results = await self.query(f"SELECT out.* FROM {edge_type} WHERE in = {record_id};")
             if out_results:
