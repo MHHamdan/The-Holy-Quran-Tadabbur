@@ -216,8 +216,13 @@ class GroundedResponse(BaseModel):
     # API version for compatibility
     api_version: Optional[str] = None
     # Phase-2: explicit status and answer language
-    status: str = "answered"          # answered|no_verified_source|needs_clarification|error
+    status: str = "answered"          # answered|no_verified_source|needs_clarification|ai_unavailable|error
     answer_language: str = "en"       # ar|en
+    # ai_synthesis | source_digest | refusal | notice — render AI text distinctly
+    answer_kind: str = "source_digest"
+    ai_generated: bool = False
+    # Present when status == ai_unavailable: ai_quota_exceeded | ai_unavailable
+    error_code: Optional[str] = None
     # === Chat experience fields ===
     session_id: Optional[str] = None
     related_verses: List[RelatedVerseResponse] = []

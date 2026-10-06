@@ -155,8 +155,13 @@ class GroundedResponse:
     query_expansion: Optional[List[str]] = None
     degradation_reasons: List[str] = field(default_factory=list)
     # Phase-2: explicit status and answer language
-    status: str = "answered"          # answered|no_verified_source|needs_clarification|error
+    status: str = "answered"          # answered|no_verified_source|needs_clarification|ai_unavailable|error
     answer_language: str = "en"       # ar|en
+    # What the `answer` text IS, so clients render it distinctly from Qur'an,
+    # translation and tafsir: "ai_synthesis" (LLM summary of cited sources),
+    # "source_digest" (assembled from stored tafsir, no LLM), "refusal",
+    # or "notice" (service message, e.g. AI unavailable).
+    answer_kind: str = "source_digest"
 
     # Evidence density metadata (for transparency)
     # These expose HOW MUCH evidence backs the response without exposing raw IDs
@@ -195,6 +200,8 @@ class GroundedResponse:
         """Convert to dictionary for API response."""
         return {
             "answer": self.answer,
+            "answer_kind": self.answer_kind,
+            "ai_generated": self.answer_kind == "ai_synthesis",
             "status": self.status,
             "answer_language": self.answer_language,
             "citations": [
@@ -303,6 +310,11 @@ NEEDS_CLARIFICATION_EN = (
 NEEDS_CLARIFICATION_AR = (
     "سؤالك يحتاج إلى مزيد من التوضيح. "
     "يرجى تحديد رقم الآية أو اسم السورة أو الموضوع حتى أتمكن من البحث في المصادر المناسبة."
+)
+
+FIQH_DISCLAIMER_AR = (
+    "تنبيه: هذه المعلومات لأغراض تعليمية فقط وليست فتوى شرعية. "
+    "يرجى الرجوع إلى أهل العلم المؤهلين في المسائل الشخصية."
 )
 
 SAFE_REFUSAL_FIQH = (
