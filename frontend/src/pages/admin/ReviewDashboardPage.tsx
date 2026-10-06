@@ -38,8 +38,7 @@ import {
   ReviewStatus,
   ReviewContentType,
   ReviewPriority,
-  ReviewStatsResponse,
-} from '../../lib/api';
+  ReviewStatsResponse, getAdminApiKey, setAdminApiKey } from '../../lib/api';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import { getOverlayMeta } from '../../utils/reviewStatus';
@@ -506,8 +505,9 @@ export function ReviewDashboardPage() {
   const [offset, setOffset] = useState(0);
   const LIMIT = 25;
 
-  // Detect whether the frontend key env var is configured at all
-  const hasAdminKey = !!(import.meta.env.VITE_ADMIN_API_KEY as string | undefined);
+  // The admin key is entered at runtime (never bundled); see getAdminApiKey().
+  const [adminKeyInput, setAdminKeyInput] = useState('');
+  const hasAdminKey = !!getAdminApiKey();
 
   // Filters
   const [filterStatus, setFilterStatus] = useState<ReviewStatus | ''>('');
@@ -638,13 +638,30 @@ export function ReviewDashboardPage() {
                   ? t('admin_auth_invalid_key', language)
                   : t('admin_auth_not_configured', language)}
               </p>
-              <button
-                type="button"
-                onClick={() => { setAuthError(null); loadTasks(); loadStats(); }}
-                className="text-xs text-red-700 underline hover:text-red-900"
+              <form
+                className="flex items-center gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setAdminApiKey(adminKeyInput);
+                  setAdminKeyInput('');
+                  setAuthError(null);
+                  loadTasks();
+                  loadStats();
+                }}
               >
-                {t('admin_auth_retry', language)}
-              </button>
+                <input
+                  type="password"
+                  autoComplete="off"
+                  value={adminKeyInput}
+                  onChange={(e) => setAdminKeyInput(e.target.value)}
+                  aria-label="Admin API key"
+                  className="text-xs border border-red-300 rounded px-2 py-1"
+                  dir="ltr"
+                />
+                <button type="submit" className="text-xs text-red-700 underline hover:text-red-900">
+                  {t('admin_auth_retry', language)}
+                </button>
+              </form>
             </div>
           </div>
         )}

@@ -1332,11 +1332,11 @@ export const translations: Translations = {
   },
   admin_auth_not_configured: {
     ar: 'لم يتم تهيئة مفتاح المصادقة الإدارية. تواصل مع مسؤول النظام.',
-    en: 'Admin API key is not configured. Set the VITE_ADMIN_API_KEY environment variable.',
+    en: 'Enter the admin API key to continue (it is kept for this browser tab only).',
   },
   admin_auth_invalid_key: {
     ar: 'مفتاح المصادقة الإدارية غير صالح. تواصل مع مسؤول النظام.',
-    en: 'Invalid admin API key. Check the VITE_ADMIN_API_KEY value.',
+    en: 'Invalid admin API key. Check the key and try again.',
   },
   admin_auth_retry: { ar: 'إعادة المحاولة', en: 'Retry' },
 

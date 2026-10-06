@@ -5,7 +5,7 @@
  * Admins can update status and add review notes inline.
  *
  * Route: /admin/feedback
- * Auth: requires VITE_ADMIN_API_KEY to be set (same as review dashboard).
+ * Auth: uses the admin API key entered in the review dashboard (runtime, never bundled).
  */
 import { useState, useEffect, useCallback } from 'react';
 import {
@@ -301,7 +301,7 @@ export function AdminFeedbackPage() {
       setTotal(listRes.data.total);
       setStats(statsRes.data);
     } catch {
-      setError('Failed to load feedback. Check that VITE_ADMIN_API_KEY is set.');
+      setError('Failed to load feedback. Enter the admin API key in the review dashboard first.');
     } finally {
       setLoading(false);
     }

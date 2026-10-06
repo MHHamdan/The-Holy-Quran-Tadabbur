@@ -2824,16 +2824,31 @@ export const vocabularyApi = {
 // Admin API client — includes X-Admin-API-Key header
 // =============================================================================
 
-// SECURITY: VITE_ADMIN_API_KEY is only for dev/staging. Never embed a
-// production admin key in frontend source or CI artifacts visible to the public.
-// Production deployments should use server-side authentication instead.
-const _ADMIN_KEY = import.meta.env.VITE_ADMIN_API_KEY as string | undefined;
+// SECURITY: the admin key is a backend secret and is never compiled into the
+// bundle (no VITE_* variable). An administrator enters it at runtime; it is
+// kept in sessionStorage for this tab only and sent solely as a header.
+const ADMIN_KEY_STORAGE = 'tadabbur_admin_api_key';
+
+export function getAdminApiKey(): string | null {
+  try {
+    return sessionStorage.getItem(ADMIN_KEY_STORAGE);
+  } catch {
+    return null;
+  }
+}
+
+export function setAdminApiKey(key: string | null): void {
+  try {
+    if (key && key.trim()) sessionStorage.setItem(ADMIN_KEY_STORAGE, key.trim());
+    else sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+  } catch {
+    /* storage unavailable: the key simply is not remembered */
+  }
+}
 
 function _adminHeaders(): Record<string, string> {
-  if (_ADMIN_KEY) {
-    return { 'X-Admin-API-Key': _ADMIN_KEY };
-  }
-  return {};
+  const key = getAdminApiKey();
+  return key ? { 'X-Admin-API-Key': key } : {};
 }
 
 export const reviewApi = {

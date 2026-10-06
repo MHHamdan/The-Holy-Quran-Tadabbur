@@ -7,7 +7,7 @@ services:
     container_name: tadabbur-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-tadabbur}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tadabbur_prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ${POSTGRES_DB:-tadabbur}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -61,7 +61,7 @@ services:
     image: surrealdb/surrealdb:v1.5.0
     container_name: tadabbur-surrealdb
     user: root
-    command: start --log info --user root --pass root memory
+    command: start --log info --user ${SURREAL_USER:-tadabbur} --pass ${SURREAL_PASS:?SURREAL_PASS must be set} memory
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
       interval: 10s
@@ -81,7 +81,7 @@ services:
       target: production
     container_name: tadabbur-backend
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-tadabbur}:${POSTGRES_PASSWORD:-tadabbur_prod}@postgres:5432/${POSTGRES_DB:-tadabbur}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-tadabbur}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-tadabbur}
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
       - REDIS_URL=redis://redis:6379/0
@@ -94,11 +94,14 @@ services:
       - HF_EMBEDDING_MODEL=${HF_EMBEDDING_MODEL:-intfloat/multilingual-e5-large}
       - HF_RERANKER_MODEL=${HF_RERANKER_MODEL:-BAAI/bge-reranker-v2-m3}
       - HF_STT_MODEL=${HF_STT_MODEL:-openai/whisper-large-v3-turbo}
-      - ADMIN_TOKEN=${ADMIN_TOKEN:-change_this_in_production}
+      - ADMIN_TOKEN=${ADMIN_TOKEN:?ADMIN_TOKEN must be set}
+      - ADMIN_API_KEY=${ADMIN_API_KEY:?ADMIN_API_KEY must be set}
+      - KG_ADMIN_TOKEN=${KG_ADMIN_TOKEN:?KG_ADMIN_TOKEN must be set}
+      - CORS_ORIGINS=${CORS_ORIGINS:?CORS_ORIGINS must list the web and app origins}
       - SURREAL_HOST=surrealdb
       - SURREAL_PORT=8000
-      - SURREAL_USER=root
-      - SURREAL_PASS=root
+      - SURREAL_USER=${SURREAL_USER:-tadabbur}
+      - SURREAL_PASS=${SURREAL_PASS:?SURREAL_PASS must be set}
       - SURREAL_NAMESPACE=tadabbur
       - SURREAL_DATABASE=quran_kg
       - WORKERS=4

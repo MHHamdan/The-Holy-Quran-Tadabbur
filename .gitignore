@@ -1,8 +1,22 @@
 # Python
 __pycache__/
 *.pyc
-.env
 .venv/
+
+# Secrets — every env file, at any depth, except the committed templates.
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+google-services.json
+GoogleService-Info.plist
 
 # Runtime artefacts from scripts/start_all.sh
 .pids/
