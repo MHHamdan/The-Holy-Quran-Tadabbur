@@ -368,7 +368,6 @@ function AllahNamesAudioPlayer({ names, language }: AllahNamesAudioPlayerProps) 
     };
 
     window.speechSynthesis.speak(utt);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onTogglePlay = useCallback(() => {

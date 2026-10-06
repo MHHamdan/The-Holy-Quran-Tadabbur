@@ -581,8 +581,29 @@ export default function TasmeePage() {
               </button>
             )}
 
+            {/* Speech recognition (server-side, Hugging Face) unavailable */}
+            {ws.error?.startsWith('STT_UNAVAILABLE') && (
+              <div role="status" className="border-l-4 p-4 mb-4 rounded-r-lg bg-amber-100 border-amber-500">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <div className="font-semibold text-amber-700">
+                      {ws.error.includes('ai_quota_exceeded')
+                        ? (isArabic ? 'تم بلوغ حدّ خدمة التعرّف على الكلام مؤقتاً' : 'Speech recognition limit reached for now')
+                        : (isArabic ? 'خدمة التعرّف على الكلام غير متاحة حالياً' : 'Speech recognition is temporarily unavailable')}
+                    </div>
+                    <p className="text-sm mt-1 text-amber-600">
+                      {isArabic
+                        ? 'يمكنك متابعة الحفظ بالكشف اليدوي عن الكلمات، أو المحاولة لاحقاً.'
+                        : 'You can keep practising by revealing words manually, or try again later.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Microphone Error Banner */}
-            {ws.error && (
+            {ws.error && !ws.error.startsWith('STT_UNAVAILABLE') && (
               <div className={clsx(
                 "border-l-4 p-4 mb-4 rounded-r-lg",
                 ws.error.includes('HTTPS_REQUIRED') ? "bg-amber-100 border-amber-500" : "bg-red-100 border-red-500"
@@ -609,7 +630,7 @@ export default function TasmeePage() {
                           <p>Microphone access requires a secure connection (HTTPS).</p>
                           <p className="mt-2 font-medium">Solutions:</p>
                           <ul className="list-disc ml-4 mt-1 space-y-1">
-                            <li>Access via <code className="bg-amber-200 px-1 rounded">http://localhost:3000</code> (allowed for local testing)</li>
+                            <li>Open the app over <code className="bg-amber-200 px-1 rounded">https://</code></li>
                             <li>Configure HTTPS on your server with a valid certificate</li>
                             <li>Use a reverse proxy (nginx/Caddy) with HTTPS</li>
                           </ul>

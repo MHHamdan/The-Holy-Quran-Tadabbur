@@ -19,8 +19,28 @@ import path from 'path'
  * - This enables microphone access over LAN (required for getUserMedia)
  * - For localhost, HTTP works fine (browser exception)
  */
+/**
+ * Production builds must point at a reachable backend. VITE_API_URL is either
+ * empty (same-origin: the web app behind nginx) or a public https origin
+ * (Capacitor/mobile builds). A loopback address baked into a release bundle
+ * only works on the developer's machine, so the build refuses it.
+ * Set ALLOW_LOCAL_API_URL=true for a deliberate local release build.
+ */
+const rejectLoopbackApiUrl = {
+  name: 'tadabbur-reject-loopback-api-url',
+  apply: 'build' as const,
+  configResolved(config: { env: Record<string, unknown> }) {
+    const url = String(config.env.VITE_API_URL ?? '')
+    if (/\/\/(localhost|127\.\d+\.\d+\.\d+|0\.0\.0\.0|\[::1\])(:|\/|$)/i.test(url)
+        && process.env.ALLOW_LOCAL_API_URL !== 'true') {
+      throw new Error(`VITE_API_URL=${url} is a loopback address; production bundles must use '' (same origin) or a public origin`)
+    }
+  },
+}
+
 export default defineConfig({
   plugins: [
+    rejectLoopbackApiUrl,
     react(),
     VitePWA({
       registerType: 'autoUpdate',

@@ -75,6 +75,8 @@ function AssistantMessage({
   const status = response?.status ?? (response?.citations?.length ? 'answered' : 'no_verified_source');
   const isNoSource = status === 'no_verified_source';
   const isNeedsClarity = status === 'needs_clarification';
+  // HF generation failed (quota / outage): the retrieved tafsir is still shown below.
+  const isAiUnavailable = status === 'ai_unavailable';
 
   // Phase K — scientific miracle safety detection
   const isScientificMiracle =
@@ -86,7 +88,10 @@ function AssistantMessage({
   // Warnings: split scientific caution out so generic amber box doesn't duplicate it
   const SCIENTIFIC_CAUTION_MARKER = 'specialized scholarly and scientific review';
   const scientificWarnings = response?.warnings?.filter(w => w.includes(SCIENTIFIC_CAUTION_MARKER)) ?? [];
-  const otherWarnings = response?.warnings?.filter(w => !w.includes(SCIENTIFIC_CAUTION_MARKER)) ?? [];
+  // ai_unavailable carries its machine code in warnings; it is rendered by AIUnavailableNotice instead.
+  const otherWarnings = response?.warnings?.filter(
+    w => !w.includes(SCIENTIFIC_CAUTION_MARKER) && w !== 'ai_quota_exceeded' && w !== 'ai_unavailable'
+  ) ?? [];
 
   // Check if we have meaningful data
   const hasVerses = response?.related_verses && response.related_verses.length > 0;
@@ -110,6 +115,10 @@ function AssistantMessage({
         {/* Response content */}
         {response && (
           <>
+            {isAiUnavailable && (
+              <AIUnavailableNotice quota={response.error_code === 'ai_quota_exceeded'} language={language} />
+            )}
+
             {/* Needs clarification notice */}
             {isNeedsClarity && (
               <NeedsClarificationNotice language={language} />
@@ -166,7 +175,7 @@ function AssistantMessage({
             )}
 
             {/* Missing source warning — driven by status */}
-            {(isNoSource || (!hasCitations && !isLoading && !error)) && (
+            {(isNoSource || (!hasCitations && !isLoading && !error && !isAiUnavailable)) && (
               <MissingSourceWarning language={language} />
             )}
 
@@ -433,6 +442,24 @@ function CitationCards({ citations, language }: { citations: Citation[]; languag
 }
 
 /** Answer card with copy/share actions */
+function AIUnavailableNotice({ quota, language }: { quota: boolean; language: 'ar' | 'en' }) {
+  const title = quota
+    ? (language === 'ar' ? 'تم بلوغ حدّ خدمة الذكاء الاصطناعي مؤقتاً' : 'AI usage limit reached for now')
+    : (language === 'ar' ? 'خدمة الذكاء الاصطناعي غير متاحة حالياً' : 'AI service is temporarily unavailable');
+  const body = language === 'ar'
+    ? 'لم تُولَّد إجابة. المقتطفات أدناه من كتب التفسير كما هي دون تلخيص. حاول مرة أخرى لاحقاً.'
+    : 'No answer was generated. The tafsir excerpts below are shown verbatim, without summarisation. Please try again later.';
+  return (
+    <div role="status" className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+      <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+      <div>
+        <p className="text-sm font-semibold text-amber-800">{title}</p>
+        <p className="text-xs text-amber-700 mt-0.5">{body}</p>
+      </div>
+    </div>
+  );
+}
+
 function AnswerCard({ response, language }: { response: RAGResponse; language: 'ar' | 'en' }) {
   const [copied, setCopied] = useState(false);
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
@@ -498,8 +525,8 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
           </div>
         )}
 
-        {/* Phase E — AI summary disclaimer (always shown for RAG answers) */}
-        {response.ai_summary_disclaimer !== false && (
+        {/* Phase E — AI summary disclaimer (shown unless the text is a fixed notice/refusal) */}
+        {response.ai_summary_disclaimer !== false && response.answer_kind !== 'notice' && response.answer_kind !== 'refusal' && (
           <AISummaryDisclaimer language={language} />
         )}
       </div>

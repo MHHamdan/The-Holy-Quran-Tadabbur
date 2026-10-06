@@ -20,6 +20,10 @@ export function OnboardingModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboarding-title"
+        onKeyDown={e => { if (e.key === 'Escape') skipOnboarding(); }}
         className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
         dir={isRtl ? 'rtl' : 'ltr'}
       >
@@ -28,12 +32,12 @@ export function OnboardingModal() {
           <button
             onClick={skipOnboarding}
             className="absolute top-4 end-4 p-1 rounded-full hover:bg-white/20 transition-colors"
-            aria-label="Skip"
+            aria-label={isRtl ? 'تخطٍّ' : 'Skip'}
           >
             <X className="w-4 h-4" />
           </button>
           <div className="text-3xl mb-2">📿</div>
-          <h2 className={clsx('text-xl font-bold mb-1', isRtl && 'font-arabic')}>
+          <h2 id="onboarding-title" className={clsx('text-xl font-bold mb-1', isRtl && 'font-arabic')}>
             {isRtl ? 'مرحباً بك في تدبّر' : 'Welcome to Tadabbur'}
           </h2>
           <p className={clsx('text-primary-200 text-sm', isRtl && 'font-arabic')}>

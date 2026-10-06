@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { apiUrl } from '../../lib/config';
 import {
   BookOpen,
   Volume2,
@@ -322,7 +323,7 @@ function getTafsirCached(sura: number, ayah: number, editionId: string): TafsirR
 function setTafsirCached(sura: number, ayah: number, editionId: string, data: TafsirResponse) {
   try {
     sessionStorage.setItem(`${TAFSIR_CACHE_PREFIX}${sura}:${ayah}:${editionId}`, JSON.stringify(data));
-  } catch {}
+  } catch { /* storage unavailable or full: caching is best-effort */ }
 }
 
 // =============================================================================
@@ -407,7 +408,7 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
 
     try {
       const response = await fetch(
-        `/api/v1/tafseer/external/verse/${sura}/${ayah}?edition=${selectedEdition.id}`,
+        apiUrl(`/api/v1/tafseer/external/verse/${sura}/${ayah}?edition=${selectedEdition.id}`),
         { signal: abortRef.current.signal }
       );
 
@@ -490,7 +491,7 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
     if (!tafsirData?.text) return;
     setSummaryLoading(true);
     try {
-      const response = await fetch('/api/v1/tafseer/llm/summarize', {
+      const response = await fetch(apiUrl('/api/v1/tafseer/llm/summarize'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -518,7 +519,7 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
     setSelectedWord(word);
     setWordExplanationLoading(true);
     try {
-      const response = await fetch('/api/v1/tafseer/llm/explain-word', {
+      const response = await fetch(apiUrl('/api/v1/tafseer/llm/explain-word'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -546,7 +547,7 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
     if (!question.trim() || !tafsirData?.text) return;
     setAnswerLoading(true);
     try {
-      const response = await fetch('/api/v1/tafseer/llm/answer', {
+      const response = await fetch(apiUrl('/api/v1/tafseer/llm/answer'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -803,6 +804,12 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
                 badgeColor="bg-purple-100 text-purple-700"
               >
                 <div className="space-y-4">
+                  {/* Results here are model-written (ai_generated), never Qur'an or tafsir text */}
+                  <p className="text-xs text-gray-500" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                    {language === 'ar'
+                      ? 'نصوص مولَّدة بالذكاء الاصطناعي، وليست قرآناً ولا تفسيراً. راجع المصدر أعلاه.'
+                      : 'AI-generated text, not Qur\'an or tafsir. Check it against the source above.'}
+                  </p>
                   {/* Summary */}
                   <div className="p-3 bg-purple-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">

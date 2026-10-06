@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { apiUrl } from '../lib/config';
 import { Link } from 'react-router-dom';
 import {
   Search, ExternalLink, BarChart3, BookOpen, Hash, CheckCircle, AlertCircle,
@@ -402,7 +403,7 @@ export function SearchPage() {
   useEffect(() => {
     async function loadSuraMetadata() {
       try {
-        const res = await fetch('/api/v1/quran/metadata');
+        const res = await fetch(apiUrl('/api/v1/quran/metadata'));
         const data = await res.json();
         setSuras(data.suras || []);
       } catch (err) {

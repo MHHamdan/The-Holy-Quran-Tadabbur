@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { wsUrl } from '../lib/config';
 
 // Types
 export interface ProgressiveWord {
@@ -113,11 +114,7 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
 
   // Get WebSocket URL
   const getWsUrl = useCallback(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    // Use backend API endpoint
-    const apiBase = import.meta.env.VITE_API_URL || `${protocol}//${host}`;
-    return `${apiBase.replace('http', 'ws')}/api/v1/tasmee/ws/${sessionId}`;
+    return wsUrl(`/api/v1/tasmee/ws/${sessionId}`);
   }, [sessionId]);
 
   // Connect to WebSocket
@@ -157,7 +154,9 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
     ws.onclose = (event) => {
       console.log('[TasmeeWS] Closed:', event.code, event.reason);
       setState(prev => ({ ...prev, isConnected: false, isStreaming: false }));
-      if (event.code !== 1000 && event.code !== 1001) {
+      if (event.code === 4003) {
+        setState(prev => ({ ...prev, error: prev.error?.startsWith('STT_UNAVAILABLE') ? prev.error : 'STT_UNAVAILABLE: unavailable' }));
+      } else if (event.code !== 1000 && event.code !== 1001) {
         const errorMsg = event.reason || `WebSocket closed (code: ${event.code})`;
         setState(prev => ({ ...prev, error: errorMsg }));
       }
@@ -264,6 +263,12 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
         }));
         break;
 
+      case 'stt_unavailable':
+        // Speech recognition (HF) failed for an audio window; the server closes
+        // the socket with 4003 after repeated failures.
+        setState(prev => ({ ...prev, error: `STT_UNAVAILABLE: ${data.reason ?? 'unavailable'}` }));
+        break;
+
       case 'reset_complete':
         setState(prev => ({
           ...prev,
@@ -297,7 +302,7 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
     if (!isSecure && !isLocalhost) {
       return {
         supported: false,
-        error: `HTTPS_REQUIRED: Microphone requires HTTPS. You are accessing via HTTP (${window.location.protocol}//${window.location.host}). Solutions: 1) Use https:// URL, 2) Access via http://localhost:3000, or 3) Configure HTTPS on your server.`
+        error: `HTTPS_REQUIRED: Microphone requires HTTPS. You are accessing via HTTP (${window.location.protocol}//${window.location.host}). Open the app over https:// (local development on localhost is also allowed).`
       };
     }
 

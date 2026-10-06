@@ -66,7 +66,7 @@ const MAX_AYAHS = 286; // Al-Baqara — used for relative length bar
  */
 function stripBasmala(text: string, surahNumber: number): string {
   // Strip BOM that may appear on the very first verse in the data file
-  const clean = text.replace(/^﻿/, '');
+  const clean = text.replace(/^\uFEFF/, '');
   if (surahNumber === 1) return clean; // Bismillah IS Al-Fatiha verse 1
   if (surahNumber === 9) return clean; // At-Tawba has no Bismillah prefix
   const ALEF_WASLA = 'ٱ'; // ٱ — distinctive in Uthmani script

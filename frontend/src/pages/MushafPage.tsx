@@ -170,7 +170,7 @@ function toArabicNumber(num: number): string {
 // Callers gate on aya_no===1 and sura_no not in SURAHS_WITHOUT_BISMILLAH_HEADER.
 // No Arabic string literals — text is extracted directly from the verse data.
 function splitBismillahImlaei(text: string): { bismillah: string; verseText: string } | null {
-  const clean = text.replace(/^﻿/, ''); // strip BOM (present only on 1:1)
+  const clean = text.replace(/^\uFEFF/, ''); // strip BOM (present only on 1:1)
   const words = clean.split(/\s+/);
   if (words.length <= 4) return null; // whole verse is just the Bismillah
   const bismillah = words.slice(0, 4).join(' ');
@@ -492,14 +492,29 @@ const GroundedAnswerCard = memo(function GroundedAnswerCard({
   title,
 }: GroundedAnswerCardProps) {
   const hasCitations = response.citations && response.citations.length > 0;
-  const isRefusal = response.status === 'no_verified_source' || !hasCitations;
+  const isAiUnavailable = response.status === 'ai_unavailable';
+  const isRefusal = !isAiUnavailable && (response.status === 'no_verified_source' || !hasCitations);
   const confidencePct = Math.round((response.confidence ?? 0) * 100);
   const dir = isRTL ? 'rtl' : 'ltr';
 
   return (
     <div className="space-y-3">
       {/* Status banner */}
-      {isRefusal ? (
+      {isAiUnavailable ? (
+        <div role="status" className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className={clsx('flex-1', isRTL && 'text-right')} dir={dir}>
+            <p className="font-medium">
+              {response.error_code === 'ai_quota_exceeded'
+                ? (language === 'ar' ? 'تم بلوغ حدّ خدمة الذكاء الاصطناعي مؤقتاً.' : 'AI usage limit reached for now.')
+                : (language === 'ar' ? 'خدمة الذكاء الاصطناعي غير متاحة حالياً.' : 'The AI service is temporarily unavailable.')}
+            </p>
+            <p className="text-xs mt-1 opacity-80">
+              {language === 'ar' ? 'حاول مرة أخرى لاحقاً.' : 'Please try again later.'}
+            </p>
+          </div>
+        </div>
+      ) : isRefusal ? (
         <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
           <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <div className={clsx('flex-1', isRTL && 'text-right')} dir={dir}>
@@ -530,7 +545,7 @@ const GroundedAnswerCard = memo(function GroundedAnswerCard({
       )}
 
       {/* AI disclaimer (grounded but still AI-assisted) */}
-      {response.ai_summary_disclaimer !== false && !isRefusal && (
+      {response.ai_summary_disclaimer !== false && !isRefusal && !isAiUnavailable && (
         <p className={clsx('text-xs text-gray-500 italic', isRTL && 'text-right')} dir={dir}>
           {t('rag_ai_disclaimer')}
         </p>
@@ -1083,7 +1098,7 @@ export function MushafPage() {
 
       // Ayah 1 of surahs that have a Bismillah header: strip it from the flowing text
       const shouldStrip = verse.aya_no === 1 && !SURAHS_WITHOUT_BISMILLAH_HEADER.has(verse.sura_no);
-      let displayText = verse.text_imlaei.replace(/^﻿/, ''); // strip BOM (only 1:1 has it)
+      let displayText = verse.text_imlaei.replace(/^\uFEFF/, ''); // strip BOM (only 1:1 has it)
       if (shouldStrip) {
         const split = splitBismillahImlaei(verse.text_imlaei);
         if (split) displayText = split.verseText;

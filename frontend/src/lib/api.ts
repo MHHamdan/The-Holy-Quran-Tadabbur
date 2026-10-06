@@ -1,10 +1,9 @@
 import axios from 'axios';
 
-// Use relative URL for Vite proxy, or absolute URL from env for production
-const API_BASE = import.meta.env.VITE_API_URL || '';
+import { API_ORIGIN } from './config';
 
 export const api = axios.create({
-  baseURL: `${API_BASE}/api/v1`,
+  baseURL: `${API_ORIGIN}/api/v1`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -357,7 +356,10 @@ export interface TafsirExplanation {
   reliability_score: number;
 }
 
-export type RAGStatus = 'answered' | 'no_verified_source' | 'needs_clarification' | 'error';
+export type RAGStatus = 'answered' | 'no_verified_source' | 'needs_clarification' | 'ai_unavailable' | 'error';
+
+/** ai_synthesis: model-written text; source_digest: verbatim tafsir excerpts; refusal / notice: fixed texts. */
+export type RAGAnswerKind = 'ai_synthesis' | 'source_digest' | 'refusal' | 'notice';
 
 export type RAGAnswerMode =
   | 'simple_explanation'
@@ -385,6 +387,10 @@ export interface RAGResponse {
   // Phase-2: explicit status and answer language
   status?: RAGStatus;
   answer_language?: 'ar' | 'en';
+  answer_kind?: RAGAnswerKind;
+  ai_generated?: boolean;
+  // Set when status === 'ai_unavailable': 'ai_quota_exceeded' | 'ai_unavailable'
+  error_code?: string;
   // Chat experience fields
   session_id?: string;
   related_verses?: RelatedVerse[];

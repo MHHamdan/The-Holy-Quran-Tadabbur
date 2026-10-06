@@ -179,7 +179,7 @@ function getCached(key: string): GrammarAnalysisType | null {
 }
 
 function setCached(key: string, data: GrammarAnalysisType) {
-  try { sessionStorage.setItem(SESSION_CACHE_PREFIX + key, JSON.stringify(data)); } catch {}
+  try { sessionStorage.setItem(SESSION_CACHE_PREFIX + key, JSON.stringify(data)); } catch { /* storage unavailable or full: caching is best-effort */ }
 }
 
 export function GrammarAnalysisView({ suraNo, ayaNo, verseText }: Props) {

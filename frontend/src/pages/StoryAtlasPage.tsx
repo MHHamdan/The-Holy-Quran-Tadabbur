@@ -111,7 +111,6 @@ export function StoryAtlasPage() {
     if (next.toString() !== searchParams.toString()) {
       setSearchParams(next, { replace: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSubcategory, selectedPerson, selectedPlace]);
 
   const registry = getRegistry();

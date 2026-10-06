@@ -452,7 +452,7 @@ function getSimCached(key: string): AdvancedSimilarityResponse | null {
 }
 
 function setSimCached(key: string, data: AdvancedSimilarityResponse) {
-  try { sessionStorage.setItem(SIM_CACHE_PREFIX + key, JSON.stringify(data)); } catch {}
+  try { sessionStorage.setItem(SIM_CACHE_PREFIX + key, JSON.stringify(data)); } catch { /* storage unavailable or full: caching is best-effort */ }
 }
 
 // Main component

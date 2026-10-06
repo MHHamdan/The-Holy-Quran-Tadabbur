@@ -3,6 +3,7 @@ import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import { api } from '../../lib/api';
 import clsx from 'clsx';
+import { API_ORIGIN } from '../../lib/config';
 import {
   Monitor,
   Server,
@@ -78,7 +79,7 @@ export function StatusDashboardPage() {
       </div>
 
       {/* Tab Bar */}
-      <div className="flex gap-2 mb-8 border-b border-gray-200">
+      <div className="flex gap-2 mb-8 border-b border-gray-200 overflow-x-auto">
         {tabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -216,20 +217,14 @@ function FrontendScreen({ language }: { language: 'ar' | 'en' }) {
         </div>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <p className="text-sm text-gray-500 mb-1">Local URL</p>
-            <code className="text-blue-700 font-mono text-sm">http://localhost:3000</code>
+            <p className="text-sm text-gray-500 mb-1">App URL</p>
+            <code className="text-blue-700 font-mono text-sm break-all">{window.location.origin}</code>
           </div>
           <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <p className="text-sm text-gray-500 mb-1">LAN URL</p>
-            <code className="text-blue-700 font-mono text-sm">{`http://${window.location.hostname}:3000`}</code>
-          </div>
-          <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <p className="text-sm text-gray-500 mb-1">Vite Host</p>
-            <code className="text-blue-700 font-mono text-sm">0.0.0.0 (all interfaces)</code>
-          </div>
-          <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <p className="text-sm text-gray-500 mb-1">API Proxy</p>
-            <code className="text-blue-700 font-mono text-sm">/api/* → localhost:8002</code>
+            <p className="text-sm text-gray-500 mb-1">API</p>
+            <code className="text-blue-700 font-mono text-sm break-all">
+              {API_ORIGIN ? `${API_ORIGIN}/api/v1` : `${window.location.origin}/api/v1 (same origin)`}
+            </code>
           </div>
         </div>
       </div>
@@ -584,19 +579,14 @@ function BackendScreen({ language }: { language: 'ar' | 'en' }) {
         icon={Globe}
       >
         <div className="space-y-2">
-          {[
-            'http://localhost:3000',
-            'http://localhost:5173',
-            'http://localhost:5174',
-            'http://127.0.0.1:3000',
-            'http://127.0.0.1:5173',
-            'http://127.0.0.1:5174',
-          ].map((origin, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-500" />
-              <code className="text-sm text-gray-700">{origin}</code>
-            </div>
-          ))}
+          {/* Allowed origins are server configuration, not something the bundle knows */}
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-green-500" />
+            <code className="text-sm text-gray-700">CORS_ORIGINS</code>
+            <span className="text-sm text-gray-500">
+              {language === 'ar' ? '(متغير بيئة على الخادم)' : '(server environment variable)'}
+            </span>
+          </div>
         </div>
       </SectionCard>
     </div>
@@ -654,7 +644,7 @@ function DatabaseScreen({ language }: { language: 'ar' | 'en' }) {
       type: 'Relational (SQL)',
       purpose: 'Core data: verses, translations, tafseer, stories, themes, concepts',
       purposeAr: 'البيانات الأساسية: الآيات، الترجمات، التفسير، القصص، المحاور',
-      connection: 'postgresql://localhost:5432/tadabbur',
+      connection: 'DATABASE_URL',
       status: 'ok' as const,
     },
     {
@@ -663,7 +653,7 @@ function DatabaseScreen({ language }: { language: 'ar' | 'en' }) {
       type: 'Vector Database',
       purpose: 'Semantic search: verse embeddings, tafseer chunk embeddings',
       purposeAr: 'البحث الدلالي: تضمينات الآيات والتفسير',
-      connection: 'localhost:6333',
+      connection: 'QDRANT_HOST / QDRANT_PORT',
       status: 'ok' as const,
     },
     {
@@ -672,7 +662,7 @@ function DatabaseScreen({ language }: { language: 'ar' | 'en' }) {
       type: 'Cache (Key-Value)',
       purpose: 'Caching: API responses, search results, sessions',
       purposeAr: 'التخزين المؤقت: استجابات API، نتائج البحث، الجلسات',
-      connection: 'redis://localhost:6379/0',
+      connection: 'REDIS_URL',
       status: 'ok' as const,
     },
     {
@@ -681,7 +671,7 @@ function DatabaseScreen({ language }: { language: 'ar' | 'en' }) {
       type: 'Graph Database',
       purpose: 'Knowledge graph: story connections, concept relationships',
       purposeAr: 'الرسم المعرفي: روابط القصص وعلاقات المفاهيم',
-      connection: 'localhost:8529',
+      connection: 'SURREAL_HOST / SURREAL_PORT',
       status: 'ok' as const,
     },
   ];
