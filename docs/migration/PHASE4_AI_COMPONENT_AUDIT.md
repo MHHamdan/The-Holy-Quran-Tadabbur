@@ -3,6 +3,8 @@
 The deployed backend needs **no GPU, no torch, no local model files**.
 `torch`, `sentence-transformers` and `transformers` are no longer backend dependencies.
 
+The **Before** column below is historical (the pre-migration state).
+
 Options:
 - **A**: Hugging Face hosted inference
 - **B**: lightweight local CPU implementation
