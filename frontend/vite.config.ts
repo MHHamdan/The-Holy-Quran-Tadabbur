@@ -43,30 +43,70 @@ export default defineConfig({
     rejectLoopbackApiUrl,
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      // "prompt": a new build is downloaded in the background and activated
+      // only when the user accepts the in-app banner (AppUpdateBanner).
+      registerType: 'prompt',
+      injectRegister: false,
+      includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: false, // we manage manifest.json ourselves in /public
       workbox: {
-        // Cache JS/CSS/HTML with stale-while-revalidate for fast offline loads
-        globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
+        // App shell: hashed JS/CSS + index.html, precached and versioned per build.
+        globPatterns: ['**/*.{js,css,html,ico,svg,woff2,png}'],
+        cleanupOutdatedCaches: true,
+        // SPA routes fall back to the cached shell offline; API, health and
+        // backend docs must never be answered with index.html.
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/health/, /^\/docs/, /^\/redoc/, /^\/openapi\.json/],
         runtimeCaching: [
           {
-            // Quran text + tafseer API — cache for 24 h, serve stale offline
-            urlPattern: /\/api\/v1\/(quran|tafseer|asbab|vocabulary|duas|dhikr)/,
+            // Canonical, non-personal content only: Qur'an text, pages, juz,
+            // tafsir by verse, asbab, names, duas, vocabulary. Cached
+            // aggressively for offline reading and refreshed in the background.
+            // Everything else under /api (RAG answers, AI output, search,
+            // per-user bookmarks/history/progress, stats, admin) is NOT
+            // matched here and always goes to the network.
+            // The matcher is serialised into sw.js, so the patterns are inline.
+            urlPattern: ({ url, request }) =>
+              request.method === 'GET' && [
+                /^\/api\/v1\/quran\/(suras|verses|page|juz|tafseer|asbab|asma|allah-names|topics)(\/|$)/,
+                /^\/api\/v1\/quran\/(metadata|tafsir\/sources)$/,
+                /^\/api\/v1\/quran\/(tafsir\/verse|tafsir-comparison\/verse|tafsir\/compare)\//,
+                /^\/api\/v1\/tafseer\/(editions$|surah\/|compare\/|\d+\/\d+$)/,
+                /^\/api\/v1\/duas(\/|$)/,
+                /^\/api\/v1\/vocabulary\/(verse|by-ref|lookup|sources)/,
+                /^\/api\/v1\/quranic-calls\/(list|detail|by-surah|graph)/,
+              ].some((re) => re.test(url.pathname)),
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'api-quran-cache',
-              expiration: { maxEntries: 500, maxAgeSeconds: 86400 },
-              cacheableResponse: { statuses: [0, 200] },
+              cacheName: 'api-canonical-v2',
+              expiration: { maxEntries: 3000, maxAgeSeconds: 30 * 24 * 3600 },
+              cacheableResponse: { statuses: [200] },
             },
           },
           {
-            // Static JSON data served by the frontend (generated atlas files, etc.)
-            urlPattern: /\.json$/,
+            // Static JSON shipped with the frontend (atlas/graph data). Same
+            // origin only; revalidated so a redeploy is picked up next visit.
+            urlPattern: ({ url, sameOrigin }) =>
+              sameOrigin && url.pathname.endsWith('.json') && !url.pathname.startsWith('/api/'),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'static-json-v2',
+              expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 3600 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            // Google Fonts: the stylesheet changes rarely, font files never.
+            urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com',
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'google-fonts-css', expiration: { maxEntries: 10 } },
+          },
+          {
+            urlPattern: ({ url }) => url.origin === 'https://fonts.gstatic.com',
             handler: 'CacheFirst',
             options: {
-              cacheName: 'json-data-cache',
-              expiration: { maxEntries: 200, maxAgeSeconds: 604800 }, // 7 days
+              cacheName: 'google-fonts-files',
+              expiration: { maxEntries: 40, maxAgeSeconds: 365 * 24 * 3600 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

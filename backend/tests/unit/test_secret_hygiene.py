@@ -42,6 +42,18 @@ def test_no_secret_bearing_vite_variables_or_hf_access_in_frontend():
     assert not offenders, offenders
 
 
+_PERSISTED_SECRET = re.compile(r"localStorage\.(?:setItem|getItem)\(\s*[A-Za-z_'\"]*(?:TOKEN|ADMIN|SECRET|API_KEY)", re.IGNORECASE)
+
+
+def test_admin_credentials_are_not_persisted_in_local_storage():
+    """Admin tokens typed into the UI live in sessionStorage (this tab only)."""
+    offenders = []
+    for path in _frontend_files():
+        for m in _PERSISTED_SECRET.finditer(path.read_text(encoding="utf-8", errors="ignore")):
+            offenders.append(f"{path.relative_to(REPO)}: {m.group(0)}")
+    assert not offenders, offenders
+
+
 def test_env_example_has_no_secret_vite_variable_or_value():
     text = (REPO / ".env.example").read_text(encoding="utf-8")
     assert not _SECRET_VITE.search(text)

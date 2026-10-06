@@ -10,6 +10,7 @@
 import { Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect, memo } from 'react';
 import { Layout } from './components/layout/Layout';
+import { AppUpdateBanner } from './components/pwa/AppUpdateBanner';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { OnboardingModal } from './components/onboarding/OnboardingModal';
 import { usePersonaStore } from './stores/personaStore';
@@ -248,6 +249,7 @@ function App() {
   return (
     <Layout>
       {!hasChosen && <OnboardingModal />}
+      <AppUpdateBanner />
       <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>

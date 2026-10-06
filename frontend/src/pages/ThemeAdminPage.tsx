@@ -8,15 +8,15 @@ import clsx from 'clsx';
 const ADMIN_TOKEN_KEY = 'admin_token';
 
 function getAdminToken(): string | null {
-  return localStorage.getItem(ADMIN_TOKEN_KEY);
+  return sessionStorage.getItem(ADMIN_TOKEN_KEY);
 }
 
 function setAdminToken(token: string): void {
-  localStorage.setItem(ADMIN_TOKEN_KEY, token);
+  sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
 }
 
 function clearAdminToken(): void {
-  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
 }
 
 function getAuthHeaders(): Record<string, string> {
