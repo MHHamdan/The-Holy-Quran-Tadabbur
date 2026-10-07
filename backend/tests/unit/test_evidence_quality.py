@@ -283,14 +283,16 @@ class TestKGEndpointsI18n:
 class TestAdminTokenProtection:
     """Tests for API admin token protection."""
 
-    def test_kg_import_requires_admin_token(self):
+    def test_kg_import_requires_admin_token(self, monkeypatch):
         """
         POST /kg/import-stories must require X-Admin-Token header.
 
         Arabic: POST /kg/import-stories يجب أن يتطلب رأس X-Admin-Token
         """
-        from app.api.routes.kg import verify_admin_token, _KG_ADMIN_TOKEN
+        from app.api.routes.kg import verify_admin_token
         from fastapi import HTTPException
+
+        monkeypatch.setenv("KG_ADMIN_TOKEN", "unit-test-kg-admin-token-0123456789")
 
         # Test missing token
         with pytest.raises(HTTPException) as exc_info:
@@ -305,25 +307,24 @@ class TestAdminTokenProtection:
         assert exc_info.value.detail['error_code'] == 'invalid_admin_token'
 
         # Test valid token
-        result = verify_admin_token(_KG_ADMIN_TOKEN)
-        assert result is True
+        assert verify_admin_token("unit-test-kg-admin-token-0123456789") is True
 
-    def test_admin_token_from_environment(self):
+    def test_admin_endpoints_fail_closed_without_configured_token(self, monkeypatch):
         """
-        Admin token should be configurable via environment variable.
+        Without KG_ADMIN_TOKEN there is no usable token at all.
+
+        Regression: a public default ("tadabbur-admin-dev-token") used to be
+        accepted whenever KG_ADMIN_TOKEN was unset.
         """
-        import os
-        from app.api.routes.kg import _KG_ADMIN_TOKEN
+        from app.api.routes.kg import verify_admin_token
+        from fastapi import HTTPException
 
-        # Default dev token exists
-        assert _KG_ADMIN_TOKEN is not None
-        assert len(_KG_ADMIN_TOKEN) > 10, "Admin token should be reasonably long"
-
-        # In production, KG_ADMIN_TOKEN env var should be set
-        # This test documents the expected behavior
-        env_token = os.environ.get("KG_ADMIN_TOKEN")
-        if env_token:
-            assert _KG_ADMIN_TOKEN == env_token
+        monkeypatch.delenv("KG_ADMIN_TOKEN", raising=False)
+        for candidate in ("tadabbur-admin-dev-token", "anything", None):
+            with pytest.raises(HTTPException) as exc_info:
+                verify_admin_token(candidate)
+            assert exc_info.value.status_code == 503
+            assert exc_info.value.detail['error_code'] == 'admin_not_configured'
 
 
 # =============================================================================

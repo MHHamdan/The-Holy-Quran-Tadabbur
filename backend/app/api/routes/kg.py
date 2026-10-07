@@ -17,10 +17,13 @@ from typing import List, Optional
 import re
 from fastapi import APIRouter, HTTPException, Query, Header, Depends, Path
 
-from app.kg.client import get_kg_client
+from app.kg.client import get_kg_client, check_record_id
 
-# Admin token from environment (default for dev only — change in production)
-_KG_ADMIN_TOKEN = os.environ.get("KG_ADMIN_TOKEN", "tadabbur-admin-dev-token")
+# Admin token from the environment. There is deliberately no default: the
+# previous public fallback ("tadabbur-admin-dev-token") left KG admin
+# endpoints open on any deployment that did not set KG_ADMIN_TOKEN.
+def _configured_kg_admin_token() -> str:
+    return (os.environ.get("KG_ADMIN_TOKEN") or "").strip()
 
 
 def verify_admin_token(x_admin_token: str = Header(None, alias="X-Admin-Token")):
@@ -34,6 +37,17 @@ def verify_admin_token(x_admin_token: str = Header(None, alias="X-Admin-Token"))
     """
     import hashlib
     import hmac as _hmac
+    configured = _configured_kg_admin_token()
+    if not configured:
+        # Fail closed when no token is configured.
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error_code": "admin_not_configured",
+                "message_ar": "لم يتم إعداد مصادقة المسؤول على الخادم",
+                "message_en": "KG admin authentication is not configured on this server.",
+            },
+        )
     if not x_admin_token:
         raise HTTPException(
             status_code=401,
@@ -44,7 +58,7 @@ def verify_admin_token(x_admin_token: str = Header(None, alias="X-Admin-Token"))
             },
         )
     provided_hash = hashlib.sha256(x_admin_token.encode()).hexdigest()
-    configured_hash = hashlib.sha256(_KG_ADMIN_TOKEN.encode()).hexdigest()
+    configured_hash = hashlib.sha256(configured.encode()).hexdigest()
     if not _hmac.compare_digest(provided_hash, configured_hash):
         raise HTTPException(
             status_code=403,
@@ -204,7 +218,7 @@ async def get_stories_by_sura(
         cluster_id = s.get("id")
         events = await kg.select(
             "story_event",
-            where=f"cluster_id = {cluster_id} AND sura_no = {sura_no}",
+            where=f"cluster_id = {check_record_id(cluster_id)} AND sura_no = {int(sura_no)}",
             order_by="chronological_index",
         )
 
@@ -252,6 +266,7 @@ async def get_story_cluster(
 
     # Get cluster
     full_id = f"story_cluster:{cluster_id}" if ":" not in cluster_id else cluster_id
+    check_record_id(full_id)  # path input; 400 unless a plain record id
     cluster = await kg.get(full_id)
 
     if not cluster:
@@ -342,6 +357,7 @@ async def get_story_graph(
     kg = get_kg_client()
 
     full_id = f"story_cluster:{cluster_id}" if ":" not in cluster_id else cluster_id
+    check_record_id(full_id)  # path input; 400 unless a plain record id
 
     # Get events
     events = await kg.select(
@@ -483,6 +499,7 @@ async def get_story_timeline(
     kg = get_kg_client()
 
     full_id = f"story_cluster:{cluster_id}" if ":" not in cluster_id else cluster_id
+    check_record_id(full_id)  # path input; 400 unless a plain record id
 
     # Get cluster for title
     cluster = await kg.get(full_id)
@@ -746,6 +763,7 @@ async def get_story_events(
     kg = get_kg_client()
 
     full_id = f"story_cluster:{cluster_id}" if ":" not in cluster_id else cluster_id
+    check_record_id(full_id)  # path input; 400 unless a plain record id
 
     # Verify cluster exists
     cluster = await kg.get(full_id)

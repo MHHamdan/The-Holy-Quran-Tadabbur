@@ -5,13 +5,11 @@ Tests the NLIEmotionClassifier service and its integration with
 classify_emotion() in spiritual_guidance_service.py.
 
 Test groups:
-  1. Unit tests for NLIEmotionClassifier (mocked torch / transformers)
+  1. Unit tests for NLIEmotionClassifier (mocked Hugging Face call)
   2. is_arabic_dominant() language detection utility
   3. classify_emotion() integration — NLI path, Arabic path, fallback path
   4. API integration — /ask returns emotion_confidence field
-  5. Live model smoke tests (skipped when model not loaded to keep CI fast)
-
-Test count: 32 tests
+  5. Live model smoke tests (marked live_hf; run with `pytest -m live_hf`)
 """
 import asyncio
 import os
@@ -70,157 +68,79 @@ async def client():
 # ===========================================================================
 
 class TestNLIClassifierUnit:
-    """Unit tests using a mocked torch model and tokenizer."""
+    """Unit tests with the Hugging Face zero-shot call mocked (no network)."""
 
-    def _make_mock_model(self, best_label_idx: int = 0, confidence: float = 0.99):
-        """Build a mock model that returns high entailment for the given label index."""
-        import torch
+    @staticmethod
+    def _scores(best: str, confidence: float = 0.99, others: float = 0.05):
+        from app.services.emotion_classifier import EMOTION_LABELS
+        return [(lbl, confidence if lbl == best else others) for lbl in EMOTION_LABELS]
 
-        # Build fake logits: entailment (col 2) high for best_label_idx
-        n_labels = 11
-        logits_data = [[0.0, 0.1, 0.1]] * n_labels
-        # Entailment score artificially boosted for best_label_idx
-        logits_data[best_label_idx] = [0.01, 0.01, 5.0]
-
-        mock_output = MagicMock()
-        mock_output.logits = torch.tensor(logits_data, dtype=torch.float32)
-
-        mock_model = MagicMock()
-        mock_model.return_value = mock_output
-        mock_model.eval = MagicMock(return_value=mock_model)
-        mock_model.to = MagicMock(return_value=mock_model)
-        return mock_model
-
-    def _make_mock_tokenizer(self):
-        import torch
-        mock_tok = MagicMock()
-        # Return a fake batch encoding that has a .to() method
-        fake_enc = MagicMock()
-        fake_enc.to = MagicMock(return_value={
-            "input_ids": torch.zeros(11, 5, dtype=torch.long),
-            "attention_mask": torch.ones(11, 5, dtype=torch.long),
-        })
-        mock_tok.return_value = fake_enc
-        return mock_tok
+    @staticmethod
+    def _configured(value: bool = True):
+        return patch("app.ai.hf_client.hf_configured", return_value=value)
 
     async def test_classify_returns_correct_emotion(self):
         from app.services.emotion_classifier import NLIEmotionClassifier, EMOTION_LABELS
         clf = NLIEmotionClassifier(confidence_threshold=0.4)
-
-        mock_model = self._make_mock_model(best_label_idx=0)  # EMOTION_LABELS[0] = 'anxiety'
-        mock_tok = self._make_mock_tokenizer()
-
-        with (
-            patch("app.services.emotion_classifier.os.environ", {"USE_TF": "0"}),
-            patch("transformers.AutoTokenizer.from_pretrained", return_value=mock_tok),
-            patch("transformers.AutoModelForSequenceClassification.from_pretrained", return_value=mock_model),
-        ):
-            clf._load()  # force load with mocked model
+        with self._configured(), patch.object(clf, "_zero_shot", return_value=self._scores(EMOTION_LABELS[0])):
             emotion, confidence = clf.classify("I feel anxious today")
-
         assert emotion == EMOTION_LABELS[0]
         assert confidence > 0.4
 
     async def test_classify_returns_empty_when_below_threshold(self):
         """When all entailment scores are low, returns ('', low_conf)."""
-        import torch
         from app.services.emotion_classifier import NLIEmotionClassifier
-
-        n = 11
-        low_logits = torch.tensor([[0.1, 0.1, 0.1]] * n, dtype=torch.float32)
-        mock_output = MagicMock()
-        mock_output.logits = low_logits
-
-        mock_model = MagicMock()
-        mock_model.return_value = mock_output
-        mock_model.eval.return_value = mock_model
-        mock_model.to.return_value = mock_model
-
-        mock_tok = self._make_mock_tokenizer()
-
-        clf = NLIEmotionClassifier(confidence_threshold=0.9)  # very high threshold
-        with (
-            patch("transformers.AutoTokenizer.from_pretrained", return_value=mock_tok),
-            patch("transformers.AutoModelForSequenceClassification.from_pretrained", return_value=mock_model),
-        ):
-            clf._load()
+        clf = NLIEmotionClassifier(confidence_threshold=0.9)
+        with self._configured(), patch.object(clf, "_zero_shot", return_value=self._scores("sadness", 0.3)):
             emotion, confidence = clf.classify("I feel somewhat off today")
-
         assert emotion == ""
+        assert confidence == pytest.approx(0.3)
 
-    async def test_load_failure_returns_empty(self):
-        """Model load failure must return ('', 0.0) gracefully."""
+    async def test_not_configured_returns_empty(self):
+        """No HF token → ('', 0.0) and the upstream is never called."""
         from app.services.emotion_classifier import NLIEmotionClassifier
-
-        clf = NLIEmotionClassifier(model_name="nonexistent-model-xyz")
-        with patch("transformers.AutoTokenizer.from_pretrained", side_effect=OSError("not found")):
+        clf = NLIEmotionClassifier()
+        with self._configured(False), patch.object(clf, "_zero_shot") as call:
             emotion, confidence = clf.classify("I feel anxious today")
-
-        assert emotion == ""
-        assert confidence == 0.0
+        call.assert_not_called()
+        assert (emotion, confidence) == ("", 0.0)
         assert not clf.is_ready
 
-    async def test_warmup_returns_true_on_success(self):
+    async def test_warmup_returns_true_when_configured(self):
         from app.services.emotion_classifier import NLIEmotionClassifier
-
         clf = NLIEmotionClassifier()
-        mock_model = self._make_mock_model()
-        mock_tok = self._make_mock_tokenizer()
-
-        with (
-            patch("transformers.AutoTokenizer.from_pretrained", return_value=mock_tok),
-            patch("transformers.AutoModelForSequenceClassification.from_pretrained", return_value=mock_model),
-        ):
-            ok = clf.warmup()
-
-        assert ok is True
+        with self._configured():
+            assert clf.warmup() is True
         assert clf.is_ready
 
-    async def test_warmup_returns_false_on_failure(self):
+    async def test_warmup_returns_false_when_not_configured(self):
         from app.services.emotion_classifier import NLIEmotionClassifier
-
-        clf = NLIEmotionClassifier(model_name="bad-model")
-        with patch("transformers.AutoTokenizer.from_pretrained", side_effect=ValueError("bad")):
-            ok = clf.warmup()
-
-        assert ok is False
+        clf = NLIEmotionClassifier()
+        with self._configured(False):
+            assert clf.warmup() is False
         assert not clf.is_ready
 
-    async def test_double_load_only_calls_from_pretrained_once(self):
+    @pytest.mark.parametrize("kind", ["quota", "timeout", "network", "malformed", "auth"])
+    async def test_upstream_failure_returns_empty(self, kind):
+        from app.ai.hf_client import HFErrorKind, HFInferenceError
         from app.services.emotion_classifier import NLIEmotionClassifier
-
         clf = NLIEmotionClassifier()
-        mock_model = self._make_mock_model()
-        mock_tok = self._make_mock_tokenizer()
+        err = HFInferenceError(HFErrorKind(kind), "zero-shot")
+        with self._configured(), patch.object(clf, "_zero_shot", side_effect=err):
+            assert clf.classify("I feel anxious") == ("", 0.0)
 
-        with (
-            patch("transformers.AutoTokenizer.from_pretrained", return_value=mock_tok) as mock_tok_call,
-            patch("transformers.AutoModelForSequenceClassification.from_pretrained", return_value=mock_model),
-        ):
-            clf._load()
-            clf._load()  # second call should be a no-op
-
-        assert mock_tok_call.call_count == 1
-
-    async def test_inference_error_returns_empty(self):
+    async def test_unknown_labels_are_ignored(self):
         from app.services.emotion_classifier import NLIEmotionClassifier
-
         clf = NLIEmotionClassifier()
-        mock_model = MagicMock()
-        mock_model.eval.return_value = mock_model
-        mock_model.to.return_value = mock_model
-        mock_model.side_effect = RuntimeError("GPU OOM")
+        with self._configured(), patch.object(clf, "_zero_shot", return_value=[("joy", 0.99)]):
+            assert clf.classify("I feel great") == ("", 0.0)
 
-        mock_tok = self._make_mock_tokenizer()
-
-        with (
-            patch("transformers.AutoTokenizer.from_pretrained", return_value=mock_tok),
-            patch("transformers.AutoModelForSequenceClassification.from_pretrained", return_value=mock_model),
-        ):
-            clf._load()
-            emotion, confidence = clf.classify("I feel anxious")
-
-        assert emotion == ""
+    async def test_empty_text_short_circuits(self):
+        from app.services.emotion_classifier import NLIEmotionClassifier
+        clf = NLIEmotionClassifier()
+        with self._configured(), patch.object(clf, "_zero_shot") as call:
+            assert clf.classify("   ") == ("", 0.0)
+        call.assert_not_called()
 
 
 # ===========================================================================
@@ -365,17 +285,13 @@ class TestApiEmotionConfidence:
 # 5. Live model smoke test (skipped if model not pre-loaded)
 # ===========================================================================
 
-@pytest.mark.skipif(
-    os.environ.get("RUN_LIVE_MODEL_TESTS") != "1",
-    reason="Set RUN_LIVE_MODEL_TESTS=1 to run live model inference tests",
-)
+@pytest.mark.live_hf
 class TestLiveModelSmoke:
     """
-    Smoke tests against the real facebook/bart-large-mnli model.
-    Requires the model to be downloaded and RUN_LIVE_MODEL_TESTS=1.
+    Smoke tests against the hosted zero-shot model (spends HF credit).
 
     Run with:
-        RUN_LIVE_MODEL_TESTS=1 pytest tests/unit/test_emotion_classifier_phase_t4.py::TestLiveModelSmoke -v
+        pytest -m live_hf tests/unit/test_emotion_classifier_phase_t4.py
     """
 
     _CASES = [
@@ -392,13 +308,36 @@ class TestLiveModelSmoke:
         ("I feel so deeply sad about everything in my life", "sadness"),
     ]
 
-    async def test_live_accuracy_above_90_percent(self):
+    @staticmethod
+    def _live_classifier():
+        from app.ai.hf_client import HFErrorKind, HFInferenceError
         from app.services.emotion_classifier import NLIEmotionClassifier
+
         clf = NLIEmotionClassifier()
-        assert clf.warmup(), "Model failed to load"
+        if not clf.warmup():
+            pytest.skip("HF_TOKEN not configured")
+        # Measure model quality, not request-path latency: allow cold starts.
+        clf.TIMEOUT_SECONDS = 60.0
+
+        def predict(text):
+            for attempt in range(3):
+                try:
+                    scored = clf._zero_shot(text)
+                    return max(scored, key=lambda p: p[1])
+                except HFInferenceError as err:
+                    if err.kind == HFErrorKind.QUOTA:
+                        pytest.skip(f"HF credits/rate limit: {err}")
+                    if err.transient and attempt < 2:
+                        continue  # 502/503/timeouts from shared inference
+                    raise
+
+        return predict
+
+    async def test_live_accuracy_above_90_percent(self):
+        predict = self._live_classifier()
         correct = 0
         for text, expected in self._CASES:
-            pred, conf = clf.classify(text)
+            pred, conf = predict(text)
             if pred == expected:
                 correct += 1
         accuracy = correct / len(self._CASES)
@@ -408,8 +347,6 @@ class TestLiveModelSmoke:
         )
 
     async def test_live_high_confidence_on_clear_text(self):
-        from app.services.emotion_classifier import NLIEmotionClassifier
-        clf = NLIEmotionClassifier()
-        clf.warmup()
-        _, conf = clf.classify("I feel very anxious and overwhelmed about everything")
+        predict = self._live_classifier()
+        _, conf = predict("I feel very anxious and overwhelmed about everything")
         assert conf >= 0.90, f"Expected confidence ≥ 0.90, got {conf:.3f}"

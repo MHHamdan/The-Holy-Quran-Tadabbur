@@ -62,14 +62,6 @@ scrape_configs:
           service: 'postgres'
           component: 'database'
 
-  # Ollama LLM Service (if available)
-  - job_name: 'ollama'
-    static_configs:
-      - targets: ['ollama:11434']
-        labels:
-          service: 'ollama'
-          component: 'llm'
-
   # Node Exporter for system metrics
   - job_name: 'node'
     static_configs:

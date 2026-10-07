@@ -55,6 +55,7 @@ def _url(ref, **params):
 
 
 class TestServiceLookup:
+    @pytest.mark.requires_data("verse_vector:112:1")
     async def test_find_similar_resolves_by_payload(self):
         """The point-id guess never matched; a payload filter must."""
         svc = get_verse_embedding_service()

@@ -695,10 +695,35 @@ class LLMQuestionRequest(BaseModel):
 
 
 class LLMResponse(BaseModel):
-    """Response model for LLM operations."""
+    """
+    Response model for LLM operations.
+
+    ``result`` is AI-generated text, never Qur'an or tafsir: ``ai_generated``
+    is always true so clients render it apart from the sources it summarises.
+    """
     ok: bool = True
     result: Optional[str] = None
     error: Optional[str] = None
+    ai_generated: bool = True
+    disclaimer_en: str = (
+        "AI-generated summary of the text shown above. It is not tafsir and "
+        "not a religious ruling."
+    )
+    disclaimer_ar: str = "ملخص آلي للنص المعروض أعلاه، وليس تفسيراً ولا فتوى."
+    quotations_removed: int = 0
+
+
+def _ground_llm_result(result: str, language: str, *evidence: str) -> tuple:
+    """
+    Quotations in the output must appear verbatim in the verse/tafsir text the
+    request supplied; anything else is removed (it could be invented Qur'an
+    text or a misattributed scholarly quote).
+    """
+    from app.safety.grounding import build_corpus_index, verify_quotations
+
+    index = build_corpus_index(e for e in evidence if e)
+    cleaned, report = verify_quotations(result, quran_index="", evidence_index=index, language=language)
+    return cleaned, len(report.removed)
 
 
 @router.post("/llm/summarize", response_model=LLMResponse)
@@ -733,7 +758,8 @@ async def summarize_tafsir(request: LLMSummarizeRequest) -> LLMResponse:
         )
 
         if result:
-            response_data = {"ok": True, "result": result, "error": None}
+            result, removed = _ground_llm_result(result, request.language, request.verse_text, request.tafsir_text)
+            response_data = {"ok": True, "result": result, "error": None, "quotations_removed": removed}
             # Cache successful results
             await cache.set(cache_key, response_data, l1_ttl=300, l2_ttl=CACHE_TTL_LLM)
             return LLMResponse(**response_data)
@@ -750,7 +776,10 @@ async def summarize_tafsir(request: LLMSummarizeRequest) -> LLMResponse:
         )
     except Exception as e:
         logger.error(f"LLM summarize error: {e}")
-        return LLMResponse(ok=False, error=str(e))
+        return LLMResponse(
+            ok=False,
+            error="AI service error" if request.language == "en" else "خطأ في خدمة الذكاء الاصطناعي"
+        )
 
 
 @router.post("/llm/explain-word", response_model=LLMResponse)
@@ -787,7 +816,8 @@ async def explain_word(request: LLMExplainWordRequest) -> LLMResponse:
         )
 
         if result:
-            response_data = {"ok": True, "result": result, "error": None}
+            result, removed = _ground_llm_result(result, request.language, request.verse_text, request.context)
+            response_data = {"ok": True, "result": result, "error": None, "quotations_removed": removed}
             # Cache successful results
             await cache.set(cache_key, response_data, l1_ttl=300, l2_ttl=CACHE_TTL_LLM)
             return LLMResponse(**response_data)
@@ -804,7 +834,10 @@ async def explain_word(request: LLMExplainWordRequest) -> LLMResponse:
         )
     except Exception as e:
         logger.error(f"LLM explain word error: {e}")
-        return LLMResponse(ok=False, error=str(e))
+        return LLMResponse(
+            ok=False,
+            error="AI service error" if request.language == "en" else "خطأ في خدمة الذكاء الاصطناعي"
+        )
 
 
 @router.post("/llm/answer", response_model=LLMResponse)
@@ -838,7 +871,8 @@ async def answer_question(request: LLMQuestionRequest) -> LLMResponse:
         )
 
         if result:
-            response_data = {"ok": True, "result": result, "error": None}
+            result, removed = _ground_llm_result(result, request.language, request.verse_text, request.tafsir_text)
+            response_data = {"ok": True, "result": result, "error": None, "quotations_removed": removed}
             # Cache successful results
             await cache.set(cache_key, response_data, l1_ttl=300, l2_ttl=CACHE_TTL_LLM)
             return LLMResponse(**response_data)
@@ -855,7 +889,10 @@ async def answer_question(request: LLMQuestionRequest) -> LLMResponse:
         )
     except Exception as e:
         logger.error(f"LLM answer error: {e}")
-        return LLMResponse(ok=False, error=str(e))
+        return LLMResponse(
+            ok=False,
+            error="AI service error" if request.language == "en" else "خطأ في خدمة الذكاء الاصطناعي"
+        )
 
 
 # NOTE: This route must be LAST because it matches /{surah}/{ayah}

@@ -8,7 +8,7 @@
         seed seed-quran seed-stories \
         download-tafseer download-tafseer-source \
         ingest-tafseer ingest-tafseer-source tafseer-pipeline \
-        index index-tafseer index-cpu index-small index-gpu \
+        index index-tafseer \
         verify verify-services verify-downloads verify-db verify-qdrant \
         verify-rag verify-tafseer-api verify-chunking verify-translation \
         verify-security verify-e2e verify-e2e-full \
@@ -39,6 +39,12 @@ QDRANT_PORT   := $(shell . ./$(PORTS_ENV) && echo $$TADABBUR_QDRANT_HTTP_PORT)
 QDRANT_GRPC   := $(shell . ./$(PORTS_ENV) && echo $$TADABBUR_QDRANT_GRPC_PORT)
 REDIS_PORT    := $(shell . ./$(PORTS_ENV) && echo $$TADABBUR_REDIS_PORT)
 SURREAL_PORT  := $(shell . ./$(PORTS_ENV) && echo $$TADABBUR_SURREAL_PORT)
+
+# Seed/index scripts read these. Defaults target the local dev stack; set them in
+# the environment to seed another database (e.g. production, see README).
+export DATABASE_URL ?= postgresql://tadabbur:tadabbur_dev@localhost:$(POSTGRES_PORT)/tadabbur
+export QDRANT_HOST  ?= localhost
+export QDRANT_PORT  ?= $(QDRANT_PORT)
 
 # =============================================================================
 # Help
@@ -221,22 +227,9 @@ migrate-create: ## Create a new migration (MSG="description")
 seed: seed-quran seed-tafseer seed-stories seed-concepts seed-themes seed-rhetorical seed-story-atlas ## Seed ALL data (run after migrate)
 	@echo "$(GREEN)All data seeded successfully$(NC)"
 
-seed-quran: ensure-services ## Seed Quran verses + populate text_normalized
+seed-quran: ensure-services ## Seed Quran verses (also fills text_normalized)
 	@echo "$(GREEN)Seeding Quran verses...$(NC)"
 	PYTHONPATH=backend python backend/scripts/ingest/seed_quran.py
-	@echo "$(GREEN)Populating text_normalized for search...$(NC)"
-	PYTHONPATH=backend python -c "\
-import re, sys; sys.path.insert(0,'backend'); \
-from sqlalchemy import create_engine, text; from sqlalchemy.orm import Session; \
-def norm(t): \
-    t=t.replace('\ufeff','').replace('\u0640',''); \
-    t=re.sub(r'[\u064b-\u065f\u0670]','',t); \
-    t=re.sub(r'[\u0622\u0623\u0625\u0671]','\u0627',t); \
-    return t.replace('\u0629','\u0647').replace('\u0649','\u064a').strip(); \
-e=create_engine('postgresql://tadabbur:tadabbur_dev@localhost:$(POSTGRES_PORT)/tadabbur'); \
-s=Session(e); rows=s.execute(text('SELECT id,text_uthmani FROM quran_verses')).all(); \
-s.execute(text('UPDATE quran_verses SET text_normalized=:n WHERE id=:i'),[{'i':r,'n':norm(t or '')} for r,t in rows]); \
-s.commit(); print(f'Normalized {len(rows)} verses')"
 
 seed-tafseer: ensure-services ## Seed all 6 tafseer sources
 	@echo "$(GREEN)Seeding tafseer (6 sources × 6236 verses)...$(NC)"
@@ -294,21 +287,9 @@ tafseer-pipeline: download-tafseer ingest-tafseer ## Full tafseer pipeline
 
 index: index-tafseer ## Index all vectors
 
-index-tafseer: ensure-services ## Index tafseer into Qdrant
-	@echo "$(GREEN)Indexing tafseer chunks...$(NC)"
+index-tafseer: ensure-services ## Index tafseer into Qdrant (HF embeddings; needs HF_TOKEN)
+	@echo "$(GREEN)Indexing tafseer chunks (Hugging Face embeddings)...$(NC)"
 	cd backend && python scripts/index/index_tafseer.py
-
-index-cpu: ensure-services ## Index using CPU only
-	@echo "$(GREEN)Indexing (CPU mode)...$(NC)"
-	cd backend && EMBEDDING_DEVICE=cpu python scripts/index/index_tafseer.py
-
-index-small: ensure-services ## Index using small model (fastest)
-	@echo "$(GREEN)Indexing (small model, CPU)...$(NC)"
-	cd backend && EMBEDDING_DEVICE=cpu EMBEDDING_MODEL=intfloat/multilingual-e5-small python scripts/index/index_tafseer.py
-
-index-gpu: ensure-services ## Index using GPU + large model
-	@echo "$(GREEN)Indexing (GPU, large model)...$(NC)"
-	cd backend && EMBEDDING_DEVICE=cuda EMBEDDING_MODEL=intfloat/multilingual-e5-large python scripts/index/index_tafseer.py
 
 # =============================================================================
 # Verification

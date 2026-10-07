@@ -1,11 +1,11 @@
 """STT provider implementations."""
 
 from .base import STTProvider, STTResult, TranscriptionSegment
-from .faster_whisper import FasterWhisperProvider
+from .huggingface import HuggingFaceSTTProvider
 
 __all__ = [
     "STTProvider",
     "STTResult",
     "TranscriptionSegment",
-    "FasterWhisperProvider",
+    "HuggingFaceSTTProvider",
 ]

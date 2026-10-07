@@ -8,9 +8,22 @@
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:mobile": "tsc && vite build --mode mobile",
+    "build:mobile:dev": "tsc && vite build --mode mobile-dev",
+    "cap:sync": "cap sync",
+    "android:debug": "npm run build:mobile:dev && CAP_ALLOW_HTTP_BACKEND=true cap sync android && cd android && ./gradlew assembleDebug",
+    "android:release": "npm run build:mobile && cap sync android && cd android && ./gradlew bundleRelease",
+    "ios:sync": "npm run build:mobile && cap sync ios"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
+    "@capacitor/keyboard": "^8.0.6",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4",
     "@tanstack/react-query": "^5.90.17",
     "axios": "^1.6.7",
     "clsx": "^2.1.0",
@@ -23,6 +36,8 @@
     "zustand": "^4.5.0"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.2",
     "@types/cytoscape": "^3.21.0",
     "@types/react": "^18.2.56",
     "@types/react-dom": "^18.2.19",

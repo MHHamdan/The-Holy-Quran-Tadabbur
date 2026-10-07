@@ -12,6 +12,7 @@ CRITICAL: RAG pipeline NEVER translates at runtime.
 All translations are pre-computed and stored.
 """
 import hashlib
+import logging
 import json
 import re
 from datetime import datetime
@@ -24,6 +25,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.quran import QuranVerse, Translation
 from app.models.audit import AuditLog
+
+logger = logging.getLogger(__name__)
 
 
 # Prompt versioning for reproducibility
@@ -392,17 +395,16 @@ class TranslationService:
         )
 
         try:
-            # Call LLM (using Anthropic client pattern)
-            response = await self.llm_client.messages.create(
-                model="claude-sonnet-4-20250514",
+            # llm_client is a BaseLLM (Hugging Face); see app/rag/llm_provider.py
+            response = await self.llm_client.generate(
+                system_prompt="You translate Quranic Arabic literally and never interpret.",
+                user_message=prompt,
                 max_tokens=500,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
+                temperature=0.1,
             )
 
             model_name = response.model
-            translated_text = response.content[0].text.strip()
+            translated_text = response.content.strip()
 
             # Validate translation (basic sanity checks)
             if len(translated_text) < 5:
@@ -414,7 +416,7 @@ class TranslationService:
             return translated_text, model_name
 
         except Exception as e:
-            print(f"LLM translation error: {e}")
+            logger.warning("LLM translation failed: %s", e)
             return "", ""
 
     async def _save_translation(

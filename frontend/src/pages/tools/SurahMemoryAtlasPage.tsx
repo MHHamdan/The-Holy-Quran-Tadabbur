@@ -66,7 +66,7 @@ const MAX_AYAHS = 286; // Al-Baqara — used for relative length bar
  */
 function stripBasmala(text: string, surahNumber: number): string {
   // Strip BOM that may appear on the very first verse in the data file
-  const clean = text.replace(/^﻿/, '');
+  const clean = text.replace(/^\uFEFF/, '');
   if (surahNumber === 1) return clean; // Bismillah IS Al-Fatiha verse 1
   if (surahNumber === 9) return clean; // At-Tawba has no Bismillah prefix
   const ALEF_WASLA = 'ٱ'; // ٱ — distinctive in Uthmani script
@@ -1481,7 +1481,7 @@ export function SurahMemoryAtlasPage() {
             onClick={closePanel}
           />
           {/* Sheet */}
-          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[80vh] overflow-hidden flex flex-col safe-area-bottom">
             {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-1 shrink-0">
               <div className="w-10 h-1 bg-gray-200 rounded-full" />

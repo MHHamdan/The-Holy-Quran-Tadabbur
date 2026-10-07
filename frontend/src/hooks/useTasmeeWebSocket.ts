@@ -9,6 +9,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { wsUrl } from '../lib/config';
+import { isNativeApp } from '../lib/native';
 
 // Types
 export interface ProgressiveWord {
@@ -110,14 +112,12 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
   const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  // Releases the microphone; set to stopStreaming below (used by handlers created earlier).
+  const releaseMicRef = useRef<() => void>(() => undefined);
 
   // Get WebSocket URL
   const getWsUrl = useCallback(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    // Use backend API endpoint
-    const apiBase = import.meta.env.VITE_API_URL || `${protocol}//${host}`;
-    return `${apiBase.replace('http', 'ws')}/api/v1/tasmee/ws/${sessionId}`;
+    return wsUrl(`/api/v1/tasmee/ws/${sessionId}`);
   }, [sessionId]);
 
   // Connect to WebSocket
@@ -156,9 +156,13 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
 
     ws.onclose = (event) => {
       console.log('[TasmeeWS] Closed:', event.code, event.reason);
+      // Never keep the microphone open without a server to stream to.
+      releaseMicRef.current();
       setState(prev => ({ ...prev, isConnected: false, isStreaming: false }));
-      if (event.code !== 1000 && event.code !== 1001) {
-        const errorMsg = event.reason || `WebSocket closed (code: ${event.code})`;
+      if (event.code === 4003) {
+        setState(prev => ({ ...prev, error: prev.error?.startsWith('STT_UNAVAILABLE') ? prev.error : 'STT_UNAVAILABLE: unavailable' }));
+      } else if (event.code !== 1000 && event.code !== 1001) {
+        const errorMsg = `CONNECTION_LOST: The connection to the server was lost${event.reason ? ` (${event.reason})` : ` (code ${event.code})`}. Your recording was stopped; try again when you are back online.`;
         setState(prev => ({ ...prev, error: errorMsg }));
       }
     };
@@ -264,6 +268,12 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
         }));
         break;
 
+      case 'stt_unavailable':
+        // Speech recognition (HF) failed for an audio window; the server closes
+        // the socket with 4003 after repeated failures.
+        setState(prev => ({ ...prev, error: `STT_UNAVAILABLE: ${data.reason ?? 'unavailable'}` }));
+        break;
+
       case 'reset_complete':
         setState(prev => ({
           ...prev,
@@ -297,7 +307,7 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
     if (!isSecure && !isLocalhost) {
       return {
         supported: false,
-        error: `HTTPS_REQUIRED: Microphone requires HTTPS. You are accessing via HTTP (${window.location.protocol}//${window.location.host}). Solutions: 1) Use https:// URL, 2) Access via http://localhost:3000, or 3) Configure HTTPS on your server.`
+        error: `HTTPS_REQUIRED: Microphone requires HTTPS. You are accessing via HTTP (${window.location.protocol}//${window.location.host}). Open the app over https:// (local development on localhost is also allowed).`
       };
     }
 
@@ -367,6 +377,16 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
 
       streamRef.current = stream;
 
+      // Interruptions: the OS can end the track (incoming call, another app
+      // taking the mic, permission revoked in Settings, headset unplugged).
+      const interrupted = (why: string) => {
+        if (streamRef.current !== stream) return;
+        releaseMicRef.current();
+        setState(prev => ({ ...prev, error: `RECORDING_INTERRUPTED: ${why} Tap Try Again to continue.` }));
+      };
+      audioTracks[0].addEventListener('ended', () =>
+        interrupted('The microphone stopped (a call, another app, or a permission change).'));
+
       // Create audio context with browser's default sample rate
       audioContextRef.current = new AudioContext();
 
@@ -375,6 +395,16 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
         console.log('[TasmeeAudio] AudioContext suspended, resuming...');
         await audioContextRef.current.resume();
       }
+
+      const ctx = audioContextRef.current;
+      ctx.onstatechange = () => {
+        // iOS reports "interrupted" during calls/Siri; other platforms suspend.
+        if ((ctx.state as string) === 'interrupted') {
+          interrupted('Recording was interrupted by the system.');
+        } else if (ctx.state === 'suspended' && streamRef.current === stream) {
+          ctx.resume().catch(() => interrupted('Audio was suspended by the system.'));
+        }
+      };
 
       actualSampleRateRef.current = audioContextRef.current.sampleRate;
       console.log(`[TasmeeAudio] AudioContext created. State: ${audioContextRef.current.state}, Browser rate: ${actualSampleRateRef.current}Hz, Target: ${TARGET_SAMPLE_RATE}Hz`);
@@ -441,7 +471,9 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
       switch (error.name) {
         case 'NotAllowedError':
         case 'PermissionDeniedError':
-          errorMsg = 'PERMISSION_DENIED: Microphone permission denied. Please click the lock icon in your browser address bar and allow microphone access.';
+          errorMsg = isNativeApp
+            ? 'PERMISSION_DENIED: Microphone permission denied. Allow microphone access for Tadabbur in your device Settings, then try again.'
+            : 'PERMISSION_DENIED: Microphone permission denied. Please click the lock icon in your browser address bar and allow microphone access.';
           break;
         case 'NotFoundError':
         case 'DevicesNotFoundError':
@@ -493,6 +525,20 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
 
     setState(prev => ({ ...prev, isStreaming: false, audioLevel: 0 }));
   }, []);
+  releaseMicRef.current = stopStreaming;
+
+  // Release the microphone when the app/tab goes to the background (mobile
+  // WebViews keep running briefly; recording in the background is not intended).
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden && streamRef.current) {
+        stopStreaming();
+        setState(prev => ({ ...prev, error: 'RECORDING_INTERRUPTED: Recording paused because the app went to the background. Tap Try Again to continue.' }));
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [stopStreaming]);
 
   // Send reveal request (tap to reveal)
   const sendRevealRequest = useCallback((count?: number) => {

@@ -481,6 +481,21 @@ RETURN {
 SCHEMA_VERSION = "1.1.0"  # Added full-text search indexes for semantic search
 
 
+def iter_schema_statements(sql: str):
+    """
+    Split SurrealQL into executable statements, removing ``--`` comment lines.
+
+    Comment lines are stripped from each statement rather than used to drop it:
+    the previous splitter discarded any chunk that began with a comment, which
+    silently skipped every statement under a section header (45 of 257,
+    including both full-text analyzers and every DEFINE TABLE).
+    """
+    for chunk in sql.split(";"):
+        body = "\n".join(line for line in chunk.splitlines() if not line.strip().startswith("--")).strip()
+        if body:
+            yield body
+
+
 def get_schema_sql() -> str:
     """Return the full schema definition SQL."""
     return SCHEMA_DEFINITIONS

@@ -77,6 +77,7 @@ from app.rag.types import (
     NEEDS_CLARIFICATION_EN,
     NEEDS_CLARIFICATION_AR,
     SAFE_REFUSAL_FIQH,
+    FIQH_DISCLAIMER_AR,
     SAFE_REFUSAL_FATWA_EN,
     SAFE_REFUSAL_FATWA_AR,
     SAFE_REFUSAL_UNSUPPORTED_EN,
@@ -85,14 +86,29 @@ from app.rag.types import (
     SAFE_REFUSAL_CLARIFICATION_AR,
     RAG_SUPPORTED_LANGUAGES,
     reliability_float_to_level,
+    AI_UNAVAILABLE_EN,
+    AI_UNAVAILABLE_AR,
+    AI_QUOTA_EN,
+    AI_QUOTA_AR,
 )
 from app.rag.retrieval import HybridRetriever, extract_verse_reference, FAMOUS_VERSES
 from app.rag.prompts import GROUNDED_SYSTEM_PROMPT, build_user_prompt
 from app.rag.query_expander import expand_query, ExpandedQuery
 from app.rag.confidence import confidence_scorer, get_confidence_message, ConfidenceBreakdown
 from app.validators.citation_validator import CitationValidator
-from app.rag.llm_provider import get_llm, LLMProvider, BaseLLM, _detect_gpu
+from app.ai.hf_client import HFErrorKind, HFInferenceError
+from app.rag.llm_provider import get_llm, BaseLLM, PROVIDER_NAME
 from app.rag.source_validator import source_validator
+from app.safety.grounding import (
+    build_corpus_index,
+    contains_fiqh_disclaimer,
+    fence_conversation,
+    fence_source,
+    is_quran_self_citation,
+    drop_unsupported_sentences,
+    verify_quotations,
+)
+from app.safety.quran_answer_guard import QuranAnswerGuard
 from app.safety.quran_question_classifier import (
     quran_question_classifier,
     classifier_intent_to_query_intent,
@@ -123,42 +139,15 @@ class RAGPipeline:
     def __init__(
         self,
         session: AsyncSession,
-        llm_provider: LLMProvider = None,
+        llm: Optional[BaseLLM] = None,
     ):
         self.session = session
         self.retriever = HybridRetriever(session)
         self.validator = CitationValidator(session)
-
-        # Initialize LLM provider (defaults to configured provider)
-        if llm_provider is None:
-            llm_provider = LLMProvider(settings.llm_provider)
-
-        try:
-            ollama_model = None
-            if llm_provider == LLMProvider.OLLAMA and settings.ollama_rag_use_fast_model:
-                gpu_available = _detect_gpu()
-                if gpu_available:
-                    ollama_model = settings.ollama_model_fast
-                    self.max_tokens = settings.ollama_rag_max_tokens
-                    logger.info(f"GPU detected — RAG using fast model: {ollama_model} (max_tokens={self.max_tokens})")
-                else:
-                    ollama_model = settings.ollama_model_cpu_fallback
-                    self.max_tokens = settings.ollama_rag_max_tokens_cpu
-                    logger.warning(
-                        f"No GPU detected — RAG falling back to CPU model: {ollama_model} "
-                        f"(max_tokens={self.max_tokens})"
-                    )
-            else:
-                self.max_tokens = settings.ollama_rag_max_tokens
-
-            self.llm = get_llm(provider=llm_provider, ollama_model=ollama_model)
-            self.llm_provider = llm_provider
-            logger.info(f"RAG Pipeline initialized with {llm_provider.value} provider (max_tokens={self.max_tokens})")
-        except Exception as e:
-            logger.warning(f"Failed to initialize {llm_provider}: {e}")
-            self.llm = None
-            self.llm_provider = None
-            self.max_tokens = 1500  # Default
+        # Hugging Face is the only LLM platform; tests inject a fake BaseLLM.
+        self.llm: BaseLLM = llm or get_llm()
+        self.llm_provider = PROVIDER_NAME
+        self.max_tokens = settings.hf_llm_max_tokens
 
     async def _try_fast_path_verse_query(
         self,
@@ -230,14 +219,21 @@ class RAGPipeline:
                         verse_name = name
                         break
 
+        # Surah name comes from the canonical store (never hard-coded).
+        sura_name_ar, sura_name_en = await self._get_sura_names(sura_no)
+        if aya_end and aya_end != aya_start:
+            ayah_label_ar, ayah_label_en = f"الآيات {aya_start}-{aya_end}", f"verses {aya_start}-{aya_end}"
+        else:
+            ayah_label_ar, ayah_label_en = f"الآية {aya_start}", f"verse {aya_start}"
+
         if language == "ar":
             if verse_name:
-                answer_parts.append(f"**{verse_name}** هي الآية {aya_start} من سورة البقرة.")
+                answer_parts.append(f"**{verse_name}**: {ayah_label_ar} من {sura_name_ar}.")
             answer_parts.append(f"\nفيما يلي شروحات العلماء لهذه الآية الكريمة من مصادر التفسير المعتمدة:")
             answer_parts.append(f"\n\n**عدد المصادر المتوفرة:** {len(tafsir_by_source)} تفسير")
         else:
             if verse_name:
-                answer_parts.append(f"**{verse_name.replace('-', ' ').title()}** is verse {aya_start} of Surah Al-Baqarah.")
+                answer_parts.append(f"**{verse_name.replace('-', ' ').title()}**: {ayah_label_en} of Surah {sura_name_en} ({sura_no}).")
             answer_parts.append(f"\nBelow are scholarly explanations of this noble verse from authentic tafsir sources:")
             answer_parts.append(f"\n\n**Available sources:** {len(tafsir_by_source)} tafsir")
 
@@ -307,6 +303,7 @@ class RAGPipeline:
                 answer=refusal,
                 citations=[],
                 status="no_verified_source",
+                answer_kind="refusal",
                 answer_language=language,
                 confidence=0.0,
                 intent=QueryIntent.VERSE_MEANING.value,
@@ -350,18 +347,12 @@ class RAGPipeline:
         without LLM synthesis.  Returns None if the index has no match for this query.
         """
         import time
-        from app.rag.retrieval import THEMATIC_VERSE_INDEX, normalize_arabic
+        from app.rag.retrieval import thematic_keyword_matches
 
         start_time = time.time()
-        q_lower = question.lower()
-        q_norm = normalize_arabic(q_lower)
 
-        # Check if any thematic keyword matches the query
-        has_match = any(
-            normalize_arabic(kw.lower()) in q_norm or kw.lower() in q_lower
-            for kw in THEMATIC_VERSE_INDEX
-        )
-        if not has_match:
+        # Whole-word keyword match (see thematic_keyword_matches)
+        if not thematic_keyword_matches(question):
             return None
 
         chunks = await self.retriever._thematic_verse_lookup(
@@ -434,6 +425,7 @@ class RAGPipeline:
                 answer=refusal,
                 citations=[],
                 status="no_verified_source",
+                answer_kind="refusal",
                 answer_language=language,
                 confidence=0.0,
                 intent=QueryIntent.THEME_SEARCH.value,
@@ -514,6 +506,8 @@ class RAGPipeline:
             Other languages will be coerced to English. For display-only
             translations in other languages, use the /translations endpoint.
         """
+        start_time = time.time()
+
         # Validate language - RAG only supports ar/en
         if language not in RAG_SUPPORTED_LANGUAGES:
             language = "en"  # Coerce to English (validation logged in retriever)
@@ -567,6 +561,13 @@ class RAGPipeline:
         # 4. Rerank chunks based on relevance and source reliability
         chunks = self._rerank_chunks(chunks, question, max_sources)
 
+        # Only trusted sources may reach the model (defence in depth: the
+        # citation validator would otherwise refuse the answer after generation).
+        untrusted = [c.source_id for c in chunks if not source_validator.is_trusted_source_id(c.source_id)]
+        if untrusted:
+            logger.warning(f"Dropping chunks from untrusted sources before generation: {sorted(set(untrusted))}")
+            chunks = [c for c in chunks if source_validator.is_trusted_source_id(c.source_id)]
+
         # 5. Check if we have enough evidence
         if not chunks:
             refusal_text = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
@@ -574,6 +575,7 @@ class RAGPipeline:
                 answer=refusal_text,
                 citations=[],
                 status="no_verified_source",
+                answer_kind="refusal",
                 answer_language=language,
                 confidence=0.0,
                 intent=intent.value,
@@ -586,22 +588,27 @@ class RAGPipeline:
                 api_version=settings.api_version,
             )
 
-        # 6. Build context from retrieved chunks
+        # 6. Build context from retrieved chunks. Conversation history is
+        # user-controlled, so it is kept OUT of the sources block.
         context = self._build_context(chunks, language)
 
-        # Add conversation context if provided (for follow-up questions)
-        if conversation_context:
-            context = conversation_context + "\n\n" + context
-
         # 7. Generate grounded response
-        raw_response, llm_latency_ms = await self._generate_response(
-            question=question,
-            context=context,
-            intent=intent,
-            language=language,
-            include_scholarly_debate=include_scholarly_debate,
-            tone_directive=tone_directive,
-        )
+        try:
+            raw_response, llm_latency_ms = await self._generate_response(
+                question=question,
+                context=context,
+                intent=intent,
+                language=language,
+                include_scholarly_debate=include_scholarly_debate,
+                tone_directive=tone_directive,
+                conversation_context=conversation_context or "",
+            )
+        except HFInferenceError as err:
+            # The AI summary is withheld, but the retrieved sources are still
+            # returned verbatim so the user is never shown invented content.
+            return self._ai_unavailable_response(
+                err, chunks, intent, language, session_id, expanded, start_time,
+            )
 
         # 8. Parse and validate response with enhanced confidence scoring
         chunk_ids = [c.chunk_id for c in chunks]
@@ -645,12 +652,18 @@ class RAGPipeline:
         # Determine status based on citations and question
         if not validated.citations:
             validated.status = "no_verified_source"
+            validated.answer_kind = "refusal"
             # Override answer with language-specific safe refusal text
             validated.answer = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
         elif self._is_vague_question(question):
             validated.status = "needs_clarification"
         elif validated.confidence == 0.0:
+            # Insufficient grounding: do not show the AI text under a
+            # "no verified source" label — return the safe fallback instead.
             validated.status = "no_verified_source"
+            validated.answer_kind = "refusal"
+            validated.answer = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
+            validated.citations = []
         else:
             validated.status = "answered"
 
@@ -740,6 +753,7 @@ class RAGPipeline:
                 answer=msg,
                 citations=[],
                 status="no_verified_source",
+                answer_kind="refusal",
                 answer_language=language,
                 confidence=0.0,
                 intent=classification.intent,
@@ -754,6 +768,7 @@ class RAGPipeline:
                 answer=msg,
                 citations=[],
                 status="needs_clarification",
+                answer_kind="refusal",
                 answer_language=language,
                 confidence=0.0,
                 intent=classification.intent,
@@ -768,6 +783,7 @@ class RAGPipeline:
             answer=msg,
             citations=[],
             status="no_verified_source",
+            answer_kind="refusal",
             answer_language=language,
             confidence=0.0,
             intent=classification.intent,
@@ -848,24 +864,29 @@ class RAGPipeline:
         then LLM if needed.
         """
         q_lower = question.lower()
+        from app.rag.retrieval import contains_keyword
+
+        def has(*words):
+            # Whole-word match: "حكم" (ruling) must not fire on "الحكمة" (wisdom).
+            return any(contains_keyword(question, w) for w in words)
 
         # Rule-based classification
-        if any(word in q_lower for word in ["meaning", "tafseer", "explain", "معنى", "تفسير"]):
+        if has("meaning", "tafseer", "explain", "معنى", "تفسير"):
             return QueryIntent.VERSE_MEANING
 
-        if any(word in q_lower for word in ["story", "prophet", "قصة", "نبي"]):
+        if has("story", "prophet", "قصة", "نبي"):
             return QueryIntent.STORY_EXPLORATION
 
-        if any(word in q_lower for word in ["theme", "topic", "about", "موضوع"]):
+        if has("theme", "topic", "about", "موضوع"):
             return QueryIntent.THEME_SEARCH
 
-        if any(word in q_lower for word in ["compare", "difference", "مقارنة", "فرق"]):
+        if has("compare", "difference", "مقارنة", "فرق"):
             return QueryIntent.COMPARATIVE
 
-        if any(word in q_lower for word in ["root", "word", "grammar", "جذر", "كلمة"]):
+        if has("root", "word", "grammar", "جذر", "كلمة"):
             return QueryIntent.LINGUISTIC
 
-        if any(word in q_lower for word in ["ruling", "halal", "haram", "allowed", "حكم", "حلال", "حرام"]):
+        if has("ruling", "halal", "haram", "allowed", "حكم", "حلال", "حرام"):
             return QueryIntent.RULING
 
         # Default to verse meaning for Quran-related questions
@@ -883,35 +904,25 @@ class RAGPipeline:
         """
         context_parts = []
 
-        # Group by reliability (primary vs secondary sources)
+        # Group by reliability (primary vs secondary sources). Every chunk is
+        # fenced so text inside a source can never act as an instruction.
         primary = [c for c in chunks if c.relevance_score >= 0.7]
         secondary = [c for c in chunks if c.relevance_score < 0.7]
 
-        if primary:
-            context_parts.append("=== PRIMARY SOURCES ===\n")
-            for chunk in primary:
+        for label, group, limit in (
+            ("PRIMARY SOURCES", primary, 2000),
+            ("SECONDARY SOURCES", secondary, 1500),
+        ):
+            if not group:
+                continue
+            context_parts.append(f"=== {label} ===\n")
+            for chunk in group:
                 content = chunk.content_en if language == "en" else chunk.content_ar
                 if not content:
                     content = chunk.content_ar or chunk.content_en or ""
-
-                context_parts.append(f"""
-[Source: {chunk.source_name} | Verse: {chunk.verse_reference} | ID: {chunk.chunk_id}]
-{content[:2000]}
----
-""")
-
-        if secondary:
-            context_parts.append("\n=== SECONDARY SOURCES ===\n")
-            for chunk in secondary:
-                content = chunk.content_en if language == "en" else chunk.content_ar
-                if not content:
-                    content = chunk.content_ar or chunk.content_en or ""
-
-                context_parts.append(f"""
-[Source: {chunk.source_name} | Verse: {chunk.verse_reference} | ID: {chunk.chunk_id}]
-{content[:1500]}
----
-""")
+                context_parts.append(
+                    fence_source(chunk.chunk_id, chunk.source_name, chunk.verse_reference, content[:limit]) + "\n"
+                )
 
         return "".join(context_parts)
 
@@ -1113,6 +1124,7 @@ class RAGPipeline:
         language: str,
         include_scholarly_debate: bool,
         tone_directive: str = "",
+        conversation_context: str = "",
     ) -> tuple[str, int]:
         """
         Generate response using the configured LLM provider.
@@ -1120,9 +1132,6 @@ class RAGPipeline:
         Returns:
             Tuple of (response_text, latency_ms)
         """
-        if not self.llm:
-            return SAFE_REFUSAL_NO_SOURCES, 0
-
         # Build user prompt
         user_prompt = build_user_prompt(
             question=question,
@@ -1131,26 +1140,96 @@ class RAGPipeline:
             include_scholarly_debate=include_scholarly_debate,
             is_fiqh=intent == QueryIntent.RULING,
             tone_directive=tone_directive,
+            conversation_context=fence_conversation(conversation_context),
         )
 
+        # Raises HFInferenceError on any upstream failure; the caller turns it
+        # into a controlled response. Error text is never used as an answer.
+        response = await self.llm.generate(
+            system_prompt=GROUNDED_SYSTEM_PROMPT,
+            user_message=user_prompt,
+            max_tokens=self.max_tokens,
+            temperature=0.3,  # Low for factual/grounded responses
+        )
+        self.last_llm_response = response
+
+        logger.info(
+            "LLM response: provider=%s model=%s tokens=%s latency=%sms",
+            self.llm_provider, response.model, response.tokens_used, response.latency_ms,
+        )
+
+        return response.content, response.latency_ms
+
+    def _ai_unavailable_response(
+        self,
+        err: HFInferenceError,
+        chunks: List[RetrievedChunk],
+        intent: QueryIntent,
+        language: str,
+        session_id: Optional[str],
+        expanded: Optional[ExpandedQuery],
+        start_time: float,
+    ) -> GroundedResponse:
+        """Controlled response when HF generation fails (quota, outage, timeout…)."""
+        quota = err.kind == HFErrorKind.QUOTA
+        if language == "ar":
+            answer = AI_QUOTA_AR if quota else AI_UNAVAILABLE_AR
+        else:
+            answer = AI_QUOTA_EN if quota else AI_UNAVAILABLE_EN
+        logger.warning("RAG synthesis unavailable: %s", err)
+        return GroundedResponse(
+            answer=answer,
+            citations=[],
+            confidence=0.0,
+            confidence_level="insufficient",
+            status="ai_unavailable",
+            answer_kind="notice",
+            answer_language=language,
+            intent=intent.value,
+            warnings=["ai_quota_exceeded" if quota else "ai_unavailable"],
+            degradation_reasons=[f"llm_{err.kind.value}"],
+            query_expansion=expanded.expansion_applied if expanded and expanded.expansion_applied else None,
+            session_id=session_id,
+            evidence=chunks,
+            evidence_chunk_count=len({c.chunk_id for c in chunks}),
+            evidence_source_count=len({c.source_id for c in chunks}),
+            tafsir_by_source=self._group_tafsir_by_source(chunks, language),
+            processing_time_ms=int((time.time() - start_time) * 1000),
+            api_version=settings.api_version,
+        )
+
+    async def _get_sura_names(self, sura_no: int) -> tuple:
+        """(Arabic, English) surah names from quran_verses; numeric fallback."""
         try:
-            response = await self.llm.generate(
-                system_prompt=GROUNDED_SYSTEM_PROMPT,
-                user_message=user_prompt,
-                max_tokens=self.max_tokens,  # Use configured RAG token limit
-                temperature=0.3,  # Lower for factual/grounded responses
-            )
+            row = (await self.session.execute(
+                text("SELECT sura_name_ar, sura_name_en FROM quran_verses WHERE sura_no = :s LIMIT 1"),
+                {"s": sura_no},
+            )).first()
+            if row and row[0] and row[1]:
+                return row[0], row[1]
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Could not load surah name for {sura_no}: {e}")
+        return f"السورة رقم {sura_no}", f"#{sura_no}"
 
-            logger.info(
-                f"LLM response: provider={self.llm_provider.value}, "
-                f"tokens={response.tokens_used}, latency={response.latency_ms}ms"
-            )
+    # Normalised canonical Qur'an text (Uthmani + Imla'i), loaded once per process.
+    _quran_index: Optional[str] = None
 
-            return response.content, response.latency_ms
-
-        except Exception as e:
-            logger.error(f"LLM generation error: {e}")
-            return f"Error generating response: {str(e)}", 0
+    async def _get_quran_index(self) -> str:
+        """Canonical Qur'an corpus used to verify quotations in AI answers."""
+        if RAGPipeline._quran_index is None:
+            try:
+                rows = (await self.session.execute(
+                    text("SELECT text_uthmani, text_imlaei FROM quran_verses")
+                )).all()
+                RAGPipeline._quran_index = build_corpus_index(
+                    t for row in rows for t in row if t
+                )
+            except Exception as e:  # noqa: BLE001
+                # Without the canonical text no Qur'an quotation can be verified,
+                # so every quotation must then match the retrieved evidence.
+                logger.error(f"Could not load canonical Qur'an text: {e}")
+                return ""
+        return RAGPipeline._quran_index
 
     def _is_vague_question(self, question: str) -> bool:
         """Return True if the question lacks enough context to retrieve targeted sources."""
@@ -1225,9 +1304,20 @@ class RAGPipeline:
             # Check if ranges overlap
             return not (cited_aya_end < chunk_aya_start or cited_aya_start > chunk_aya_end)
 
+        guard = QuranAnswerGuard()
+        invalid_markers: List[str] = []
         for source_name, verse_ref in found_citations:
             matched = False
             cited_verse = parse_verse_ref(verse_ref)
+
+            # "[Quran, 2:255]" is a reference to the verse itself, not a tafsir
+            # source: keep it only if the ayah exists in the canonical corpus.
+            if is_quran_self_citation(source_name):
+                sura, a0, a1 = cited_verse
+                if not (sura and all(guard.is_valid_ayah_ref(sura, a) for a in range(a0, a1 + 1))):
+                    invalid_count += 1
+                    invalid_markers.append(f"[{source_name}, {verse_ref}]")
+                continue
 
             # Find matching chunk (check both English and Arabic source names AND verse reference)
             for chunk in chunks:
@@ -1277,33 +1367,47 @@ class RAGPipeline:
             if not matched:
                 logger.debug(f"[CITATION] FAILED to match '{source_name}' verse {verse_ref}")
                 invalid_count += 1
+                invalid_markers.append(f"[{source_name}, {verse_ref}]")
 
-        # Fallback: LLM skipped citation markers (common with Arabic responses).
-        # If we have trusted retrieved chunks, build citations from them directly —
-        # they were used as context so the answer IS grounded.
-        if not citations and chunks:
-            from app.rag.source_validator import TRUSTED_SOURCE_IDS as _TRUSTED
-            for chunk in chunks[:5]:
-                if chunk.source_id in _TRUSTED and chunk.chunk_id not in valid_citation_ids:
-                    rel_level = reliability_float_to_level(
-                        getattr(chunk, 'source_reliability', 0.8)
-                    )
-                    citations.append(Citation(
-                        chunk_id=chunk.chunk_id,
-                        source_id=chunk.source_id,
-                        source_name=chunk.source_name,
-                        source_name_ar=getattr(chunk, 'source_name_ar', '') or chunk.source_name,
-                        verse_reference=chunk.verse_reference,
-                        excerpt=chunk.content[:200] if chunk.content else "",
-                        relevance_score=chunk.relevance_score,
-                        reliability_level=rel_level,
-                        surah_number=chunk.sura_no,
-                        ayah_number=chunk.aya_start,
-                        quoted_evidence=chunk.content[:400] if chunk.content else None,
-                    ))
-                    valid_citation_ids.add(chunk.chunk_id)
-            if citations:
-                logger.info(f"[CITATION] Auto-built {len(citations)} citations from retrieved chunks (LLM omitted markers)")
+        # Citations that do not match the retrieved evidence are rejected: the
+        # markers are removed from the answer so they are never shown as sources.
+        # Markers may use the Arabic comma, so match the raw citation text too.
+        if invalid_markers:
+            raw_invalid = [
+                m.group(0) for m in re.finditer(citation_pattern, raw_response)
+                if f"[{m.group(1)}, {m.group(2)}]" in invalid_markers
+            ]
+            raw_response = drop_unsupported_sentences(raw_response, raw_invalid, citation_pattern)
+
+        # An answer without a single valid citation to retrieved evidence is not
+        # grounded. Return the safe fallback (sources are still shown verbatim)
+        # rather than unattributed AI text.
+        if not citations:
+            logger.warning("[CITATION] No valid citations in LLM answer — returning safe fallback")
+            refusal = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
+            return GroundedResponse(
+                answer=refusal,
+                citations=[],
+                status="no_verified_source",
+                answer_kind="refusal",
+                answer_language=language,
+                confidence=0.0,
+                confidence_level="insufficient",
+                intent=intent.value,
+                warnings=["ungrounded_answer_withheld"],
+                query_expansion=query_expansion.expansion_applied if query_expansion else None,
+                evidence=chunks,
+                evidence_chunk_count=len({c.chunk_id for c in chunks}),
+                evidence_source_count=len({c.source_id for c in chunks}),
+                api_version=settings.api_version,
+            )
+
+        # Every quoted Arabic passage must be verbatim Qur'an or verbatim evidence.
+        quran_index = await self._get_quran_index()
+        evidence_index = build_corpus_index(
+            (c.content_ar or "") + " " + (c.content_en or "") + " " + (c.content or "") for c in chunks
+        )
+        raw_response, quote_report = verify_quotations(raw_response, quran_index, evidence_index, language)
 
         # Phase 2.5: validate every citation source_id against trusted registry
         sv_result = source_validator.validate_citations(citations, intent.value, language)
@@ -1314,6 +1418,7 @@ class RAGPipeline:
                 answer=refusal,
                 citations=[],
                 status="no_verified_source",
+                answer_kind="refusal",
                 answer_language=language,
                 confidence=0.0,
                 intent=intent.value,
@@ -1365,7 +1470,13 @@ class RAGPipeline:
             warnings.append("This response has limited source support. Consider additional verification.")
 
         if invalid_count > 0:
-            warnings.append(f"{invalid_count} citation(s) could not be validated against retrieved sources.")
+            warnings.append(f"{invalid_count} citation(s) could not be validated against retrieved sources and were removed.")
+
+        if quote_report.removed:
+            warnings.append(
+                f"{len(quote_report.removed)} quotation(s) were removed because they do not match "
+                "the Qur'an or the cited sources verbatim."
+            )
 
         if not has_primary:
             warnings.append("No primary scholarly sources were used in this response.")
@@ -1378,9 +1489,14 @@ class RAGPipeline:
                 "Consider verifying with additional scholarly sources."
             )
 
-        # Add fiqh warning if needed
+        # Add fiqh warning if needed — and guarantee the disclaimer is part of
+        # the answer itself, not only a side-channel warning.
         if intent == QueryIntent.RULING:
             warnings.append(SAFE_REFUSAL_FIQH)
+            if not contains_fiqh_disclaimer(raw_response):
+                raw_response = raw_response.rstrip() + "\n\n" + (
+                    FIQH_DISCLAIMER_AR if language == "ar" else SAFE_REFUSAL_FIQH
+                )
 
         # Add confidence message
         confidence_message = get_confidence_message(confidence_breakdown.confidence_level)
@@ -1399,6 +1515,7 @@ class RAGPipeline:
 
         return GroundedResponse(
             answer=raw_response,
+            answer_kind="ai_synthesis",
             citations=citations,
             confidence=confidence_breakdown.final_score,
             confidence_level=confidence_breakdown.confidence_level,

@@ -25,11 +25,10 @@ logger = logging.getLogger(__name__)
 
 # Embedding model configuration
 EMBEDDING_CONFIG = {
-    "model_name": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-    "fallback_model": "sentence-transformers/all-MiniLM-L6-v2",
+    # Hosted on Hugging Face (HF_EMBEDDING_MODEL); TF-IDF hashing is the fallback.
     "max_sequence_length": 512,
-    "embedding_dimension": 384,
-    "batch_size": 32,
+    "embedding_dimension": 1024,
+    "batch_size": 64,  # HF latency is per call, not per item
 }
 
 # Semantic similarity thresholds
@@ -95,30 +94,28 @@ class SemanticEmbeddingService:
         if self._initialized:
             return self._model is not None
 
-        try:
-            # Try to load sentence-transformers
-            from sentence_transformers import SentenceTransformer
+        from app.ai.embeddings import HFEmbeddingModel
+        from app.ai.hf_client import hf_configured
 
-            try:
-                self._model = SentenceTransformer(EMBEDDING_CONFIG["model_name"])
-                self._model_name = EMBEDDING_CONFIG["model_name"]
-                logger.info(f"Loaded primary embedding model: {self._model_name}")
-            except Exception as e:
-                logger.warning(f"Failed to load primary model: {e}")
-                try:
-                    self._model = SentenceTransformer(EMBEDDING_CONFIG["fallback_model"])
-                    self._model_name = EMBEDDING_CONFIG["fallback_model"]
-                    logger.info(f"Loaded fallback model: {self._model_name}")
-                except Exception as e2:
-                    logger.error(f"Failed to load fallback model: {e2}")
-                    self._model = None
-
-        except ImportError:
-            logger.warning("sentence-transformers not installed, using TF-IDF fallback")
+        if hf_configured():
+            self._model = HFEmbeddingModel()
+            self._model_name = self._model.model_name
+            logger.info(f"Using HF embedding model: {self._model_name}")
+        else:
+            logger.warning("HF_TOKEN not configured, using TF-IDF fallback embeddings")
             self._model = None
 
         self._initialized = True
         return self._model is not None
+
+    def _disable_model(self, error: Exception) -> None:
+        """Switch to the TF-IDF fallback for the rest of the process.
+
+        Cached vectors are dropped so HF and fallback vectors are never compared.
+        """
+        logger.warning("HF embeddings unavailable, switching to TF-IDF fallback: %s", error)
+        self._model = None
+        self._embedding_cache.clear()
 
     def _get_cache_key(self, text: str) -> str:
         """Generate a cache key for text."""
@@ -138,10 +135,13 @@ class SemanticEmbeddingService:
         if not self._initialized:
             await self.initialize()
 
+        embedding = None
         if self._model is not None:
-            import asyncio
-            embedding = await asyncio.to_thread(self._model.encode, text, convert_to_numpy=True)
-        else:
+            try:
+                embedding = await self._model.aencode(f"query: {text}")
+            except Exception as e:
+                self._disable_model(e)
+        if embedding is None:
             # Use TF-IDF fallback
             embedding = self._compute_tfidf_embedding(text)
 
@@ -169,16 +169,16 @@ class SemanticEmbeddingService:
 
         # Compute new embeddings
         if texts_to_compute:
+            new_embeddings = None
             if self._model is not None:
-                import asyncio
-                new_embeddings = await asyncio.to_thread(
-                    self._model.encode,
-                    texts_to_compute,
-                    convert_to_numpy=True,
-                    batch_size=EMBEDDING_CONFIG["batch_size"],
-                    show_progress_bar=False,
-                )
-            else:
+                try:
+                    new_embeddings = await self._model.aencode(
+                        [f"query: {t}" for t in texts_to_compute],
+                        batch_size=EMBEDDING_CONFIG["batch_size"],
+                    )
+                except Exception as e:
+                    self._disable_model(e)
+            if new_embeddings is None:
                 new_embeddings = [
                     self._compute_tfidf_embedding(t)
                     for t in texts_to_compute
@@ -285,6 +285,25 @@ class SemanticEmbeddingService:
         # Sort and return top k
         similarities.sort(key=lambda x: x[1], reverse=True)
         return similarities[:top_k]
+
+    def find_similar_lexical(
+        self,
+        query_text: str,
+        candidate_texts: List[Tuple[int, str]],
+        top_k: int = 20,
+        min_similarity: float = 0.3,
+    ) -> List[Tuple[int, float]]:
+        """Deterministic hashed TF-IDF ranking (no model call), for time-boxed fallbacks."""
+        query = self._compute_tfidf_embedding(query_text)
+        scored = []
+        for verse_id, text in candidate_texts:
+            emb = self._compute_tfidf_embedding(text)
+            denom = float(np.linalg.norm(query) * np.linalg.norm(emb))
+            sim = float(np.dot(query, emb) / denom) if denom else 0.0
+            if sim >= min_similarity:
+                scored.append((verse_id, sim))
+        scored.sort(key=lambda x: x[1], reverse=True)
+        return scored[:top_k]
 
     def get_confidence_level(self, similarity: float) -> str:
         """Get confidence level string from similarity score."""

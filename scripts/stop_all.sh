@@ -52,8 +52,8 @@ kill_service() {
     if [[ -f "$pid_file" ]]; then
         local content; content=$(cat "$pid_file")
 
-        # "shared:<pid>" — a machine-wide service (Ollama) that we reused rather
-        # than started. Other platforms depend on it, so it is left running.
+        # "shared:<pid>" — a machine-wide service that we reused rather than
+        # started. Other platforms depend on it, so it is left running.
         if [[ "$content" == shared:* ]]; then
             echo -e "  ${BLUE}·${NC} $name left running (shared service, PID ${content#shared:})"
             rm -f "$pid_file"
@@ -140,7 +140,6 @@ echo -e "${YELLOW}[1/2] Application processes${NC}"
 kill_service "rq-worker" "rq.cli worker"
 kill_service "frontend"  "vite"
 kill_service "backend"   "uvicorn app.main:app"
-kill_service "ollama"    "ollama serve"
 
 # ── Infrastructure containers ─────────────────────────────────────────────────
 echo ""

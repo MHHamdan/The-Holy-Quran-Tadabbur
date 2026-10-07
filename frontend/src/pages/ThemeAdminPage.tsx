@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiUrl } from '../lib/config';
 import { CheckCircle, XCircle, Clock, ChevronDown, ChevronUp, AlertTriangle, BookOpen, LogIn, LogOut } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import clsx from 'clsx';
@@ -7,15 +8,15 @@ import clsx from 'clsx';
 const ADMIN_TOKEN_KEY = 'admin_token';
 
 function getAdminToken(): string | null {
-  return localStorage.getItem(ADMIN_TOKEN_KEY);
+  return sessionStorage.getItem(ADMIN_TOKEN_KEY);
 }
 
 function setAdminToken(token: string): void {
-  localStorage.setItem(ADMIN_TOKEN_KEY, token);
+  sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
 }
 
 function clearAdminToken(): void {
-  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
 }
 
 function getAuthHeaders(): Record<string, string> {
@@ -70,7 +71,7 @@ interface AdminStats {
   by_theme: Array<{ theme_id: string; title_ar: string; pending: number; total: number }>;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = apiUrl('').replace(/\/$/, '');
 
 export function ThemeAdminPage() {
   const { language } = useLanguageStore();

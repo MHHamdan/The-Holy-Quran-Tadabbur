@@ -209,11 +209,11 @@ class AgenticRAGOrchestrator:
     def __init__(
         self,
         session: AsyncSession,
-        llm_provider=None,
+        llm=None,
         max_hops: int = MAX_HOPS,
     ):
         self.session = session
-        self.llm_provider = llm_provider
+        self.llm = llm
         self.max_hops = max_hops
         self._pipeline_cache: Optional[RAGPipeline] = None
 
@@ -221,7 +221,7 @@ class AgenticRAGOrchestrator:
         if self._pipeline_cache is None:
             self._pipeline_cache = RAGPipeline(
                 session=self.session,
-                llm_provider=self.llm_provider,
+                llm=self.llm,
             )
         return self._pipeline_cache
 

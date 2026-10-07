@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.admin_auth import require_admin_api_key
 from app.db.database import get_async_session
 from app.core.config import settings
 from app.core.rate_limit import rag_rate_limit
@@ -31,6 +32,7 @@ from app.core.errors import (
     create_error,
 )
 from app.rag.pipeline import RAGPipeline
+from app.rag.llm_provider import llm_configured
 from app.rag.agents.orchestrator import AgenticRAGOrchestrator
 from app.rag.types import QueryIntent, RelatedVerse, TafsirExplanation
 from app.services.redis_cache import RedisCache
@@ -215,8 +217,13 @@ class GroundedResponse(BaseModel):
     # API version for compatibility
     api_version: Optional[str] = None
     # Phase-2: explicit status and answer language
-    status: str = "answered"          # answered|no_verified_source|needs_clarification|error
+    status: str = "answered"          # answered|no_verified_source|needs_clarification|ai_unavailable|error
     answer_language: str = "en"       # ar|en
+    # ai_synthesis | source_digest | refusal | notice — render AI text distinctly
+    answer_kind: str = "source_digest"
+    ai_generated: bool = False
+    # Present when status == ai_unavailable: ai_quota_exceeded | ai_unavailable
+    error_code: Optional[str] = None
     # === Chat experience fields ===
     session_id: Optional[str] = None
     related_verses: List[RelatedVerseResponse] = []
@@ -297,12 +304,13 @@ async def ask_question(
 
     logger.info(f"RAG cache MISS [{ctx.correlation_id}]: processing query")
 
-    # Check for LLM provider configuration
-    if settings.llm_provider == "claude" and not settings.anthropic_api_key:
+    # Hugging Face must be configured server side. No network probe here:
+    # availability, quota and timeouts are handled per request by the pipeline.
+    if not llm_configured():
         error = create_error(
             ErrorCode.CONFIGURATION_ERROR,
             ctx.correlation_id,
-            internal_details="ANTHROPIC_API_KEY not configured for Claude provider"
+            internal_details="HF_TOKEN not configured on the server",
         )
         error.log(ctx.question_hash)
         return JSONResponse(
@@ -310,49 +318,10 @@ async def ask_question(
             content=error.to_response(request.language)
         )
 
-    # Verify LLM availability
-    if settings.llm_provider == "ollama":
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                resp = await client.get(f"{settings.ollama_base_url}/api/tags")
-                if resp.status_code != 200:
-                    error = create_error(
-                        ErrorCode.LLM_UNAVAILABLE,
-                        ctx.correlation_id,
-                        internal_details=f"Ollama returned status {resp.status_code}"
-                    )
-                    error.log(ctx.question_hash)
-                    return JSONResponse(
-                        status_code=503,
-                        content=error.to_response(request.language)
-                    )
-        except httpx.TimeoutException:
-            error = create_error(
-                ErrorCode.LLM_UNAVAILABLE,
-                ctx.correlation_id,
-                internal_details="Ollama health check timed out"
-            )
-            error.log(ctx.question_hash)
-            return JSONResponse(
-                status_code=503,
-                content=error.to_response(request.language)
-            )
-        except httpx.RequestError as e:
-            error = create_error(
-                ErrorCode.LLM_UNAVAILABLE,
-                ctx.correlation_id,
-                internal_details=f"Cannot connect to Ollama: {type(e).__name__}"
-            )
-            error.log(ctx.question_hash)
-            return JSONResponse(
-                status_code=503,
-                content=error.to_response(request.language)
-            )
-
     try:
         # Initialize RAG pipeline
         pipeline = RAGPipeline(session)
-        ctx.llm_provider = settings.llm_provider
+        ctx.llm_provider = pipeline.llm_provider
 
         # Get or create conversation session for chat continuity
         conv_service = get_conversation_service()
@@ -433,6 +402,9 @@ async def ask_question(
         response_dict = result.to_dict()
         response_dict["request_id"] = ctx.correlation_id
         response_dict["cached"] = False
+        if result.status == "ai_unavailable":
+            # Machine-readable reason so clients can show a quota/outage state.
+            response_dict["error_code"] = (result.warnings or ["ai_unavailable"])[0]
 
         # Cache successful responses with good confidence
         if result.confidence >= 0.3:  # Only cache meaningful responses
@@ -923,6 +895,7 @@ async def clear_rag_cache():
 
 @router.post("/cache/warm")
 async def warm_rag_cache_endpoint(
+    _admin: None = Depends(require_admin_api_key),
     languages: List[str] = Query(["en", "ar"], description="Languages to warm"),
     max_questions: Optional[int] = Query(None, description="Max questions per language"),
     session: AsyncSession = Depends(get_async_session),

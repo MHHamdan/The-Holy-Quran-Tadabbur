@@ -108,6 +108,10 @@ export default function SurahAtlasDetailPage() {
     [surahNum],
   );
 
+  // Declared before the not-found return so hooks run in the same order on every render.
+  const prevEntry = useMemo(() => surahNum > 1 ? getSurahAtlasEntry(surahNum - 1) : null, [surahNum]);
+  const nextEntry = useMemo(() => surahNum < 114 ? getSurahAtlasEntry(surahNum + 1) : null, [surahNum]);
+
   if (!entry || surahNum < 1 || surahNum > 114) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -124,8 +128,6 @@ export default function SurahAtlasDetailPage() {
     );
   }
 
-  const prevEntry = useMemo(() => surahNum > 1 ? getSurahAtlasEntry(surahNum - 1) : null, [surahNum]);
-  const nextEntry = useMemo(() => surahNum < 114 ? getSurahAtlasEntry(surahNum + 1) : null, [surahNum]);
   const indexedCount = SURAH_ATLAS_DATA.filter((s) => s.structure.length > 0).length;
 
   return (

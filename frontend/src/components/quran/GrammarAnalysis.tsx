@@ -4,7 +4,7 @@
  * Priority:
  *   1. QAC `/grammar/irab/` — scholar-verified corpus data
  *   2. Static fallback for common verses
- *   3. Ollama LLM analysis (when available)
+ *   3. AI analysis via the backend (Hugging Face), when configured
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
@@ -179,7 +179,7 @@ function getCached(key: string): GrammarAnalysisType | null {
 }
 
 function setCached(key: string, data: GrammarAnalysisType) {
-  try { sessionStorage.setItem(SESSION_CACHE_PREFIX + key, JSON.stringify(data)); } catch {}
+  try { sessionStorage.setItem(SESSION_CACHE_PREFIX + key, JSON.stringify(data)); } catch { /* storage unavailable or full: caching is best-effort */ }
 }
 
 export function GrammarAnalysisView({ suraNo, ayaNo, verseText }: Props) {
@@ -211,7 +211,7 @@ export function GrammarAnalysisView({ suraNo, ayaNo, verseText }: Props) {
     abortRef.current = new AbortController();
 
     try {
-      // QAC / static path — fast (< 50ms), no Ollama
+      // QAC / static path — fast (< 50ms), no LLM call
       const irabResult = await grammarApi.analyzeIrab(verseRef);
       const data = irabResult.data;
       setCached(verseRef, data);
@@ -344,7 +344,7 @@ export function GrammarAnalysisView({ suraNo, ayaNo, verseText }: Props) {
 
   // ── No data available — offer AI analysis ───────────────────────────────────
   if (isUnavailableResult && hasNoTokens) {
-    const ollamaReady = healthStatus?.ollama_available;
+    const aiReady = healthStatus?.llm_available;
     return (
       <div className="p-4 space-y-3" dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
@@ -360,7 +360,7 @@ export function GrammarAnalysisView({ suraNo, ayaNo, verseText }: Props) {
             </p>
           </div>
         </div>
-        {ollamaReady && (
+        {aiReady && (
           <button
             onClick={loadAiAnalysis}
             disabled={aiLoading}

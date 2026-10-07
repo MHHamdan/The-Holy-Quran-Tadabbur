@@ -231,6 +231,7 @@ async def test_tafsir_entries_have_source_fields(client: AsyncClient):
             assert "source_name_en" in entry
 
 
+@pytest.mark.requires_data("tafsir_corpus")
 async def test_tafsir_entries_have_content(client: AsyncClient):
     """At least one entry should have content_ar or content_en"""
     r = await _tafsir(client, _SABR)
@@ -245,6 +246,7 @@ async def test_tafsir_entries_have_content(client: AsyncClient):
     assert found, "No tafsir entry had any content"
 
 
+@pytest.mark.requires_data("tafsir_corpus")
 async def test_tafsir_sources_used_not_empty(client: AsyncClient):
     r = await _tafsir(client, _SABR)
     assert len(r.json()["sources_used"]) > 0

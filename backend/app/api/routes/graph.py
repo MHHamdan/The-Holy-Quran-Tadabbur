@@ -995,9 +995,11 @@ async def get_entity_details(entity_id: str):
 
     Arabic: تفاصيل الكيان
     """
+    from app.kg.client import check_record_id
     from app.kg.client import get_kg_client
 
     kg = get_kg_client()
+    check_record_id(entity_id)  # path input is interpolated below; 400 if not a plain record id
 
     try:
         # Get entity

@@ -19,8 +19,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import httpx
 import os
 
+from app.core.admin_auth import require_admin_api_key
 from app.db.database import get_async_session
 from app.core.config import settings
+from app.rag.llm_provider import llm_configured
 from app.core.observability import metrics
 
 router = APIRouter()
@@ -432,8 +434,14 @@ async def rag_health_check(
         rag_status["status"] = "degraded"
 
     # Check LLM API configuration (don't reveal key)
-    if settings.anthropic_api_key:
-        rag_status["checks"]["llm_api"] = {"status": "pass", "provider": "anthropic", "configured": True}
+    if llm_configured():
+        rag_status["checks"]["llm_api"] = {
+            "status": "pass",
+            "provider": "huggingface",
+            "model": settings.hf_llm_model,
+            "routing": settings.hf_llm_provider,
+            "configured": True,
+        }
     else:
         rag_status["checks"]["llm_api"] = {
             "status": "warn",
@@ -532,6 +540,7 @@ async def cache_health_check(request: Request):
 async def warm_cache(
     request: Request,
     include_surahs: bool = False,
+    _admin: None = Depends(require_admin_api_key),
 ):
     """
     Trigger cache warming for popular content.

@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.database import get_async_session
 from app.models.tafseer import TafseerChunk
+from app.ai.hf_client import HFErrorKind, HFInferenceError
 from app.rag.llm_provider import get_llm
 from app.services.tafseer_api import get_tafseer_client
 
@@ -263,25 +264,27 @@ async def generate_questions(
     system = _SYSTEM_PROMPT_AR if req.lang == "ar" else _SYSTEM_PROMPT_EN
     user_msg = _build_user_message(context, req.surah, req.count, req.lang)
 
-    # 3. Call LLM — use fast model (14b) for quiz generation, lower latency
-    fast_model = getattr(settings, "ollama_model_fast", "qwen2.5:14b")
-    llm = get_llm(ollama_model=fast_model)
+    # 3. Call the Hugging Face LLM
+    llm = get_llm()
     try:
         llm_resp = await llm.generate(
             system_prompt=system,
             user_message=user_msg,
             max_tokens=1500,
             temperature=0.4,
+            json_mode=True,
         )
-    except Exception as exc:
+    except HFInferenceError as exc:
         logger.error("LLM generation failed for surah %d: %s", req.surah, exc)
+        if exc.kind == HFErrorKind.QUOTA:
+            raise HTTPException(status_code=429, detail="AI usage limit reached. Please try again later.")
         raise HTTPException(status_code=503, detail="AI generation temporarily unavailable")
 
     # 4. Parse output
     try:
         questions = _parse_llm_output(llm_resp.content, req.surah, req.count)
     except Exception as exc:
-        logger.error("Failed to parse LLM output for surah %d: %s\nRaw: %s", req.surah, exc, llm_resp.content[:500])
+        logger.error("Failed to parse LLM output for surah %d: %s", req.surah, exc)
         raise HTTPException(status_code=502, detail="AI returned an unexpected format. Please try again.")
 
     if not questions:

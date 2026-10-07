@@ -1,10 +1,9 @@
 import axios from 'axios';
 
-// Use relative URL for Vite proxy, or absolute URL from env for production
-const API_BASE = import.meta.env.VITE_API_URL || '';
+import { API_ORIGIN } from './config';
 
 export const api = axios.create({
-  baseURL: `${API_BASE}/api/v1`,
+  baseURL: `${API_ORIGIN}/api/v1`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -357,7 +356,10 @@ export interface TafsirExplanation {
   reliability_score: number;
 }
 
-export type RAGStatus = 'answered' | 'no_verified_source' | 'needs_clarification' | 'error';
+export type RAGStatus = 'answered' | 'no_verified_source' | 'needs_clarification' | 'ai_unavailable' | 'error';
+
+/** ai_synthesis: model-written text; source_digest: verbatim tafsir excerpts; refusal / notice: fixed texts. */
+export type RAGAnswerKind = 'ai_synthesis' | 'source_digest' | 'refusal' | 'notice';
 
 export type RAGAnswerMode =
   | 'simple_explanation'
@@ -385,6 +387,10 @@ export interface RAGResponse {
   // Phase-2: explicit status and answer language
   status?: RAGStatus;
   answer_language?: 'ar' | 'en';
+  answer_kind?: RAGAnswerKind;
+  ai_generated?: boolean;
+  // Set when status === 'ai_unavailable': 'ai_quota_exceeded' | 'ai_unavailable'
+  error_code?: string;
   // Chat experience fields
   session_id?: string;
   related_verses?: RelatedVerse[];
@@ -1467,7 +1473,7 @@ export interface GrammarLabels {
 
 export interface GrammarHealth {
   status: string;
-  ollama_available: boolean;
+  llm_available: boolean;
   model: string;
   message_ar: string;
   message_en: string;
@@ -1510,7 +1516,7 @@ export const grammarApi = {
   analyzeAyah: (suraAyah: string) =>
     api.get<GrammarAnalysis>(`/grammar/ayah/${suraAyah}`),
 
-  // QAC-based scholar-verified I'rab (preferred when Ollama unavailable)
+  // QAC-based scholar-verified I'rab (preferred over AI analysis)
   analyzeIrab: (suraAyah: string) =>
     api.get<GrammarAnalysis>(`/grammar/irab/${suraAyah}`),
 
@@ -2824,16 +2830,31 @@ export const vocabularyApi = {
 // Admin API client — includes X-Admin-API-Key header
 // =============================================================================
 
-// SECURITY: VITE_ADMIN_API_KEY is only for dev/staging. Never embed a
-// production admin key in frontend source or CI artifacts visible to the public.
-// Production deployments should use server-side authentication instead.
-const _ADMIN_KEY = import.meta.env.VITE_ADMIN_API_KEY as string | undefined;
+// SECURITY: the admin key is a backend secret and is never compiled into the
+// bundle (no VITE_* variable). An administrator enters it at runtime; it is
+// kept in sessionStorage for this tab only and sent solely as a header.
+const ADMIN_KEY_STORAGE = 'tadabbur_admin_api_key';
+
+export function getAdminApiKey(): string | null {
+  try {
+    return sessionStorage.getItem(ADMIN_KEY_STORAGE);
+  } catch {
+    return null;
+  }
+}
+
+export function setAdminApiKey(key: string | null): void {
+  try {
+    if (key && key.trim()) sessionStorage.setItem(ADMIN_KEY_STORAGE, key.trim());
+    else sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+  } catch {
+    /* storage unavailable: the key simply is not remembered */
+  }
+}
 
 function _adminHeaders(): Record<string, string> {
-  if (_ADMIN_KEY) {
-    return { 'X-Admin-API-Key': _ADMIN_KEY };
-  }
-  return {};
+  const key = getAdminApiKey();
+  return key ? { 'X-Admin-API-Key': key } : {};
 }
 
 export const reviewApi = {

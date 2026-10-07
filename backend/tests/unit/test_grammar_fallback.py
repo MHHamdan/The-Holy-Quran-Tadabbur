@@ -1,7 +1,7 @@
 """
 Grammar Static Fallback Tests
 
-Tests for the static morphology fallback when Ollama is unavailable.
+Tests for the static morphology fallback when the LLM is unavailable.
 """
 import pytest
 from app.services.grammar_fallback import (

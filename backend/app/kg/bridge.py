@@ -9,7 +9,7 @@ import logging
 from typing import List, Dict, Any, Optional, Set
 from dataclasses import dataclass
 
-from app.kg.client import get_kg_client, KGClient
+from app.kg.client import get_kg_client, KGClient, check_record_id
 from app.kg.models import (
     VectorHit,
     GraphPath,
@@ -71,8 +71,9 @@ class VectorGraphBridge:
                 # Try to find by chunk_id field
                 records = await self.kg_client.select(
                     "tafsir_chunk",
-                    where=f'source_id + ":" + verse_reference CONTAINS "{chunk_id}" OR id = "tafsir_chunk:{chunk_id}"',
+                    where='source_id + ":" + verse_reference CONTAINS $cid OR id = $rid',
                     limit=1,
+                    params={"cid": chunk_id, "rid": f"tafsir_chunk:{chunk_id}"},
                 )
                 if records:
                     results[chunk_id] = records[0]
@@ -143,7 +144,7 @@ class VectorGraphBridge:
             # 2. Find events supported by this chunk
             try:
                 events = await self.kg_client.query(
-                    f"SELECT in.* FROM supported_by WHERE out = {chunk_surreal_id};"
+                    f"SELECT in.* FROM supported_by WHERE out = {check_record_id(chunk_surreal_id)};"
                 )
                 for event in events:
                     event_id = event.get("id")
@@ -188,9 +189,9 @@ class VectorGraphBridge:
                         if config.include_thematic_links:
                             thematic = await self.kg_client.query(
                                 f"""
-                                SELECT out.* FROM thematic_link WHERE in = {event_id}
+                                SELECT out.* FROM thematic_link WHERE in = {check_record_id(event_id)}
                                 UNION
-                                SELECT in.* FROM thematic_link WHERE out = {event_id};
+                                SELECT in.* FROM thematic_link WHERE out = {check_record_id(event_id)};
                                 """
                             )
                             for te in thematic[:config.max_neighbors_per_node]:

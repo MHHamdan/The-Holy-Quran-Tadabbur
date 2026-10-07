@@ -1,17 +1,20 @@
 """
 Quran API routes for verses, translations, and tafseer.
 """
+import asyncio
 import logging
 from typing import List, Optional, Dict, Any, Tuple
 
 logger = logging.getLogger(__name__)
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Path, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Path, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select, or_, and_, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.admin_auth import require_admin_api_key
+from app.core.config import settings
 from app.db.database import get_async_session
 from app.models.quran import QuranVerse, Translation
 from app.models.tafseer import TafseerChunk, TafseerSource
@@ -231,9 +234,9 @@ def compute_highlight_spans(query_normalized: str, verse_normalized: str) -> lis
 # Routes
 @router.get("/resolve")
 async def resolve_verse_text(
+    request: Request,
     text: str = Query(..., max_length=500, description="Verse text to resolve"),
     session: AsyncSession = Depends(get_async_session),
-    request: "Request" = None,  # type: ignore
 ):
     """
     Resolve verse text to sura:ayah reference with candidate selection.
@@ -1514,12 +1517,15 @@ async def find_similar_verses(
             )
 
     semantic_service = SemanticSearchService(session)
-    similar = await semantic_service.find_similar_verses(
+    result = await semantic_service.find_similar_verses(
         verse_text=source_verse.text_imlaei,
         top_k=top_k,
         theme_filter=theme_filter,
         exclude_sura=sura_no if cross_sura else None,
     )
+    # The service returns plain dicts; surah names come from the canonical table.
+    similar = result.verses
+    names = await _sura_names(session, {m["sura_no"] for m in similar})
 
     return {
         "source_verse": {
@@ -1530,23 +1536,37 @@ async def find_similar_verses(
         },
         "similar_verses": [
             SemanticMatchResponse(
-                verse_id=m.verse_id,
-                sura_no=m.sura_no,
-                sura_name_ar=m.sura_name_ar,
-                sura_name_en=m.sura_name_en,
-                aya_no=m.aya_no,
-                reference=f"{m.sura_no}:{m.aya_no}",
-                text_uthmani=m.text_uthmani,
-                text_imlaei=m.text_imlaei,
-                semantic_score=round(m.semantic_score, 4),
-                shared_concepts=m.shared_concepts[:5],
-                themes=m.themes,
-                connection_type=m.connection_type,
+                verse_id=m["verse_id"],
+                sura_no=m["sura_no"],
+                sura_name_ar=names.get(m["sura_no"], ("", ""))[0],
+                sura_name_en=names.get(m["sura_no"], ("", ""))[1],
+                aya_no=m["aya_no"],
+                reference=f"{m['sura_no']}:{m['aya_no']}",
+                text_uthmani=m["text_uthmani"],
+                text_imlaei=m["text_imlaei"],
+                semantic_score=round(float(m.get("combined_score", 0.0)), 4),
+                shared_concepts=[],
+                themes=list(m.get("themes") or []),
+                connection_type=str(m.get("connection_type", "")),
             )
             for m in similar
+            if not (cross_sura and m["sura_no"] == sura_no)
         ],
+        "source_themes": result.source_themes,
+        "search_method": result.search_method,
         "total_found": len(similar),
     }
+
+
+async def _sura_names(session: AsyncSession, sura_numbers: set) -> dict:
+    """{sura_no: (name_ar, name_en)} from the canonical verses table."""
+    if not sura_numbers:
+        return {}
+    rows = await session.execute(
+        select(QuranVerse.sura_no, QuranVerse.sura_name_ar, QuranVerse.sura_name_en)
+        .where(QuranVerse.sura_no.in_(sura_numbers), QuranVerse.aya_no == 1)
+    )
+    return {r[0]: (r[1], r[2]) for r in rows.all()}
 
 
 @router.get("/semantic/connections/{sura_no}/{aya_no}")
@@ -1572,26 +1592,31 @@ async def get_thematic_connections(
             pass
 
     semantic_service = SemanticSearchService(session)
-    connections = await semantic_service.find_thematic_connections(
+    result = await semantic_service.find_thematic_connections(
         sura_no=sura_no,
         aya_no=aya_no,
         theme=theme_filter,
         top_k=top_k,
     )
+    connections = result.connections
+
+    def _theme(c):
+        return (c.themes[0] if c.themes else (theme_filter.value if theme_filter else ""))
 
     return {
         "source_reference": f"{sura_no}:{aya_no}",
         "connections": [
             ThematicConnectionResponse(
-                source_verse=c.source_verse,
-                target_verse=c.target_verse,
-                theme=c.theme.value,
-                theme_ar=c.theme_ar,
-                similarity_score=round(c.similarity_score, 4),
-                shared_keywords=c.shared_keywords,
+                source_verse=f"{sura_no}:{aya_no}",
+                target_verse=c.reference,
+                theme=_theme(c),
+                theme_ar=THEME_LABELS_AR.get(_theme(c), _theme(c)),
+                similarity_score=round(float(c.similarity_score), 4),
+                shared_keywords=list(c.themes or []),
             )
             for c in connections
         ],
+        "dominant_themes": result.dominant_themes,
         "total_connections": len(connections),
     }
 
@@ -3286,6 +3311,7 @@ async def get_cross_story_themes():
 # Encoding all 6,236 verses in-process would take seconds per call, so the
 # fallback is deliberately partial — responses say so via `coverage`.
 SIMILARITY_FALLBACK_CANDIDATES = 500
+SIMILARITY_FALLBACK_BUDGET_SECONDS = 20
 
 
 @router.get("/similarity/semantic/{sura_no}/{aya_no}")
@@ -3365,12 +3391,24 @@ async def get_semantic_similarity(
         )
         candidates = [(row.id, row.text_uthmani) for row in candidates_result.fetchall()]
         candidates_considered = len(candidates)
-        similar_ids = await semantic_embedding_service.find_similar_by_embedding(
-            source_verse.text_uthmani,
-            candidates,
-            top_k=limit,
-            min_similarity=min_similarity,
-        )
+        # Embedding hundreds of verses on hosted inference can take minutes, so
+        # the request gets a time budget and then falls back to a lexical ranking.
+        try:
+            similar_ids = await asyncio.wait_for(
+                semantic_embedding_service.find_similar_by_embedding(
+                    source_verse.text_uthmani,
+                    candidates,
+                    top_k=limit,
+                    min_similarity=min_similarity,
+                ),
+                timeout=SIMILARITY_FALLBACK_BUDGET_SECONDS,
+            )
+        except (asyncio.TimeoutError, Exception) as e:  # noqa: BLE001
+            logger.warning(f"Embedding fallback unavailable ({type(e).__name__}); using lexical ranking")
+            coverage = "partial_lexical"
+            similar_ids = semantic_embedding_service.find_similar_lexical(
+                source_verse.text_uthmani, candidates, top_k=limit, min_similarity=min_similarity,
+            )
 
     # Batch-fetch all similar verses in one query (not N+1)
     sim_id_list = [vid for vid, _ in similar_ids]
@@ -3379,20 +3417,31 @@ async def get_semantic_similarity(
     )
     verse_map = {v.id: v for v in batch_result.scalars().all()}
 
-    results = []
-    for verse_id, sim_score in similar_ids:
-        verse = verse_map.get(verse_id)
-        if verse:
-            # Get enhanced analysis
-            enhanced = await contextual_enhancer.compute_enhanced_similarity(
-                source_verse.text_uthmani,
-                verse.text_uthmani,
-                source_verse.sura_no,
-                verse.sura_no,
-                source_verse.aya_no,
-                verse.aya_no,
-            )
+    # Enhanced analysis embeds texts too; give it one shared time budget and
+    # return results without it rather than stalling the request.
+    ordered = [(verse_map[vid], score) for vid, score in similar_ids if vid in verse_map]
+    enhanced_list = [None] * len(ordered)
+    try:
+        enhanced_list = await asyncio.wait_for(
+            asyncio.gather(*[
+                contextual_enhancer.compute_enhanced_similarity(
+                    source_verse.text_uthmani,
+                    verse.text_uthmani,
+                    source_verse.sura_no,
+                    verse.sura_no,
+                    source_verse.aya_no,
+                    verse.aya_no,
+                )
+                for verse, _ in ordered
+            ]),
+            timeout=SIMILARITY_FALLBACK_BUDGET_SECONDS,
+        )
+    except (asyncio.TimeoutError, Exception) as e:  # noqa: BLE001
+        logger.warning(f"Enhanced similarity analysis skipped ({type(e).__name__})")
 
+    results = []
+    for (verse, sim_score), enhanced in zip(ordered, enhanced_list):
+        if verse:
             results.append({
                 "verse_id": verse.id,
                 "sura_no": verse.sura_no,
@@ -6848,6 +6897,7 @@ async def cleanup_expired_cache():
 
 @router.post("/cache/warm")
 async def warm_cache(
+    _admin: None = Depends(require_admin_api_key),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -12446,6 +12496,7 @@ async def get_thematic_journey(
 
 @router.post("/cache/warm-up")
 async def warm_up_cache(
+    _admin: None = Depends(require_admin_api_key),
     data_types: Optional[str] = Query(None, description="Comma-separated: stories,themes,categories,prophets")
 ):
     """
@@ -13445,13 +13496,14 @@ async def get_semantic_search_stats():
         "ok": True,
         "collection": "quran_verses",
         "stats": stats,
-        "model": "multilingual-MiniLM-L12-v2",
-        "embedding_dimension": 384,
+        "model": settings.hf_embedding_model,
+        "embedding_dimension": settings.embedding_dimension,
     }
 
 
 @router.post("/search/semantic/index")
 async def index_verses_for_semantic_search(
+    _admin: None = Depends(require_admin_api_key),
     batch_size: int = Query(100, ge=10, le=500, description="Batch size for indexing"),
     session: AsyncSession = Depends(get_async_session),
 ):

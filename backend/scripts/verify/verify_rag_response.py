@@ -49,11 +49,11 @@ def get_db_url() -> str:
 
 
 def check_api_key() -> tuple[bool, str]:
-    """Check if Anthropic API key is configured."""
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if api_key and len(api_key) > 10:
-        return True, "Anthropic API key is configured"
-    return False, "ANTHROPIC_API_KEY not set or invalid"
+    """Check if the Hugging Face token is configured (value never printed)."""
+    api_key = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_TOKEN")
+    if api_key:
+        return True, "HF_TOKEN is configured"
+    return False, "HF_TOKEN not set"
 
 
 def check_citation_format(answer: str) -> tuple[bool, str, list]:
@@ -292,7 +292,7 @@ def main():
         print("OVERALL: PASS - RAG pipeline is functional")
         print("=" * 60)
         print("\nNOTE: For full RAG functionality:")
-        print("  1. Set ANTHROPIC_API_KEY in .env")
+        print("  1. Set HF_TOKEN in backend/.env (server side only)")
         print("  2. Seed tafseer data: python scripts/ingest/seed_tafseer.py")
         print("  3. Index vectors: python scripts/index/index_tafseer.py")
         sys.exit(0)
@@ -301,7 +301,7 @@ def main():
         print("=" * 60)
         print("\nREMEDIATION:")
         print("  1. Ensure database is running and seeded")
-        print("  2. Set ANTHROPIC_API_KEY for LLM responses")
+        print("  2. Set HF_TOKEN for LLM responses")
         print("  3. Check all services: make verify-services")
         sys.exit(1)
 

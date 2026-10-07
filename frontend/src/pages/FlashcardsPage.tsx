@@ -36,12 +36,12 @@ function loadStore(): FlashcardStore {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as FlashcardStore;
-  } catch {}
+  } catch { /* storage unavailable or full: caching is best-effort */ }
   return { mastered: [] };
 }
 
 function saveStore(store: FlashcardStore) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch { /* storage unavailable or full: caching is best-effort */ }
 }
 
 function makeKey(surah: number, ayah: number) { return `${surah}:${ayah}`; }

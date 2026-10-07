@@ -804,7 +804,7 @@ class SemanticSearchService:
                         "reference": m.reference,
                         "text_uthmani": m.text_uthmani,
                         "text_imlaei": m.text_imlaei,
-                        "combined_score": m.combined_score,
+                        "combined_score": m.scores.combined,
                         "connection_type": m.connection_type.value if hasattr(m.connection_type, 'value') else str(m.connection_type),
                         "themes": m.shared_themes,
                     } for m in result.matches],
@@ -849,7 +849,7 @@ class SemanticSearchService:
                         text_imlaei=m.text_imlaei,
                         themes=m.shared_themes,
                         connection_type=m.connection_type.value if hasattr(m.connection_type, 'value') else str(m.connection_type),
-                        similarity_score=m.combined_score,
+                        similarity_score=m.scores.combined,
                     ))
                 dominant_themes = result.source_themes[:5]
             except Exception as e:
@@ -973,16 +973,14 @@ def precompute_embedding(text: str, model=None) -> List[float]:
 
     # Compute embedding
     if model is None:
-        import torch
-        from sentence_transformers import SentenceTransformer
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = SentenceTransformer(settings.embedding_model_multilingual, device=device)
+        from app.ai.embeddings import get_embedding_model
+        model = get_embedding_model()
 
     # Normalize Arabic text
     normalized_text = normalize_arabic_text(text)
 
     # Add E5 query prefix for multilingual-e5 models
-    if "e5" in settings.embedding_model_multilingual.lower():
+    if "e5" in settings.hf_embedding_model.lower():
         normalized_text = f"query: {normalized_text}"
 
     embedding = model.encode(normalized_text, convert_to_numpy=True).tolist()
@@ -1013,8 +1011,7 @@ async def semantic_vector_search(
     Returns:
         List of search results with scores
     """
-    import torch
-    from sentence_transformers import SentenceTransformer
+    from app.ai.embeddings import get_embedding_model
 
     # Normalize query
     normalized_query = normalize_arabic_text(query)
@@ -1023,16 +1020,12 @@ async def semantic_vector_search(
     embedding = _embedding_cache.get(normalized_query)
 
     if embedding is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = SentenceTransformer(settings.embedding_model_multilingual, device=device)
+        model = get_embedding_model()
 
-        if "e5" in settings.embedding_model_multilingual.lower():
+        if "e5" in settings.hf_embedding_model.lower():
             normalized_query = f"query: {normalized_query}"
 
-        import asyncio
-        embedding = await asyncio.to_thread(
-            lambda: model.encode(normalized_query, convert_to_numpy=True).tolist()
-        )
+        embedding = (await model.aencode(normalized_query)).tolist()
         _embedding_cache.set(query, embedding)
 
     # Build Qdrant search request

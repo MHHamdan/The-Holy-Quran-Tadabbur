@@ -28,13 +28,9 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 ARABIC_EMBEDDING_CONFIG = {
-    # Primary model: AraBERT for Arabic-specific understanding
-    "primary_model": "aubmindlab/bert-base-arabertv2",
-    # Fallback: Multilingual model
-    "fallback_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-    # Alternative: Arabic sentence transformer
-    "arabic_sentence_model": "sentence-transformers/distiluse-base-multilingual-cased-v1",
-    "embedding_dimension": 768,
+    # Embeddings come from HF_EMBEDDING_MODEL (multilingual-e5-large, hosted);
+    # the hashed fallback uses the same dimension so vectors stay comparable in shape.
+    "embedding_dimension": 1024,
     "max_sequence_length": 512,
     "batch_size": 16,
 }
@@ -297,26 +293,28 @@ class ArabicSemanticSearchService:
         if self._initialized:
             return self._model is not None
 
-        try:
-            from sentence_transformers import SentenceTransformer
+        from app.ai.embeddings import HFEmbeddingModel
+        from app.ai.hf_client import hf_configured
 
-            # Try multilingual model first (most compatible)
-            try:
-                self._model = SentenceTransformer(
-                    ARABIC_EMBEDDING_CONFIG["fallback_model"]
-                )
-                self._model_name = ARABIC_EMBEDDING_CONFIG["fallback_model"]
-                logger.info(f"Loaded multilingual model: {self._model_name}")
-            except Exception as e:
-                logger.warning(f"Failed to load multilingual model: {e}")
-                self._model = None
-
-        except ImportError:
-            logger.warning("sentence-transformers not installed, using fallback")
+        if hf_configured():
+            self._model = HFEmbeddingModel()
+            self._model_name = self._model.model_name
+            logger.info(f"Using HF embedding model: {self._model_name}")
+        else:
+            logger.warning("HF_TOKEN not configured, using fallback embeddings")
             self._model = None
 
         self._initialized = True
         return self._model is not None
+
+    def _disable_model(self, error: Exception) -> None:
+        """Switch to the fallback embedding for the rest of the process.
+
+        Cached vectors are dropped so HF and fallback vectors are never compared.
+        """
+        logger.warning("HF embeddings unavailable, switching to fallback: %s", error)
+        self._model = None
+        self._embedding_cache.clear()
 
     def _get_cache_key(self, text: str) -> str:
         """Generate cache key for text."""
@@ -332,10 +330,13 @@ class ArabicSemanticSearchService:
         if not self._initialized:
             await self.initialize()
 
+        embedding = None
         if self._model is not None:
-            import asyncio
-            embedding = await asyncio.to_thread(self._model.encode, text, convert_to_numpy=True)
-        else:
+            try:
+                embedding = await self._model.aencode(f"query: {text}")
+            except Exception as e:
+                self._disable_model(e)
+        if embedding is None:
             # Fallback: TF-IDF style embedding
             embedding = self._compute_fallback_embedding(text)
 

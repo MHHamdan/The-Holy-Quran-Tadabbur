@@ -27,6 +27,7 @@ class ErrorCode(str, Enum):
     """Error codes for structured error handling."""
     # Connection errors
     LLM_UNAVAILABLE = "llm_unavailable"
+    AI_QUOTA_EXCEEDED = "ai_quota_exceeded"
     RETRIEVAL_FAILED = "retrieval_failed"
     DATABASE_ERROR = "database_error"
 
@@ -48,6 +49,7 @@ class ErrorCode(str, Enum):
 # Arabic error messages for each error code
 ERROR_MESSAGES_AR: Dict[ErrorCode, str] = {
     ErrorCode.LLM_UNAVAILABLE: "تعذّر الاتصال بنموذج اللغة حالياً. حاول لاحقاً.",
+    ErrorCode.AI_QUOTA_EXCEEDED: "بلغت خدمة الذكاء الاصطناعي حد الاستخدام. حاول لاحقاً.",
     ErrorCode.RETRIEVAL_FAILED: "تعذّر البحث في مصادر التفسير. حاول لاحقاً.",
     ErrorCode.DATABASE_ERROR: "حدث خطأ في قاعدة البيانات. حاول لاحقاً.",
     ErrorCode.INSUFFICIENT_EVIDENCE: "لم نعثر على أدلة تفسيرية كافية للإجابة بدقة على هذا السؤال.",
@@ -63,6 +65,7 @@ ERROR_MESSAGES_AR: Dict[ErrorCode, str] = {
 # English error messages
 ERROR_MESSAGES_EN: Dict[ErrorCode, str] = {
     ErrorCode.LLM_UNAVAILABLE: "Language model service is currently unavailable. Please try again later.",
+    ErrorCode.AI_QUOTA_EXCEEDED: "The AI service has reached its usage limit. Please try again later.",
     ErrorCode.RETRIEVAL_FAILED: "Failed to search tafseer sources. Please try again later.",
     ErrorCode.DATABASE_ERROR: "A database error occurred. Please try again later.",
     ErrorCode.INSUFFICIENT_EVIDENCE: "Insufficient scholarly evidence found to answer this question accurately.",
@@ -215,7 +218,7 @@ def create_error(
         error = create_error(
             ErrorCode.LLM_UNAVAILABLE,
             ctx.correlation_id,
-            internal_details="Ollama returned 503"
+            internal_details="Hugging Face returned 503"
         )
     """
     return RAGError(
@@ -224,3 +227,34 @@ def create_error(
         internal_details=internal_details,
         retrieval_stats=retrieval_stats,
     )
+
+
+def error_for_hf_failure(err, correlation_id: str) -> RAGError:
+    """
+    Build a user-safe error for a failed Hugging Face call.
+
+    ``err`` is an ``app.ai.hf_client.HFInferenceError``. Quota/rate limits get
+    their own code so clients can show a distinct "AI limit reached" state;
+    everything else is reported as the AI service being unavailable.
+    """
+    from app.ai.hf_client import HFErrorKind
+
+    if err.kind == HFErrorKind.QUOTA:
+        code = ErrorCode.AI_QUOTA_EXCEEDED
+    elif err.kind == HFErrorKind.TIMEOUT:
+        code = ErrorCode.TIMEOUT
+    elif err.kind in (HFErrorKind.NOT_CONFIGURED, HFErrorKind.AUTH, HFErrorKind.FORBIDDEN):
+        code = ErrorCode.CONFIGURATION_ERROR
+    else:
+        code = ErrorCode.LLM_UNAVAILABLE
+    return create_error(code, correlation_id, internal_details=str(err))
+
+
+def http_status_for_hf_failure(err) -> int:
+    from app.ai.hf_client import HFErrorKind
+
+    if err.kind == HFErrorKind.QUOTA:
+        return 429
+    if err.kind == HFErrorKind.TIMEOUT:
+        return 504
+    return 503

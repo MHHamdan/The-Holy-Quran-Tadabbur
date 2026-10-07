@@ -186,7 +186,7 @@ function normalizeArabicDigits(s: string): string {
 }
 
 function parseInput(input: string): { sura: number; aya: number; isTextSearch: false } | { isTextSearch: true; text: string } {
-  let n = normalizeArabicDigits(input.trim()).replace(/\s+/g, ' ').replace(/^سورة\s+/i, '');
+  const n = normalizeArabicDigits(input.trim()).replace(/\s+/g, ' ').replace(/^سورة\s+/i, '');
   const nm = n.match(/^(\d{1,3})\s*[:،,\-\s]\s*(\d{1,3})$/);
   if (nm) {
     const s = +nm[1], a = +nm[2];

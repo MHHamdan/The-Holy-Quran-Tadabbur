@@ -5,13 +5,17 @@ description = "RAG-grounded Quranic knowledge platform with story connections"
 requires-python = ">=3.11"
 dependencies = [
     # Web Framework
-    "fastapi>=0.109.0",
+    # <0.137: 0.137 nests included routers (_IncludedRouter), hiding route paths
+    # from app.routes, which the route-registration tests and contract checks read.
+    "fastapi>=0.109.0,<0.137",
     "uvicorn[standard]>=0.27.0",
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
 
     # Database
-    "sqlalchemy>=2.0.25",
+    # [asyncio] pulls greenlet, required by the async engine. <2.1: 2.1 switches the
+    # default postgresql:// driver to psycopg 3, which breaks tuple IN binds in seeds.
+    "sqlalchemy[asyncio]>=2.0.25,<2.1",
     "asyncpg>=0.29.0",
     "alembic>=1.13.0",
     "psycopg2-binary>=2.9.9",
@@ -23,10 +27,11 @@ dependencies = [
     "redis>=5.0.0",
     "rq>=1.16.0",
 
-    # AI/ML
-    "anthropic>=0.18.0",
-    "sentence-transformers>=2.3.0",
-    "torch>=2.1.0",
+    # AI/ML — Hugging Face Inference Providers is the only model platform
+    # No torch / sentence-transformers / local model files: embeddings,
+    # reranking, STT and classification all run on HF Inference Providers.
+    "huggingface_hub>=1.0.0",
+    "numpy>=1.24.0",
 
     # Data Processing
     "httpx>=0.26.0",
@@ -50,9 +55,10 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.8.0",
 ]
-stt = [
+# Optional local speech-to-text for self-hosters (STT_PROVIDER=faster-whisper).
+# Not used by the default deployment, which needs no GPU or model files.
+stt-local = [
     "faster-whisper>=0.10.0",
-    "numpy>=1.24.0",
 ]
 
 [build-system]
@@ -69,6 +75,7 @@ pythonpath = ["."]
 markers = [
     "integration: marks tests as integration tests",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "live_hf: calls real Hugging Face Inference Providers (run with -m live_hf)",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",

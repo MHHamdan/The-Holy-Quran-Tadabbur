@@ -1,3 +1,7 @@
+> **Superseded (HF migration, Phase 11):** `VITE_ADMIN_API_KEY` was removed. The
+> admin key is no longer compiled into the frontend; administrators enter it at
+> runtime and it is kept in `sessionStorage` for the tab only.
+
 # Phase S Security Hardening — Implementation Record
 
 **Platform:** Tadabbur Al-Quran  

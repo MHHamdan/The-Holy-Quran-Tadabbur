@@ -2,7 +2,7 @@
 Static Grammar Fallback Dataset.
 
 This module provides pre-analyzed grammar data for common Quranic verses
-when Ollama is unavailable.
+when the LLM is unavailable.
 
 SOURCES:
 - Quranic Arabic Corpus (QAC) morphology

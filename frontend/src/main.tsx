@@ -15,6 +15,21 @@ import { queryClient } from './lib/queryClient'
 import App from './App'
 import './styles/globals.css'
 
+// After a deploy, a tab still running the previous build may request lazy
+// chunks that no longer exist. Reload to pick up the new build instead of
+// leaving the route broken — at most once per 30 s, so a chunk that is
+// genuinely missing cannot cause a reload loop.
+window.addEventListener('vite:preloadError', (event) => {
+  const KEY = 'tadabbur-chunk-reload-at'
+  try {
+    const last = Number(sessionStorage.getItem(KEY) || 0)
+    if (Date.now() - last < 30_000) return
+    sessionStorage.setItem(KEY, String(Date.now()))
+  } catch { return /* storage unavailable: cannot guard against loops, so do not reload */ }
+  event.preventDefault()
+  window.location.reload()
+})
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>

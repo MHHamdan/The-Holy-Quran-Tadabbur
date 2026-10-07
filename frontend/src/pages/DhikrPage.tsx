@@ -16,6 +16,7 @@ import {
   Star, Check, Sun, Moon, Search, Infinity as InfinityIcon, BedDouble,
 } from 'lucide-react';
 import clsx from 'clsx';
+import { apiUrl } from '../lib/config';
 import { useLanguageStore } from '../stores/languageStore';
 import {
   ADHKAR, CATEGORY_META, MORNING_IDS, EVENING_IDS, SLEEP_IDS,
@@ -25,9 +26,9 @@ import {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY    = 'tadabbur_dhikr_v1';
-const REWARDS_KEY    = 'tadabbur_dhikr_rewards_v1';
+const REWARDS_KEY    = 'tadabbur_dhikr_rewards_v1'; // gitleaks:allow (storage key name)
 const TODAY          = new Date().toISOString().slice(0, 10);
-const API_BASE       = '/api/v1/dhikr';
+const API_BASE       = apiUrl('/api/v1/dhikr');
 
 type CountRecord = Record<string, { count: number; date: string }>;
 
@@ -364,6 +365,8 @@ function DhikrBrowseCard({ dhikr, count, isRtl, onIncrement, onReset, onMisbaha 
             <button
               onClick={e => { e.stopPropagation(); setShowInfo(v => !v); }}
               className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-white/60 transition-colors"
+              aria-label={isRtl ? 'معلومات' : 'Details'}
+              aria-expanded={showInfo}
             >
               <Info className="w-3.5 h-3.5" />
             </button>
@@ -450,13 +453,11 @@ function FocusView({
   const [beatPct, setBeatPct] = useState(0);   // 0..1 sweep for the auto-count bar
   const timerMenuRef = useRef<HTMLDivElement>(null);
 
-  const dhikr = items[index];
-  if (!dhikr) return null;
-
-  const theme = FOCUS_THEME[dhikr.category];
-  const count = getCount(counts, dhikr.id);
-  const done  = count >= dhikr.targetCount;
-  const pct   = count / dhikr.targetCount;
+  // Hooks below must run on every render, so the "no item" exit comes after
+  // them (an early return here broke the hook order when the list changed).
+  const dhikr = items[index] as (typeof items)[number] | undefined;
+  const count = dhikr ? getCount(counts, dhikr.id) : 0;
+  const done  = dhikr ? count >= dhikr.targetCount : false;
 
   const timerMins = Math.floor(timerSec / 60);
   const timerSecs = timerSec % 60;
@@ -507,6 +508,10 @@ function FocusView({
     // onIncrement identity changes when focusIndex changes — intentional so
     // the ticker restarts cleanly when advancing to a new dhikr.
   }, [autoPlay, done, autoPlayInterval, onIncrement]);
+
+  if (!dhikr) return null;
+  const theme = FOCUS_THEME[dhikr.category];
+  const pct   = count / dhikr.targetCount;
 
   return (
     <div className={clsx(

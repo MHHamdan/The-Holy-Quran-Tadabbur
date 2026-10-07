@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { apiUrl } from '../lib/config';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import {
@@ -9,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 
-const API = '/api/v1/quranic-calls';
+const API = apiUrl('/api/v1/quranic-calls');
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

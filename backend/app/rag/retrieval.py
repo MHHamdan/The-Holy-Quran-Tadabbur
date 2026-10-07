@@ -331,6 +331,60 @@ THEMATIC_VERSE_INDEX: Dict[str, List[Tuple]] = {
 }
 
 
+_ARABIC_PROCLITICS = ("", "ال", "و", "ف", "ب", "ل", "ك", "وال", "فال", "بال", "لل", "كال", "ولل", "وب", "وبال", "فب", "فبال")
+# Two-letter keywords (هم، غم) collide with ordinary words when a one-letter
+# proclitic is allowed (فهم = "understood"), so they only match bare or with ال.
+_SHORT_KEYWORD_PROCLITICS = ("", "ال")
+_TOKEN = re.compile(r"[\w\u0600-\u06FF]+")
+
+
+def contains_keyword(text: str, keyword: str) -> bool:
+    """Whole-word (proclitic-aware for Arabic) keyword test; see thematic_keyword_matches."""
+    tokens_raw = _TOKEN.findall(text.lower())
+    token_set = {normalize_arabic(t) for t in tokens_raw} | set(tokens_raw)
+    kw = keyword.lower().strip()
+    kw_norm = normalize_arabic(kw)
+    if " " in kw:
+        joined = " " + " ".join(normalize_arabic(t) for t in tokens_raw) + " "
+        return f" {kw_norm} " in joined
+    proclitics = _SHORT_KEYWORD_PROCLITICS if len(kw_norm) <= 2 else _ARABIC_PROCLITICS
+    if any(p + kw_norm in token_set or p + kw in token_set for p in proclitics):
+        return True
+    return kw.isascii() and (kw + "s") in token_set
+
+
+def thematic_keyword_matches(query: str) -> List[str]:
+    """
+    THEMATIC_VERSE_INDEX keywords present in ``query`` as whole words.
+
+    Plain substring matching hijacked unrelated questions: "هم" (worry)
+    occurs inside فهم/منهم/هما, and "ذكر" (remembrance) inside ذكرها
+    ("mentioned it"), so questions on other topics received a canned list
+    of consolation verses. Arabic keywords may carry a proclitic (و، ف، ب،
+    ل، ك، ال…); multi-word keywords must appear as a contiguous phrase.
+    """
+    tokens_raw = _TOKEN.findall(query.lower())
+    tokens = [normalize_arabic(t) for t in tokens_raw]
+    token_set = set(tokens) | set(tokens_raw)
+    joined = " " + " ".join(tokens) + " "
+    joined_raw = " " + " ".join(tokens_raw) + " "
+
+    matches = []
+    for keyword in THEMATIC_VERSE_INDEX:
+        kw = keyword.lower().strip()
+        kw_norm = normalize_arabic(kw)
+        if " " in kw:
+            if f" {kw_norm} " in joined or f" {kw} " in joined_raw:
+                matches.append(keyword)
+            continue
+        proclitics = _SHORT_KEYWORD_PROCLITICS if len(kw_norm) <= 2 else _ARABIC_PROCLITICS
+        if any(p + kw_norm in token_set or p + kw in token_set for p in proclitics):
+            matches.append(keyword)
+        elif kw.isascii() and (kw + "s") in token_set:
+            matches.append(keyword)
+    return matches
+
+
 def normalize_arabic(text: str) -> str:
     """
     Normalize Arabic text for matching.
@@ -732,11 +786,9 @@ class HybridRetriever:
         query_normalized = normalize_arabic(query_lower)
 
         verse_scores: Dict[tuple, int] = {}
-        for keyword, verse_refs in THEMATIC_VERSE_INDEX.items():
-            kw_norm = normalize_arabic(keyword.lower())
-            if kw_norm in query_normalized or keyword.lower() in query_lower:
-                for ref in verse_refs:
-                    verse_scores[ref] = verse_scores.get(ref, 0) + 1
+        for keyword in thematic_keyword_matches(query):
+            for ref in THEMATIC_VERSE_INDEX[keyword]:
+                verse_scores[ref] = verse_scores.get(ref, 0) + 1
 
         if not verse_scores:
             return []
@@ -857,22 +909,11 @@ class HybridRetriever:
         return list(set(expanded))
 
     def _get_embedding_model(self):
-        """Lazy-load the embedding model."""
+        """Embedding client (Hugging Face feature-extraction, HF_EMBEDDING_MODEL)."""
         if self.embedding_model is None:
-            import os
-            import torch
-            from sentence_transformers import SentenceTransformer
+            from app.ai.embeddings import get_embedding_model
 
-            # Use GPU if available, otherwise CPU
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            # Allow override via environment variable
-            device = os.environ.get("EMBEDDING_DEVICE", device)
-
-            logger.info(f"Loading embedding model on device: {device}")
-            self.embedding_model = SentenceTransformer(
-                settings.embedding_model_multilingual,
-                device=device,
-            )
+            self.embedding_model = get_embedding_model()
         return self.embedding_model
 
     async def _vector_search(
@@ -898,7 +939,7 @@ class HybridRetriever:
             model = self._get_embedding_model()
             # E5 models need "query: " prefix for queries
             query_text = f"query: {query}"
-            query_vector = model.encode(query_text).tolist()
+            query_vector = (await model.aencode(query_text)).tolist()
 
             # Build search request - fetch extra to account for filtering
             search_body = {

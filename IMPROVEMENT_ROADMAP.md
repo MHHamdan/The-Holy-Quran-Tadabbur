@@ -181,7 +181,7 @@ dangerouslySetInnerHTML={{
 # docker-compose.yml - INSECURE
 POSTGRES_PASSWORD:-tadabbur_dev
 command: start --user root --pass root  # SurrealDB
-ADMIN_TOKEN=tadabbur-admin-dev-token
+ADMIN_TOKEN=<generate: python3 -c "import secrets; print(secrets.token_hex(32))">
 ```
 
 ### Security Hardening Checklist

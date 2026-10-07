@@ -1,145 +1,200 @@
-# Tadabbur-AI Docker Compose - Production Configuration
-# Use: docker compose -f docker-compose.prod.yml up --build
+# Tadabbur-AI production stack
+#
+#   cp .env.example .env    # fill in every required value; never commit .env
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# All configuration comes from the environment. Required secrets have no
+# defaults, so the stack refuses to start without them. HF_TOKEN reaches only
+# the backend and migrate containers, never the web image.
+#
+# Only the web container publishes a port. Put a TLS-terminating proxy or load
+# balancer in front of it (WEB_PORT, default 8080).
+
+x-restart: &restart
+  restart: unless-stopped
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+x-hardening: &hardening
+  security_opt:
+    - no-new-privileges:true
+
+x-backend-env: &backend-env
+  ENVIRONMENT: production
+  DATABASE_URL: postgresql://${POSTGRES_USER:-tadabbur}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-tadabbur}
+  QDRANT_HOST: qdrant
+  QDRANT_PORT: "6333"
+  REDIS_URL: redis://redis:6379/0
+  SURREAL_HOST: surrealdb
+  SURREAL_PORT: "8000"
+  SURREAL_USER: ${SURREAL_USER:-tadabbur}
+  SURREAL_PASS: ${SURREAL_PASS:?SURREAL_PASS must be set}
+  SURREAL_NAMESPACE: tadabbur
+  SURREAL_DATABASE: quran_kg
+  # Hugging Face Inference Providers: the only AI platform. Server-side secret.
+  HF_TOKEN: ${HF_TOKEN:?HF_TOKEN must be set on the host}
+  HF_LLM_MODEL: ${HF_LLM_MODEL:-meta-llama/Llama-3.3-70B-Instruct}
+  HF_LLM_PROVIDER: ${HF_LLM_PROVIDER:-auto}
+  HF_EMBEDDING_MODEL: ${HF_EMBEDDING_MODEL:-intfloat/multilingual-e5-large}
+  HF_RERANKER_MODEL: ${HF_RERANKER_MODEL:-BAAI/bge-reranker-v2-m3}
+  HF_STT_MODEL: ${HF_STT_MODEL:-openai/whisper-large-v3-turbo}
+  ADMIN_TOKEN: ${ADMIN_TOKEN:?ADMIN_TOKEN must be set}
+  ADMIN_API_KEY: ${ADMIN_API_KEY:?ADMIN_API_KEY must be set}
+  KG_ADMIN_TOKEN: ${KG_ADMIN_TOKEN:?KG_ADMIN_TOKEN must be set}
+  CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS must list the web and app origins}
+  # Optional: enables /metrics and /health/detailed (X-Metrics-Secret); unset = 503.
+  METRICS_SECRET: ${METRICS_SECRET:-}
+  FEATURE_REDIS_CACHE: "true"
 
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: tadabbur-postgres
+    <<: [*restart, *logging, *hardening]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-tadabbur}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tadabbur_prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ${POSTGRES_DB:-tadabbur}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tadabbur}"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
       timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      retries: 10
     deploy:
       resources:
-        limits:
-          cpus: '1'
-          memory: 1G
+        limits: { cpus: "1", memory: 1G }
 
   qdrant:
     image: qdrant/qdrant:v1.7.4
-    container_name: tadabbur-qdrant
+    <<: [*restart, *logging, *hardening]
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD-SHELL", "timeout 3 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/6333' || exit 1"]
       interval: 5s
       timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      retries: 10
     deploy:
       resources:
-        limits:
-          cpus: '2'
-          memory: 2G
+        limits: { cpus: "2", memory: 2G }
 
   redis:
     image: redis:7-alpine
-    container_name: tadabbur-redis
+    <<: [*restart, *logging, *hardening]
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
-      retries: 5
-    restart: unless-stopped
-    command: >
-      redis-server
-      --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
-      --appendonly yes
+      retries: 10
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 384M }
 
   surrealdb:
     image: surrealdb/surrealdb:v1.5.0
-    container_name: tadabbur-surrealdb
+    <<: [*restart, *logging, *hardening]
+    # Persistent RocksDB storage (the knowledge graph survives restarts). The
+    # image's non-root user cannot write a fresh named volume, hence root.
     user: root
-    command: start --log info --user root --pass root memory
+    command: ["start", "--log", "info", "--user", "${SURREAL_USER:-tadabbur}", "--pass", "${SURREAL_PASS:?SURREAL_PASS must be set}", "file:/data/surreal.db"]
+    volumes:
+      - surreal_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
+      test: ["CMD", "/surreal", "isready", "--conn", "http://127.0.0.1:8000"]
       interval: 10s
       timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      retries: 10
     deploy:
       resources:
-        limits:
-          cpus: '1'
-          memory: 1G
+        limits: { cpus: "1", memory: 1G }
+
+  # One-shot schema migration; the API starts only after it succeeds.
+  migrate:
+    build:
+      context: ./backend
+      target: production
+    image: tadabbur-backend:${TAG:-latest}
+    <<: [*logging, *hardening]
+    environment:
+      <<: *backend-env
+    command: ["alembic", "upgrade", "head"]
+    read_only: true
+    tmpfs: [/tmp]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
 
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
       target: production
-    container_name: tadabbur-backend
+    image: tadabbur-backend:${TAG:-latest}
+    <<: [*restart, *logging, *hardening]
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-tadabbur}:${POSTGRES_PASSWORD:-tadabbur_prod}@postgres:5432/${POSTGRES_DB:-tadabbur}
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-      - REDIS_URL=redis://redis:6379/0
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
-      - ENVIRONMENT=production
-      - LLM_PROVIDER=ollama
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5:32b}
-      - ADMIN_TOKEN=${ADMIN_TOKEN:-change_this_in_production}
-      - SURREAL_HOST=surrealdb
-      - SURREAL_PORT=8000
-      - SURREAL_USER=root
-      - SURREAL_PASS=root
-      - SURREAL_NAMESPACE=tadabbur
-      - SURREAL_DATABASE=quran_kg
-      - WORKERS=4
-      - FEATURE_REDIS_CACHE=true
+      <<: *backend-env
+      WORKERS: ${BACKEND_WORKERS:-2}
+      # Trust X-Forwarded-* from the web container on the internal network.
+      FORWARDED_ALLOW_IPS: "*"
+    read_only: true
+    tmpfs: [/tmp]
     volumes:
-      - ./data:/app/data:ro
+      - backend_state:/var/lib/tadabbur
+      # Reference data (manifests, Qur'an text, tafsir inputs). The code
+      # resolves the repository's data/ directory as /data in the image.
+      - ./data:/data:ro
+      # Qur'an text source used by scripts/ingest/seed_quran.py (see README:
+      # its redistribution licence is unverified).
+      - ./assets:/assets:ro
+      # Generated atlas/graph JSON (committed under frontend/) that the Asma,
+      # story-atlas, topics, entities and prophets endpoints read; the code
+      # resolves it relative to the repository root.
+      - ./frontend/src/data/generated:/frontend/src/data/generated:ro
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
       qdrant:
         condition: service_healthy
       redis:
         condition: service_healthy
       surrealdb:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
     deploy:
       resources:
-        limits:
-          cpus: '2'
-          memory: 2G
+        limits: { cpus: "2", memory: 2G }
 
-  frontend:
+  web:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
       target: production
-    container_name: tadabbur-frontend
+      args:
+        # Public build-time value. Empty: same origin (nginx proxies /api).
+        VITE_API_URL: ${VITE_API_URL:-}
+    image: tadabbur-frontend:${TAG:-latest}
+    <<: [*restart, *logging, *hardening]
     ports:
-      - "80:80"
+      - "${WEB_PORT:-8080}:8080"
+    read_only: true
+    tmpfs: [/tmp]
     depends_on:
-      - backend
-    restart: unless-stopped
+      backend:
+        condition: service_healthy
     deploy:
       resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
+        limits: { cpus: "0.5", memory: 256M }
 
 volumes:
   postgres_data:
   qdrant_data:
   redis_data:
+  surreal_data:
+  backend_state:

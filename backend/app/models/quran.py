@@ -92,7 +92,7 @@ class Translation(Base):
     text = Column(Text, nullable=False)
 
     # For LLM translations
-    model_name = Column(String(100), nullable=True)  # e.g., "claude-sonnet-4-20250514"
+    model_name = Column(String(100), nullable=True)  # e.g., "meta-llama/Llama-3.3-70B-Instruct"
     checksum = Column(String(64), nullable=True)  # SHA256 of source text
     confidence = Column(Integer, nullable=True)  # 0-100
     needs_review = Column(Integer, default=0)  # 0=ok, 1=needs_review

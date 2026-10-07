@@ -34,7 +34,7 @@ class TestAskQuranErrorHandling:
         error = create_error(
             ErrorCode.LLM_UNAVAILABLE,
             "test123",
-            internal_details="Ollama down"
+            internal_details="Hugging Face router unavailable"
         )
         response = error.to_response("ar")
 
@@ -141,12 +141,12 @@ class TestAskQuranRequestContext:
         ctx = RAGRequestContext.create("test question", "en")
         ctx.retrieval_chunk_count = 5
         ctx.retrieval_source_count = 3
-        ctx.llm_provider = "ollama"
+        ctx.llm_provider = "huggingface"
         ctx.llm_latency_ms = 1500
 
         assert ctx.retrieval_chunk_count == 5
         assert ctx.retrieval_source_count == 3
-        assert ctx.llm_provider == "ollama"
+        assert ctx.llm_provider == "huggingface"
         assert ctx.llm_latency_ms == 1500
 
 
@@ -160,7 +160,7 @@ class TestAskQuranErrorCodes:
         error = create_error(
             ErrorCode.LLM_UNAVAILABLE,
             "abc123",
-            internal_details="Ollama connection refused"
+            internal_details="Hugging Face connection refused"
         )
 
         ar_response = error.to_response("ar")

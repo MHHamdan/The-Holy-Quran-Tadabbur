@@ -11,6 +11,7 @@
  * Arabic: صفحة القرآن الكريم المحسنة
  */
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { apiUrl } from '../lib/config';
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Book, ChevronLeft, ChevronRight, BookOpen,
@@ -23,6 +24,7 @@ import { useBookmarksStore } from '../stores/bookmarksStore';
 import { recordSurahVisit } from '../hooks/useReadingProgress';
 import { VerseText } from '../components/quran/WordMeaningPopover';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
+import { ErrorPanel, parseAPIError, type APIErrorData } from '../components/common/ErrorPanel';
 import clsx from 'clsx';
 
 const GrammarAnalysisView = lazy(() =>
@@ -64,7 +66,7 @@ const BISMILLAH_PATTERNS = [
 // Callers already gate on aya_no===1 and sura_no not in {1, 9}, so we just count words.
 // No Arabic string literals — text is extracted directly from the verse data.
 function splitBismillahImlaei(text: string): { bismillah: string; verseText: string } | null {
-  const clean = text.replace(/^﻿/, ''); // strip BOM (present only on 1:1)
+  const clean = text.replace(/^\uFEFF/, ''); // strip BOM (present only on 1:1)
   const words = clean.split(/\s+/);
   if (words.length <= 4) return null; // guard: whole verse is just the Bismillah
   const bismillah = words.slice(0, 4).join(' ');
@@ -101,6 +103,8 @@ export function QuranPage() {
   const [verses, setVerses] = useState<Verse[]>([]);
   const [suras, setSuras] = useState<SuraInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  // Verse text comes from the backend; a failed load must not look like an empty surah.
+  const [loadError, setLoadError] = useState<APIErrorData | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('mushaf');
   const [navMode, setNavMode] = useState<NavigationMode>(pageParam ? 'page' : 'surah');
   const [currentPage, setCurrentPage] = useState<number>(pageParam ? parseInt(pageParam, 10) : 1);
@@ -143,7 +147,7 @@ export function QuranPage() {
     const key = `grammar_irab:${suraNo}:${ayaNo}`;
     if (sessionStorage.getItem(key)) return;
     grammarApi.analyzeIrab(`${suraNo}:${ayaNo}`).then(r => {
-      try { sessionStorage.setItem(key, JSON.stringify(r.data)); } catch {}
+      try { sessionStorage.setItem(key, JSON.stringify(r.data)); } catch { /* storage unavailable or full: caching is best-effort */ }
     }).catch(() => {});
   }, []);
 
@@ -151,16 +155,16 @@ export function QuranPage() {
     const key = `sim_verses:${suraNo}:${ayaNo}`;
     if (sessionStorage.getItem(key)) return;
     quranApi.getAdvancedSimilarity(suraNo, ayaNo, { top_k: 50, min_score: 0.2 }).then(r => {
-      try { sessionStorage.setItem(key, JSON.stringify(r.data)); } catch {}
+      try { sessionStorage.setItem(key, JSON.stringify(r.data)); } catch { /* storage unavailable or full: caching is best-effort */ }
     }).catch(() => {});
   }, []);
 
   const prefetchTafsir = useCallback((suraNo: number, ayaNo: number) => {
     const key = `tafsir_panel:${suraNo}:${ayaNo}:muyassar`;
     if (sessionStorage.getItem(key)) return;
-    fetch(`/api/v1/tafseer/external/verse/${suraNo}/${ayaNo}?edition=muyassar`)
+    fetch(apiUrl(`/api/v1/tafseer/external/verse/${suraNo}/${ayaNo}?edition=muyassar`))
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) try { sessionStorage.setItem(key, JSON.stringify(data)); } catch {} })
+      .then(data => { if (data) try { sessionStorage.setItem(key, JSON.stringify(data)); } catch { /* storage unavailable or full: caching is best-effort */ } })
       .catch(() => {});
   }, []);
 
@@ -170,7 +174,7 @@ export function QuranPage() {
   useEffect(() => {
     async function loadMetadata() {
       try {
-        const metaRes = await fetch('/api/v1/quran/metadata');
+        const metaRes = await fetch(apiUrl('/api/v1/quran/metadata'));
         const meta = await metaRes.json();
         setSuras(meta.suras || []);
       } catch (error) {
@@ -290,6 +294,7 @@ export function QuranPage() {
 
   async function loadSura(suraNo: number) {
     setLoading(true);
+    setLoadError(null);
     try {
       const res = await quranApi.getSuraVerses(suraNo);
       setVerses(res.data);
@@ -299,6 +304,8 @@ export function QuranPage() {
       }
     } catch (error) {
       console.error('Failed to load sura:', error);
+      setVerses([]);
+      setLoadError(parseAPIError(error));
     } finally {
       setLoading(false);
     }
@@ -306,11 +313,14 @@ export function QuranPage() {
 
   async function loadPage(pageNo: number) {
     setLoading(true);
+    setLoadError(null);
     try {
       const res = await quranApi.getPageVerses(pageNo);
       setVerses(res.data);
     } catch (error) {
       console.error('Failed to load page:', error);
+      setVerses([]);
+      setLoadError(parseAPIError(error));
     } finally {
       setLoading(false);
     }
@@ -566,6 +576,11 @@ export function QuranPage() {
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full" />
         </div>
+      ) : loadError ? (
+        <ErrorPanel
+          error={loadError}
+          onRetry={() => (navMode === 'page' ? loadPage(currentPage) : loadSura(currentSura))}
+        />
       ) : viewMode === 'mushaf' ? (
         /* Mushaf Style View */
         <div className="rounded-2xl bg-[#fefcf3] border-2 border-amber-200 shadow-lg overflow-hidden">
@@ -609,7 +624,7 @@ export function QuranPage() {
               // Strip BOM (appears only on 1:1 in source data) and Bismillah prefix for display
               const displayText = bismillahSplit
                 ? bismillahSplit.verseText
-                : verse.text_imlaei.replace(/^﻿/, '');
+                : verse.text_imlaei.replace(/^\uFEFF/, '');
               // Show Bismillah block for: page mode (when surah starts on page) or surah mode
               const showBismillahBlock = bismillahSplit !== null && (
                 navMode === 'surah' ||
@@ -687,7 +702,7 @@ export function QuranPage() {
             const listBismillahSplit = hasBismillahPrefixList ? splitBismillahImlaei(verse.text_imlaei) : null;
             const listDisplayText = listBismillahSplit
               ? listBismillahSplit.verseText
-              : verse.text_imlaei.replace(/^﻿/, '');
+              : verse.text_imlaei.replace(/^\uFEFF/, '');
 
             const translation = verse.translations?.find(
               t => t.language === (language === 'ar' ? 'ar' : 'en')

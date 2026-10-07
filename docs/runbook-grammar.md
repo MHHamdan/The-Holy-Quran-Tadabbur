@@ -8,8 +8,8 @@ The Grammar Analysis feature provides word-by-word grammatical analysis of Quran
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Frontend  │ ──▶ │   Backend   │ ──▶ │   Ollama    │
-│  Grammar UI │     │  /grammar/* │     │  Qwen2.5    │
+│   Frontend  │ ──▶ │   Backend   │ ──▶ │ Hugging Face│
+│  Grammar UI │     │  /grammar/* │     │  chat model │
 └─────────────┘     └──────┬──────┘     └─────────────┘
                            │
                            ▼
@@ -23,7 +23,7 @@ The Grammar Analysis feature provides word-by-word grammatical analysis of Quran
 
 1. **Frontend (`GrammarAnalysis.tsx`)**: UI component that displays word-by-word analysis
 2. **Backend (`/api/v1/grammar/*`)**: FastAPI endpoints for grammar analysis
-3. **Ollama Service (`grammar_ollama.py`)**: Primary LLM-based analysis
+3. **LLM Service (`grammar_llm.py`)**: LLM-based analysis via Hugging Face Inference Providers
 4. **Static Fallback (`grammar_fallback.py`)**: Pre-analyzed data for common verses
 
 ## Endpoints
@@ -46,7 +46,7 @@ curl -s http://localhost:8000/api/v1/grammar/health | python3 -m json.tool
 
 | Status | Description |
 |--------|-------------|
-| `ok` | Ollama available, full analysis working |
+| `ok` | HF LLM configured, full analysis working |
 | `static_only` | Only pre-analyzed verses available |
 | `unavailable` | No analysis possible |
 
@@ -59,45 +59,28 @@ curl -s http://localhost:8000/api/v1/grammar/health | python3 -m json.tool
 - Confidence shows 0%
 - Notes show "خدمة التحليل غير متاحة"
 
-**Root Cause:** Ollama service unavailable or timeout
+**Root Cause:** `HF_TOKEN` missing on the backend, HF quota exhausted, or upstream timeout
 
 **Debug Steps:**
 
-1. Check Ollama status:
-   ```bash
-   curl http://localhost:11434/api/tags
-   ```
-
-2. Check grammar health:
+1. Check grammar health (`llm_available` must be `true`):
    ```bash
    curl http://localhost:8000/api/v1/grammar/health
    ```
 
-3. Check Ollama logs:
+2. Check backend logs for `Hugging Face chat failed: <kind>`:
    ```bash
-   docker logs ollama 2>&1 | tail -50
+   docker logs tadabbur-backend 2>&1 | grep "Hugging Face" | tail -20
    ```
-
-4. Verify model is loaded:
-   ```bash
-   curl http://localhost:11434/api/show -d '{"name": "qwen2.5:7b"}'
-   ```
+   `auth`/`forbidden` → token invalid or lacks the Inference Providers permission;
+   `quota` → credits exhausted or rate limited; `model_unavailable` → change
+   `HF_LLM_MODEL` / `HF_LLM_PROVIDER`.
 
 **Solutions:**
 
-1. **If Ollama is down:** Restart Ollama
-   ```bash
-   docker restart ollama
-   ```
-
-2. **If model is missing:** Pull the model
-   ```bash
-   docker exec ollama ollama pull qwen2.5:7b
-   ```
-
-3. **If timeout:** Check resources
-   - Ollama needs 8GB+ RAM for qwen2.5:7b
-   - Check `docker stats ollama`
+1. **Token missing/invalid:** set `HF_TOKEN` in the backend environment and restart.
+2. **Quota exhausted:** add HF credits or wait; the static fallback keeps working.
+3. **Model unavailable:** pick another model served by HF Inference Providers.
 
 ### Issue: Verse Not Found
 
@@ -140,7 +123,7 @@ curl -s http://localhost:8000/api/v1/grammar/health | python3 -m json.tool
 The grammar service uses a 2-tier fallback:
 
 ```
-1. Primary: Ollama LLM Analysis
+1. Primary: LLM analysis (Hugging Face)
    ↓ (if unavailable or timeout)
 2. Fallback: Static Morphology Dataset
    ↓ (if verse not in static data)
@@ -163,7 +146,7 @@ To add more verses, edit `app/services/grammar_fallback.py`.
 
 ### Key Metrics
 
-1. **Ollama availability**: `grammar_health.ollama_available`
+1. **LLM availability**: `grammar_health.llm_available`
 2. **Static fallback count**: `grammar_health.static_verse_count`
 3. **Source distribution**: Track `source` field in responses
 
@@ -183,20 +166,10 @@ docker logs tadabbur-backend 2>&1 | grep -i "timeout"
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama API URL |
-| `OLLAMA_MODEL` | `qwen2.5:7b` | Model for grammar analysis |
-| `GRAMMAR_TIMEOUT` | `60` | Request timeout in seconds |
-
-### Tuning Ollama
-
-For better performance:
-```bash
-# Increase GPU memory (if available)
-docker exec ollama ollama run qwen2.5:7b --gpu-layers 35
-
-# Check GPU usage
-nvidia-smi
-```
+| `HF_TOKEN` | — | Hugging Face token (server side only) |
+| `HF_LLM_MODEL` | `meta-llama/Llama-3.3-70B-Instruct` | Chat model for grammar analysis |
+| `HF_LLM_PROVIDER` | `auto` | HF provider routing |
+| `HF_TIMEOUT_SECONDS` | `60` | Request timeout in seconds |
 
 ## Quick Health Checks
 
@@ -210,11 +183,7 @@ echo "2. Grammar Health:"
 curl -s http://localhost:8000/api/v1/grammar/health
 
 echo ""
-echo "3. Ollama Status:"
-curl -s http://localhost:11434/api/tags | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'Models: {len(d.get(\"models\",[]))}')"
-
-echo ""
-echo "4. Test Grammar Analysis (1:1):"
+echo "3. Test Grammar Analysis (1:1):"
 curl -s http://localhost:8000/api/v1/grammar/ayah/1:1 | python3 -c \
   "import sys,json; d=json.load(sys.stdin); print(f'Source: {d.get(\"source\")}, Tokens: {len(d.get(\"tokens\",[]))}')"
 ```
@@ -252,7 +221,7 @@ curl -s http://localhost:8000/api/v1/grammar/ayah/1:1 | python3 -c \
 
 | Source | Description |
 |--------|-------------|
-| `llm` | Analyzed by Ollama LLM |
+| `llm` | Analyzed by the Hugging Face LLM |
 | `static` | Pre-analyzed static data |
 | `hybrid` | Combination of LLM + corpus |
 | `unavailable` | Service unavailable |
@@ -342,4 +311,4 @@ alembic upgrade head
 For unresolved issues:
 1. Capture the request_id from X-Request-Id header
 2. Check backend logs with the request_id
-3. Include Ollama status and grammar health output
+3. Include grammar health output (never paste HF_TOKEN)

@@ -18,7 +18,7 @@ from enum import Enum
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.kg.client import get_kg_client, KGClient
+from app.kg.client import get_kg_client, KGClient, check_record_id
 from app.db.database import get_async_session
 from app.models.concept import Concept, Occurrence, Association
 
@@ -220,7 +220,8 @@ class ThematicMapper:
 
         # Find the theme concept
         concepts = await self.kg.query(
-            f"SELECT * FROM concept_tag WHERE label_ar = '{theme_key}' OR label_en = '{theme_key}';"
+            "SELECT * FROM concept_tag WHERE label_ar = $key OR label_en = $key;",
+            {"key": theme_key},
         )
 
         if not concepts:
@@ -469,10 +470,12 @@ class ThematicMapper:
         theme_data: Dict[str, Dict[str, Any]] = {}
 
         for story_id in story_ids:
-            # Get events for this story
+            # Accept "musa" or "story_cluster:musa"; reject anything that is not
+            # a plain record id (story_ids comes from the query string).
+            cluster_rid = check_record_id(story_id if ":" in story_id else f"story_cluster:{story_id}")
             events = await self.kg.select(
                 "story_event",
-                where=f"cluster_id = {story_id}"
+                where=f"cluster_id = {cluster_rid}"
             )
 
             for event in events:
@@ -545,7 +548,8 @@ class ThematicMapper:
 
             # Get theme data
             concepts = await self.kg.query(
-                f"SELECT * FROM concept_tag WHERE label_ar = '{theme}' OR label_en = '{theme}';"
+                "SELECT * FROM concept_tag WHERE label_ar = $key OR label_en = $key;",
+                {"key": theme},
             )
 
             if concepts:

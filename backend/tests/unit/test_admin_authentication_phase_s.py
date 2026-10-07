@@ -27,7 +27,7 @@ from app.main import app
 from app.core.admin_auth import _verify_key, _get_configured_key_hash
 
 TEST_KEY = "phase-s-admin-key-test-abc123"
-WRONG_KEY = "definitely-wrong-key-xyz789"
+WRONG_KEY = "definitely-wrong-key-xyz789"  # gitleaks:allow (test fixture)
 TEST_KEY_HASH = hashlib.sha256(TEST_KEY.encode()).hexdigest()
 
 client = TestClient(app, raise_server_exceptions=False)

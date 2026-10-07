@@ -1,0 +1,246 @@
+# Continuous integration: backend, frontend, container images, security.
+#
+# - Runs on every push and on pull requests (the `pull_request` event, never
+#   `pull_request_target`), with a read-only token. PRs from forks therefore
+#   get no secrets.
+# - No job needs HF_TOKEN or any other secret: the test suite runs without
+#   Hugging Face (tests that would call HF are marked `live_hf` and excluded;
+#   tests/conftest.py also clears the token for every normal test).
+
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Explicitly empty: CI must never depend on, or leak, an HF credential.
+  HF_TOKEN: ""
+  HUGGINGFACE_TOKEN: ""
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  backend:
+    name: Backend (lint, types, migrations, tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: tadabbur
+          POSTGRES_PASSWORD: ci_only_password
+          POSTGRES_DB: tadabbur
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U tadabbur" --health-interval 5s
+          --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 5s --health-retries 20
+      qdrant:
+        image: qdrant/qdrant:v1.7.4
+        ports: ["6333:6333"]
+    env:
+      DATABASE_URL: postgresql://tadabbur:ci_only_password@localhost:5432/tadabbur
+      REDIS_URL: redis://localhost:6379/0
+      QDRANT_HOST: localhost
+      QDRANT_PORT: "6333"
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Install (default + dev extras; no torch, no model weights)
+        run: |
+          python -m pip install -e ".[dev]"
+          if pip list 2>/dev/null | grep -iE "^(torch|transformers|sentence-transformers|faster-whisper|ctranslate2) "; then
+            echo "::error::an ML runtime was installed by the default dependencies"; exit 1
+          fi
+
+      - name: Lint (whole tree) — syntax errors and undefined names
+        run: ruff check --isolated --select E9,F63,F7,F82 app tests scripts alembic
+
+      - name: Lint + format (Hugging Face modules, strict)
+        run: |
+          STRICT="app/ai app/stt/providers/huggingface.py tests/live tests/unit/test_hf_llm_provider.py tests/unit/test_hf_components.py tests/unit/test_secret_hygiene.py"
+          ruff check --isolated --line-length 100 --select E4,E7,E9,F $STRICT
+          black --check $STRICT
+
+      - name: Type check (Hugging Face client layer)
+        run: mypy app/ai --ignore-missing-imports --follow-imports=silent
+
+      - name: Migrations — single head, upgrade, downgrade, re-upgrade
+        run: |
+          test "$(alembic heads | wc -l)" -eq 1
+          alembic upgrade head
+          alembic downgrade -1
+          alembic upgrade head
+
+      - name: Seed reference data committed to the repository
+        run: |
+          python scripts/ingest/seed_quran.py
+          python scripts/ingest/seed_stories.py
+          python scripts/ingest/seed_story_atlas.py
+          python scripts/ingest/seed_story_graphs.py
+          python scripts/ingest/seed_concepts.py
+          python scripts/ingest/seed_themes.py
+          python scripts/ingest/seed_rhetorical_devices.py
+
+      - name: Unit and integration tests (no Hugging Face calls)
+        run: python -m pytest -m "not live_hf" -q -p no:cacheprovider
+
+  frontend:
+    name: Frontend (typecheck, lint, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run lint
+      - name: Build (same-origin API; a loopback VITE_API_URL fails the build)
+        run: npm run build
+        env:
+          VITE_API_URL: ""
+      - name: Bundle contains no loopback API URL or HF credential
+        run: |
+          if grep -rEl "localhost:(8000|8002|19800|3000)|HF_TOKEN|HUGGINGFACE_TOKEN|router\.huggingface\.co|hf_[A-Za-z0-9]{30,}" dist; then
+            echo "::error::forbidden string in the built bundle"; exit 1
+          fi
+
+  mobile:
+    name: Mobile (Capacitor Android debug APK, iOS sync)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+      - run: npm ci --no-audit --no-fund
+      - name: Release build refuses a missing / placeholder / loopback API URL
+        run: |
+          for url in "" "https://REPLACE_WITH_PRODUCTION_API_HOST" "http://localhost:8000"; do
+            if VITE_API_URL="$url" npx vite build --mode mobile > /tmp/out.log 2>&1; then
+              echo "::error::mobile release build accepted VITE_API_URL='$url'"; exit 1
+            fi
+          done
+      - name: Android debug APK (emulator development backend)
+        run: |
+          VITE_API_URL=http://10.0.2.2:8000 npm run build:mobile:dev
+          CAP_ALLOW_HTTP_BACKEND=true npx cap sync android
+          cd android && ./gradlew assembleDebug --no-daemon
+          ls -l app/build/outputs/apk/debug/app-debug.apk
+      - name: iOS project sync (native build requires macOS/Xcode)
+        run: |
+          VITE_API_URL=https://api.ci-placeholder.invalid npm run build:mobile
+          npx cap sync ios
+          test -f ios/App/App/public/index.html
+          test -f ios/App/App/capacitor.config.json
+
+  images:
+    name: Production images build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - name: Backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          target: production
+          push: false
+          load: true
+          tags: tadabbur-backend:ci
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - name: Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          target: production
+          push: false
+          load: true
+          tags: tadabbur-frontend:ci
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+      - name: Images run as non-root and carry no ML runtime or weights
+        run: |
+          test "$(docker image inspect tadabbur-backend:ci -f '{{.Config.User}}')" = "app"
+          test "$(docker image inspect tadabbur-frontend:ci -f '{{.Config.User}}')" = "101"
+          docker run --rm --entrypoint sh tadabbur-backend:ci -c '
+            ! pip list 2>/dev/null | grep -iE "^(torch|transformers|sentence-transformers|faster-whisper|ctranslate2|onnxruntime) " &&
+            test -z "$(find / -xdev \( -name "*.safetensors" -o -name "*.onnx" -o -name "*.pt" -o -name "*.gguf" \) 2>/dev/null)" &&
+            python -c "import app.main"'
+      - name: Compose file is valid with required variables
+        run: |
+          HF_TOKEN=x POSTGRES_PASSWORD=x SURREAL_PASS=x ADMIN_TOKEN=x ADMIN_API_KEY=x KG_ADMIN_TOKEN=x CORS_ORIGINS=https://example.org \
+            docker compose -f docker-compose.prod.yml config -q
+
+  security:
+    name: Security (secret scan, dependency audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Secret scan (full history, gitleaks)
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.24.3 \
+            git /repo --redact --no-banner --exit-code 1
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Python dependency audit (pip-audit)
+        run: |
+          python -m venv /tmp/audit
+          /tmp/audit/bin/pip install -q --upgrade pip setuptools
+          /tmp/audit/bin/pip install -q pip-audit ./backend
+          /tmp/audit/bin/pip-audit --progress-spinner off --skip-editable
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: npm audit (shipped dependencies, high and critical)
+        working-directory: frontend
+        run: npm audit --omit=dev --audit-level=high

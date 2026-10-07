@@ -297,6 +297,14 @@ def seed_source(session: Session, source_id: str) -> tuple[int, int, int]:
     cdn_folder = meta["cdn_folder"]
     cdn_url = f"{CDN_BASE_URL}/{cdn_folder}"
     version_tag = meta["version_tag"]
+    # Files produced by scripts/datasets/fetch_hf_tafseers.py carry their real
+    # origin (dataset + pinned revision) in a sidecar; record that, not the CDN.
+    sidecar = RAW_DIR / f"{source_id}.provenance.json"
+    if sidecar.exists():
+        prov = json.loads(sidecar.read_text(encoding="utf-8"))
+        cdn_url = prov["source_url"]
+        version_tag = prov["revision"]
+        print(f"  Provenance: {prov['dataset']}@{version_tag[:12]} ({prov['dataset_license']})")
     retrieval_timestamp = get_retrieval_timestamp(source_id)
     language = meta.get("language", "en" if "_en" in source_id else "ar")
 

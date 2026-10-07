@@ -7,7 +7,7 @@ ACCEPTANCE CRITERIA:
 2. All roles are from valid set
 3. Confidence scores are 0-1
 4. Arabic output labels only
-5. Graceful fallback when Ollama unavailable
+5. Graceful fallback when the LLM is unavailable
 
 Run with: pytest tests/integration/test_grammar.py -v
 """
@@ -238,7 +238,7 @@ class TestGrammarService:
 
     def test_grammar_service_singleton(self):
         """Grammar service is singleton."""
-        from app.services.grammar_ollama import get_grammar_service
+        from app.services.grammar_llm import get_grammar_service
 
         service1 = get_grammar_service()
         service2 = get_grammar_service()
@@ -247,7 +247,7 @@ class TestGrammarService:
 
     def test_build_grammar_prompt(self):
         """Grammar prompt is properly built."""
-        from app.services.grammar_ollama import build_grammar_prompt
+        from app.services.grammar_llm import build_grammar_prompt
 
         prompt = build_grammar_prompt("اللهُ أكبر", "1:1")
 
@@ -257,7 +257,7 @@ class TestGrammarService:
 
     def test_build_grammar_prompt_without_reference(self):
         """Grammar prompt works without verse reference."""
-        from app.services.grammar_ollama import build_grammar_prompt
+        from app.services.grammar_llm import build_grammar_prompt
 
         prompt = build_grammar_prompt("بسم الله")
 
@@ -266,7 +266,7 @@ class TestGrammarService:
 
     def test_pos_tag_mapping(self):
         """POS tag string mapping works correctly."""
-        from app.services.grammar_ollama import GrammarService
+        from app.services.grammar_llm import GrammarService
         from app.models.grammar import POSTag
 
         service = GrammarService()
@@ -278,7 +278,7 @@ class TestGrammarService:
 
     def test_role_mapping(self):
         """Role string mapping works correctly."""
-        from app.services.grammar_ollama import GrammarService
+        from app.services.grammar_llm import GrammarService
         from app.models.grammar import GrammaticalRole
 
         service = GrammarService()
@@ -290,7 +290,7 @@ class TestGrammarService:
 
     def test_sentence_type_mapping(self):
         """Sentence type string mapping works correctly."""
-        from app.services.grammar_ollama import GrammarService
+        from app.services.grammar_llm import GrammarService
         from app.models.grammar import SentenceType
 
         service = GrammarService()
@@ -306,7 +306,7 @@ class TestGrammarServiceFallback:
 
     def test_fallback_analysis_structure(self):
         """Fallback analysis has proper structure."""
-        from app.services.grammar_ollama import GrammarService
+        from app.services.grammar_llm import GrammarService
         from app.models.grammar import POSTag, GrammaticalRole, SentenceType
 
         service = GrammarService()
@@ -336,7 +336,7 @@ class TestGrammarResponseConversion:
 
     def test_to_grammar_analysis(self):
         """LLM response is properly converted."""
-        from app.services.grammar_ollama import GrammarService
+        from app.services.grammar_llm import GrammarService
 
         service = GrammarService()
 
@@ -409,7 +409,7 @@ class TestGrammarConfidenceScores:
 
     def test_overall_confidence_calculation(self):
         """Overall confidence is properly calculated."""
-        from app.services.grammar_ollama import GrammarService
+        from app.services.grammar_llm import GrammarService
 
         service = GrammarService()
 

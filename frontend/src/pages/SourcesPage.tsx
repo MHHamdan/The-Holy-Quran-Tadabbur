@@ -24,10 +24,10 @@ interface SourcesResponse {
 export function SourcesPage() {
   const { language } = useLanguageStore();
 
-  // Admin mode state - token stored in localStorage (not URL for security)
+  // Admin mode state - token kept in sessionStorage for this tab only (never the URL or localStorage)
   const [adminToken, setAdminToken] = useState<string | null>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem(ADMIN_TOKEN_KEY);
+      return sessionStorage.getItem(ADMIN_TOKEN_KEY);
     }
     return null;
   });
@@ -91,7 +91,7 @@ export function SourcesPage() {
     try {
       await ragApi.getAdminSources(tokenInput);
       // Token is valid
-      localStorage.setItem(ADMIN_TOKEN_KEY, tokenInput);
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, tokenInput);
       setAdminToken(tokenInput);
       setShowAdminModal(false);
       setTokenInput('');
@@ -110,7 +110,7 @@ export function SourcesPage() {
   }
 
   function handleExitAdminMode() {
-    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
     setAdminToken(null);
   }
 

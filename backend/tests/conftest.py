@@ -11,6 +11,11 @@ Markers:
 - @pytest.mark.slow: Slow tests (e.g., LLM calls, vectorization)
 - @pytest.mark.requires_stt: Tests that require STT model
 - @pytest.mark.requires_audio: Tests that require audio fixtures
+- @pytest.mark.live_hf: Calls real Hugging Face Inference Providers (spends credit)
+- @pytest.mark.requires_data("key", ...): needs reference data that is not in
+  the repository (tafsir corpus, QAC vocabulary, verse vectors). Skipped with
+  the missing key as the reason when that data is absent; set
+  REQUIRE_DATA_BUNDLE=1 to make absence a failure instead.
 
 Running tests:
 - pytest                       # Run all tests
@@ -18,6 +23,12 @@ Running tests:
 - pytest tests/integration/    # Run integration tests
 - pytest -m "unit"             # Run only unit-marked tests
 - pytest -m "not slow"         # Skip slow tests
+- pytest -m "not live_hf"      # Normal/CI run — never calls Hugging Face
+- pytest -m live_hf            # Live HF smoke tests (needs HF_TOKEN + credit)
+
+Every test NOT marked live_hf runs with the HF token cleared, so a missing
+mock can never turn into a paid upstream call; HF code paths take their
+"not configured" fallbacks instead.
 """
 import os
 import pytest
@@ -66,11 +77,108 @@ def pytest_configure(config):
         "markers",
         "requires_audio: Tests that require audio fixtures from EveryAyah.com"
     )
+    config.addinivalue_line(
+        "markers",
+        "live_hf: calls real Hugging Face Inference Providers; run only with "
+        "`pytest -m live_hf` (or RUN_LIVE_HF=1)"
+    )
+    config.addinivalue_line(
+        "markers",
+        "requires_data(*keys): needs external reference data (see _data_present)"
+    )
+
+
+# -----------------------------------------------------------------------------
+# External reference data
+# -----------------------------------------------------------------------------
+# Some tests assert on data that is ingested from external sources and is not
+# committed (tafsir corpora, QAC vocabulary, the verse vector index). They
+# declare exactly what they need; when it is absent they skip with that key as
+# the reason instead of failing on an empty table. Keys:
+#   vocabulary            any row in vocabulary_entries
+#   tafsir_corpus         any row in tafseer_chunks
+#   tafsir:S:A            a tafsir chunk covering surah S, ayah A
+#   tafsir_en:S:A         ... with English content
+#   verse_vector:S:A      verse S:A present in the Qdrant quran_verses collection
+_DATA_CACHE: dict = {}
+
+
+def _sql_exists(query: str, params: tuple) -> bool:
+    import psycopg2
+    from app.core.config import settings
+
+    url = settings.database_url.replace("+asyncpg", "")
+    with psycopg2.connect(url, connect_timeout=5) as conn, conn.cursor() as cur:
+        cur.execute(query, params)
+        return bool(cur.fetchone()[0])
+
+
+def _data_present(key: str) -> bool:
+    if key in _DATA_CACHE:
+        return _DATA_CACHE[key]
+    kind, _, ref = key.partition(":")
+    try:
+        if kind == "vocabulary":
+            ok = _sql_exists("SELECT EXISTS (SELECT 1 FROM vocabulary_entries)", ())
+        elif kind == "tafsir_corpus":
+            ok = _sql_exists("SELECT EXISTS (SELECT 1 FROM tafseer_chunks)", ())
+        elif kind in ("tafsir", "tafsir_en"):
+            sura, aya = (int(x) for x in ref.split(":"))
+            extra = " AND COALESCE(content_en, '') <> ''" if kind == "tafsir_en" else ""
+            ok = _sql_exists(
+                "SELECT EXISTS (SELECT 1 FROM tafseer_chunks WHERE sura_no = %s "
+                "AND aya_start <= %s AND COALESCE(aya_end, aya_start) >= %s" + extra + ")",
+                (sura, aya, aya),
+            )
+        elif kind == "verse_vector":
+            import httpx
+            from app.core.config import settings
+
+            sura, aya = (int(x) for x in ref.split(":"))
+            r = httpx.post(
+                f"http://{settings.qdrant_host}:{settings.qdrant_port}"
+                "/collections/quran_verses/points/scroll",
+                json={"limit": 1, "filter": {"must": [
+                    {"key": "sura_no", "match": {"value": sura}},
+                    {"key": "aya_no", "match": {"value": aya}},
+                ]}},
+                timeout=5,
+            )
+            ok = r.status_code == 200 and bool(r.json()["result"]["points"])
+        else:
+            raise ValueError(f"unknown requires_data key: {key}")
+    except ValueError:
+        raise
+    except Exception:
+        # Infrastructure is unreachable: let the test run and fail visibly
+        # rather than hiding an outage behind a skip.
+        ok = True
+    _DATA_CACHE[key] = ok
+    return ok
+
+
+def pytest_runtest_setup(item):
+    for marker in item.iter_markers("requires_data"):
+        for key in marker.args:
+            if not _data_present(key):
+                msg = f"requires_data: {key} not loaded (external data bundle)"
+                if os.environ.get("REQUIRE_DATA_BUNDLE") == "1":
+                    pytest.fail(msg, pytrace=False)
+                pytest.skip(msg)
+
+
+def _live_hf_enabled(config) -> bool:
+    markexpr = (config.option.markexpr or "").strip()
+    return os.environ.get("RUN_LIVE_HF") == "1" or markexpr == "live_hf"
 
 
 def pytest_collection_modifyitems(config, items):
-    """Auto-mark tests based on their location."""
+    """Auto-mark tests based on their location; gate live HF tests."""
+    live = _live_hf_enabled(config)
+    skip_live = pytest.mark.skip(reason="live_hf: run with `pytest -m live_hf` (spends HF credit)")
     for item in items:
+        if "live_hf" in item.keywords and not live:
+            item.add_marker(skip_live)
         # Auto-mark tests in unit/ directory
         if "unit" in str(item.fspath):
             item.add_marker(pytest.mark.unit)
@@ -117,6 +225,17 @@ def _patch_db_nullpool():
         database.AsyncSessionLocal = original_session
     except Exception:
         yield
+
+
+@pytest.fixture(autouse=True)
+def _no_live_hf(request, monkeypatch):
+    """Clear the HF token for every test that is not explicitly live_hf."""
+    if request.node.get_closest_marker("live_hf"):
+        yield
+        return
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "hf_token", None)
+    yield
 
 
 @pytest.fixture(scope="module", autouse=True)

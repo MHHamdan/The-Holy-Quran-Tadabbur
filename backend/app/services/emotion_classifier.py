@@ -1,58 +1,43 @@
 """
 NLI-based emotion classifier — Phase T4.
 
-Uses facebook/bart-large-mnli for zero-shot Natural Language Inference (NLI)
-classification in English and Latin-script text.  For Arabic-dominant input,
-the caller (classify_emotion in spiritual_guidance_service.py) routes to the
-keyword classifier, which already carries a full Arabic keyword bank.
-
-Architecture
-------------
-* One model, loaded lazily on first call, cached as a module-level singleton.
-* GPU used when available; falls back to CPU transparently.
-* `USE_TF=0` is set before transformers is imported to prevent tensorflow from
-  being loaded (it is not needed, and its presence in this environment causes
-  a NumPy 2.x compatibility error in ml_dtypes).
-* Thread-safe: double-checked locking pattern protects concurrent warm-ups.
-* Graceful degradation: if the model fails to load for any reason, `classify()`
-  returns ('', 0.0) and the caller falls back to keyword matching.
+Zero-shot Natural Language Inference classification of English / Latin-script
+text, run on Hugging Face Inference Providers (``HF_ZERO_SHOT_MODEL``, default
+``facebook/bart-large-mnli``). Nothing is loaded locally; no torch or GPU.
+For Arabic-dominant input the caller (classify_emotion in
+spiritual_guidance_service.py) routes to the keyword classifier, which carries
+a full Arabic keyword bank.
 
 Hypothesis template
 -------------------
-For each emotion label, the model scores:
-    "This person is feeling <emotion>."
-against the user's message using MNLI entailment probability (label index 2).
-All 11 emotion hypotheses are encoded in a single batched forward pass.
+For each emotion label the model scores "This person is feeling <emotion>."
+against the user's message. Labels are scored independently (multi-label), so
+each score is an entailment probability, as in the original local model.
 
 Confidence threshold (default 0.4)
 -----------------------------------
 If the highest entailment score is below the threshold, the classifier returns
-('', 0.0) to signal low confidence.  The caller should fall back to keywords.
-This threshold was chosen empirically: clean English emotion text reliably
-scores > 0.90; ambiguous or off-topic text scores below 0.4.
+('', score) to signal low confidence. The caller falls back to keywords.
+
+Graceful degradation
+--------------------
+No token, quota exhaustion, timeouts or malformed responses all return
+('', 0.0) and the caller uses keyword matching. Calls use a short timeout
+because classification sits in the request path.
 
 Language detection
 ------------------
 `is_arabic_dominant(text)` returns True when > 30 % of characters fall in the
-Arabic Unicode range (U+0600–U+06FF and extended blocks).  Callers should route
-Arabic-dominant text directly to the keyword classifier, which has a full Arabic
-keyword bank with good coverage.
+Arabic Unicode range. Callers route Arabic-dominant text to keywords.
 """
 from __future__ import annotations
 
 import logging
-import os
 import re
 import threading
 from typing import List, Optional, Tuple
 
-import torch
-
 logger = logging.getLogger(__name__)
-
-# Prevent transformers from loading tensorflow (stale env install causes NumPy 2.x crash).
-if "USE_TF" not in os.environ:
-    os.environ["USE_TF"] = "0"
 
 from app.models.therapy import EmotionCategory
 
@@ -103,15 +88,18 @@ def is_arabic_dominant(text: str, threshold: float = 0.30) -> bool:
 
 class NLIEmotionClassifier:
     """
-    Zero-shot NLI emotion classifier backed by facebook/bart-large-mnli.
+    Zero-shot NLI emotion classifier backed by a Hugging Face hosted model.
 
     Usage::
 
         clf = NLIEmotionClassifier()
-        clf.warmup()          # optional; call during app startup
+        clf.warmup()          # optional; checks configuration (no network call)
         emotion, confidence = clf.classify("I feel anxious about tomorrow")
-        # → ('anxiety', 0.996)
+        # → ('anxiety', 0.97)
     """
+
+    # Classification is in the request path; keep upstream waits short.
+    TIMEOUT_SECONDS = 10.0
 
     def __init__(
         self,
@@ -120,132 +108,79 @@ class NLIEmotionClassifier:
     ) -> None:
         self._model_name = model_name
         self._threshold = confidence_threshold
-        self._tokenizer = None
-        self._model = None
-        self._device: Optional[torch.device] = None
         self._lock = threading.Lock()
-        self._attempted = False
         self._ready = False
 
-    # ------------------------------------------------------------------
-    # Internal loading
-    # ------------------------------------------------------------------
-
     def _load(self) -> bool:
-        """Load tokenizer and model.  Called at most once (double-checked lock)."""
-        if self._attempted:
-            return self._ready
-        with self._lock:
-            if self._attempted:
-                return self._ready
-            try:
-                from transformers import (  # noqa: PLC0415
-                    AutoModelForSequenceClassification,
-                    AutoTokenizer,
-                )
+        """Ready when the HF token is configured. Makes no network call."""
+        from app.ai.hf_client import hf_configured
 
-                self._tokenizer = AutoTokenizer.from_pretrained(self._model_name)
-                self._model = AutoModelForSequenceClassification.from_pretrained(
-                    self._model_name
-                )
-                self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-                self._model.eval().to(self._device)
-                self._ready = True
-                logger.info(
-                    "NLI emotion classifier loaded: %s on %s",
-                    self._model_name,
-                    self._device,
-                )
-            except Exception as exc:
-                logger.warning(
-                    "NLI emotion classifier failed to load (%s): %s. "
-                    "Keyword fallback will be used.",
-                    self._model_name,
-                    exc,
-                )
-                self._ready = False
-            finally:
-                self._attempted = True
+        with self._lock:
+            self._ready = hf_configured()
+        if not self._ready:
+            logger.info("HF_TOKEN not configured — emotion keyword fallback will be used.")
         return self._ready
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
     def warmup(self) -> bool:
-        """
-        Pre-load the model.  Call during application startup so that the first
-        HTTP request does not incur the model-loading latency (~5–30 s).
-
-        Returns True if the model loaded successfully.
-        """
+        """Check configuration at startup. Returns True when HF is configured."""
         return self._load()
 
     @property
     def is_ready(self) -> bool:
-        """True after a successful model load."""
         return self._ready
+
+    def _zero_shot(self, text: str) -> List[Tuple[str, float]]:
+        """Return (label, entailment probability) pairs from HF."""
+        from app.ai.hf_client import classify_exception, task_client
+
+        client = task_client("zero-shot", timeout=self.TIMEOUT_SECONDS)
+        try:
+            out = client.zero_shot_classification(
+                text[:1000],
+                candidate_labels=EMOTION_LABELS,
+                hypothesis_template="This person is feeling {}.",
+                multi_label=True,
+                model=self._model_name,
+            )
+        except Exception as exc:  # noqa: BLE001
+            raise classify_exception(exc, "zero-shot") from None
+        return [(item.label, float(item.score)) for item in out]
 
     def classify(self, text: str) -> Tuple[str, float]:
         """
         Classify `text` into an emotion category using zero-shot NLI.
 
-        All 11 emotion hypotheses are encoded and scored in a single batched
-        forward pass.
-
         Returns
         -------
         (emotion_key, confidence)
             ``emotion_key`` is an EmotionCategory string; ``confidence`` is the
-            MNLI entailment probability [0.0, 1.0].
+            entailment probability [0.0, 1.0].
 
-        Returns ('', 0.0) when:
-        - the model is not loaded, or
-        - max confidence < ``confidence_threshold`` (caller should fall back
-          to keyword classification).
+        Returns ('', 0.0) when HF is not configured or the call fails, and
+        ('', score) when the best score is below ``confidence_threshold``.
         """
-        if not self._load():
+        if not text or not text.strip() or not self._load():
             return ("", 0.0)
 
         try:
-            hypotheses = [f"This person is feeling {lbl}." for lbl in EMOTION_LABELS]
-            enc = self._tokenizer(
-                [text] * len(EMOTION_LABELS),
-                hypotheses,
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=256,
-            ).to(self._device)
-
-            with torch.no_grad():
-                logits = self._model(**enc).logits
-
-            # BART MNLI label_ids: 0=contradiction, 1=neutral, 2=entailment
-            entail_probs = torch.softmax(logits, dim=-1)[:, 2]
-            best_idx = int(entail_probs.argmax())
-            confidence = float(entail_probs[best_idx])
-
-            if confidence < self._threshold:
-                logger.debug(
-                    "Low NLI confidence %.3f for text %.60r — keyword fallback",
-                    confidence,
-                    text,
-                )
-                return ("", confidence)
-
-            return (EMOTION_LABELS[best_idx], confidence)
-
+            scored = self._zero_shot(text)
         except Exception as exc:
-            logger.warning("NLI emotion inference error: %s", exc)
+            logger.warning("NLI emotion inference unavailable: %s", exc)
             return ("", 0.0)
 
-    def classify_batch(self, texts: List[str]) -> List[Tuple[str, float]]:
-        """
-        Classify multiple texts.  Each text is handled independently.
+        scored = [(label, score) for label, score in scored if label in EMOTION_LABELS]
+        if not scored:
+            logger.warning("NLI emotion inference returned no known labels")
+            return ("", 0.0)
 
-        This is a convenience wrapper — useful for batch pre-warming caches.
-        """
+        label, confidence = max(scored, key=lambda pair: pair[1])
+        if confidence < self._threshold:
+            logger.debug("Low NLI confidence %.3f — keyword fallback", confidence)
+            return ("", confidence)
+        return (label, confidence)
+
+    def classify_batch(self, texts: List[str]) -> List[Tuple[str, float]]:
+        """Classify multiple texts independently."""
         return [self.classify(t) for t in texts]
 
 

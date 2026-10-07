@@ -71,10 +71,10 @@ test.describe('Grammar API Health', () => {
     // Should have expected fields
     expect(data).toHaveProperty('status');
     expect(['ok', 'static_only', 'unavailable']).toContain(data.status);
-    expect(data).toHaveProperty('ollama_available');
+    expect(data).toHaveProperty('llm_available');
     expect(data).toHaveProperty('static_fallback_available');
 
-    console.log(`Grammar health: ${data.status}, Ollama: ${data.ollama_available}, Static: ${data.static_fallback_available}`);
+    console.log(`Grammar health: ${data.status}, LLM: ${data.llm_available}, Static: ${data.static_fallback_available}`);
   });
 
   test('should return grammar labels', async ({ page, request }) => {
