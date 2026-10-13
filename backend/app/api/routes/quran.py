@@ -2,7 +2,10 @@
 Quran API routes for verses, translations, and tafseer.
 """
 import asyncio
+import json
 import logging
+from functools import lru_cache
+from pathlib import Path as FilePath
 from typing import List, Optional, Dict, Any, Tuple
 
 logger = logging.getLogger(__name__)
@@ -109,6 +112,10 @@ class VerseResponse(BaseModel):
     text_imlaei: str
     page_no: int
     juz_no: int
+    hizb_no: Optional[int] = None  # 1-60
+    rub_no: Optional[int] = None  # hizb quarter 1-240
+    sajda_type: Optional[str] = None  # "recommended" | "obligatory" on the 15 sajdah verses
+    quarter_start: bool = False  # this verse opens hizb quarter rub_no
     translations: List[TranslationResponse] = []
     # Provenance: every verse is served from the King Fahd Madinah Mushaf corpus
     source_authority: str = "مجمع الملك فهد لطباعة المصحف الشريف"
@@ -540,6 +547,18 @@ class TranslationEditionResponse(BaseModel):
 
 MAX_TRANSLATIONS_PER_REQUEST = 3
 
+
+@lru_cache(maxsize=1)
+def _quarter_starts() -> frozenset:
+    """First verse of each of the 240 hizb quarters (data/manifests/quran_structure_markers.json)."""
+    path = FilePath(__file__).resolve().parents[4] / "data" / "manifests" / "quran_structure_markers.json"
+    try:
+        quarters = json.loads(path.read_text(encoding="utf-8"))["hizb_quarters"]
+    except (OSError, ValueError, KeyError):
+        logger.warning("quran_structure_markers.json unavailable; no quarter markers")
+        return frozenset()
+    return frozenset((s, a) for s, a in quarters)
+
 TranslationsParam = Query(
     None,
     description=(
@@ -582,7 +601,9 @@ async def _with_translations(
         out.append(VerseResponse(
             id=v.id, sura_no=v.sura_no, sura_name_ar=v.sura_name_ar, sura_name_en=v.sura_name_en,
             aya_no=v.aya_no, text_uthmani=v.text_uthmani, text_imlaei=v.text_imlaei,
-            page_no=v.page_no, juz_no=v.juz_no, translations=by_verse.get(v.id, []),
+            page_no=v.page_no, juz_no=v.juz_no, hizb_no=v.hizb_no, rub_no=v.rub_no,
+            sajda_type=v.sajda_type, quarter_start=(v.sura_no, v.aya_no) in _quarter_starts(),
+            translations=by_verse.get(v.id, []),
         ))
     return out
 

@@ -98,6 +98,7 @@ def pytest_configure(config):
 #   vocabulary            any row in vocabulary_entries
 #   tafsir_corpus         any row in tafseer_chunks
 #   translations          QuranEnc translation editions (seed_translations_quranenc.py)
+#   verse_markers         hizb/rub'/sajdah markers (seed_quran.py --markers-only)
 #   tafsir:S:A            a tafsir chunk covering surah S, ayah A
 #   tafsir_en:S:A         ... with English content
 #   verse_vector:S:A      verse S:A present in the Qdrant quran_verses collection
@@ -121,6 +122,8 @@ def _data_present(key: str) -> bool:
     try:
         if kind == "vocabulary":
             ok = _sql_exists("SELECT EXISTS (SELECT 1 FROM vocabulary_entries)", ())
+        elif kind == "verse_markers":
+            ok = _sql_exists("SELECT EXISTS (SELECT 1 FROM quran_verses WHERE rub_no IS NOT NULL)", ())
         elif kind == "translations":
             ok = _sql_exists("SELECT EXISTS (SELECT 1 FROM translation_editions)", ())
         elif kind == "tafsir_corpus":

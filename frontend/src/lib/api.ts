@@ -20,6 +20,13 @@ export interface Verse {
   text_imlaei: string;
   page_no: number;
   juz_no: number;
+  hizb_no?: number | null;
+  /** Hizb quarter 1-240. */
+  rub_no?: number | null;
+  /** Set on the 15 sajdah verses. */
+  sajda_type?: 'recommended' | 'obligatory' | null;
+  /** This verse opens hizb quarter rub_no. */
+  quarter_start?: boolean;
   translations: Translation[];
 }
 

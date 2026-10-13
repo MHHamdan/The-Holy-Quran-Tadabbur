@@ -27,6 +27,7 @@ import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { ErrorPanel, parseAPIError, type APIErrorData } from '../components/common/ErrorPanel';
 import { VerseTranslations, useTranslationEditions } from '../components/quran/VerseTranslations';
 import { ReaderSettingsPanel } from '../components/quran/ReaderSettingsPanel';
+import { VerseMarkers } from '../components/quran/VerseMarkers';
 import {
   useReaderSettingsStore,
   effectiveTranslationKeys,
@@ -724,6 +725,11 @@ export function QuranPage() {
                       <span className={clsx('text-xl text-amber-800', quranFont)}>{bismillahSplit.bismillah}</span>
                     </div>
                   )}
+                  {verse.quarter_start && (
+                    <span className="inline-block align-middle mx-1" style={{ fontSize: '1rem', lineHeight: 1.5 }}>
+                      <VerseMarkers verse={verse} language={language} only="quarter" />
+                    </span>
+                  )}
                   <span
                     ref={isHighlighted ? highlightRef : null}
                     data-verse-key={verseKey}
@@ -738,6 +744,11 @@ export function QuranPage() {
                   <span className="inline-flex items-center justify-center w-8 h-8 mx-1 text-sm bg-amber-100 text-amber-800 rounded-full border border-amber-300 font-semibold">
                     {toArabicNum(verse.aya_no)}
                   </span>
+                  {verse.sajda_type && (
+                    <span className="inline-block align-middle mx-1" style={{ fontSize: '1rem', lineHeight: 1.5 }}>
+                      <VerseMarkers verse={verse} language={language} only="sajdah" />
+                    </span>
+                  )}
                   {idx < verses.length - 1 && ' '}
                 </span>
               );
@@ -828,6 +839,7 @@ export function QuranPage() {
                     {navMode === 'page' && (
                       <span className="text-xs text-gray-400">{verse.sura_name_ar}</span>
                     )}
+                    <VerseMarkers verse={verse} language={language} />
                   </div>
                   <span className="text-xs text-gray-300">
                     {verseIdx + 1} / {verses.length}

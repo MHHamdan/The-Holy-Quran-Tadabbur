@@ -42,7 +42,8 @@ class QuranVerse(Base):
     # Mushaf positioning
     page_no = Column(Integer, nullable=False, index=True)
     juz_no = Column(Integer, nullable=False, index=True)
-    hizb_no = Column(Integer, nullable=True)
+    hizb_no = Column(Integer, nullable=True)  # 1-60
+    rub_no = Column(Integer, nullable=True)  # hizb quarter, 1-240 (quran_structure_markers.json)
 
     # Line positioning (for display)
     line_start = Column(Integer, nullable=True)
