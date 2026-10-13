@@ -69,6 +69,7 @@ Copy `.env.example` to `.env` (git-ignored) and fill it in. Everything is config
 | `KG_ADMIN_TOKEN` | backend | prod | `X-Admin-Token` for `/api/v1/kg/init-schema` and `/import-stories`; unset means 503 |
 | `METRICS_SECRET` | backend | no | Enables `/metrics`, `/health/detailed` (`X-Metrics-Secret`) in production |
 | `VITE_API_URL` | frontend build | mobile: yes | **Public** API origin compiled into the bundle. Web: empty (same origin). Never a secret. |
+| `VITE_PUBLIC_WEB_URL` | frontend build | no | **Public** web address used in shared verse links. Web: defaults to the page origin. Apps: no link without it. |
 
 Admin keys typed into the web UI are kept in `sessionStorage` for that tab only.
 
@@ -208,7 +209,9 @@ npm run android:release                            # bundleRelease (sign with yo
 npm run ios:sync && npx cap open ios               # set signing team, archive, upload
 ```
 
-- **Permissions:** only the microphone, for Tasmeeʿ, requested when recording starts.
+- **Permissions:** the microphone, for Tasmeeʿ, requested when recording starts; notifications (Android 13+ / iOS), requested only when the user turns on the daily reading reminder (Reading Plan page). Reminders are local notifications: no push service.
+- **Native features:** system share sheet, haptics on the dhikr counter, background recitation with lock-screen controls (iOS `UIBackgroundModes=audio`), and deep links on the `tadabbur://` scheme (e.g. `tadabbur://quran/2?aya=255`, `tadabbur://continue`).
+- **Shared links:** set `VITE_PUBLIC_WEB_URL` (public web address) at build time so verses shared from the apps carry a link; without it they share text only.
 - **Network security:** release builds allow HTTPS only. Debug builds allow cleartext only to `10.0.2.2` and `localhost`. iOS keeps App Transport Security defaults.
 - **Details:** `docs/migration/PHASE8_MOBILE.md`.
 

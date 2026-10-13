@@ -21,6 +21,7 @@ import {
   QURANIC_DUAS, CATEGORY_META, OCCASION_META,
   type DuaCategory, type DuaOccasion, type QuranicDua,
 } from '../data/quranicDuas';
+import { shareContent } from '../lib/native';
 
 const ALL_CATEGORIES = Object.keys(CATEGORY_META) as DuaCategory[];
 const ALL_OCCASIONS  = Object.keys(OCCASION_META)  as DuaOccasion[];
@@ -111,11 +112,7 @@ function ShareButton({ dua, isRtl }: { dua: QuranicDua; isRtl: boolean }) {
       '',
       `— ${isRtl ? dua.surahNameAr : dua.surahNameEn} ${ayahRef}`,
     ].join('\n');
-    if (navigator.share) {
-      await navigator.share({ text }).catch(() => null);
-    } else {
-      await navigator.clipboard.writeText(text).catch(() => null);
-    }
+    await shareContent({ title: isRtl ? dua.titleAr : dua.titleEn, text });
     setShared(true);
     setTimeout(() => setShared(false), 1800);
   }, [dua, isRtl, ayahRef]);

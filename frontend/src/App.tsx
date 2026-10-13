@@ -8,7 +8,7 @@
  */
 
 import { Routes, Route, Navigate, useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Suspense, lazy, useEffect, memo } from 'react';
+import { Suspense, lazy, useEffect, useRef, memo } from 'react';
 import { Layout } from './components/layout/Layout';
 import { AppUpdateBanner, NativeConnectivityBanner } from './components/pwa/AppUpdateBanner';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
@@ -18,6 +18,7 @@ import { usePersonaStore } from './stores/personaStore';
 import { Loader2 } from 'lucide-react';
 import { useLanguageStore } from './stores/languageStore';
 import { t } from './i18n/translations';
+import { continueReadingPath } from './hooks/useReadingProgress';
 
 // =============================================================================
 // Loading Component - Optimized for perceived performance
@@ -243,15 +244,26 @@ function useRoutePreloader() {
 // Main App Component
 // =============================================================================
 
+function ContinueReading() {
+  return <Navigate to={continueReadingPath()} replace />;
+}
+
 function App() {
   useRoutePreloader();
   const { hasChosen } = usePersonaStore();
   const navigate = useNavigate();
 
-  // Android/iOS shell: status bar, splash, hardware back button (no-op on web).
+  // Android/iOS shell: status bar, splash, back button, deep links and
+  // notification taps (no-op on web). Registered once: navigate changes
+  // identity on every route change, so it is read through a ref.
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
   useEffect(() => {
-    initNativeShell(() => navigate(-1)).catch(() => undefined);
-  }, [navigate]);
+    initNativeShell(
+      () => navigateRef.current(-1),
+      (path) => navigateRef.current(path),
+    ).catch(() => undefined);
+  }, []);
 
   return (
     <Layout>
@@ -374,6 +386,8 @@ function App() {
 
           {/* Reading Plan / Khatmah planner */}
           <Route path="/reading-plan" element={<ReadingPlanPage />} />
+          {/* Target of reading-reminder taps and tadabbur://continue */}
+          <Route path="/continue" element={<ContinueReading />} />
 
           {/* Quranic Duʿā Explorer */}
           <Route path="/duas" element={<DuasPage />} />

@@ -18,6 +18,8 @@ export interface LastRead {
   nameAr: string;
   nameEn: string;
   ts: number;
+  /** Last verse reached in that surah, when known. */
+  aya?: number;
 }
 
 export interface ReadingProgress {
@@ -147,4 +149,11 @@ export function recordSurahVisit(surah: number, nameAr: string, nameEn: string):
 
 export function getReadingProgress(): ReadingProgress {
   return load();
+}
+
+/** Where "continue reading" should open: the last verse read, else Al-Fatiha. */
+export function continueReadingPath(): string {
+  const last = load().lastRead;
+  if (!last) return '/quran/1';
+  return last.aya && last.aya > 1 ? `/quran/${last.surah}?aya=${last.aya}` : `/quran/${last.surah}`;
 }

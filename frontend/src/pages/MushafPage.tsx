@@ -47,6 +47,7 @@ import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, Verse, api, verseAskAiApi } from '../lib/api';
 import type { VerseAskAiResponse, Citation } from '../lib/api';
 import { queryKeys, staleTimes } from '../lib/queryClient';
+import { shareContent } from '../lib/native';
 
 // =============================================================================
 // Types & Interfaces
@@ -322,23 +323,18 @@ const VersePanel = memo(function VersePanel({
         sura_name_ar: verse.sura_name_ar,
         sura_name_en: verse.sura_name_en,
         aya_no: verse.aya_no,
-        text_uthmani: verse.text_imlaei,
+        text_uthmani: verse.text_uthmani,
       });
     }
   }, [bookmarked, verse, addBookmark, removeBookmark]);
 
   const shareVerse = useCallback(async () => {
     const ref = `${verse.sura_name_en} (${verse.sura_no}:${verse.aya_no})`;
-    const text = `${verse.text_imlaei}\n— ${ref}\n\ntadabbur.app/quran/${verse.sura_no}?aya=${verse.aya_no}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: ref, text });
-      } catch {
-        // User cancelled or not supported — silently ignore
-      }
-    } else {
-      navigator.clipboard.writeText(text).catch(console.error);
-    }
+    await shareContent({
+      title: ref,
+      text: `${verse.text_uthmani}\n— ${ref}`,
+      path: `/quran/${verse.sura_no}?aya=${verse.aya_no}`,
+    });
   }, [verse]);
 
   const copyVerseWithAttribution = useCallback(() => {

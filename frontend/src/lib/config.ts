@@ -21,3 +21,17 @@ export function wsUrl(path: string): string {
   const origin = API_ORIGIN || window.location.origin;
   return `${origin.replace(/^http/, 'ws')}${path.startsWith('/') ? path : `/${path}`}`;
 }
+
+/**
+ * Public web address used in shared links (e.g. https://tadabbur.example.org).
+ * In the browser it defaults to the page's own origin. Inside the Android/iOS
+ * apps the origin is https://localhost or capacitor://localhost, which is
+ * useless to the person receiving a link, so shares carry no link there unless
+ * VITE_PUBLIC_WEB_URL is set at build time.
+ */
+const CONFIGURED_WEB_ORIGIN = (import.meta.env.VITE_PUBLIC_WEB_URL || '').replace(/\/+$/, '');
+
+export function publicWebUrl(path: string, isNative: boolean): string | null {
+  const origin = CONFIGURED_WEB_ORIGIN || (isNative ? '' : window.location.origin);
+  return origin ? `${origin}${path.startsWith('/') ? path : `/${path}`}` : null;
+}

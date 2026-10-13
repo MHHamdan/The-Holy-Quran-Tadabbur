@@ -33,6 +33,7 @@ import {
   verseTextFor,
 } from '../stores/readerSettingsStore';
 import clsx from 'clsx';
+import { shareContent } from '../lib/native';
 
 const GrammarAnalysisView = lazy(() =>
   import('../components/quran/GrammarAnalysis').then(m => ({ default: m.GrammarAnalysisView }))
@@ -147,13 +148,14 @@ export function QuranPage() {
     }).catch(() => {});
   }, []);
 
-  const shareVerse = useCallback((verse: Verse) => {
-    const url = `${window.location.origin}/quran/${verse.sura_no}?aya=${verse.aya_no}`;
-    if (navigator.share) {
-      navigator.share({ url, title: `${verse.sura_name_ar} ${verse.aya_no}` }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(url).catch(() => {});
-    }
+  const shareVerse = useCallback((verse: Verse, displayText: string) => {
+    const ref = `${verse.sura_name_ar} ${toArabicNum(verse.aya_no)}`;
+    const translation = verse.translations?.[0]?.text;
+    void shareContent({
+      title: ref,
+      text: [displayText, `(${ref})`, translation].filter(Boolean).join('\n'),
+      path: `/quran/${verse.sura_no}?aya=${verse.aya_no}`,
+    });
   }, []);
 
   // Prefetch on button hover so panel opens instantly
@@ -206,7 +208,6 @@ export function QuranPage() {
       loadSura(currentSura);
     }
     // translationsKey stands in for activeTranslations (a new array every render)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSura, navMode, currentPage, translationsKey]);
 
   // Record surah visit for reading progress tracking
@@ -876,7 +877,7 @@ export function QuranPage() {
                       }
                     </button>
                     <button
-                      onClick={() => shareVerse(verse)}
+                      onClick={() => shareVerse(verse, listDisplayText)}
                       title={language === 'ar' ? 'مشاركة' : 'Share'}
                       className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     >
