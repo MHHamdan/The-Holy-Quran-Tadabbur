@@ -123,7 +123,9 @@ The commands below were run against `docker-compose.prod.yml` on an empty stack.
 DC="docker compose -f docker-compose.prod.yml"
 RUN="$DC run --rm --no-deps backend"   # paths after $RUN are inside the backend image (= backend/)
 
-# 1. Qur'an text (6,236 verses + search normalisation)          -- from assets/hafs_smart_v8.json
+# 1. Qur'an text (6,236 verses + search normalisation + hizb/rub' and sajdah markers)
+#    -- from assets/hafs_smart_v8.json and data/manifests/quran_structure_markers.json.
+#    Existing database: `seed_quran.py --markers-only` adds just the markers.
 $RUN python scripts/ingest/seed_quran.py
 
 # 2. Tafsir: fetch 5 Arabic works from the HF dataset riotu-lab/Quran-Tafseers (Apache-2.0,
