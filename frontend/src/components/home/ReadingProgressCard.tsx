@@ -9,7 +9,7 @@
 import { Link } from 'react-router-dom';
 import { BookMarked, RotateCcw, ChevronRight, Flame, CalendarCheck, BarChart2 } from 'lucide-react';
 import clsx from 'clsx';
-import { useReadingProgress } from '../../hooks/useReadingProgress';
+import { useReadingProgress, continueReadingPath } from '../../hooks/useReadingProgress';
 import { useLanguageStore } from '../../stores/languageStore';
 
 const TOTAL = 114;
@@ -120,7 +120,7 @@ export function ReadingProgressCard() {
             {isRtl ? 'آخر قراءة' : 'Last read'}
           </p>
           <Link
-            to={`/quran/${lastRead.surah}`}
+            to={continueReadingPath()}
             className={clsx(
               'flex items-center gap-2 px-3 py-2 rounded-lg',
               'bg-white/60 hover:bg-white/90 border border-violet-100 transition-colors',
@@ -131,7 +131,14 @@ export function ReadingProgressCard() {
               <span className="text-[10px] font-bold text-violet-600">{lastRead.surah}</span>
             </div>
             <div className={clsx('flex-1 min-w-0', isRtl && 'text-right')}>
-              <p className="text-xs font-medium text-gray-800 truncate">{lastRead.nameEn}</p>
+              <p className="text-xs font-medium text-gray-800 truncate">
+                {lastRead.nameEn}
+                {lastRead.aya && lastRead.aya > 1 && (
+                  <span className="text-gray-400 font-normal">
+                    {isRtl ? ` · الآية ${lastRead.aya}` : ` · verse ${lastRead.aya}`}
+                  </span>
+                )}
+              </p>
               <p className="text-[10px] font-arabic text-gray-500 truncate">{lastRead.nameAr}</p>
             </div>
             <ChevronRight className={clsx('w-3.5 h-3.5 text-violet-400 flex-shrink-0', isRtl && 'rotate-180')} />

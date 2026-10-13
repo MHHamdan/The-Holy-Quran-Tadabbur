@@ -48,6 +48,8 @@ import { quranApi, Verse, api, verseAskAiApi } from '../lib/api';
 import type { VerseAskAiResponse, Citation } from '../lib/api';
 import { queryKeys, staleTimes } from '../lib/queryClient';
 import { shareContent } from '../lib/native';
+import { getReadingProgress, recordReadingPosition } from '../hooks/useReadingProgress';
+import { useReaderSettingsStore, verseTextFor } from '../stores/readerSettingsStore';
 
 // =============================================================================
 // Types & Interfaces
@@ -969,16 +971,19 @@ export function MushafPage() {
   );
 
   // State
+  // Opens at ?page=, else where the reader left off, else page 1.
   const [currentPage, setCurrentPage] = useState(() => {
     const page = searchParams.get('page');
-    return page ? parseInt(page, 10) : 1;
+    return page ? parseInt(page, 10) : getReadingProgress().lastRead?.page ?? 1;
   });
   const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
-  const [fontSize, setFontSize] = useState(28);
+  const {
+    fontScale, setFontScale, script, reciterId: selectedReciter, setReciterId: setSelectedReciter,
+  } = useReaderSettingsStore();
+  const fontSize = Math.round(28 * fontScale);
   const [selectedTafsir, setSelectedTafsir] = useState(() =>
     language === 'ar' ? 'muyassar' : 'en_ibn_kathir'
   );
-  const [selectedReciter, setSelectedReciter] = useState('mishary_afasy');
   const [showSettings, setShowSettings] = useState(false);
   const [showAI, setShowAI] = useState(false);
   const [playingVerseId, setPlayingVerseId] = useState<number | null>(null);
@@ -1007,6 +1012,16 @@ export function MushafPage() {
   useEffect(() => {
     setSearchParams({ page: currentPage.toString() });
   }, [currentPage, setSearchParams]);
+
+  // Remember the page (and its first verse) for "continue reading"
+  useEffect(() => {
+    const first = verses[0];
+    if (!first) return;
+    recordReadingPosition({
+      surah: first.sura_no, aya: first.aya_no,
+      nameAr: first.sura_name_ar, nameEn: first.sura_name_en, page: currentPage,
+    });
+  }, [verses, currentPage]);
 
   // Navigate pages
   const goToPage = useCallback((page: number) => {
@@ -1076,7 +1091,7 @@ export function MushafPage() {
         let bismillahText: string | null = null;
 
         if (needsBismillah) {
-          const split = splitBismillahImlaei(verse.text_imlaei);
+          const split = splitBismillahImlaei(verseTextFor(verse, script));
           bismillahText = split?.bismillah ?? null;
         }
 
@@ -1094,9 +1109,10 @@ export function MushafPage() {
 
       // Ayah 1 of surahs that have a Bismillah header: strip it from the flowing text
       const shouldStrip = verse.aya_no === 1 && !SURAHS_WITHOUT_BISMILLAH_HEADER.has(verse.sura_no);
-      let displayText = verse.text_imlaei.replace(/^\uFEFF/, ''); // strip BOM (only 1:1 has it)
+      const sourceText = verseTextFor(verse, script);
+      let displayText = sourceText.replace(/^\uFEFF/, ''); // strip BOM (only 1:1 has it)
       if (shouldStrip) {
-        const split = splitBismillahImlaei(verse.text_imlaei);
+        const split = splitBismillahImlaei(sourceText);
         if (split) displayText = split.verseText;
       }
 
@@ -1104,7 +1120,7 @@ export function MushafPage() {
     }
 
     return items;
-  }, [verses]);
+  }, [verses, script]);
 
   // Current surah info
   const currentSura = useMemo(() => verses.length > 0 ? verses[0] : null, [verses]);
@@ -1185,7 +1201,7 @@ export function MushafPage() {
           {/* Controls */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setFontSize(prev => Math.max(20, prev - 2))}
+              onClick={() => setFontScale(fontScale - 0.1)}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               title={t('mushaf_zoom_out')}
             >
@@ -1193,7 +1209,7 @@ export function MushafPage() {
             </button>
             <span className="text-sm min-w-[2rem] text-center">{fontSize}</span>
             <button
-              onClick={() => setFontSize(prev => Math.min(48, prev + 2))}
+              onClick={() => setFontScale(fontScale + 0.1)}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               title={t('mushaf_zoom_in')}
             >

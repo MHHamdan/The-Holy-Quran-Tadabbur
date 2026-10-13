@@ -20,6 +20,8 @@ export interface LastRead {
   ts: number;
   /** Last verse reached in that surah, when known. */
   aya?: number;
+  /** Last Mushaf page open in the page reader, when known. */
+  page?: number;
 }
 
 export interface ReadingProgress {
@@ -144,6 +146,39 @@ export function recordSurahVisit(surah: number, nameAr: string, nameEn: string):
     save(next);
   } catch {
     // ignore
+  }
+}
+
+/**
+ * Remember the exact place reached: the verse (Quran reader) and/or the page
+ * (Mushaf reader). Counts as reading for the streak, like a surah visit.
+ */
+export function recordReadingPosition(pos: {
+  surah: number;
+  aya: number;
+  nameAr: string;
+  nameEn: string;
+  page?: number;
+}): void {
+  try {
+    const current = load();
+    const { streak, longestStreak } = computeStreak(current.streak, current.longestStreak, current.lastReadDate);
+    save({
+      visited: new Set([...current.visited, pos.surah]),
+      lastRead: {
+        surah: pos.surah,
+        nameAr: pos.nameAr,
+        nameEn: pos.nameEn,
+        ts: Date.now(),
+        aya: pos.aya,
+        page: pos.page ?? current.lastRead?.page,
+      },
+      streak,
+      longestStreak,
+      lastReadDate: todayStr(),
+    });
+  } catch {
+    // storage unavailable: progress is best-effort
   }
 }
 

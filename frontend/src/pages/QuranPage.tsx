@@ -21,7 +21,7 @@ import {
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, grammarApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
 import { useBookmarksStore } from '../stores/bookmarksStore';
-import { recordSurahVisit } from '../hooks/useReadingProgress';
+import { recordSurahVisit, recordReadingPosition } from '../hooks/useReadingProgress';
 import { VerseText } from '../components/quran/WordMeaningPopover';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { ErrorPanel, parseAPIError, type APIErrorData } from '../components/common/ErrorPanel';
@@ -227,6 +227,38 @@ export function QuranPage() {
       }, 100);
     }
   }, [loading, highlightAya]);
+
+  // Remember the verse in view (topmost visible), so "continue reading" and the
+  // reading reminder reopen at that verse rather than at the top of the surah.
+  useEffect(() => {
+    if (loading || verses.length === 0 || !('IntersectionObserver' in window)) return;
+    const byKey = new Map(verses.map((v) => [`${v.sura_no}:${v.aya_no}`, v]));
+    const visible = new Set<string>();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const observer = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        const key = (e.target as HTMLElement).dataset.verseKey;
+        if (!key) continue;
+        if (e.isIntersecting) visible.add(key); else visible.delete(key);
+      }
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const top = verses.find((v) => visible.has(`${v.sura_no}:${v.aya_no}`));
+        if (top) {
+          recordReadingPosition({
+            surah: top.sura_no, aya: top.aya_no, nameAr: top.sura_name_ar, nameEn: top.sura_name_en,
+          });
+        }
+      }, 1500);
+    }, { rootMargin: '-20% 0px -50% 0px' });
+    document.querySelectorAll<HTMLElement>('[data-verse-key]').forEach((el) => {
+      if (byKey.has(el.dataset.verseKey ?? '')) observer.observe(el);
+    });
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [loading, verses, viewMode]);
 
   // Follow the verse being recited
   useEffect(() => {
