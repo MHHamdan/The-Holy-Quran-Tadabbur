@@ -27,6 +27,23 @@ export interface Translation {
   language: string;
   translator: string;
   text: string;
+  footnotes?: string | null;
+  edition_version?: string | null;
+  source_id?: string | null;
+}
+
+/** A translation edition and the attribution its text must carry (QuranEnc terms). */
+export interface TranslationEdition {
+  key: string;
+  language: string;
+  title: string;
+  translator_name: string | null;
+  version: string;
+  source_id: string;
+  source_url: string;
+  license: string;
+  attribution: string;
+  is_default: boolean;
 }
 
 // Mushaf line-layout types (King Fahd Madinah Mushaf word positions)
@@ -623,18 +640,27 @@ export const tafsirComparisonApi = {
 };
 
 // API functions
+// `translations`: edition keys (at most 3); omitted or empty means Arabic only.
+const translationParams = (translations?: string[]) =>
+  translations && translations.length > 0 ? { translations: translations.join(',') } : undefined;
+
 export const quranApi = {
-  getSuraVerses: (suraNo: number) =>
-    api.get<Verse[]>(`/quran/suras/${suraNo}`),
+  getSuraVerses: (suraNo: number, translations?: string[]) =>
+    api.get<Verse[]>(`/quran/suras/${suraNo}`, { params: translationParams(translations) }),
 
-  getVerse: (suraNo: number, ayaNo: number) =>
-    api.get<Verse>(`/quran/verses/${suraNo}/${ayaNo}`),
+  getVerse: (suraNo: number, ayaNo: number, translations?: string[]) =>
+    api.get<Verse>(`/quran/verses/${suraNo}/${ayaNo}`, { params: translationParams(translations) }),
 
-  getVerseRange: (suraNo: number, ayaStart: number, ayaEnd: number) =>
-    api.get<Verse[]>(`/quran/verses/${suraNo}/${ayaStart}/${ayaEnd}`),
+  getVerseRange: (suraNo: number, ayaStart: number, ayaEnd: number, translations?: string[]) =>
+    api.get<Verse[]>(`/quran/verses/${suraNo}/${ayaStart}/${ayaEnd}`, {
+      params: translationParams(translations),
+    }),
 
-  getPageVerses: (pageNo: number) =>
-    api.get<Verse[]>(`/quran/page/${pageNo}`),
+  getPageVerses: (pageNo: number, translations?: string[]) =>
+    api.get<Verse[]>(`/quran/page/${pageNo}`, { params: translationParams(translations) }),
+
+  getTranslationEditions: () =>
+    api.get<TranslationEdition[]>('/quran/translations/editions'),
 
   getMushafPageLines: (pageNo: number) =>
     api.get<MushafPageLines>(`/mushaf/page/${pageNo}/lines`),
