@@ -135,3 +135,46 @@ class TestTranslationRoutes:
         r = await client.get("/api/v1/translation/verse/2/255", params={"language": "en"})
         assert r.status_code == 200
         assert r.json()["translator"] == "english_saheeh"
+
+
+@pytest.mark.asyncio
+@pytest.mark.requires_data("translations")
+class TestTranslationSearch:
+    URL = "/api/v1/quran/search/translation"
+
+    async def test_all_words_must_match_in_mushaf_order(self, client):
+        r = await client.get(self.URL, params={"q": "Moses Pharaoh", "limit": 50})
+        body = r.json()
+        assert r.status_code == 200 and body["total"] >= 20
+        refs = [(h["sura_no"], h["aya_no"]) for h in body["hits"]]
+        assert refs == sorted(refs)
+        for h in body["hits"]:
+            text = h["translation"]["text"].lower()
+            assert "moses" in text and "pharaoh" in text
+            assert h["translation"]["translator"] == "english_saheeh"
+
+    async def test_transliteration_marks_are_folded(self, client):
+        # Saheeh International spells it "Allāh"
+        r = await client.get(self.URL, params={"q": "Allah", "limit": 1})
+        assert r.json()["total"] > 1000
+
+    async def test_word_start_not_substring(self, client):
+        r = await client.get(self.URL, params={"q": "ad", "limit": 50})
+        for h in r.json()["hits"]:
+            assert any(w.startswith("ad") for w in h["translation"]["text"].lower().replace("ʿā", "a").split())
+
+    @pytest.mark.parametrize("q", ["a.*b", "100%", "x|y", "[a-z]+"])
+    async def test_regex_and_like_metacharacters_are_inert(self, client, q):
+        r = await client.get(self.URL, params={"q": q})
+        assert r.status_code in (200, 400)
+        if r.status_code == 200:
+            assert r.json()["total"] == 0
+
+    async def test_other_language_edition(self, client):
+        r = await client.get(self.URL, params={"q": "صبر", "translations": "urdu_junagarhi"})
+        assert r.json()["total"] > 0
+        assert r.json()["editions"] == ["urdu_junagarhi"]
+
+    async def test_unknown_language_404(self, client):
+        r = await client.get(self.URL, params={"q": "mercy", "lang": "xx"})
+        assert r.status_code == 404

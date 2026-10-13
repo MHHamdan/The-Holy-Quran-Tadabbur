@@ -39,6 +39,25 @@ export interface Translation {
   source_id?: string | null;
 }
 
+export interface TranslationSearchHit {
+  verse_id: number;
+  sura_no: number;
+  aya_no: number;
+  sura_name_ar: string;
+  sura_name_en: string;
+  text_uthmani: string;
+  text_imlaei: string;
+  translation: Translation;
+}
+
+export interface TranslationSearchResponse {
+  query: string;
+  terms: string[];
+  editions: string[];
+  total: number;
+  hits: TranslationSearchHit[];
+}
+
 /** A translation edition and the attribution its text must carry (QuranEnc terms). */
 export interface TranslationEdition {
   key: string;
@@ -668,6 +687,11 @@ export const quranApi = {
 
   getTranslationEditions: () =>
     api.get<TranslationEdition[]>('/quran/translations/editions'),
+
+  searchTranslations: (q: string, opts: { translations?: string[]; lang?: string; limit?: number; offset?: number }) =>
+    api.get<TranslationSearchResponse>('/quran/search/translation', {
+      params: { q, lang: opts.lang, limit: opts.limit, offset: opts.offset, ...translationParams(opts.translations) },
+    }),
 
   getMushafPageLines: (pageNo: number) =>
     api.get<MushafPageLines>(`/mushaf/page/${pageNo}/lines`),

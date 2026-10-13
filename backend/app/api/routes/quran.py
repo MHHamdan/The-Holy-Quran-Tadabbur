@@ -3,6 +3,7 @@ Quran API routes for verses, translations, and tafseer.
 """
 import asyncio
 import json
+import re
 import logging
 from functools import lru_cache
 from pathlib import Path as FilePath
@@ -983,6 +984,101 @@ class GrammaticalFilterRequest(BaseModel):
     """Request for filtering by grammatical role."""
     role: Optional[str] = Field(None, description="Grammatical role filter (subject, object, verb, etc.)")
     sentence_type: Optional[str] = Field(None, description="Sentence type filter (verbal, nominal, etc.)")
+
+
+# Transliteration marks used by the English editions ("Allāh", "Mūsā", "ʿĀd"):
+# folded away on both sides so plain-ASCII queries match.
+_FOLD_FROM = "āīūĀĪŪḥḤṣṢḍḌṭṬẓẒġĠʿʾ’‘"
+_FOLD_TO = "aiuAIUhHsSdDtTzZgG"  # shorter: the trailing marks are deleted
+_FOLD_TABLE = str.maketrans(_FOLD_FROM[: len(_FOLD_TO)], _FOLD_TO, _FOLD_FROM[len(_FOLD_TO):])
+
+
+class TranslationSearchHit(BaseModel):
+    verse_id: int
+    sura_no: int
+    aya_no: int
+    sura_name_ar: str
+    sura_name_en: str
+    text_uthmani: str
+    text_imlaei: str
+    translation: TranslationResponse
+
+
+class TranslationSearchResponse(BaseModel):
+    query: str
+    terms: List[str]
+    editions: List[str]
+    total: int
+    hits: List[TranslationSearchHit]
+
+
+@router.get("/search/translation", response_model=TranslationSearchResponse)
+async def search_translations(
+    http_response: Response,
+    q: str = Query(..., min_length=2, max_length=100, description="Words to find in the translation text"),
+    translations: Optional[str] = TranslationsParam,
+    lang: str = Query("en", pattern=r"^[a-z]{2,3}$", description="Edition language when translations is omitted"),
+    limit: int = Query(20, ge=1, le=50),
+    offset: int = Query(0, ge=0, le=6236),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    Find verses whose translation contains every word of the query
+    (case- and transliteration-mark-insensitive), in Mushaf order.
+
+    Searches the given editions, or the default edition of `lang`.
+    """
+    from sqlalchemy import func as _func
+
+    keys = _parse_translation_keys(translations)
+    if not keys:
+        default = await session.execute(
+            select(TranslationEdition.key).where(
+                TranslationEdition.language == lang, TranslationEdition.is_default.is_(True)
+            )
+        )
+        keys = [k for k in default.scalars().all()]
+    if not keys:
+        raise HTTPException(status_code=404, detail=f"No translation available for language '{lang}'")
+
+    terms = [t for t in q.translate(_FOLD_TABLE).lower().split() if len(t) >= 2][:6]
+    if not terms:
+        raise HTTPException(status_code=400, detail="Query needs at least one word of 2+ characters")
+
+    folded = _func.lower(_func.translate(Translation.text, _FOLD_FROM, _FOLD_TO))
+    # Word-start match (\m): "ad" finds "ʿĀd", not "made". Terms are regex-escaped.
+    conditions = [Translation.translator.in_(keys)] + [
+        folded.op("~")("\\m" + re.sub(r"([^\w\s])", r"\\\1", t)) for t in terms
+    ]
+
+    total = (await session.execute(
+        select(_func.count()).select_from(Translation).where(*conditions)
+    )).scalar_one()
+    rows = (await session.execute(
+        select(Translation, QuranVerse)
+        .join(QuranVerse, QuranVerse.id == Translation.verse_id)
+        .where(*conditions)
+        .order_by(QuranVerse.id, Translation.translator)
+        .offset(offset)
+        .limit(limit)
+    )).all()
+
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
+    return TranslationSearchResponse(
+        query=q,
+        terms=terms,
+        editions=keys,
+        total=total,
+        hits=[
+            TranslationSearchHit(
+                verse_id=v.id, sura_no=v.sura_no, aya_no=v.aya_no,
+                sura_name_ar=v.sura_name_ar, sura_name_en=v.sura_name_en,
+                text_uthmani=v.text_uthmani, text_imlaei=v.text_imlaei,
+                translation=TranslationResponse.model_validate(t),
+            )
+            for t, v in rows
+        ],
+    )
 
 
 @router.get("/search/enhanced/{word}")
