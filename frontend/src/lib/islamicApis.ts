@@ -137,17 +137,6 @@ export async function getPrayerTimesForMonth(
   return response.data.data;
 }
 
-export async function getQiblaDirection(
-  latitude: number,
-  longitude: number
-): Promise<{ direction: number; latitude: number; longitude: number }> {
-  const response = await axios.get(
-    `https://api.aladhan.com/v1/qibla/${latitude}/${longitude}`
-  );
-
-  return response.data.data;
-}
-
 // Hijri Calendar Conversion
 export async function gregorianToHijri(
   date: string // DD-MM-YYYY format

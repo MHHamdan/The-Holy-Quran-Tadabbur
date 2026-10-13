@@ -15,7 +15,6 @@ import {
   ArrowLeft,
   Clock,
   MapPin,
-  Compass,
   Sun,
   Moon,
   Sunrise,
@@ -29,7 +28,6 @@ import {
 import { useLanguageStore } from '../../stores/languageStore';
 import {
   getPrayerTimes,
-  getQiblaDirection,
   geocodeAddress,
   reverseGeocode,
   PRAYER_METHODS,
@@ -46,6 +44,8 @@ import { SkeletonPrayerTimes } from '../../components/ui/Skeleton';
 import { LocationDenied } from '../../components/ui/EmptyState';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import clsx from 'clsx';
+import { qiblaBearing } from '../../lib/qibla';
+import { QiblaCompass } from '../../components/tools/QiblaCompass';
 
 // ============================================
 // Types
@@ -107,12 +107,9 @@ function usePrayerTimes(
   const fetchPrayerData = useCallback(async () => {
     if (!location) throw new Error('No location available');
 
-    const [prayerResponse, qiblaResponse] = await Promise.all([
-      getPrayerTimes(location.lat, location.lng, method, date),
-      getQiblaDirection(location.lat, location.lng),
-    ]);
-
-    return { prayerData: prayerResponse, qiblaDirection: qiblaResponse.direction };
+    const prayerResponse = await getPrayerTimes(location.lat, location.lng, method, date);
+    // Computed locally: no network round trip, and it works offline.
+    return { prayerData: prayerResponse, qiblaDirection: qiblaBearing(location.lat, location.lng) };
   }, [location, method, date]);
 
   const { execute, isPending, isError, data, error, reset } = useAsync(fetchPrayerData, {
@@ -237,46 +234,6 @@ const NextPrayerCard = memo(function NextPrayerCard({
           <p className="text-2xl font-bold" role="timer" aria-live="polite">
             {nextPrayer.remaining}
           </p>
-        </div>
-      </div>
-    </section>
-  );
-});
-
-interface QiblaCardProps {
-  direction: number;
-  isArabic: boolean;
-}
-
-const QiblaCard = memo(function QiblaCard({ direction, isArabic }: QiblaCardProps) {
-  return (
-    <section
-      aria-label={isArabic ? 'اتجاه القبلة' : 'Qibla Direction'}
-      className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl"
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-emerald-100 rounded-lg" aria-hidden="true">
-            <Compass className="w-6 h-6 text-emerald-600" />
-          </div>
-          <div>
-            <p className="font-semibold text-emerald-900">
-              {isArabic ? 'اتجاه القبلة' : 'Qibla Direction'}
-            </p>
-            <p className="text-sm text-emerald-700">
-              {isArabic
-                ? `${toArabicNumerals(direction.toFixed(1))}° من الشمال`
-                : `${direction.toFixed(1)}° from North`}
-            </p>
-          </div>
-        </div>
-        <div
-          className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center transition-transform"
-          style={{ transform: `rotate(${direction}deg)` }}
-          role="img"
-          aria-label={`Qibla compass pointing ${direction.toFixed(0)} degrees`}
-        >
-          <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[16px] border-b-emerald-600" />
         </div>
       </div>
     </section>
@@ -844,7 +801,7 @@ function PrayerTimesPageContent() {
 
           {/* Qibla Direction */}
           {qiblaDirection !== null && (
-            <QiblaCard direction={qiblaDirection} isArabic={isArabic} />
+            <QiblaCompass bearing={qiblaDirection} isArabic={isArabic} />
           )}
 
           {/* Prayer Times Grid */}
