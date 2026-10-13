@@ -12959,8 +12959,8 @@ async def get_verse_range_audio(
     return {
         "ok": True,
         "sura_no": sura_no,
-        "aya_start": aya_start,
-        "aya_end": aya_end,
+        "aya_start": urls[0]["aya_no"] if urls else aya_start,
+        "aya_end": urls[-1]["aya_no"] if urls else aya_start - 1,
         "reciter": reciter,
         "verse_audios": urls,
         "total_verses": len(urls),

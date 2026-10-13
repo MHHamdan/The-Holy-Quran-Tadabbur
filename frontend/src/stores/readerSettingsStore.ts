@@ -2,7 +2,8 @@
  * Reader Settings Store
  *
  * Preferences for the Qur'an reader that should survive a reload: Arabic
- * script, text size, which translation editions to show, and view behaviour.
+ * script, text size, which translation editions to show, view behaviour, and
+ * recitation (reciter, speed, how often each verse repeats).
  * Persisted to localStorage (device-local, like bookmarks).
  *
  * Translation editions are keys from GET /quran/translations/editions. Until
@@ -24,6 +25,10 @@ export const FONT_SCALE_MIN = 0.8;
 export const FONT_SCALE_MAX = 1.8;
 export const FONT_SCALE_STEP = 0.1;
 
+export const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5] as const;
+/** How many times each verse plays before the next (memorisation aid). */
+export const VERSE_REPEATS = [1, 2, 3, 5, 10] as const;
+
 const DEFAULT_TRANSLATIONS: Record<Language, string[]> = {
   en: ['english_saheeh'],
   ar: [],
@@ -36,6 +41,9 @@ interface ReaderSettingsState {
   /** null until the reader chooses; then the chosen keys (possibly empty). */
   translationKeys: string[] | null;
   autoScroll: boolean;
+  reciterId: string;
+  playbackRate: number;
+  verseRepeat: number;
 
   setScript: (script: QuranScript) => void;
   setFontScale: (scale: number) => void;
@@ -44,6 +52,9 @@ interface ReaderSettingsState {
   toggleTranslation: (key: string, current: string[]) => void;
   clearTranslations: () => void;
   setAutoScroll: (on: boolean) => void;
+  setReciterId: (id: string) => void;
+  setPlaybackRate: (rate: number) => void;
+  setVerseRepeat: (times: number) => void;
 }
 
 const clampScale = (scale: number) =>
@@ -57,6 +68,9 @@ export const useReaderSettingsStore = create<ReaderSettingsState>()(
       view: 'mushaf',
       translationKeys: null,
       autoScroll: true,
+      reciterId: 'mishary_afasy',
+      playbackRate: 1,
+      verseRepeat: 1,
 
       setScript: (script) => set({ script }),
       setFontScale: (scale) => set({ fontScale: clampScale(scale) }),
@@ -71,6 +85,9 @@ export const useReaderSettingsStore = create<ReaderSettingsState>()(
         }),
       clearTranslations: () => set({ translationKeys: [] }),
       setAutoScroll: (autoScroll) => set({ autoScroll }),
+      setReciterId: (reciterId) => set({ reciterId }),
+      setPlaybackRate: (playbackRate) => set({ playbackRate }),
+      setVerseRepeat: (verseRepeat) => set({ verseRepeat }),
     }),
     { name: 'tadabbur-reader-settings', version: 1 },
   ),

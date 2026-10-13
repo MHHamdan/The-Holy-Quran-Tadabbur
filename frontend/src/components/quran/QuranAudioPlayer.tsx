@@ -2,10 +2,11 @@
  * Quran Audio Player Component
  *
  * A comprehensive audio player for Quran recitation with:
- * - Multiple reciter selection
- * - Verse-by-verse or continuous playback
- * - Progress tracking
- * - Speed control
+ * - Multiple reciter selection (remembered)
+ * - Verse-by-verse playback in every mode, so the reader can follow along
+ * - Per-verse repeat count for memorisation, and whole-range repeat
+ * - Speed control (remembered)
+ * - Lock-screen / media-key controls through the Media Session API
  * - Download option
  *
  * Arabic: مشغل صوت القرآن الكريم
@@ -14,6 +15,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Download, Repeat, Settings } from 'lucide-react';
 import { audioApi, ReciterInfo, VerseAudioInfo } from '../../lib/api';
 import { Language } from '../../i18n/translations';
+import {
+  useReaderSettingsStore,
+  PLAYBACK_RATES,
+  VERSE_REPEATS,
+} from '../../stores/readerSettingsStore';
 import clsx from 'clsx';
 
 // =============================================================================
@@ -70,13 +76,15 @@ export function QuranAudioPlayer({
 }: QuranAudioPlayerProps) {
   // State
   const [reciters, setReciters] = useState<ReciterInfo[]>(DEFAULT_RECITERS);
-  const [selectedReciter, setSelectedReciter] = useState('mishary_afasy');
+  const {
+    reciterId: selectedReciter, setReciterId: setSelectedReciter,
+    playbackRate, setPlaybackRate, verseRepeat, setVerseRepeat,
+  } = useReaderSettingsStore();
   const [playbackState, setPlaybackState] = useState<PlaybackState>('idle');
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(1);
   const [isRepeat, setIsRepeat] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +102,8 @@ export function QuranAudioPlayer({
 
   // Audio element ref
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Plays of the current verse so far (for the per-verse repeat count)
+  const playsOfVerseRef = useRef(1);
 
   const isRTL = language === 'ar';
 
@@ -132,33 +142,23 @@ export function QuranAudioPlayer({
       let fallbacks: string[] = [];
 
       if (mode === 'surah' && suraNo) {
-        // For surah mode with startFromAya, use range mode instead to get verse-by-verse control
-        if (startFromAya) {
-          // Get total verses in sura first (estimate max as 286 for Baqara)
-          // We'll use range mode to get verse-by-verse playback
-          const response = await audioApi.getRangeAudio(suraNo, startFromAya, 286, selectedReciter);
-          const verses = response.data.verse_audios;
-          setVerseAudios(verses);
+        // Verse by verse, so the reader can highlight and follow each verse.
+        // 286 (the longest surah) means "to the end"; the API clamps it.
+        const response = await audioApi.getRangeAudio(suraNo, startFromAya ?? 1, 286, selectedReciter);
+        const verses = response.data.verse_audios;
+        setVerseAudios(verses);
 
-          const targetVerse = verses[0]; // First verse is the startFromAya
-          audioUrl = targetVerse?.url || '';
-          if (targetVerse) fallbacks = collectFallbackUrls(targetVerse);
-          setFallbackUrls(fallbacks);
-          setCurrentVerseIndex(0);
+        const targetVerse = verses[0];
+        audioUrl = targetVerse?.url || '';
+        if (targetVerse) fallbacks = collectFallbackUrls(targetVerse);
+        setFallbackUrls(fallbacks);
+        setCurrentVerseIndex(0);
 
-          // Notify about the starting verse
-          if (targetVerse && onVerseChange) {
-            onVerseChange(targetVerse.sura_no, targetVerse.aya_no);
-          }
-
-          // Set auto-play flag if requested
-          if (autoPlay) {
-            setPendingAutoPlay(true);
-          }
-        } else {
-          const response = await audioApi.getSurahAudio(suraNo, selectedReciter);
-          audioUrl = response.data.audio_url;
-          setVerseAudios([]);
+        if (startFromAya && targetVerse && onVerseChange) {
+          onVerseChange(targetVerse.sura_no, targetVerse.aya_no);
+        }
+        if (autoPlay && startFromAya) {
+          setPendingAutoPlay(true);
         }
       } else if (mode === 'verse' && suraNo && ayaNo) {
         const response = await audioApi.getVerseAudio(suraNo, ayaNo, selectedReciter);
@@ -241,6 +241,7 @@ export function QuranAudioPlayer({
         }
       }
 
+      playsOfVerseRef.current = 1;
       if (audioUrl && audioRef.current) {
         audioRef.current.src = audioUrl;
         audioRef.current.load();
@@ -278,6 +279,14 @@ export function QuranAudioPlayer({
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleLoadedMetadata = () => setDuration(audio.duration);
     const handleEnded = () => {
+      if (playsOfVerseRef.current < verseRepeat) {
+        // Same verse again (memorisation repeat)
+        playsOfVerseRef.current += 1;
+        audio.currentTime = 0;
+        audio.play();
+        return;
+      }
+      playsOfVerseRef.current = 1;
       if (verseAudios.length > 1 && currentVerseIndex < verseAudios.length - 1) {
         // Play next verse
         const nextIndex = currentVerseIndex + 1;
@@ -298,7 +307,12 @@ export function QuranAudioPlayer({
         setPlaybackState('paused');
       }
     };
-    const handlePlay = () => setPlaybackState('playing');
+    const handlePlay = () => {
+      setPlaybackState('playing');
+      // Highlight the verse as soon as playback starts, not only on advance.
+      const verse = verseAudios[currentVerseIndex];
+      if (verse) onVerseChange?.(verse.sura_no, verse.aya_no);
+    };
     const handlePause = () => setPlaybackState('paused');
     const handleError = () => {
       // Try next fallback URL if available
@@ -335,7 +349,7 @@ export function QuranAudioPlayer({
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('error', handleError);
     };
-  }, [verseAudios, currentVerseIndex, isRepeat, language, onVerseChange, fallbackUrls, currentFallbackIndex]);
+  }, [verseAudios, currentVerseIndex, isRepeat, verseRepeat, language, onVerseChange, fallbackUrls, currentFallbackIndex]);
 
   // Update volume
   useEffect(() => {
@@ -344,12 +358,26 @@ export function QuranAudioPlayer({
     }
   }, [volume, isMuted]);
 
-  // Update playback rate
+  // Update playback rate. defaultPlaybackRate survives the src change on each
+  // new verse; playbackRate alone would reset to 1x at every verse.
   useEffect(() => {
     if (audioRef.current) {
+      audioRef.current.defaultPlaybackRate = playbackRate;
       audioRef.current.playbackRate = playbackRate;
     }
   }, [playbackRate]);
+
+  // Warm the browser cache with the next verse so verse changes have no gap.
+  useEffect(() => {
+    const next = verseAudios[currentVerseIndex + 1];
+    if (!next) return;
+    const preload = new Audio();
+    preload.preload = 'auto';
+    preload.src = next.url;
+    return () => {
+      preload.src = '';
+    };
+  }, [verseAudios, currentVerseIndex]);
 
   // Control functions
   const togglePlay = () => {
@@ -384,6 +412,39 @@ export function QuranAudioPlayer({
       onVerseChange?.(verseAudios[nextIndex].sura_no, verseAudios[nextIndex].aya_no);
     }
   };
+
+  // Lock-screen and media-key controls (Android Chrome/WebView, iOS 15+, desktop).
+  const currentReciter = reciters.find((r) => r.id === selectedReciter);
+  const playingVerse = verseAudios[currentVerseIndex];
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !playingVerse) return;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: `${language === 'ar' ? 'القرآن الكريم' : 'Quran'} ${playingVerse.reference}`,
+      artist: currentReciter ? (language === 'ar' ? currentReciter.name_ar : currentReciter.name_en) : '',
+      album: language === 'ar' ? 'تدبر' : 'Tadabbur',
+    });
+  }, [playingVerse, currentReciter, language]);
+
+  const controlsRef = useRef({ togglePlay, skipNext, skipPrevious });
+  controlsRef.current = { togglePlay, skipNext, skipPrevious };
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    const session = navigator.mediaSession;
+    const handlers: [MediaSessionAction, MediaSessionActionHandler][] = [
+      ['play', () => audioRef.current?.play()],
+      ['pause', () => audioRef.current?.pause()],
+      ['nexttrack', () => controlsRef.current.skipNext()],
+      ['previoustrack', () => controlsRef.current.skipPrevious()],
+    ];
+    for (const [action, handler] of handlers) {
+      try { session.setActionHandler(action, handler); } catch { /* action unsupported on this platform */ }
+    }
+    return () => {
+      for (const [action] of handlers) {
+        try { session.setActionHandler(action, null); } catch { /* action unsupported on this platform */ }
+      }
+    };
+  }, []);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!audioRef.current) return;
@@ -443,6 +504,7 @@ export function QuranAudioPlayer({
         <div className="playback-controls">
           <button
             onClick={skipPrevious}
+            aria-label={language === 'ar' ? 'الآية السابقة' : 'Previous verse'}
             className="control-btn"
             disabled={playbackState === 'loading'}
           >
@@ -451,6 +513,9 @@ export function QuranAudioPlayer({
 
           <button
             onClick={togglePlay}
+            aria-label={playbackState === 'playing'
+              ? (language === 'ar' ? 'إيقاف مؤقت' : 'Pause')
+              : (language === 'ar' ? 'تشغيل' : 'Play')}
             className="control-btn play-btn"
             disabled={playbackState === 'loading' || playbackState === 'idle'}
           >
@@ -465,6 +530,7 @@ export function QuranAudioPlayer({
 
           <button
             onClick={skipNext}
+            aria-label={language === 'ar' ? 'الآية التالية' : 'Next verse'}
             className="control-btn"
             disabled={playbackState === 'loading' || (verseAudios.length > 0 && currentVerseIndex >= verseAudios.length - 1)}
           >
@@ -511,6 +577,8 @@ export function QuranAudioPlayer({
           {/* Repeat */}
           <button
             onClick={() => setIsRepeat(!isRepeat)}
+            aria-pressed={isRepeat}
+            aria-label={language === 'ar' ? 'تكرار المقطع' : 'Repeat all'}
             className={clsx('control-btn', isRepeat && 'active')}
           >
             <Repeat className="w-5 h-5" />
@@ -544,11 +612,23 @@ export function QuranAudioPlayer({
               value={playbackRate}
               onChange={(e) => setPlaybackRate(parseFloat(e.target.value))}
             >
-              <option value="0.5">0.5x</option>
-              <option value="0.75">0.75x</option>
-              <option value="1">1x</option>
-              <option value="1.25">1.25x</option>
-              <option value="1.5">1.5x</option>
+              {PLAYBACK_RATES.map((rate) => (
+                <option key={rate} value={rate}>{rate}x</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="setting-row">
+            <label>{language === 'ar' ? 'تكرار كل آية' : 'Repeat each verse'}</label>
+            <select
+              value={verseRepeat}
+              onChange={(e) => setVerseRepeat(parseInt(e.target.value, 10))}
+            >
+              {VERSE_REPEATS.map((n) => (
+                <option key={n} value={n}>
+                  {n === 1 ? (language === 'ar' ? 'مرة واحدة' : 'Once') : `×${n}`}
+                </option>
+              ))}
             </select>
           </div>
 

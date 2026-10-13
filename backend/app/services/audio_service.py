@@ -418,6 +418,10 @@ class QuranAudioService:
         Returns:
             List of verse audio info with all fallback URLs
         """
+        # Clamp to the surah so open-ended ranges ("from verse N to the end")
+        # never produce URLs for verses that do not exist.
+        aya_start = max(1, aya_start)
+        aya_end = min(aya_end, SURAH_VERSE_COUNTS[sura_no - 1])
         verses = []
         for aya_no in range(aya_start, aya_end + 1):
             urls = self.get_verse_audio_urls_with_fallback(sura_no, aya_no, reciter)
