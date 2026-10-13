@@ -23,7 +23,7 @@ from enum import Enum
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.quran import QuranVerse, Translation
+from app.models.quran import QuranVerse, Translation, TranslationEdition
 from app.models.audit import AuditLog
 
 logger = logging.getLogger(__name__)
@@ -114,6 +114,11 @@ def _compute_prompt_hash() -> str:
 PROMPT_HASH = _compute_prompt_hash()
 
 
+def _default_edition_keys():
+    """Subquery: the default edition key of every language."""
+    return select(TranslationEdition.key).where(TranslationEdition.is_default.is_(True))
+
+
 class TranslationService:
     """
     Service for translating Quran verses.
@@ -149,15 +154,15 @@ class TranslationService:
         if translator:
             query = query.where(Translation.translator == translator)
         else:
-            # Prefer scholarly translations over LLM
+            # The language's default edition first, then other editions, LLM last
             query = query.order_by(
-                # sahih_international first, then others, LLM last
-                Translation.translator != "sahih_international",
-                Translation.translator == "llm"
+                Translation.translator.notin_(_default_edition_keys()),
+                Translation.translator == "llm",
+                Translation.translator,
             )
 
-        result = await self.session.execute(query)
-        return result.scalar_one_or_none()
+        result = await self.session.execute(query.limit(1))
+        return result.scalars().first()
 
     async def get_scholarly_translation(
         self,
@@ -171,10 +176,11 @@ class TranslationService:
                 Translation.language == language,
                 Translation.translator != "llm"
             ).order_by(
-                Translation.translator == "sahih_international"  # Prefer Sahih International
-            )
+                Translation.translator.notin_(_default_edition_keys()),
+                Translation.translator,
+            ).limit(1)
         )
-        return result.scalar_one_or_none()
+        return result.scalars().first()
 
     def _compute_source_hash(self, text: str) -> str:
         """Compute SHA256 hash of source text for verification."""

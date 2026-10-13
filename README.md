@@ -146,6 +146,10 @@ curl -X POST -H "X-Admin-API-Key: $ADMIN_API_KEY" https://<host>/api/v1/quran/se
 
 # 6. Mushaf word layout (needs api.qurancdn.com)
 $RUN python scripts/ingest/seed_mushaf_words.py
+
+# 7. Translations of the meanings: 22 QuranEnc editions in 20 languages (needs quranenc.com,
+#    or a data/raw/translations/quranenc/ cache from the data bundle). Re-run to track new versions.
+$RUN python scripts/ingest/seed_translations_quranenc.py
 ```
 
 Results of steps 1–4 on the production stack:
@@ -169,6 +173,7 @@ The step-1–4 data then served `/quran/*`, `/tafseer/compare/*`, `/rag/ask` (8 
 | Qur'an text (Hafs, Uthmani) | **Available, licence unverified.** The primary source `assets/hafs_smart_v8.json` is derived from KFGQPC output, and its redistribution terms are unconfirmed (see `data/manifests/quran_hafs.json`). The licence-verified alternative (Tanzil, CC BY 3.0) is listed in the manifest but has no importer yet. |
 | Arabic tafsir: Ibn Kathir, al-Tabari, al-Qurtubi, al-Baghawi | Available (HF dataset above; classical, public domain). |
 | Al-Tafsir al-Muyassar | Available technically. **Licence pending** (King Fahd Complex, "educational and non-commercial"; manifest status `pending_user_input`). |
+| Translations of the meanings | Available: 22 editions in 20 languages from QuranEnc.com (137,192 verse rows), stored verbatim with version and footnotes per its republication terms (`data/manifests/translation_sources.json`). English default: Saheeh International (`english_saheeh`). |
 | English tafsir (Ibn Kathir EN, al-Jalalayn, Tafheem, al-Saʿdi EN) | **Not available.** The CDN/API downloaders exist (`make download-tafseer`) but were not verified. Several of these are marked pending licence verification. |
 | Tafsir and verse vector indexes | Reproducible with HF credit (step 5). Not rebuilt here: the account's HF credits are exhausted. Without them, retrieval falls back to keyword search. |
 | Mushaf word layout, QAC vocabulary (`backend/scripts/ingest/seed_mushaf_words.py`, `backend/scripts/seed_vocabulary_complete.py`) | Depend on `api.qurancdn.com`. **Not verified**: the host was unreachable from the build environment. |

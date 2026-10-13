@@ -16,7 +16,7 @@ from sqlalchemy.orm import selectinload
 from app.core.admin_auth import require_admin_api_key
 from app.core.config import settings
 from app.db.database import get_async_session
-from app.models.quran import QuranVerse, Translation
+from app.models.quran import QuranVerse, Translation, TranslationEdition
 from app.models.tafseer import TafseerChunk, TafseerSource
 
 router = APIRouter()
@@ -90,6 +90,9 @@ class TranslationResponse(BaseModel):
     language: str
     translator: str
     text: str
+    footnotes: Optional[str] = None
+    edition_version: Optional[str] = None
+    source_id: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -518,12 +521,94 @@ async def get_quran_metadata(
     return data
 
 
+class TranslationEditionResponse(BaseModel):
+    """A translation edition and the attribution its text must carry."""
+    key: str
+    language: str
+    title: str
+    translator_name: Optional[str] = None
+    version: str
+    source_id: str
+    source_url: str
+    license: str
+    attribution: str
+    is_default: bool
+
+    class Config:
+        from_attributes = True
+
+
+MAX_TRANSLATIONS_PER_REQUEST = 3
+
+TranslationsParam = Query(
+    None,
+    description=(
+        "Comma-separated translation edition keys from /quran/translations/editions "
+        f"(at most {MAX_TRANSLATIONS_PER_REQUEST}). Omit for Arabic only."
+    ),
+    pattern=r"^[a-z0-9_]+(,[a-z0-9_]+)*$",
+)
+
+
+def _parse_translation_keys(raw: Optional[str]) -> List[str]:
+    if not raw:
+        return []
+    keys = list(dict.fromkeys(raw.split(",")))
+    if len(keys) > MAX_TRANSLATIONS_PER_REQUEST:
+        raise HTTPException(
+            status_code=400,
+            detail=f"At most {MAX_TRANSLATIONS_PER_REQUEST} translations per request",
+        )
+    return keys
+
+
+async def _with_translations(
+    session: AsyncSession, verses: List[QuranVerse], keys: List[str]
+) -> List[VerseResponse]:
+    """Serialise verses, attaching the requested editions in one batch query."""
+    by_verse: Dict[int, List[TranslationResponse]] = defaultdict(list)
+    if keys and verses:
+        rows = await session.execute(
+            select(Translation).where(
+                Translation.verse_id.in_([v.id for v in verses]),
+                Translation.translator.in_(keys),
+            )
+        )
+        order = {k: i for i, k in enumerate(keys)}
+        for t in sorted(rows.scalars().all(), key=lambda t: order[t.translator]):
+            by_verse[t.verse_id].append(TranslationResponse.model_validate(t))
+    out = []
+    for v in verses:
+        out.append(VerseResponse(
+            id=v.id, sura_no=v.sura_no, sura_name_ar=v.sura_name_ar, sura_name_en=v.sura_name_en,
+            aya_no=v.aya_no, text_uthmani=v.text_uthmani, text_imlaei=v.text_imlaei,
+            page_no=v.page_no, juz_no=v.juz_no, translations=by_verse.get(v.id, []),
+        ))
+    return out
+
+
+@router.get("/translations/editions", response_model=List[TranslationEditionResponse])
+async def list_translation_editions(
+    http_response: Response,
+    language: Optional[str] = Query(None, pattern=r"^[a-z]{2,3}$"),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Translation editions available to the reader, defaults first within each language."""
+    query = select(TranslationEdition).order_by(
+        TranslationEdition.language, TranslationEdition.is_default.desc(), TranslationEdition.title
+    )
+    if language:
+        query = query.where(TranslationEdition.language == language)
+    result = await session.execute(query)
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
+    return [TranslationEditionResponse.model_validate(e) for e in result.scalars().all()]
+
+
 @router.get("/suras/{sura_no}", response_model=List[VerseResponse])
 async def get_sura_verses(
     sura_no: int,
     http_response: Response,
-    include_translations: bool = Query(True, description="Include translations"),
-    language: Optional[str] = Query(None, description="Filter translations by language"),
+    translations: Optional[str] = TranslationsParam,
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -531,32 +616,16 @@ async def get_sura_verses(
     """
     if sura_no < 1 or sura_no > 114:
         raise HTTPException(status_code=400, detail="Sura number must be between 1 and 114")
+    keys = _parse_translation_keys(translations)
 
     http_response.headers["Cache-Control"] = "public, max-age=86400"
     query = select(QuranVerse).where(QuranVerse.sura_no == sura_no).order_by(QuranVerse.aya_no)
-
-    if include_translations:
-        query = query.options(selectinload(QuranVerse.translations))
-
-    result = await session.execute(query)
-    verses = result.scalars().all()
+    verses = (await session.execute(query)).scalars().all()
 
     if not verses:
         raise HTTPException(status_code=404, detail=f"Sura {sura_no} not found")
 
-    # Filter translations by language if specified
-    response = []
-    for verse in verses:
-        verse_data = VerseResponse.model_validate(verse)
-        if language and verse.translations:
-            verse_data.translations = [
-                TranslationResponse.model_validate(t)
-                for t in verse.translations
-                if t.language == language
-            ]
-        response.append(verse_data)
-
-    return response
+    return await _with_translations(session, verses, keys)
 
 
 @router.get("/verses/{sura_no}/{aya_no}", response_model=VerseResponse)
@@ -564,30 +633,26 @@ async def get_verse(
     sura_no: int,
     aya_no: int,
     http_response: Response,
-    include_translations: bool = Query(True),
+    translations: Optional[str] = TranslationsParam,
     session: AsyncSession = Depends(get_async_session),
 ):
     """
     Get a specific verse by sura and aya number.
     """
+    keys = _parse_translation_keys(translations)
     http_response.headers["Cache-Control"] = "public, max-age=86400"
     query = select(QuranVerse).where(
         QuranVerse.sura_no == sura_no,
         QuranVerse.aya_no == aya_no,
     )
-
-    if include_translations:
-        query = query.options(selectinload(QuranVerse.translations))
-
-    result = await session.execute(query)
-    verse = result.scalar_one_or_none()
+    verse = (await session.execute(query)).scalar_one_or_none()
 
     if not verse:
         raise HTTPException(
             status_code=404, detail=f"Verse {sura_no}:{aya_no} not found"
         )
 
-    return VerseResponse.model_validate(verse)
+    return (await _with_translations(session, [verse], keys))[0]
 
 
 @router.get("/verses/{sura_no}/{aya_start}/{aya_end}", response_model=List[VerseResponse])
@@ -595,7 +660,7 @@ async def get_verse_range(
     sura_no: int,
     aya_start: int,
     aya_end: int,
-    include_translations: bool = Query(True),
+    translations: Optional[str] = TranslationsParam,
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -605,30 +670,28 @@ async def get_verse_range(
         raise HTTPException(status_code=400, detail="Sura number must be between 1 and 114")
     if aya_start > aya_end:
         raise HTTPException(status_code=400, detail="aya_start must be <= aya_end")
+    keys = _parse_translation_keys(translations)
 
     query = select(QuranVerse).where(
         QuranVerse.sura_no == sura_no,
         QuranVerse.aya_no >= aya_start,
         QuranVerse.aya_no <= aya_end,
     ).order_by(QuranVerse.aya_no)
-
-    if include_translations:
-        query = query.options(selectinload(QuranVerse.translations))
-
-    result = await session.execute(query)
-    verses = result.scalars().all()
+    verses = (await session.execute(query)).scalars().all()
 
     if not verses:
         raise HTTPException(
             status_code=404, detail=f"Verses {sura_no}:{aya_start}-{aya_end} not found"
         )
 
-    return [VerseResponse.model_validate(v) for v in verses]
+    return await _with_translations(session, verses, keys)
 
 
 @router.get("/page/{page_no}", response_model=List[VerseResponse])
 async def get_page_verses(
     page_no: int,
+    http_response: Response,
+    translations: Optional[str] = TranslationsParam,
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -636,21 +699,16 @@ async def get_page_verses(
     """
     if page_no < 1 or page_no > 604:
         raise HTTPException(status_code=400, detail="Page number must be between 1 and 604")
+    keys = _parse_translation_keys(translations)
 
-    query = (
-        select(QuranVerse)
-        .where(QuranVerse.page_no == page_no)
-        .order_by(QuranVerse.id)
-        .options(selectinload(QuranVerse.translations))
-    )
-
-    result = await session.execute(query)
-    verses = result.scalars().all()
+    query = select(QuranVerse).where(QuranVerse.page_no == page_no).order_by(QuranVerse.id)
+    verses = (await session.execute(query)).scalars().all()
 
     if not verses:
         raise HTTPException(status_code=404, detail=f"Page {page_no} not found")
 
-    return [VerseResponse.model_validate(v) for v in verses]
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
+    return await _with_translations(session, verses, keys)
 
 
 @router.get("/juz/{juz_no}", response_model=List[VerseResponse])
@@ -658,6 +716,7 @@ async def get_juz_verses(
     juz_no: int,
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
+    translations: Optional[str] = TranslationsParam,
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -665,6 +724,7 @@ async def get_juz_verses(
     """
     if juz_no < 1 or juz_no > 30:
         raise HTTPException(status_code=400, detail="Juz number must be between 1 and 30")
+    keys = _parse_translation_keys(translations)
 
     query = (
         select(QuranVerse)
@@ -677,7 +737,7 @@ async def get_juz_verses(
     result = await session.execute(query)
     verses = result.scalars().all()
 
-    return [VerseResponse.model_validate(v) for v in verses]
+    return await _with_translations(session, verses, keys)
 
 
 @router.get("/tafseer/{sura_no}/{aya_no}", response_model=List[TafseerChunkResponse])
