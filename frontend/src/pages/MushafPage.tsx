@@ -49,7 +49,8 @@ import type { VerseAskAiResponse, Citation } from '../lib/api';
 import { queryKeys, staleTimes } from '../lib/queryClient';
 import { shareContent } from '../lib/native';
 import { getReadingProgress, recordReadingPosition } from '../hooks/useReadingProgress';
-import { useReaderSettingsStore, verseTextFor } from '../stores/readerSettingsStore';
+import { useReaderSettingsStore, verseTextFor, applyReaderThemeToDocument } from '../stores/readerSettingsStore';
+import { ReaderThemePicker } from '../components/quran/ReaderThemePicker';
 
 // =============================================================================
 // Types & Interfaces
@@ -978,8 +979,9 @@ export function MushafPage() {
   });
   const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
   const {
-    fontScale, setFontScale, script, reciterId: selectedReciter, setReciterId: setSelectedReciter,
+    fontScale, setFontScale, script, reciterId: selectedReciter, setReciterId: setSelectedReciter, theme,
   } = useReaderSettingsStore();
+  useEffect(() => applyReaderThemeToDocument(theme), [theme]);
   const fontSize = Math.round(28 * fontScale);
   const [selectedTafsir, setSelectedTafsir] = useState(() =>
     language === 'ar' ? 'muyassar' : 'en_ibn_kathir'
@@ -1126,7 +1128,10 @@ export function MushafPage() {
   const currentSura = useMemo(() => verses.length > 0 ? verses[0] : null, [verses]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50">
+    <div
+      className="mushaf-root reader-surface min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50"
+      data-theme={theme}
+    >
       {/* Hidden Audio Element */}
       <audio
         ref={audioRef}
@@ -1274,6 +1279,8 @@ export function MushafPage() {
                 ))}
               </select>
             </div>
+
+            <ReaderThemePicker language={language} compact />
           </div>
         )}
       </nav>
@@ -1358,7 +1365,7 @@ export function MushafPage() {
                         )}
                       >
                         <span
-                          className="ksu-verse-text"
+                          className={clsx('ksu-verse-text', script === 'uthmani' && 'ksu-uthmani')}
                           style={{ fontSize: `${fontSize}px` }}
                         >
                           {displayText}

@@ -17,6 +17,7 @@ import type { Language } from '../i18n/translations';
 /** imlaei: simplified modern spelling. uthmani: the Madinah Mushaf rasm. */
 export type QuranScript = 'imlaei' | 'uthmani';
 export type ReaderView = 'mushaf' | 'list';
+export type ReaderTheme = 'light' | 'sepia' | 'night';
 
 /** The backend accepts at most this many editions per request. */
 export const MAX_TRANSLATIONS = 3;
@@ -41,6 +42,7 @@ interface ReaderSettingsState {
   /** null until the reader chooses; then the chosen keys (possibly empty). */
   translationKeys: string[] | null;
   autoScroll: boolean;
+  theme: ReaderTheme;
   reciterId: string;
   playbackRate: number;
   verseRepeat: number;
@@ -52,6 +54,7 @@ interface ReaderSettingsState {
   toggleTranslation: (key: string, current: string[]) => void;
   clearTranslations: () => void;
   setAutoScroll: (on: boolean) => void;
+  setTheme: (theme: ReaderTheme) => void;
   setReciterId: (id: string) => void;
   setPlaybackRate: (rate: number) => void;
   setVerseRepeat: (times: number) => void;
@@ -68,6 +71,7 @@ export const useReaderSettingsStore = create<ReaderSettingsState>()(
       view: 'mushaf',
       translationKeys: null,
       autoScroll: true,
+      theme: 'light',
       reciterId: 'mishary_afasy',
       playbackRate: 1,
       verseRepeat: 1,
@@ -85,6 +89,7 @@ export const useReaderSettingsStore = create<ReaderSettingsState>()(
         }),
       clearTranslations: () => set({ translationKeys: [] }),
       setAutoScroll: (autoScroll) => set({ autoScroll }),
+      setTheme: (theme) => set({ theme }),
       setReciterId: (reciterId) => set({ reciterId }),
       setPlaybackRate: (playbackRate) => set({ playbackRate }),
       setVerseRepeat: (verseRepeat) => set({ verseRepeat }),
@@ -107,4 +112,17 @@ export function verseTextFor(
   script: QuranScript,
 ): string {
   return script === 'uthmani' ? verse.text_uthmani : verse.text_imlaei;
+}
+
+/**
+ * Apply the reading theme to the page background while a reader is mounted.
+ * Returns the cleanup that restores the default.
+ */
+export function applyReaderThemeToDocument(theme: ReaderTheme): () => void {
+  const root = document.documentElement;
+  if (theme === 'light') delete root.dataset.readerTheme;
+  else root.dataset.readerTheme = theme;
+  return () => {
+    delete root.dataset.readerTheme;
+  };
 }

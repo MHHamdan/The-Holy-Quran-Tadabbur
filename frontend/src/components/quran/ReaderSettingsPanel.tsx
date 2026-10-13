@@ -18,6 +18,7 @@ import {
 import { useTranslationEditions, languageName } from './VerseTranslations';
 import type { TranslationEdition } from '../../lib/api';
 import type { Language } from '../../i18n/translations';
+import { ReaderThemePicker } from './ReaderThemePicker';
 
 interface ReaderSettingsPanelProps {
   language: Language;
@@ -66,6 +67,12 @@ export function ReaderSettingsPanel({ language, onClose }: ReaderSettingsPanelPr
         >
           <X className="w-5 h-5" />
         </button>
+      </div>
+
+      {/* Theme */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-700 mb-2">{ar ? 'سمة القراءة' : 'Reading theme'}</h3>
+        <ReaderThemePicker language={language} />
       </div>
 
       {/* Script */}

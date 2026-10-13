@@ -32,6 +32,7 @@ import {
   useReaderSettingsStore,
   effectiveTranslationKeys,
   verseTextFor,
+  applyReaderThemeToDocument,
 } from '../stores/readerSettingsStore';
 import clsx from 'clsx';
 import { shareContent } from '../lib/native';
@@ -114,8 +115,9 @@ export function QuranPage() {
   // Verse text comes from the backend; a failed load must not look like an empty surah.
   const [loadError, setLoadError] = useState<APIErrorData | null>(null);
   const {
-    view: viewMode, setView: setViewMode, script, fontScale, translationKeys, autoScroll,
+    view: viewMode, setView: setViewMode, script, fontScale, translationKeys, autoScroll, theme,
   } = useReaderSettingsStore();
+  useEffect(() => applyReaderThemeToDocument(theme), [theme]);
   const activeTranslations = effectiveTranslationKeys(translationKeys, language);
   const translationsKey = activeTranslations.join(',');
   const { data: translationEditions } = useTranslationEditions();
@@ -424,7 +426,11 @@ export function QuranPage() {
   }, {} as Record<number, Verse[]>);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <div
+      className="reader-surface max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+      data-theme={theme}
+      dir={language === 'ar' ? 'rtl' : 'ltr'}
+    >
       {/* Back Link */}
       <Link
         to="/stories"
@@ -662,7 +668,7 @@ export function QuranPage() {
         />
       ) : viewMode === 'mushaf' ? (
         /* Mushaf Style View */
-        <div className="rounded-2xl bg-[#fefcf3] border-2 border-amber-200 shadow-lg overflow-hidden">
+        <div className="reader-mushaf rounded-2xl bg-[#fefcf3] border-2 border-amber-200 shadow-lg overflow-hidden">
           {/* Decorative Header */}
           <div className="bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 text-center py-4 px-6">
             <h2 className="text-2xl font-bold font-arabic text-amber-50 tracking-widest">
@@ -684,7 +690,7 @@ export function QuranPage() {
           <div className="p-6">
 
           {/* Verses in Mushaf Style */}
-          <div className={clsx('text-center leading-[3] text-gray-900', quranFont)} style={arabicFontSize} dir="rtl">
+          <div className={clsx('reader-arabic text-center leading-[3] text-gray-900', quranFont)} style={arabicFontSize} dir="rtl">
             {verses.map((verse, idx) => {
               const verseKey = `${verse.sura_no}:${verse.aya_no}`;
               // Exclude Bismillah verses from concept highlighting to avoid redundant matches
@@ -808,7 +814,7 @@ export function QuranPage() {
                     ? 'border-primary-300 bg-primary-50 shadow-sm'
                     : isConceptHighlighted
                     ? 'border-amber-300 bg-amber-50 shadow-sm'
-                    : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm',
+                    : 'reader-card border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm',
                 )}
               >
                 {/* Bismillah banner */}
@@ -848,7 +854,7 @@ export function QuranPage() {
 
                 {/* Arabic text */}
                 <div className="px-5 pt-2 pb-3" dir="rtl">
-                  <p className={clsx('leading-[2.2] text-gray-900', quranFont)} style={arabicFontSize}>
+                  <p className={clsx('reader-arabic leading-[2.2] text-gray-900', quranFont)} style={arabicFontSize}>
                     <VerseText text={listDisplayText} sura={verse.sura_no} aya={verse.aya_no} />
                   </p>
                 </div>

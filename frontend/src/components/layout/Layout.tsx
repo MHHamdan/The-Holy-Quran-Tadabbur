@@ -71,7 +71,7 @@ export function Layout({ children }: LayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50" dir={direction}>
+    <div className="app-shell min-h-screen bg-gray-50" dir={direction}>
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50 safe-area-top">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

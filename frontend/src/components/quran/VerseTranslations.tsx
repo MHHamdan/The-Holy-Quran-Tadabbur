@@ -91,7 +91,7 @@ function TranslationBlock({
   const version = translation.edition_version ?? edition?.version;
 
   return (
-    <div className="px-4 py-3 bg-gray-50 rounded-xl border-s-4 border-primary-200">
+    <div className="reader-translation px-4 py-3 bg-gray-50 rounded-xl border-s-4 border-primary-200">
       <p
         dir={rtl ? 'rtl' : 'ltr'}
         lang={translation.language}
