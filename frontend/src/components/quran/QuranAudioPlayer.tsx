@@ -7,12 +7,12 @@
  * - Per-verse repeat count for memorisation, and whole-range repeat
  * - Speed control (remembered)
  * - Lock-screen / media-key controls through the Media Session API
- * - Download option
+ * - Save a surah for offline listening (device storage / Cache Storage)
  *
  * Arabic: مشغل صوت القرآن الكريم
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Download, Repeat, Settings } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Download, Repeat, Settings, CheckCircle2, Trash2 } from 'lucide-react';
 import { audioApi, ReciterInfo, VerseAudioInfo } from '../../lib/api';
 import { Language } from '../../i18n/translations';
 import {
@@ -20,6 +20,13 @@ import {
   PLAYBACK_RATES,
   VERSE_REPEATS,
 } from '../../stores/readerSettingsStore';
+import {
+  offlineAudioSupported,
+  playableUrl,
+  removeSurah,
+  saveSurah,
+  savedSurah,
+} from '../../lib/offlineAudio';
 import clsx from 'clsx';
 
 // =============================================================================
@@ -104,6 +111,23 @@ export function QuranAudioPlayer({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // Plays of the current verse so far (for the per-verse repeat count)
   const playsOfVerseRef = useRef(1);
+  // blob: URL of the saved copy now loaded (web), revoked when replaced
+  const blobUrlRef = useRef<string | null>(null);
+
+  /** Point the player at a verse, preferring its offline copy, and optionally play. */
+  const setSource = useCallback(async (audio: HTMLAudioElement, url: string, sura: number, play: boolean) => {
+    const src = await playableUrl(selectedReciter, sura, url);
+    if (blobUrlRef.current && blobUrlRef.current !== src) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+    if (src.startsWith('blob:')) blobUrlRef.current = src;
+    audio.src = src;
+    if (play) await audio.play().catch(() => undefined);
+  }, [selectedReciter]);
+  useEffect(() => () => {
+    if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+  }, []);
 
   const isRTL = language === 'ar';
 
@@ -140,6 +164,7 @@ export function QuranAudioPlayer({
     try {
       let audioUrl = '';
       let fallbacks: string[] = [];
+      let startSura = suraNo ?? 0;
 
       if (mode === 'surah' && suraNo) {
         // Verse by verse, so the reader can highlight and follow each verse.
@@ -226,6 +251,7 @@ export function QuranAudioPlayer({
 
         const targetVerse = verses[startIndex];
         audioUrl = targetVerse?.url || '';
+        startSura = targetVerse?.sura_no ?? 0;
         if (targetVerse) fallbacks = collectFallbackUrls(targetVerse);
         setFallbackUrls(fallbacks);
         setCurrentVerseIndex(startIndex);
@@ -243,7 +269,7 @@ export function QuranAudioPlayer({
 
       playsOfVerseRef.current = 1;
       if (audioUrl && audioRef.current) {
-        audioRef.current.src = audioUrl;
+        await setSource(audioRef.current, audioUrl, startSura, false);
         audioRef.current.load();
         setPlaybackState('paused');
       } else {
@@ -254,7 +280,7 @@ export function QuranAudioPlayer({
       setError(language === 'ar' ? 'فشل تحميل الصوت' : 'Failed to load audio');
       setPlaybackState('idle');
     }
-  }, [mode, suraNo, ayaNo, ayaStart, ayaEnd, pageNo, selectedReciter, language, startFromAya, startFromSura, autoPlay, onVerseChange]);
+  }, [mode, suraNo, ayaNo, ayaStart, ayaEnd, pageNo, selectedReciter, language, startFromAya, startFromSura, autoPlay, onVerseChange, setSource]);
 
   // Load audio when mode/params change
   useEffect(() => {
@@ -290,19 +316,21 @@ export function QuranAudioPlayer({
       if (verseAudios.length > 1 && currentVerseIndex < verseAudios.length - 1) {
         // Play next verse
         const nextIndex = currentVerseIndex + 1;
+        const next = verseAudios[nextIndex];
         setCurrentVerseIndex(nextIndex);
-        audio.src = verseAudios[nextIndex].url;
-        audio.play();
-        onVerseChange?.(verseAudios[nextIndex].sura_no, verseAudios[nextIndex].aya_no);
+        void setSource(audio, next.url, next.sura_no, true);
+        onVerseChange?.(next.sura_no, next.aya_no);
       } else if (isRepeat) {
         // Repeat from beginning
         if (verseAudios.length > 1) {
+          const first = verseAudios[0];
           setCurrentVerseIndex(0);
-          audio.src = verseAudios[0].url;
-          onVerseChange?.(verseAudios[0].sura_no, verseAudios[0].aya_no);
+          void setSource(audio, first.url, first.sura_no, true);
+          onVerseChange?.(first.sura_no, first.aya_no);
+        } else {
+          audio.currentTime = 0;
+          audio.play();
         }
-        audio.currentTime = 0;
-        audio.play();
       } else {
         setPlaybackState('paused');
       }
@@ -349,7 +377,7 @@ export function QuranAudioPlayer({
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('error', handleError);
     };
-  }, [verseAudios, currentVerseIndex, isRepeat, verseRepeat, language, onVerseChange, fallbackUrls, currentFallbackIndex]);
+  }, [verseAudios, currentVerseIndex, isRepeat, verseRepeat, language, onVerseChange, fallbackUrls, currentFallbackIndex, setSource]);
 
   // Update volume
   useEffect(() => {
@@ -393,10 +421,10 @@ export function QuranAudioPlayer({
     if (!audioRef.current) return;
     if (verseAudios.length > 1 && currentVerseIndex > 0) {
       const prevIndex = currentVerseIndex - 1;
+      const prev = verseAudios[prevIndex];
       setCurrentVerseIndex(prevIndex);
-      audioRef.current.src = verseAudios[prevIndex].url;
-      audioRef.current.play();
-      onVerseChange?.(verseAudios[prevIndex].sura_no, verseAudios[prevIndex].aya_no);
+      void setSource(audioRef.current, prev.url, prev.sura_no, true);
+      onVerseChange?.(prev.sura_no, prev.aya_no);
     } else {
       audioRef.current.currentTime = 0;
     }
@@ -406,10 +434,10 @@ export function QuranAudioPlayer({
     if (!audioRef.current) return;
     if (verseAudios.length > 1 && currentVerseIndex < verseAudios.length - 1) {
       const nextIndex = currentVerseIndex + 1;
+      const next = verseAudios[nextIndex];
       setCurrentVerseIndex(nextIndex);
-      audioRef.current.src = verseAudios[nextIndex].url;
-      audioRef.current.play();
-      onVerseChange?.(verseAudios[nextIndex].sura_no, verseAudios[nextIndex].aya_no);
+      void setSource(audioRef.current, next.url, next.sura_no, true);
+      onVerseChange?.(next.sura_no, next.aya_no);
     }
   };
 
@@ -453,9 +481,45 @@ export function QuranAudioPlayer({
     setCurrentTime(newTime);
   };
 
-  const handleDownload = () => {
-    if (audioRef.current?.src) {
-      window.open(audioRef.current.src, '_blank');
+  // ── Offline: save the whole surah for this reciter ──
+  const canSaveOffline = offlineAudioSupported && mode === 'surah' && !!suraNo;
+  const [saved, setSaved] = useState(() => (suraNo ? savedSurah(selectedReciter, suraNo) : null));
+  const [saveProgress, setSaveProgress] = useState<{ done: number; total: number } | null>(null);
+  const [saveError, setSaveError] = useState(false);
+  const saveAbort = useRef<AbortController | null>(null);
+  useEffect(() => {
+    setSaved(suraNo ? savedSurah(selectedReciter, suraNo) : null);
+    setSaveError(false);
+    return () => saveAbort.current?.abort();
+  }, [selectedReciter, suraNo]);
+
+  const surahUrls = async () =>
+    (await audioApi.getRangeAudio(suraNo!, 1, 286, selectedReciter)).data.verse_audios.map((v) => v.url);
+
+  const handleSaveOffline = async () => {
+    if (!suraNo || saveProgress) return;
+    const controller = new AbortController();
+    saveAbort.current = controller;
+    setSaveError(false);
+    try {
+      const urls = await surahUrls();
+      setSaveProgress({ done: 0, total: urls.length });
+      const entry = await saveSurah(selectedReciter, suraNo, urls,
+        (done, total) => setSaveProgress({ done, total }), controller.signal);
+      setSaved(entry);
+    } catch {
+      if (!controller.signal.aborted) setSaveError(true);
+    } finally {
+      setSaveProgress(null);
+    }
+  };
+
+  const handleRemoveOffline = async () => {
+    if (!suraNo) return;
+    try {
+      await removeSurah(selectedReciter, suraNo, await surahUrls());
+    } finally {
+      setSaved(null);
     }
   };
 
@@ -592,14 +656,22 @@ export function QuranAudioPlayer({
             <Settings className="w-5 h-5" />
           </button>
 
-          {/* Download */}
-          <button
-            onClick={handleDownload}
-            className="control-btn"
-            disabled={!audioRef.current?.src}
-          >
-            <Download className="w-5 h-5" />
-          </button>
+          {/* Save for offline (surah mode) */}
+          {canSaveOffline && (
+            <button
+              onClick={saved ? handleRemoveOffline : handleSaveOffline}
+              className={clsx('control-btn', saved && 'active')}
+              disabled={!!saveProgress}
+              aria-label={saved
+                ? (language === 'ar' ? 'حذف النسخة المحفوظة' : 'Remove offline copy')
+                : (language === 'ar' ? 'حفظ السورة للاستماع دون اتصال' : 'Save surah for offline listening')}
+              title={saved
+                ? (language === 'ar' ? 'محفوظة للاستماع دون اتصال — اضغط للحذف' : 'Saved for offline — tap to remove')
+                : (language === 'ar' ? 'حفظ السورة للاستماع دون اتصال' : 'Save surah for offline listening')}
+            >
+              {saved ? <CheckCircle2 className="w-5 h-5" /> : <Download className="w-5 h-5" />}
+            </button>
+          )}
         </div>
       </div>
 
@@ -659,6 +731,39 @@ export function QuranAudioPlayer({
               : `Verse ${currentVerseIndex + 1} of ${verseAudios.length}`}
           </span>
           <span className="verse-reference">{currentVerse.reference}</span>
+        </div>
+      )}
+
+      {/* Offline save status */}
+      {canSaveOffline && (saveProgress || saveError || saved) && (
+        <div className="offline-status" role="status">
+          {saveProgress ? (
+            <>
+              <span>
+                {language === 'ar'
+                  ? `جارٍ الحفظ للاستماع دون اتصال: ${saveProgress.done} من ${saveProgress.total}`
+                  : `Saving for offline: ${saveProgress.done} of ${saveProgress.total}`}
+              </span>
+              <progress value={saveProgress.done} max={saveProgress.total} />
+              <button onClick={() => saveAbort.current?.abort()}>
+                {language === 'ar' ? 'إلغاء' : 'Cancel'}
+              </button>
+            </>
+          ) : saveError ? (
+            <span className="offline-error">
+              {language === 'ar' ? 'تعذّر حفظ السورة. تحقق من الاتصال وحاول مجددًا.' : 'Could not save the surah. Check your connection and try again.'}
+            </span>
+          ) : saved ? (
+            <span>
+              <CheckCircle2 className="w-4 h-4 inline-block align-text-bottom" />{' '}
+              {language === 'ar'
+                ? `محفوظة للاستماع دون اتصال (${saved.verses} آية${saved.bytes ? `، ${(saved.bytes / 1048576).toFixed(1)} م.ب` : ''})`
+                : `Saved for offline (${saved.verses} verses${saved.bytes ? `, ${(saved.bytes / 1048576).toFixed(1)} MB` : ''})`}
+              <button onClick={handleRemoveOffline} aria-label={language === 'ar' ? 'حذف' : 'Remove'}>
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </span>
+          ) : null}
         </div>
       )}
 
@@ -889,6 +994,26 @@ export function QuranAudioPlayer({
           border-radius: 4px;
           cursor: pointer;
         }
+
+        .offline-status {
+          margin-top: 0.75rem;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+          font-size: 0.8125rem;
+          color: #047857;
+        }
+        .offline-status progress { flex: 1; min-width: 120px; height: 6px; accent-color: #059669; }
+        .offline-status button {
+          padding: 0.125rem 0.5rem;
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 4px;
+          cursor: pointer;
+          color: #374151;
+        }
+        .offline-status .offline-error { color: #991b1b; }
 
         .start-from-indicator {
           margin-top: 0.75rem;
