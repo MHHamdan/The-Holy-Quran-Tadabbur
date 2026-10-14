@@ -16,7 +16,7 @@ import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Book, ChevronLeft, ChevronRight, BookOpen,
   Languages, GitBranch, FileText, Headphones, Bookmark, BookmarkCheck,
-  Copy, Check, Share2, Search, SlidersHorizontal,
+  Copy, Check, Share2, Search, SlidersHorizontal, Image as ImageIcon,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, grammarApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
@@ -38,6 +38,7 @@ import {
 import clsx from 'clsx';
 import { shareContent } from '../lib/native';
 import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { shareVerseImage } from '../lib/verseImage';
 
 const GrammarAnalysisView = lazy(() =>
   import('../components/quran/GrammarAnalysis').then(m => ({ default: m.GrammarAnalysisView }))
@@ -150,6 +151,23 @@ export function QuranPage() {
       path: `/quran/${verse.sura_no}?aya=${verse.aya_no}`,
     });
   }, []);
+
+  const [imageBusyId, setImageBusyId] = useState<number | null>(null);
+  const shareImage = useCallback(async (verse: Verse, displayText: string) => {
+    setImageBusyId(verse.id);
+    const first = verse.translations?.[0];
+    const edition = first ? translationEditions?.find((e) => e.key === first.translator) : undefined;
+    await shareVerseImage({
+      arabic: displayText,
+      reference: language === 'ar'
+        ? `${verse.sura_name_ar} · ${toArabicNum(verse.aya_no)}`
+        : `${verse.sura_name_en} ${verse.sura_no}:${verse.aya_no}`,
+      translation: first?.text,
+      translationSource: edition ? `${edition.title} · v${edition.version} · QuranEnc.com` : undefined,
+      arabicFont: script === 'uthmani' ? 'Scheherazade New' : 'Noto Naskh Arabic',
+    }, `tadabbur-${verse.sura_no}-${verse.aya_no}.png`);
+    setImageBusyId(null);
+  }, [language, script, translationEditions]);
 
   // Prefetch on button hover so panel opens instantly
   const prefetchGrammar = useCallback((suraNo: number, ayaNo: number) => {
@@ -907,6 +925,15 @@ export function QuranPage() {
                         ? <Check className="w-3.5 h-3.5 text-green-500" />
                         : <Copy className="w-3.5 h-3.5" />
                       }
+                    </button>
+                    <button
+                      onClick={() => shareImage(verse, listDisplayText)}
+                      disabled={imageBusyId === verse.id}
+                      title={language === 'ar' ? 'مشاركة كصورة' : 'Share as image'}
+                      aria-label={language === 'ar' ? 'مشاركة كصورة' : 'Share as image'}
+                      className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => shareVerse(verse, listDisplayText)}

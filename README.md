@@ -205,18 +205,32 @@ cd frontend
 export ANDROID_HOME=/path/to/android-sdk          # platform 36, build-tools 36, JDK 21
 VITE_API_URL=http://10.0.2.2:8000 npm run android:debug   # -> android/app/build/outputs/apk/debug/app-debug.apk
 
-# Android release (needs the owner's upload keystore, not in the repository):
-npm run android:release                            # bundleRelease (sign with your keystore)
+# Android release bundle: signed when android/keystore.properties exists
+# (copy keystore.properties.example; the keystore itself stays outside git):
+npm run android:release                            # -> android/app/build/outputs/bundle/release/app-release.aab
 
 # iOS (macOS + Xcode 16 required):
 npm run ios:sync && npx cap open ios               # set signing team, archive, upload
 ```
 
-- **Permissions:** the microphone, for Tasmeeʿ, requested when recording starts; notifications (Android 13+ / iOS), requested only when the user turns on the daily reading reminder (Reading Plan page). Reminders are local notifications: no push service.
+- **Permissions:** the microphone, for Tasmeeʿ, requested when recording starts; location, requested only by prayer times, the Qibla compass and the mosque finder; notifications (Android 13+ / iOS), requested only when the user turns on the daily reading reminder (Reading Plan page). Reminders are local notifications: no push service.
+- **Store metadata in the projects:** app name "Tadabbur" / "تدبر" (Android `values-ar`, iOS `ar.lproj/InfoPlist.strings`), iOS privacy manifest (`PrivacyInfo.xcprivacy`, matching `/privacy`), `ITSAppUsesNonExemptEncryption=false`, version 1.0.0 (bump `versionCode` / `CURRENT_PROJECT_VERSION` for every upload).
 - **Native features:** system share sheet, haptics on the dhikr counter, background recitation with lock-screen controls (iOS `UIBackgroundModes=audio`), and deep links on the `tadabbur://` scheme (e.g. `tadabbur://quran/2?aya=255`, `tadabbur://continue`).
 - **Shared links:** set `VITE_PUBLIC_WEB_URL` (public web address) at build time so verses shared from the apps carry a link; without it they share text only.
 - **Network security:** release builds allow HTTPS only. Debug builds allow cleartext only to `10.0.2.2` and `localhost`. iOS keeps App Transport Security defaults.
 - **Details:** `docs/migration/PHASE8_MOBILE.md`.
+
+### Releasing to Google Play and the App Store
+
+`.github/workflows/mobile-release.yml` runs on every push that touches `frontend/`, on `v*` tags and manually. It builds the Android App Bundle (signed once the secrets below exist) and compiles the iOS app for devices on macOS without signing, checking that the privacy manifest, Arabic strings and permission keys are in the bundle.
+
+What only the owner can do, in order:
+
+1. **Host the backend** on a public HTTPS domain (`docker-compose.prod.yml`, see "Production deployment"), then set the repository variable `PRODUCTION_API_URL` (and optionally `PUBLIC_WEB_URL`, `PRIVACY_CONTACT`). Add the domain to `CORS_ORIGINS` along with `https://localhost` and `capacitor://localhost`.
+2. **Hugging Face credit** on the account whose `HF_TOKEN` the server uses, then `pytest -m live_hf` (the last open completion gate).
+3. **Google Play:** create the upload key (`keytool`, see `frontend/android/keystore.properties.example`), store it as `ANDROID_UPLOAD_KEYSTORE_BASE64` plus `ANDROID_UPLOAD_STORE_PASSWORD`, `ANDROID_UPLOAD_KEY_ALIAS`, `ANDROID_UPLOAD_KEY_PASSWORD` secrets, push a `v1.0.0` tag, and upload the AAB artifact. Data-safety answers follow `/privacy`: no data shared or sold, nothing linked to identity, audio/messages/searches/location processed for app functionality, deletion available in the app.
+4. **App Store:** in Xcode (`npm run ios:sync && npx cap open ios`) set the Apple Developer team, archive and upload. Privacy labels follow `PrivacyInfo.xcprivacy`. Check on a device: background recitation, the microphone and location prompts, and reminders.
+5. **Listings:** privacy policy URL `https://<web domain>/privacy`; category Books/Education; the app is free, with no ads or purchases (required by `docs/distribution-policy.md`).
 
 ## Tests
 
