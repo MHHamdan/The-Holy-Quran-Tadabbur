@@ -3148,6 +3148,10 @@ export const therapyApi = {
   getReflections: (sessionIds: string[]) =>
     api.post<ReflectionsResponse>('/therapy/reflections', { session_ids: sessionIds }).then(r => r.data),
 
+  /** Delete the server copy of these guidance sessions and any saved reflection. */
+  deleteSessions: (sessionIds: string[]) =>
+    api.post<{ deleted: number }>('/therapy/sessions/delete', { session_ids: sessionIds.slice(0, 200) }).then(r => r.data),
+
   // Phase T-Adaptive — topic-specific hadith + wise phrases
   getTopicResources: (topicKey: string) =>
     api.get<TopicResourcesResponse>(`/therapy/topic/${encodeURIComponent(topicKey)}`).then(r => r.data),

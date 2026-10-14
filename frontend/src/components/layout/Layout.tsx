@@ -165,6 +165,14 @@ export function Layout({ children }: LayoutProps) {
           <p className={clsx('text-center text-sm text-gray-500', language === 'ar' && 'font-arabic')}>
             {t('footer_disclaimer', language)}
           </p>
+          <nav className={clsx('mt-2 flex justify-center gap-4 text-xs text-gray-400', language === 'ar' && 'font-arabic')}>
+            <Link to="/privacy" className="hover:text-primary-600 underline">
+              {language === 'ar' ? 'سياسة الخصوصية' : 'Privacy policy'}
+            </Link>
+            <Link to="/sources" className="hover:text-primary-600 underline">
+              {language === 'ar' ? 'المصادر والتراخيص' : 'Sources & licences'}
+            </Link>
+          </nav>
         </div>
       </footer>
     </div>

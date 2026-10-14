@@ -307,7 +307,7 @@ async def resolve_verse_text(
 
     is_allowed, remaining = _resolve_rate_limiter.is_allowed(client_ip)
     if not is_allowed:
-        logger.warning(f"[RESOLVE] Rate limited: client_ip={client_ip}")
+        logger.warning("[RESOLVE] Rate limited")  # no IP in logs (privacy policy)
         return error_response(
             code=ErrorCode.RATE_LIMITED,
             message_en="Too many requests. Please wait a moment before trying again.",

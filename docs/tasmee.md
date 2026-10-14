@@ -5,10 +5,10 @@
 Tasmeeʿ (تسميع) is a Quran memorization practice feature that provides real-time feedback on recitation accuracy. The feature uses local, offline Speech-to-Text (STT) to transcribe audio, then aligns the transcription with expected Quranic text to detect mistakes.
 
 **Key Design Principles:**
-- **100% Free & Offline**: Uses faster-whisper (MIT license) - no cloud APIs, no credits
+- **Speech recognition on Hugging Face**: audio is streamed to the backend and transcribed by the configured Hugging Face model (`HF_STT_MODEL`, default whisper-large-v3-turbo). This uses HF credit; there is no local model since the HF migration.
 - **Arabic-First**: Optimized for Arabic text normalization and Quranic recitation
 - **Real-Time Feedback**: Word-by-word highlighting as the user recites
-- **Privacy**: All processing happens locally on the user's machine
+- **Privacy**: audio is never written to disk (the old upload-and-store endpoint was removed); only the session's recognised words and accuracy are kept, without user identity
 
 ## Architecture
 

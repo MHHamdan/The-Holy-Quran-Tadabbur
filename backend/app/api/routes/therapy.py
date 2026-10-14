@@ -20,7 +20,9 @@ IMPORTANT DISCLAIMER — included in every response:
 import asyncio
 import json
 import logging
+import os
 import uuid
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -1104,11 +1106,12 @@ async def ask(
         session_id=session_id,
         emotion=emotion,
         theme=cards_data[0]["theme"] if cards_data else None,
-        user_message=body.message[:500],
+        user_message=None,  # never stored (see "Privacy: retention and deletion")
         verses_shown=verses_shown,
         language=body.language,
     )
     db.add(session)
+    await _purge_expired_sessions(db)
     await db.commit()
 
     cards = [GuidanceCard(**c) for c in cards_data]
@@ -1355,11 +1358,12 @@ async def chat(
                 session_id=session_id,
                 emotion=emotion,
                 theme=None,
-                user_message=body.message[:500],
+                user_message=None,  # never stored (see "Privacy: retention and deletion")
                 verses_shown=json.dumps(related_verses[:5]),
                 language=body.language,
             )
             db.add(ts)
+            await _purge_expired_sessions(db)
             await db.commit()
 
             return ChatResponse(
@@ -1389,11 +1393,12 @@ async def chat(
         session_id=session_id,
         emotion=emotion,
         theme=cards_data[0]["theme"] if cards_data else None,
-        user_message=body.message[:500],
+        user_message=None,  # never stored (see "Privacy: retention and deletion")
         verses_shown=json.dumps([c["reference"] for c in cards_data]),
         language=body.language,
     )
     db.add(ts)
+    await _purge_expired_sessions(db)
     await db.commit()
 
     return ChatResponse(
@@ -1560,6 +1565,52 @@ async def get_insights(
         trend=trend,
         weekly_change=weekly_change,
     )
+
+
+# ---------------------------------------------------------------------------
+# Privacy: retention and deletion
+# ---------------------------------------------------------------------------
+# What a guidance session keeps on the server: the detected emotion, theme,
+# the verse references shown, the language, and the reflection text only if
+# the user chose to save one. The user's own message is never stored. Rows
+# expire after THERAPY_RETENTION_DAYS and can be deleted on request.
+
+THERAPY_RETENTION_DAYS = int(os.getenv("THERAPY_RETENTION_DAYS", "180"))
+
+
+async def _purge_expired_sessions(db: AsyncSession) -> None:
+    from sqlalchemy import delete as sa_delete
+
+    cutoff = datetime.utcnow() - timedelta(days=THERAPY_RETENTION_DAYS)
+    await db.execute(sa_delete(TherapySession).where(TherapySession.created_at < cutoff))
+
+
+class DeleteSessionsRequest(BaseModel):
+    session_ids: List[str] = Field(..., min_length=1, max_length=200)
+
+
+class DeleteSessionsResponse(BaseModel):
+    deleted: int
+
+
+@router.post(
+    "/sessions/delete",
+    response_model=DeleteSessionsResponse,
+    summary="Delete the server copy of these sessions (and any saved reflection)",
+    dependencies=[Depends(therapy_rate_limit)],
+)
+async def delete_sessions(
+    body: DeleteSessionsRequest,
+    db: AsyncSession = Depends(get_async_session),
+) -> DeleteSessionsResponse:
+    """Session IDs are random UUIDs held only by the client, so possession is the proof of ownership."""
+    from sqlalchemy import delete as sa_delete
+
+    result = await db.execute(
+        sa_delete(TherapySession).where(TherapySession.session_id.in_(body.session_ids[:200]))
+    )
+    await db.commit()
+    return DeleteSessionsResponse(deleted=result.rowcount or 0)
 
 
 # ---------------------------------------------------------------------------
