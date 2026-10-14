@@ -1,5 +1,17 @@
 apply plugin: 'com.android.application'
 
+// Release signing (Play upload key). Supplied outside git, from either
+// android/keystore.properties (git-ignored; see keystore.properties.example)
+// or the TADABBUR_UPLOAD_* environment variables (CI secrets). Without them
+// the release build is produced unsigned, as before.
+def signingProps = new Properties()
+def signingFile = rootProject.file('keystore.properties')
+if (signingFile.exists()) {
+    signingFile.withInputStream { signingProps.load(it) }
+}
+def signingValue = { String key, String env -> signingProps.getProperty(key) ?: System.getenv(env) }
+def uploadStoreFile = signingValue('storeFile', 'TADABBUR_UPLOAD_STORE_FILE')
+
 android {
     namespace = "com.mhamdan.tadabbur"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +19,9 @@ android {
         applicationId "com.mhamdan.tadabbur"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        // Bump both for every store upload: versionCode must increase.
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +29,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (uploadStoreFile) {
+            release {
+                storeFile file(uploadStoreFile)
+                storePassword signingValue('storePassword', 'TADABBUR_UPLOAD_STORE_PASSWORD')
+                keyAlias signingValue('keyAlias', 'TADABBUR_UPLOAD_KEY_ALIAS')
+                keyPassword signingValue('keyPassword', 'TADABBUR_UPLOAD_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (uploadStoreFile) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
