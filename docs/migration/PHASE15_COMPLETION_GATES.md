@@ -43,3 +43,14 @@ Evidence was gathered on 2026-10-06 on the final code (branch `feat/huggingface-
 
 **REQUIRES THE OWNER'S KEYS:**
 - Android release signing and Play upload
+
+## Update 2026-10-14 (branch `feat/quran-app-parity`)
+
+| Gate | Status | Evidence |
+|---|---|---|
+| G17 iOS project valid | **PASS (compiled)** | `.github/workflows/mobile-release.yml` on macOS 15 / Xcode 16.4: `xcodebuild -sdk iphoneos -configuration Release CODE_SIGNING_ALLOWED=NO build` reports BUILD SUCCEEDED; the bundle contains `PrivacyInfo.xcprivacy`, `ar.lproj/InfoPlist.strings`, the location prompt and `ITSAppUsesNonExemptEncryption=false`. Signing, archive and App Store upload still need the owner's Apple account. |
+| Content licensing | **PASS** | Qur'an text is Tanzil's (CC BY 3.0, verbatim, attributed with a link); translations are QuranEnc editions with a republication grant; no runtime fetch of non-commercial translations remains; Al-Muyassar shown under its non-commercial terms per `docs/distribution-policy.md`. |
+| Privacy | **PASS** | `/privacy` matches the data flows; in-app deletion; user messages not stored; 180-day retention; no client IPs in logs; iOS privacy manifest. |
+
+Still open (owner accounts): public HTTPS hosting + `PRODUCTION_API_URL`, Hugging Face credit (G11), Play upload key, Apple Developer signing.
+
