@@ -41,11 +41,8 @@ class TafseerEdition(str, Enum):
     AR_IBN_KATHIR = "ar.ibnkathir"       # تفسير ابن كثير
 
     # English Translations/Tafsir
-    EN_SAHIH = "en.sahih"                # Sahih International
-    EN_PICKTHALL = "en.pickthall"        # Pickthall
-    EN_YUSUFALI = "en.yusufali"          # Yusuf Ali
-    EN_HILALI = "en.hilali"              # Hilali & Khan
-    EN_TRANSLITERATION = "en.transliteration"  # Transliteration
+    EN_SAHIH = "en.sahih"                # Saheeh International (served from the licensed DB copy)
+    EN_HILALI = "en.hilali"              # Hilali & Khan (served from the licensed DB copy)
 
 
 @dataclass
@@ -122,22 +119,10 @@ EDITION_METADATA: Dict[str, Dict[str, str]] = {
         "author_en": "Al-Baghawi",
     },
     "en.sahih": {
-        "name_ar": "الترجمة الصحيحة",
-        "name_en": "Sahih International",
-        "author_ar": "صحيح انترناشيونال",
-        "author_en": "Sahih International",
-    },
-    "en.pickthall": {
-        "name_ar": "ترجمة بيكثال",
-        "name_en": "Pickthall Translation",
-        "author_ar": "محمد مارمادوك بيكثال",
-        "author_en": "Muhammad M. Pickthall",
-    },
-    "en.yusufali": {
-        "name_ar": "ترجمة يوسف علي",
-        "name_en": "Yusuf Ali Translation",
-        "author_ar": "عبد الله يوسف علي",
-        "author_en": "Abdullah Yusuf Ali",
+        "name_ar": "ترجمة صحيح إنترناشيونال",
+        "name_en": "Saheeh International (QuranEnc.com)",
+        "author_ar": "صحيح إنترناشيونال — مركز نور الدولي",
+        "author_en": "Saheeh International — Noor International Center",
     },
     "en.hilali": {
         "name_ar": "ترجمة الهلالي وخان",
@@ -146,6 +131,39 @@ EDITION_METADATA: Dict[str, Dict[str, str]] = {
         "author_en": "Hilali & Muhsin Khan",
     },
 }
+
+
+# English translations are no longer fetched from alquran.cloud: its copies come
+# from Tanzil, whose translation terms are non-commercial only. These two are
+# answered from the QuranEnc editions in the translations table, which carry a
+# republication grant (data/manifests/translation_sources.json). Any other
+# English edition is refused rather than silently fetched.
+LICENSED_DB_EDITIONS: Dict[str, str] = {
+    "en.sahih": "english_saheeh",
+    "en.hilali": "english_hilali_khan",
+}
+
+
+def _is_unlicensed_translation(edition: str) -> bool:
+    return edition.startswith("en.") and edition not in LICENSED_DB_EDITIONS
+
+
+async def _db_translation(surah: int, ayah: Optional[int], key: str) -> List[tuple]:
+    """(ayah, text, version) rows for one edition from the translations table."""
+    from sqlalchemy import select
+    from app.db.database import AsyncSessionLocal
+    from app.models.quran import QuranVerse, Translation
+
+    query = (
+        select(QuranVerse.aya_no, Translation.text, Translation.edition_version)
+        .join(Translation, Translation.verse_id == QuranVerse.id)
+        .where(QuranVerse.sura_no == surah, Translation.translator == key)
+        .order_by(QuranVerse.aya_no)
+    )
+    if ayah is not None:
+        query = query.where(QuranVerse.aya_no == ayah)
+    async with AsyncSessionLocal() as session:
+        return list((await session.execute(query)).all())
 
 
 class AlQuranCloudClient:
@@ -295,6 +313,19 @@ class AlQuranCloudClient:
 
         for edition in editions:
             edition = edition.strip()
+            if _is_unlicensed_translation(edition):
+                logger.warning(f"Edition {edition} refused: no republication licence")
+                continue
+            if edition in LICENSED_DB_EDITIONS:
+                rows = await _db_translation(surah, ayah, LICENSED_DB_EDITIONS[edition])
+                if rows:
+                    _, text, version = rows[0]
+                    tafasir.append(TafseerVerse(
+                        surah=surah, ayah=ayah, text=text, edition=edition,
+                        edition_name=f"{EDITION_METADATA[edition]['name_en']} v{version}",
+                        language="en",
+                    ))
+                continue
             cache_key = self._get_cache_key(surah, ayah, edition)
 
             # Check cache
@@ -364,6 +395,17 @@ class AlQuranCloudClient:
         Returns:
             List of TafseerVerse for all ayahs in the surah
         """
+        if _is_unlicensed_translation(edition):
+            logger.warning(f"Edition {edition} refused: no republication licence")
+            return []
+        if edition in LICENSED_DB_EDITIONS:
+            name = EDITION_METADATA[edition]["name_en"]
+            return [
+                TafseerVerse(surah=surah, ayah=a, text=text, edition=edition,
+                             edition_name=f"{name} v{version}", language="en")
+                for a, text, version in await _db_translation(surah, None, LICENSED_DB_EDITIONS[edition])
+            ]
+
         cache_key = f"tafseer:surah:{edition}:{surah}"
         cached = await self._get_cached(cache_key)
         if cached:

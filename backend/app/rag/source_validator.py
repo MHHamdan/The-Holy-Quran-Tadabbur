@@ -39,8 +39,8 @@ _DB_VARIANTS: frozenset = frozenset(
 _ALQURAN_CLOUD_EDITIONS = frozenset({
     "ar.muyassar", "ar.jalalayn", "ar.baghawi", "ar.qurtubi",
     "ar.tabari", "ar.ibnkathir",
-    "en.sahih", "en.pickthall", "en.yusufali", "en.hilali",
-    "en.transliteration",
+    # English ids are answered from the licensed QuranEnc copies (tafseer_api.LICENSED_DB_EDITIONS)
+    "en.sahih", "en.hilali",
 })
 _ALQURAN_CLOUD_IDS: frozenset = frozenset(
     {f"alquran_cloud_{e}" for e in _ALQURAN_CLOUD_EDITIONS}
