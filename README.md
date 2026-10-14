@@ -46,7 +46,7 @@ Model choice, benchmarks and the evaluation of CPU embeddings: `docs/migration/`
 backend/            FastAPI app (app/), Alembic migrations, seed/index scripts, tests
 frontend/           React + Vite app, Capacitor projects (android/, ios/), nginx config
 data/               manifests, curated concepts, Qur'an text copy; data/raw/* inputs are git-ignored
-assets/             hafs_smart_v8.json (Qur'an text source, see Licensing)
+assets/             hafs_smart_v8.json (previous KFGQPC text: cross-reference for tests only, never served)
 docker-compose.prod.yml   production stack
 scripts/            dev stack (Podman) start/stop, ports.env, data-bundle tools, TS data builders
 docs/migration/     per-phase engineering notes and verification evidence
@@ -124,7 +124,8 @@ DC="docker compose -f docker-compose.prod.yml"
 RUN="$DC run --rm --no-deps backend"   # paths after $RUN are inside the backend image (= backend/)
 
 # 1. Qur'an text (6,236 verses + search normalisation + hizb/rub' and sajdah markers)
-#    -- from assets/hafs_smart_v8.json and data/manifests/quran_structure_markers.json.
+#    -- from data/raw/quran_tanzil.json (Tanzil, CC BY 3.0) and data/manifests/quran_structure_markers.json.
+#    Rebuild that file from the verbatim Tanzil files with: python scripts/build_quran_tanzil.py
 #    Existing database: `seed_quran.py --markers-only` adds just the markers.
 $RUN python scripts/ingest/seed_quran.py
 
@@ -173,7 +174,7 @@ The step-1–4 data then served `/quran/*`, `/tafseer/compare/*`, `/rag/ask` (8 
 
 | Data | Status |
 |---|---|
-| Qur'an text (Hafs, Uthmani) | **Available, licence unverified.** The primary source `assets/hafs_smart_v8.json` is derived from KFGQPC output, and its redistribution terms are unconfirmed (see `data/manifests/quran_hafs.json`). The licence-verified alternative (Tanzil, CC BY 3.0) is listed in the manifest but has no importer yet. |
+| Qur'an text (Hafs; Uthmani and simple script) | **Available, licence verified.** Tanzil Project text, CC BY 3.0, verbatim (`data/raw/tanzil/`, built into `data/raw/quran_tanzil.json`). Attribution with a link to tanzil.net is shown wherever the text appears. Same letters as the previous KFGQPC text in all 6,236 verses apart from encoding conventions (`backend/tests/test_quran_text_source.py`). |
 | Arabic tafsir: Ibn Kathir, al-Tabari, al-Qurtubi, al-Baghawi | Available (HF dataset above; classical, public domain). |
 | Al-Tafsir al-Muyassar | Available technically. **Licence pending** (King Fahd Complex, "educational and non-commercial"; manifest status `pending_user_input`). |
 | Translations of the meanings | Available: 22 editions in 20 languages from QuranEnc.com (137,192 verse rows), stored verbatim with version and footnotes per its republication terms (`data/manifests/translation_sources.json`). English default: Saheeh International (`english_saheeh`). |
@@ -253,4 +254,4 @@ These tests spend a little HF credit. They cover chat (Arabic and English), embe
 
 ## Licensing
 
-Code: see repository licence. Content licences are tracked per source in `data/manifests/`. The Qur'an text currently used (`assets/hafs_smart_v8.json`) and Al-Muyassar **have unverified redistribution licences**; the manifest marks the Qur'an file as blocking public or commercial deployment until KFGQPC confirms the terms in writing.
+Code: see repository licence. Content licences are tracked per source in `data/manifests/`. The Qur'an text is Tanzil's (CC BY 3.0). Al-Muyassar is shown under its publisher's educational, non-commercial terms, which the app meets because it is free with no ads or purchases (`docs/distribution-policy.md`).

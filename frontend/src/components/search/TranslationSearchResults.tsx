@@ -13,6 +13,7 @@ import { quranApi } from '../../lib/api';
 import { useReaderSettingsStore, effectiveTranslationKeys } from '../../stores/readerSettingsStore';
 import { isRtlLanguage, useTranslationEditions } from '../quran/VerseTranslations';
 import type { Language } from '../../i18n/translations';
+import { QuranTextAttribution } from '../quran/QuranTextAttribution';
 
 const PAGE = 10;
 
@@ -92,6 +93,7 @@ export function TranslationSearchResults({ query, language }: { query: string; l
           );
         })}
       </ol>
+      <QuranTextAttribution language={language} className="mt-3" />
       {data.total > data.hits.length && (
         <button
           type="button"

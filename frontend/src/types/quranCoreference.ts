@@ -173,7 +173,7 @@ export interface CoreferencePattern {
   resolutionMethod: CoreferenceResolutionMethod;
   /** Base confidence ∈ [0,1]; may be downgraded by the scanner. */
   baseConfidence: number;
-  /** SourceIds attached to every emitted mention (e.g. `quran_uthmani_cloud`). */
+  /** SourceIds attached to every emitted mention (e.g. `tanzil_quran_uthmani`). */
   sourceIds: string[];
   /** Notes propagated as `warnings[]` on the emitted mention. */
   warnings: string[];

@@ -38,6 +38,9 @@ class QuranVerse(Base):
     text_uthmani = Column(Text, nullable=False)  # Standard Uthmani script with diacritics
     text_imlaei = Column(Text, nullable=False)  # Imlaei script (still has diacritics)
     text_normalized = Column(Text, nullable=True)  # Normalized for search (no diacritics)
+    # Opening Bismillah of the surah, on its first verse only (not part of the verse text)
+    bismillah_uthmani = Column(Text, nullable=True)
+    bismillah_imlaei = Column(Text, nullable=True)
 
     # Mushaf positioning
     page_no = Column(Integer, nullable=False, index=True)

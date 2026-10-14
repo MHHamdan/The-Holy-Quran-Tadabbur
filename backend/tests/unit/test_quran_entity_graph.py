@@ -117,11 +117,11 @@ def test_scan_does_not_embed_quran_text(mentions: dict) -> None:
 
 
 def test_scan_sources_are_known(mentions: dict) -> None:
-    # Every mention sources from quran_uthmani_cloud (registered in sourceRegistry).
+    # Every mention sources from tanzil_quran_uthmani (registered in sourceRegistry).
     for e in mentions["entities"]:
         for m in e["mentions"]:
             assert m["sourceIds"], f"{e['entityId']} {m['surahNumber']}:{m['ayahNumber']} missing sourceIds"
-            assert "quran_uthmani_cloud" in m["sourceIds"]
+            assert "tanzil_quran_uthmani" in m["sourceIds"]
 
 
 # ---------------------------------------------------------------------------

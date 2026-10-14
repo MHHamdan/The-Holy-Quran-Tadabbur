@@ -20,7 +20,7 @@ The Arabic text of the Quran (Uthmani rasm with diacritics) must never be:
 - Corrected programmatically without a verified source and explicit sign-off
 - Truncated, paraphrased, or altered in any display transformation
 
-The canonical source is the Uthmani rasm as provided by api.alquran.cloud and stored in `data/raw/quran_uthmani.json`. Any discrepancy must be flagged and reviewed, not silently corrected.
+The canonical source is the Tanzil Project's verified text (Uthmani and simple script, CC BY 3.0), kept verbatim in `data/raw/tanzil/` and built into `data/raw/quran_tanzil.json` by `scripts/build_quran_tanzil.py`. The opening Bismillah of each surah is stored apart from verse 1, as Tanzil gives it. (Until 2026-10-14 the source was the KFGQPC file `data/raw/quran_uthmani.json`, previously mislabelled as an alquran.cloud download; it remains only as a cross-reference.) Any discrepancy must be flagged and reviewed, not silently corrected.
 
 ---
 

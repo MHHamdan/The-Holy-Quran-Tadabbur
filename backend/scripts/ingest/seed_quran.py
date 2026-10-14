@@ -67,6 +67,9 @@ def load_quran_data(source_path: Path, manifest: dict) -> list:
 
     with open(source_path, 'r', encoding='utf-8') as f:
         raw_data = json.load(f)
+    root_key = manifest.get("parser", {}).get("root_key")
+    if root_key:
+        raw_data = raw_data[root_key]
 
     # Get field mapping from manifest
     mapping = manifest.get("parser", {}).get("field_mapping", {})
@@ -83,8 +86,8 @@ def load_quran_data(source_path: Path, manifest: dict) -> list:
             "text_imlaei": item.get(mapping.get("text_imlaei", "aya_text_emlaey")),
             "page_no": item.get(mapping.get("page_no", "page")),
             "juz_no": item.get(mapping.get("juz_no", "jozz")),
-            "line_start": item.get(mapping.get("line_start", "line_start")),
-            "line_end": item.get(mapping.get("line_end", "line_end")),
+            "bismillah_uthmani": item.get(mapping.get("bismillah_uthmani", "bismillah")),
+            "bismillah_imlaei": item.get(mapping.get("bismillah_imlaei", "bismillah_emlaey")),
         }
 
         # Validate required fields
@@ -113,8 +116,8 @@ def seed_verses(session: Session, verses: list) -> int:
                 text_imlaei=verse_data["text_imlaei"] or verse_data["text_uthmani"],
                 page_no=verse_data["page_no"],
                 juz_no=verse_data["juz_no"],
-                line_start=verse_data.get("line_start"),
-                line_end=verse_data.get("line_end"),
+                bismillah_uthmani=verse_data.get("bismillah_uthmani"),
+                bismillah_imlaei=verse_data.get("bismillah_imlaei"),
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow(),
             )
@@ -254,7 +257,7 @@ def main():
         print(f"\nERROR: {e}")
         print("\nREMEDIATION:")
         print("  1. Check manifest points to valid source file")
-        print("  2. Ensure hafs_smart_v8.json exists in assets/")
+        print("  2. Ensure data/raw/quran_tanzil.json exists (python scripts/build_quran_tanzil.py)")
         sys.exit(1)
 
     except Exception as e:

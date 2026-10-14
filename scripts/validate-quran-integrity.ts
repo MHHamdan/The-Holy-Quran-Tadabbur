@@ -31,7 +31,7 @@ const SUMMARY = args.includes('--summary');
 
 const ROOT = resolve(__dirname, '..');
 
-const QURAN_JSON_PATH = join(ROOT, 'data/raw/quran_uthmani.json');
+const QURAN_JSON_PATH = join(ROOT, 'data/raw/quran_tanzil.json');
 const QURAN_MANIFEST_PATH = join(ROOT, 'data/manifests/quran_hafs.json');
 const TAFSIR_MANIFEST_PATH = join(ROOT, 'data/manifests/tafseer_sources.json');
 const SOURCE_REGISTRY_PATH = join(ROOT, 'frontend/src/data/sourceRegistry.ts');
@@ -471,7 +471,7 @@ async function main() {
       results.push({
         name: 'Quran JSON is valid JSON',
         passed: false,
-        errors: ['Failed to parse quran_uthmani.json as JSON'],
+        errors: ['Failed to parse quran_tanzil.json as JSON'],
         warnings: [],
       });
     }

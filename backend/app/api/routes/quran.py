@@ -117,10 +117,15 @@ class VerseResponse(BaseModel):
     rub_no: Optional[int] = None  # hizb quarter 1-240
     sajda_type: Optional[str] = None  # "recommended" | "obligatory" on the 15 sajdah verses
     quarter_start: bool = False  # this verse opens hizb quarter rub_no
+    # Opening Bismillah of the surah, on verse 1 only (surahs 2-8, 10-114);
+    # Tanzil gives it apart from the verse text, so it is never part of text_*.
+    bismillah_uthmani: Optional[str] = None
+    bismillah_imlaei: Optional[str] = None
     translations: List[TranslationResponse] = []
-    # Provenance: every verse is served from the King Fahd Madinah Mushaf corpus
-    source_authority: str = "مجمع الملك فهد لطباعة المصحف الشريف"
-    source_authority_en: str = "King Fahd Complex for the Printing of the Holy Quran"
+    # Provenance: the Tanzil Project's verified text (CC BY 3.0, verbatim);
+    # its licence requires the source and a link wherever it is shown.
+    source_authority: str = "مشروع تنزيل — tanzil.net"
+    source_authority_en: str = "Tanzil Project — tanzil.net (CC BY 3.0)"
 
     class Config:
         from_attributes = True
@@ -604,6 +609,7 @@ async def _with_translations(
             aya_no=v.aya_no, text_uthmani=v.text_uthmani, text_imlaei=v.text_imlaei,
             page_no=v.page_no, juz_no=v.juz_no, hizb_no=v.hizb_no, rub_no=v.rub_no,
             sajda_type=v.sajda_type, quarter_start=(v.sura_no, v.aya_no) in _quarter_starts(),
+            bismillah_uthmani=v.bismillah_uthmani, bismillah_imlaei=v.bismillah_imlaei,
             translations=by_verse.get(v.id, []),
         ))
     return out

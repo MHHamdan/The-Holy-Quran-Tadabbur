@@ -26,6 +26,7 @@ import {
   cardKey, isDue, loadDeck, newCard, parseKey, previewIntervals, review, saveDeck, today,
   type Deck, type Grade,
 } from '../lib/srs';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 
 type Mode = 'review' | 'learn';
 
@@ -281,6 +282,8 @@ export function FlashcardsPage() {
           )}
         </div>
       )}
+
+      <QuranTextAttribution language={language} className="mt-4 text-center" />
 
       {Object.keys(deck).length > 0 && (
         <div className="mt-8 p-4 bg-gray-50 rounded-2xl border border-gray-100 text-sm text-gray-600">

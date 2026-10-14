@@ -32,10 +32,12 @@ import {
   useReaderSettingsStore,
   effectiveTranslationKeys,
   verseTextFor,
+  bismillahFor,
   applyReaderThemeToDocument,
 } from '../stores/readerSettingsStore';
 import clsx from 'clsx';
 import { shareContent } from '../lib/native';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 
 const GrammarAnalysisView = lazy(() =>
   import('../components/quran/GrammarAnalysis').then(m => ({ default: m.GrammarAnalysisView }))
@@ -70,18 +72,6 @@ const BISMILLAH_PATTERNS = [
   'بسم الله الرحمن الرحيم',
 ];
 
-// Split the Bismillah prefix from verse 1 (Imla'i or Uthmani script alike).
-// The Bismillah is always the first 4 words of verse 1 for surahs that carry it.
-// Callers already gate on aya_no===1 and sura_no not in {1, 9}, so we just count words.
-// No Arabic string literals — text is extracted directly from the verse data.
-function splitBismillah(text: string): { bismillah: string; verseText: string } | null {
-  const clean = text.replace(/^\uFEFF/, ''); // strip BOM (present only on 1:1)
-  const words = clean.split(/\s+/);
-  if (words.length <= 4) return null; // guard: whole verse is just the Bismillah
-  const bismillah = words.slice(0, 4).join(' ');
-  const verseText = words.slice(4).join(' ');
-  return verseText ? { bismillah, verseText } : null;
-}
 
 /**
  * Check if a verse is primarily the Bismillah phrase.
@@ -702,17 +692,12 @@ export function QuranPage() {
                                     verse.sura_no === currentSura) ||
                                    (currentPlayingAya === verse.aya_no && verse.sura_no === currentSura);
 
-              // Extract Bismillah from verse 1 for surahs that have it as a prefix
               const isFirstVerse = verse.aya_no === 1;
-              const hasBismillahPrefix = isFirstVerse && verse.sura_no !== 1 && verse.sura_no !== 9;
-              const verseText = verseTextFor(verse, script);
-              const bismillahSplit = hasBismillahPrefix ? splitBismillah(verseText) : null;
-              // Strip BOM (appears only on 1:1 in source data) and Bismillah prefix for display
-              const displayText = bismillahSplit
-                ? bismillahSplit.verseText
-                : verseText.replace(/^\uFEFF/, '');
+              // The surah's opening Bismillah comes with verse 1 (separately from its text)
+              const bismillah = bismillahFor(verse, script);
+              const displayText = verseTextFor(verse, script);
               // Show Bismillah block for: page mode (when surah starts on page) or surah mode
-              const showBismillahBlock = bismillahSplit !== null && (
+              const showBismillahBlock = bismillah !== null && (
                 navMode === 'surah' ||
                 (navMode === 'page' && (idx === 0 || verses[idx - 1]?.sura_no !== verse.sura_no))
               );
@@ -726,9 +711,9 @@ export function QuranPage() {
                     </div>
                   )}
                   {/* Bismillah — text extracted from verse 1, never hardcoded */}
-                  {showBismillahBlock && bismillahSplit && (
+                  {showBismillahBlock && (
                     <div className="block text-center mb-4" dir="rtl">
-                      <span className={clsx('text-xl text-amber-800', quranFont)}>{bismillahSplit.bismillah}</span>
+                      <span className={clsx('text-xl text-amber-800', quranFont)}>{bismillah}</span>
                     </div>
                   )}
                   {verse.quarter_start && (
@@ -779,6 +764,7 @@ export function QuranPage() {
             </span>
           </div>
           </div>
+          <QuranTextAttribution language={language} className="mt-3 text-center" />
         </div>
       ) : (
         /* List View with Translations */
@@ -795,12 +781,8 @@ export function QuranPage() {
             const showSimilar = similarVerseNo === verse.aya_no;
             const showTafsir = tafsirVerseNo === verse.aya_no;
 
-            const hasBismillahPrefixList = verse.aya_no === 1 && verse.sura_no !== 1 && verse.sura_no !== 9;
-            const listVerseText = verseTextFor(verse, script);
-            const listBismillahSplit = hasBismillahPrefixList ? splitBismillah(listVerseText) : null;
-            const listDisplayText = listBismillahSplit
-              ? listBismillahSplit.verseText
-              : listVerseText.replace(/^\uFEFF/, '');
+            const listBismillah = bismillahFor(verse, script);
+            const listDisplayText = verseTextFor(verse, script);
 
             const isCopied = copiedVerseId === verse.id;
 
@@ -818,10 +800,10 @@ export function QuranPage() {
                 )}
               >
                 {/* Bismillah banner */}
-                {listBismillahSplit && (
+                {listBismillah && (
                   <div className="bg-amber-50 border-b border-amber-100 py-3 px-5 text-center" dir="rtl">
                     <span className={clsx('text-lg text-amber-800 tracking-wide', quranFont)}>
-                      {listBismillahSplit.bismillah}
+                      {listBismillah}
                     </span>
                   </div>
                 )}
@@ -1022,6 +1004,7 @@ export function QuranPage() {
               </div>
             );
           })}
+          <QuranTextAttribution language={language} className="text-center pt-2" />
         </div>
       )}
     </div>

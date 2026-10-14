@@ -143,7 +143,7 @@ def test_coref_sources_are_known(mentions: dict) -> None:
     for m in mentions["mentions"]:
         for ev in m["evidenceReferences"]:
             assert ev["sourceIds"], "Empty sourceIds on evidence"
-            assert "quran_uthmani_cloud" in ev["sourceIds"] or "ibn_kathir" in ev["sourceIds"]
+            assert "tanzil_quran_uthmani" in ev["sourceIds"] or "ibn_kathir" in ev["sourceIds"]
 
 
 # ---------------------------------------------------------------------------
@@ -214,7 +214,7 @@ def test_validator_rejects_approved_implicit_without_review_metadata(tmp_path: P
                 "confidence": 0.9,
                 "resolutionMethod": "rule_pattern",
                 "evidenceReferences": [
-                    {"surahNumber": 19, "ayahStart": 16, "sourceIds": ["quran_uthmani_cloud"], "evidenceType": "quran_text_pattern"}
+                    {"surahNumber": 19, "ayahStart": 16, "sourceIds": ["tanzil_quran_uthmani"], "evidenceType": "quran_text_pattern"}
                 ],
                 "reviewStatus": "verified",   # ← invalid for non-explicit
                 "humanReviewRequired": False, # ← invalid

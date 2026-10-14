@@ -1,6 +1,6 @@
 # Quranic Calls Atlas — Scan Summary
 
-Generated: 2026-06-29T19:42:44.423Z
+Generated: 2026-10-14T04:33:49.199Z
 Version: 1.0.0-phase-y
 
 ## Overview
@@ -14,19 +14,19 @@ Version: 1.0.0-phase-y
 | Indirect address candidates | 0 |
 | Needs review | 570 |
 | Verified | 0 |
-| Warnings | 41 |
+| Warnings | 40 |
 
 ## By Call Pattern
 
 - **supplication**: 221
 - **ya_ayyuhal**: 147
 - **ya_prophet_name**: 47
-- **ya_direct**: 43
+- **ya_direct**: 42
 - **ya_qawmi**: 40
 - **ya_ahl**: 13
 - **ya_wish**: 13
 - **ya_bani**: 11
-- **ya_lament**: 10
+- **ya_lament**: 11
 - **ya_bunayya**: 9
 - **ya_abati**: 8
 - **ya_ibadi**: 5
@@ -71,7 +71,7 @@ Version: 1.0.0-phase-y
 12. **Maryam** (19): 15 calls
 13. **Al-Qasas** (28): 14 calls
 14. **Ash-Shu'araa** (26): 11 calls
-15. **Ghafir** (40): 11 calls
+15. **Al-Ghaafir** (40): 11 calls
 
 ## Important Notes
 

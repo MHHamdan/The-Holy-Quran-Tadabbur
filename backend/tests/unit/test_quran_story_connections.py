@@ -18,7 +18,7 @@ SCAN_PATH = os.path.join(ROOT, 'frontend/src/data/generated/quranStoryConnection
 GRAPH_PATH = os.path.join(ROOT, 'frontend/src/data/generated/quranStoryConnectionGraph.json')
 SEEDS_PATH = os.path.join(ROOT, 'frontend/src/data/quranStoryEntitySeeds.ts')
 CHRONO_PATH = os.path.join(ROOT, 'frontend/src/data/quranStoryChronologySeeds.ts')
-QURAN_PATH = os.path.join(ROOT, 'data/raw/quran_uthmani.json')
+QURAN_PATH = os.path.join(ROOT, 'data/raw/quran_tanzil.json')
 APP_PATH = os.path.join(ROOT, 'frontend/src/App.tsx')
 
 
@@ -91,7 +91,7 @@ def test_scan_entity_ids_match_seeds(scan, seeds_text):
 
 def test_scan_occurrences_valid_ayah_refs(scan):
     """Every ayah ref must be inside 1..ayahs-per-surah."""
-    quran = json.load(open(QURAN_PATH, encoding='utf-8'))
+    quran = json.load(open(QURAN_PATH, encoding='utf-8'))['verses']
     per_surah_max = {}
     for ayah in quran:
         s = ayah['sura_no']
@@ -231,6 +231,6 @@ def test_story_atlas_connections_route_registered():
 
 def test_quran_data_not_modified():
     """Ensure the canonical Quran data still has 6236 ayahs and 114 surahs."""
-    quran = json.load(open(QURAN_PATH, encoding='utf-8'))
+    quran = json.load(open(QURAN_PATH, encoding='utf-8'))['verses']
     assert len(quran) == 6236
     assert len({a['sura_no'] for a in quran}) == 114

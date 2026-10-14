@@ -27,6 +27,9 @@ export interface Verse {
   sajda_type?: 'recommended' | 'obligatory' | null;
   /** This verse opens hizb quarter rub_no. */
   quarter_start?: boolean;
+  /** Opening Bismillah of the surah, on verse 1 only (not part of the verse text). */
+  bismillah_uthmani?: string | null;
+  bismillah_imlaei?: string | null;
   translations: Translation[];
 }
 
@@ -70,23 +73,6 @@ export interface TranslationEdition {
   license: string;
   attribution: string;
   is_default: boolean;
-}
-
-// Mushaf line-layout types (King Fahd Madinah Mushaf word positions)
-export interface MushafWord {
-  sura_no: number;
-  aya_no: number;
-  word_pos: number;
-  text: string;
-  char_type: 'word' | 'end' | 'hizb' | 'sajda' | 'rub' | 'page';
-}
-export interface MushafLine {
-  line_no: number;
-  words: MushafWord[];
-}
-export interface MushafPageLines {
-  page_no: number;
-  lines: MushafLine[];
 }
 
 // =============================================================================
@@ -693,8 +679,6 @@ export const quranApi = {
       params: { q, lang: opts.lang, limit: opts.limit, offset: opts.offset, ...translationParams(opts.translations) },
     }),
 
-  getMushafPageLines: (pageNo: number) =>
-    api.get<MushafPageLines>(`/mushaf/page/${pageNo}/lines`),
 
   getTafseer: (suraNo: number, ayaNo: number, sources?: string[]) =>
     api.get(`/quran/tafseer/${suraNo}/${ayaNo}`, { params: { sources } }),

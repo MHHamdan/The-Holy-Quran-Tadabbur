@@ -49,8 +49,10 @@ import type { VerseAskAiResponse, Citation } from '../lib/api';
 import { queryKeys, staleTimes } from '../lib/queryClient';
 import { shareContent } from '../lib/native';
 import { getReadingProgress, recordReadingPosition } from '../hooks/useReadingProgress';
-import { useReaderSettingsStore, verseTextFor, applyReaderThemeToDocument } from '../stores/readerSettingsStore';
+import { useReaderSettingsStore, verseTextFor, bismillahFor, applyReaderThemeToDocument } from '../stores/readerSettingsStore';
 import { ReaderThemePicker } from '../components/quran/ReaderThemePicker';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { surahVerseCount } from '../data/surahVerseCounts';
 
 // =============================================================================
 // Types & Interfaces
@@ -113,9 +115,6 @@ const RECITERS: ReciterOption[] = [
 
 const ARABIC_NUMS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 
-// Surah 1: ayah 1:1 IS the Bismillah itself — no separate Bismillah header
-// Surah 9: has no Bismillah at all
-const SURAHS_WITHOUT_BISMILLAH_HEADER = new Set([1, 9]);
 
 // Curated Makki/Madani classification — scholarly consensus (Al-Suyuti).
 // This is structural UI metadata, not Quran text.
@@ -169,18 +168,6 @@ function toArabicNumber(num: number): string {
   return num.toString().split('').map(d => ARABIC_NUMS[parseInt(d)]).join('');
 }
 
-// Split the Bismillah prefix from an Imlaei-script verse.
-// The Bismillah is always the first 4 words of verse 1 for surahs that carry it.
-// Callers gate on aya_no===1 and sura_no not in SURAHS_WITHOUT_BISMILLAH_HEADER.
-// No Arabic string literals — text is extracted directly from the verse data.
-function splitBismillahImlaei(text: string): { bismillah: string; verseText: string } | null {
-  const clean = text.replace(/^\uFEFF/, ''); // strip BOM (present only on 1:1)
-  const words = clean.split(/\s+/);
-  if (words.length <= 4) return null; // whole verse is just the Bismillah
-  const bismillah = words.slice(0, 4).join(' ');
-  const verseText = words.slice(4).join(' ');
-  return verseText ? { bismillah, verseText } : null;
-}
 
 
 
@@ -342,7 +329,7 @@ const VersePanel = memo(function VersePanel({
 
   const copyVerseWithAttribution = useCallback(() => {
     const ref = `${verse.sura_name_en} (${verse.sura_no}:${verse.aya_no})`;
-    const text = `${verse.text_imlaei}\n— ${ref}\n[King Fahd Complex for the Printing of the Holy Quran — مجمع الملك فهد لطباعة المصحف الشريف]`;
+    const text = `${verse.text_uthmani}\n— ${ref}\n[Qur'an text: Tanzil Project, tanzil.net, CC BY 3.0]`;
     navigator.clipboard.writeText(text).catch(console.error);
     setCopiedVerse(true);
     setTimeout(() => setCopiedVerse(false), 2000);
@@ -1078,45 +1065,28 @@ export function MushafPage() {
   // Build typed page items: surah headers + verses
   const pageItems = useMemo((): PageItem[] => {
     const items: PageItem[] = [];
-    // Count ayahs per surah from the current page's verse list
-    const ayahCounts: Record<number, number> = {};
-    for (const v of verses) {
-      ayahCounts[v.sura_no] = Math.max(ayahCounts[v.sura_no] ?? 0, v.aya_no);
-    }
 
     let lastSuraNo = 0;
 
     for (const verse of verses) {
       // Insert surah header when a new surah's first ayah appears on this page
       if (verse.sura_no !== lastSuraNo && verse.aya_no === 1) {
-        const needsBismillah = !SURAHS_WITHOUT_BISMILLAH_HEADER.has(verse.sura_no);
-        let bismillahText: string | null = null;
-
-        if (needsBismillah) {
-          const split = splitBismillahImlaei(verseTextFor(verse, script));
-          bismillahText = split?.bismillah ?? null;
-        }
+        // Opening Bismillah comes with verse 1, separately from its text
+        const bismillahText = bismillahFor(verse, script);
 
         items.push({
           type: 'header',
           suraNo: verse.sura_no,
-          suraNameAr: verse.sura_name_ar,   // already has سُورَةُ prefix from quran_uthmani.json
+          suraNameAr: verse.sura_name_ar,   // "سورة <name>" from the API
           suraNameEn: verse.sura_name_en,
-          ayahCount: ayahCounts[verse.sura_no] ?? verse.aya_no,
+          ayahCount: surahVerseCount(verse.sura_no),
           bismillahText,
           revelationType: REVELATION_TYPE[verse.sura_no] ?? 'unknown',
         });
         lastSuraNo = verse.sura_no;
       }
 
-      // Ayah 1 of surahs that have a Bismillah header: strip it from the flowing text
-      const shouldStrip = verse.aya_no === 1 && !SURAHS_WITHOUT_BISMILLAH_HEADER.has(verse.sura_no);
-      const sourceText = verseTextFor(verse, script);
-      let displayText = sourceText.replace(/^\uFEFF/, ''); // strip BOM (only 1:1 has it)
-      if (shouldStrip) {
-        const split = splitBismillahImlaei(sourceText);
-        if (split) displayText = split.verseText;
-      }
+      const displayText = verseTextFor(verse, script);
 
       items.push({ type: 'verse', verse, displayText });
     }
@@ -1285,12 +1255,10 @@ export function MushafPage() {
         )}
       </nav>
 
-      {/* King Fahd Complex Attribution Banner */}
+      {/* Qur'an text attribution (Tanzil licence) */}
       <div className="bg-amber-50 border-b border-amber-200 px-4 py-1.5 flex items-center justify-center gap-2 text-amber-800 text-xs">
         <BookOpen className="w-3.5 h-3.5 flex-shrink-0" />
-        <span dir="rtl" className="font-arabic">مجمع الملك فهد لطباعة المصحف الشريف — المدينة المنورة</span>
-        <span className="text-amber-400">·</span>
-        <span dir="ltr">King Fahd Complex for the Printing of the Holy Quran, Madinah</span>
+        <QuranTextAttribution language={language} className="!text-amber-800 !text-xs" />
       </div>
 
       {/* Main Content */}

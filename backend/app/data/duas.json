@@ -1,7 +1,7 @@
 {
   "name": "Quranic Duʿā catalogue",
   "description": "Generated from frontend/src/data/quranicDuas.ts by scripts/export-duas-to-backend.ts. Do not edit by hand.",
-  "generatedAt": "2026-09-24",
+  "generatedAt": "2026-10-14",
   "count": 66,
   "duas": [
     {

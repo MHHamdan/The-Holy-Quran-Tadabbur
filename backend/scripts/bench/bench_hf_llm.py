@@ -210,7 +210,7 @@ async def main():
     from app.ai.hf_client import classify_exception, router_chat_client
 
     index = load_evidence(args.tafsir_json)
-    quran = json.load(open(REPO / "data/raw/quran_uthmani.json", encoding="utf-8"))
+    quran = json.load(open(REPO / "data/raw/quran_tanzil.json", encoding="utf-8"))["verses"]
     quran_norm = " | ".join(_norm(v["aya_text"]) for v in quran)
     licenses = dict(CANDIDATES)
 

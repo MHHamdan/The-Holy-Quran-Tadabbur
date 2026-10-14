@@ -2,7 +2,7 @@
  * Surah Memory Atlas Validator
  *
  * Validates frontend/src/data/generated/surahMemoryAtlas.json against:
- * - data/raw/quran_uthmani.json (canonical Quran data)
+ * - data/raw/quran_tanzil.json (canonical Quran data)
  * - frontend/src/data/sourceRegistry.ts (source ID whitelist)
  *
  * Usage:
@@ -18,7 +18,7 @@ import { readFileSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
 
 const ROOT = resolve(__dirname, '..');
-const QURAN_PATH = join(ROOT, 'data/raw/quran_uthmani.json');
+const QURAN_PATH = join(ROOT, 'data/raw/quran_tanzil.json');
 const ATLAS_PATH = join(ROOT, 'frontend/src/data/generated/surahMemoryAtlas.json');
 const SOURCE_REGISTRY_PATH = join(ROOT, 'frontend/src/data/sourceRegistry.ts');
 
@@ -96,7 +96,7 @@ if (!existsSync(QURAN_PATH)) {
 }
 
 const atlas = JSON.parse(readFileSync(ATLAS_PATH, 'utf-8'));
-const quranRaw = JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as QuranAyah[];
+const quranRaw = (JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as { verses: QuranAyah[] }).verses;
 const registrySource = readFileSync(SOURCE_REGISTRY_PATH, 'utf-8');
 
 // Extract source IDs from registry

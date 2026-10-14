@@ -17,7 +17,8 @@ from app.main import app
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MARKERS = json.loads((REPO_ROOT / "data" / "manifests" / "quran_structure_markers.json").read_text(encoding="utf-8"))
-QURAN = json.loads((REPO_ROOT / "assets" / "hafs_smart_v8.json").read_text(encoding="utf-8"))
+# The displayed (canonical) text: its printed marks must agree with the manifest.
+QURAN = json.loads((REPO_ROOT / "data" / "raw" / "quran_tanzil.json").read_text(encoding="utf-8"))["verses"]
 RUB_EL_HIZB, SAJDAH = "۞", "۩"
 
 

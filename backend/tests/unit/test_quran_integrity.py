@@ -306,17 +306,24 @@ class TestNoModification:
     """Tests to ensure Quran text hasn't been modified."""
 
     def test_text_not_truncated(self, db_session):
-        """Verse texts should not be truncated (reasonable length check)."""
-        # Shortest verses are about 10 characters, longest are 500+
-        result = db_session.execute(sql_text("""
-            SELECT sura_no, aya_no, LENGTH(text_uthmani) as len
-            FROM quran_verses
-            WHERE LENGTH(text_uthmani) < 5
-        """))
+        """Every stored verse equals the canonical Tanzil text exactly.
 
-        too_short = list(result)
-        assert len(too_short) == 0, \
-            f"Suspiciously short verses (possible truncation): {too_short}"
+        (A length threshold no longer works: the opening Bismillah is kept apart
+        from verse 1, so verses such as 20:1 "طه" are legitimately 2-3 letters.)
+        """
+        import json
+        from pathlib import Path
+
+        canonical = json.loads(
+            (Path(__file__).resolve().parents[3] / "data" / "raw" / "quran_tanzil.json").read_text(encoding="utf-8")
+        )["verses"]
+        expected = {(v["sura_no"], v["aya_no"]): (v["aya_text"], v["aya_text_emlaey"]) for v in canonical}
+        rows = db_session.execute(sql_text(
+            "SELECT sura_no, aya_no, text_uthmani, text_imlaei FROM quran_verses"
+        )).all()
+        mismatched = [(s, a) for s, a, u, i in rows if expected.get((s, a)) != (u, i)]
+        assert len(rows) == 6236 and mismatched == [], \
+            f"Verses differing from data/raw/quran_tanzil.json: {mismatched[:10]}"
 
     def test_known_verse_content_ayat_kursi(self, db_session):
         """Ayat al-Kursi (2:255) should contain key phrases."""

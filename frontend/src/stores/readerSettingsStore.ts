@@ -106,6 +106,18 @@ export function effectiveTranslationKeys(
   return chosen ?? DEFAULT_TRANSLATIONS[language];
 }
 
+/**
+ * The surah's opening Bismillah in the chosen script: set on verse 1 of
+ * every surah except Al-Fatiha (where it is verse 1 itself) and At-Tawbah.
+ * It comes from the API, never from the verse text.
+ */
+export function bismillahFor(
+  verse: { bismillah_uthmani?: string | null; bismillah_imlaei?: string | null },
+  script: QuranScript,
+): string | null {
+  return (script === 'uthmani' ? verse.bismillah_uthmani : verse.bismillah_imlaei) ?? null;
+}
+
 /** Verse text in the chosen script. */
 export function verseTextFor(
   verse: { text_imlaei: string; text_uthmani: string },

@@ -51,8 +51,8 @@ REPO = Path(__file__).resolve().parents[3]
 
 # ---------------------------------------------------------------- fixtures
 
-with open(REPO / "data/raw/quran_uthmani.json", encoding="utf-8") as fh:
-    _QURAN = json.load(fh)
+with open(REPO / "data/raw/quran_tanzil.json", encoding="utf-8") as fh:
+    _QURAN = json.load(fh)["verses"]
 _VERSE = {(v["sura_no"], v["aya_no"]): v for v in _QURAN}
 QURAN_INDEX = build_corpus_index(t for v in _QURAN for t in (v["aya_text"], v["aya_text_emlaey"]))
 

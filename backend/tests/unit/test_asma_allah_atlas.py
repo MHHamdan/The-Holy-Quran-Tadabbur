@@ -123,15 +123,18 @@ def test_allah_occurrence_count_excludes_basmalah(atlas: dict) -> None:
     # The Quran corpus has thousands of "الله" (incl. clitic-prefixed forms).
     # With basmalah excluded, the count must be far above 1000 and far below 8000.
     assert allah["occurrenceCount"] > 1500
-    # The 113 basmalah-opening occurrences for "Allah" must be present as
-    # excluded entries.
+    # The canonical (Tanzil) text keeps each surah's opening Bismillah apart
+    # from verse 1, so only Al-Fatiha 1:1, which *is* the Bismillah, carries a
+    # surah-opening basmalah inside verse text; it stays excluded by policy.
     excluded = [o for o in allah["quranOccurrences"] if o["matchType"] == "basmalah_excluded"]
-    assert len(excluded) == 113, f"Expected 113 basmalah-excluded Allah occurrences, got {len(excluded)}"
+    assert [(o["surahNumber"], o["ayahNumber"]) for o in excluded] == [(1, 1)]
 
 
-def test_total_excluded_basmalah_is_339(atlas: dict) -> None:
-    # 113 surahs × 3 names (الله / الرحمن / الرحيم) = 339 excluded
-    assert atlas["totalExcludedBasmalahOccurrences"] == 339
+def test_total_excluded_basmalah_is_3(atlas: dict) -> None:
+    # Al-Fatiha 1:1 × 3 names (الله / الرحمن / الرحيم). The other 112 opening
+    # Bismillahs are not part of verse text in the Tanzil corpus. Counted totals
+    # are identical to the previous corpus, where those 336 matches were excluded.
+    assert atlas["totalExcludedBasmalahOccurrences"] == 3
 
 
 def test_al_fatihah_basmalah_excluded(atlas: dict) -> None:
@@ -233,9 +236,9 @@ def test_validator_rejects_forged_verified_without_non_quran_source() -> None:
     forged = {
         "nameId": "al_aziz",
         "reviewStatus": "verified",
-        "sourceIds": ["quran_uthmani_cloud"],
+        "sourceIds": ["tanzil_quran_uthmani"],
     }
-    bad = forged["reviewStatus"] == "verified" and all(s == "quran_uthmani_cloud" for s in forged["sourceIds"])
+    bad = forged["reviewStatus"] == "verified" and all(s == "tanzil_quran_uthmani" for s in forged["sourceIds"])
     assert bad, "The forged name must be flagged by the validator predicate."
 
 
@@ -329,7 +332,7 @@ def test_api_occurrences_includes_excluded_metadata() -> None:
     r = client.get("/api/v1/quran/asma/allah/occurrences")
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["excludedBasmalahCount"] >= 113
+    assert body["excludedBasmalahCount"] >= 1
 
 
 # ---------------------------------------------------------------------------

@@ -14,7 +14,7 @@ import pytest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
 ATLAS_PATH = os.path.join(ROOT, 'frontend/src/data/generated/surahMemoryAtlas.json')
-QURAN_PATH = os.path.join(ROOT, 'data/raw/quran_uthmani.json')
+QURAN_PATH = os.path.join(ROOT, 'data/raw/quran_tanzil.json')
 SOURCE_REGISTRY_PATH = os.path.join(ROOT, 'frontend/src/data/sourceRegistry.ts')
 
 
@@ -29,7 +29,7 @@ def atlas():
 def quran_data():
     assert os.path.exists(QURAN_PATH), f'Quran file not found: {QURAN_PATH}'
     with open(QURAN_PATH) as f:
-        return json.load(f)
+        return json.load(f)['verses']
 
 
 @pytest.fixture(scope='module')

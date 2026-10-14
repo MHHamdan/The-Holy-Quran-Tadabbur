@@ -3,7 +3,7 @@
  * Asmā' Allah al-Ḥusnā Atlas Builder — Phase W.
  *
  * Reads:
- *   - data/raw/quran_uthmani.json (canonical text; never written)
+ *   - data/raw/quran_tanzil.json (canonical text; never written)
  *   - frontend/src/data/asmaAllahSeeds.ts
  *
  * Writes:
@@ -36,7 +36,7 @@ import type {
 } from '../frontend/src/types/asmaAllah';
 
 const ROOT = resolve(__dirname, '..');
-const QURAN_PATH = join(ROOT, 'data/raw/quran_uthmani.json');
+const QURAN_PATH = join(ROOT, 'data/raw/quran_tanzil.json');
 const OUT_JSON = join(ROOT, 'frontend/src/data/generated/asmaAllahAtlas.json');
 const OUT_MD = join(ROOT, 'docs/generated/asma-allah-atlas-summary.md');
 const VERSION = '1.2.0';
@@ -94,7 +94,7 @@ interface RawAyah {
 
 function loadQuran(): RawAyah[] {
   if (!existsSync(QURAN_PATH)) throw new Error(`Missing ${QURAN_PATH}`);
-  return JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as RawAyah[];
+  return (JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as { verses: RawAyah[] }).verses;
 }
 
 // ---------------------------------------------------------------------------
@@ -203,7 +203,7 @@ function buildNameMap(seeds: AsmaAllahSeed[]): Map<string, AsmaAllahName> {
       commonPairings: [],
       relatedTopics: [],
       relatedEntities: [],
-      sourceIds: ['quran_uthmani_cloud'],
+      sourceIds: ['tanzil_quran_uthmani'],
       reviewStatus: 'needs_review',
       humanReviewRequired: true,
       warnings: [...(s.warnings ?? [])],
@@ -256,7 +256,7 @@ function classifyHit(
     isBasmalah,
     counted,
     confidence: counted ? 0.95 : 0.6,
-    sourceIds: ['quran_uthmani_cloud'],
+    sourceIds: ['tanzil_quran_uthmani'],
     reviewStatus: 'needs_review',
     humanReviewRequired: true,
   };
@@ -292,7 +292,7 @@ function finaliseOccurrenceStats(name: AsmaAllahName): void {
  * the UI links to /quran/:surah?aya=:ayah for the canonical text.
  *
  * Adds `tirmidhi_asma_husna_list` to the Name's sourceIds when at least one
- * reference is attached. The Quran-text sourceId (`quran_uthmani_cloud`) is
+ * reference is attached. The Quran-text sourceId (`tanzil_quran_uthmani`) is
  * already on every seed.
  */
 function attachPrimaryReferences(nameMap: Map<string, AsmaAllahName>): void {

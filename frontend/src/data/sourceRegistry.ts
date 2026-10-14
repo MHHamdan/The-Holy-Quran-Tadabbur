@@ -62,18 +62,18 @@ export interface Source {
 export const SOURCE_REGISTRY: Source[] = [
   // === Quran Text ===
   {
-    sourceId: 'quran_uthmani_cloud',
-    titleArabic: 'المصحف العثماني',
-    titleEnglish: 'Uthmani Quran Script',
-    author: 'Provided by AlQuran.Cloud',
+    sourceId: 'tanzil_quran_uthmani',
+    titleArabic: 'نص القرآن الكريم — مشروع تنزيل (الرسم العثماني والإملائي)',
+    titleEnglish: 'Tanzil Quran Text (Uthmani and Simple)',
+    author: 'Tanzil Project',
     language: 'ar',
     type: 'quran_text',
     reliabilityLevel: 'canonical',
-    licenseOrTerms: 'The revealed Arabic text is not subject to copyright. The digital transcription is governed by its distributor: AlQuran.Cloud permits free reproduction including commercially, with acknowledgement requested, on condition that Uthmani diacritics and orthography are preserved and the text is not commingled with non-Quranic text.',
-    sourceUrl: 'https://api.alquran.cloud/v1/quran/quran-uthmani',
-    lastVerifiedAt: '2026-09-23',
+    licenseOrTerms: 'Creative Commons Attribution 3.0. Verbatim copies only, changing the text is not allowed. May be used in any website or application provided the source (Tanzil Project) is clearly indicated with a link to tanzil.net, and the copyright notice is kept in derived files.',
+    sourceUrl: 'https://tanzil.net/download/',
+    lastVerifiedAt: '2026-10-14',
     licenseStatus: 'cleared',
-    notes: 'Uthmani rasm with full diacritics (tashkeel). Downloaded once and stored locally in data/raw/quran_uthmani.json. Never modify this file directly. Distributor terms verified 2026-09-23 at alquran.cloud. The preserve-orthography and no-commingling conditions are already enforced by the content policy and the integrity validator.',
+    notes: 'Canonical Qur\'an text since 2026-10-14. Verbatim Tanzil files (copyright blocks intact) in data/raw/tanzil/; data/raw/quran_tanzil.json is built from them by scripts/build_quran_tanzil.py and is what the database, API, generators and bundled data use. The opening Bismillah is kept apart from verse 1 as Tanzil gives it. Attribution with a link is shown wherever the text appears (QuranTextAttribution). Same letters as the previous KFGQPC text in every verse apart from encoding conventions (backend/tests/test_quran_text_source.py).',
   },
   {
     sourceId: 'quran_hafs_local',
@@ -87,7 +87,7 @@ export const SOURCE_REGISTRY: Source[] = [
     sourceUrl: 'assets/hafs_smart_v8.json',
     lastVerifiedAt: 'unverified',
     licenseStatus: 'unverified',
-    notes: 'Backup copy. Use quran_uthmani_cloud as primary. Do not serve this without cross-checking against the primary. Marked supporting until independently verified against quran_uthmani_cloud. DEPLOYMENT RISK (assessed 2026-09-23): this file ships in the repo and backs the mushaf page layout, but its licence is unconfirmed — treat as all-rights-reserved until KFGQPC confirms in writing. Not blocked from display, because blanking it would break the reader; resolve before any public deployment. Same caveat applies to the KFGQPC glyph fonts.',
+    notes: 'NOT SERVED, SEEDED OR BUNDLED since 2026-10-14. assets/hafs_smart_v8.json and data/raw/quran_uthmani.json are byte-identical copies of this KFGQPC text (the latter was previously mislabelled as an alquran.cloud download). KFGQPC terms grant no redistribution, so the app switched to tanzil_quran_uthmani. Kept in the repository only as the cross-reference that proves the Tanzil text is the same Mushaf. The KFGQPC glyph fonts are not used (the app uses Scheherazade New, Amiri and Noto Naskh, all OFL).',
   },
 
   // === English Translations ===

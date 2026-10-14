@@ -3,7 +3,7 @@
  * Quran Topic-Link Scanner — Phase V.
  *
  * Reads:
- *   - data/raw/quran_uthmani.json (Quran text; never written)
+ *   - data/raw/quran_tanzil.json (Quran text; never written)
  *   - frontend/src/data/quranTopicSeeds.ts (seed taxonomy)
  *   - frontend/src/data/generated/quranEntityMentions.json (entity anchors)
  *   - frontend/src/data/generated/quranEntityRelations.json (story-evidence anchors)
@@ -37,7 +37,7 @@ import {
 import type { EntityMentionScanOutput, EntityRelationOutput } from '../frontend/src/types/quranEntityGraph';
 
 const ROOT = resolve(__dirname, '..');
-const QURAN_PATH = join(ROOT, 'data/raw/quran_uthmani.json');
+const QURAN_PATH = join(ROOT, 'data/raw/quran_tanzil.json');
 const ENTITY_MENTIONS_PATH = join(ROOT, 'frontend/src/data/generated/quranEntityMentions.json');
 const ENTITY_RELATIONS_PATH = join(ROOT, 'frontend/src/data/generated/quranEntityRelations.json');
 const COREF_MENTIONS_PATH = join(ROOT, 'frontend/src/data/generated/quranCoreferenceMentions.json');
@@ -78,7 +78,7 @@ interface RawAyah {
 
 function loadQuran(): RawAyah[] {
   if (!existsSync(QURAN_PATH)) throw new Error(`Missing ${QURAN_PATH}`);
-  return JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as RawAyah[];
+  return (JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as { verses: RawAyah[] }).verses;
 }
 
 function loadJsonOptional<T>(path: string): T | null {
@@ -191,7 +191,7 @@ function main(): void {
       relatedStories: seed.relatedStories ?? [],
       relatedThemes: seed.relatedThemes ?? [],
       relatedEmotions: seed.relatedEmotions ?? [],
-      sourceIds: ['quran_uthmani_cloud'],
+      sourceIds: ['tanzil_quran_uthmani'],
       reviewStatus: 'needs_review',
       humanReviewRequired: true,
       warnings: seed.warnings ?? [],
@@ -264,7 +264,7 @@ function main(): void {
         {
           surahNumber: a.sura_no,
           ayahStart: a.aya_no,
-          sourceIds: ['quran_uthmani_cloud'],
+          sourceIds: ['tanzil_quran_uthmani'],
           evidenceType: 'quran_keyword',
         },
         {
@@ -294,7 +294,7 @@ function main(): void {
             {
               surahNumber: m.surahNumber,
               ayahStart: m.ayahNumber,
-              sourceIds: ['quran_uthmani_cloud'],
+              sourceIds: ['tanzil_quran_uthmani'],
               evidenceType: 'entity_graph',
             }
           );
@@ -338,7 +338,7 @@ function main(): void {
           {
             surahNumber: m.surahNumber,
             ayahStart: m.ayahNumber,
-            sourceIds: ['quran_uthmani_cloud'],
+            sourceIds: ['tanzil_quran_uthmani'],
             evidenceType: 'coreference',
           },
           {
@@ -380,7 +380,7 @@ function main(): void {
           {
             surahNumber: ev.surahNumber,
             ayahStart: ev.ayahStart,
-            sourceIds: r.sourceIds ?? ['quran_uthmani_cloud'],
+            sourceIds: r.sourceIds ?? ['tanzil_quran_uthmani'],
             evidenceType: 'kg_edge',
           },
           {

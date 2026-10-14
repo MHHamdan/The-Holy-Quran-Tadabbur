@@ -3,7 +3,7 @@
  * Quran Coreference Scanner — Phase U.
  *
  * Reads:
- *   - data/raw/quran_uthmani.json (canonical Quran text; never written)
+ *   - data/raw/quran_tanzil.json (canonical Quran text; never written)
  *   - frontend/src/data/quranCoreferencePatterns.ts (deterministic rules)
  *   - frontend/src/data/generated/quranEntityMentions.json (explicit anchors)
  *
@@ -43,7 +43,7 @@ import type { EntityMentionScanOutput } from '../frontend/src/types/quranEntityG
 // ---------------------------------------------------------------------------
 
 const ROOT = resolve(__dirname, '..');
-const QURAN_PATH = join(ROOT, 'data/raw/quran_uthmani.json');
+const QURAN_PATH = join(ROOT, 'data/raw/quran_tanzil.json');
 const ENTITY_MENTIONS_PATH = join(ROOT, 'frontend/src/data/generated/quranEntityMentions.json');
 const OUT_MENTIONS = join(ROOT, 'frontend/src/data/generated/quranCoreferenceMentions.json');
 const OUT_CHAINS = join(ROOT, 'frontend/src/data/generated/quranCoreferenceChains.json');
@@ -81,7 +81,7 @@ interface RawAyah {
 
 function loadQuran(): RawAyah[] {
   if (!existsSync(QURAN_PATH)) throw new Error(`Missing ${QURAN_PATH}`);
-  return JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as RawAyah[];
+  return (JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as { verses: RawAyah[] }).verses;
 }
 
 function loadEntityMentions(): EntityMentionScanOutput {

@@ -41,7 +41,7 @@ const FORBIDDEN_PROPHET_IDS = new Set([
 ]);
 
 const ALLOWED_SOURCE_IDS = new Set([
-  'quran_uthmani_cloud',
+  'tanzil_quran_uthmani',
   'stories_manifest',
   'ibn_kathir',
   'ibn_kathir_ar',

@@ -44,7 +44,7 @@ TRUSTED_TAFSIR_SOURCE_IDS = frozenset(
     }
 )
 
-TRUSTED_QURAN_SOURCE_IDS = frozenset({"quran_uthmani_cloud"})
+TRUSTED_QURAN_SOURCE_IDS = frozenset({"tanzil_quran_uthmani"})
 
 # ---------------------------------------------------------------------------
 # Generic, language-aware explanations (NEVER tafsir).
