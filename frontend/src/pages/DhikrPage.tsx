@@ -22,6 +22,7 @@ import {
   ADHKAR, CATEGORY_META, MORNING_IDS, EVENING_IDS, SLEEP_IDS,
   type DhikrCategory, type DhikrEntry,
 } from '../data/adhkar';
+import { hapticTap } from '../lib/native';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -127,7 +128,7 @@ function saveRewards(r: RewardsData) {
 }
 
 function vibrate() {
-  try { navigator.vibrate?.(12); } catch { /**/ }
+  void hapticTap();
 }
 
 // ── TTS via Web Speech API ────────────────────────────────────────────────────
@@ -225,7 +226,7 @@ function MisbahaView({ dhikr, isRtl, onClose }: {
         setMilestone(next);
         setTimeout(() => { setFlash(false); setMilestone(null); }, 1000);
       }
-      try { navigator.vibrate?.(next % 33 === 0 ? 40 : 12); } catch { /**/ }
+      void hapticTap(next % 33 === 0);
       return next;
     });
   }, []);

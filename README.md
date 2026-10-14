@@ -46,7 +46,7 @@ Model choice, benchmarks and the evaluation of CPU embeddings: `docs/migration/`
 backend/            FastAPI app (app/), Alembic migrations, seed/index scripts, tests
 frontend/           React + Vite app, Capacitor projects (android/, ios/), nginx config
 data/               manifests, curated concepts, Qur'an text copy; data/raw/* inputs are git-ignored
-assets/             hafs_smart_v8.json (Qur'an text source, see Licensing)
+assets/             hafs_smart_v8.json (previous KFGQPC text: cross-reference for tests only, never served)
 docker-compose.prod.yml   production stack
 scripts/            dev stack (Podman) start/stop, ports.env, data-bundle tools, TS data builders
 docs/migration/     per-phase engineering notes and verification evidence
@@ -69,6 +69,7 @@ Copy `.env.example` to `.env` (git-ignored) and fill it in. Everything is config
 | `KG_ADMIN_TOKEN` | backend | prod | `X-Admin-Token` for `/api/v1/kg/init-schema` and `/import-stories`; unset means 503 |
 | `METRICS_SECRET` | backend | no | Enables `/metrics`, `/health/detailed` (`X-Metrics-Secret`) in production |
 | `VITE_API_URL` | frontend build | mobile: yes | **Public** API origin compiled into the bundle. Web: empty (same origin). Never a secret. |
+| `VITE_PUBLIC_WEB_URL` | frontend build | no | **Public** web address used in shared verse links. Web: defaults to the page origin. Apps: no link without it. |
 
 Admin keys typed into the web UI are kept in `sessionStorage` for that tab only.
 
@@ -122,7 +123,10 @@ The commands below were run against `docker-compose.prod.yml` on an empty stack.
 DC="docker compose -f docker-compose.prod.yml"
 RUN="$DC run --rm --no-deps backend"   # paths after $RUN are inside the backend image (= backend/)
 
-# 1. Qur'an text (6,236 verses + search normalisation)          -- from assets/hafs_smart_v8.json
+# 1. Qur'an text (6,236 verses + search normalisation + hizb/rub' and sajdah markers)
+#    -- from data/raw/quran_tanzil.json (Tanzil, CC BY 3.0) and data/manifests/quran_structure_markers.json.
+#    Rebuild that file from the verbatim Tanzil files with: python scripts/build_quran_tanzil.py
+#    Existing database: `seed_quran.py --markers-only` adds just the markers.
 $RUN python scripts/ingest/seed_quran.py
 
 # 2. Tafsir: fetch 5 Arabic works from the HF dataset riotu-lab/Quran-Tafseers (Apache-2.0,
@@ -146,6 +150,10 @@ curl -X POST -H "X-Admin-API-Key: $ADMIN_API_KEY" https://<host>/api/v1/quran/se
 
 # 6. Mushaf word layout (needs api.qurancdn.com)
 $RUN python scripts/ingest/seed_mushaf_words.py
+
+# 7. Translations of the meanings: 22 QuranEnc editions in 20 languages (needs quranenc.com,
+#    or a data/raw/translations/quranenc/ cache from the data bundle). Re-run to track new versions.
+$RUN python scripts/ingest/seed_translations_quranenc.py
 ```
 
 Results of steps 1–4 on the production stack:
@@ -166,9 +174,10 @@ The step-1–4 data then served `/quran/*`, `/tafseer/compare/*`, `/rag/ask` (8 
 
 | Data | Status |
 |---|---|
-| Qur'an text (Hafs, Uthmani) | **Available, licence unverified.** The primary source `assets/hafs_smart_v8.json` is derived from KFGQPC output, and its redistribution terms are unconfirmed (see `data/manifests/quran_hafs.json`). The licence-verified alternative (Tanzil, CC BY 3.0) is listed in the manifest but has no importer yet. |
+| Qur'an text (Hafs; Uthmani and simple script) | **Available, licence verified.** Tanzil Project text, CC BY 3.0, verbatim (`data/raw/tanzil/`, built into `data/raw/quran_tanzil.json`). Attribution with a link to tanzil.net is shown wherever the text appears. Same letters as the previous KFGQPC text in all 6,236 verses apart from encoding conventions (`backend/tests/test_quran_text_source.py`). |
 | Arabic tafsir: Ibn Kathir, al-Tabari, al-Qurtubi, al-Baghawi | Available (HF dataset above; classical, public domain). |
 | Al-Tafsir al-Muyassar | Available technically. **Licence pending** (King Fahd Complex, "educational and non-commercial"; manifest status `pending_user_input`). |
+| Translations of the meanings | Available: 22 editions in 20 languages from QuranEnc.com (137,192 verse rows), stored verbatim with version and footnotes per its republication terms (`data/manifests/translation_sources.json`). English default: Saheeh International (`english_saheeh`). |
 | English tafsir (Ibn Kathir EN, al-Jalalayn, Tafheem, al-Saʿdi EN) | **Not available.** The CDN/API downloaders exist (`make download-tafseer`) but were not verified. Several of these are marked pending licence verification. |
 | Tafsir and verse vector indexes | Reproducible with HF credit (step 5). Not rebuilt here: the account's HF credits are exhausted. Without them, retrieval falls back to keyword search. |
 | Mushaf word layout, QAC vocabulary (`backend/scripts/ingest/seed_mushaf_words.py`, `backend/scripts/seed_vocabulary_complete.py`) | Depend on `api.qurancdn.com`. **Not verified**: the host was unreachable from the build environment. |
@@ -196,16 +205,32 @@ cd frontend
 export ANDROID_HOME=/path/to/android-sdk          # platform 36, build-tools 36, JDK 21
 VITE_API_URL=http://10.0.2.2:8000 npm run android:debug   # -> android/app/build/outputs/apk/debug/app-debug.apk
 
-# Android release (needs the owner's upload keystore, not in the repository):
-npm run android:release                            # bundleRelease (sign with your keystore)
+# Android release bundle: signed when android/keystore.properties exists
+# (copy keystore.properties.example; the keystore itself stays outside git):
+npm run android:release                            # -> android/app/build/outputs/bundle/release/app-release.aab
 
 # iOS (macOS + Xcode 16 required):
 npm run ios:sync && npx cap open ios               # set signing team, archive, upload
 ```
 
-- **Permissions:** only the microphone, for Tasmeeʿ, requested when recording starts.
+- **Permissions:** the microphone, for Tasmeeʿ, requested when recording starts; location, requested only by prayer times, the Qibla compass and the mosque finder; notifications (Android 13+ / iOS), requested only when the user turns on the daily reading reminder (Reading Plan page). Reminders are local notifications: no push service.
+- **Store metadata in the projects:** app name "Tadabbur" / "تدبر" (Android `values-ar`, iOS `ar.lproj/InfoPlist.strings`), iOS privacy manifest (`PrivacyInfo.xcprivacy`, matching `/privacy`), `ITSAppUsesNonExemptEncryption=false`, version 1.0.0 (bump `versionCode` / `CURRENT_PROJECT_VERSION` for every upload).
+- **Native features:** system share sheet, haptics on the dhikr counter, background recitation with lock-screen controls (iOS `UIBackgroundModes=audio`), and deep links on the `tadabbur://` scheme (e.g. `tadabbur://quran/2?aya=255`, `tadabbur://continue`).
+- **Shared links:** set `VITE_PUBLIC_WEB_URL` (public web address) at build time so verses shared from the apps carry a link; without it they share text only.
 - **Network security:** release builds allow HTTPS only. Debug builds allow cleartext only to `10.0.2.2` and `localhost`. iOS keeps App Transport Security defaults.
 - **Details:** `docs/migration/PHASE8_MOBILE.md`.
+
+### Releasing to Google Play and the App Store
+
+`.github/workflows/mobile-release.yml` runs on every push that touches `frontend/`, on `v*` tags and manually. It builds the Android App Bundle (signed once the secrets below exist) and compiles the iOS app for devices on macOS without signing, checking that the privacy manifest, Arabic strings and permission keys are in the bundle.
+
+What only the owner can do, in order:
+
+1. **Host the backend** on a public HTTPS domain (`docker-compose.prod.yml`, see "Production deployment"), then set the repository variable `PRODUCTION_API_URL` (and optionally `PUBLIC_WEB_URL`, `PRIVACY_CONTACT`). Add the domain to `CORS_ORIGINS` along with `https://localhost` and `capacitor://localhost`.
+2. **Hugging Face credit** on the account whose `HF_TOKEN` the server uses, then `pytest -m live_hf` (the last open completion gate).
+3. **Google Play:** create the upload key (`keytool`, see `frontend/android/keystore.properties.example`), store it as `ANDROID_UPLOAD_KEYSTORE_BASE64` plus `ANDROID_UPLOAD_STORE_PASSWORD`, `ANDROID_UPLOAD_KEY_ALIAS`, `ANDROID_UPLOAD_KEY_PASSWORD` secrets, push a `v1.0.0` tag, and upload the AAB artifact. Data-safety answers follow `/privacy`: no data shared or sold, nothing linked to identity, audio/messages/searches/location processed for app functionality, deletion available in the app.
+4. **App Store:** in Xcode (`npm run ios:sync && npx cap open ios`) set the Apple Developer team, archive and upload. Privacy labels follow `PrivacyInfo.xcprivacy`. Check on a device: background recitation, the microphone and location prompts, and reminders.
+5. **Listings:** privacy policy URL `https://<web domain>/privacy`; category Books/Education; the app is free, with no ads or purchases (required by `docs/distribution-policy.md`).
 
 ## Tests
 
@@ -243,4 +268,4 @@ These tests spend a little HF credit. They cover chat (Arabic and English), embe
 
 ## Licensing
 
-Code: see repository licence. Content licences are tracked per source in `data/manifests/`. The Qur'an text currently used (`assets/hafs_smart_v8.json`) and Al-Muyassar **have unverified redistribution licences**; the manifest marks the Qur'an file as blocking public or commercial deployment until KFGQPC confirms the terms in writing.
+Code: see repository licence. Content licences are tracked per source in `data/manifests/`. The Qur'an text is Tanzil's (CC BY 3.0). Al-Muyassar is shown under its publisher's educational, non-commercial terms, which the app meets because it is free with no ads or purchases (`docs/distribution-policy.md`).

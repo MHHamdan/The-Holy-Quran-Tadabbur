@@ -32,7 +32,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -43,7 +43,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -54,7 +54,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -65,7 +65,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -76,7 +76,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -87,7 +87,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -98,7 +98,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -109,7 +109,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -120,7 +120,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -131,7 +131,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -142,7 +142,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -153,7 +153,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -164,7 +164,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -175,7 +175,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -186,7 +186,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -197,7 +197,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -262,7 +262,7 @@
           "summaryArabic": "يُذكر إسحاق ضمن سلسلة الذرية النبوية: ابنُ إبراهيم وأبو يعقوب، في آيات تتحدث عن العهد والميثاق والذرّية المباركة.",
           "summaryEnglish": "Ishaq appears in the prophetic-lineage passages: son of Ibrahim and father of Yaqub, in ayahs about covenant, oath, and blessed progeny.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -282,7 +282,7 @@
           "summaryArabic": "بشّر الملائكة إبراهيم وسارة بإسحاق ومن وراء إسحاق يعقوب — حدثٌ آية على رحمة الله وقدرته.",
           "summaryEnglish": "Angels announced Ishaq, and beyond Ishaq Yaqub, to Ibrahim and Sarah — a sign of divine mercy and power.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -311,13 +311,13 @@
           "noteEnglish": "Ishaq is placed after Ibrahim and before Yaqub in the guided reading order.",
           "certainty": "medium",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review"
         }
       ],
       "sourceIds": [
-        "quran_uthmani_cloud"
+        "tanzil_quran_uthmani"
       ],
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
@@ -338,7 +338,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -349,7 +349,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -360,7 +360,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -371,7 +371,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -382,7 +382,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -393,7 +393,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -404,7 +404,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -415,7 +415,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -426,7 +426,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -437,7 +437,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -448,7 +448,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -459,7 +459,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -470,7 +470,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -481,7 +481,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -492,7 +492,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -503,7 +503,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -568,7 +568,7 @@
           "summaryArabic": "يعقوب — المسمّى إسرائيل — يرد في آيات النسب والميثاق، أبٌ ليوسف وحفيدٌ لإبراهيم.",
           "summaryEnglish": "Yaqub — called Israel — appears in ayahs of lineage and covenant, father of Yusuf and grandson of Ibrahim.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -596,7 +596,7 @@
           "summaryArabic": "يعقوب في سورة يوسف: التحذير من تأويل الرؤيا، الحزن على يوسف، الصبر الجميل، ولقاء الإيمان والرضى في الختام.",
           "summaryEnglish": "Yaqub in Surah Yusuf: warning at the dream, grief over Yusuf, beautiful patience, and the closing reunion in faith.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -626,13 +626,13 @@
           "noteEnglish": "Yaqub follows Ishaq and precedes Yusuf in the guided reading order.",
           "certainty": "medium",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review"
         }
       ],
       "sourceIds": [
-        "quran_uthmani_cloud"
+        "tanzil_quran_uthmani"
       ],
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
@@ -653,7 +653,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -664,7 +664,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -675,7 +675,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -686,7 +686,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -697,7 +697,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -708,7 +708,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -719,7 +719,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -730,7 +730,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -741,7 +741,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -752,7 +752,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -763,7 +763,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -774,7 +774,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -785,7 +785,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -796,7 +796,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -807,7 +807,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -818,7 +818,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -829,7 +829,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -840,7 +840,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -851,7 +851,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -862,7 +862,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -873,7 +873,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -884,7 +884,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -895,7 +895,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -906,7 +906,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -917,7 +917,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -928,7 +928,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -939,7 +939,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -950,7 +950,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -961,7 +961,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -972,7 +972,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1013,7 +1013,7 @@
           "summaryArabic": "بُعث هارون مع أخيه موسى إلى فرعون وآل فرعون، وزيرًا في الرسالة كما طلب موسى من ربه.",
           "summaryEnglish": "Harun was sent with his brother Musa to Pharaoh and his people, a wazir in the message as Musa asked of his Lord.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1061,7 +1061,7 @@
           "summaryArabic": "مواجهة فرعون وآله، ودعوة بني إسرائيل، تدور مع موسى وهارون في آيات متعددة.",
           "summaryEnglish": "Confronting Pharaoh and his people, and calling Bani Israel — appearing alongside Musa across multiple ayahs.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1109,7 +1109,7 @@
           "summaryArabic": "يبيّن القرآن دور هارون عند فتنة العجل ودفاعَه عن أمانة موسى وحرصه على وحدة بني إسرائيل.",
           "summaryEnglish": "The Quran describes Harun's stance during the calf trial, his defence of Musa's trust, and his concern for the unity of Bani Israel.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1149,13 +1149,13 @@
           "noteEnglish": "Harun's story coincides with Musa's in the time of Pharaoh.",
           "certainty": "medium",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review"
         }
       ],
       "sourceIds": [
-        "quran_uthmani_cloud"
+        "tanzil_quran_uthmani"
       ],
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
@@ -1176,7 +1176,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1187,7 +1187,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1212,7 +1212,7 @@
           "summaryArabic": "يَرِدُ ذو الكفل في القرآن ضمن قائمة الصابرين والأخيار، دون تفصيل قصصي.",
           "summaryEnglish": "Dhul-Kifl appears in the Quran within lists of the patient and the righteous, without narrative detail.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1233,7 +1233,7 @@
       "relatedTopics": [],
       "chronologyNotes": [],
       "sourceIds": [
-        "quran_uthmani_cloud"
+        "tanzil_quran_uthmani"
       ],
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
@@ -1256,7 +1256,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1267,7 +1267,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1288,7 +1288,7 @@
           "summaryArabic": "بُعث إلياس إلى قومه يدعوهم إلى عبادة الله وحده، ويحذرهم من عبادة \"بعل\"، في مقطعٍ من سورة الصافات.",
           "summaryEnglish": "Ilyas was sent to his people calling them to worship Allah alone and warning against the worship of \"Ba'l\", in a passage of Surah As-Saffat.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1308,7 +1308,7 @@
           "summaryArabic": "ذكر إلياس في سورة الأنعام ضمن قائمة الأنبياء الذين هداهم الله.",
           "summaryEnglish": "Ilyas appears in Surah Al-An'am within the list of prophets whom Allah guided.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1325,7 +1325,7 @@
       "relatedTopics": [],
       "chronologyNotes": [],
       "sourceIds": [
-        "quran_uthmani_cloud"
+        "tanzil_quran_uthmani"
       ],
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
@@ -1346,7 +1346,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1357,7 +1357,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1382,7 +1382,7 @@
           "summaryArabic": "ذُكر اليسع في سورتي الأنعام وص ضمن قائمة الأنبياء الأخيار، دون تفصيل قصصي.",
           "summaryEnglish": "Al-Yasa appears in Surahs Al-An'am and Saad within lists of righteous prophets, without narrative detail.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1403,7 +1403,7 @@
       "relatedTopics": [],
       "chronologyNotes": [],
       "sourceIds": [
-        "quran_uthmani_cloud"
+        "tanzil_quran_uthmani"
       ],
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
@@ -1426,7 +1426,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1437,7 +1437,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1448,7 +1448,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1459,7 +1459,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1470,7 +1470,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1481,7 +1481,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1492,7 +1492,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1503,7 +1503,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1514,7 +1514,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1525,7 +1525,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1536,7 +1536,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1547,7 +1547,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1558,7 +1558,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1569,7 +1569,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1580,7 +1580,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1591,7 +1591,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1640,7 +1640,7 @@
           "summaryArabic": "سليمان ابن داود، آتاه الله الملك والحكمة، وفضّله بآياتٍ كريمة.",
           "summaryEnglish": "Sulayman, son of Dawud, was given kingdom and wisdom and was singled out by Allah's grace.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1684,7 +1684,7 @@
           "summaryArabic": "في سورة النمل: كلام النملة، وغيبة الهدهد، ونبأ سبأ وملكتها، ودعوة قومها إلى الإيمان.",
           "summaryEnglish": "In Surah An-Naml: the speech of the ant, the absence of the hoopoe, the news from Sheba and its queen, and the call of her people to faith.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1712,7 +1712,7 @@
           "summaryArabic": "سُخّرت لسليمان الريح والجنُّ يعملون له، ومُلكٌ لا ينبغي لأحدٍ من بعده.",
           "summaryEnglish": "The wind was placed under Sulayman's command, and jinn worked for him — a kingdom singular in its kind.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1742,13 +1742,13 @@
           "noteEnglish": "Sulayman follows Dawud in the guided reading order.",
           "certainty": "medium",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review"
         }
       ],
       "sourceIds": [
-        "quran_uthmani_cloud"
+        "tanzil_quran_uthmani"
       ],
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
@@ -1769,7 +1769,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1780,7 +1780,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1791,7 +1791,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1802,7 +1802,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1813,7 +1813,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1850,7 +1850,7 @@
           "summaryArabic": "هذه الصفحة تعرض الشواهد القرآنية الصريحة لاسم النبي ﷺ ولا تستوعب سيرته كاملة.",
           "summaryEnglish": "This page surfaces the explicit Quranic name-mentions of the Prophet ﷺ and is not a full biographical account.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1889,7 +1889,7 @@
           "summaryArabic": "يقرّر القرآن استمرار الرسالة، ويصل دعوة النبي ﷺ بدعوات سابقيه من الأنبياء.",
           "summaryEnglish": "The Quran affirms the continuity of the message, linking the Prophet ﷺ to earlier prophets.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -1929,13 +1929,13 @@
           "noteEnglish": "Mushaf order for the 5 explicit name-ayahs is reliable.",
           "certainty": "high",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review"
         }
       ],
       "sourceIds": [
-        "quran_uthmani_cloud"
+        "tanzil_quran_uthmani"
       ],
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,
@@ -1958,7 +1958,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1969,7 +1969,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1980,7 +1980,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -1991,7 +1991,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -2002,7 +2002,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -2013,7 +2013,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -2024,7 +2024,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -2035,7 +2035,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -2046,7 +2046,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -2057,7 +2057,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -2068,7 +2068,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -2079,7 +2079,7 @@
           "linkType": "explicit_name",
           "confidence": 0.95,
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -2144,7 +2144,7 @@
           "summaryArabic": "إسماعيل ابن إبراهيم، يُذكر في آيات النسب والميثاق والقربان وبناء البيت.",
           "summaryEnglish": "Ismail, son of Ibrahim, appears in ayahs about lineage, covenant, sacrifice, and the building of the Kaaba.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -2180,7 +2180,7 @@
           "summaryArabic": "يُذكر بناء البيت العتيق بإبراهيم وإسماعيل في سورة البقرة، ودعاؤهما عند رفع القواعد.",
           "summaryEnglish": "The building of the Sacred House by Ibrahim and Ismail is mentioned in Surah Al-Baqarah, with their du'a as they raised the foundations.",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true,
@@ -2209,13 +2209,13 @@
           "noteEnglish": "Ismail follows Ibrahim in the guided reading order.",
           "certainty": "medium",
           "sourceIds": [
-            "quran_uthmani_cloud"
+            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review"
         }
       ],
       "sourceIds": [
-        "quran_uthmani_cloud"
+        "tanzil_quran_uthmani"
       ],
       "reviewStatus": "needs_review",
       "humanReviewRequired": true,

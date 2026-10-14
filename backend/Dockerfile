@@ -71,5 +71,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD ["python", "-c", "import os,urllib.request,sys; sys.exit(0 if urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"8000\")}/health', timeout=4).status == 200 else 1)"]
 
 # No --reload. Proxy headers are trusted only from FORWARDED_ALLOW_IPS
-# (the reverse proxy); WORKERS sizes the process pool.
-CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port \"$PORT\" --workers \"$WORKERS\" --proxy-headers --forwarded-allow-ips \"$FORWARDED_ALLOW_IPS\" --no-server-header --timeout-graceful-shutdown 30"]
+# (the reverse proxy); WORKERS sizes the process pool. No access log: the
+# app logs method, path, status and timing without the client IP.
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port \"$PORT\" --workers \"$WORKERS\" --proxy-headers --forwarded-allow-ips \"$FORWARDED_ALLOW_IPS\" --no-server-header --no-access-log --timeout-graceful-shutdown 30"]

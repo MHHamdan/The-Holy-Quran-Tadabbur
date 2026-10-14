@@ -16,16 +16,29 @@ import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Book, ChevronLeft, ChevronRight, BookOpen,
   Languages, GitBranch, FileText, Headphones, Bookmark, BookmarkCheck,
-  Copy, Check, Share2, Search,
+  Copy, Check, Share2, Search, SlidersHorizontal, Image as ImageIcon,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, grammarApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
 import { useBookmarksStore } from '../stores/bookmarksStore';
-import { recordSurahVisit } from '../hooks/useReadingProgress';
+import { recordSurahVisit, recordReadingPosition } from '../hooks/useReadingProgress';
 import { VerseText } from '../components/quran/WordMeaningPopover';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { ErrorPanel, parseAPIError, type APIErrorData } from '../components/common/ErrorPanel';
+import { VerseTranslations, useTranslationEditions } from '../components/quran/VerseTranslations';
+import { ReaderSettingsPanel } from '../components/quran/ReaderSettingsPanel';
+import { VerseMarkers } from '../components/quran/VerseMarkers';
+import {
+  useReaderSettingsStore,
+  effectiveTranslationKeys,
+  verseTextFor,
+  bismillahFor,
+  applyReaderThemeToDocument,
+} from '../stores/readerSettingsStore';
 import clsx from 'clsx';
+import { shareContent } from '../lib/native';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { shareVerseImage } from '../lib/verseImage';
 
 const GrammarAnalysisView = lazy(() =>
   import('../components/quran/GrammarAnalysis').then(m => ({ default: m.GrammarAnalysisView }))
@@ -38,7 +51,6 @@ const TafsirPanel = lazy(() =>
   import('../components/quran/TafsirPanel').then(m => ({ default: m.TafsirPanel }))
 );
 
-type ViewMode = 'mushaf' | 'list' | 'page';
 type NavigationMode = 'surah' | 'page';
 
 interface SuraInfo {
@@ -61,18 +73,6 @@ const BISMILLAH_PATTERNS = [
   'بسم الله الرحمن الرحيم',
 ];
 
-// Split the Bismillah prefix from an Imlaei-script verse.
-// The Bismillah is always the first 4 words of verse 1 for surahs that carry it.
-// Callers already gate on aya_no===1 and sura_no not in {1, 9}, so we just count words.
-// No Arabic string literals — text is extracted directly from the verse data.
-function splitBismillahImlaei(text: string): { bismillah: string; verseText: string } | null {
-  const clean = text.replace(/^\uFEFF/, ''); // strip BOM (present only on 1:1)
-  const words = clean.split(/\s+/);
-  if (words.length <= 4) return null; // guard: whole verse is just the Bismillah
-  const bismillah = words.slice(0, 4).join(' ');
-  const verseText = words.slice(4).join(' ');
-  return verseText ? { bismillah, verseText } : null;
-}
 
 /**
  * Check if a verse is primarily the Bismillah phrase.
@@ -105,7 +105,16 @@ export function QuranPage() {
   const [loading, setLoading] = useState(true);
   // Verse text comes from the backend; a failed load must not look like an empty surah.
   const [loadError, setLoadError] = useState<APIErrorData | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('mushaf');
+  const {
+    view: viewMode, setView: setViewMode, script, fontScale, translationKeys, autoScroll, theme,
+  } = useReaderSettingsStore();
+  useEffect(() => applyReaderThemeToDocument(theme), [theme]);
+  const activeTranslations = effectiveTranslationKeys(translationKeys, language);
+  const translationsKey = activeTranslations.join(',');
+  const { data: translationEditions } = useTranslationEditions();
+  const [showSettings, setShowSettings] = useState(false);
+  const arabicFontSize = { fontSize: `${1.5 * fontScale}rem` };
+  const quranFont = script === 'uthmani' ? 'font-mushaf' : 'font-arabic';
   const [navMode, setNavMode] = useState<NavigationMode>(pageParam ? 'page' : 'surah');
   const [currentPage, setCurrentPage] = useState<number>(pageParam ? parseInt(pageParam, 10) : 1);
   const [grammarVerseNo, setGrammarVerseNo] = useState<number | null>(null);
@@ -133,14 +142,32 @@ export function QuranPage() {
     }).catch(() => {});
   }, []);
 
-  const shareVerse = useCallback((verse: Verse) => {
-    const url = `${window.location.origin}/quran/${verse.sura_no}?aya=${verse.aya_no}`;
-    if (navigator.share) {
-      navigator.share({ url, title: `${verse.sura_name_ar} ${verse.aya_no}` }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(url).catch(() => {});
-    }
+  const shareVerse = useCallback((verse: Verse, displayText: string) => {
+    const ref = `${verse.sura_name_ar} ${toArabicNum(verse.aya_no)}`;
+    const translation = verse.translations?.[0]?.text;
+    void shareContent({
+      title: ref,
+      text: [displayText, `(${ref})`, translation].filter(Boolean).join('\n'),
+      path: `/quran/${verse.sura_no}?aya=${verse.aya_no}`,
+    });
   }, []);
+
+  const [imageBusyId, setImageBusyId] = useState<number | null>(null);
+  const shareImage = useCallback(async (verse: Verse, displayText: string) => {
+    setImageBusyId(verse.id);
+    const first = verse.translations?.[0];
+    const edition = first ? translationEditions?.find((e) => e.key === first.translator) : undefined;
+    await shareVerseImage({
+      arabic: displayText,
+      reference: language === 'ar'
+        ? `${verse.sura_name_ar} · ${toArabicNum(verse.aya_no)}`
+        : `${verse.sura_name_en} ${verse.sura_no}:${verse.aya_no}`,
+      translation: first?.text,
+      translationSource: edition ? `${edition.title} · v${edition.version} · QuranEnc.com` : undefined,
+      arabicFont: script === 'uthmani' ? 'Scheherazade New' : 'Noto Naskh Arabic',
+    }, `tadabbur-${verse.sura_no}-${verse.aya_no}.png`);
+    setImageBusyId(null);
+  }, [language, script, translationEditions]);
 
   // Prefetch on button hover so panel opens instantly
   const prefetchGrammar = useCallback((suraNo: number, ayaNo: number) => {
@@ -191,7 +218,8 @@ export function QuranPage() {
     } else if (currentSura >= 1 && currentSura <= 114) {
       loadSura(currentSura);
     }
-  }, [currentSura, navMode, currentPage]);
+    // translationsKey stands in for activeTranslations (a new array every render)
+  }, [currentSura, navMode, currentPage, translationsKey]);
 
   // Record surah visit for reading progress tracking
   useEffect(() => {
@@ -210,6 +238,47 @@ export function QuranPage() {
       }, 100);
     }
   }, [loading, highlightAya]);
+
+  // Remember the verse in view (topmost visible), so "continue reading" and the
+  // reading reminder reopen at that verse rather than at the top of the surah.
+  useEffect(() => {
+    if (loading || verses.length === 0 || !('IntersectionObserver' in window)) return;
+    const byKey = new Map(verses.map((v) => [`${v.sura_no}:${v.aya_no}`, v]));
+    const visible = new Set<string>();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const observer = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        const key = (e.target as HTMLElement).dataset.verseKey;
+        if (!key) continue;
+        if (e.isIntersecting) visible.add(key); else visible.delete(key);
+      }
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const top = verses.find((v) => visible.has(`${v.sura_no}:${v.aya_no}`));
+        if (top) {
+          recordReadingPosition({
+            surah: top.sura_no, aya: top.aya_no, nameAr: top.sura_name_ar, nameEn: top.sura_name_en,
+          });
+        }
+      }, 1500);
+    }, { rootMargin: '-20% 0px -50% 0px' });
+    document.querySelectorAll<HTMLElement>('[data-verse-key]').forEach((el) => {
+      if (byKey.has(el.dataset.verseKey ?? '')) observer.observe(el);
+    });
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [loading, verses, viewMode]);
+
+  // Follow the verse being recited
+  useEffect(() => {
+    if (!autoScroll || currentPlayingAya === null) return;
+    const el = document.querySelector<HTMLElement>(
+      `[data-verse-key="${currentSura}:${currentPlayingAya}"]`,
+    );
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [autoScroll, currentPlayingAya, currentSura]);
 
   // Load concept highlights when concept or concepts param is present
   useEffect(() => {
@@ -296,7 +365,7 @@ export function QuranPage() {
     setLoading(true);
     setLoadError(null);
     try {
-      const res = await quranApi.getSuraVerses(suraNo);
+      const res = await quranApi.getSuraVerses(suraNo, activeTranslations);
       setVerses(res.data);
       // Set current page from first verse
       if (res.data.length > 0) {
@@ -315,7 +384,7 @@ export function QuranPage() {
     setLoading(true);
     setLoadError(null);
     try {
-      const res = await quranApi.getPageVerses(pageNo);
+      const res = await quranApi.getPageVerses(pageNo, activeTranslations);
       setVerses(res.data);
     } catch (error) {
       console.error('Failed to load page:', error);
@@ -365,7 +434,11 @@ export function QuranPage() {
   }, {} as Record<number, Verse[]>);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <div
+      className="reader-surface max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+      data-theme={theme}
+      dir={language === 'ar' ? 'rtl' : 'ltr'}
+    >
       {/* Back Link */}
       <Link
         to="/stories"
@@ -464,6 +537,22 @@ export function QuranPage() {
               </button>
             </div>
 
+            {/* Reader settings */}
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              aria-expanded={showSettings}
+              className={clsx(
+                'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors',
+                showSettings
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'bg-gray-100 text-gray-600 hover:text-gray-900',
+                language === 'ar' && 'font-arabic'
+              )}
+            >
+              <SlidersHorizontal className="w-5 h-5" />
+              {language === 'ar' ? 'الإعدادات' : 'Settings'}
+            </button>
+
             {/* Audio Toggle */}
             <button
               onClick={() => setShowAudioPlayer(!showAudioPlayer)}
@@ -551,6 +640,10 @@ export function QuranPage() {
         </div>
       </div>
 
+      {showSettings && (
+        <ReaderSettingsPanel language={language} onClose={() => setShowSettings(false)} />
+      )}
+
       {/* Audio Player */}
       {showAudioPlayer && (
         <div className="mb-6">
@@ -583,7 +676,7 @@ export function QuranPage() {
         />
       ) : viewMode === 'mushaf' ? (
         /* Mushaf Style View */
-        <div className="rounded-2xl bg-[#fefcf3] border-2 border-amber-200 shadow-lg overflow-hidden">
+        <div className="reader-mushaf rounded-2xl bg-[#fefcf3] border-2 border-amber-200 shadow-lg overflow-hidden">
           {/* Decorative Header */}
           <div className="bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 text-center py-4 px-6">
             <h2 className="text-2xl font-bold font-arabic text-amber-50 tracking-widest">
@@ -605,7 +698,7 @@ export function QuranPage() {
           <div className="p-6">
 
           {/* Verses in Mushaf Style */}
-          <div className="text-center leading-[3] font-arabic text-2xl text-gray-900" dir="rtl">
+          <div className={clsx('reader-arabic text-center leading-[3] text-gray-900', quranFont)} style={arabicFontSize} dir="rtl">
             {verses.map((verse, idx) => {
               const verseKey = `${verse.sura_no}:${verse.aya_no}`;
               // Exclude Bismillah verses from concept highlighting to avoid redundant matches
@@ -617,16 +710,12 @@ export function QuranPage() {
                                     verse.sura_no === currentSura) ||
                                    (currentPlayingAya === verse.aya_no && verse.sura_no === currentSura);
 
-              // Extract Bismillah from verse 1 for surahs that have it as a prefix
               const isFirstVerse = verse.aya_no === 1;
-              const hasBismillahPrefix = isFirstVerse && verse.sura_no !== 1 && verse.sura_no !== 9;
-              const bismillahSplit = hasBismillahPrefix ? splitBismillahImlaei(verse.text_imlaei) : null;
-              // Strip BOM (appears only on 1:1 in source data) and Bismillah prefix for display
-              const displayText = bismillahSplit
-                ? bismillahSplit.verseText
-                : verse.text_imlaei.replace(/^\uFEFF/, '');
+              // The surah's opening Bismillah comes with verse 1 (separately from its text)
+              const bismillah = bismillahFor(verse, script);
+              const displayText = verseTextFor(verse, script);
               // Show Bismillah block for: page mode (when surah starts on page) or surah mode
-              const showBismillahBlock = bismillahSplit !== null && (
+              const showBismillahBlock = bismillah !== null && (
                 navMode === 'surah' ||
                 (navMode === 'page' && (idx === 0 || verses[idx - 1]?.sura_no !== verse.sura_no))
               );
@@ -640,13 +729,19 @@ export function QuranPage() {
                     </div>
                   )}
                   {/* Bismillah — text extracted from verse 1, never hardcoded */}
-                  {showBismillahBlock && bismillahSplit && (
+                  {showBismillahBlock && (
                     <div className="block text-center mb-4" dir="rtl">
-                      <span className="text-xl font-arabic text-amber-800">{bismillahSplit.bismillah}</span>
+                      <span className={clsx('text-xl text-amber-800', quranFont)}>{bismillah}</span>
                     </div>
+                  )}
+                  {verse.quarter_start && (
+                    <span className="inline-block align-middle mx-1" style={{ fontSize: '1rem', lineHeight: 1.5 }}>
+                      <VerseMarkers verse={verse} language={language} only="quarter" />
+                    </span>
                   )}
                   <span
                     ref={isHighlighted ? highlightRef : null}
+                    data-verse-key={verseKey}
                     className={clsx(
                       'inline transition-all duration-300',
                       isHighlighted && 'bg-primary-200 rounded px-1 py-0.5',
@@ -658,6 +753,11 @@ export function QuranPage() {
                   <span className="inline-flex items-center justify-center w-8 h-8 mx-1 text-sm bg-amber-100 text-amber-800 rounded-full border border-amber-300 font-semibold">
                     {toArabicNum(verse.aya_no)}
                   </span>
+                  {verse.sajda_type && (
+                    <span className="inline-block align-middle mx-1" style={{ fontSize: '1rem', lineHeight: 1.5 }}>
+                      <VerseMarkers verse={verse} language={language} only="sajdah" />
+                    </span>
+                  )}
                   {idx < verses.length - 1 && ' '}
                 </span>
               );
@@ -682,6 +782,7 @@ export function QuranPage() {
             </span>
           </div>
           </div>
+          <QuranTextAttribution language={language} className="mt-3 text-center" />
         </div>
       ) : (
         /* List View with Translations */
@@ -698,35 +799,29 @@ export function QuranPage() {
             const showSimilar = similarVerseNo === verse.aya_no;
             const showTafsir = tafsirVerseNo === verse.aya_no;
 
-            const hasBismillahPrefixList = verse.aya_no === 1 && verse.sura_no !== 1 && verse.sura_no !== 9;
-            const listBismillahSplit = hasBismillahPrefixList ? splitBismillahImlaei(verse.text_imlaei) : null;
-            const listDisplayText = listBismillahSplit
-              ? listBismillahSplit.verseText
-              : verse.text_imlaei.replace(/^\uFEFF/, '');
-
-            const translation = verse.translations?.find(
-              t => t.language === (language === 'ar' ? 'ar' : 'en')
-            )?.text || verse.translations?.[0]?.text;
+            const listBismillah = bismillahFor(verse, script);
+            const listDisplayText = verseTextFor(verse, script);
 
             const isCopied = copiedVerseId === verse.id;
 
             return (
               <div
                 key={verse.id}
+                data-verse-key={verseKey}
                 className={clsx(
                   'rounded-2xl border transition-all duration-300 overflow-hidden',
                   isHighlighted
                     ? 'border-primary-300 bg-primary-50 shadow-sm'
                     : isConceptHighlighted
                     ? 'border-amber-300 bg-amber-50 shadow-sm'
-                    : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm',
+                    : 'reader-card border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm',
                 )}
               >
                 {/* Bismillah banner */}
-                {listBismillahSplit && (
+                {listBismillah && (
                   <div className="bg-amber-50 border-b border-amber-100 py-3 px-5 text-center" dir="rtl">
-                    <span className="text-lg font-arabic text-amber-800 tracking-wide">
-                      {listBismillahSplit.bismillah}
+                    <span className={clsx('text-lg text-amber-800 tracking-wide', quranFont)}>
+                      {listBismillah}
                     </span>
                   </div>
                 )}
@@ -750,6 +845,7 @@ export function QuranPage() {
                     {navMode === 'page' && (
                       <span className="text-xs text-gray-400">{verse.sura_name_ar}</span>
                     )}
+                    <VerseMarkers verse={verse} language={language} />
                   </div>
                   <span className="text-xs text-gray-300">
                     {verseIdx + 1} / {verses.length}
@@ -758,20 +854,17 @@ export function QuranPage() {
 
                 {/* Arabic text */}
                 <div className="px-5 pt-2 pb-3" dir="rtl">
-                  <p className="text-2xl leading-[2.2] font-arabic text-gray-900">
+                  <p className={clsx('reader-arabic leading-[2.2] text-gray-900', quranFont)} style={arabicFontSize}>
                     <VerseText text={listDisplayText} sura={verse.sura_no} aya={verse.aya_no} />
                   </p>
                 </div>
 
-                {/* Translation */}
-                {translation && (
-                  <div
-                    className="mx-5 mb-3 px-4 py-3 bg-gray-50 rounded-xl border-l-4 border-primary-200 text-sm text-gray-600 leading-relaxed"
-                    dir={language === 'ar' ? 'rtl' : 'ltr'}
-                  >
-                    {translation}
-                  </div>
-                )}
+                {/* Translations of the meanings */}
+                <VerseTranslations
+                  translations={verse.translations ?? []}
+                  editions={translationEditions}
+                  language={language}
+                />
 
                 {/* Action bar */}
                 <div className="flex items-center gap-1 px-4 pb-3 flex-wrap">
@@ -834,7 +927,16 @@ export function QuranPage() {
                       }
                     </button>
                     <button
-                      onClick={() => shareVerse(verse)}
+                      onClick={() => shareImage(verse, listDisplayText)}
+                      disabled={imageBusyId === verse.id}
+                      title={language === 'ar' ? 'مشاركة كصورة' : 'Share as image'}
+                      aria-label={language === 'ar' ? 'مشاركة كصورة' : 'Share as image'}
+                      className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => shareVerse(verse, listDisplayText)}
                       title={language === 'ar' ? 'مشاركة' : 'Share'}
                       className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     >
@@ -851,7 +953,7 @@ export function QuranPage() {
                             sura_name_ar: verse.sura_name_ar,
                             sura_name_en: verse.sura_name_en,
                             aya_no: verse.aya_no,
-                            text_uthmani: verse.text_imlaei,
+                            text_uthmani: verse.text_uthmani,
                           });
                         }
                       }}
@@ -929,6 +1031,7 @@ export function QuranPage() {
               </div>
             );
           })}
+          <QuranTextAttribution language={language} className="text-center pt-2" />
         </div>
       )}
     </div>

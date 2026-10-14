@@ -1,14 +1,14 @@
 # Quran Topic Atlas — Scan Summary
 
-Generated at: 2026-05-17T12:56:57.247Z
+Generated at: 2026-10-14T04:32:09.458Z
 Scanner version: 1.0.0
 
 ## Totals
 
 - Topics seeded: **70**
-- Total ayah-topic links: **5307**
-- Ayahs with ≥2 topics: **1398**
-- Ayahs without any topic link: **2990** of 6236
+- Total ayah-topic links: **5108**
+- Ayahs with ≥2 topics: **1304**
+- Ayahs without any topic link: **3064** of 6236
 
 ## Topics by type
 
@@ -30,22 +30,22 @@ Scanner version: 1.0.0
 
 | linkType | Count |
 |---|---:|
-| explicit_keyword | 2659 |
-| alias_match | 2648 |
+| alias_match | 2560 |
+| explicit_keyword | 2548 |
 
 ## Top 25 topics by ayah coverage
 
 | Topic | Ayahs | Surahs |
 |---|---:|---:|
-| topic_allah | 1916 | 114 |
+| topic_allah | 1828 | 85 |
 | topic_heavens_earth | 425 | 80 |
 | topic_iman | 266 | 60 |
 | topic_community | 257 | 54 |
 | topic_kufr | 223 | 57 |
-| topic_mercy | 219 | 114 |
 | topic_hellfire | 209 | 69 |
 | topic_dua | 139 | 48 |
 | topic_revelation | 128 | 46 |
+| topic_mercy | 108 | 42 |
 | topic_guidance | 88 | 39 |
 | topic_rejection_of_messengers | 79 | 43 |
 | topic_quran | 75 | 39 |
@@ -67,21 +67,21 @@ Scanner version: 1.0.0
 
 | Surah | Unique topics | Ayahs covered |
 |---:|---:|---:|
-| 2 | 51 | 240 |
-| 7 | 44 | 112 |
+| 2 | 51 | 239 |
+| 7 | 44 | 111 |
 | 4 | 41 | 155 |
-| 16 | 41 | 95 |
-| 3 | 39 | 169 |
-| 5 | 37 | 107 |
-| 10 | 33 | 80 |
+| 16 | 40 | 95 |
+| 3 | 39 | 168 |
+| 5 | 36 | 107 |
+| 10 | 33 | 79 |
 | 9 | 31 | 114 |
 | 27 | 31 | 49 |
-| 11 | 30 | 69 |
 | 6 | 29 | 99 |
-| 22 | 29 | 66 |
-| 17 | 28 | 53 |
-| 20 | 27 | 39 |
-| 40 | 26 | 65 |
+| 11 | 29 | 68 |
+| 17 | 28 | 52 |
+| 22 | 28 | 66 |
+| 20 | 27 | 38 |
+| 40 | 26 | 64 |
 
 ## Warnings
 

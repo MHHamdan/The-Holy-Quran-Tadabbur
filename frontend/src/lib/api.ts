@@ -20,6 +20,16 @@ export interface Verse {
   text_imlaei: string;
   page_no: number;
   juz_no: number;
+  hizb_no?: number | null;
+  /** Hizb quarter 1-240. */
+  rub_no?: number | null;
+  /** Set on the 15 sajdah verses. */
+  sajda_type?: 'recommended' | 'obligatory' | null;
+  /** This verse opens hizb quarter rub_no. */
+  quarter_start?: boolean;
+  /** Opening Bismillah of the surah, on verse 1 only (not part of the verse text). */
+  bismillah_uthmani?: string | null;
+  bismillah_imlaei?: string | null;
   translations: Translation[];
 }
 
@@ -27,23 +37,42 @@ export interface Translation {
   language: string;
   translator: string;
   text: string;
+  footnotes?: string | null;
+  edition_version?: string | null;
+  source_id?: string | null;
 }
 
-// Mushaf line-layout types (King Fahd Madinah Mushaf word positions)
-export interface MushafWord {
+export interface TranslationSearchHit {
+  verse_id: number;
   sura_no: number;
   aya_no: number;
-  word_pos: number;
-  text: string;
-  char_type: 'word' | 'end' | 'hizb' | 'sajda' | 'rub' | 'page';
+  sura_name_ar: string;
+  sura_name_en: string;
+  text_uthmani: string;
+  text_imlaei: string;
+  translation: Translation;
 }
-export interface MushafLine {
-  line_no: number;
-  words: MushafWord[];
+
+export interface TranslationSearchResponse {
+  query: string;
+  terms: string[];
+  editions: string[];
+  total: number;
+  hits: TranslationSearchHit[];
 }
-export interface MushafPageLines {
-  page_no: number;
-  lines: MushafLine[];
+
+/** A translation edition and the attribution its text must carry (QuranEnc terms). */
+export interface TranslationEdition {
+  key: string;
+  language: string;
+  title: string;
+  translator_name: string | null;
+  version: string;
+  source_id: string;
+  source_url: string;
+  license: string;
+  attribution: string;
+  is_default: boolean;
 }
 
 // =============================================================================
@@ -623,21 +652,33 @@ export const tafsirComparisonApi = {
 };
 
 // API functions
+// `translations`: edition keys (at most 3); omitted or empty means Arabic only.
+const translationParams = (translations?: string[]) =>
+  translations && translations.length > 0 ? { translations: translations.join(',') } : undefined;
+
 export const quranApi = {
-  getSuraVerses: (suraNo: number) =>
-    api.get<Verse[]>(`/quran/suras/${suraNo}`),
+  getSuraVerses: (suraNo: number, translations?: string[]) =>
+    api.get<Verse[]>(`/quran/suras/${suraNo}`, { params: translationParams(translations) }),
 
-  getVerse: (suraNo: number, ayaNo: number) =>
-    api.get<Verse>(`/quran/verses/${suraNo}/${ayaNo}`),
+  getVerse: (suraNo: number, ayaNo: number, translations?: string[]) =>
+    api.get<Verse>(`/quran/verses/${suraNo}/${ayaNo}`, { params: translationParams(translations) }),
 
-  getVerseRange: (suraNo: number, ayaStart: number, ayaEnd: number) =>
-    api.get<Verse[]>(`/quran/verses/${suraNo}/${ayaStart}/${ayaEnd}`),
+  getVerseRange: (suraNo: number, ayaStart: number, ayaEnd: number, translations?: string[]) =>
+    api.get<Verse[]>(`/quran/verses/${suraNo}/${ayaStart}/${ayaEnd}`, {
+      params: translationParams(translations),
+    }),
 
-  getPageVerses: (pageNo: number) =>
-    api.get<Verse[]>(`/quran/page/${pageNo}`),
+  getPageVerses: (pageNo: number, translations?: string[]) =>
+    api.get<Verse[]>(`/quran/page/${pageNo}`, { params: translationParams(translations) }),
 
-  getMushafPageLines: (pageNo: number) =>
-    api.get<MushafPageLines>(`/mushaf/page/${pageNo}/lines`),
+  getTranslationEditions: () =>
+    api.get<TranslationEdition[]>('/quran/translations/editions'),
+
+  searchTranslations: (q: string, opts: { translations?: string[]; lang?: string; limit?: number; offset?: number }) =>
+    api.get<TranslationSearchResponse>('/quran/search/translation', {
+      params: { q, lang: opts.lang, limit: opts.limit, offset: opts.offset, ...translationParams(opts.translations) },
+    }),
+
 
   getTafseer: (suraNo: number, ayaNo: number, sources?: string[]) =>
     api.get(`/quran/tafseer/${suraNo}/${ayaNo}`, { params: { sources } }),
@@ -3106,6 +3147,10 @@ export const therapyApi = {
   // Phase T5-D — fetch saved reflections from the database
   getReflections: (sessionIds: string[]) =>
     api.post<ReflectionsResponse>('/therapy/reflections', { session_ids: sessionIds }).then(r => r.data),
+
+  /** Delete the server copy of these guidance sessions and any saved reflection. */
+  deleteSessions: (sessionIds: string[]) =>
+    api.post<{ deleted: number }>('/therapy/sessions/delete', { session_ids: sessionIds.slice(0, 200) }).then(r => r.data),
 
   // Phase T-Adaptive — topic-specific hadith + wise phrases
   getTopicResources: (topicKey: string) =>

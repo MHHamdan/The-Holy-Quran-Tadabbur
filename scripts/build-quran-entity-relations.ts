@@ -240,7 +240,7 @@ function main(): void {
           target: arr[j],
           type: 'mentioned_with',
           evidence: ref,
-          sourceIds: ['quran_uthmani_cloud'],
+          sourceIds: ['tanzil_quran_uthmani'],
           confidence: 0.7,
           symmetric: true,
         });
@@ -287,7 +287,7 @@ function main(): void {
         target: rel.entityId,
         type: rel.relationType,
         evidence,
-        sourceIds: ['quran_uthmani_cloud'],
+        sourceIds: ['tanzil_quran_uthmani'],
         confidence: 0.85,
         warnings: ['Family/title relation derived from seed dictionary; needs reviewer sign-off.'],
         symmetric: true,
@@ -319,7 +319,7 @@ function main(): void {
           target: b.entityId,
           type: 'same_surah_context',
           evidence: { surahNumber, ayahStart: a.ayah, ayahEnd: b.ayah },
-          sourceIds: ['quran_uthmani_cloud'],
+          sourceIds: ['tanzil_quran_uthmani'],
           confidence: 0.55,
           warnings: [
             'Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting.',
@@ -417,7 +417,7 @@ function main(): void {
       target: 'entity_prophet_isa',
       type: 'theological_discussion',
       evidence: ref,
-      sourceIds: ['quran_uthmani_cloud'],
+      sourceIds: ['tanzil_quran_uthmani'],
       confidence: 0.55,
       warnings: [
         'Marked as theological-clarification passage; interpretation must be deferred to verified tafsir.',

@@ -8,7 +8,7 @@
  */
 
 import { Routes, Route, Navigate, useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Suspense, lazy, useEffect, memo } from 'react';
+import { Suspense, lazy, useEffect, useRef, memo } from 'react';
 import { Layout } from './components/layout/Layout';
 import { AppUpdateBanner, NativeConnectivityBanner } from './components/pwa/AppUpdateBanner';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
@@ -18,6 +18,7 @@ import { usePersonaStore } from './stores/personaStore';
 import { Loader2 } from 'lucide-react';
 import { useLanguageStore } from './stores/languageStore';
 import { t } from './i18n/translations';
+import { continueReadingPath } from './hooks/useReadingProgress';
 
 // =============================================================================
 // Loading Component - Optimized for perceived performance
@@ -69,6 +70,7 @@ const ThemeAdminPage = lazy(() => import('./pages/ThemeAdminPage').then(m => ({ 
 const MiraclesPage = lazy(() => import('./pages/MiraclesPage').then(m => ({ default: m.MiraclesPage })));
 const SimilarityPage = lazy(() => import('./pages/SimilarityPage').then(m => ({ default: m.SimilarityPage })));
 const SourcesPage = lazy(() => import('./pages/SourcesPage').then(m => ({ default: m.SourcesPage })));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const TafsirComparePage = lazy(() => import('./pages/TafsirComparePage').then(m => ({ default: m.TafsirComparePage })));
 
 // Tasmeeʿ (Memorization) - Audio recording with STT
@@ -243,15 +245,26 @@ function useRoutePreloader() {
 // Main App Component
 // =============================================================================
 
+function ContinueReading() {
+  return <Navigate to={continueReadingPath()} replace />;
+}
+
 function App() {
   useRoutePreloader();
   const { hasChosen } = usePersonaStore();
   const navigate = useNavigate();
 
-  // Android/iOS shell: status bar, splash, hardware back button (no-op on web).
+  // Android/iOS shell: status bar, splash, back button, deep links and
+  // notification taps (no-op on web). Registered once: navigate changes
+  // identity on every route change, so it is read through a ref.
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
   useEffect(() => {
-    initNativeShell(() => navigate(-1)).catch(() => undefined);
-  }, [navigate]);
+    initNativeShell(
+      () => navigateRef.current(-1),
+      (path) => navigateRef.current(path),
+    ).catch(() => undefined);
+  }, []);
 
   return (
     <Layout>
@@ -292,6 +305,7 @@ function App() {
           <Route path="/miracles" element={<MiraclesPage />} />
           <Route path="/similarity" element={<SimilarityPage />} />
           <Route path="/sources" element={<SourcesPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/tafsir/compare" element={<TafsirComparePage />} />
           <Route path="/tafsir/compare/:surah/:ayah" element={<TafsirComparePage />} />
 
@@ -374,6 +388,8 @@ function App() {
 
           {/* Reading Plan / Khatmah planner */}
           <Route path="/reading-plan" element={<ReadingPlanPage />} />
+          {/* Target of reading-reminder taps and tadabbur://continue */}
+          <Route path="/continue" element={<ContinueReading />} />
 
           {/* Quranic Duʿā Explorer */}
           <Route path="/duas" element={<DuasPage />} />

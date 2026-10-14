@@ -1,382 +1,312 @@
 /**
- * Ayah Memorization Flashcards
+ * Verse Memorisation — spaced-repetition flashcards
  *
- * Shows the verse number and surah context; user tries to recall the ayah text,
- * then reveals it. Uses localStorage to persist "mastered" ayah IDs so progress
- * survives sessions.
+ * Front: the previous verse as the cue (or the surah opening for verse 1).
+ * Back: the verse to recall. Grading it Again / Hard / Good / Easy schedules
+ * the next review (lib/srs.ts, SM-2 family), so well-known verses come back
+ * rarely and weak ones soon, as in Quran Companion and Anki.
  *
- * Safety: Actual Quran text is fetched from the existing QuranPage/API flow via
- * the verse reference — we DO NOT embed text strings here. Instead, we display
- * a deep-link to the Mushaf for text display, and show transliteration hints
- * only from the already-indexed vocabulary data where available.
+ * Two queues: "Review" (every due verse, any surah) and "Learn" (the chosen
+ * surah, in order: due and new verses). Progress is device-local.
  *
- * Flashcard data: surah-level metadata from SURAH_ATLAS_DATA (ayahCount).
- * No Quran text is stored or generated in this file.
+ * Safety: no Qur'an text is stored here. Both sides are fetched from the
+ * verified verse API at display time.
  */
-
-import { useState, useCallback, useMemo } from 'react';
-import { Layers, ChevronLeft, ChevronRight, Eye, CheckCircle, RotateCcw, Link as LinkIcon } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
+import { Layers, Eye, BookOpen, CalendarClock, Sparkles, RotateCcw } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
+import { useReaderSettingsStore, verseTextFor } from '../stores/readerSettingsStore';
+import { quranApi } from '../lib/api';
 import { SURAH_NAMES } from '../data/surahNames';
 import { SURAH_ATLAS_DATA } from '../data/surahAtlas';
+import {
+  cardKey, isDue, loadDeck, newCard, parseKey, previewIntervals, review, saveDeck, today,
+  type Deck, type Grade,
+} from '../lib/srs';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 
-// ---------------------------------------------------------------------------
-// Persistence helpers
-// ---------------------------------------------------------------------------
+type Mode = 'review' | 'learn';
 
-const STORAGE_KEY = 'tadabbur_flashcards_v1';
+const ayahCount = (surah: number) => SURAH_ATLAS_DATA.find((s) => s.surahNumber === surah)?.ayahCount ?? 7;
+const toArabicNum = (n: number) => n.toString().replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 
-interface FlashcardStore {
-  mastered: string[];   // "surah:ayah" strings
+function formatInterval(days: number, ar: boolean): string {
+  if (days === 0) return ar ? 'الآن' : 'now';
+  if (days < 30) return ar ? `${toArabicNum(days)} يوم` : `${days}d`;
+  const months = Math.round(days / 30);
+  return ar ? `${toArabicNum(months)} شهر` : `${months}mo`;
 }
 
-function loadStore(): FlashcardStore {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as FlashcardStore;
-  } catch { /* storage unavailable or full: caching is best-effort */ }
-  return { mastered: [] };
+/** The queue for a session: keys in the order they should be shown. */
+function buildQueue(deck: Deck, mode: Mode, surah: number): string[] {
+  const day = today();
+  if (mode === 'review') {
+    return Object.entries(deck)
+      .filter(([, c]) => isDue(c, day))
+      .sort(([, a], [, b]) => a.due.localeCompare(b.due))
+      .map(([k]) => k);
+  }
+  const keys: string[] = [];
+  for (let a = 1; a <= ayahCount(surah); a++) {
+    const k = cardKey(surah, a);
+    const c = deck[k];
+    if (!c || isDue(c, day)) keys.push(k);
+  }
+  return keys;
 }
-
-function saveStore(store: FlashcardStore) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch { /* storage unavailable or full: caching is best-effort */ }
-}
-
-function makeKey(surah: number, ayah: number) { return `${surah}:${ayah}`; }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function getAyahCount(surahNum: number): number {
-  return SURAH_ATLAS_DATA.find(s => s.surahNumber === surahNum)?.ayahCount ?? 7;
-}
-
-// ---------------------------------------------------------------------------
-// AyahCard component
-// ---------------------------------------------------------------------------
-
-function AyahCard({
-  surah,
-  ayah,
-  totalAyahs,
-  isMastered,
-  isRtl,
-  onMaster,
-  onUnmaster,
-}: {
-  surah: number;
-  ayah: number;
-  totalAyahs: number;
-  isMastered: boolean;
-  isRtl: boolean;
-  onMaster: () => void;
-  onUnmaster: () => void;
-}) {
-  const [revealed, setRevealed] = useState(false);
-  const surahName = SURAH_NAMES[surah - 1];
-
-  // Reset reveal state when ayah changes
-  const cardKey = `${surah}-${ayah}`;
-
-  return (
-    <div key={cardKey} className="space-y-4">
-      {/* Card front */}
-      <div className={clsx(
-        'rounded-2xl border p-6 text-center min-h-[200px] flex flex-col items-center justify-center gap-3',
-        isMastered ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-100'
-      )}>
-        {/* Surah + ayah reference */}
-        <div>
-          <p className={clsx('text-3xl font-bold text-gray-800', isRtl && 'font-arabic')}>
-            {isRtl ? surahName?.ar : surahName?.en} — {isRtl ? 'آية' : 'Ayah'} {ayah}
-          </p>
-          <p className="text-sm text-gray-400 mt-1 font-arabic" dir="rtl">
-            سورة {surahName?.ar} ({surah}:{ayah})
-          </p>
-        </div>
-
-        {!revealed ? (
-          <div className="flex flex-col items-center gap-2">
-            <p className={clsx('text-sm text-gray-400 italic', isRtl && 'font-arabic')}>
-              {isRtl ? 'تذكّر الآية من الذاكرة…' : 'Recall the verse from memory…'}
-            </p>
-            <button
-              onClick={() => setRevealed(true)}
-              className={clsx(
-                'flex items-center gap-2 px-5 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 transition-colors',
-                isRtl && 'flex-row-reverse'
-              )}
-            >
-              <Eye className="w-4 h-4" />
-              {isRtl ? 'أظهر الآية' : 'Reveal'}
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-3">
-            {/* Link to Mushaf for actual text */}
-            <Link
-              to={`/quran/${surah}?ayah=${ayah}`}
-              className={clsx(
-                'inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors',
-                isRtl && 'flex-row-reverse font-arabic'
-              )}
-            >
-              <LinkIcon className="w-3.5 h-3.5" />
-              {isRtl ? `افتح ${surahName?.ar} ${surah}:${ayah} في المصحف` : `Open ${surahName?.en} ${surah}:${ayah} in Mushaf`}
-            </Link>
-
-            {/* Progress bar hint */}
-            <p className={clsx('text-xs text-gray-400', isRtl && 'font-arabic')}>
-              {isRtl
-                ? `الآية ${ayah} من ${totalAyahs}`
-                : `Verse ${ayah} of ${totalAyahs}`}
-            </p>
-
-            {/* Master / Not yet buttons */}
-            <div className={clsx('flex gap-3', isRtl && 'flex-row-reverse')}>
-              {!isMastered ? (
-                <button
-                  onClick={onMaster}
-                  className={clsx(
-                    'flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors',
-                    isRtl && 'flex-row-reverse font-arabic'
-                  )}
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  {isRtl ? 'حفظت' : 'I know it!'}
-                </button>
-              ) : (
-                <button
-                  onClick={onUnmaster}
-                  className={clsx(
-                    'flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-300 transition-colors',
-                    isRtl && 'flex-row-reverse font-arabic'
-                  )}
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  {isRtl ? 'أعد' : 'Re-study'}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Main page
-// ---------------------------------------------------------------------------
 
 export function FlashcardsPage() {
   const { language } = useLanguageStore();
-  const isRtl = language === 'ar';
+  const ar = language === 'ar';
+  const { script } = useReaderSettingsStore();
 
-  const [selectedSurah, setSelectedSurah] = useState(1);
-  const [currentAyah, setCurrentAyah] = useState(1);
-  const [store, setStore] = useState<FlashcardStore>(loadStore);
+  const [deck, setDeck] = useState<Deck>(loadDeck);
+  const [mode, setMode] = useState<Mode>(() =>
+    Object.values(loadDeck()).some((c) => isDue(c)) ? 'review' : 'learn');
+  const [surah, setSurah] = useState(1);
+  const [queue, setQueue] = useState<string[]>(() => buildQueue(deck, mode, surah));
+  const [revealed, setRevealed] = useState(false);
+  const [reviewedToday, setReviewedToday] = useState(0);
 
-  const totalAyahs = useMemo(() => getAyahCount(selectedSurah), [selectedSurah]);
+  // Rebuild the queue when the session parameters change (not after each grade).
+  useEffect(() => {
+    setQueue(buildQueue(loadDeck(), mode, surah));
+    setRevealed(false);
+  }, [mode, surah]);
 
-  const masteredInSurah = useMemo(() => {
-    let count = 0;
-    for (let i = 1; i <= totalAyahs; i++) {
-      if (store.mastered.includes(makeKey(selectedSurah, i))) count++;
-    }
-    return count;
-  }, [store, selectedSurah, totalAyahs]);
+  const dueCount = useMemo(() => Object.values(deck).filter((c) => isDue(c)).length, [deck]);
+  const learnedInSurah = useMemo(() => {
+    let n = 0;
+    for (let a = 1; a <= ayahCount(surah); a++) if ((deck[cardKey(surah, a)]?.reps ?? 0) > 0) n++;
+    return n;
+  }, [deck, surah]);
 
-  const updateStore = useCallback((newStore: FlashcardStore) => {
-    setStore(newStore);
-    saveStore(newStore);
-  }, []);
+  const current = queue[0] ? parseKey(queue[0]) : null;
+  const card = current ? deck[queue[0]] ?? newCard() : null;
 
-  function masterCurrent() {
-    const key = makeKey(selectedSurah, currentAyah);
-    if (!store.mastered.includes(key)) {
-      updateStore({ mastered: [...store.mastered, key] });
-    }
-  }
+  // Cue verse (previous) and target verse, from the verse API.
+  const { data: verses, isLoading, isError, refetch } = useQuery({
+    queryKey: ['flashcard', current?.surah, current?.ayah],
+    enabled: !!current,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const { surah: s, ayah: a } = current!;
+      const res = await quranApi.getVerseRange(s, Math.max(1, a - 1), a);
+      return res.data;
+    },
+  });
+  const target = verses?.find((v) => v.aya_no === current?.ayah);
+  const cue = current && current.ayah > 1 ? verses?.find((v) => v.aya_no === current.ayah - 1) : undefined;
 
-  function unmasterCurrent() {
-    const key = makeKey(selectedSurah, currentAyah);
-    updateStore({ mastered: store.mastered.filter(k => k !== key) });
-  }
+  const grade = useCallback((g: Grade) => {
+    if (!queue[0] || !card) return;
+    const key = queue[0];
+    const next = review(card, g);
+    const updated = { ...deck, [key]: next };
+    setDeck(updated);
+    saveDeck(updated);
+    setReviewedToday((n) => n + 1);
+    // "Again" comes back at the end of this session; others leave the queue.
+    setQueue((q) => (g === 'again' ? [...q.slice(1), key] : q.slice(1)));
+    setRevealed(false);
+  }, [queue, card, deck]);
 
-  function prev() {
-    if (currentAyah > 1) setCurrentAyah(a => a - 1);
-  }
+  const intervals = card ? previewIntervals(card) : null;
+  const surahName = (n: number) => (ar ? SURAH_NAMES[n - 1]?.ar : SURAH_NAMES[n - 1]?.en);
+  const quranFont = script === 'uthmani' ? 'font-mushaf' : 'font-arabic';
 
-  function next() {
-    if (currentAyah < totalAyahs) setCurrentAyah(a => a + 1);
-  }
-
-  function changeSurah(n: number) {
-    setSelectedSurah(n);
-    setCurrentAyah(1);
-  }
-
-  const isMastered = store.mastered.includes(makeKey(selectedSurah, currentAyah));
-  const pct = totalAyahs > 0 ? Math.round((masteredInSurah / totalAyahs) * 100) : 0;
+  const grades: { g: Grade; ar: string; en: string; cls: string }[] = [
+    { g: 'again', ar: 'نسيت', en: 'Again', cls: 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' },
+    { g: 'hard', ar: 'صعب', en: 'Hard', cls: 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' },
+    { g: 'good', ar: 'جيد', en: 'Good', cls: 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100' },
+    { g: 'easy', ar: 'سهل', en: 'Easy', cls: 'bg-sky-50 text-sky-800 border-sky-200 hover:bg-sky-100' },
+  ];
 
   return (
-    <div className="max-w-xl mx-auto px-4 sm:px-6 py-8" dir={isRtl ? 'rtl' : 'ltr'}>
-      {/* Header */}
-      <div className={clsx('flex items-center gap-3 mb-6', isRtl && 'flex-row-reverse')}>
+    <div className="max-w-xl mx-auto px-4 sm:px-6 py-8" dir={ar ? 'rtl' : 'ltr'}>
+      <div className="flex items-center gap-3 mb-6">
         <Layers className="w-7 h-7 text-emerald-500" />
         <div>
-          <h1 className={clsx('text-2xl font-bold text-gray-900', isRtl && 'font-arabic')}>
-            {isRtl ? 'بطاقات الحفظ' : 'Memorization Flashcards'}
+          <h1 className={clsx('text-2xl font-bold text-gray-900', ar && 'font-arabic')}>
+            {ar ? 'بطاقات الحفظ' : 'Memorization Flashcards'}
           </h1>
-          <p className={clsx('text-xs text-gray-400 mt-0.5', isRtl && 'font-arabic')}>
-            {isRtl
-              ? 'مارس استرجاع الآيات من الذاكرة — تقدمك يُحفظ تلقائياً'
-              : 'Practice active recall — progress saved locally'}
+          <p className={clsx('text-xs text-gray-500 mt-0.5', ar && 'font-arabic')}>
+            {ar
+              ? 'مراجعة متباعدة: تعود الآية الصعبة قريبًا والمتقنة بعد مدة أطول'
+              : 'Spaced repetition: weak verses come back soon, strong ones later'}
           </p>
         </div>
       </div>
 
-      {/* Surah selector */}
-      <div className="mb-4">
-        <label className={clsx('block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide', isRtl && 'font-arabic text-right')}>
-          {isRtl ? 'اختر السورة' : 'Select Surah'}
-        </label>
-        <div className="relative">
-          <select
-            value={selectedSurah}
-            onChange={e => changeSurah(Number(e.target.value))}
+      {/* Mode */}
+      <div role="tablist" className="grid grid-cols-2 gap-2 mb-4">
+        {([
+          ['review', <CalendarClock key="i" className="w-4 h-4" />, ar ? `مراجعة اليوم (${toArabicNum(dueCount)})` : `Review due (${dueCount})`],
+          ['learn', <Sparkles key="i" className="w-4 h-4" />, ar ? 'حفظ سورة' : 'Learn a surah'],
+        ] as const).map(([m, icon, label]) => (
+          <button
+            key={m}
+            role="tab"
+            aria-selected={mode === m}
+            onClick={() => setMode(m)}
             className={clsx(
-              'w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 py-3 pr-9 text-sm font-semibold text-gray-800 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100',
-              isRtl && 'font-arabic text-right pr-4 pl-9'
+              'flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold',
+              mode === m ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600 hover:bg-gray-50',
+              ar && 'font-arabic',
             )}
-            dir={isRtl ? 'rtl' : 'ltr'}
+          >
+            {icon}
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {mode === 'learn' && (
+        <div className="mb-4">
+          <label htmlFor="fc-surah" className={clsx('block text-xs font-semibold text-gray-500 mb-1', ar && 'font-arabic')}>
+            {ar ? 'السورة' : 'Surah'}
+          </label>
+          <select
+            id="fc-surah"
+            value={surah}
+            onChange={(e) => setSurah(Number(e.target.value))}
+            className={clsx('w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-800', ar && 'font-arabic')}
           >
             {SURAH_NAMES.map((sn, i) => (
-              <option key={i + 1} value={i + 1}>
-                {i + 1}. {isRtl ? sn.ar : sn.en}
-              </option>
+              <option key={i + 1} value={i + 1}>{i + 1}. {ar ? sn.ar : sn.en}</option>
             ))}
           </select>
-          <ChevronRight className={clsx('pointer-events-none absolute top-1/2 -translate-y-1/2 rotate-90 w-4 h-4 text-gray-400', isRtl ? 'left-3' : 'right-3')} />
+          <div className="mt-2 flex justify-between text-xs text-gray-500">
+            <span className={clsx(ar && 'font-arabic')}>
+              {ar
+                ? `${toArabicNum(learnedInSurah)} من ${toArabicNum(ayahCount(surah))} آية قيد المراجعة`
+                : `${learnedInSurah} / ${ayahCount(surah)} verses in review`}
+            </span>
+          </div>
+          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mt-1">
+            <div className="h-full bg-emerald-400 rounded-full transition-all duration-500"
+              style={{ width: `${Math.round((learnedInSurah / ayahCount(surah)) * 100)}%` }} />
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Progress bar */}
-      <div className="mb-5">
-        <div className={clsx('flex justify-between text-xs text-gray-400 mb-1', isRtl && 'flex-row-reverse')}>
-          <span className={isRtl ? 'font-arabic' : ''}>
-            {isRtl ? `${masteredInSurah} من ${totalAyahs} آية محفوظة` : `${masteredInSurah} / ${totalAyahs} mastered`}
-          </span>
-          <span className="font-bold">{pct}%</span>
+      {/* Card */}
+      {!current ? (
+        <div className={clsx('rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center', ar && 'font-arabic')}>
+          <p className="text-lg font-semibold text-emerald-800">
+            {mode === 'review'
+              ? (ar ? 'لا مراجعات مستحقة الآن' : 'Nothing due right now')
+              : (ar ? 'أتممت هذه السورة لليوم' : 'This surah is done for today')}
+          </p>
+          <p className="text-sm text-emerald-700 mt-1">
+            {reviewedToday > 0 && (ar ? `راجعت ${toArabicNum(reviewedToday)} بطاقة. ` : `${reviewedToday} cards reviewed. `)}
+            {mode === 'review'
+              ? (ar ? 'اختر «حفظ سورة» لإضافة آيات جديدة.' : 'Choose “Learn a surah” to add new verses.')
+              : (ar ? 'عد غدًا، أو اختر سورة أخرى.' : 'Come back tomorrow, or pick another surah.')}
+          </p>
         </div>
-        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-emerald-400 rounded-full transition-all duration-500"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </div>
+      ) : (
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 min-h-[260px] flex flex-col gap-4">
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <span className={clsx(ar && 'font-arabic')}>
+              {surahName(current.surah)} · {ar ? `الآية ${toArabicNum(current.ayah)}` : `verse ${current.ayah}`}
+            </span>
+            <span>{ar ? `${toArabicNum(queue.length)} متبقية` : `${queue.length} left`}</span>
+          </div>
 
-      {/* Flashcard */}
-      <AyahCard
-        key={`${selectedSurah}-${currentAyah}`}
-        surah={selectedSurah}
-        ayah={currentAyah}
-        totalAyahs={totalAyahs}
-        isMastered={isMastered}
-        isRtl={isRtl}
-        onMaster={masterCurrent}
-        onUnmaster={unmasterCurrent}
-      />
-
-      {/* Navigation */}
-      <div className={clsx('flex items-center justify-between mt-4', isRtl && 'flex-row-reverse')}>
-        <button
-          onClick={prev}
-          disabled={currentAyah <= 1}
-          className={clsx(
-            'flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors',
-            currentAyah <= 1
-              ? 'text-gray-300 cursor-not-allowed'
-              : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
-          )}
-        >
-          <ChevronLeft className={clsx('w-4 h-4', isRtl && 'rotate-180')} />
-          {isRtl ? 'السابق' : 'Prev'}
-        </button>
-
-        {/* Ayah dots (show up to 20) */}
-        <div className="flex gap-1 flex-wrap justify-center max-w-[200px]">
-          {Array.from({ length: Math.min(totalAyahs, 20) }, (_, i) => {
-            const ayahNum = i + 1;
-            const km = store.mastered.includes(makeKey(selectedSurah, ayahNum));
-            return (
-              <button
-                key={ayahNum}
-                onClick={() => setCurrentAyah(ayahNum)}
-                title={`Ayah ${ayahNum}`}
-                className={clsx(
-                  'w-2.5 h-2.5 rounded-full transition-colors',
-                  ayahNum === currentAyah
-                    ? 'bg-violet-600 ring-2 ring-violet-200'
-                    : km ? 'bg-emerald-400' : 'bg-gray-200 hover:bg-gray-300'
+          {isLoading ? (
+            <div className="h-32 animate-pulse bg-gray-100 rounded-xl" />
+          ) : isError ? (
+            <div className="text-center text-sm text-amber-700">
+              {ar ? 'تعذّر تحميل الآية.' : 'Could not load the verse.'}{' '}
+              <button onClick={() => refetch()} className="underline">{ar ? 'إعادة المحاولة' : 'Retry'}</button>
+            </div>
+          ) : (
+            <>
+              {/* Cue */}
+              <div className="rounded-xl bg-gray-50 p-4" dir="rtl">
+                <p className={clsx('text-xs text-gray-500 mb-2', ar ? 'font-arabic' : 'text-left')} dir={ar ? 'rtl' : 'ltr'}>
+                  {cue
+                    ? (ar ? 'ما الآية التي تلي:' : 'What comes after:')
+                    : (ar ? `أول آية في سورة ${SURAH_NAMES[current.surah - 1]?.ar}` : `The first verse of ${SURAH_NAMES[current.surah - 1]?.en}`)}
+                </p>
+                {cue && (
+                  <p className={clsx('text-xl leading-loose text-gray-800', quranFont)}>
+                    {verseTextFor(cue, script).replace(/^\uFEFF/, '')}
+                  </p>
                 )}
-              />
-            );
-          })}
-          {totalAyahs > 20 && (
-            <span className="text-[10px] text-gray-400 self-center">+{totalAyahs - 20}</span>
+              </div>
+
+              {/* Answer */}
+              {!revealed ? (
+                <button
+                  onClick={() => setRevealed(true)}
+                  className={clsx('mx-auto flex items-center gap-2 px-6 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700', ar && 'font-arabic')}
+                >
+                  <Eye className="w-4 h-4" />
+                  {ar ? 'أظهر الآية' : 'Show the verse'}
+                </button>
+              ) : target ? (
+                <div className="rounded-xl border-2 border-emerald-200 p-4" dir="rtl">
+                  <p className={clsx('text-2xl leading-loose text-gray-900', quranFont)}>
+                    {verseTextFor(target, script).replace(/^\uFEFF/, '')}
+                  </p>
+                  <Link
+                    to={`/quran/${current.surah}?aya=${current.ayah}`}
+                    className={clsx('mt-2 inline-flex items-center gap-1 text-xs text-primary-600 hover:underline', ar && 'font-arabic')}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    {ar ? 'افتح في القارئ' : 'Open in the reader'}
+                  </Link>
+                </div>
+              ) : null}
+
+              {revealed && intervals && (
+                <div className="grid grid-cols-4 gap-2" role="group" aria-label={ar ? 'قيّم تذكرك' : 'Rate your recall'}>
+                  {grades.map(({ g, ar: lAr, en, cls }) => (
+                    <button
+                      key={g}
+                      onClick={() => grade(g)}
+                      className={clsx('rounded-xl border px-2 py-2 text-sm font-semibold', cls, ar && 'font-arabic')}
+                    >
+                      {ar ? lAr : en}
+                      <span className="block text-[11px] font-normal opacity-75">{formatInterval(intervals[g], ar)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
+      )}
 
-        <button
-          onClick={next}
-          disabled={currentAyah >= totalAyahs}
-          className={clsx(
-            'flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors',
-            currentAyah >= totalAyahs
-              ? 'text-gray-300 cursor-not-allowed'
-              : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
-          )}
-        >
-          {isRtl ? 'التالي' : 'Next'}
-          <ChevronRight className={clsx('w-4 h-4', isRtl && 'rotate-180')} />
-        </button>
-      </div>
+      <QuranTextAttribution language={language} className="mt-4 text-center" />
 
-      {/* All-surahs summary */}
-      <div className="mt-8 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-        <p className={clsx('text-xs font-bold text-gray-700 mb-2', isRtl && 'font-arabic text-right')}>
-          {isRtl ? 'التقدم الكلي' : 'Overall Progress'}
-        </p>
-        <p className={clsx('text-sm text-gray-500', isRtl && 'font-arabic text-right')}>
-          {isRtl
-            ? `${store.mastered.length} آية محفوظة من القرآن الكريم`
-            : `${store.mastered.length} ayahs marked mastered across the Quran`}
-        </p>
-        {store.mastered.length > 0 && (
+      {Object.keys(deck).length > 0 && (
+        <div className="mt-8 p-4 bg-gray-50 rounded-2xl border border-gray-100 text-sm text-gray-600">
+          <p className={clsx(ar && 'font-arabic')}>
+            {ar
+              ? `${toArabicNum(Object.keys(deck).length)} آية في جدول المراجعة`
+              : `${Object.keys(deck).length} verses in your review schedule`}
+          </p>
           <button
             onClick={() => {
-              if (confirm(isRtl ? 'إعادة تعيين كل التقدم؟' : 'Reset all progress?')) {
-                updateStore({ mastered: [] });
+              if (confirm(ar ? 'حذف كل جدول المراجعة؟' : 'Delete your whole review schedule?')) {
+                saveDeck({});
+                setDeck({});
+                setQueue(buildQueue({}, mode, surah));
               }
             }}
-            className={clsx('mt-2 text-xs text-red-400 hover:text-red-600', isRtl && 'font-arabic')}
+            className={clsx('mt-2 inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700', ar && 'font-arabic')}
           >
-            {isRtl ? 'إعادة تعيين الكل' : 'Reset all'}
+            <RotateCcw className="w-3.5 h-3.5" />
+            {ar ? 'إعادة التعيين' : 'Reset'}
           </button>
-        )}
-      </div>
-
-      <p className={clsx('text-[10px] text-gray-300 text-center mt-6', isRtl && 'font-arabic')}>
-        {isRtl
-          ? 'لا يُخزَّن نص القرآن هنا — اضغط "افتح في المصحف" لعرض الآية'
-          : 'Quran text is not stored here — tap "Open in Mushaf" to view the verse'}
-      </p>
+        </div>
+      )}
     </div>
   );
 }

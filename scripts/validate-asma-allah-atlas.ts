@@ -202,7 +202,7 @@ function main(): void {
     // atlas reviewStatus as authoritative; any verified record must also have
     // sourceIds beyond the canonical Quran text — we keep this rule lenient
     // for the auto-build but reject auto-emitted "verified" rows).
-    if (n.reviewStatus === 'verified' && n.sourceIds.every((s) => s === 'quran_uthmani_cloud')) {
+    if (n.reviewStatus === 'verified' && n.sourceIds.every((s) => s === 'tanzil_quran_uthmani')) {
       errors.push(`${n.nameId}: reviewStatus=verified must have a non-Quran source attached`);
     }
     // Counted = occurrenceCount

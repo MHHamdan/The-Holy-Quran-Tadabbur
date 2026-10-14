@@ -3,7 +3,7 @@
  * Surah-by-surah Story Connection Scanner.
  *
  * Reads:
- *   - data/raw/quran_uthmani.json (canonical Quran text; never written)
+ *   - data/raw/quran_tanzil.json (canonical Quran text; never written)
  *   - frontend/src/data/quranStoryEntitySeeds.ts (candidate dictionary)
  *   - frontend/src/data/quranStories.ts (existing curated stories)
  *
@@ -41,7 +41,7 @@ import {
 } from '../frontend/src/types/quranStoryConnection';
 
 const ROOT = resolve(__dirname, '..');
-const QURAN_PATH = join(ROOT, 'data/raw/quran_uthmani.json');
+const QURAN_PATH = join(ROOT, 'data/raw/quran_tanzil.json');
 const OUT_JSON = join(ROOT, 'frontend/src/data/generated/quranStoryConnections.json');
 const OUT_MD = join(ROOT, 'docs/generated/quran-story-connections-summary.md');
 
@@ -84,7 +84,7 @@ function loadQuran(): RawAyah[] {
   if (!existsSync(QURAN_PATH)) {
     throw new Error(`Quran file not found: ${QURAN_PATH}`);
   }
-  return JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as RawAyah[];
+  return (JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as { verses: RawAyah[] }).verses;
 }
 
 // ---------------------------------------------------------------------------

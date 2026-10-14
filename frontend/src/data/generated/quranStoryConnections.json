@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-05-16T23:50:07.713Z",
+  "generatedAt": "2026-10-14T04:32:08.005Z",
   "scannedSurahs": 114,
   "totalEntitiesDetected": 1053,
   "entityTypeCounts": {
@@ -16,7 +16,7 @@
   "surahs": [
     {
       "surahNumber": 1,
-      "surahNameArabic": "سُورَةُ ٱلْفَاتِحَةِ",
+      "surahNameArabic": "سورة الفاتحة",
       "surahNameEnglish": "Al-Faatiha",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -25,7 +25,7 @@
     },
     {
       "surahNumber": 2,
-      "surahNameArabic": "سُورَةُ البَقَرَةِ",
+      "surahNameArabic": "سورة البقرة",
       "surahNameEnglish": "Al-Baqara",
       "detectedEntityIds": [
         "entity_event_fire_ibrahim",
@@ -348,13 +348,14 @@
         "story_talut_jalut",
         "story_baqarah_cow",
         "story_sabbath_breakers",
-        "story_ismail"
+        "story_ismail",
+        "story_yaqub"
       ],
       "warnings": []
     },
     {
       "surahNumber": 3,
-      "surahNameArabic": "سُورَةُ آلِ عِمۡرَانَ",
+      "surahNameArabic": "سورة آل عمران",
       "surahNameEnglish": "Aal-i-Imraan",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -582,7 +583,7 @@
     },
     {
       "surahNumber": 4,
-      "surahNameArabic": "سُورَةُ النِّسَاءِ",
+      "surahNameArabic": "سورة النساء",
       "surahNameEnglish": "An-Nisaa",
       "detectedEntityIds": [
         "entity_event_fire_ibrahim",
@@ -798,7 +799,7 @@
     },
     {
       "surahNumber": 5,
-      "surahNameArabic": "سُورَةُ المَائـِدَةِ",
+      "surahNameArabic": "سورة المائدة",
       "surahNameEnglish": "Al-Maaida",
       "detectedEntityIds": [
         "entity_prophet_isa",
@@ -1003,7 +1004,7 @@
     },
     {
       "surahNumber": 6,
-      "surahNameArabic": "سُورَةُ الأَنۡعَامِ",
+      "surahNameArabic": "سورة الأنعام",
       "surahNameEnglish": "Al-An'aam",
       "detectedEntityIds": [
         "entity_animal_snake_staff",
@@ -1152,7 +1153,7 @@
     },
     {
       "surahNumber": 7,
-      "surahNameArabic": "سُورَةُ الأَعۡرَافِ",
+      "surahNameArabic": "سورة الأعراف",
       "surahNameEnglish": "Al-A'raaf",
       "detectedEntityIds": [
         "entity_person_iblis",
@@ -1440,7 +1441,7 @@
     },
     {
       "surahNumber": 8,
-      "surahNameArabic": "سُورَةُ الأَنفَالِ",
+      "surahNameArabic": "سورة الأنفال",
       "surahNameEnglish": "Al-Anfaal",
       "detectedEntityIds": [
         "entity_prophet_muhammad",
@@ -1508,7 +1509,7 @@
     },
     {
       "surahNumber": 9,
-      "surahNameArabic": "سُورَةُ التَّوۡبَةِ",
+      "surahNameArabic": "سورة التوبة",
       "surahNameEnglish": "At-Tawba",
       "detectedEntityIds": [
         "entity_prophet_muhammad",
@@ -1631,7 +1632,7 @@
     },
     {
       "surahNumber": 10,
-      "surahNameArabic": "سُورَةُ يُونُسَ",
+      "surahNameArabic": "سورة يونس",
       "surahNameEnglish": "Yunus",
       "detectedEntityIds": [
         "entity_object_ark",
@@ -1710,7 +1711,7 @@
     },
     {
       "surahNumber": 11,
-      "surahNameArabic": "سُورَةُ هُودٍ",
+      "surahNameArabic": "سورة هود",
       "surahNameEnglish": "Hud",
       "detectedEntityIds": [
         "entity_prophet_musa",
@@ -1883,13 +1884,14 @@
         "story_ibrahim",
         "story_lut",
         "story_nuh",
-        "story_shuayb"
+        "story_shuayb",
+        "story_ishaq"
       ],
       "warnings": []
     },
     {
       "surahNumber": 12,
-      "surahNameArabic": "سُورَةُ يُوسُفَ",
+      "surahNameArabic": "سورة يوسف",
       "surahNameEnglish": "Yusuf",
       "detectedEntityIds": [
         "entity_prophet_yusuf",
@@ -2104,13 +2106,14 @@
         }
       ],
       "mappedStoryIds": [
-        "story_yusuf"
+        "story_yusuf",
+        "story_yaqub"
       ],
       "warnings": []
     },
     {
       "surahNumber": 13,
-      "surahNameArabic": "سُورَةُ الرَّعۡدِ",
+      "surahNameArabic": "سورة الرعد",
       "surahNameEnglish": "Ar-Ra'd",
       "detectedEntityIds": [
         "entity_people_aad"
@@ -2135,7 +2138,7 @@
     },
     {
       "surahNumber": 14,
-      "surahNameArabic": "سُورَةُ إِبۡرَاهِيمَ",
+      "surahNameArabic": "سورة ابراهيم",
       "surahNameEnglish": "Ibrahim",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -2206,7 +2209,7 @@
     },
     {
       "surahNumber": 15,
-      "surahNameArabic": "سُورَةُ الحِجۡرِ",
+      "surahNameArabic": "سورة الحجر",
       "surahNameEnglish": "Al-Hijr",
       "detectedEntityIds": [
         "entity_animal_snake_staff",
@@ -2290,7 +2293,7 @@
     },
     {
       "surahNumber": 16,
-      "surahNameArabic": "سُورَةُ النَّحۡلِ",
+      "surahNameArabic": "سورة النحل",
       "surahNameEnglish": "An-Nahl",
       "detectedEntityIds": [
         "entity_object_ark",
@@ -2387,7 +2390,7 @@
     },
     {
       "surahNumber": 17,
-      "surahNameArabic": "سُورَةُ الإِسۡرَاءِ",
+      "surahNameArabic": "سورة الإسراء",
       "surahNameEnglish": "Al-Israa",
       "detectedEntityIds": [
         "entity_prophet_musa",
@@ -2457,7 +2460,8 @@
           "reviewStatus": "needs_review",
           "warnings": [
             "Auto-clustered from adjacent entity hits; requires review."
-          ]
+          ],
+          "linkedStoryId": "story_miraj"
         },
         {
           "candidateId": "17:66",
@@ -2526,12 +2530,14 @@
           ]
         }
       ],
-      "mappedStoryIds": [],
+      "mappedStoryIds": [
+        "story_miraj"
+      ],
       "warnings": []
     },
     {
       "surahNumber": 18,
-      "surahNameArabic": "سُورَةُ الكَهۡفِ",
+      "surahNameArabic": "سورة الكهف",
       "surahNameEnglish": "Al-Kahf",
       "detectedEntityIds": [
         "entity_people_ashab_kahf",
@@ -2697,7 +2703,7 @@
     },
     {
       "surahNumber": 19,
-      "surahNameArabic": "سُورَةُ مَرۡيَمَ",
+      "surahNameArabic": "سورة مريم",
       "surahNameEnglish": "Maryam",
       "detectedEntityIds": [
         "entity_prophet_zakariyya",
@@ -2877,7 +2883,7 @@
     },
     {
       "surahNumber": 20,
-      "surahNameArabic": "سُورَةُ طه",
+      "surahNameArabic": "سورة طه",
       "surahNameEnglish": "Taa-Haa",
       "detectedEntityIds": [
         "entity_prophet_musa",
@@ -3024,7 +3030,8 @@
           "reviewStatus": "needs_review",
           "warnings": [
             "Auto-clustered from adjacent entity hits; requires review."
-          ]
+          ],
+          "linkedStoryId": "story_harun"
         },
         {
           "candidateId": "20:96",
@@ -3037,7 +3044,8 @@
           "reviewStatus": "needs_review",
           "warnings": [
             "Auto-clustered from adjacent entity hits; requires review."
-          ]
+          ],
+          "linkedStoryId": "story_harun"
         },
         {
           "candidateId": "20:114",
@@ -3056,13 +3064,14 @@
         }
       ],
       "mappedStoryIds": [
-        "story_musa"
+        "story_musa",
+        "story_harun"
       ],
       "warnings": []
     },
     {
       "surahNumber": 21,
-      "surahNameArabic": "سُورَةُ الأَنبِيَاءِ",
+      "surahNameArabic": "سورة الأنبياء",
       "surahNameEnglish": "Al-Anbiyaa",
       "detectedEntityIds": [
         "entity_object_barrier",
@@ -3195,13 +3204,14 @@
         "story_ayyub",
         "story_ibrahim",
         "story_yunus",
-        "story_dawud"
+        "story_dawud",
+        "story_dhulkifl"
       ],
       "warnings": []
     },
     {
       "surahNumber": 22,
-      "surahNameArabic": "سُورَةُ الحَجِّ",
+      "surahNameArabic": "سورة الحج",
       "surahNameEnglish": "Al-Hajj",
       "detectedEntityIds": [
         "entity_prophet_ibrahim",
@@ -3300,7 +3310,7 @@
     },
     {
       "surahNumber": 23,
-      "surahNameArabic": "سُورَةُ المُؤۡمِنُونَ",
+      "surahNameArabic": "سورة المؤمنون",
       "surahNameEnglish": "Al-Muminoon",
       "detectedEntityIds": [
         "entity_place_sinai",
@@ -3362,7 +3372,7 @@
     },
     {
       "surahNumber": 24,
-      "surahNameArabic": "سُورَةُ النُّورِ",
+      "surahNameArabic": "سورة النور",
       "surahNameEnglish": "An-Noor",
       "detectedEntityIds": [
         "entity_animal_birds_ibrahim",
@@ -3429,7 +3439,7 @@
     },
     {
       "surahNumber": 25,
-      "surahNameArabic": "سُورَةُ الفُرۡقَانِ",
+      "surahNameArabic": "سورة الفرقان",
       "surahNameEnglish": "Al-Furqaan",
       "detectedEntityIds": [
         "entity_prophet_muhammad",
@@ -3521,7 +3531,7 @@
     },
     {
       "surahNumber": 26,
-      "surahNameArabic": "سُورَةُ الشُّعَرَاءِ",
+      "surahNameArabic": "سورة الشعراء",
       "surahNameEnglish": "Ash-Shu'araa",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -3785,7 +3795,7 @@
     },
     {
       "surahNumber": 27,
-      "surahNameArabic": "سُورَةُ النَّمۡلِ",
+      "surahNameArabic": "سورة النمل",
       "surahNameEnglish": "An-Naml",
       "detectedEntityIds": [
         "entity_prophet_musa",
@@ -3890,13 +3900,14 @@
         }
       ],
       "mappedStoryIds": [
-        "story_bilqis"
+        "story_bilqis",
+        "story_sulayman"
       ],
       "warnings": []
     },
     {
       "surahNumber": 28,
-      "surahNameArabic": "سُورَةُ القَصَصِ",
+      "surahNameArabic": "سورة القصص",
       "surahNameEnglish": "Al-Qasas",
       "detectedEntityIds": [
         "entity_person_firawn",
@@ -4027,7 +4038,7 @@
     },
     {
       "surahNumber": 29,
-      "surahNameArabic": "سُورَةُ العَنكَبُوتِ",
+      "surahNameArabic": "سورة العنكبوت",
       "surahNameEnglish": "Al-Ankaboot",
       "detectedEntityIds": [
         "entity_event_flood",
@@ -4112,7 +4123,7 @@
     },
     {
       "surahNumber": 30,
-      "surahNameArabic": "سُورَةُ الرُّومِ",
+      "surahNameArabic": "سورة الروم",
       "surahNameEnglish": "Ar-Room",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -4164,7 +4175,7 @@
     },
     {
       "surahNumber": 31,
-      "surahNameArabic": "سُورَةُ لُقۡمَانَ",
+      "surahNameArabic": "سورة لقمان",
       "surahNameEnglish": "Luqman",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -4208,7 +4219,7 @@
     },
     {
       "surahNumber": 32,
-      "surahNameArabic": "سُورَةُ السَّجۡدَةِ",
+      "surahNameArabic": "سورة السجدة",
       "surahNameEnglish": "As-Sajda",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -4261,7 +4272,7 @@
     },
     {
       "surahNumber": 33,
-      "surahNameArabic": "سُورَةُ الأَحۡزَابِ",
+      "surahNameArabic": "سورة الأحزاب",
       "surahNameEnglish": "Al-Ahzaab",
       "detectedEntityIds": [
         "entity_person_hawwa",
@@ -4365,7 +4376,7 @@
     },
     {
       "surahNumber": 34,
-      "surahNameArabic": "سُورَةُ سَبَإٍ",
+      "surahNameArabic": "سورة سبإ",
       "surahNameEnglish": "Saba",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -4440,13 +4451,14 @@
         }
       ],
       "mappedStoryIds": [
-        "story_dawud"
+        "story_dawud",
+        "story_sulayman"
       ],
       "warnings": []
     },
     {
       "surahNumber": 35,
-      "surahNameArabic": "سُورَةُ فَاطِرٍ",
+      "surahNameArabic": "سورة فاطر",
       "surahNameEnglish": "Faatir",
       "detectedEntityIds": [
         "entity_person_zayd",
@@ -4500,7 +4512,7 @@
     },
     {
       "surahNumber": 36,
-      "surahNameArabic": "سُورَةُ يسٓ",
+      "surahNameArabic": "سورة يس",
       "surahNameEnglish": "Yaseen",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -4601,7 +4613,7 @@
     },
     {
       "surahNumber": 37,
-      "surahNameArabic": "سُورَةُ الصَّافَّاتِ",
+      "surahNameArabic": "سورة الصافات",
       "surahNameEnglish": "As-Saaffaat",
       "detectedEntityIds": [
         "entity_prophet_nuh",
@@ -4682,7 +4694,8 @@
           "reviewStatus": "needs_review",
           "warnings": [
             "Auto-clustered from adjacent entity hits; requires review."
-          ]
+          ],
+          "linkedStoryId": "story_harun"
         },
         {
           "candidateId": "37:120",
@@ -4695,7 +4708,8 @@
           "reviewStatus": "needs_review",
           "warnings": [
             "Auto-clustered from adjacent entity hits; requires review."
-          ]
+          ],
+          "linkedStoryId": "story_harun"
         },
         {
           "candidateId": "37:133",
@@ -4743,13 +4757,16 @@
       ],
       "mappedStoryIds": [
         "story_yunus",
-        "story_ismail"
+        "story_ismail",
+        "story_ilyas",
+        "story_harun",
+        "story_ishaq"
       ],
       "warnings": []
     },
     {
       "surahNumber": 38,
-      "surahNameArabic": "سُورَةُ صٓ",
+      "surahNameArabic": "سورة ص",
       "surahNameEnglish": "Saad",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -4820,7 +4837,8 @@
           "reviewStatus": "needs_review",
           "warnings": [
             "Auto-clustered from adjacent entity hits; requires review."
-          ]
+          ],
+          "linkedStoryId": "story_sulayman"
         },
         {
           "candidateId": "38:34",
@@ -4834,7 +4852,8 @@
           "reviewStatus": "needs_review",
           "warnings": [
             "Auto-clustered from adjacent entity hits; requires review."
-          ]
+          ],
+          "linkedStoryId": "story_sulayman"
         },
         {
           "candidateId": "38:41",
@@ -4865,7 +4884,8 @@
           "reviewStatus": "needs_review",
           "warnings": [
             "Auto-clustered from adjacent entity hits; requires review."
-          ]
+          ],
+          "linkedStoryId": "story_alyasa"
         },
         {
           "candidateId": "38:66",
@@ -4898,13 +4918,15 @@
       "mappedStoryIds": [
         "story_adam",
         "story_ayyub",
-        "story_dawud"
+        "story_dawud",
+        "story_sulayman",
+        "story_alyasa"
       ],
       "warnings": []
     },
     {
       "surahNumber": 39,
-      "surahNameArabic": "سُورَةُ الزُّمَرِ",
+      "surahNameArabic": "سورة الزمر",
       "surahNameEnglish": "Az-Zumar",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -4956,8 +4978,8 @@
     },
     {
       "surahNumber": 40,
-      "surahNameArabic": "سُورَةُ غَافِرٍ",
-      "surahNameEnglish": "Ghafir",
+      "surahNameArabic": "سورة غافر",
+      "surahNameEnglish": "Al-Ghaafir",
       "detectedEntityIds": [
         "entity_person_aziz",
         "entity_people_qawm_nuh",
@@ -5053,7 +5075,7 @@
     },
     {
       "surahNumber": 41,
-      "surahNameArabic": "سُورَةُ فُصِّلَتۡ",
+      "surahNameArabic": "سورة فصلت",
       "surahNameEnglish": "Fussilat",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -5096,7 +5118,7 @@
     },
     {
       "surahNumber": 42,
-      "surahNameArabic": "سُورَةُ الشُّورَىٰ",
+      "surahNameArabic": "سورة الشورى",
       "surahNameEnglish": "Ash-Shura",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -5168,7 +5190,7 @@
     },
     {
       "surahNumber": 43,
-      "surahNameArabic": "سُورَةُ الزُّخۡرُفِ",
+      "surahNameArabic": "سورة الزخرف",
       "surahNameEnglish": "Az-Zukhruf",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -5269,7 +5291,7 @@
     },
     {
       "surahNumber": 44,
-      "surahNameArabic": "سُورَةُ الدُّخَانِ",
+      "surahNameArabic": "سورة الدخان",
       "surahNameEnglish": "Ad-Dukhaan",
       "detectedEntityIds": [
         "entity_person_firawn",
@@ -5348,7 +5370,7 @@
     },
     {
       "surahNumber": 45,
-      "surahNameArabic": "سُورَةُ الجَاثِيَةِ",
+      "surahNameArabic": "سورة الجاثية",
       "surahNameEnglish": "Al-Jaathiya",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -5400,7 +5422,7 @@
     },
     {
       "surahNumber": 46,
-      "surahNameArabic": "سُورَةُ الأَحۡقَافِ",
+      "surahNameArabic": "سورة الأحقاف",
       "surahNameEnglish": "Al-Ahqaf",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -5471,7 +5493,7 @@
     },
     {
       "surahNumber": 47,
-      "surahNameArabic": "سُورَةُ مُحَمَّدٍ",
+      "surahNameArabic": "سورة محمد",
       "surahNameEnglish": "Muhammad",
       "detectedEntityIds": [
         "entity_prophet_muhammad"
@@ -5509,7 +5531,7 @@
     },
     {
       "surahNumber": 48,
-      "surahNameArabic": "سُورَةُ الفَتۡحِ",
+      "surahNameArabic": "سورة الفتح",
       "surahNameEnglish": "Al-Fath",
       "detectedEntityIds": [
         "entity_prophet_muhammad",
@@ -5561,7 +5583,7 @@
     },
     {
       "surahNumber": 49,
-      "surahNameArabic": "سُورَةُ الحُجُرَاتِ",
+      "surahNameArabic": "سورة الحجرات",
       "surahNameEnglish": "Al-Hujuraat",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -5570,7 +5592,7 @@
     },
     {
       "surahNumber": 50,
-      "surahNameArabic": "سُورَةُ قٓ",
+      "surahNameArabic": "سورة ق",
       "surahNameEnglish": "Qaaf",
       "detectedEntityIds": [
         "entity_people_qawm_nuh",
@@ -5636,7 +5658,7 @@
     },
     {
       "surahNumber": 51,
-      "surahNameArabic": "سُورَةُ الذَّارِيَاتِ",
+      "surahNameArabic": "سورة الذاريات",
       "surahNameEnglish": "Adh-Dhaariyat",
       "detectedEntityIds": [
         "entity_prophet_ibrahim",
@@ -5685,7 +5707,7 @@
     },
     {
       "surahNumber": 52,
-      "surahNameArabic": "سُورَةُ الطُّورِ",
+      "surahNameArabic": "سورة الطور",
       "surahNameEnglish": "At-Tur",
       "detectedEntityIds": [
         "entity_place_sinai"
@@ -5710,7 +5732,7 @@
     },
     {
       "surahNumber": 53,
-      "surahNameArabic": "سُورَةُ النَّجۡمِ",
+      "surahNameArabic": "سورة النجم",
       "surahNameEnglish": "An-Najm",
       "detectedEntityIds": [
         "entity_prophet_musa",
@@ -5754,12 +5776,14 @@
           ]
         }
       ],
-      "mappedStoryIds": [],
+      "mappedStoryIds": [
+        "story_miraj"
+      ],
       "warnings": []
     },
     {
       "surahNumber": 54,
-      "surahNameArabic": "سُورَةُ القَمَرِ",
+      "surahNameArabic": "سورة القمر",
       "surahNameEnglish": "Al-Qamar",
       "detectedEntityIds": [
         "entity_people_qawm_nuh",
@@ -5864,7 +5888,7 @@
     },
     {
       "surahNumber": 55,
-      "surahNameArabic": "سُورَةُ الرَّحۡمَٰن",
+      "surahNameArabic": "سورة الرحمن",
       "surahNameEnglish": "Ar-Rahmaan",
       "detectedEntityIds": [
         "entity_animal_snake_staff",
@@ -5929,7 +5953,7 @@
     },
     {
       "surahNumber": 56,
-      "surahNameArabic": "سُورَةُ الوَاقِعَةِ",
+      "surahNameArabic": "سورة الواقعة",
       "surahNameEnglish": "Al-Waaqia",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -5938,7 +5962,7 @@
     },
     {
       "surahNumber": 57,
-      "surahNameArabic": "سُورَةُ الحَدِيدِ",
+      "surahNameArabic": "سورة الحديد",
       "surahNameEnglish": "Al-Hadid",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -5997,7 +6021,7 @@
     },
     {
       "surahNumber": 58,
-      "surahNameArabic": "سُورَةُ المُجَادلَةِ",
+      "surahNameArabic": "سورة المجادلة",
       "surahNameEnglish": "Al-Mujaadila",
       "detectedEntityIds": [
         "entity_prophet_muhammad"
@@ -6022,7 +6046,7 @@
     },
     {
       "surahNumber": 59,
-      "surahNameArabic": "سُورَةُ الحَشۡرِ",
+      "surahNameArabic": "سورة الحشر",
       "surahNameEnglish": "Al-Hashr",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -6074,7 +6098,7 @@
     },
     {
       "surahNumber": 60,
-      "surahNameArabic": "سُورَةُ المُمۡتَحنَةِ",
+      "surahNameArabic": "سورة الممتحنة",
       "surahNameEnglish": "Al-Mumtahana",
       "detectedEntityIds": [
         "entity_prophet_muhammad",
@@ -6103,7 +6127,7 @@
     },
     {
       "surahNumber": 61,
-      "surahNameArabic": "سُورَةُ الصَّفِّ",
+      "surahNameArabic": "سورة الصف",
       "surahNameEnglish": "As-Saff",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -6162,7 +6186,7 @@
     },
     {
       "surahNumber": 62,
-      "surahNameArabic": "سُورَةُ الجُمُعَةِ",
+      "surahNameArabic": "سورة الجمعة",
       "surahNameEnglish": "Al-Jumu'a",
       "detectedEntityIds": [
         "entity_person_aziz"
@@ -6187,7 +6211,7 @@
     },
     {
       "surahNumber": 63,
-      "surahNameArabic": "سُورَةُ المُنَافِقُونَ",
+      "surahNameArabic": "سورة المنافقون",
       "surahNameEnglish": "Al-Munaafiqoon",
       "detectedEntityIds": [
         "entity_place_madinah"
@@ -6212,7 +6236,7 @@
     },
     {
       "surahNumber": 64,
-      "surahNameArabic": "سُورَةُ التَّغَابُنِ",
+      "surahNameArabic": "سورة التغابن",
       "surahNameEnglish": "At-Taghaabun",
       "detectedEntityIds": [
         "entity_prophet_muhammad",
@@ -6251,7 +6275,7 @@
     },
     {
       "surahNumber": 65,
-      "surahNameArabic": "سُورَةُ الطَّلَاقِ",
+      "surahNameArabic": "سورة الطلاق",
       "surahNameEnglish": "At-Talaaq",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6260,7 +6284,7 @@
     },
     {
       "surahNumber": 66,
-      "surahNameArabic": "سُورَةُ التَّحۡرِيمِ",
+      "surahNameArabic": "سورة التحريم",
       "surahNameEnglish": "At-Tahrim",
       "detectedEntityIds": [
         "entity_person_hawwa",
@@ -6309,7 +6333,7 @@
     },
     {
       "surahNumber": 67,
-      "surahNameArabic": "سُورَةُ المُلۡكِ",
+      "surahNameArabic": "سورة الملك",
       "surahNameEnglish": "Al-Mulk",
       "detectedEntityIds": [
         "entity_person_aziz",
@@ -6348,7 +6372,7 @@
     },
     {
       "surahNumber": 68,
-      "surahNameArabic": "سُورَةُ القَلَمِ",
+      "surahNameArabic": "سورة القلم",
       "surahNameEnglish": "Al-Qalam",
       "detectedEntityIds": [
         "entity_prophet_yunus",
@@ -6377,7 +6401,7 @@
     },
     {
       "surahNumber": 69,
-      "surahNameArabic": "سُورَةُ الحَاقَّةِ",
+      "surahNameArabic": "سورة الحاقة",
       "surahNameEnglish": "Al-Haaqqa",
       "detectedEntityIds": [
         "entity_people_thamud",
@@ -6406,7 +6430,7 @@
     },
     {
       "surahNumber": 70,
-      "surahNameArabic": "سُورَةُ المَعَارِجِ",
+      "surahNameArabic": "سورة المعارج",
       "surahNameEnglish": "Al-Ma'aarij",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6415,7 +6439,7 @@
     },
     {
       "surahNumber": 71,
-      "surahNameArabic": "سُورَةُ نُوحٍ",
+      "surahNameArabic": "سورة نوح",
       "surahNameEnglish": "Nooh",
       "detectedEntityIds": [
         "entity_prophet_nuh",
@@ -6471,7 +6495,7 @@
     },
     {
       "surahNumber": 72,
-      "surahNameArabic": "سُورَةُ الجِنِّ",
+      "surahNameArabic": "سورة الجن",
       "surahNameEnglish": "Al-Jinn",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6480,7 +6504,7 @@
     },
     {
       "surahNumber": 73,
-      "surahNameArabic": "سُورَةُ المُزَّمِّلِ",
+      "surahNameArabic": "سورة المزمل",
       "surahNameEnglish": "Al-Muzzammil",
       "detectedEntityIds": [
         "entity_person_firawn",
@@ -6507,7 +6531,7 @@
     },
     {
       "surahNumber": 74,
-      "surahNameArabic": "سُورَةُ المُدَّثِّرِ",
+      "surahNameArabic": "سورة المدثر",
       "surahNameEnglish": "Al-Muddaththir",
       "detectedEntityIds": [
         "entity_prophet_hud",
@@ -6534,7 +6558,7 @@
     },
     {
       "surahNumber": 75,
-      "surahNameArabic": "سُورَةُ القِيَامَةِ",
+      "surahNameArabic": "سورة القيامة",
       "surahNameEnglish": "Al-Qiyaama",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6543,7 +6567,7 @@
     },
     {
       "surahNumber": 76,
-      "surahNameArabic": "سُورَةُ الإِنسَانِ",
+      "surahNameArabic": "سورة الانسان",
       "surahNameEnglish": "Al-Insaan",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6552,7 +6576,7 @@
     },
     {
       "surahNumber": 77,
-      "surahNameArabic": "سُورَةُ المُرۡسَلَاتِ",
+      "surahNameArabic": "سورة المرسلات",
       "surahNameEnglish": "Al-Mursalaat",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6561,7 +6585,7 @@
     },
     {
       "surahNumber": 78,
-      "surahNameArabic": "سُورَةُ النَّبَإِ",
+      "surahNameArabic": "سورة النبإ",
       "surahNameEnglish": "An-Naba",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6570,7 +6594,7 @@
     },
     {
       "surahNumber": 79,
-      "surahNameArabic": "سُورَةُ النَّازِعَاتِ",
+      "surahNameArabic": "سورة النازعات",
       "surahNameEnglish": "An-Naazi'aat",
       "detectedEntityIds": [
         "entity_prophet_musa",
@@ -6597,7 +6621,7 @@
     },
     {
       "surahNumber": 80,
-      "surahNameArabic": "سُورَةُ عَبَسَ",
+      "surahNameArabic": "سورة عبس",
       "surahNameEnglish": "Abasa",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6606,7 +6630,7 @@
     },
     {
       "surahNumber": 81,
-      "surahNameArabic": "سُورَةُ التَّكۡوِيرِ",
+      "surahNameArabic": "سورة التكوير",
       "surahNameEnglish": "At-Takwir",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6615,7 +6639,7 @@
     },
     {
       "surahNumber": 82,
-      "surahNameArabic": "سُورَةُ الانفِطَارِ",
+      "surahNameArabic": "سورة الإنفطار",
       "surahNameEnglish": "Al-Infitaar",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6624,7 +6648,7 @@
     },
     {
       "surahNumber": 83,
-      "surahNameArabic": "سُورَةُ المُطَفِّفِينَ",
+      "surahNameArabic": "سورة المطففين",
       "surahNameEnglish": "Al-Mutaffifin",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6633,7 +6657,7 @@
     },
     {
       "surahNumber": 84,
-      "surahNameArabic": "سُورَةُ الانشِقَاقِ",
+      "surahNameArabic": "سورة الإنشقاق",
       "surahNameEnglish": "Al-Inshiqaaq",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6642,7 +6666,7 @@
     },
     {
       "surahNumber": 85,
-      "surahNameArabic": "سُورَةُ البُرُوجِ",
+      "surahNameArabic": "سورة البروج",
       "surahNameEnglish": "Al-Burooj",
       "detectedEntityIds": [
         "entity_prophet_hud",
@@ -6702,7 +6726,7 @@
     },
     {
       "surahNumber": 86,
-      "surahNameArabic": "سُورَةُ الطَّارِقِ",
+      "surahNameArabic": "سورة الطارق",
       "surahNameEnglish": "At-Taariq",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6711,7 +6735,7 @@
     },
     {
       "surahNumber": 87,
-      "surahNameArabic": "سُورَةُ الأَعۡلَىٰ",
+      "surahNameArabic": "سورة الأعلى",
       "surahNameEnglish": "Al-A'laa",
       "detectedEntityIds": [
         "entity_prophet_yahya",
@@ -6752,7 +6776,7 @@
     },
     {
       "surahNumber": 88,
-      "surahNameArabic": "سُورَةُ الغَاشِيَةِ",
+      "surahNameArabic": "سورة الغاشية",
       "surahNameEnglish": "Al-Ghaashiya",
       "detectedEntityIds": [
         "entity_event_fire_ibrahim"
@@ -6777,7 +6801,7 @@
     },
     {
       "surahNumber": 89,
-      "surahNameArabic": "سُورَةُ الفَجۡرِ",
+      "surahNameArabic": "سورة الفجر",
       "surahNameEnglish": "Al-Fajr",
       "detectedEntityIds": [
         "entity_people_aad",
@@ -6806,7 +6830,7 @@
     },
     {
       "surahNumber": 90,
-      "surahNameArabic": "سُورَةُ البَلَدِ",
+      "surahNameArabic": "سورة البلد",
       "surahNameEnglish": "Al-Balad",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6815,7 +6839,7 @@
     },
     {
       "surahNumber": 91,
-      "surahNameArabic": "سُورَةُ الشَّمۡسِ",
+      "surahNameArabic": "سورة الشمس",
       "surahNameEnglish": "Ash-Shams",
       "detectedEntityIds": [
         "entity_people_thamud",
@@ -6842,7 +6866,7 @@
     },
     {
       "surahNumber": 92,
-      "surahNameArabic": "سُورَةُ اللَّيۡلِ",
+      "surahNameArabic": "سورة الليل",
       "surahNameEnglish": "Al-Lail",
       "detectedEntityIds": [
         "entity_event_fire_ibrahim"
@@ -6867,7 +6891,7 @@
     },
     {
       "surahNumber": 93,
-      "surahNameArabic": "سُورَةُ الضُّحَىٰ",
+      "surahNameArabic": "سورة الضحى",
       "surahNameEnglish": "Ad-Dhuhaa",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6876,7 +6900,7 @@
     },
     {
       "surahNumber": 94,
-      "surahNameArabic": "سُورَةُ الشَّرۡحِ",
+      "surahNameArabic": "سورة الشرح",
       "surahNameEnglish": "Ash-Sharh",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6885,7 +6909,7 @@
     },
     {
       "surahNumber": 95,
-      "surahNameArabic": "سُورَةُ التِّينِ",
+      "surahNameArabic": "سورة التين",
       "surahNameEnglish": "At-Tin",
       "detectedEntityIds": [
         "entity_place_sinai",
@@ -6912,7 +6936,7 @@
     },
     {
       "surahNumber": 96,
-      "surahNameArabic": "سُورَةُ العَلَقِ",
+      "surahNameArabic": "سورة العلق",
       "surahNameEnglish": "Al-Alaq",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6921,7 +6945,7 @@
     },
     {
       "surahNumber": 97,
-      "surahNameArabic": "سُورَةُ القَدۡرِ",
+      "surahNameArabic": "سورة القدر",
       "surahNameEnglish": "Al-Qadr",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6930,7 +6954,7 @@
     },
     {
       "surahNumber": 98,
-      "surahNameArabic": "سُورَةُ البَيِّنَةِ",
+      "surahNameArabic": "سورة البينة",
       "surahNameEnglish": "Al-Bayyina",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6939,7 +6963,7 @@
     },
     {
       "surahNumber": 99,
-      "surahNameArabic": "سُورَةُ الزَّلۡزَلَةِ",
+      "surahNameArabic": "سورة الزلزلة",
       "surahNameEnglish": "Az-Zalzala",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6948,7 +6972,7 @@
     },
     {
       "surahNumber": 100,
-      "surahNameArabic": "سُورَةُ العَادِيَاتِ",
+      "surahNameArabic": "سورة العاديات",
       "surahNameEnglish": "Al-Aadiyaat",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6957,7 +6981,7 @@
     },
     {
       "surahNumber": 101,
-      "surahNameArabic": "سُورَةُ القَارِعَةِ",
+      "surahNameArabic": "سورة القارعة",
       "surahNameEnglish": "Al-Qaari'a",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6966,7 +6990,7 @@
     },
     {
       "surahNumber": 102,
-      "surahNameArabic": "سُورَةُ التَّكَاثُرِ",
+      "surahNameArabic": "سورة التكاثر",
       "surahNameEnglish": "At-Takaathur",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6975,7 +6999,7 @@
     },
     {
       "surahNumber": 103,
-      "surahNameArabic": "سُورَةُ العَصۡرِ",
+      "surahNameArabic": "سورة العصر",
       "surahNameEnglish": "Al-Asr",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6984,7 +7008,7 @@
     },
     {
       "surahNumber": 104,
-      "surahNameArabic": "سُورَةُ الهُمَزَةِ",
+      "surahNameArabic": "سورة الهمزة",
       "surahNameEnglish": "Al-Humaza",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -6993,7 +7017,7 @@
     },
     {
       "surahNumber": 105,
-      "surahNameArabic": "سُورَةُ الفِيلِ",
+      "surahNameArabic": "سورة الفيل",
       "surahNameEnglish": "Al-Fil",
       "detectedEntityIds": [
         "entity_animal_elephant"
@@ -7021,7 +7045,7 @@
     },
     {
       "surahNumber": 106,
-      "surahNameArabic": "سُورَةُ قُرَيۡشٍ",
+      "surahNameArabic": "سورة قريش",
       "surahNameEnglish": "Quraish",
       "detectedEntityIds": [
         "entity_people_quraysh"
@@ -7046,7 +7070,7 @@
     },
     {
       "surahNumber": 107,
-      "surahNameArabic": "سُورَةُ المَاعُونِ",
+      "surahNameArabic": "سورة الماعون",
       "surahNameEnglish": "Al-Maa'un",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -7055,7 +7079,7 @@
     },
     {
       "surahNumber": 108,
-      "surahNameArabic": "سُورَةُ الكَوۡثَرِ",
+      "surahNameArabic": "سورة الكوثر",
       "surahNameEnglish": "Al-Kawthar",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -7064,7 +7088,7 @@
     },
     {
       "surahNumber": 109,
-      "surahNameArabic": "سُورَةُ الكَافِرُونَ",
+      "surahNameArabic": "سورة الكافرون",
       "surahNameEnglish": "Al-Kaafiroon",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -7073,7 +7097,7 @@
     },
     {
       "surahNumber": 110,
-      "surahNameArabic": "سُورَةُ النَّصۡرِ",
+      "surahNameArabic": "سورة النصر",
       "surahNameEnglish": "An-Nasr",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -7082,7 +7106,7 @@
     },
     {
       "surahNumber": 111,
-      "surahNameArabic": "سُورَةُ المَسَدِ",
+      "surahNameArabic": "سورة المسد",
       "surahNameEnglish": "Al-Masad",
       "detectedEntityIds": [
         "entity_person_abu_lahab",
@@ -7109,7 +7133,7 @@
     },
     {
       "surahNumber": 112,
-      "surahNameArabic": "سُورَةُ الإِخۡلَاصِ",
+      "surahNameArabic": "سورة الإخلاص",
       "surahNameEnglish": "Al-Ikhlaas",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -7118,7 +7142,7 @@
     },
     {
       "surahNumber": 113,
-      "surahNameArabic": "سُورَةُ الفَلَقِ",
+      "surahNameArabic": "سورة الفلق",
       "surahNameEnglish": "Al-Falaq",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -7127,7 +7151,7 @@
     },
     {
       "surahNumber": 114,
-      "surahNameArabic": "سُورَةُ النَّاسِ",
+      "surahNameArabic": "سورة الناس",
       "surahNameEnglish": "An-Naas",
       "detectedEntityIds": [],
       "storyClusterCandidates": [],
@@ -16004,7 +16028,6 @@
     "17:2",
     "17:17",
     "17:55",
-    "17:59",
     "17:66",
     "17:70",
     "17:78",
@@ -16016,8 +16039,6 @@
     "20:49",
     "20:57",
     "20:65",
-    "20:74",
-    "20:96",
     "20:114",
     "21:8",
     "21:15",
@@ -16090,14 +16111,9 @@
     "37:75",
     "37:79",
     "37:83",
-    "37:109",
-    "37:120",
     "37:133",
     "37:158",
     "38:9",
-    "38:30",
-    "38:34",
-    "38:45",
     "38:66",
     "39:1",
     "39:5",

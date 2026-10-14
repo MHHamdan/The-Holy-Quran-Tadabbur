@@ -1,6 +1,6 @@
 # Quran Coreference — Scan Summary
 
-Generated at: 2026-05-17T03:57:32.324Z
+Generated at: 2026-10-14T04:32:06.728Z
 Scanner version: 1.0.0
 
 ## Totals

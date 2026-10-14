@@ -1,12 +1,12 @@
 # Quran Story Connection Scan — Summary
 
-Generated: 2026-05-16T23:50:07.713Z
+Generated: 2026-10-14T04:32:08.005Z
 
 - Scanned surahs: **114** / 114
 - Total entity detections: **1053**
 - Distinct entities detected: **80**
 - Cross-surah links: **55**
-- Unmapped cluster candidates: **282**
+- Unmapped cluster candidates: **274**
 
 ## Entity-type counts
 

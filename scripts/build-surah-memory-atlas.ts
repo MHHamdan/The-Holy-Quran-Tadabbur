@@ -2,15 +2,15 @@
  * Build Surah Memory Atlas
  *
  * Generates frontend/src/data/generated/surahMemoryAtlas.json
- * from data/raw/quran_uthmani.json (the only trusted Quran text source).
+ * from data/raw/quran_tanzil.json (the only trusted Quran text source).
  * Also loads data/manifests/stories.json to populate relatedStories per surah.
  *
  * Safety rules:
- * - All ayah text is loaded from quran_uthmani.json only — never hardcoded
+ * - All ayah text is loaded from quran_tanzil.json only — never hardcoded
  * - Makki/Madani is from curated scholarly metadata (Al-Suyuti) — marked needs_review
  * - English meanings are from curated scholarly metadata — marked needs_review
  * - Topics and memory clues are NOT generated — marked missing_metadata
- * - Page/juz data is from quran_uthmani.json — trusted
+ * - Page/juz data is from quran_tanzil.json — trusted
  * - Story IDs and names are from stories.json — factual manifest data
  *
  * Usage:
@@ -21,7 +21,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
 
 const ROOT = resolve(__dirname, '..');
-const QURAN_PATH = join(ROOT, 'data/raw/quran_uthmani.json');
+const QURAN_PATH = join(ROOT, 'data/raw/quran_tanzil.json');
 const STORIES_PATH = join(ROOT, 'data/manifests/stories.json');
 const OUTPUT_JSON = join(ROOT, 'frontend/src/data/generated/surahMemoryAtlas.json');
 const OUTPUT_MD = join(ROOT, 'docs/generated/surah-memory-atlas-summary.md');
@@ -206,7 +206,7 @@ function main() {
     process.exit(1);
   }
 
-  const raw = JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as QuranAyah[];
+  const raw = (JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as { verses: QuranAyah[] }).verses;
   console.log(`Loaded ${raw.length} ayahs from Quran data`);
 
   // Load stories manifest for surah->story/theme/figure relationships
@@ -361,7 +361,7 @@ function main() {
     version: '1.1.0',
     generatedAt: new Date().toISOString(),
     totalSurahs: surahs.length,
-    sourceNote: 'Ayah text from quran_uthmani.json (canonical). Makki/Madani and English meanings from curated scholarly metadata (needs_review). Story links from stories.json manifest. Topics/clues not yet available.',
+    sourceNote: 'Ayah text from quran_tanzil.json (canonical). Makki/Madani and English meanings from curated scholarly metadata (needs_review). Story links from stories.json manifest. Topics/clues not yet available.',
     storyNames,
     surahs,
   };
@@ -410,13 +410,13 @@ function main() {
     '',
     '| Field | Status |',
     '|---|---|',
-    '| Arabic name | ✓ verified (from quran_uthmani.json) |',
-    '| English transliteration | ✓ verified (from quran_uthmani.json) |',
+    '| Arabic name | ✓ verified (from quran_tanzil.json) |',
+    '| English transliteration | ✓ verified (from quran_tanzil.json) |',
     '| English meaning | needs_review (curated scholarly metadata) |',
-    '| Ayah count | ✓ verified (from quran_uthmani.json) |',
-    '| Page range | ✓ verified (from quran_uthmani.json) |',
-    '| Juz range | ✓ verified (from quran_uthmani.json) |',
-    '| Ayah previews (6 per surah) | ✓ verified (from quran_uthmani.json) |',
+    '| Ayah count | ✓ verified (from quran_tanzil.json) |',
+    '| Page range | ✓ verified (from quran_tanzil.json) |',
+    '| Juz range | ✓ verified (from quran_tanzil.json) |',
+    '| Ayah previews (6 per surah) | ✓ verified (from quran_tanzil.json) |',
     '| Makki/Madani | needs_review (curated from Al-Suyuti) |',
     '| Related stories | from stories.json manifest |',
     '| Main topics | missing — not yet available |',

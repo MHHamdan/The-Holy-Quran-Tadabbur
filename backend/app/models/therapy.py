@@ -50,7 +50,7 @@ class TherapySession(Base):
     session_id = Column(String(36), nullable=False, unique=True, index=True)
     emotion = Column(String(30), nullable=False, index=True)
     theme = Column(String(30), nullable=True)
-    user_message = Column(Text, nullable=False)
+    user_message = Column(Text, nullable=True)  # no longer stored (privacy); legacy column
     verses_shown = Column(Text, nullable=True)  # JSON-serialised list of "surah:ayah" refs
     reflection_logged = Column(Text, nullable=True)
     language = Column(String(5), nullable=False, default="en")

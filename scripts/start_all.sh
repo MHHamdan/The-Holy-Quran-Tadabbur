@@ -446,6 +446,12 @@ print(f'Normalized {len(rows)} verses')
     python backend/scripts/ingest/seed_mushaf_words.py >> "$LOG_DIR/migrations.log" 2>&1 \
         && printf '  %b✓%b  Mushaf word layout seeded\n' "$GREEN" "$NC" \
         || printf '  %b✗%b  seed_mushaf_words.py failed — check logs/migrations.log\n' "$RED" "$NC"
+
+    # 5. Translations of the meanings (22 QuranEnc editions, ~10s)
+    printf '  %b~%b  Seeding QuranEnc translations...\n' "$YELLOW" "$NC"
+    python backend/scripts/ingest/seed_translations_quranenc.py >> "$LOG_DIR/migrations.log" 2>&1 \
+        && printf '  %b✓%b  Translations seeded\n' "$GREEN" "$NC" \
+        || printf '  %b✗%b  seed_translations_quranenc.py failed — check logs/migrations.log\n' "$RED" "$NC"
 fi
 
 # ── 4. Application services ───────────────────────────────────────────────────

@@ -18,6 +18,10 @@ export interface LastRead {
   nameAr: string;
   nameEn: string;
   ts: number;
+  /** Last verse reached in that surah, when known. */
+  aya?: number;
+  /** Last Mushaf page open in the page reader, when known. */
+  page?: number;
 }
 
 export interface ReadingProgress {
@@ -145,6 +149,46 @@ export function recordSurahVisit(surah: number, nameAr: string, nameEn: string):
   }
 }
 
+/**
+ * Remember the exact place reached: the verse (Quran reader) and/or the page
+ * (Mushaf reader). Counts as reading for the streak, like a surah visit.
+ */
+export function recordReadingPosition(pos: {
+  surah: number;
+  aya: number;
+  nameAr: string;
+  nameEn: string;
+  page?: number;
+}): void {
+  try {
+    const current = load();
+    const { streak, longestStreak } = computeStreak(current.streak, current.longestStreak, current.lastReadDate);
+    save({
+      visited: new Set([...current.visited, pos.surah]),
+      lastRead: {
+        surah: pos.surah,
+        nameAr: pos.nameAr,
+        nameEn: pos.nameEn,
+        ts: Date.now(),
+        aya: pos.aya,
+        page: pos.page ?? current.lastRead?.page,
+      },
+      streak,
+      longestStreak,
+      lastReadDate: todayStr(),
+    });
+  } catch {
+    // storage unavailable: progress is best-effort
+  }
+}
+
 export function getReadingProgress(): ReadingProgress {
   return load();
+}
+
+/** Where "continue reading" should open: the last verse read, else Al-Fatiha. */
+export function continueReadingPath(): string {
+  const last = load().lastRead;
+  if (!last) return '/quran/1';
+  return last.aya && last.aya > 1 ? `/quran/${last.surah}?aya=${last.aya}` : `/quran/${last.surah}`;
 }

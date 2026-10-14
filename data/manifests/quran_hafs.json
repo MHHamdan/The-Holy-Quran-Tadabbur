@@ -1,20 +1,19 @@
 {
   "name": "Quran Text — Hafs 'an 'Asim (Uthmani Script)",
-  "version": "1.1.0",
-  "description": "Complete Quran text in Uthmani script, Hafs recitation variant, digitised from the Madinah Mushaf printed by the King Fahd Complex for the Printing of the Holy Quran",
+  "version": "2.0.0",
+  "description": "Complete Quran text in Uthmani script, Hafs 'an 'Asim, from the Tanzil Project's verified corpus (a faithful digital reproduction of the Madinah Mushaf).",
   "language": "ar",
   "script": "uthmani",
   "recitation": "hafs_an_asim",
   "license": "Creative Commons Attribution 3.0 (CC BY 3.0) — verbatim redistribution only",
   "license_url": "https://tanzil.net/docs/text_license",
-  "license_status": "partially_verified",
+  "license_status": "verified",
   "attribution_required": true,
   "modification_allowed": false,
-  "attribution_notice": "Quran text from the Tanzil project (https://tanzil.net). Licensed CC BY 3.0. Verbatim copies only — modification of the text is not permitted. Attribution and a link to tanzil.net must be preserved wherever this text is displayed or redistributed.",
-  "license_notes": "Corrected 2026-09-23. This manifest previously declared 'Public Domain' with a CC0 URL, which overstated the grant: the Tanzil corpus is CC BY 3.0 with an explicit no-modification clause, and the KFGQPC-derived local corpus (local_hafs_smart) carries no verified licence. The effective terms are the most restrictive of the constituent sources. See sources[].license below.",
-  "citation": "مجمع الملك فهد لطباعة المصحف الشريف — المدينة المنورة",
-  "citation_en": "King Fahd Complex for the Printing of the Holy Quran, Madinah al-Munawwarah",
-
+  "attribution_notice": "Qur'an text from the Tanzil Project (https://tanzil.net), CC BY 3.0. Verbatim copies only. Shown wherever the text is displayed, with a link to tanzil.net.",
+  "license_notes": "2026-10-14: the canonical text switched from the KFGQPC Hafs file (assets/hafs_smart_v8.json, byte-identical to data/raw/quran_uthmani.json) to Tanzil. KFGQPC's terms grant no redistribution ('may not be reproduced ... without the express written approval'); Tanzil's allow use 'in any website or application' with attribution and a link. A verse-by-verse comparison found the same letters in all 6,236 verses apart from encoding conventions (hamza-alef vs alef-madda; 'بعد ما'/'بعدما' at 2:181, 8:6, 13:37; two encodings of 'يا صاحبي' at 12:39, 12:41), enforced by backend/tests/test_quran_text_source.py. The KFGQPC files stay in the repository only as that cross-reference; they are not seeded, served or bundled.",
+  "citation": "مشروع تنزيل — https://tanzil.net",
+  "citation_en": "Tanzil Project — https://tanzil.net",
   "authority": {
     "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف",
     "name_en": "King Fahd Complex for the Printing of the Holy Quran",
@@ -22,26 +21,12 @@
     "url": "https://qurancomplex.gov.sa",
     "notes": "The Madinah Mushaf (مصحف المدينة النبوية) is the globally recognised reference edition for Hafs an Asim in Uthmani script. The digital text used here faithfully reproduces the rasm and diacritics of that edition via the Tanzil project's verified corpus."
   },
-
   "sources": [
-    {
-      "id": "local_hafs_smart",
-      "name": "Hafs Smart v8 — Uthmani (Local)",
-      "path": "../../assets/hafs_smart_v8.json",
-      "format": "json",
-      "encoding": "utf-8",
-      "description": "Local corpus verified against the King Fahd Madinah Mushaf. Uses Alef Wasla (ٱ) and full tashkeel (diacritics) matching the printed Mushaf exactly.",
-      "is_primary": true,
-      "verified_against": "King Fahd Complex Madinah Mushaf (1404 AH edition)",
-      "license": "Unverified",
-      "license_status": "unverified",
-      "license_notes": "Derived from King Fahd Complex (KFGQPC) digital output. KFGQPC publishes no machine-readable licence and its servers refuse automated retrieval, so the redistribution terms for this file could not be confirmed as of 2026-09-23. Treat as all-rights-reserved until written confirmation is obtained from KFGQPC. Blocks any public or commercial deployment that ships this file."
-    },
     {
       "id": "tanzil_quran_uthmani",
       "name": "Tanzil.net Uthmani Quran Text",
       "url": "https://tanzil.net",
-      "format": "text",
+      "format": "json",
       "encoding": "utf-8",
       "description": "Tanzil project digital corpus — a widely-used faithful digital reproduction of the Madinah Mushaf.",
       "license": "Creative Commons BY 3.0",
@@ -49,10 +34,32 @@
       "license_status": "verified",
       "attribution_required": true,
       "modification_allowed": false,
-      "notes": "Fallback/cross-reference source. Licence verified 2026-09-23 at https://tanzil.net/docs/text_license: verbatim copies may be copied and distributed, but changing the text is NOT allowed; the source must be indicated with a link to tanzil.net."
+      "notes": "Fallback/cross-reference source. Licence verified 2026-09-23 at https://tanzil.net/docs/text_license: verbatim copies may be copied and distributed, but changing the text is NOT allowed; the source must be indicated with a link to tanzil.net.",
+      "is_primary": true,
+      "path": "../raw/quran_tanzil.json",
+      "built_from": [
+        "../raw/tanzil/quran-uthmani.xml",
+        "../raw/tanzil/quran-simple.xml",
+        "../raw/tanzil/quran-data.js"
+      ],
+      "build_command": "python scripts/build_quran_tanzil.py"
+    },
+    {
+      "id": "local_hafs_smart",
+      "name": "Hafs Smart v8 — Uthmani (Local)",
+      "path": "../../assets/hafs_smart_v8.json",
+      "format": "json",
+      "encoding": "utf-8",
+      "description": "Local corpus verified against the King Fahd Madinah Mushaf. Uses Alef Wasla (ٱ) and full tashkeel (diacritics) matching the printed Mushaf exactly.",
+      "is_primary": false,
+      "verified_against": "King Fahd Complex Madinah Mushaf (1404 AH edition)",
+      "license": "Unverified",
+      "license_status": "unverified",
+      "license_notes": "Derived from King Fahd Complex (KFGQPC) digital output. KFGQPC publishes no machine-readable licence and its servers refuse automated retrieval, so the redistribution terms for this file could not be confirmed as of 2026-09-23. Treat as all-rights-reserved until written confirmation is obtained from KFGQPC. Blocks any public or commercial deployment that ships this file.",
+      "role": "cross_reference_only",
+      "notes": "Not seeded, served or bundled. Kept only so tests can prove the Tanzil text is the same Mushaf."
     }
   ],
-
   "expected_structure": {
     "total_verses": 6236,
     "total_suras": 114,
@@ -66,16 +73,15 @@
       "aya_no",
       "aya_text",
       "aya_text_emlaey",
+      "bismillah",
+      "bismillah_emlaey",
       "page",
-      "jozz",
-      "line_start",
-      "line_end"
+      "jozz"
     ]
   },
-
   "parser": {
     "type": "json",
-    "root_key": null,
+    "root_key": "verses",
     "field_mapping": {
       "id": "id",
       "sura_no": "sura_no",
@@ -86,15 +92,18 @@
       "text_imlaei": "aya_text_emlaey",
       "page_no": "page",
       "juz_no": "jozz",
-      "line_start": "line_start",
-      "line_end": "line_end"
+      "bismillah_uthmani": "bismillah",
+      "bismillah_imlaei": "bismillah_emlaey"
     }
   },
-
   "validation": {
     "checksum_sha256": null,
-    "min_file_size_bytes": 1000000,
-    "required_fields": ["sura_no", "aya_no", "aya_text"],
+    "min_file_size_bytes": 3000000,
+    "required_fields": [
+      "sura_no",
+      "aya_no",
+      "aya_text"
+    ],
     "verse_count_check": 6236
   }
 }

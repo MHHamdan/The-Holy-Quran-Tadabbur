@@ -152,9 +152,6 @@ services:
       # Reference data (manifests, Qur'an text, tafsir inputs). The code
       # resolves the repository's data/ directory as /data in the image.
       - ./data:/data:ro
-      # Qur'an text source used by scripts/ingest/seed_quran.py (see README:
-      # its redistribution licence is unverified).
-      - ./assets:/assets:ro
       # Generated atlas/graph JSON (committed under frontend/) that the Asma,
       # story-atlas, topics, entities and prophets endpoints read; the code
       # resolves it relative to the repository root.

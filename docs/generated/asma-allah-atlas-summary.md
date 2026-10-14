@@ -1,6 +1,6 @@
 # Asmā' Allah al-Ḥusnā Atlas — Build Summary
 
-Generated at: 2026-07-02T13:59:19.605Z
+Generated at: 2026-10-14T04:32:10.992Z
 Version: 1.2.0
 
 ## Totals
@@ -11,7 +11,7 @@ Version: 1.2.0
 - Names with explicit Quran occurrences: **54**
 - Names with zero explicit occurrences: **45**
 - Total counted occurrences: **3164**
-- Total excluded surah-opening basmalah occurrences: **339**
+- Total excluded surah-opening basmalah occurrences: **3**
 - Divine Name "Allah" Quran occurrences: **2539** (shown in separate hero panel)
 
 ## Category counts

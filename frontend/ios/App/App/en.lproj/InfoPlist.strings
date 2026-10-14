@@ -1,0 +1,4 @@
+/* App name and permission prompts, English */
+"CFBundleDisplayName" = "Tadabbur";
+"NSMicrophoneUsageDescription" = "Tadabbur listens while you recite so it can check your recitation against the verse. Audio is used only for this and is not saved.";
+"NSLocationWhenInUseUsageDescription" = "Your location is used to calculate prayer times, the Qibla direction and nearby mosques. It is not sent to Tadabbur's servers.";

@@ -17,9 +17,7 @@ import io
 import json
 import logging
 import os
-import tempfile
 import time
-import uuid
 from datetime import datetime
 from typing import List, Optional
 
@@ -51,12 +49,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# Audio storage directory
-AUDIO_STORAGE_DIR = os.environ.get(
-    "TASMEE_AUDIO_DIR",
-    os.path.join(tempfile.gettempdir(), "tasmee_audio"),
-)
-os.makedirs(AUDIO_STORAGE_DIR, exist_ok=True)
+# Recordings are streamed for recognition only and never written to disk.
 
 
 # ============================================================================
@@ -515,47 +508,6 @@ async def transcribe_audio(
         mistakes=[m.to_dict() for m in mistakes],
         is_complete=aligner.state.is_complete,
     )
-
-
-@router.post("/sessions/{session_id}/audio", tags=["Audio"])
-async def upload_session_audio(
-    session_id: int,
-    audio: UploadFile = File(...),
-    db_session: AsyncSession = Depends(get_async_session),
-):
-    """
-    Upload and save the complete audio recording for a session.
-
-    The audio is saved for later playback and review.
-    """
-    # Get session
-    query = select(TasmeeSession).where(TasmeeSession.id == session_id)
-    result = await db_session.execute(query)
-    tasmee_session = result.scalar_one_or_none()
-
-    if not tasmee_session:
-        raise HTTPException(status_code=404, detail="Session not found")
-
-    # Generate filename
-    filename = f"session_{session_id}_{uuid.uuid4().hex[:8]}.wav"
-    filepath = os.path.join(AUDIO_STORAGE_DIR, filename)
-
-    # Save audio
-    audio_data = await audio.read()
-    with open(filepath, "wb") as f:
-        f.write(audio_data)
-
-    # Update session
-    tasmee_session.audio_file_path = filepath
-    tasmee_session.audio_duration_seconds = len(audio_data) / (16000 * 2)  # Assuming 16kHz 16-bit
-
-    await db_session.commit()
-
-    return {
-        "status": "saved",
-        "filename": filename,
-        "size_bytes": len(audio_data),
-    }
 
 
 # ============================================================================
@@ -1027,6 +979,4 @@ async def health_check():
         "stt_model": settings.hf_stt_model if settings.stt_provider == "huggingface" else None,
         "stt_available": stt_available,
         "stt_error": stt_error,
-        "audio_storage_dir": AUDIO_STORAGE_DIR,
-        "audio_storage_writable": os.access(AUDIO_STORAGE_DIR, os.W_OK),
     }

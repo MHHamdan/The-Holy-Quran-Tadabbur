@@ -7,6 +7,11 @@ This script:
 2. Loads Quran data from the specified source
 3. Parses and validates the data
 4. Inserts verses into the database
+5. Sets hizb/rub' and sajdah markers from quran_structure_markers.json
+
+Usage:
+    python backend/scripts/ingest/seed_quran.py                  # everything
+    python backend/scripts/ingest/seed_quran.py --markers-only   # step 5 on an existing database
 """
 import sys
 import os
@@ -62,6 +67,9 @@ def load_quran_data(source_path: Path, manifest: dict) -> list:
 
     with open(source_path, 'r', encoding='utf-8') as f:
         raw_data = json.load(f)
+    root_key = manifest.get("parser", {}).get("root_key")
+    if root_key:
+        raw_data = raw_data[root_key]
 
     # Get field mapping from manifest
     mapping = manifest.get("parser", {}).get("field_mapping", {})
@@ -78,8 +86,8 @@ def load_quran_data(source_path: Path, manifest: dict) -> list:
             "text_imlaei": item.get(mapping.get("text_imlaei", "aya_text_emlaey")),
             "page_no": item.get(mapping.get("page_no", "page")),
             "juz_no": item.get(mapping.get("juz_no", "jozz")),
-            "line_start": item.get(mapping.get("line_start", "line_start")),
-            "line_end": item.get(mapping.get("line_end", "line_end")),
+            "bismillah_uthmani": item.get(mapping.get("bismillah_uthmani", "bismillah")),
+            "bismillah_imlaei": item.get(mapping.get("bismillah_imlaei", "bismillah_emlaey")),
         }
 
         # Validate required fields
@@ -108,8 +116,8 @@ def seed_verses(session: Session, verses: list) -> int:
                 text_imlaei=verse_data["text_imlaei"] or verse_data["text_uthmani"],
                 page_no=verse_data["page_no"],
                 juz_no=verse_data["juz_no"],
-                line_start=verse_data.get("line_start"),
-                line_end=verse_data.get("line_end"),
+                bismillah_uthmani=verse_data.get("bismillah_uthmani"),
+                bismillah_imlaei=verse_data.get("bismillah_imlaei"),
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow(),
             )
@@ -141,8 +149,47 @@ def populate_text_normalized(session: Session) -> int:
     return len(rows)
 
 
+def populate_structure_markers(session: Session) -> tuple[int, int]:
+    """
+    Set rub_no (1-240), hizb_no (1-60) and sajda_type on every verse.
+
+    Quarters are contiguous: each verse belongs to the last quarter that
+    started at or before it. Returns (verses updated, sajdah verses).
+    """
+    markers = json.loads((MANIFESTS_DIR / "quran_structure_markers.json").read_text(encoding="utf-8"))
+    starts = {tuple(q): i + 1 for i, q in enumerate(markers["hizb_quarters"])}
+    sajdahs = {(s["sura"], s["aya"]): s["type"] for s in markers["sajdahs"]}
+
+    rows = session.execute(text("SELECT id, sura_no, aya_no FROM quran_verses ORDER BY id")).all()
+    if (rows[0].sura_no, rows[0].aya_no) not in starts:
+        raise ValueError("first verse is not the start of a hizb quarter")
+    updates, rub = [], 0
+    for row in rows:
+        rub = starts.get((row.sura_no, row.aya_no), rub)
+        updates.append({
+            "i": row.id,
+            "rub": rub,
+            "hizb": (rub - 1) // 4 + 1,
+            "sajda": sajdahs.get((row.sura_no, row.aya_no)),
+        })
+    if rub != 240:
+        raise ValueError(f"expected 240 hizb quarters, reached {rub}")
+    session.execute(
+        text("UPDATE quran_verses SET rub_no = :rub, hizb_no = :hizb, sajda_type = :sajda WHERE id = :i"),
+        updates,
+    )
+    session.commit()
+    return len(updates), sum(1 for u in updates if u["sajda"])
+
+
 def main():
     """Main entry point."""
+    if "--markers-only" in sys.argv:
+        with Session(create_engine(get_db_url())) as session:
+            count, sajdahs = populate_structure_markers(session)
+        print(f"Structure markers set on {count} verses ({sajdahs} sajdah verses)")
+        sys.exit(0)
+
     print("=" * 60)
     print("QURAN SEEDING")
     print("=" * 60)
@@ -192,6 +239,9 @@ def main():
             normalized = populate_text_normalized(session)
             print(f"  Normalized {normalized} verses for text search")
 
+            marked, sajdahs = populate_structure_markers(session)
+            print(f"  Hizb/rub' and sajdah markers on {marked} verses ({sajdahs} sajdah)")
+
         # Summary
         duration = (datetime.now() - start_time).total_seconds()
         print("\n" + "=" * 60)
@@ -207,7 +257,7 @@ def main():
         print(f"\nERROR: {e}")
         print("\nREMEDIATION:")
         print("  1. Check manifest points to valid source file")
-        print("  2. Ensure hafs_smart_v8.json exists in assets/")
+        print("  2. Ensure data/raw/quran_tanzil.json exists (python scripts/build_quran_tanzil.py)")
         sys.exit(1)
 
     except Exception as e:

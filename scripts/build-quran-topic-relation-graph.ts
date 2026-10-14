@@ -121,7 +121,7 @@ function main(): void {
           `surah:${l.surahNumber}`,
           'TOPIC_IN_SURAH',
           [{ surahNumber: l.surahNumber, ayahStart: l.ayahNumber }],
-          ['quran_uthmani_cloud'],
+          ['tanzil_quran_uthmani'],
           0.6,
           []
         );
@@ -144,7 +144,7 @@ function main(): void {
         node,
         'TOPIC_RELATED_TO_ENTITY',
         [{ surahNumber: ev.surahNumber, ayahStart: ev.ayahNumber }],
-        ['quran_uthmani_cloud'],
+        ['tanzil_quran_uthmani'],
         0.55,
         ['Entity crossref from seed taxonomy; needs_review.']
       );
@@ -160,7 +160,7 @@ function main(): void {
         node,
         'TOPIC_RELATED_TO_STORY',
         [{ surahNumber: ev.surahNumber, ayahStart: ev.ayahNumber }],
-        ['quran_uthmani_cloud'],
+        ['tanzil_quran_uthmani'],
         0.55,
         ['Story crossref from seed taxonomy; needs_review.']
       );
@@ -176,7 +176,7 @@ function main(): void {
         node,
         'TOPIC_RELATED_TO_EMOTION',
         [{ surahNumber: ev.surahNumber, ayahStart: ev.ayahNumber }],
-        ['quran_uthmani_cloud'],
+        ['tanzil_quran_uthmani'],
         0.6,
         []
       );
@@ -218,7 +218,7 @@ function main(): void {
         `topic:${b}`,
         'SHARED_AYAH',
         sample,
-        ['quran_uthmani_cloud'],
+        ['tanzil_quran_uthmani'],
         Math.round(conf * 100) / 100,
         [`Shared ${shared} ayahs; needs_review.`]
       );
@@ -227,7 +227,7 @@ function main(): void {
         `topic:${b}`,
         'TOPIC_RELATED_TO_TOPIC',
         sample,
-        ['quran_uthmani_cloud'],
+        ['tanzil_quran_uthmani'],
         Math.round(conf * 100) / 100,
         []
       );
@@ -252,7 +252,7 @@ function main(): void {
             `topic:${members[j]}`,
             'SEMANTIC_CLUSTER',
             sample.length > 0 ? sample : [{ surahNumber: 1, ayahStart: 1 }],
-            ['quran_uthmani_cloud'],
+            ['tanzil_quran_uthmani'],
             c.coherenceScore,
             [`From ${c.clusterId} (${c.generatedBy}); needs_review.`]
           );

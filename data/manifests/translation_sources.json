@@ -1,0 +1,196 @@
+{
+  "name": "Qur'an verse translations",
+  "source_id": "quranenc",
+  "publisher": "QuranEnc.com — Encyclopedia of Translations of the Meanings of the Noble Qur'an",
+  "source_url": "https://quranenc.com",
+  "terms_url": "https://quranenc.com/en/home/api/",
+  "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising",
+  "license_status": "verified",
+  "license_verified_on": "2026-10-13",
+  "license_notes": "Terms read from https://quranenc.com/en/home/api/ on 2026-10-13. Replaces the non-commercial Tanzil-hosted Sahih International as the reader's English default: english_saheeh is the same Saheeh International work, published by Noor International Center with a republication grant. Versions are recorded per edition in translation_editions and in each cached file; re-run the seeder to track upstream updates (term 6). Notes on a translation must be reported to QuranEnc (term 5).",
+  "display_rules": [
+    "Label as 'Translation of the meanings', never as Qur'an text",
+    "Show the edition title, version and 'QuranEnc.com' next to the text",
+    "Show footnotes when present; never truncate or edit the text"
+  ],
+  "seed_command": "python backend/scripts/ingest/seed_translations_quranenc.py",
+  "cache_dir": "data/raw/translations/quranenc",
+  "defaults": {
+    "en": "english_saheeh",
+    "ur": "urdu_junagarhi",
+    "id": "indonesian_affairs",
+    "tr": "turkish_rwwad",
+    "fr": "french_montada",
+    "es": "spanish_montada_eu",
+    "de": "german_bubenheim",
+    "fa": "persian_ih",
+    "hi": "hindi_omari",
+    "zh": "chinese_suliman",
+    "pt": "portuguese_nasr",
+    "nl": "dutch_center",
+    "bs": "bosnian_rwwad",
+    "sw": "swahili_barawani",
+    "ha": "hausa_gummi",
+    "so": "somali_yacob",
+    "ta": "tamil_baqavi",
+    "ml": "malayalam_kunhi",
+    "uz": "uzbek_mansour",
+    "ja": "japanese_saeedsato"
+  },
+  "editions": [
+    {
+      "key": "english_saheeh",
+      "language": "en",
+      "title": "English Translation - Noor International Center",
+      "translator_name": "Saheeh International (Noor International Center)",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "english_rwwad",
+      "language": "en",
+      "title": "English Translation - Rowwad Translation Center",
+      "translator_name": "Rowwad Translation Center",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "english_hilali_khan",
+      "language": "en",
+      "title": "English Translation - Hilali and Khan",
+      "translator_name": "Muhammad Taqi-ud-Din al-Hilali and Muhammad Muhsin Khan",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "urdu_junagarhi",
+      "language": "ur",
+      "title": "Urdu Translation - Muhammad Junagarhi",
+      "translator_name": "Muhammad Junagarhi",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "indonesian_affairs",
+      "language": "id",
+      "title": "Indonesian Translation - Ministry of Religious Affairs",
+      "translator_name": "Ministry of Religious Affairs, Indonesia",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "turkish_rwwad",
+      "language": "tr",
+      "title": "Turkish Translation - Rowwad Translation Center",
+      "translator_name": "Rowwad Translation Center",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "french_montada",
+      "language": "fr",
+      "title": "French translation - Noor International Center",
+      "translator_name": "Noor International Center",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "spanish_montada_eu",
+      "language": "es",
+      "title": "Spanish Translation - Noor International Center",
+      "translator_name": "Noor International Center",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "german_bubenheim",
+      "language": "de",
+      "title": "German Translation - Frank Bubenheim",
+      "translator_name": "Frank Bubenheim and Nadeem Elyas",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "persian_ih",
+      "language": "fa",
+      "title": "Persian Translation - Rowwad Translation Center",
+      "translator_name": "Rowwad Translation Center",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "hindi_omari",
+      "language": "hi",
+      "title": "Hindi Translation - Azizul Haq Al-Omari",
+      "translator_name": "Azizul Haq Al-Omari",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "chinese_suliman",
+      "language": "zh",
+      "title": "Chinese Translation - Muhammad Suleiman",
+      "translator_name": "Muhammad Suleiman",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "portuguese_nasr",
+      "language": "pt",
+      "title": "Portuguese Translation - Helmi Nasr",
+      "translator_name": "Helmi Nasr",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "dutch_center",
+      "language": "nl",
+      "title": "Dutch Translation - Rowwad Translation Center",
+      "translator_name": "Rowwad Translation Center",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "bosnian_rwwad",
+      "language": "bs",
+      "title": "Bosnian Translation - Rowwad Translation Centre",
+      "translator_name": "Rowwad Translation Center",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "swahili_barawani",
+      "language": "sw",
+      "title": "Swahili Translation - Ali Mohsin Al-Barwani",
+      "translator_name": "Ali Mohsin Al-Barwani",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "hausa_gummi",
+      "language": "ha",
+      "title": "Hausa Translation - Abu Bakr Jumi",
+      "translator_name": "Abu Bakr Mahmoud Gumi",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "somali_yacob",
+      "language": "so",
+      "title": "Somali Translation - Abdullah Hasan Yaqoub",
+      "translator_name": "Abdullah Hasan Yaqoub",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "tamil_baqavi",
+      "language": "ta",
+      "title": "Tamil Translation - Abdulhamid Baqawi",
+      "translator_name": "Abdulhamid Baqawi",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "malayalam_kunhi",
+      "language": "ml",
+      "title": "Malayalam Translation - Abdul Hamid Haidar and Kunhi Muhammad",
+      "translator_name": "Abdul Hamid Haidar and Kunhi Muhammad",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "uzbek_mansour",
+      "language": "uz",
+      "title": "Uzbek Translation - Alaauddin Mansour",
+      "translator_name": "Alauddin Mansour",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    },
+    {
+      "key": "japanese_saeedsato",
+      "language": "ja",
+      "title": "Japanese Translation - Saeed Sato",
+      "translator_name": "Saeed Sato",
+      "license": "QuranEnc.com republication terms: verbatim only (no modification, addition or deletion), publisher and QuranEnc.com credited, version number stated, footnotes kept, latest version tracked, no inappropriate advertising"
+    }
+  ]
+}

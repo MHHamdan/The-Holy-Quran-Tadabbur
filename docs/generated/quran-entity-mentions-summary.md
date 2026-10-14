@@ -1,6 +1,6 @@
 # Quran Entity Mentions — Scan Summary
 
-Generated at: 2026-05-17T23:46:32.749Z
+Generated at: 2026-10-14T04:32:05.278Z
 Scanner version: 1.0.0
 
 ## Totals

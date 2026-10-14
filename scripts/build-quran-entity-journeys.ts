@@ -200,7 +200,7 @@ function buildMushafJourney(
     certainty: 'high',
     sections,
     reviewStatus: 'needs_review',
-    sourceIds: ['quran_uthmani_cloud'],
+    sourceIds: ['tanzil_quran_uthmani'],
     warnings: [],
   };
 }

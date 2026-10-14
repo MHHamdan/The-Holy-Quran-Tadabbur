@@ -275,7 +275,7 @@ def main():
     print(f"\n{BOLD}[7] Critical Data Files on Disk{RESET}")
 
     files = [
-        (PROJECT_ROOT / "data/raw/quran_uthmani.json", 4_000_000, "Quran Uthmani text"),
+        (PROJECT_ROOT / "data/raw/quran_tanzil.json", 3_000_000, "Quran text (Tanzil)"),
         (PROJECT_ROOT / "data/raw/ibn_kathir_ar.json", 1_000_000, "Ibn Kathir AR tafseer"),
         (PROJECT_ROOT / "data/raw/ibn_kathir_en.json", 1_000_000, "Ibn Kathir EN tafseer"),
         (PROJECT_ROOT / "data/raw/tabari_ar.json",     1_000_000, "Tabari AR tafseer"),

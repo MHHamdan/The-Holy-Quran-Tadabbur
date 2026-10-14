@@ -202,6 +202,8 @@ export function TherapyPage() {
   }, []);
 
   const handleDeleteReflection = useCallback((sessionId: string) => {
+    // Also erase the server copy; the local list is updated either way.
+    therapyApi.deleteSessions([sessionId]).catch(() => undefined);
     setReflections(prev => {
       const updated = prev.filter(e => e.session_id !== sessionId);
       saveReflections(updated);

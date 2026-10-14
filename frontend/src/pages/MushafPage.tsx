@@ -47,6 +47,12 @@ import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, Verse, api, verseAskAiApi } from '../lib/api';
 import type { VerseAskAiResponse, Citation } from '../lib/api';
 import { queryKeys, staleTimes } from '../lib/queryClient';
+import { shareContent } from '../lib/native';
+import { getReadingProgress, recordReadingPosition } from '../hooks/useReadingProgress';
+import { useReaderSettingsStore, verseTextFor, bismillahFor, applyReaderThemeToDocument } from '../stores/readerSettingsStore';
+import { ReaderThemePicker } from '../components/quran/ReaderThemePicker';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { surahVerseCount } from '../data/surahVerseCounts';
 
 // =============================================================================
 // Types & Interfaces
@@ -109,9 +115,6 @@ const RECITERS: ReciterOption[] = [
 
 const ARABIC_NUMS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 
-// Surah 1: ayah 1:1 IS the Bismillah itself — no separate Bismillah header
-// Surah 9: has no Bismillah at all
-const SURAHS_WITHOUT_BISMILLAH_HEADER = new Set([1, 9]);
 
 // Curated Makki/Madani classification — scholarly consensus (Al-Suyuti).
 // This is structural UI metadata, not Quran text.
@@ -165,18 +168,6 @@ function toArabicNumber(num: number): string {
   return num.toString().split('').map(d => ARABIC_NUMS[parseInt(d)]).join('');
 }
 
-// Split the Bismillah prefix from an Imlaei-script verse.
-// The Bismillah is always the first 4 words of verse 1 for surahs that carry it.
-// Callers gate on aya_no===1 and sura_no not in SURAHS_WITHOUT_BISMILLAH_HEADER.
-// No Arabic string literals — text is extracted directly from the verse data.
-function splitBismillahImlaei(text: string): { bismillah: string; verseText: string } | null {
-  const clean = text.replace(/^\uFEFF/, ''); // strip BOM (present only on 1:1)
-  const words = clean.split(/\s+/);
-  if (words.length <= 4) return null; // whole verse is just the Bismillah
-  const bismillah = words.slice(0, 4).join(' ');
-  const verseText = words.slice(4).join(' ');
-  return verseText ? { bismillah, verseText } : null;
-}
 
 
 
@@ -322,28 +313,23 @@ const VersePanel = memo(function VersePanel({
         sura_name_ar: verse.sura_name_ar,
         sura_name_en: verse.sura_name_en,
         aya_no: verse.aya_no,
-        text_uthmani: verse.text_imlaei,
+        text_uthmani: verse.text_uthmani,
       });
     }
   }, [bookmarked, verse, addBookmark, removeBookmark]);
 
   const shareVerse = useCallback(async () => {
     const ref = `${verse.sura_name_en} (${verse.sura_no}:${verse.aya_no})`;
-    const text = `${verse.text_imlaei}\n— ${ref}\n\ntadabbur.app/quran/${verse.sura_no}?aya=${verse.aya_no}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: ref, text });
-      } catch {
-        // User cancelled or not supported — silently ignore
-      }
-    } else {
-      navigator.clipboard.writeText(text).catch(console.error);
-    }
+    await shareContent({
+      title: ref,
+      text: `${verse.text_uthmani}\n— ${ref}`,
+      path: `/quran/${verse.sura_no}?aya=${verse.aya_no}`,
+    });
   }, [verse]);
 
   const copyVerseWithAttribution = useCallback(() => {
     const ref = `${verse.sura_name_en} (${verse.sura_no}:${verse.aya_no})`;
-    const text = `${verse.text_imlaei}\n— ${ref}\n[King Fahd Complex for the Printing of the Holy Quran — مجمع الملك فهد لطباعة المصحف الشريف]`;
+    const text = `${verse.text_uthmani}\n— ${ref}\n[Qur'an text: Tanzil Project, tanzil.net, CC BY 3.0]`;
     navigator.clipboard.writeText(text).catch(console.error);
     setCopiedVerse(true);
     setTimeout(() => setCopiedVerse(false), 2000);
@@ -973,16 +959,20 @@ export function MushafPage() {
   );
 
   // State
+  // Opens at ?page=, else where the reader left off, else page 1.
   const [currentPage, setCurrentPage] = useState(() => {
     const page = searchParams.get('page');
-    return page ? parseInt(page, 10) : 1;
+    return page ? parseInt(page, 10) : getReadingProgress().lastRead?.page ?? 1;
   });
   const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
-  const [fontSize, setFontSize] = useState(28);
+  const {
+    fontScale, setFontScale, script, reciterId: selectedReciter, setReciterId: setSelectedReciter, theme,
+  } = useReaderSettingsStore();
+  useEffect(() => applyReaderThemeToDocument(theme), [theme]);
+  const fontSize = Math.round(28 * fontScale);
   const [selectedTafsir, setSelectedTafsir] = useState(() =>
     language === 'ar' ? 'muyassar' : 'en_ibn_kathir'
   );
-  const [selectedReciter, setSelectedReciter] = useState('mishary_afasy');
   const [showSettings, setShowSettings] = useState(false);
   const [showAI, setShowAI] = useState(false);
   const [playingVerseId, setPlayingVerseId] = useState<number | null>(null);
@@ -1011,6 +1001,16 @@ export function MushafPage() {
   useEffect(() => {
     setSearchParams({ page: currentPage.toString() });
   }, [currentPage, setSearchParams]);
+
+  // Remember the page (and its first verse) for "continue reading"
+  useEffect(() => {
+    const first = verses[0];
+    if (!first) return;
+    recordReadingPosition({
+      surah: first.sura_no, aya: first.aya_no,
+      nameAr: first.sura_name_ar, nameEn: first.sura_name_en, page: currentPage,
+    });
+  }, [verses, currentPage]);
 
   // Navigate pages
   const goToPage = useCallback((page: number) => {
@@ -1065,56 +1065,43 @@ export function MushafPage() {
   // Build typed page items: surah headers + verses
   const pageItems = useMemo((): PageItem[] => {
     const items: PageItem[] = [];
-    // Count ayahs per surah from the current page's verse list
-    const ayahCounts: Record<number, number> = {};
-    for (const v of verses) {
-      ayahCounts[v.sura_no] = Math.max(ayahCounts[v.sura_no] ?? 0, v.aya_no);
-    }
 
     let lastSuraNo = 0;
 
     for (const verse of verses) {
       // Insert surah header when a new surah's first ayah appears on this page
       if (verse.sura_no !== lastSuraNo && verse.aya_no === 1) {
-        const needsBismillah = !SURAHS_WITHOUT_BISMILLAH_HEADER.has(verse.sura_no);
-        let bismillahText: string | null = null;
-
-        if (needsBismillah) {
-          const split = splitBismillahImlaei(verse.text_imlaei);
-          bismillahText = split?.bismillah ?? null;
-        }
+        // Opening Bismillah comes with verse 1, separately from its text
+        const bismillahText = bismillahFor(verse, script);
 
         items.push({
           type: 'header',
           suraNo: verse.sura_no,
-          suraNameAr: verse.sura_name_ar,   // already has سُورَةُ prefix from quran_uthmani.json
+          suraNameAr: verse.sura_name_ar,   // "سورة <name>" from the API
           suraNameEn: verse.sura_name_en,
-          ayahCount: ayahCounts[verse.sura_no] ?? verse.aya_no,
+          ayahCount: surahVerseCount(verse.sura_no),
           bismillahText,
           revelationType: REVELATION_TYPE[verse.sura_no] ?? 'unknown',
         });
         lastSuraNo = verse.sura_no;
       }
 
-      // Ayah 1 of surahs that have a Bismillah header: strip it from the flowing text
-      const shouldStrip = verse.aya_no === 1 && !SURAHS_WITHOUT_BISMILLAH_HEADER.has(verse.sura_no);
-      let displayText = verse.text_imlaei.replace(/^\uFEFF/, ''); // strip BOM (only 1:1 has it)
-      if (shouldStrip) {
-        const split = splitBismillahImlaei(verse.text_imlaei);
-        if (split) displayText = split.verseText;
-      }
+      const displayText = verseTextFor(verse, script);
 
       items.push({ type: 'verse', verse, displayText });
     }
 
     return items;
-  }, [verses]);
+  }, [verses, script]);
 
   // Current surah info
   const currentSura = useMemo(() => verses.length > 0 ? verses[0] : null, [verses]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50">
+    <div
+      className="mushaf-root reader-surface min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50"
+      data-theme={theme}
+    >
       {/* Hidden Audio Element */}
       <audio
         ref={audioRef}
@@ -1189,7 +1176,7 @@ export function MushafPage() {
           {/* Controls */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setFontSize(prev => Math.max(20, prev - 2))}
+              onClick={() => setFontScale(fontScale - 0.1)}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               title={t('mushaf_zoom_out')}
             >
@@ -1197,7 +1184,7 @@ export function MushafPage() {
             </button>
             <span className="text-sm min-w-[2rem] text-center">{fontSize}</span>
             <button
-              onClick={() => setFontSize(prev => Math.min(48, prev + 2))}
+              onClick={() => setFontScale(fontScale + 0.1)}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               title={t('mushaf_zoom_in')}
             >
@@ -1262,16 +1249,16 @@ export function MushafPage() {
                 ))}
               </select>
             </div>
+
+            <ReaderThemePicker language={language} compact />
           </div>
         )}
       </nav>
 
-      {/* King Fahd Complex Attribution Banner */}
+      {/* Qur'an text attribution (Tanzil licence) */}
       <div className="bg-amber-50 border-b border-amber-200 px-4 py-1.5 flex items-center justify-center gap-2 text-amber-800 text-xs">
         <BookOpen className="w-3.5 h-3.5 flex-shrink-0" />
-        <span dir="rtl" className="font-arabic">مجمع الملك فهد لطباعة المصحف الشريف — المدينة المنورة</span>
-        <span className="text-amber-400">·</span>
-        <span dir="ltr">King Fahd Complex for the Printing of the Holy Quran, Madinah</span>
+        <QuranTextAttribution language={language} className="!text-amber-800 !text-xs" />
       </div>
 
       {/* Main Content */}
@@ -1346,7 +1333,7 @@ export function MushafPage() {
                         )}
                       >
                         <span
-                          className="ksu-verse-text"
+                          className={clsx('ksu-verse-text', script === 'uthmani' && 'ksu-uthmani')}
                           style={{ fontSize: `${fontSize}px` }}
                         >
                           {displayText}

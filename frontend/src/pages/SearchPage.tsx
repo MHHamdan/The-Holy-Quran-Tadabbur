@@ -16,6 +16,7 @@ import {
   ThemeInfo, IntelligentSearchResponse
 } from '../lib/api';
 import clsx from 'clsx';
+import { TranslationSearchResults } from '../components/search/TranslationSearchResults';
 
 // =============================================================================
 // TYPES
@@ -363,6 +364,8 @@ export function SearchPage() {
   const { language } = useLanguageStore();
   const { recordSearch, recordVerseClick: _recordVerseClick } = useSearchHistoryStore();
   const [query, setQuery] = useState('');
+  // The query as last submitted (drives the translation-text search panel)
+  const [submittedQuery, setSubmittedQuery] = useState('');
   const [results, setResults] = useState<EnhancedSearchResponse | null>(null);
   const [analytics, setAnalytics] = useState<WordAnalyticsResponse | null>(null);
   const [intelligentSearchData, setIntelligentSearchData] = useState<IntelligentSearchResponse | null>(null);
@@ -541,6 +544,7 @@ export function SearchPage() {
     setLoading(true);
     setError(null);
     setOffset(newOffset);
+    if (newOffset === 0) setSubmittedQuery(query.trim());
     setShowAutocomplete(false);
 
     try {
@@ -788,6 +792,11 @@ export function SearchPage() {
           )}
         </div>
       </form>
+
+      {/* Literal matches in the translation of the meanings */}
+      {submittedQuery && !/[\u0600-\u06FF]/.test(submittedQuery) && (
+        <TranslationSearchResults query={submittedQuery} language={language} />
+      )}
 
       {/* Error with Suggestions */}
       {error && (

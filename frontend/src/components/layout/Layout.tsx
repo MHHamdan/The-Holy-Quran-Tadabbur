@@ -71,7 +71,7 @@ export function Layout({ children }: LayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50" dir={direction}>
+    <div className="app-shell min-h-screen bg-gray-50" dir={direction}>
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50 safe-area-top">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -165,6 +165,14 @@ export function Layout({ children }: LayoutProps) {
           <p className={clsx('text-center text-sm text-gray-500', language === 'ar' && 'font-arabic')}>
             {t('footer_disclaimer', language)}
           </p>
+          <nav className={clsx('mt-2 flex justify-center gap-4 text-xs text-gray-400', language === 'ar' && 'font-arabic')}>
+            <Link to="/privacy" className="hover:text-primary-600 underline">
+              {language === 'ar' ? 'سياسة الخصوصية' : 'Privacy policy'}
+            </Link>
+            <Link to="/sources" className="hover:text-primary-600 underline">
+              {language === 'ar' ? 'المصادر والتراخيص' : 'Sources & licences'}
+            </Link>
+          </nav>
         </div>
       </footer>
     </div>

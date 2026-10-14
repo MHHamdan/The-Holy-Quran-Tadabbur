@@ -42,6 +42,12 @@ const config: CapacitorConfig = {
       resize: 'body',
       resizeOnFullScreen: true,
     },
+    LocalNotifications: {
+      // Monochrome status-bar icon (res/drawable/ic_stat_tadabbur.xml);
+      // Android draws a white square for a full-colour launcher icon.
+      smallIcon: 'ic_stat_tadabbur',
+      iconColor: '#0284c7',
+    },
     StatusBar: {
       overlaysWebView: false,
       style: 'DARK', // light text on the blue bar

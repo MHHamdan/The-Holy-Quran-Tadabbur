@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
 
 from app.db.database import get_async_session
-from app.models.quran import QuranVerse, Translation
+from app.models.quran import QuranVerse, Translation, TranslationEdition
 from app.services.translation import TranslationService, TranslationMode
 
 router = APIRouter(prefix="/translation", tags=["translation"])
@@ -141,8 +141,11 @@ async def get_surah_translations(
         Translation.language == language,
         Translation.translator != "llm",
     ).order_by(
-        # sahih_international first, then any other scholarly translator
-        (Translation.translator != "sahih_international"),
+        # the language's default edition first, then any other scholarly translator
+        Translation.translator.notin_(
+            select(TranslationEdition.key).where(TranslationEdition.is_default.is_(True))
+        ),
+        Translation.translator,
     )
     if translator:
         trans_query = trans_query.where(Translation.translator == translator)
@@ -229,16 +232,14 @@ async def get_available_translators(
     """Get list of available translators for a language."""
     http_response.headers["Cache-Control"] = "public, max-age=3600"
     result = await session.execute(
-        select(Translation.translator)
-        .where(Translation.language == language)
-        .distinct()
+        select(TranslationEdition.key, TranslationEdition.is_default)
+        .where(TranslationEdition.language == language)
+        .order_by(TranslationEdition.is_default.desc(), TranslationEdition.key)
     )
-    translators = result.scalars().all()
+    editions = result.all()
 
     return {
         "language": language,
-        "translators": list(translators),
-        "recommended": "sahih_international" if "sahih_international" in translators else (
-            translators[0] if translators else None
-        )
+        "translators": [key for key, _ in editions],
+        "recommended": next((key for key, is_default in editions if is_default), None),
     }

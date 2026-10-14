@@ -516,3 +516,55 @@ code {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
+/* ── Reading themes (reader settings: light / sepia / night) ──────────────────
+   Applied by the Quran and Mushaf readers through data-reader-theme on <html>
+   while a reader is open, so the page background changes too. Scoped to the
+   reading surface (.reader-surface) plus the page background; the rest of the
+   app is untouched. */
+html[data-reader-theme="sepia"] :is(body, .app-shell) { background: #f4ecd8; }
+html[data-reader-theme="night"] :is(body, .app-shell) { background: #0b1220; }
+
+.reader-surface[data-theme="sepia"] .card,
+.reader-surface[data-theme="sepia"] .reader-card {
+  background: #fbf5e6;
+  border-color: #e6d8b8;
+  color: #3b2f1e;
+}
+.reader-surface[data-theme="night"] .card,
+.reader-surface[data-theme="night"] .reader-card {
+  background: #111a2e;
+  border-color: #23304a;
+  color: #e2e8f0;
+}
+.reader-surface[data-theme="night"] .reader-arabic { color: #f1f5f9; }
+.reader-surface[data-theme="sepia"] .reader-arabic { color: #2b2114; }
+.reader-surface[data-theme="night"] .reader-translation { background: #17223a; color: #cbd5e1; }
+.reader-surface[data-theme="sepia"] .reader-translation { background: #f3e9d2; color: #4a3b26; }
+.reader-surface[data-theme="night"] :is(.text-gray-400, .text-gray-500, .text-gray-600) { color: #94a3b8; }
+.reader-surface[data-theme="night"] :is(.text-gray-700, .text-gray-800, .text-gray-900) { color: #e2e8f0; }
+.reader-surface[data-theme="night"] :is(.bg-gray-100, .bg-gray-50) { background-color: #1e293b; }
+.reader-surface[data-theme="night"] .bg-white { background-color: #0f172a; }
+.reader-surface[data-theme="night"] .input { background: #0f172a; color: #e2e8f0; border-color: #334155; }
+
+/* Mushaf frames */
+.reader-surface[data-theme="sepia"] :is(.mushaf-border, .mushaf-page, .reader-mushaf) {
+  background: #f6ecd4;
+}
+.reader-surface[data-theme="night"] :is(.mushaf-border, .mushaf-page, .reader-mushaf) {
+  background: #0f172a;
+  border-color: #3b4a66;
+  box-shadow: none;
+}
+.reader-surface[data-theme="night"] .ksu-verse-text { color: #f1f5f9; }
+.reader-surface[data-theme="night"] .ksu-aya-marker { background: #1e293b; border-color: #a3884a; box-shadow: none; }
+.reader-surface[data-theme="night"] .ksu-aya-num { color: #e5c97a; }
+.reader-surface[data-theme="night"] .ksu-verse:hover { background: rgba(229, 201, 122, 0.08); }
+
+/* Uthmani script in the Mushaf reader needs a font with the full set of
+   Uthmani marks (small high letters, rounded zeros, etc.). */
+.ksu-verse-text.ksu-uthmani { font-family: 'Scheherazade New', 'Noto Naskh Arabic', serif; }
+.reader-surface[data-theme="night"] .bg-primary-50 { background-color: #13294b; }
+.reader-surface[data-theme="night"] :is(.bg-amber-50, .bg-amber-100) { background-color: #2a2414; }
+.reader-surface[data-theme="night"].mushaf-root { background: #0b1220; }
+.reader-surface[data-theme="sepia"].mushaf-root { background: #f4ecd8; }

@@ -34,7 +34,7 @@ const ROOT = resolve(__dirname, '..');
 const GEN = join(ROOT, 'frontend/src/data/generated');
 const OUT_JSON = join(GEN, 'quranicCallsAtlas.json');
 const OUT_MD = join(ROOT, 'docs/generated/quranic-calls-atlas-summary.md');
-const QURAN_JSON = join(ROOT, 'data/raw/quran_uthmani.json');
+const QURAN_JSON = join(ROOT, 'data/raw/quran_tanzil.json');
 
 // ─── Types (inline to avoid import issues in script context) ──────────────────
 
@@ -106,7 +106,7 @@ interface QuranicCall {
 
 function stripDiacritics(text: string): string {
   // Remove Arabic tashkeel (vowel marks, shadda, sukun, etc.)
-  return text.replace(/[ؐ-ًؚ-ٰٟۖ-ۜ۟-۪ۤۧۨ-ۭ]/g, '');
+  return text.replace(/[ؐ-ًؚ-ٰٟۖ-ۜ۟-۪ۤۧۨ-ۭ]/g, '').replace(/\u0640/g, ''); // and tatweel (Tanzil writes هـٰذا)
 }
 
 // ─── Pattern seeds ────────────────────────────────────────────────────────────
@@ -279,7 +279,7 @@ function inferCallFunction(pattern: PatternSeed, strippedText: string): string {
 }
 
 log('Loading Quran data...');
-const quranData: QuranAyah[] = JSON.parse(readFileSync(QURAN_JSON, 'utf-8'));
+const quranData: QuranAyah[] = (JSON.parse(readFileSync(QURAN_JSON, 'utf-8')) as { verses: QuranAyah[] }).verses;
 log(`Loaded ${quranData.length} ayahs across 114 surahs`);
 
 const calls: QuranicCall[] = [];

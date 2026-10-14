@@ -635,8 +635,8 @@ export function IslamicPillarsPanel() {
       <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
         <p className={clsx('text-[11px] text-gray-500 leading-relaxed', isRtl && 'font-arabic text-right')}>
           {isRtl
-            ? 'الآيات الكريمة مستقاة من مصحف الملك فهد. التفسيرات الموجزة توجيهية تربوية وليست تفسيراً رسمياً. للتفسير المعمّق راجع علماء موثوقين.'
-            : 'Quranic text is retrieved from the King Fahd Quran (Hafs transmission). Brief explanations are pedagogical guidance, not scholarly tafsir. For depth, consult trusted scholars.'}
+            ? 'الآيات الكريمة من نص مشروع تنزيل الموثّق لرواية حفص (tanzil.net). التفسيرات الموجزة توجيهية تربوية وليست تفسيراً رسمياً. للتفسير المعمّق راجع علماء موثوقين.'
+            : 'Quranic text is the Tanzil Project\u2019s verified Hafs text (tanzil.net, CC BY 3.0). Brief explanations are pedagogical guidance, not scholarly tafsir. For depth, consult trusted scholars.'}
         </p>
       </div>
     </div>

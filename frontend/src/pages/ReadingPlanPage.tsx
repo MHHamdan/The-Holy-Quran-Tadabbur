@@ -16,6 +16,7 @@ import {
 import { useLanguageStore } from '../stores/languageStore';
 import { useReadingProgress } from '../hooks/useReadingProgress';
 import { SURAH_NAMES } from '../data/surahNames';
+import { ReadingReminderCard } from '../components/reading/ReadingReminderCard';
 import clsx from 'clsx';
 
 // Approximate page counts per surah (King Fahd Madinah Mushaf 604-page edition)
@@ -132,6 +133,8 @@ export function ReadingPlanPage() {
           </div>
         )}
       </div>
+
+      <ReadingReminderCard language={language} />
 
       {/* Goal setter */}
       <div className={clsx(

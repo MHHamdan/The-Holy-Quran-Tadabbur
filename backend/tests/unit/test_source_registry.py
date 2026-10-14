@@ -23,7 +23,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-QURAN_JSON_PATH = PROJECT_ROOT / "data" / "raw" / "quran_uthmani.json"
+QURAN_JSON_PATH = PROJECT_ROOT / "data" / "raw" / "quran_tanzil.json"
 TAFSIR_MANIFEST_PATH = PROJECT_ROOT / "data" / "manifests" / "tafseer_sources.json"
 SOURCE_REGISTRY_PATH = PROJECT_ROOT / "frontend" / "src" / "data" / "sourceRegistry.ts"
 
@@ -66,7 +66,7 @@ REQUIRED_REGISTRY_FIELDS = [
 
 @pytest.fixture(scope="module")
 def quran_data():
-    """Load quran_uthmani.json if it exists."""
+    """Load the canonical quran_tanzil.json if it exists."""
     if not QURAN_JSON_PATH.exists():
         pytest.skip(f"Quran data file not found: {QURAN_JSON_PATH}")
     with open(QURAN_JSON_PATH, encoding="utf-8") as f:
@@ -76,7 +76,7 @@ def quran_data():
     for key in ("verses", "data", "ayahs"):
         if key in raw:
             return raw[key]
-    pytest.skip("Could not find ayah array in quran_uthmani.json")
+    pytest.skip("Could not find ayah array in quran_tanzil.json")
 
 
 @pytest.fixture(scope="module")

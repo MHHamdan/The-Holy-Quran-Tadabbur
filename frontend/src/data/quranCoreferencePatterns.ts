@@ -32,7 +32,7 @@ import type { CoreferencePattern } from '../types/quranCoreference';
 
 function pat(p: Omit<CoreferencePattern, 'sourceIds'> & { sourceIds?: string[] }): CoreferencePattern {
   return {
-    sourceIds: ['quran_uthmani_cloud'],
+    sourceIds: ['tanzil_quran_uthmani'],
     ...p,
   };
 }

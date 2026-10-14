@@ -1,7 +1,7 @@
 """
 Database models for Tadabbur-AI.
 """
-from app.models.quran import QuranVerse, Translation
+from app.models.quran import QuranVerse, Translation, TranslationEdition
 from app.models.tafseer import TafseerSource, TafseerChunk
 from app.models.story import Story, StorySegment, StoryConnection, Theme, CrossStoryConnection
 from app.models.story_atlas import StoryCluster, StoryEvent, EventConnection, ClusterConnection
@@ -15,6 +15,7 @@ from app.models.therapy import TherapySession
 __all__ = [
     "QuranVerse",
     "Translation",
+    "TranslationEdition",
     "TafseerSource",
     "TafseerChunk",
     "Story",

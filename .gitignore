@@ -40,6 +40,8 @@ data/*
 !data/raw/
 data/raw/*
 !data/raw/quran_uthmani.json
+!data/raw/tanzil/
+!data/raw/quran_tanzil.json
 # Which data bundle this checkout expects (the tarball itself stays out).
 !data/BUNDLE.lock
 
