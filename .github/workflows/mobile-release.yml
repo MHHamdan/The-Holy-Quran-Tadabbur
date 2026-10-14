@@ -23,6 +23,8 @@ name: Mobile release
 
 on:
   push:
+    # Listing tags alone would stop branch pushes from triggering this.
+    branches: ["**"]
     paths:
       - "frontend/**"
       - ".github/workflows/mobile-release.yml"
