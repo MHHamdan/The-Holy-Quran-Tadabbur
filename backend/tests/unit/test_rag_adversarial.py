@@ -208,6 +208,22 @@ BENIGN_CONTROLS = [
 ]
 
 
+# Tafsir/retrieval questions that use ruling vocabulary without asking for a
+# ruling (review finding: these were refused as fatwa requests).
+_RULING_VOCAB_CONTROLS = [
+    "Can I get the tafsir of Ayat al-Kursi?",
+    "Can I see what Ibn Kathir says about 2:255?",
+    "Should I read the tafsir of Surah Al-Kahf first?",
+    "Is the story of Adam about the forbidden tree?",
+    "Which foods are mentioned as halal in Surah Al-Maidah?",
+    "What does Allah say about those who are sinful?",
+    "Why was alcohol forbidden gradually according to the tafsir?",
+    "هل البيت الحرام في مكة؟",
+    "هل في القرآن ذكر للحلال والحرام؟",
+    "هل المسجد الحرام مذكور في القرآن؟",
+]
+
+
 class TestClassifierProbes:
     @pytest.mark.parametrize("question", _probes(FATWA_PROBES))
     def test_ruling_questions_are_refused(self, question):
@@ -219,7 +235,7 @@ class TestClassifierProbes:
         c = quran_question_classifier.classify(question)
         assert c.intent == INTENT_PROMPT_INJECTION and not c.allowed_to_generate
 
-    @pytest.mark.parametrize("question", BENIGN_CONTROLS)
+    @pytest.mark.parametrize("question", BENIGN_CONTROLS + _RULING_VOCAB_CONTROLS)
     def test_benign_questions_still_generate(self, question):
         assert quran_question_classifier.classify(question).allowed_to_generate
 

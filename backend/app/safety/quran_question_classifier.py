@@ -149,23 +149,44 @@ _FATWA_EN = frozenset({
 })
 
 # Ruling questions phrased in ways a phrase list cannot enumerate.
+# Each pattern must need ruling *intent*, not just ruling vocabulary: tafsir
+# questions mention "forbidden tree", "المسجد الحرام", "Can I see what Ibn
+# Kathir says…" and must still reach retrieval.
+_RULING_WORD_EN = (
+    r"(haram|halal|forbidden|allowed|permissible|permitted|impermissible|prohibited|a sin|sinful|"
+    r"makruh|lawful|unlawful|obligatory|mandatory)"
+)
+# Retrieval verbs: "Can I get/see/read…" asks for content, not a ruling.
+_RETRIEVAL_VERBS_EN = (
+    r"(get|see|read|learn|know|find|understand|hear|have|ask|look|study|watch|explore|compare|"
+    r"search|view|access|share|save|bookmark|use|reflect|begin|start|continue|listen)"
+)
 _FATWA_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     # "Is music haram?", "Is music forbidden according to the Quran?", "Are mortgages allowed in Islam?"
-    r"\b(is|are|was|were|isn'?t|aren'?t)\b[^?.!]{0,50}?\b(haram|halal|forbidden|allowed|permissible|"
-    r"permitted|impermissible|prohibited|a sin|sinful|makruh|lawful|unlawful|obligatory|mandatory)\b",
+    # The question must open with is/are and the ruling word must close the
+    # clause, so "Is the story of Adam about the forbidden tree?" and
+    # "…those who are sinful?" do not match.
+    r"(?:^|[,;:]\s*)(is|are|was|were|isn'?t|aren'?t)\s[^?.!]{0,50}?\b" + _RULING_WORD_EN
+    + r"\s*(?:[?.!]|$|\b(?:in|for|to|according to|under|by|if|when|during|or|unless)\b)",
     r"\b(allowed|permissible|permitted|forbidden|haram|halal|prohibited)\s+(in|for|according to)\s+"
     r"(islam|muslims?|the shari'?a|sharia)\b",
     r"\b(islamic|religious|shari'?a|sharia|fiqh)\s+(verdict|ruling|opinion|position|judgement|judgment)\b",
     r"\bruling (on|of|about|regarding)\b",
-    r"^\s*(should|can|may|must)\s+i\b",
+    # "Should I divorce my wife?" — but not "Can I see what Ibn Kathir says…".
+    r"^\s*(should|can|may|must)\s+i\s+(?!(also\s+|please\s+)?" + _RETRIEVAL_VERBS_EN + r"\b)",
+    # "Can I read the Quran without wudu?" — a retrieval verb plus ruling vocabulary.
+    r"^\s*(should|can|may|must)\s+i\b[^?]{0,80}\b(haram|halal|allowed|permissible|permitted|sin|"
+    r"sinful|wudu|ablution|menstruat\w*|my period|janabah?|junub)\b",
     r"^\s*(can|may|must|should)\s+(a\s+|an\s+|my\s+)?(woman|women|man|men|muslims?|wife|husband|"
     r"girl|boy)\b",
     r"\b(am i|is it ok|is it okay)\b.{0,30}\b(allowed|sinning|in sin|permitted)\b",
     # Arabic: "هل الموسيقى حرام؟", "هل يصح الطلاق…", "هل تجوز الصلاة…"
-    r"هل\s[^؟?]{0,40}?(?<!شهر )(حرام|حلال|محرم|محرمة|محرّم|مباح|مباحة|جائز|جائزة|مكروه|مكروهة|"
-    r"واجب|واجبة|فرض)(?![\u0621-\u064A])",
+    # The ruling word must stand alone: "المسجد الحرام", "البيت الحرام",
+    # "والحرام", "للحلال" are names/nouns, not rulings.
+    r"هل\s[^؟?]{0,40}?(?<!شهر )(?<![ء-ي])(حرام|حلال|محرم|محرمة|محرّم|مباح|مباحة|جائز|"
+    r"جائزة|مكروه|مكروهة|واجب|واجبة|فرض)(?![ء-ي])",
     r"هل\s+(يصح|تصح|تجوز|يجب|تجب|يلزم|تلزم|يحل|تحل|يحرم|تحرم|يأثم|تأثم|أأثم)\b",
-    r"(ما|وما)\s+(حكم|الحكم في|الحكم الشرعي)(?![\u0621-\u064A])",
+    r"(ما|وما)\s+(حكم|الحكم في|الحكم الشرعي)(?![ء-ي])",
 ))
 
 # Prompt-injection and "compose Qur'an" requests — refused before generation.
