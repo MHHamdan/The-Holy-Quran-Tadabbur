@@ -226,7 +226,7 @@ function SurahSelector({ value, onChange, isRtl, label }: {
 }) {
   return (
     <div className="flex-1 min-w-0">
-      <p className={clsx('text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide', isRtl && 'font-arabic text-right')}>
+      <p className={clsx('text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide', isRtl && 'font-arabic text-right')}>
         {label}
       </p>
       <div className="relative">
@@ -246,7 +246,7 @@ function SurahSelector({ value, onChange, isRtl, label }: {
             </option>
           ))}
         </select>
-        <ChevronDown className={clsx('pointer-events-none absolute top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400', isRtl ? 'left-3' : 'right-3')} />
+        <ChevronDown className={clsx('pointer-events-none absolute top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600', isRtl ? 'left-3' : 'right-3')} />
       </div>
     </div>
   );
@@ -289,7 +289,7 @@ function RevealContextSection({ dataA, dataB, surahA, surahB, isRtl }: {
   return (
     <div className="mb-6">
       <h3 className={clsx('text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5', isRtl && 'font-arabic')}>
-        <Clock className="w-4 h-4 text-gray-400" />
+        <Clock className="w-4 h-4 text-gray-600" />
         {isRtl ? 'سياق النزول' : 'Revelation Context'}
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -306,7 +306,7 @@ function RevealContextSection({ dataA, dataB, surahA, surahB, isRtl }: {
                 {isRtl ? data.name?.ar : data.name?.en}
               </span>
               {data.timeline && (
-                <span className="text-[10px] text-gray-400">
+                <span className="text-[10px] text-gray-600">
                   {isRtl
                     ? (data.timeline.hijraYear ? `${data.timeline.hijraYear}هـ` : `السنة ${data.timeline.propheticYear} للبعثة`)
                     : (data.timeline.hijraYear ? `AH ${data.timeline.hijraYear}` : `Year ${data.timeline.propheticYear} BH`)}
@@ -331,7 +331,7 @@ const COVERAGE_AR: Record<string, string>    = { complete: 'كاملة', partial
 const COVERAGE_COLOR: Record<string, string> = {
   complete: 'bg-emerald-100 text-emerald-700',
   partial:  'bg-amber-100 text-amber-700',
-  mention_only: 'bg-gray-100 text-gray-500',
+  mention_only: 'bg-gray-100 text-gray-600',
 };
 
 function StoryLink({ story: sr, isRtl, color }: { story: StoryRef; isRtl: boolean; color: 'violet' | 'blue' | 'purple' }) {
@@ -353,7 +353,7 @@ function StoryLink({ story: sr, isRtl, color }: { story: StoryRef; isRtl: boolea
       </span>
       {sr.coverage && (
         <span className={clsx('shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium',
-          COVERAGE_COLOR[sr.coverage] ?? 'bg-gray-100 text-gray-400'
+          COVERAGE_COLOR[sr.coverage] ?? 'bg-gray-100 text-gray-600'
         )}>
           {isRtl ? (COVERAGE_AR[sr.coverage] ?? sr.coverage) : sr.coverage.replace('_', ' ')}
         </span>
@@ -378,7 +378,7 @@ function StoriesSection({ dataA, dataB, surahA, surahB, isRtl }: {
   return (
     <div className="mb-6">
       <h3 className={clsx('text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5', isRtl && 'font-arabic')}>
-        <BookOpenText className="w-4 h-4 text-gray-400" />
+        <BookOpenText className="w-4 h-4 text-gray-600" />
         {isRtl ? 'القصص المذكورة في السورتين' : 'Stories in each surah'}
       </h3>
 
@@ -403,7 +403,7 @@ function StoriesSection({ dataA, dataB, surahA, surahB, isRtl }: {
           {onlyA.length ? (
             <ul className="space-y-1">{onlyA.map(sr => <li key={sr.storyId}><StoryLink story={sr} isRtl={isRtl} color="violet" /></li>)}</ul>
           ) : (
-            <p className={clsx('text-xs text-gray-400 italic', isRtl && 'font-arabic')}>
+            <p className={clsx('text-xs text-gray-600 italic', isRtl && 'font-arabic')}>
               {isRtl ? 'كل القصص مشتركة' : 'All stories shared'}
             </p>
           )}
@@ -415,7 +415,7 @@ function StoriesSection({ dataA, dataB, surahA, surahB, isRtl }: {
           {onlyB.length ? (
             <ul className="space-y-1">{onlyB.map(sr => <li key={sr.storyId}><StoryLink story={sr} isRtl={isRtl} color="blue" /></li>)}</ul>
           ) : (
-            <p className={clsx('text-xs text-gray-400 italic', isRtl && 'font-arabic')}>
+            <p className={clsx('text-xs text-gray-600 italic', isRtl && 'font-arabic')}>
               {isRtl ? 'كل القصص مشتركة' : 'All stories shared'}
             </p>
           )}
@@ -486,7 +486,7 @@ function InsightsSection({ dataA, dataB, isRtl }: {
   return (
     <div className="mb-6">
       <h3 className={clsx('text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5', isRtl && 'font-arabic')}>
-        <Layers className="w-4 h-4 text-gray-400" />
+        <Layers className="w-4 h-4 text-gray-600" />
         {isRtl ? 'ملاحظات سريعة' : 'Quick insights'}
       </h3>
       <div className="flex flex-wrap gap-2">
@@ -527,7 +527,7 @@ function MushafPositionSection({ dataA, dataB, surahA, surahB, isRtl }: {
               <span className={clsx('font-semibold', color === 'violet' ? 'text-violet-600' : 'text-blue-600', isRtl && 'font-arabic')}>
                 {isRtl ? data.name?.ar : data.name?.en}
               </span>
-              <span className="text-gray-400">
+              <span className="text-gray-600">
                 {isRtl ? `ص ${data.atlas.pageStart}–${data.atlas.pageEnd}` : `p. ${data.atlas.pageStart}–${data.atlas.pageEnd}`}
               </span>
             </div>
@@ -562,12 +562,12 @@ export function SurahComparePage() {
 
       {/* Header */}
       <div className={clsx('flex items-center gap-3 mb-6')}>
-        <GitCompare className="w-7 h-7 text-violet-500" />
+        <GitCompare className="w-7 h-7 text-violet-700" />
         <div>
           <h1 className={clsx('text-2xl font-bold text-gray-900', isRtl && 'font-arabic')}>
             {isRtl ? 'مقارنة السور' : 'Surah Comparison'}
           </h1>
-          <p className={clsx('text-xs text-gray-400 mt-0.5', isRtl && 'font-arabic')}>
+          <p className={clsx('text-xs text-gray-600 mt-0.5', isRtl && 'font-arabic')}>
             {isRtl ? 'قارن بين أي سورتين جنباً إلى جنب' : 'Compare any two surahs side by side'}
           </p>
         </div>
@@ -576,7 +576,7 @@ export function SurahComparePage() {
       {/* Selectors */}
       <div className={clsx('flex gap-3 mb-6 items-end')}>
         <SurahSelector value={surahA} onChange={setSurahA} isRtl={isRtl} label={isRtl ? 'السورة الأولى' : 'Surah A'} />
-        <div className="flex-shrink-0 text-gray-300 font-bold text-lg pb-3">vs</div>
+        <div className="flex-shrink-0 text-gray-600 font-bold text-lg pb-3">vs</div>
         <SurahSelector value={surahB} onChange={setSurahB} isRtl={isRtl} label={isRtl ? 'السورة الثانية' : 'Surah B'} />
       </div>
 
@@ -591,7 +591,7 @@ export function SurahComparePage() {
             color === 'violet' ? 'bg-violet-50 border-violet-200' : 'bg-blue-50 border-blue-200'
           )}>
             <p className={clsx('text-xs font-semibold uppercase tracking-wide mb-1',
-              color === 'violet' ? 'text-violet-500' : 'text-blue-500',
+              color === 'violet' ? 'text-violet-700' : 'text-blue-700',
               isRtl && 'font-arabic text-right'
             )}>
               {isRtl ? `سورة ${num}` : `Surah ${num}`}
@@ -599,9 +599,9 @@ export function SurahComparePage() {
             <p className={clsx('text-xl font-bold text-gray-900 leading-tight', isRtl ? 'font-arabic text-right' : '')}>
               {isRtl ? data.name?.ar : data.name?.en}
             </p>
-            {!isRtl && <p className="text-xs text-gray-500 font-arabic mt-0.5">{data.name?.ar}</p>}
-            {isRtl  && <p className="text-xs text-gray-500 mt-0.5">{data.name?.en}</p>}
-            <p className={clsx('text-xs text-gray-400 mt-1', isRtl && 'font-arabic text-right')}>
+            {!isRtl && <p className="text-xs text-gray-600 font-arabic mt-0.5">{data.name?.ar}</p>}
+            {isRtl  && <p className="text-xs text-gray-600 mt-0.5">{data.name?.en}</p>}
+            <p className={clsx('text-xs text-gray-600 mt-1', isRtl && 'font-arabic text-right')}>
               {data.atlas?.ayahCount ?? '?'} {isRtl ? 'آية' : 'verses'}
             </p>
             {data.atlas && <AyahBar count={data.atlas.ayahCount} maxCount={MAX_AYAHS} />}
@@ -612,7 +612,7 @@ export function SurahComparePage() {
       {/* Comparison table */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-6">
         <div className="grid grid-cols-3 bg-gray-50 border-b border-gray-100">
-          <div className={clsx('px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide', isRtl && 'text-right font-arabic')}>
+          <div className={clsx('px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide', isRtl && 'text-right font-arabic')}>
             {isRtl ? 'المعيار' : 'Attribute'}
           </div>
           <div className={clsx('px-4 py-3 text-xs font-semibold uppercase tracking-wide text-violet-600', isRtl ? 'text-right font-arabic' : 'text-center')}>
@@ -627,7 +627,7 @@ export function SurahComparePage() {
             'grid grid-cols-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors',
             row.highlight && 'bg-amber-50/40'
           )}>
-            <div className={clsx('px-4 py-3 text-xs font-semibold text-gray-500 flex items-center gap-1', isRtl && 'text-right font-arabic justify-end')}>
+            <div className={clsx('px-4 py-3 text-xs font-semibold text-gray-600 flex items-center gap-1', isRtl && 'text-right font-arabic justify-end')}>
               {!isRtl && row.icon && <row.icon className="w-3 h-3 text-gray-300 shrink-0" />}
               {isRtl ? row.labelAr : row.labelEn}
               {row.highlight && <span className="ms-1 text-amber-500">•</span>}
@@ -688,7 +688,7 @@ export function SurahComparePage() {
             navigator.clipboard?.writeText(url).catch(() => {});
           }}
           className={clsx(
-            'flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2 text-xs text-gray-500 hover:border-violet-300 hover:text-violet-600 transition-colors',
+            'flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2 text-xs text-gray-600 hover:border-violet-300 hover:text-violet-600 transition-colors',
             isRtl && 'font-arabic'
           )}
         >
@@ -697,7 +697,7 @@ export function SurahComparePage() {
         </button>
       </div>
 
-      <p className={clsx('text-[10px] text-gray-300 text-center', isRtl && 'font-arabic')}>
+      <p className={clsx('text-xs text-gray-600 text-center', isRtl && 'font-arabic')}>
         {isRtl
           ? 'البيانات من أطلس السور · ترتيب النزول من رواية ابن عباس · سورة المصحف المصري'
           : 'Data from Surah Atlas · Revelation order per Ibn Abbas · Egyptian Standard Mushaf'}

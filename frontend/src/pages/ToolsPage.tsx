@@ -218,9 +218,9 @@ function ToolCard({ tool, language }: ToolCardProps) {
           <Icon className={clsx('w-6 h-6', colors.icon)} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className={clsx('text-lg font-semibold text-gray-900 group-hover:text-primary-600 mb-1', language === 'ar' && 'font-arabic')}>
+          <h2 className={clsx('text-lg font-semibold text-gray-900 group-hover:text-primary-600 mb-1', language === 'ar' && 'font-arabic')}>
             {name}
-          </h3>
+          </h2>
           <p className={clsx('text-sm text-gray-600', language === 'ar' && 'font-arabic')}>{description}</p>
         </div>
       </div>

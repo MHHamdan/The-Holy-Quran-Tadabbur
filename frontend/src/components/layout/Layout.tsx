@@ -32,7 +32,8 @@ export function Layout({ children }: LayoutProps) {
     <button
       type="button"
       onClick={toggleLanguage}
-      aria-label={t('lang_switch_aria', language)}
+      // The accessible name starts with the visible label (WCAG 2.5.3).
+      aria-label={`${language === 'en' ? 'العربية' : 'English'} — ${t('lang_switch_aria', language)}`}
       className="flex min-h-11 items-center gap-2 rounded-lg bg-primary-700 px-3 py-2.5 text-white transition-colors hover:bg-primary-800 flex-shrink-0"
     >
       <Globe className="h-4 w-4" aria-hidden="true" />

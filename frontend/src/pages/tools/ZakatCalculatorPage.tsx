@@ -721,7 +721,7 @@ const ZakatRecipients = memo(function ZakatRecipients({ isArabic }: ZakatRecipie
     <section aria-label={isArabic ? 'مصارف الزكاة' : 'Zakat Recipients'} className="mb-6">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium focus:outline-none focus:underline"
+        className="flex items-center gap-2 min-h-11 text-emerald-800 hover:text-emerald-900 font-medium focus:outline-none focus:underline"
         aria-expanded={isOpen}
       >
         <HelpCircle className="w-5 h-5" aria-hidden="true" />

@@ -829,7 +829,7 @@ function HijriCalendarPageContent() {
             href="https://aladhan.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-purple-600 hover:underline focus:outline-none focus:underline"
+            className="text-purple-700 underline focus:outline-none"
           >
             AlAdhan API
           </a>

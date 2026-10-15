@@ -281,6 +281,7 @@ export const MORE_SECTIONS: NavSection[] = [
     id: 'reading',
     titleKey: 'more_section_reading',
     items: [
+      ...READ_ITEMS,
       { path: '/bookmarks', icon: Bookmark, title: { ar: 'المحفوظات', en: 'Bookmarks' } },
       { path: '/reading-plan', icon: CalendarCheck, title: { ar: 'خطة الختمة', en: 'Khatmah plan' } },
       { path: '/stats', icon: BarChart2, title: { ar: 'إحصائيات القراءة', en: 'Reading stats' } },
@@ -404,7 +405,6 @@ export function isReaderRoute(pathname: string): boolean {
 export function allNavPaths(): string[] {
   return [
     ...TABS.map((t) => t.to).filter((p): p is string => !!p),
-    ...READ_ITEMS.map((i) => i.path),
     ...EXPLORE_ITEMS.map((i) => i.path),
     ...MEMORISE_ITEMS.map((i) => i.path),
     ...MORE_SECTIONS.flatMap((s) => s.items.map((i) => i.path)),

@@ -332,7 +332,7 @@ export function MosqueFinderPage() {
               </p>
               <button
                 onClick={getUserLocation}
-                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 inline-flex items-center gap-2"
+                className="px-4 py-2 bg-teal-700 text-white rounded-lg hover:bg-teal-800 inline-flex items-center gap-2"
               >
                 <Navigation className="w-4 h-4" />
                 {isArabic ? 'تحديد موقعي' : 'Get My Location'}
@@ -359,7 +359,7 @@ export function MosqueFinderPage() {
               className={clsx(
                 'px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2',
                 selectedType === type.id
-                  ? 'bg-teal-600 text-white'
+                  ? 'bg-teal-700 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               )}
             >
@@ -500,7 +500,7 @@ export function MosqueFinderPage() {
               </button>
               <button
                 onClick={() => openInMaps(selectedPlace)}
-                className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-teal-700 text-white rounded-lg hover:bg-teal-800 flex items-center justify-center gap-2"
               >
                 <Navigation className="w-4 h-4" />
                 {isArabic ? 'الاتجاهات' : 'Directions'}

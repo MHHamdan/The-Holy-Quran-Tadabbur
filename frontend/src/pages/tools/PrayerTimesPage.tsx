@@ -848,7 +848,7 @@ function PrayerTimesPageContent() {
             href="https://aladhan.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary-600 hover:underline focus:underline focus:outline-none"
+            className="text-primary-700 underline focus:outline-none"
           >
             AlAdhan API
           </a>
