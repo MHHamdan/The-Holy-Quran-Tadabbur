@@ -4,16 +4,28 @@
  * There are no accounts, so the device holds the only keys. In order:
  *  1. server copies of guidance sessions / saved reflections (by the session
  *     ids this device created)
- *  1b. server Tasmeeʿ sessions (recognised words and mistakes) this device
- *     created, listed in localStorage under TASMEE_SESSIONS_KEY by useTasmeeWebSocket
- *  2. offline recitation files
- *  3. the scheduled reading reminder
- *  4. every tadabbur* entry in local storage (bookmarks, journal, progress,
+ *  2. server Tasmeeʿ sessions (recognised words and mistakes) this device
+ *     created — deleteRememberedTasmeeSessions() from useTasmeeWebSocket, which
+ *     owns the id/token list
+ *  3. offline recitation files (offlineAudio.clearAll)
+ *  4. the offline Qur'an copy, i.e. the persisted query cache
+ *     (queryClient.clearPersistedQueries)
+ *  5. the scheduled reading reminder
+ *  6. every tadabbur* entry in local storage (bookmarks, journal, progress,
  *     settings, flashcards, search history...)
+ *
+ * Server deletes (1, 2) must run before the localStorage sweep (6): the sweep
+ * would otherwise erase the only record of the ids and tokens they need.
  */
-import { api, therapyApi } from './api';
+import { therapyApi } from './api';
 import { isNativeApp } from './native';
 import { applyReminder, DEFAULT_REMINDER } from './reminders';
+import { clearAll as clearOfflineAudio } from './offlineAudio';
+import { clearPersistedQueries } from './queryClient';
+import {
+  deleteRememberedTasmeeSessions,
+  TASMEE_SESSIONS_STORAGE_KEY,
+} from '../hooks/useTasmeeWebSocket';
 
 function guidanceSessionIds(): string[] {
   try {
@@ -22,42 +34,6 @@ function guidanceSessionIds(): string[] {
   } catch {
     return [];
   }
-}
-
-/** localStorage key where useTasmeeWebSocket (rememberTasmeeSession) records
- *  the Tasmeeʿ sessions this device created: a JSON array of
- *  { id, token, createdAt }. Must stay identical to TASMEE_SESSIONS_STORAGE_KEY
- *  in hooks/useTasmeeWebSocket.ts. */
-export const TASMEE_SESSIONS_KEY = 'tadabbur-tasmee-sessions';
-
-export interface StoredTasmeeSession { id: string; token: string }
-
-export function tasmeeSessions(): StoredTasmeeSession[] {
-  try {
-    const raw = JSON.parse(localStorage.getItem(TASMEE_SESSIONS_KEY) ?? '[]') as unknown;
-    if (!Array.isArray(raw)) return [];
-    return raw
-      .filter((r): r is { id: string; token: string } =>
-        !!r && typeof r === 'object' && typeof (r as { id?: unknown }).id === 'string'
-        && typeof (r as { token?: unknown }).token === 'string')
-      .map(({ id, token }) => ({ id, token }));
-  } catch {
-    return [];
-  }
-}
-
-/** POST /tasmee/sessions/delete with { sessions: [{ id, token }] } in batches
- *  of 200 (the server's limit), then forget the list locally. Throws if any
- *  batch fails, leaving the list in place so the user can retry. */
-export async function deleteTasmeeSessions(): Promise<number> {
-  const rows = tasmeeSessions();
-  let deleted = 0;
-  for (let i = 0; i < rows.length; i += 200) {
-    const res = await api.post<{ deleted: number }>('/tasmee/sessions/delete', { sessions: rows.slice(i, i + 200) });
-    deleted += res.data?.deleted ?? 0;
-  }
-  try { localStorage.removeItem(TASMEE_SESSIONS_KEY); } catch { /* storage unavailable */ }
-  return deleted;
 }
 
 export interface ErasureResult {
@@ -77,31 +53,37 @@ export async function eraseAllMyData(): Promise<ErasureResult> {
     }
   }
 
-  // Must run before the localStorage sweep below, which would otherwise erase
-  // the only record of the tokens needed to delete these server rows.
   let keepTasmeeTokens = false;
   try {
-    serverSessionsDeleted += await deleteTasmeeSessions();
+    serverSessionsDeleted += await deleteRememberedTasmeeSessions();
   } catch {
     serverError = true;
     keepTasmeeTokens = true; // keep the tokens so "Delete my data" can be retried
   }
 
   try {
-    if (isNativeApp) {
+    await clearOfflineAudio();
+  } catch { /* nothing saved */ }
+
+  // Native builds also kept recitations under Data/audio before offlineAudio
+  // moved them; remove that directory too (no-op when it does not exist).
+  if (isNativeApp) {
+    try {
       const { Filesystem, Directory } = await import('@capacitor/filesystem');
       await Filesystem.rmdir({ path: 'audio', directory: Directory.Data, recursive: true }).catch(() => undefined);
-    } else if ('caches' in window) {
-      await caches.delete('tadabbur-audio-v1');
-    }
-  } catch { /* nothing saved */ }
+    } catch { /* plugin unavailable */ }
+  }
+
+  try {
+    await clearPersistedQueries();
+  } catch { /* IndexedDB unavailable */ }
 
   await applyReminder({ ...DEFAULT_REMINDER, enabled: false }, { title: '', body: '' }).catch(() => undefined);
 
   try {
     Object.keys(localStorage)
       .filter((k) => k.startsWith('tadabbur') || k.startsWith('zakat_'))
-      .filter((k) => !(keepTasmeeTokens && k === TASMEE_SESSIONS_KEY))
+      .filter((k) => !(keepTasmeeTokens && k === TASMEE_SESSIONS_STORAGE_KEY))
       .forEach((k) => localStorage.removeItem(k));
   } catch { /* storage unavailable */ }
 
