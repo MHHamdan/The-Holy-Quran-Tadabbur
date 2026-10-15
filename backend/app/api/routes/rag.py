@@ -10,6 +10,7 @@ ERROR HANDLING:
 - Internal details are NEVER exposed to client
 - Correlation IDs enable reproduction of any error
 """
+import asyncio
 from typing import List, Optional, Union
 from datetime import datetime
 import logging
@@ -32,7 +33,6 @@ from app.core.errors import (
     create_error,
 )
 from app.rag.pipeline import RAGPipeline
-from app.rag.llm_provider import llm_configured
 from app.rag.agents.orchestrator import AgenticRAGOrchestrator
 from app.rag.types import QueryIntent, RelatedVerse, TafsirExplanation
 from app.services.redis_cache import RedisCache
@@ -80,6 +80,17 @@ def make_rag_cache_key(request: "AskRequest") -> str:
     key_hash = hashlib.sha256(key_string.encode()).hexdigest()[:32]
 
     return f"ask:{key_hash}"
+
+
+async def _store_turn(conv_service, session_id: str, question: str, answer: str, verse_refs: List[str]):
+    """Append the user's question and the answer to their own session."""
+    await conv_service.add_message(
+        session_id=session_id, role="user", content=question, verses_referenced=[],
+    )
+    await conv_service.add_message(
+        session_id=session_id, role="assistant", content=(answer or "")[:500],
+        verses_referenced=verse_refs,
+    )
 
 
 # Request/Response schemas
@@ -214,6 +225,9 @@ class GroundedResponse(BaseModel):
     evidence: List[EvidenceChunk] = []
     # Cache indicator
     cached: bool = False
+    # Correlation id of this request (never reused across requests)
+    request_id: Optional[str] = None
+    error_id: Optional[str] = None
     # API version for compatibility
     api_version: Optional[str] = None
     # Phase-2: explicit status and answer language
@@ -285,45 +299,13 @@ async def ask_question(
     ctx = RAGRequestContext.create(request.question, request.language)
     logger.info(f"RAG request [{ctx.correlation_id}]: language={request.language}, sources={len(request.preferred_sources)}")
 
-    # Check cache first for faster responses
     cache_key = make_rag_cache_key(request)
     rag_cache = get_rag_cache()
 
     try:
-        cached_response = await rag_cache.get(cache_key)
-        if cached_response:
-            logger.info(f"RAG cache HIT [{ctx.correlation_id}]: returning cached response")
-            # Add cache indicator to response
-            cached_response["cached"] = True
-            cached_response["request_id"] = ctx.correlation_id
-            cached_response["processing_time_ms"] = 0  # Instant from cache
-            return cached_response
-    except Exception as e:
-        logger.warning(f"RAG cache check failed [{ctx.correlation_id}]: {e}")
-        # Continue without cache on error
-
-    logger.info(f"RAG cache MISS [{ctx.correlation_id}]: processing query")
-
-    # Hugging Face must be configured server side. No network probe here:
-    # availability, quota and timeouts are handled per request by the pipeline.
-    if not llm_configured():
-        error = create_error(
-            ErrorCode.CONFIGURATION_ERROR,
-            ctx.correlation_id,
-            internal_details="HF_TOKEN not configured on the server",
-        )
-        error.log(ctx.question_hash)
-        return JSONResponse(
-            status_code=503,
-            content=error.to_response(request.language)
-        )
-
-    try:
-        # Initialize RAG pipeline
-        pipeline = RAGPipeline(session)
-        ctx.llm_provider = pipeline.llm_provider
-
-        # Get or create conversation session for chat continuity
+        # Get or create the caller's own conversation session. This happens
+        # before the cache lookup so a cached answer is never served with
+        # another user's session.
         conv_service = get_conversation_service()
         conv_session = await conv_service.get_or_create_session(
             session_id=request.session_id,
@@ -331,14 +313,43 @@ async def ask_question(
             preferred_sources=request.preferred_sources,
         )
 
-        # Get conversation context for follow-up questions
+        # Conversation context for follow-up questions
         conversation_context = None
         if conv_session.messages:
             conversation_context = conv_session.get_context_for_llm(max_messages=4)
 
+        # The cache is keyed on the question alone, so it is only used for
+        # context-free questions.
+        if conversation_context is None:
+            cached_response = None
+            try:
+                cached_response = await rag_cache.get(cache_key)
+            except Exception as e:  # noqa: BLE001 - continue without cache
+                logger.warning(f"RAG cache check failed [{ctx.correlation_id}]: {e}")
+            if cached_response:
+                logger.info(f"RAG cache HIT [{ctx.correlation_id}]")
+                response = dict(cached_response)
+                response["cached"] = True
+                response["session_id"] = conv_session.session_id
+                response["request_id"] = ctx.correlation_id
+                response.pop("error_id", None)
+                response["processing_time_ms"] = 0
+                await _store_turn(
+                    conv_service, conv_session.session_id, request.question,
+                    response.get("answer") or "",
+                    [v.get("verse_reference") for v in response.get("related_verses") or []
+                     if isinstance(v, dict) and v.get("verse_reference")],
+                )
+                return response
+
+        logger.info(f"RAG cache MISS [{ctx.correlation_id}]: processing query")
+
+        # Initialize RAG pipeline
+        pipeline = RAGPipeline(session)
+        ctx.llm_provider = pipeline.llm_provider
+
         # Process query with session context (60s hard timeout)
-        import asyncio as _asyncio
-        result = await _asyncio.wait_for(
+        result = await asyncio.wait_for(
             pipeline.query(
                 question=request.question,
                 language=request.language,
@@ -352,21 +363,8 @@ async def ask_question(
         )
 
         # Store conversation messages
-        # Extract verse references from related_verses
         verse_refs = [v.verse_reference for v in result.related_verses] if result.related_verses else []
-
-        await conv_service.add_message(
-            session_id=conv_session.session_id,
-            role="user",
-            content=request.question,
-            verses_referenced=[],
-        )
-        await conv_service.add_message(
-            session_id=conv_session.session_id,
-            role="assistant",
-            content=result.answer[:500],  # Truncate for storage
-            verses_referenced=verse_refs,
-        )
+        await _store_turn(conv_service, conv_session.session_id, request.question, result.answer, verse_refs)
 
         # Update context with stats
         ctx.retrieval_chunk_count = result.evidence_chunk_count
@@ -406,17 +404,22 @@ async def ask_question(
             # Machine-readable reason so clients can show a quota/outage state.
             response_dict["error_code"] = (result.warnings or ["ai_unavailable"])[0]
 
-        # Cache successful responses with good confidence
-        if result.confidence >= 0.3:  # Only cache meaningful responses
+        # Cache meaningful, context-free responses. Per-request identifiers
+        # are stripped so a cache hit can never hand them to another user.
+        if result.confidence >= 0.3 and conversation_context is None:
             try:
-                await rag_cache.set(cache_key, response_dict, ttl=3600)  # 1 hour TTL
+                cacheable = {
+                    k: v for k, v in response_dict.items()
+                    if k not in ("session_id", "request_id", "error_id")
+                }
+                await rag_cache.set(cache_key, cacheable, ttl=3600)  # 1 hour TTL
                 logger.info(f"RAG cache STORED [{ctx.correlation_id}]: confidence={result.confidence:.2f}")
             except Exception as e:
                 logger.warning(f"RAG cache store failed [{ctx.correlation_id}]: {e}")
 
         return response_dict
 
-    except _asyncio.TimeoutError:
+    except asyncio.TimeoutError:
         error = create_error(
             ErrorCode.TIMEOUT,
             ctx.correlation_id,
