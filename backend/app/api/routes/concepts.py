@@ -402,6 +402,12 @@ async def get_concept_associations(
 
     associations = [a for a in associations if include_derived or _derivation(a) != "co_occurrence"]
 
+    def _sufficient(a) -> bool:
+        return bool(a.has_sufficient_evidence) and _has_ayah_refs(a)
+
+    # The explanation is an app-authored claim about the relation: it is only
+    # served when the association cites an ayah reference (analytical study
+    # aid, not tafsir). The relation label itself stays, marked unverified.
     return [
         AssociationResponse(
             id=a.id,
@@ -416,9 +422,9 @@ async def get_concept_associations(
             relation_label_en=a.relation_label_en,
             is_directional=a.is_directional,
             strength=a.strength,
-            explanation_ar=a.explanation_ar,
-            explanation_en=a.explanation_en,
-            has_sufficient_evidence=bool(a.has_sufficient_evidence) and _has_ayah_refs(a),
+            explanation_ar=a.explanation_ar if _sufficient(a) else None,
+            explanation_en=a.explanation_en if _sufficient(a) else None,
+            has_sufficient_evidence=_sufficient(a),
             derivation=_derivation(a),
         )
         for a in associations

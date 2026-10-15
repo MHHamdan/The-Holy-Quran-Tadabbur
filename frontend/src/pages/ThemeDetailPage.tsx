@@ -14,6 +14,8 @@ import {
 } from '../lib/api';
 import clsx from 'clsx';
 import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { AnalyticalStudyAidNotice } from '../components/tafsir/AnalyticalStudyAidNotice';
+import { getSourceById } from '../data/sourceRegistry';
 
 // Sura names mapping (Arabic)
 const SURA_NAMES_AR: Record<number, string> = {
@@ -326,6 +328,7 @@ export function ThemeDetailPage() {
             {description && (
               <p className="text-gray-600 text-lg">{description}</p>
             )}
+            <AnalyticalStudyAidNotice language={language} className="mt-3" />
           </div>
 
           {/* Stats */}
@@ -1007,7 +1010,15 @@ function SegmentCard({ segment, language, themeId, verseText }: { segment: Theme
         </div>
       )}
 
-      <p className="text-gray-600 text-sm">{replaceSuraNumberWithName(summary, language)}</p>
+      {summary ? (
+        <p className="text-gray-600 text-sm">{replaceSuraNumberWithName(summary, language)}</p>
+      ) : (
+        <p className={clsx('text-gray-400 text-xs italic', language === 'ar' && 'font-arabic')} dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          {language === 'ar'
+            ? 'لا يُعرض ملخص لهذا المقطع: لا يستند إلى مصدر تفسير موثّق.'
+            : 'No summary is shown for this passage: it does not cite a verified tafsir source.'}
+        </p>
+      )}
 
       {/* Reasons (from discovery) */}
       {reasons && reasons !== summary && (
@@ -1020,18 +1031,33 @@ function SegmentCard({ segment, language, themeId, verseText }: { segment: Theme
           <h5 className="font-medium text-sm mb-2">
             {language === 'ar' ? 'لماذا ينتمي هذا النص للمحور؟' : 'Why does this verse belong to this theme?'}
           </h5>
-          <p className="text-sm text-gray-700 mb-3 font-arabic">{evidence.reasons_ar}</p>
+          {evidence.reasons_ar && (
+            <p className="text-sm text-gray-700 mb-3 font-arabic" dir="rtl">{evidence.reasons_ar}</p>
+          )}
           {evidence.evidence_sources && evidence.evidence_sources.length > 0 && (
             <div className="space-y-2">
               <h6 className="text-xs font-medium text-gray-500">
-                {language === 'ar' ? 'دليل التفسير:' : 'Tafsir Evidence:'}
+                {language === 'ar' ? 'مصادر التفسير المشار إليها:' : 'Tafsir sources cited:'}
               </h6>
-              {evidence.evidence_sources.slice(0, 2).map((ev, i) => (
-                <div key={i} className="text-xs bg-white rounded p-2 border">
-                  <span className="font-medium text-primary-600">{ev.source_id.replace('_ar', '')}</span>
-                  <p className="text-gray-600 mt-1 font-arabic line-clamp-2">{ev.snippet}</p>
-                </div>
-              ))}
+              {(evidence.evidence_sources as Array<{ source_id: string; reference?: string }>).slice(0, 3).map((ev, i) => {
+                // Only a reference is shown (source + verse), never quoted
+                // text: the passage itself is read on the comparison page.
+                const src = getSourceById(ev.source_id);
+                const ref = ev.reference && /^\d{1,3}:\d{1,3}/.test(ev.reference) ? ev.reference.split('-')[0] : null;
+                return (
+                  <div key={i} className="text-xs bg-white rounded p-2 border flex items-center justify-between gap-2 flex-wrap">
+                    <span className="font-medium text-primary-700" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                      {src ? (language === 'ar' ? src.titleArabic : src.titleEnglish) : ev.source_id}
+                      {ev.reference && <bdi dir="ltr" className="ms-1 font-mono text-gray-500">{ev.reference}</bdi>}
+                    </span>
+                    {ref && (
+                      <Link to={`/tafsir/compare/${ref.replace(':', '/')}`} className="text-primary-600 hover:underline">
+                        {language === 'ar' ? 'اقرأ التفسير' : 'Read the tafsir'}
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
