@@ -4,7 +4,6 @@ Comprehensive tests for Quranic miracles with tafsir from four Sunni madhabs
 """
 import pytest
 import sys
-sys.path.insert(0, '/home/mhamdan/tadabbur/backend')
 
 from app.services.miracles_service import (
     MiraclesService,

@@ -33,6 +33,7 @@ from threading import Lock
 from typing import Callable, Optional
 
 from fastapi import Request, HTTPException
+from starlette.requests import HTTPConnection
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ _SWEEP_EVERY = 1000
 _REDIS_RETRY_SECONDS = 30.0
 
 
-def _get_client_ip(request: Request) -> str:
+def _get_client_ip(request: HTTPConnection) -> str:
     """
     The client IP as seen by the ASGI server.
 
@@ -195,9 +196,12 @@ class _RedisWindow:
 _shared = _RedisWindow()
 
 
-async def enforce(limiter: InMemoryRateLimiter, request: Request, label: str) -> None:
-    """Count one request against ``limiter`` and raise 429 when over the limit."""
-    ip = _get_client_ip(request)
+async def check(limiter: InMemoryRateLimiter, conn: HTTPConnection, label: str) -> bool:
+    """Count one request against ``limiter``; False when over the limit.
+
+    Works for both HTTP requests and WebSockets (which cannot take a 429).
+    """
+    ip = _get_client_ip(conn)
     allowed: Optional[bool] = None
     if _shared.enabled():
         allowed = await _shared.is_allowed(limiter, ip)
@@ -206,6 +210,12 @@ async def enforce(limiter: InMemoryRateLimiter, request: Request, label: str) ->
     if not allowed:
         # No client IP in the log line (privacy policy).
         logger.warning("%s rate limit exceeded", label)
+    return allowed
+
+
+async def enforce(limiter: InMemoryRateLimiter, request: Request, label: str) -> None:
+    """Count one request against ``limiter`` and raise 429 when over the limit."""
+    if not await check(limiter, request, label):
         raise _make_429_response(request)
 
 

@@ -6,7 +6,7 @@ Links occurrences to relevant tafseer chunks from the four Sunni madhabs.
 """
 import asyncio
 import sys
-sys.path.insert(0, '/home/mhamdan/tadabbur/backend')
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parents[2]))
 
 from sqlalchemy import text
 from app.db.database import AsyncSessionLocal

@@ -227,9 +227,9 @@ class TafseerChunk(Base):
     verse_end = relationship("QuranVerse", foreign_keys=[verse_end_id])
 
     __table_args__ = (
-        Index("ix_chunk_source", "source_id"),
+        # ix_chunk_source and ix_chunk_sura duplicated the index=True column
+        # indexes and were dropped (migration ws4b2c3d4e5f6).
         Index("ix_chunk_verse_range", "verse_start_id", "verse_end_id"),
-        Index("ix_chunk_sura", "sura_no"),
         # Composite index for direct verse lookup (sura_no, aya_start, aya_end)
         # — used by _direct_verse_lookup() in the fast-path RAG pipeline.
         Index("ix_chunk_sura_aya", "sura_no", "aya_start", "aya_end"),

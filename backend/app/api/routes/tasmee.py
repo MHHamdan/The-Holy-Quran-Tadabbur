@@ -41,7 +41,6 @@ from fastapi import (
     Header,
     HTTPException,
     Query,
-    Request,
     UploadFile,
     WebSocket,
     WebSocketDisconnect,
@@ -53,7 +52,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.hf_client import HFErrorKind, HFInferenceError
 from app.core.config import settings
-from app.core.rate_limit import InMemoryRateLimiter, _get_client_ip, _make_429_response
+from app.core.rate_limit import _stt_limiter, check as rate_limit_check, stt_rate_limit
 from app.db.database import get_async_session
 from app.models.quran import QuranVerse
 from app.models.tasmee import (
@@ -111,17 +110,9 @@ _TAP_COUNTS = {1, 3}
 _UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
 # Every call that can reach the paid speech-to-text service (session create,
-# WebSocket connect, single-file transcribe) shares this per-IP budget.
-# (WS1 exports an equivalent `stt_rate_limit` from app.core.rate_limit; the
-# integrator may swap this local instance for it.)
-_tasmee_limiter = InMemoryRateLimiter(max_requests=10, window_seconds=60)
-
-
-async def tasmee_rate_limit(request: Request) -> None:
-    """Dependency: 10 STT-consuming requests per minute per client IP."""
-    allowed, _ = _tasmee_limiter.is_allowed(_get_client_ip(request))
-    if not allowed:
-        raise _make_429_response(request)
+# WebSocket connect, single-file transcribe) shares the app-wide STT budget
+# (app.core.rate_limit.stt_rate_limit / _stt_limiter: 10 per minute per
+# client, Redis-shared when RATE_LIMIT_BACKEND=redis).
 
 
 def _hash_token(token: str) -> str:
@@ -327,7 +318,7 @@ def _clamp_count(value, default: int) -> int:
     "/sessions",
     response_model=SessionResponse,
     tags=["Sessions"],
-    dependencies=[Depends(tasmee_rate_limit)],
+    dependencies=[Depends(stt_rate_limit)],
 )
 async def create_session(
     request: SessionCreateRequest,
@@ -521,7 +512,7 @@ async def complete_session(
     "/transcribe",
     response_model=TranscriptionResponse,
     tags=["Transcription"],
-    dependencies=[Depends(tasmee_rate_limit)],
+    dependencies=[Depends(stt_rate_limit)],
 )
 async def transcribe_audio(
     session_id: str,
@@ -673,8 +664,7 @@ async def websocket_transcription(
     """
     await websocket.accept()
 
-    allowed, _ = _tasmee_limiter.is_allowed(_get_client_ip(websocket))  # type: ignore[arg-type]
-    if not allowed:
+    if not await rate_limit_check(_stt_limiter, websocket, "STT"):
         await _ws_close(websocket, WS_CLOSE_RATE_LIMITED, "rate_limited")
         return
 

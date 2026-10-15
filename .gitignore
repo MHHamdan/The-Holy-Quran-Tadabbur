@@ -35,6 +35,8 @@ build/
 data/*
 !data/manifests/
 !data/concepts/
+# Owner/scholar review queues (small, policy decisions; never rendered).
+!data/review/
 # The Quran text itself is tracked so the integrity validator can run on a
 # fresh clone; the 123 MB of tafsir corpora beside it are not.
 !data/raw/
@@ -78,19 +80,15 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Database backups
-*.sql
-*_backup/
-*_backup.rdb
-tadabbur_backup*
-qdrant_backup/
-surrealdb_backup/
-redis_backup.rdb
-
 # ============================
-# Database backups & dumps
+# Database backups & dumps (never commit; scripts/ops/backup_prod.sh writes
+# outside the repo). Add a `!path/to/file.sql` line if a schema file must be
+# tracked.
 # ============================
 *.sql
+*.sql.gz
+*.dump
+*.pgdump
 *_backup/
 *_backup.rdb
 tadabbur_backup*

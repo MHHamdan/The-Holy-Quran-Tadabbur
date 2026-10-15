@@ -3,7 +3,6 @@ Tests for Enhanced Alatlas Service Features
 """
 import pytest
 import sys
-sys.path.insert(0, '/home/mhamdan/tadabbur/backend')
 
 from app.services.alatlas_service import AltlasService
 

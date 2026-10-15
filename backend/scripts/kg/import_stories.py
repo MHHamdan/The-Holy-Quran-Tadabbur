@@ -107,7 +107,7 @@ async def main():
     except ImportError as e:
         print(f"❌ Import error: {e}")
         print("\n💡 Make sure you're running from the backend directory:")
-        print("   cd /home/mhamdan/tadabbur/backend")
+        print("   cd backend")
         print("   PYTHONPATH=. python scripts/kg/import_stories.py")
         return 1
     except Exception as e:

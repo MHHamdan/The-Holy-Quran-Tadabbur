@@ -252,13 +252,10 @@ def _reset_rate_limiters():
     request counts from earlier modules can exhaust the limit for later tests.
     """
     try:
-        from app.core.rate_limit import (
-            _rag_limiter, _search_limiter, _vocab_limiter,
-            _admin_decision_limiter, _feedback_limiter, _therapy_limiter,
-        )
-        for lim in (_rag_limiter, _search_limiter, _vocab_limiter,
-                    _admin_decision_limiter, _feedback_limiter, _therapy_limiter):
-            lim.reset()
+        # Every InMemoryRateLimiter registers itself, including per-router
+        # ones (stt, duas, resolve, dhikr, ...).
+        from app.core.rate_limit import reset_all_limiters
+        reset_all_limiters()
     except Exception:
         pass
     yield

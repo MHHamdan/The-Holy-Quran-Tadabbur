@@ -25,6 +25,7 @@ from app.core.admin_auth import require_admin_api_key
 from app.db.database import get_async_session
 from app.core.config import settings
 from app.rag.llm_provider import llm_configured
+from app.ai.hf_client import hf_cooldown_state
 from app.core.observability import metrics
 
 router = APIRouter()
@@ -473,13 +474,19 @@ async def rag_health_check(
 
     # Check LLM API configuration (don't reveal key)
     if llm_configured():
+        # A quota/rate-limit/auth cooldown means HF calls are being refused
+        # locally right now even though a token is configured.
+        cooldown = hf_cooldown_state()
         rag_status["checks"]["llm_api"] = {
-            "status": "pass",
+            "status": "warn" if cooldown["active"] else "pass",
             "provider": "huggingface",
             "model": settings.hf_llm_model,
             "routing": settings.hf_llm_provider,
             "configured": True,
+            "cooldown": cooldown,
         }
+        if cooldown["active"]:
+            rag_status["status"] = "degraded"
     else:
         rag_status["checks"]["llm_api"] = {
             "status": "warn",

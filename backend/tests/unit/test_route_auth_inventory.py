@@ -13,10 +13,11 @@ carry an admin dependency somewhere in its dependency tree:
 Ordinary user actions that only match the pattern by name are listed in
 USER_ACTIONS with the reason they are public.
 
-PENDING lists routes owned by other workstreams (quran.py: WS4, rag.py: WS2)
-that still lack an admin dependency. Each is a strict xfail: when the owner
-adds the dependency the case XPASSes, the suite fails, and the entry must be
-deleted here. The list may only shrink.
+MUST_BE_ADMIN pins the routes that were anonymous before round 1 and are now
+admin-only (quran.py cache/atlas/miracles admin, rag.py cache clear).
+REMOVED pins the anonymous moderation routes deleted as dead code (annotation
+review, expert endorse/peer-review/verify, atlas story update); re-adding any
+of them must come with an admin dependency.
 """
 import re
 
@@ -34,26 +35,25 @@ USER_ACTIONS = {
         "readers report a content problem; rate limited (feedback_rate_limit), size-capped",
     ("POST", "/api/v1/quran/memorization/record-review"):
         "a reader's own memorisation review (spaced repetition)",
-    ("POST", "/api/v1/quran/learning/review/add"):
-        "a reader adds a verse to their own review list",
-    ("POST", "/api/v1/quran/learning/review/submit"):
-        "a reader submits their own review answer",
-    ("POST", "/api/v1/quran/learning/sm2-review"):
-        "a reader's own SM-2 review step",
 }
 
-# Owned by other workstreams; must gain an admin dependency (see module doc).
-PENDING = {
-    ("POST", "/api/v1/quran/cache/cleanup"): "WS4",
-    ("DELETE", "/api/v1/quran/cache/user/{user_id}"): "WS4",
-    ("POST", "/api/v1/quran/annotations/{annotation_id}/review"): "WS4",
-    ("POST", "/api/v1/quran/expert/scholars/{scholar_id}/verify"): "WS4",
-    ("POST", "/api/v1/quran/expert/peer-review/{annotation_id}"): "WS4",
-    ("POST", "/api/v1/quran/expert/endorse/{annotation_id}"): "WS4",
-    ("POST", "/api/v1/quran/atlas/stories/{story_id}/update"): "WS4",
-    ("DELETE", "/api/v1/quran/atlas/cache"): "WS4",
-    ("POST", "/api/v1/quran/miracles/admin/review-feedback"): "WS4",
-    ("DELETE", "/api/v1/rag/cache/clear"): "WS2",
+# Were anonymous before round 1; must keep an admin dependency.
+MUST_BE_ADMIN = {
+    ("POST", "/api/v1/quran/cache/cleanup"),
+    ("DELETE", "/api/v1/quran/cache/user/{user_id}"),
+    ("DELETE", "/api/v1/quran/atlas/cache"),
+    ("POST", "/api/v1/quran/miracles/admin/review-feedback"),
+    ("DELETE", "/api/v1/rag/cache/clear"),
+}
+
+# Anonymous moderation routes deleted as dead code; they must not return
+# without an admin dependency.
+REMOVED = {
+    ("POST", "/api/v1/quran/annotations/{annotation_id}/review"),
+    ("POST", "/api/v1/quran/expert/scholars/{scholar_id}/verify"),
+    ("POST", "/api/v1/quran/expert/peer-review/{annotation_id}"),
+    ("POST", "/api/v1/quran/expert/endorse/{annotation_id}"),
+    ("POST", "/api/v1/quran/atlas/stories/{story_id}/update"),
 }
 
 
@@ -89,18 +89,20 @@ def test_inventory_finds_routes():
 def test_sensitive_mutations_require_an_admin_dependency():
     missing = [
         f"{m} {p}" for (m, p) in ROUTES
-        if (m, p) not in USER_ACTIONS and (m, p) not in PENDING and not _has_admin((m, p))
+        if (m, p) not in USER_ACTIONS and not _has_admin((m, p))
     ]
     assert not missing, "state-changing admin-looking routes without admin auth: " + ", ".join(missing)
 
 
-@pytest.mark.parametrize("key", sorted(PENDING), ids=lambda k: f"{k[0]} {k[1]}")
-def test_pending_routes_from_other_workstreams(key):
-    if key not in ROUTES:
-        pytest.fail(f"{key} no longer exists: delete it from PENDING")
-    if _has_admin(key):
-        pytest.fail(f"{key} now has admin auth ({PENDING[key]} landed): delete it from PENDING")
-    pytest.xfail(f"awaiting {PENDING[key]}: add an admin dependency")
+@pytest.mark.parametrize("key", sorted(MUST_BE_ADMIN), ids=lambda k: f"{k[0]} {k[1]}")
+def test_formerly_anonymous_routes_require_admin(key):
+    assert key in ROUTES, f"{key} no longer exists: delete it from MUST_BE_ADMIN"
+    assert _has_admin(key), f"{key} lost its admin dependency"
+
+
+@pytest.mark.parametrize("key", sorted(REMOVED), ids=lambda k: f"{k[0]} {k[1]}")
+def test_removed_moderation_routes_stay_removed_or_admin(key):
+    assert key not in ROUTES or _has_admin(key)
 
 
 def test_user_action_allowlist_is_current():

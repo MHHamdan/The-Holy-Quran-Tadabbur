@@ -3,7 +3,6 @@ Tests for Alatlas Service - Quranic Stories Atlas with Arabic Classification
 """
 import pytest
 import sys
-sys.path.insert(0, '/home/mhamdan/tadabbur/backend')
 
 from app.services.alatlas_service import AltlasService, StoryCategory, StoryTheme
 
