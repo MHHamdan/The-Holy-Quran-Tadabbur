@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { toUserWarnings } from '../utils/userWarnings';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import { topicLabel } from '../components/stories/storyLabels';
 
 const API = apiUrl('/api/v1/quranic-calls');
@@ -1176,6 +1177,7 @@ export default function QuranicCallsAtlasPage() {
             )}
           </div>
         )}
+        <QuranTextAttribution language={isRtl ? 'ar' : 'en'} className="mt-6" />
       </div>
 
       {/* ── DETAIL MODAL ─────────────────────────────────────────────────── */}

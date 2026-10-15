@@ -76,7 +76,20 @@ const RULES: Array<[RegExp, UserWarningCode]> = [
   [/review|sign-off|verify|needs_review|requires|pending|مراجعة/i, 'pending_review'],
 ];
 
+/** Developer notes with no user-facing meaning; always dropped. */
+const INTERNAL_ONLY: RegExp[] = [
+  /only curated for .* in this release/i,
+  /^missing_story_page:/i,
+  /deferred to a future scan/i,
+  /exposed via `divineNameAllah`/i,
+];
+
+export function isInternalWarning(warning: string): boolean {
+  return INTERNAL_ONLY.some((re) => re.test(warning));
+}
+
 export function classifyWarning(warning: string): UserWarningCode | null {
+  if (isInternalWarning(warning)) return null;
   for (const [re, code] of RULES) if (re.test(warning)) return code;
   return null;
 }

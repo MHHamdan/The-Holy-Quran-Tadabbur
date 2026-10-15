@@ -37,6 +37,8 @@ import {
 } from '../lib/api';
 import { ErrorPanel, parseAPIError, DataIncompleteNotice, APIErrorData, ConceptDetailSkeleton } from '../components/common';
 import clsx from 'clsx';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { ProvenanceLabel } from '../components/common/ProvenanceLabel';
 
 // Enhanced type configuration with gradients
 const TYPE_CONFIG: Record<string, {
@@ -734,6 +736,7 @@ function OccurrencesTab({
             </div>
           );
         })}
+        <QuranTextAttribution language={language} className="mt-3" />
       </div>
     </div>
   );
@@ -997,8 +1000,16 @@ function AssociationsTab({
                         : (TYPE_CONFIG[assoc.other_concept_type]?.label.en || assoc.other_concept_type)}
                     </p>
                   </div>
-                  {assoc.has_sufficient_evidence && (
+                  {/* Only a relation that cites an ayah gets a check mark;
+                      co-occurrence / curated pairings are labelled instead. */}
+                  {assoc.has_sufficient_evidence ? (
                     <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  ) : (
+                    <ProvenanceLabel
+                      kind={(assoc as { derivation?: string }).derivation === 'co_occurrence' ? 'auto_detected' : 'analytical'}
+                      language={language}
+                      compact
+                    />
                   )}
                 </Link>
               );

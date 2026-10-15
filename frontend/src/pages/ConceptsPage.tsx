@@ -272,12 +272,6 @@ export function ConceptsPage() {
                   {isArabic ? 'تصنيف' : 'Categories'}
                 </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold">{curatedConcepts.length}+</div>
-                <div className={clsx('text-emerald-200 text-xs sm:text-sm', isArabic && 'font-arabic')}>
-                  {isArabic ? 'محقق' : 'Verified'}
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -407,7 +401,7 @@ export function ConceptsPage() {
                 "text-xs sm:text-sm text-gray-500",
                 isArabic && "font-arabic"
               )}>
-                {isArabic ? 'محتوى موثّق' : 'Verified content'}
+                {isArabic ? 'مختارات بانتظار المراجعة العلمية' : 'Curated selection, awaiting scholarly review'}
               </span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">

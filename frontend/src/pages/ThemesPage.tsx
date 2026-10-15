@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Tag, ArrowRight, Layers, BookMarked, Star, ChevronDown, ChevronUp, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import { BookOpen, Tag, ArrowRight, Layers, BookMarked, Star, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
-import { themesApi, quranApi, QuranicTheme, ThemeCategory, AllahNameResponse, ALLAH_NAME_CATEGORIES } from '../lib/api';
+import { themesApi, quranApi, asmaApi, QuranicTheme, ThemeCategory, AllahNameResponse, ALLAH_NAME_CATEGORIES } from '../lib/api';
 import clsx from 'clsx';
 
 type ActiveTab = 'themes' | 'allah-names';
@@ -99,6 +99,12 @@ function ThemesTab({ language }: { language: 'ar' | 'en' }) {
 
   const allCategories = [allCategory, ...categories];
 
+  // 44 of 50 themes have no verse segments yet; they are listed in a
+  // collapsed "In preparation" group without detail links instead of
+  // leading to empty pages.
+  const readyThemes = themes.filter((th) => (th.segment_count ?? 0) > 0);
+  const preparingThemes = themes.filter((th) => (th.segment_count ?? 0) === 0);
+
   return (
     <>
       {/* Header */}
@@ -148,11 +154,39 @@ function ThemesTab({ language }: { language: 'ar' | 'en' }) {
           </p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {themes.map((theme) => (
-            <ThemeCard key={theme.id} theme={theme} language={language} />
-          ))}
-        </div>
+        <>
+          {readyThemes.length > 0 && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {readyThemes.map((theme) => (
+                <ThemeCard key={theme.id} theme={theme} language={language} />
+              ))}
+            </div>
+          )}
+          {preparingThemes.length > 0 && (
+            <details className="mt-8 card bg-gray-50">
+              <summary className={clsx('cursor-pointer text-sm font-semibold text-gray-700', language === 'ar' && 'font-arabic')}>
+                {language === 'ar'
+                  ? `قيد الإعداد (${preparingThemes.length})`
+                  : `In preparation (${preparingThemes.length})`}
+              </summary>
+              <p className={clsx('mt-2 mb-3 text-xs text-gray-500', language === 'ar' && 'font-arabic')}>
+                {language === 'ar'
+                  ? 'لم تُربط هذه الموضوعات بمقاطع قرآنية بعد، وستُتاح عند اكتمال إعدادها ومراجعتها.'
+                  : 'These themes are not linked to Quranic passages yet; they will open once prepared and reviewed.'}
+              </p>
+              <ul className="flex flex-wrap gap-2">
+                {preparingThemes.map((theme) => (
+                  <li
+                    key={theme.id}
+                    className={clsx('text-xs text-gray-600 bg-white border border-gray-200 rounded-full px-3 py-1', language === 'ar' && 'font-arabic')}
+                  >
+                    {language === 'ar' ? theme.title_ar : theme.title_en}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </>
       )}
     </>
   );
@@ -164,7 +198,6 @@ function ThemesTab({ language }: { language: 'ar' | 'en' }) {
 
 function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [expandedName, setExpandedName] = useState<number | null>(null);
 
   const {
     data: liteData,
@@ -180,6 +213,18 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
   });
 
   const names = liteData?.names ?? [];
+
+  // Resolve each name to its Asma Allah atlas page (sourced occurrences).
+  const { data: asmaList } = useQuery({
+    queryKey: ['asma-list-for-themes'],
+    queryFn: () => asmaApi.list({ limit: 200 }),
+    staleTime: 60 * 60 * 1000,
+  });
+  const asmaIdByKey = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const n of asmaList?.names ?? []) m.set(nameKey(n.transliteration), n.nameId);
+    return m;
+  }, [asmaList]);
 
   const filteredNames = useMemo(
     () =>
@@ -261,10 +306,10 @@ function AllahNamesTab({ language }: { language: 'ar' | 'en' }) {
               key={name.number}
               name={name}
               language={language}
-              isExpanded={expandedName === name.number}
-              onToggle={() =>
-                setExpandedName(expandedName === name.number ? null : name.number)
-              }
+              to={(() => {
+                const id = asmaIdByKey.get(nameKey(name.transliteration));
+                return id ? `/asma-allah/${id}` : '/asma-allah';
+              })()}
               categoryColor={categoryColors[name.category] || 'bg-gray-100 text-gray-700'}
             />
           ))}
@@ -509,59 +554,54 @@ function AllahNamesSkeleton() {
 interface AllahNameCardProps {
   name: AllahNameResponse;
   language: 'ar' | 'en';
-  isExpanded: boolean;
-  onToggle: () => void;
+  to: string;
   categoryColor: string;
 }
 
-function AllahNameCard({ name, language, isExpanded, onToggle, categoryColor }: AllahNameCardProps) {
+/** Normalise a transliteration so "Ar-Rahman" / "Al-Rahman" / "ar rahman" match. */
+function nameKey(transliteration: string): string {
+  return (transliteration || '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '')
+    .replace(/^(al|ar|as|at|ad|az|an|ash|adh|ath|aj|ak|ab|aw|ay|am|af|ag|aq|ah|al)(?=.)/, '');
+}
+
+/**
+ * One divine name. The long descriptions served by /quran/allah-names have no
+ * per-entry source, so they are not shown here (the Asma Allah atlas withholds
+ * detailed meanings until a verified source exists); the card links to the
+ * name's atlas page instead.
+ */
+function AllahNameCard({ name, language, to, categoryColor }: AllahNameCardProps) {
   const meaning = language === 'ar' ? name.meaning_ar : name.meaning_en;
-  const description = language === 'ar' ? name.description_ar : name.description_en;
   const categoryLabel = language === 'ar' ? name.category_label_ar : name.category_label_en;
 
   return (
-    <div
-      className={clsx(
-        'card transition-all cursor-pointer hover:shadow-md',
-        isExpanded && 'col-span-1 md:col-span-2 lg:col-span-3'
-      )}
-      onClick={onToggle}
-    >
+    <Link to={to} className="card transition-all hover:shadow-md block">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-bold">
             {name.number}
           </span>
           <div>
-            <h3 className="text-2xl font-arabic font-bold text-gray-900">
+            <h3 className="text-2xl font-arabic font-bold text-gray-900" dir="rtl">
               {name.name_ar}
             </h3>
-            <p className="text-sm text-gray-500">{name.transliteration}</p>
+            <p className="text-sm text-gray-500" dir="ltr">{name.transliteration}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <span className={clsx('text-xs font-medium px-2 py-1 rounded', categoryColor)}>
             {categoryLabel}
           </span>
-          {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
+          <ArrowRight className={clsx('w-4 h-4 text-gray-400', language === 'ar' && 'rotate-180')} />
         </div>
       </div>
 
-      <p className="text-gray-600 text-sm mb-2">
+      <p className={clsx('text-gray-600 text-sm mb-2', language === 'ar' && 'font-arabic')} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <span className="font-semibold">{t('allah_names_meaning', language)}:</span> {meaning}
       </p>
-
-      {isExpanded && (
-        <div className="mt-4 pt-4 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
-          <h4 className="font-semibold text-gray-900 mb-2">{t('allah_names_description', language)}</h4>
-          <p className="text-gray-700 leading-relaxed">{description}</p>
-        </div>
-      )}
-    </div>
+    </Link>
   );
 }
 

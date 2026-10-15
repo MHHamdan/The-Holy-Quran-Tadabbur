@@ -14,6 +14,7 @@ import { Search, Map, BookOpen, AlertTriangle, GitCompare } from 'lucide-react';
 import { TIMELINE_BY_SURAH } from '../data/revelationTimeline';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import { SURAH_ATLAS_DATA } from '../data/surahAtlas';
 import { SurahAtlasCard } from '../components/atlas/SurahAtlasCard';
 import type { SurahAtlasFilter, SurahAtlasSortKey } from '../types/surahAtlas';
@@ -238,6 +239,7 @@ export default function SurahAtlasPage() {
             ))}
           </div>
         )}
+        <QuranTextAttribution language={isAr ? 'ar' : 'en'} className="mt-6" />
       </div>
     </div>
   );

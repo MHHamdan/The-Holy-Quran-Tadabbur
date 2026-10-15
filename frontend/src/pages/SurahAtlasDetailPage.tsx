@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import { getSurahAtlasEntry, SURAH_ATLAS_DATA } from '../data/surahAtlas';
 import { SurahAtlasHero } from '../components/atlas/SurahAtlasHero';
 import { ProvenanceLabel } from '../components/common/ProvenanceLabel';
@@ -420,6 +421,7 @@ export default function SurahAtlasDetailPage() {
             </Link>
           ) : <div className="flex-1" />}
         </div>
+        <QuranTextAttribution language={isAr ? 'ar' : 'en'} className="mt-4" />
       </div>
     </div>
   );
