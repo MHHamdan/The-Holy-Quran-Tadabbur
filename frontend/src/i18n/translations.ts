@@ -2507,6 +2507,24 @@ export const themeTranslations: Record<string, { ar: string; en: string }> = {
   anger: { ar: 'الغضب', en: 'anger' },
   disbelief: { ar: 'الكفر', en: 'disbelief' },
 
+  // Story and connection theme ids from data/manifests/stories.json that had
+  // no label (they were shown raw, e.g. "first_humans").
+  bani_israel: { ar: 'بنو إسرائيل', en: 'Children of Israel' },
+  bani_israel_disobedience: { ar: 'عصيان بني إسرائيل', en: 'Disobedience of the Children of Israel' },
+  believers_saved: { ar: 'نجاة المؤمنين', en: 'The believers saved' },
+  death: { ar: 'الموت', en: 'death' },
+  first_humans: { ar: 'أوائل البشر', en: 'The first humans' },
+  greed: { ar: 'الطمع', en: 'greed' },
+  kaaba_protection: { ar: 'حماية الكعبة', en: 'Protection of the Kaaba' },
+  miraculous_births: { ar: 'الولادات المعجزة', en: 'Miraculous births' },
+  parental_guidance: { ar: 'توجيه الوالدين', en: 'Parental guidance' },
+  patience_and_prayer: { ar: 'الصبر والصلاة', en: 'Patience and prayer' },
+  prayer: { ar: 'الصلاة والدعاء', en: 'prayer' },
+  prophet_kings: { ar: 'الأنبياء الملوك', en: 'Prophet-kings' },
+  prophetic_lineage: { ar: 'نسب الأنبياء', en: 'Prophetic lineage' },
+  resurrection_proof: { ar: 'دلائل البعث', en: 'Evidence of resurrection' },
+  surah_alkahf_stories: { ar: 'قصص سورة الكهف', en: 'Stories of Surah Al-Kahf' },
+
   // Persona labels
   persona_new_muslim: { ar: 'مسلم جديد', en: 'New Muslim' },
   persona_student: { ar: 'طالب علم', en: 'Student' },

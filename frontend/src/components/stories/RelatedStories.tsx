@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Network, ArrowRight, Users, Tag, BookOpen } from 'lucide-react';
 import { storiesApi, CrossStoryConnection, Story } from '../../lib/api';
-import { Language, translateTheme, translateFigure } from '../../i18n/translations';
+import { Language, translateTheme, translateFigure, themeTranslations } from '../../i18n/translations';
 import { ProvenanceLabel } from '../common/ProvenanceLabel';
 
 /** API also returns the verse refs the connection cites ("S:A-B"). */
@@ -154,7 +154,10 @@ export function RelatedStories({ storyId, storyName, language }: RelatedStoriesP
           const allFigures = new Set<string>();
           const verseRefs = new Set<string>();
           conns.forEach(conn => {
-            conn.shared_themes?.forEach(t => allThemes.add(t));
+            // Only labelled themes are shown: a raw id ("first_humans") never reaches users.
+            conn.shared_themes?.forEach(t => {
+              if (themeTranslations[t.toLowerCase()]) allThemes.add(t);
+            });
             conn.shared_figures?.forEach(f => allFigures.add(f));
             (conn as ConnectionWithRefs).verse_refs?.forEach(r => verseRefs.add(r));
           });
