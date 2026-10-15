@@ -242,6 +242,7 @@ export function IslamicWebSearchPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={handleKeyPress}
+            aria-label={isArabic ? 'ابحث عن مواضيع' : 'Search topics'}
             placeholder={isArabic ? 'ابحث عن مواضيع إسلامية...' : 'Search Islamic topics...'}
             className={clsx(
               'w-full py-4 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
@@ -274,6 +275,7 @@ export function IslamicWebSearchPage() {
           <Filter className="w-4 h-4 text-gray-500" />
           <select
             value={selectedCategory}
+            aria-label={isArabic ? 'التصنيف' : 'Category'}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
           >

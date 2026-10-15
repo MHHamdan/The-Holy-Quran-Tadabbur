@@ -232,6 +232,7 @@ function SurahSelector({ value, onChange, isRtl, label }: {
       <div className="relative">
         <select
           value={value}
+          aria-label={label}
           onChange={e => onChange(Number(e.target.value))}
           className={clsx(
             'w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-800 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100',

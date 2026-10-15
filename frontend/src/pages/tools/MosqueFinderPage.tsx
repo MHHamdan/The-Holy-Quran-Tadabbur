@@ -377,6 +377,7 @@ export function MosqueFinderPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label={isArabic ? 'ابحث عن مكان' : 'Search places'}
               placeholder={isArabic ? 'ابحث عن مكان...' : 'Search places...'}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             />
@@ -385,6 +386,7 @@ export function MosqueFinderPage() {
             <Filter className="w-5 h-5 text-gray-500" />
             <select
               value={radius}
+              aria-label={isArabic ? 'نطاق البحث' : 'Search radius'}
               onChange={(e) => setRadius(Number(e.target.value))}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             >

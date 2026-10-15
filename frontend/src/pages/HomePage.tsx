@@ -9,7 +9,6 @@ import {
   Link2,
   Compass,
   Sparkles,
-  Map,
   Mic,
   BookOpen,
   Wrench,
@@ -38,7 +37,7 @@ import {
   Megaphone,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
-import { t } from '../i18n/translations';
+import { t, translations } from '../i18n/translations';
 import clsx from 'clsx';
 import { VerseOfDayCard } from '../components/home/VerseOfDayCard';
 import { ReadingProgressCard } from '../components/home/ReadingProgressCard';
@@ -75,8 +74,8 @@ const CORE_FEATURES: Feature[] = [
     icon: MessageCircle,
     titleAr: 'مساعد التدبر',
     titleEn: 'Tafsir Assistant',
-    descAr: 'احصل على إجابات مستندة إلى التفاسير الموثقة — ابن كثير وغيره',
-    descEn: 'Get answers grounded in authenticated tafsir sources — Ibn Kathir and others',
+    descAr: translations.home_ask_desc.ar,
+    descEn: translations.home_ask_desc.en,
     link: '/ask',
     color: 'text-blue-700',
     iconBg: 'bg-blue-100',
@@ -103,16 +102,6 @@ const KNOWLEDGE_FEATURES: Feature[] = [
     link: '/stories',
     color: 'text-amber-700',
     iconBg: 'bg-amber-100',
-  },
-  {
-    icon: Map,
-    titleAr: 'أطلس القصص',
-    titleEn: 'Story Atlas',
-    descAr: 'خرائط سردية تربط الأحداث والشخصيات والأزمنة القرآنية',
-    descEn: 'Narrative maps connecting Quranic events, figures, and eras',
-    link: '/story-atlas',
-    color: 'text-teal-700',
-    iconBg: 'bg-teal-100',
   },
   {
     icon: Network,
@@ -201,8 +190,8 @@ const TOOLS_FEATURES: Feature[] = [
     icon: Mic,
     titleAr: 'تسميع القرآن',
     titleEn: 'Memorization (Tasmeeʿ)',
-    descAr: 'راجع حفظك بالتسميع مع التصحيح الفوري بالذكاء الاصطناعي',
-    descEn: 'Test your memorization with AI-powered real-time correction',
+    descAr: translations.home_tasmee_desc.ar,
+    descEn: translations.home_tasmee_desc.en,
     link: '/tasmee',
     color: 'text-pink-700',
     iconBg: 'bg-pink-100',
@@ -221,8 +210,8 @@ const TOOLS_FEATURES: Feature[] = [
     icon: BookOpen,
     titleAr: 'المصادر والمراجع',
     titleEn: 'Sources Registry',
-    descAr: 'مرجع كامل لجميع المصادر المستخدمة في المنصة مع تقييم الموثوقية',
-    descEn: 'Complete registry of all sources used on the platform with reliability ratings',
+    descAr: translations.home_sources_desc.ar,
+    descEn: translations.home_sources_desc.en,
     link: '/sources',
     color: 'text-slate-700',
     iconBg: 'bg-slate-100',
@@ -379,23 +368,13 @@ const TOOLS_FEATURES: Feature[] = [
   },
   {
     icon: Trophy,
-    titleAr: 'اختبار قرآني + ذكاء اصطناعي',
-    titleEn: 'Quranic Quiz + AI',
-    descAr: '44 سؤالاً موثقاً في 6 فئات + توليد أسئلة بالذكاء الاصطناعي لكل سورة — مستند إلى التفسير',
-    descEn: '44 verified questions across 6 categories + AI-generated MCQs for any surah — grounded in tafsir',
+    titleAr: 'اختبار قرآني',
+    titleEn: 'Quranic Quiz',
+    descAr: translations.home_quiz_desc.ar,
+    descEn: translations.home_quiz_desc.en,
     link: '/quiz',
     color: 'text-violet-700',
     iconBg: 'bg-violet-100',
-  },
-  {
-    icon: Sparkles,
-    titleAr: 'عجائب القرآن',
-    titleEn: 'Quran Wonders',
-    descAr: '20+ حقيقة موثقة عن القرآن — الأعداد والبنية والتاريخ والحفاظ',
-    descEn: '20+ verified facts about the Quran — numbers, structure, history, and preservation',
-    link: '/wonders',
-    color: 'text-amber-700',
-    iconBg: 'bg-amber-100',
   },
   {
     icon: GitCompare,
@@ -450,17 +429,17 @@ export function HomePage() {
           <p className={clsx('text-xl md:text-2xl text-primary-100 mb-8 max-w-3xl mx-auto', isRtl && 'font-arabic')}>
             {t('app_subtitle', language)}
           </p>
-          <div className={clsx('flex flex-col sm:flex-row gap-4 justify-center', isRtl && 'sm:flex-row-reverse')}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/mushaf"
-              className={clsx('btn-primary bg-white text-primary-700 hover:bg-primary-50 px-8 py-3 text-lg inline-flex items-center gap-2', isRtl && 'font-arabic')}
+              className={clsx('inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-white px-8 py-3 text-lg font-medium text-primary-800 transition-colors hover:bg-primary-50', isRtl && 'font-arabic')}
             >
               {t('nav_mushaf', language)}
               <ArrowRight className={clsx('w-5 h-5', isRtl && 'rotate-180')} />
             </Link>
             <Link
               to="/ask"
-              className={clsx('btn-secondary border-2 border-white text-white hover:bg-white/10 px-8 py-3 text-lg', isRtl && 'font-arabic')}
+              className={clsx('inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border-2 border-white bg-transparent px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-white/10', isRtl && 'font-arabic')}
             >
               {t('nav_ask', language)}
             </Link>
@@ -473,8 +452,8 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Daily challenge shortcut — visible only when persona is set */}
           {persona && (
-            <div className={clsx('flex items-center mb-4', isRtl ? 'justify-start' : 'justify-end')}>
-              <Link to="/challenge" className="flex items-center gap-1.5 text-sm text-orange-600 hover:text-orange-800 font-medium transition-colors">
+            <div className="flex items-center justify-end mb-4">
+              <Link to="/challenge" className="flex min-h-11 items-center gap-1.5 text-sm text-orange-800 hover:text-orange-900 font-medium transition-colors">
                 <Flame className="w-4 h-4" />
                 {isRtl ? 'تحدي اليوم' : "Today's Challenge"}
               </Link>
@@ -539,13 +518,11 @@ export function HomePage() {
       {/* Safety Notice */}
       <section className="py-10 bg-amber-50 border-t border-amber-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className={clsx('text-base font-semibold text-amber-800 mb-2', isRtl && 'font-arabic')}>
+          <h2 className={clsx('text-base font-semibold text-amber-900 mb-2', isRtl && 'font-arabic')}>
             {isRtl ? 'ملاحظة مهمة' : 'Important Notice'}
           </h2>
-          <p className={clsx('text-amber-700 text-sm leading-relaxed max-w-2xl mx-auto', isRtl && 'font-arabic')}>
-            {isRtl
-              ? 'جميع الإجابات في هذه المنصة مستندة إلى مصادر تفسيرية موثقة. لا يقوم النظام بتوليد تفسيرات من تلقاء نفسه — كل شرح مقرون بمصدره.'
-              : 'All answers on this platform are grounded in authenticated tafsir sources. The system never generates interpretations on its own — every explanation is tied to its source.'}
+          <p className={clsx('text-amber-900 text-sm leading-relaxed max-w-2xl mx-auto', isRtl && 'font-arabic')}>
+            {t('home_notice_body', language)}
           </p>
         </div>
       </section>
@@ -568,8 +545,8 @@ function SectionHeader({
 }) {
   return (
     <h2 className={clsx(
-      'text-xl font-bold text-gray-800 mb-6',
-      isRtl ? 'text-right font-arabic' : ''
+      'text-xl font-bold text-gray-800 mb-6 text-start',
+      isRtl && 'font-arabic'
     )}>
       {isRtl ? titleAr : titleEn}
     </h2>
@@ -598,12 +575,12 @@ function FeatureCard({
     <Link
       to={feature.link}
       className={clsx(
-        'card border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all group',
+        'card border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all group text-start',
         large && 'p-6'
       )}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
-      <div className={clsx('flex items-start gap-3', isRtl && 'flex-row-reverse')}>
+      <div className="flex items-start gap-3">
         <div className={clsx('p-2.5 rounded-lg shrink-0 group-hover:scale-110 transition-transform', feature.iconBg)}>
           <Icon className={clsx(large ? 'w-6 h-6' : 'w-5 h-5', feature.color)} />
         </div>
@@ -611,11 +588,11 @@ function FeatureCard({
           <h3 className={clsx(
             'font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-1',
             large ? 'text-lg' : 'text-base',
-            isRtl && 'font-arabic text-right'
+            isRtl && 'font-arabic'
           )}>
             {title}
           </h3>
-          <p className={clsx('text-sm text-gray-500 leading-relaxed', isRtl && 'font-arabic text-right')}>
+          <p className={clsx('text-sm text-gray-600 leading-relaxed', isRtl && 'font-arabic')}>
             {desc}
           </p>
         </div>

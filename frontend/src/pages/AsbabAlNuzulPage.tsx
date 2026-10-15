@@ -38,6 +38,7 @@ function SurahSelector({
     <div className="relative">
       <select
         value={selected}
+        aria-label={lang === 'ar' ? 'اختر السورة' : 'Choose a surah'}
         onChange={(e) => onChange(Number(e.target.value))}
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
         className="w-full appearance-none rounded-xl border border-emerald-200 bg-white px-4 py-3 pr-10 text-sm font-medium text-gray-800 shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
@@ -204,6 +205,7 @@ export function AsbabAlNuzulPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            aria-label={lang === 'ar' ? 'ابحث في النصوص' : 'Search occasions'}
             placeholder={lang === 'ar' ? 'ابحث في النصوص...' : 'Search occasions...'}
             dir={lang === 'ar' ? 'rtl' : 'ltr'}
             className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-9 py-3 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"

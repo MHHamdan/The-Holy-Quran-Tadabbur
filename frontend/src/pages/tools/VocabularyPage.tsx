@@ -212,6 +212,7 @@ export function VocabularyPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              aria-label={t('vocab_search_placeholder', language)}
               placeholder={t('vocab_search_placeholder', language)}
               className={clsx(
                 'w-full border border-gray-300 rounded-lg py-3 text-base shadow-sm',
