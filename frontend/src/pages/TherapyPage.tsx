@@ -4,6 +4,7 @@ import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import { therapyApi } from '../lib/api';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
+import { LiveVerse } from '../components/quran/LiveVerse';
 import {
   EmotionalInputPanel,
   SpiritualGuidanceCard,
@@ -251,13 +252,9 @@ export function TherapyPage() {
       <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100">
         <div className={clsx('flex items-start gap-3', isRtl && 'flex-row-reverse')}>
           <BookOpen className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <p
-              dir={isRtl ? 'rtl' : 'ltr'}
-              className={clsx('text-base leading-loose text-emerald-900 font-medium', isRtl ? 'font-arabic text-right' : 'text-left')}
-            >
-              {t('therapy_intro_verse', language)}
-            </p>
+          <div className="space-y-1 min-w-0 flex-1">
+            {/* 17:82 from the canonical text (never a paraphrase), with its translation and attributions */}
+            <LiveVerse reference="17:82" language={language} />
             <p dir={isRtl ? 'rtl' : 'ltr'} className={clsx('text-xs text-emerald-600', isRtl && 'text-right font-arabic')}>
               {t('therapy_intro_ref', language)}
             </p>
