@@ -159,6 +159,7 @@ class RecitationAligner:
         deletion_patience: int = 3,
         mismatch_patience: int = 2,
         lookahead_window: int = 5,
+        mismatch_window_patience: Optional[int] = None,
     ):
         """
         Initialize the aligner with expected Quran text.
@@ -169,11 +170,21 @@ class RecitationAligner:
             deletion_patience: Updates to wait before confirming deletion
             mismatch_patience: Consecutive mismatches before alerting
             lookahead_window: Words to look ahead for alignment
+            mismatch_window_patience: When set (streaming use), a mismatch is
+                only reported after the same expected position has failed at
+                the end of this many consecutive segments (audio windows),
+                instead of after ``mismatch_patience`` words. A word cut by a
+                window edge or a single misheard window then does not raise
+                an alert on its own.
         """
         self.match_threshold = match_threshold
         self.deletion_patience = deletion_patience
         self.mismatch_patience = mismatch_patience
         self.lookahead_window = lookahead_window
+        self.mismatch_window_patience = mismatch_window_patience
+        # Window-level debounce state (only used with mismatch_window_patience)
+        self._stalled_position: Optional[int] = None
+        self._stalled_windows = 0
 
         # Initialize state
         expected_words = tokenize_with_positions(expected_text)
@@ -196,6 +207,8 @@ class RecitationAligner:
             expected_words = self.state.expected_words
 
         self.state = AlignmentState(expected_words=expected_words)
+        self._stalled_position = None
+        self._stalled_windows = 0
 
     def process_segment(
         self,
@@ -274,12 +287,20 @@ class RecitationAligner:
                 )
 
                 # Check if we should fire mistake alert
-                if self.state.consecutive_mismatches >= self.mismatch_patience:
+                if (
+                    self.mismatch_window_patience is None
+                    and self.state.consecutive_mismatches >= self.mismatch_patience
+                ):
                     mistake = self._confirm_mistake(word_info)
                     if mistake:
                         mistakes.append(mistake)
                         self.state.consecutive_mismatches = 0
                         self.state.mismatch_buffer.clear()
+
+        if self.mismatch_window_patience is not None:
+            mistake = self._window_debounce(segment.words[-1])
+            if mistake:
+                mistakes.append(mistake)
 
         # Update state with mistakes
         self.state.mistakes.extend(mistakes)
@@ -293,6 +314,36 @@ class RecitationAligner:
             had_jump=had_jump,
             skipped_positions=all_skipped_positions,
         )
+
+    def _window_debounce(self, last_word: WordInfo) -> Optional[Mistake]:
+        """Segment-level debounce used for streaming windows.
+
+        Called once at the end of each segment. If the segment ended on
+        unmatched words, count how many consecutive segments have stalled on
+        the same expected position; report a mistake only once that reaches
+        ``mismatch_window_patience``.
+        """
+        if not self.state.mismatch_buffer:
+            self._stalled_position = None
+            self._stalled_windows = 0
+            return None
+
+        pos = self.state.mismatch_buffer[0][0]
+        if pos == self._stalled_position:
+            self._stalled_windows += 1
+        else:
+            self._stalled_position = pos
+            self._stalled_windows = 1
+
+        if self._stalled_windows < (self.mismatch_window_patience or 1):
+            return None
+
+        mistake = self._confirm_mistake(last_word)
+        self.state.consecutive_mismatches = 0
+        self.state.mismatch_buffer.clear()
+        self._stalled_position = None
+        self._stalled_windows = 0
+        return mistake
 
     def _try_match(
         self,

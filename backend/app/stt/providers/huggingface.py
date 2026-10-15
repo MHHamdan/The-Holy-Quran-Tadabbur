@@ -139,25 +139,32 @@ class HuggingFaceSTTProvider(STTProvider):
             duration = len(audio) / 2 / float(sample_rate)
 
         output = self._request(self._to_wav(audio, sample_rate), word_timestamps)
-        text = (getattr(output, "text", None) or "").strip()
-        if not isinstance(text, str):
+        raw_text = getattr(output, "text", None)
+        if raw_text is not None and not isinstance(raw_text, str):
             raise HFInferenceError(HFErrorKind.MALFORMED, "speech-to-text")
+        text = (raw_text or "").strip()
 
         words: List[WordInfo] = []
         last_end = 0.0
-        for chunk in getattr(output, "chunks", None) or []:
-            word = (getattr(chunk, "text", "") or "").strip()
-            if not word:
-                continue
-            ts = list(getattr(chunk, "timestamp", None) or [None, None]) + [None, None]
-            begin = float(ts[0]) if ts[0] is not None else last_end
-            end = float(ts[1]) if ts[1] is not None else max(begin, duration or begin)
-            words.append(
-                WordInfo(
-                    word=word, start_time=begin, end_time=end, confidence=DEFAULT_WORD_CONFIDENCE
+        try:
+            for chunk in getattr(output, "chunks", None) or []:
+                raw_word = getattr(chunk, "text", "") or ""
+                if not isinstance(raw_word, str):
+                    raise TypeError("chunk text is not a string")
+                word = raw_word.strip()
+                if not word:
+                    continue
+                ts = list(getattr(chunk, "timestamp", None) or [None, None]) + [None, None]
+                begin = float(ts[0]) if ts[0] is not None else last_end
+                end = float(ts[1]) if ts[1] is not None else max(begin, duration or begin)
+                words.append(
+                    WordInfo(
+                        word=word, start_time=begin, end_time=end, confidence=DEFAULT_WORD_CONFIDENCE
+                    )
                 )
-            )
-            last_end = end
+                last_end = end
+        except (TypeError, ValueError):
+            raise HFInferenceError(HFErrorKind.MALFORMED, "speech-to-text") from None
 
         if word_timestamps and text and not words:
             # No timestamps returned: spread words evenly so alignment still works.

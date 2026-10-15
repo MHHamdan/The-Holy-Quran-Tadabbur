@@ -83,6 +83,17 @@ class RollingAudioBuffer:
         # Check if we have enough samples since last processing
         samples_since_last = self.total_samples - self.last_process_pos
 
+        if self.overlap_samples <= 0:
+            # Non-overlapping windows: emit the oldest full window and carry the
+            # remainder over, so no sample is dropped or transcribed twice.
+            # (A [-0:] slice would keep the whole buffer.)
+            if len(self.buffer) >= self.window_samples:
+                window = self.buffer[: self.window_samples]
+                self.buffer = self.buffer[self.window_samples:]
+                self.last_process_pos = self.total_samples - len(self.buffer)
+                return window
+            return None
+
         if samples_since_last >= self.step_samples and len(self.buffer) >= self.window_samples:
             # Extract window (last window_samples from buffer)
             window = self.buffer[-self.window_samples:]

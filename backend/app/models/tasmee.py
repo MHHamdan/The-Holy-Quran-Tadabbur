@@ -11,6 +11,7 @@ Tables:
 - tasmee_progress: User progress tracking per surah/ayah
 """
 
+import uuid
 from datetime import datetime
 from enum import Enum as PyEnum
 from typing import List, Optional
@@ -77,6 +78,18 @@ class TasmeeSession(Base):
     __tablename__ = "tasmee_sessions"
 
     id = Column(Integer, primary_key=True, index=True)
+
+    # Unguessable id used by every API route (the integer id stays internal).
+    public_id = Column(
+        String(36),
+        unique=True,
+        index=True,
+        nullable=False,
+        default=lambda: str(uuid.uuid4()),
+    )
+    # SHA-256 of the per-session client token returned once by POST /sessions.
+    # Every later call must present the token (X-Tasmee-Token / WS auth frame).
+    client_token_hash = Column(String(64), nullable=True)
 
     # User identification (for future user accounts)
     user_id = Column(String(255), nullable=True, index=True)
@@ -157,7 +170,7 @@ class TasmeeSession(Base):
     def to_dict(self) -> dict:
         """Convert to dictionary for API response."""
         return {
-            "id": self.id,
+            "id": self.public_id,
             "status": self.status.value,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "completed_at": (
@@ -309,7 +322,6 @@ class TasmeeMistake(Base):
         """Convert to dictionary for API response."""
         return {
             "id": self.id,
-            "session_id": self.session_id,
             "mistake_type": self.mistake_type.value,
             "severity": self.severity,
             "word_position": self.word_position,
