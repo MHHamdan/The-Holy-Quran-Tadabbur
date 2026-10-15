@@ -5,6 +5,7 @@ import { compression } from 'vite-plugin-compression2'
 import license from 'rollup-plugin-license'
 import fs from 'fs'
 import path from 'path'
+import { createHash } from 'crypto'
 
 /**
  * Vite Configuration - Optimized for FAANG-level Performance
@@ -121,6 +122,41 @@ const injectCsp = (apiUrl: string | undefined) => ({
   },
 })
 
+/**
+ * Offline Qur'an text (public/offline-quran/, written by
+ * scripts/export-offline-quran.ts verbatim from data/raw/quran_tanzil.json).
+ * The build fails when the files are missing, or, where the repository's
+ * canonical sources are present (not in the frontend-only Docker context),
+ * when they were exported from a different version of those sources.
+ */
+const offlineQuranGuard = {
+  name: 'tadabbur-offline-quran',
+  apply: 'build' as const,
+  buildStart() {
+    const dir = path.resolve(__dirname, 'public', 'offline-quran')
+    const fix = 'run: npx tsx scripts/export-offline-quran.ts (from the repository root)'
+    const manifestPath = path.join(dir, 'manifest.json')
+    if (!fs.existsSync(manifestPath)) throw new Error(`public/offline-quran/manifest.json is missing; ${fix}`)
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as {
+      source_sha256: string
+      structure_markers_sha256: string
+      files: Record<string, string>
+    }
+    for (const name of Object.keys(manifest.files)) {
+      if (!fs.existsSync(path.join(dir, name))) throw new Error(`public/offline-quran/${name} is missing; ${fix}`)
+    }
+    const sha = (p: string) => createHash('sha256').update(fs.readFileSync(p)).digest('hex')
+    const tanzil = path.resolve(__dirname, '..', 'data', 'raw', 'quran_tanzil.json')
+    const markers = path.resolve(__dirname, '..', 'data', 'manifests', 'quran_structure_markers.json')
+    if (fs.existsSync(tanzil) && sha(tanzil) !== manifest.source_sha256) {
+      throw new Error(`public/offline-quran is stale (data/raw/quran_tanzil.json changed); ${fix}`)
+    }
+    if (fs.existsSync(markers) && sha(markers) !== manifest.structure_markers_sha256) {
+      throw new Error(`public/offline-quran is stale (quran_structure_markers.json changed); ${fix}`)
+    }
+  },
+}
+
 const FONT_PACKAGES = [
   '@fontsource/scheherazade-new',
   '@fontsource/noto-naskh-arabic',
@@ -174,6 +210,7 @@ function readPackageNotice(name: string): LicenseEntry | null {
 export default defineConfig(({ mode }) => ({
   plugins: [
     enforceApiUrlPolicy,
+    offlineQuranGuard,
     injectCsp(loadEnv(mode, process.cwd(), '').VITE_API_URL),
     react(),
     VitePWA({
@@ -229,6 +266,18 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'fonts-v1',
               expiration: { maxEntries: 60, maxAgeSeconds: 365 * 24 * 3600 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            // Bundled offline Qur'an text (public/offline-quran/, ~4 MB in
+            // total, so not precached): kept for a year once fetched and
+            // revalidated in the background, so a re-export reaches readers.
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/offline-quran/'),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'offline-quran-v1',
+              expiration: { maxEntries: 130, maxAgeSeconds: 365 * 24 * 3600 },
               cacheableResponse: { statuses: [200] },
             },
           },

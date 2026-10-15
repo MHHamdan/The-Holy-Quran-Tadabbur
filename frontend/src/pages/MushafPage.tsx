@@ -59,6 +59,7 @@ import {
   firstPageOfJuz, firstPageOfSurah, surahOnPage, SURAH_REVELATION, TOTAL_MUSHAF_PAGES,
 } from '../components/reader/surahNavigation';
 import { playableUrl } from '../lib/offlineAudio';
+import { loadOfflinePage, offlineQuranKey } from '../lib/offlineQuran';
 import { AudioSourceAttribution, audioHost } from '../components/quran/AudioSourceAttribution';
 
 // =============================================================================
@@ -166,6 +167,21 @@ function usePageVerses(pageNo: number) {
     enabled: pageNo >= 1 && pageNo <= TOTAL_PAGES,
   });
 
+  // API unreachable (paused offline, failed, or retrying): show the Arabic text
+  // bundled with the app (verbatim Tanzil) until the API answers.
+  const apiUnreachable = !query.data && pageNo >= 1 && pageNo <= TOTAL_PAGES &&
+    (query.fetchStatus === 'paused' || query.isError || query.failureCount > 0);
+  const bundle = useQuery({
+    queryKey: offlineQuranKey('page', pageNo),
+    queryFn: () => loadOfflinePage(pageNo),
+    enabled: apiUnreachable,
+    staleTime: Infinity,
+    networkMode: 'always',
+    retry: false,
+    placeholderData: undefined,
+  });
+  const fromBundle = !query.data && !!bundle.data;
+
   const prefetchAdjacent = useCallback(() => {
     if (pageNo > 1) {
       queryClient.prefetchQuery({
@@ -183,7 +199,16 @@ function usePageVerses(pageNo: number) {
     }
   }, [pageNo, queryClient]);
 
-  return { ...query, prefetchAdjacent };
+  return {
+    data: query.data ?? bundle.data,
+    fromBundle,
+    isLoading: !query.data && !fromBundle && (query.isFetching || bundle.isFetching),
+    // Nothing to show from either source: the API error, or (paused offline)
+    // the bundle's own failure.
+    error: query.data || fromBundle || bundle.isFetching ? null : query.error ?? bundle.error,
+    refetch: query.refetch,
+    prefetchAdjacent,
+  };
 }
 
 function useTafsir(
@@ -1004,7 +1029,7 @@ export function MushafPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Data Fetching
-  const { data: verses = [], isLoading, error, prefetchAdjacent } = usePageVerses(currentPage);
+  const { data: verses = [], isLoading, error, fromBundle, prefetchAdjacent } = usePageVerses(currentPage);
 
   // Reset the selection when the language changes
   useEffect(() => {
@@ -1385,6 +1410,19 @@ export function MushafPage() {
                 </span>
               </div>
             </div>
+
+            {fromBundle && (
+              <p
+                className={clsx('mx-4 mt-3 rounded-lg border border-amber-200 bg-amber-100/60 px-3 py-2 text-xs text-amber-900', language === 'ar' && 'font-arabic')}
+                dir={language === 'ar' ? 'rtl' : 'ltr'}
+                role="status"
+                data-testid="offline-quran-notice"
+              >
+                {language === 'ar'
+                  ? 'دون اتصال: النص العربي فقط (نسخة مضمّنة في التطبيق). التفسير والتلاوة تحتاج إلى اتصال.'
+                  : 'Offline: Arabic text only (copy bundled with the app). Tafsir and recitation need a connection.'}
+              </p>
+            )}
 
             {/* Mushaf Page Content - Flowing Text */}
             <div className="p-8 min-h-[70vh] mushaf-page">
