@@ -6,6 +6,8 @@
  * Themes are classical scholarly descriptions, not AI-generated.
  */
 
+import { quranExcerpt } from '../utils/quranExcerpt';
+
 export interface JuzEntry {
   juz: number;
   startSurah: number;
@@ -54,7 +56,7 @@ export const JUZ_OVERVIEW: readonly JuzEntry[] = [
     mainThemeEn: 'Ayat al-Kursi & Unity of the Ummah',
     mainThemeAr: 'آية الكرسي ووحدة الأمة',
     keyTopicsEn: ['Ayat al-Kursi (2:255)', 'No compulsion in religion', 'Battle of Uhud lessons', 'Obedience to Allah & His Messenger'],
-    keyTopicsAr: ['آية الكرسي (2:255)', 'لا إكراه في الدين', 'دروس غزوة أحد', 'طاعة الله ورسوله'],
+    keyTopicsAr: ['آية الكرسي (2:255)', quranExcerpt('2:256#1-4'), 'دروس غزوة أحد', 'طاعة الله ورسوله'],
     openingWordEn: 'Tilka (Those are)',
     openingWordAr: 'تِلْكَ',
     highlightVerseRef: '2:255',
@@ -248,7 +250,7 @@ export const JUZ_OVERVIEW: readonly JuzEntry[] = [
     keyTopicsEn: ['Al-Furqan: Servants of the Most Merciful', 'Ash-Shuʿara: Musa, Ibrahim, Nuh, Hud', 'An-Naml: Sulayman & Bilqis', 'Story of the ant'],
     keyTopicsAr: ['الفرقان: عباد الرحمن', 'الشعراء: موسى وإبراهيم ونوح وهود', 'النمل: سليمان وبلقيس', 'قصة النملة'],
     openingWordEn: 'Wa-qāla alladhīna (And those who)',
-    openingWordAr: 'وَقَالَ الَّذِينَ',
+    openingWordAr: quranExcerpt('25:21#2-3'),
     highlightVerseRef: '27:19',
   },
   {
