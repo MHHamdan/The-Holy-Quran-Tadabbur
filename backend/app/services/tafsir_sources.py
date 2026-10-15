@@ -114,6 +114,25 @@ TAFSIR_CATALOG = {
         "focus_areas": ["law", "ethics", "rulings"],
         "school": "sunni_maliki",
     },
+    # Seeded as baghawi_ar (riotu-lab/Quran-Tafseers, pinned revision); needed
+    # here so RAG citations and comparisons carry the author (never guessed).
+    "baghawi": {
+        "id": "baghawi",
+        "name_ar": "معالم التنزيل",
+        "name_en": "Ma'alim al-Tanzil (Tafsir al-Baghawi)",
+        "author_ar": "الحسين بن مسعود البغوي",
+        "author_en": "Al-Husayn ibn Mas'ud al-Baghawi",
+        "era": TafsirEra.CLASSICAL,
+        "death_year_hijri": 516,
+        "death_year_ce": 1122,
+        "methodology": TafsirMethodology.BIL_MATHUR,
+        "languages_available": [TafsirLanguage.ARABIC],
+        "description_ar": "تفسير بالمأثور",
+        "description_en": "Classical narration-based tafsir",
+        "strengths": ["hadith_based"],
+        "focus_areas": ["all_topics"],
+        "school": "sunni",
+    },
     "jalalayn": {
         "id": "jalalayn",
         "name_ar": "تفسير الجلالين",
