@@ -53,6 +53,11 @@ x-backend-env: &backend-env
   # Optional: enables /metrics and /health/detailed (X-Metrics-Secret); unset = 503.
   METRICS_SECRET: ${METRICS_SECRET:-}
   FEATURE_REDIS_CACHE: "true"
+  # Per-worker Postgres pool: BACKEND_WORKERS * (size + overflow) must stay
+  # below max_connections (100) minus headroom for migrate/backups.
+  DB_POOL_SIZE: ${DB_POOL_SIZE:-10}
+  DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+  DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-10}
 
 services:
   postgres:
