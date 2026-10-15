@@ -239,7 +239,8 @@ class TafsirComparisonService:
         entries: List[ComparisonEntry] = []
         for chunk in chunks:
             source = sources.get(chunk.source_id)
-            if source is not None and source.is_enabled == 0:
+            # Disabled or licence-unverified sources are never shown.
+            if source is not None and (source.is_enabled == 0 or not source.license_verified):
                 continue
 
             lang = (source.language if source else None) or (

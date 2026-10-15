@@ -7,11 +7,19 @@ PROVENANCE REQUIREMENTS:
 - Creates audit log entries for every ingestion
 - Fails if provenance data is incomplete
 
+LICENSING:
+- The licence state written to tafseer_sources comes from
+  data/manifests/tafseer_sources.json, not from the metadata below. A source
+  is written with license_verified=1 and is_enabled=1 only when the manifest
+  lists it in enabled_ids with a verified licence (verified_date set, type not
+  pending). Anything else is skipped, or with --allow-unverified written
+  disabled and unverified, for review only.
+
 Usage:
-    python scripts/ingest/seed_tafseer.py [source_id ...]
+    python scripts/ingest/seed_tafseer.py [--allow-unverified] [source_id ...]
 
 Example:
-    python scripts/ingest/seed_tafseer.py ibn_kathir_en ibn_kathir_ar
+    python scripts/ingest/seed_tafseer.py ibn_kathir_ar tabari_ar
 """
 import sys
 import os
@@ -54,8 +62,11 @@ SOURCE_METADATA = {
         # PROVENANCE
         "cdn_folder": "en-tafisr-ibn-kathir",
         "version_tag": "main",  # Git branch/tag
-        "license_type": "public_domain_classical",
-        "license": "Classical Islamic text - public domain due to age (774 AH)",
+        # The Arabic original is public domain by age; this modern English
+        # translation (Darussalam abridgement) is not.
+        "translator": "Darussalam abridgement",
+        "license_type": "pending_verification",
+        "license": "Modern English translation - permission required",
         "license_url": "https://github.com/spa5k/tafsir_api",
     },
     "ibn_kathir_ar": {
@@ -156,8 +167,9 @@ SOURCE_METADATA = {
         # PROVENANCE
         "cdn_folder": "en-al-jalalayn",
         "version_tag": "main",
-        "license_type": "public_domain_classical",
-        "license": "Classical Islamic text - public domain (864/911 AH)",
+        "translator": "Feras Hamza (Royal Aal al-Bayt Institute)",
+        "license_type": "pending_verification",
+        "license": "Modern English translation - permission required",
         "license_url": "https://github.com/spa5k/tafsir_api",
     },
     "ibn_abbas_en": {
@@ -173,11 +185,38 @@ SOURCE_METADATA = {
         # PROVENANCE
         "cdn_folder": "en-tafsir-ibn-abbas",
         "version_tag": "main",
-        "license_type": "public_domain_classical",
-        "license": "Classical Islamic text - public domain",
+        "license_type": "pending_verification",
+        "license": "Modern English translation - permission required",
         "license_url": "https://github.com/spa5k/tafsir_api",
     },
 }
+
+
+MANIFEST_PATH = MANIFESTS_DIR / "tafseer_sources.json"
+
+
+def load_licence_state(source_id: str, manifest_path: Path = MANIFEST_PATH) -> dict:
+    """Licence state for a source, read from the manifest.
+
+    Returns {"verified": bool, "enabled": bool, "reason": str}. A source is
+    verified when the manifest has a structured licence with a verified_date
+    and a non-pending type, and enabled only when also listed in enabled_ids.
+    Unknown sources are unverified.
+    """
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        return {"verified": False, "enabled": False, "reason": f"manifest unreadable: {e}"}
+    entry = next((s for s in manifest.get("sources", []) if s.get("id") == source_id), None)
+    if entry is None:
+        return {"verified": False, "enabled": False, "reason": "not in manifest.sources"}
+    licence = entry.get("license")
+    if not isinstance(licence, dict):
+        return {"verified": False, "enabled": False, "reason": "no structured licence"}
+    if str(licence.get("type", "")).startswith("pending") or not licence.get("verified_date"):
+        return {"verified": False, "enabled": False, "reason": f"licence {licence.get('type')} not verified"}
+    enabled = source_id in set(manifest.get("enabled_ids", []))
+    return {"verified": True, "enabled": enabled, "reason": "ok" if enabled else "not in enabled_ids"}
 
 
 def get_db_url() -> str:
@@ -265,9 +304,18 @@ def create_audit_log(
     return log
 
 
-def seed_source(session: Session, source_id: str) -> tuple[int, int, int]:
+def seed_source(session: Session, source_id: str, allow_unverified: bool = False) -> tuple[int, int, int]:
     """Seed a single tafseer source. Returns (inserted, skipped, failed)."""
     started_at = datetime.utcnow()
+
+    licence_state = load_licence_state(source_id)
+    if not licence_state["verified"] and not allow_unverified:
+        print(f"  SKIPPED: licence not verified ({licence_state['reason']}).")
+        print("  Record the licence in data/manifests/tafseer_sources.json, or pass")
+        print("  --allow-unverified to seed it disabled for review only.")
+        return 0, 0, 0
+    verified = 1 if licence_state["verified"] else 0
+    enabled = 1 if licence_state["verified"] and licence_state["enabled"] else 0
 
     # Get metadata
     meta = SOURCE_METADATA.get(source_id, {})
@@ -334,7 +382,9 @@ def seed_source(session: Session, source_id: str) -> tuple[int, int, int]:
             license_type=meta.get("license_type"),
             license=meta.get("license"),
             license_url=meta.get("license_url"),
-            license_verified=1 if meta.get("license_type") else 0,
+            license_verified=verified,
+            is_enabled=enabled,
+            translator=meta.get("translator"),
         )
         session.add(source)
         session.flush()
@@ -353,10 +403,14 @@ def seed_source(session: Session, source_id: str) -> tuple[int, int, int]:
             existing.license_type = meta.get("license_type")
             existing.license = meta.get("license")
             existing.license_url = meta.get("license_url")
-            existing.license_verified = 1
             print(f"  Updated provenance for: {source_id}")
         else:
             print(f"  Source exists with provenance: {source_id}")
+        # Licence state always follows the manifest, never an older row.
+        existing.license_verified = verified
+        existing.is_enabled = enabled
+        if meta.get("translator"):
+            existing.translator = meta["translator"]
 
     # Build verse lookup cache
     print("  Building verse lookup...")
@@ -450,9 +504,13 @@ def main():
 
     start_time = datetime.utcnow()
 
+    args = sys.argv[1:]
+    allow_unverified = "--allow-unverified" in args
+    args = [a for a in args if a != "--allow-unverified"]
+
     # Get source IDs
-    if len(sys.argv) > 1:
-        source_ids = sys.argv[1:]
+    if args:
+        source_ids = args
     else:
         # Default: seed all available
         available = [f.stem for f in RAW_DIR.glob("*.json")]
@@ -476,7 +534,7 @@ def main():
     for source_id in source_ids:
         print(f"\nProcessing: {source_id}")
         with Session(engine) as session:
-            inserted, skipped, failed = seed_source(session, source_id)
+            inserted, skipped, failed = seed_source(session, source_id, allow_unverified)
             session.commit()
         total_inserted += inserted
         total_skipped += skipped

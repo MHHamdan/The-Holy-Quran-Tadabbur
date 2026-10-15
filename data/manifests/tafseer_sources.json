@@ -1,8 +1,15 @@
 {
   "name": "Tafseer Sources Manifest",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Manifest of available tafseer sources with explicit licensing and rate limits",
-  "last_updated": "2026-01-02",
+  "last_updated": "2026-10-14",
+  "enabled_ids": [
+    "ibn_kathir_ar",
+    "tabari_ar",
+    "qurtubi_ar",
+    "baghawi_ar",
+    "muyassar_ar"
+  ],
   "sources": [
     {
       "id": "ibn_kathir_en",
@@ -16,7 +23,7 @@
       "language": "en",
       "reliability_score": 0.95,
       "is_primary_source": true,
-      "status": "available_via_api",
+      "status": "pending_user_input",
       "api_source": {
         "provider": "quran_tafsir_api",
         "base_url": "https://api.quran-tafsir.com/tafsir",
@@ -32,17 +39,13 @@
         "cache_duration_hours": 168
       },
       "license": {
-        "type": "public_api_access",
+        "type": "pending_verification",
         "license_url": null,
         "tos_url": "https://api.quran-tafsir.com",
-        "allowed_use": [
-          "educational",
-          "non_commercial",
-          "research"
-        ],
+        "allowed_use": [],
         "attribution_required": true,
         "commercial_use": "pending_user_input",
-        "notes": "API provides access; underlying tafseer (Ibn Kathir) is classical Islamic text. Verify commercial use terms.",
+        "notes": "The English text is a modern translation (the Darussalam abridgement), not the classical Arabic. Translator/publisher rights are not verified, so the source is disabled in tafseer_sources (alembic ws3a1b2c3d4e5) and must not be served until written permission is recorded here.",
         "verified_date": null
       },
       "fallback": {
@@ -64,6 +67,55 @@
             "text"
           ]
         }
+      },
+      "translator": "Darussalam abridgement (publisher rights not verified)"
+    },
+    {
+      "id": "jalalayn_en",
+      "name_ar": "تفسير الجلالين",
+      "name_en": "Tafsir al-Jalalayn (English)",
+      "author_ar": "جلال الدين المحلي وجلال الدين السيوطي",
+      "author_en": "Jalal ad-Din al-Mahalli and Jalal ad-Din as-Suyuti",
+      "translator": "Feras Hamza, for the Royal Aal al-Bayt Institute (rights not verified)",
+      "death_year_hijri": 911,
+      "era": "classical",
+      "methodology": "concise",
+      "language": "en",
+      "is_primary_source": false,
+      "status": "pending_user_input",
+      "license": {
+        "type": "pending_verification",
+        "license_url": null,
+        "tos_url": null,
+        "allowed_use": [],
+        "attribution_required": true,
+        "commercial_use": "pending_user_input",
+        "notes": "Modern English translation of a classical work; the translation is under copyright. Seeded from the spa5k CDN and labelled public domain by mistake; disabled in tafseer_sources (alembic ws3a1b2c3d4e5) until the Royal Aal al-Bayt Institute grants permission.",
+        "verified_date": null
+      }
+    },
+    {
+      "id": "ibn_abbas_en",
+      "name_ar": "تنوير المقباس من تفسير ابن عباس",
+      "name_en": "Tanwir al-Miqbas min Tafsir Ibn Abbas (English)",
+      "author_ar": "منسوب إلى عبدالله بن عباس",
+      "author_en": "Attributed to Abdullah ibn Abbas (attribution disputed)",
+      "translator": "Modern English translation (rights not verified)",
+      "death_year_hijri": null,
+      "era": "classical",
+      "methodology": "bil_mathur",
+      "language": "en",
+      "is_primary_source": false,
+      "status": "pending_user_input",
+      "license": {
+        "type": "pending_verification",
+        "license_url": null,
+        "tos_url": null,
+        "allowed_use": [],
+        "attribution_required": true,
+        "commercial_use": "pending_user_input",
+        "notes": "Modern English translation; rights not verified and the attribution to Ibn Abbas is disputed. Not to be seeded or enabled until permission is recorded.",
+        "verified_date": null
       }
     },
     {
@@ -96,7 +148,7 @@
       "license": {
         "type": "public_domain_classical",
         "license_url": null,
-        "tos_url": "https://api.quran-tafsir.com",
+        "tos_url": "https://huggingface.co/datasets/riotu-lab/Quran-Tafseers",
         "allowed_use": [
           "educational",
           "non_commercial",
@@ -105,8 +157,8 @@
         ],
         "attribution_required": true,
         "commercial_use": "allowed",
-        "notes": "Original Arabic classical text - public domain due to age",
-        "verified_date": "2026-01-02"
+        "notes": "Original Arabic classical text, public domain by age (d. 774 AH). Seeded from the Apache-2.0 HF dataset below at a pinned revision.",
+        "verified_date": "2026-10-06"
       },
       "validation": {
         "expected_surah_count": 114,
@@ -122,6 +174,122 @@
             "text"
           ]
         }
+      },
+      "provenance": {
+        "dataset": "riotu-lab/Quran-Tafseers",
+        "dataset_revision": "9ddbdeec22bfabd9821b14c6584ad9587ed7bffa",
+        "dataset_license": "apache-2.0",
+        "dataset_url": "https://huggingface.co/datasets/riotu-lab/Quran-Tafseers",
+        "fetch_script": "backend/scripts/datasets/fetch_hf_tafseers.py",
+        "file_sha256": "0e4172d4a80f662363029b291b186ab7228e55d6786b9ec1a8dde7a4aa0ce878"
+      }
+    },
+    {
+      "id": "tabari_ar",
+      "name_ar": "جامع البيان عن تأويل آي القرآن",
+      "name_en": "Tafsir al-Tabari",
+      "author_ar": "محمد بن جرير الطبري",
+      "author_en": "Muhammad ibn Jarir al-Tabari",
+      "death_year_hijri": 310,
+      "era": "classical",
+      "methodology": "bil_mathur",
+      "language": "ar",
+      "is_primary_source": true,
+      "status": "available",
+      "provenance": {
+        "dataset": "riotu-lab/Quran-Tafseers",
+        "dataset_revision": "9ddbdeec22bfabd9821b14c6584ad9587ed7bffa",
+        "dataset_license": "apache-2.0",
+        "dataset_url": "https://huggingface.co/datasets/riotu-lab/Quran-Tafseers",
+        "fetch_script": "backend/scripts/datasets/fetch_hf_tafseers.py",
+        "file_sha256": "0e4172d4a80f662363029b291b186ab7228e55d6786b9ec1a8dde7a4aa0ce878"
+      },
+      "license": {
+        "type": "public_domain_classical",
+        "license_url": null,
+        "tos_url": "https://huggingface.co/datasets/riotu-lab/Quran-Tafseers",
+        "allowed_use": [
+          "educational",
+          "non_commercial",
+          "research",
+          "commercial"
+        ],
+        "attribution_required": true,
+        "commercial_use": "allowed",
+        "notes": "Classical Arabic text, public domain by age (d. 310 AH). Seeded from the Apache-2.0 HF dataset at a pinned revision (SHA-256 checked).",
+        "verified_date": "2026-10-06"
+      }
+    },
+    {
+      "id": "qurtubi_ar",
+      "name_ar": "الجامع لأحكام القرآن",
+      "name_en": "Tafsir al-Qurtubi",
+      "author_ar": "محمد بن أحمد القرطبي",
+      "author_en": "Muhammad ibn Ahmad al-Qurtubi",
+      "death_year_hijri": 671,
+      "era": "classical",
+      "methodology": "fiqh_focused",
+      "language": "ar",
+      "is_primary_source": true,
+      "status": "available",
+      "provenance": {
+        "dataset": "riotu-lab/Quran-Tafseers",
+        "dataset_revision": "9ddbdeec22bfabd9821b14c6584ad9587ed7bffa",
+        "dataset_license": "apache-2.0",
+        "dataset_url": "https://huggingface.co/datasets/riotu-lab/Quran-Tafseers",
+        "fetch_script": "backend/scripts/datasets/fetch_hf_tafseers.py",
+        "file_sha256": "0e4172d4a80f662363029b291b186ab7228e55d6786b9ec1a8dde7a4aa0ce878"
+      },
+      "license": {
+        "type": "public_domain_classical",
+        "license_url": null,
+        "tos_url": "https://huggingface.co/datasets/riotu-lab/Quran-Tafseers",
+        "allowed_use": [
+          "educational",
+          "non_commercial",
+          "research",
+          "commercial"
+        ],
+        "attribution_required": true,
+        "commercial_use": "allowed",
+        "notes": "Classical Arabic text, public domain by age (d. 671 AH). Seeded from the Apache-2.0 HF dataset at a pinned revision (SHA-256 checked).",
+        "verified_date": "2026-10-06"
+      }
+    },
+    {
+      "id": "baghawi_ar",
+      "name_ar": "معالم التنزيل",
+      "name_en": "Tafsir al-Baghawi",
+      "author_ar": "الحسين بن مسعود البغوي",
+      "author_en": "Al-Husayn ibn Mas'ud al-Baghawi",
+      "death_year_hijri": 516,
+      "era": "classical",
+      "methodology": "bil_mathur",
+      "language": "ar",
+      "is_primary_source": true,
+      "status": "available",
+      "provenance": {
+        "dataset": "riotu-lab/Quran-Tafseers",
+        "dataset_revision": "9ddbdeec22bfabd9821b14c6584ad9587ed7bffa",
+        "dataset_license": "apache-2.0",
+        "dataset_url": "https://huggingface.co/datasets/riotu-lab/Quran-Tafseers",
+        "fetch_script": "backend/scripts/datasets/fetch_hf_tafseers.py",
+        "file_sha256": "0e4172d4a80f662363029b291b186ab7228e55d6786b9ec1a8dde7a4aa0ce878"
+      },
+      "license": {
+        "type": "public_domain_classical",
+        "license_url": null,
+        "tos_url": "https://huggingface.co/datasets/riotu-lab/Quran-Tafseers",
+        "allowed_use": [
+          "educational",
+          "non_commercial",
+          "research",
+          "commercial"
+        ],
+        "attribution_required": true,
+        "commercial_use": "allowed",
+        "notes": "Classical Arabic text, public domain by age (d. 516 AH). Seeded from the Apache-2.0 HF dataset at a pinned revision (SHA-256 checked).",
+        "verified_date": "2026-10-06"
       }
     },
     {
@@ -358,42 +526,40 @@
           ]
         }
       }
+    },
+    {
+      "id": "asbab_wahidi",
+      "name_ar": "أسباب النزول",
+      "name_en": "Asbab al-Nuzul — Occasions of Revelation",
+      "author_ar": "أبو الحسن الواحدي",
+      "author_en": "Abu al-Hasan al-Wahidi",
+      "death_year_hijri": 468,
+      "era": "classical",
+      "language": "ar",
+      "is_primary_source": true,
+      "status": "available_via_api",
+      "api_source": {
+        "provider": "alquran.cloud",
+        "edition": "ar.wahidi"
+      },
+      "license": {
+        "type": "public_domain_classical",
+        "license_url": null,
+        "tos_url": "https://alquran.cloud/api",
+        "allowed_use": [
+          "educational",
+          "non_commercial",
+          "research",
+          "commercial"
+        ],
+        "attribution_required": true,
+        "commercial_use": "allowed",
+        "notes": "Classical text, public domain by age (d. 468 AH); assessed on the author's death date. The digital edition comes from alquran.cloud ar.wahidi and has not been proof-read against a printed edition. Served at /api/v1/quran/asbab/{surah}.",
+        "verified_date": "2026-10-14"
+      }
     }
   ],
   "placeholder_sources": [
-    {
-      "id": "tabari_ar",
-      "name_ar": "جامع البيان عن تأويل آي القرآن",
-      "name_en": "Tafsir al-Tabari",
-      "status": "available_via_api",
-      "priority": "high",
-      "api_edition": "ar.tabari",
-      "api_provider": "alquran.cloud",
-      "license": "public_domain_classical",
-      "notes": "Classical tafseer - primary source for bil-mathur methodology. Available via alquran.cloud ar.tabari edition."
-    },
-    {
-      "id": "qurtubi_ar",
-      "name_ar": "الجامع لأحكام القرآن",
-      "name_en": "Tafsir al-Qurtubi",
-      "status": "available_via_api",
-      "priority": "high",
-      "api_edition": "ar.qurtubi",
-      "api_provider": "alquran.cloud",
-      "license": "public_domain_classical",
-      "notes": "Classical tafseer with fiqh emphasis. Available via alquran.cloud ar.qurtubi edition."
-    },
-    {
-      "id": "baghawi_ar",
-      "name_ar": "معالم التنزيل",
-      "name_en": "Tafsir al-Baghawi",
-      "status": "available_via_api",
-      "priority": "high",
-      "api_edition": "ar.baghawi",
-      "api_provider": "alquran.cloud",
-      "license": "public_domain_classical",
-      "notes": "Classical tafseer (d. 510 AH) with hadith focus. Available via alquran.cloud ar.baghawi edition."
-    },
     {
       "id": "mukhtasar_ar",
       "name_ar": "المختصر في التفسير",
@@ -404,21 +570,6 @@
       "priority": "medium",
       "license": "pending_verification",
       "notes": "Modern concise tafsir. Verify terms from Tafsir Center before use."
-    },
-    {
-      "id": "asbab_wahidi",
-      "name_ar": "أسباب النزول",
-      "name_en": "Asbab al-Nuzul — Occasions of Revelation",
-      "author_ar": "أبو الحسن الواحدي",
-      "author_en": "Abu al-Hasan al-Wahidi",
-      "death_year_hijri": 468,
-      "era": "classical",
-      "status": "available_via_api",
-      "priority": "high",
-      "api_edition": "ar.wahidi",
-      "api_provider": "alquran.cloud",
-      "license": "public_domain_classical",
-      "notes": "Classical asbab al-nuzul text. Served at /api/v1/quran/asbab/{surah}."
     }
   ],
   "ingestion_config": {

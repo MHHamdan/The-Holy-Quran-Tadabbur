@@ -75,6 +75,10 @@ class TafseerSource(Base):
     # Methodology
     methodology = Column(String(50), nullable=True)  # "bil_mathur", "bil_ray", "mixed"
 
+    # Translator of a translated work (credited next to the author). Nullable:
+    # original-language works have none. Added in migration ws3a1b2c3d4e5.
+    translator = Column(String(200), nullable=True)
+
     # Language and version
     language = Column(String(10), nullable=False)  # "ar", "en"
     version = Column(String(50), nullable=True)

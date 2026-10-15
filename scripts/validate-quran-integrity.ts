@@ -4,6 +4,9 @@
  * Validates local Quran data files and the source registry for structural
  * and content integrity. Run this after any change to content-related files.
  *
+ * With DATABASE_URL set, enabled rows of tafseer_sources are cross-checked
+ * against the manifest too (needs python3 + asyncpg).
+ *
  * Usage:
  *   npx tsx scripts/validate-quran-integrity.ts
  *   npx tsx scripts/validate-quran-integrity.ts --verbose
@@ -15,6 +18,7 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
+import { spawnSync } from 'child_process';
 import { resolve, join } from 'path';
 
 // ---------------------------------------------------------------------------
@@ -440,6 +444,129 @@ function checkNoExperimentalSourcesInCanonical(): CheckResult {
 }
 
 // ---------------------------------------------------------------------------
+// Tafsir licence cross-check: manifest x registry (x database when reachable)
+// ---------------------------------------------------------------------------
+
+interface ManifestLicence {
+  type?: string;
+  verified_date?: string | null;
+  [key: string]: unknown;
+}
+
+interface RegistryEntryInfo {
+  id: string;
+  licenseStatus?: string;
+  blocked: boolean;
+}
+
+/** sourceId -> licence facts parsed from the SOURCE_REGISTRY array literal. */
+function readRegistryEntries(): Map<string, RegistryEntryInfo> {
+  const out = new Map<string, RegistryEntryInfo>();
+  if (!existsSync(SOURCE_REGISTRY_PATH)) return out;
+  const blocks = extractSourceBlocks(extractRegistryArrayText(readFileSync(SOURCE_REGISTRY_PATH, 'utf-8')));
+  for (const block of blocks) {
+    const id = block.match(/sourceId:\s*['"]([^'"]+)['"]/)?.[1];
+    if (!id) continue;
+    const licenseStatus = block.match(/licenseStatus:\s*['"]([^'"]+)['"]/)?.[1];
+    const notesBlocked = /notes:\s*['"`]\s*DO NOT DISPLAY/.test(block);
+    out.set(id, { id, licenseStatus, blocked: licenseStatus === 'blocked' || notesBlocked });
+  }
+  return out;
+}
+
+const NOT_SHIPPABLE_STATUSES = new Set(['blocked', 'unverified', 'pending']);
+const AVAILABLE_STATUSES = new Set(['available', 'available_via_api']);
+
+/**
+ * Every tafsir source the product may serve must be registered with a licence
+ * that is neither blocked nor unverified, and the manifest must record when
+ * that licence was verified. "May serve" means: listed in the manifest's
+ * enabled_ids, or carrying an available status.
+ */
+function checkTafsirLicenceCrossCheck(manifest: TafsirManifest): CheckResult {
+  return check('Tafsir sources: enabled ids are registered with verified licences', () => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const registry = readRegistryEntries();
+    const sources = (manifest.sources ?? []) as TafsirSourceEntry[];
+    const placeholders = ((manifest as Record<string, unknown>).placeholder_sources ?? []) as TafsirSourceEntry[];
+    const byId = new Map(sources.map((s) => [s.id, s]));
+    const enabledIds = (manifest as Record<string, unknown>).enabled_ids as string[] | undefined;
+
+    if (!Array.isArray(enabledIds) || enabledIds.length === 0) {
+      errors.push('tafseer_sources.json has no "enabled_ids" list (ids allowed to be enabled in tafseer_sources)');
+    }
+
+    const mustBeShippable = new Set<string>(enabledIds ?? []);
+    for (const s of [...sources, ...placeholders]) {
+      if (AVAILABLE_STATUSES.has(String(s.status ?? ''))) mustBeShippable.add(s.id);
+    }
+
+    for (const id of mustBeShippable) {
+      const entry = byId.get(id);
+      if (!entry) {
+        errors.push(`"${id}" may be served but is not in manifest.sources (placeholder entries carry no licence record)`);
+      } else {
+        const licence = entry.license as ManifestLicence | string | undefined;
+        if (typeof licence !== 'object' || !licence) {
+          errors.push(`"${id}": manifest license is not a structured record`);
+        } else {
+          if (!licence.verified_date) errors.push(`"${id}": manifest license.verified_date is null`);
+          if (String(licence.type ?? '').startsWith('pending')) {
+            errors.push(`"${id}": manifest licence type is "${licence.type}"`);
+          }
+        }
+      }
+      const reg = registry.get(id);
+      if (!reg) {
+        errors.push(`"${id}" may be served but has no sourceRegistry.ts entry`);
+      } else if (reg.blocked || NOT_SHIPPABLE_STATUSES.has(reg.licenseStatus ?? '')) {
+        errors.push(`"${id}": sourceRegistry licenseStatus is "${reg.licenseStatus ?? 'blocked'}"`);
+      }
+    }
+
+    // Database: enabled rows must be in enabled_ids. Optional, needs DATABASE_URL.
+    const db = readEnabledDbSources();
+    if (db.error) {
+      warnings.push(`database cross-check skipped: ${db.error}`);
+    } else {
+      for (const row of db.rows) {
+        if (!mustBeShippable.has(row.id)) {
+          errors.push(`DB tafseer_sources "${row.id}" is enabled but not in manifest enabled_ids`);
+        }
+        if (row.license_verified !== 1) {
+          errors.push(`DB tafseer_sources "${row.id}" is enabled with license_verified=${row.license_verified}`);
+        }
+      }
+    }
+    return { errors, warnings };
+  });
+}
+
+interface DbSourceRow { id: string; license_verified: number }
+
+function readEnabledDbSources(): { rows: DbSourceRow[]; error?: string } {
+  const url = process.env.DATABASE_URL;
+  if (!url) return { rows: [], error: 'DATABASE_URL not set' };
+  const py = [
+    'import asyncio, json, os, asyncpg',
+    'async def main():',
+    "    c = await asyncpg.connect(os.environ['DATABASE_URL'].replace('+asyncpg', ''))",
+    "    rows = await c.fetch('SELECT id, license_verified FROM tafseer_sources WHERE is_enabled = 1')",
+    '    print(json.dumps([dict(r) for r in rows]))',
+    '    await c.close()',
+    'asyncio.run(main())',
+  ].join('\n');
+  const r = spawnSync('python3', ['-c', py], { encoding: 'utf-8', env: process.env, timeout: 20000 });
+  if (r.status !== 0) return { rows: [], error: (r.stderr || r.error?.message || 'query failed').trim().split('\n').pop() };
+  try {
+    return { rows: JSON.parse(r.stdout) as DbSourceRow[] };
+  } catch {
+    return { rows: [], error: 'could not parse query output' };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Run all checks
 // ---------------------------------------------------------------------------
 
@@ -502,6 +629,7 @@ async function main() {
   if (tafsirManifest) {
     results.push(checkTafsirSourcesHaveIds(tafsirManifest));
     results.push(checkTafsirSourceRequiredFields(tafsirManifest));
+    results.push(checkTafsirLicenceCrossCheck(tafsirManifest));
   } else {
     results.push({
       name: 'Tafsir sources manifest',
