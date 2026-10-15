@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-10-15T00:07:41.862Z",
+  "generatedAt": "2026-10-15T01:19:41.247Z",
   "profiles": [
     {
       "prophetId": "prophet_adam",
@@ -19066,7 +19066,6 @@
       "storyIds": [],
       "relatedEntities": [
         "entity_people_bani_israel",
-        "entity_person_maryam",
         "entity_place_sinai",
         "entity_prophet_alyasa",
         "entity_prophet_ayyub",
@@ -19089,8 +19088,7 @@
         "entity_prophet_zakariyya"
       ],
       "relatedPeopleOrNations": [
-        "entity_people_bani_israel",
-        "entity_person_maryam"
+        "entity_people_bani_israel"
       ],
       "relatedPlaces": [
         "entity_place_sinai"
@@ -22354,7 +22352,6 @@
       "relatedEntities": [
         "entity_people_qawm_lut",
         "entity_people_thamud",
-        "entity_person_maryam",
         "entity_place_sinai",
         "entity_prophet_alyasa",
         "entity_prophet_ayyub",
@@ -22378,8 +22375,7 @@
       ],
       "relatedPeopleOrNations": [
         "entity_people_qawm_lut",
-        "entity_people_thamud",
-        "entity_person_maryam"
+        "entity_people_thamud"
       ],
       "relatedPlaces": [
         "entity_place_sinai"
@@ -26060,7 +26056,6 @@
       "relatedEntities": [
         "entity_people_qawm_lut",
         "entity_people_thamud",
-        "entity_person_maryam",
         "entity_place_sinai",
         "entity_prophet_alyasa",
         "entity_prophet_ayyub",
@@ -26084,8 +26079,7 @@
       ],
       "relatedPeopleOrNations": [
         "entity_people_qawm_lut",
-        "entity_people_thamud",
-        "entity_person_maryam"
+        "entity_people_thamud"
       ],
       "relatedPlaces": [
         "entity_place_sinai"
@@ -36614,7 +36608,6 @@
       "relatedEntities": [
         "entity_angel_jibreel",
         "entity_animal_whale",
-        "entity_event_flood",
         "entity_event_sea_crossing",
         "entity_object_ark",
         "entity_object_tablets",
@@ -36691,7 +36684,6 @@
         "entity_object_tablets"
       ],
       "relatedEvents": [
-        "entity_event_flood",
         "entity_event_sea_crossing"
       ],
       "relatedTopics": [
@@ -55419,7 +55411,6 @@
       ],
       "relatedEntities": [
         "entity_animal_whale",
-        "entity_object_ark",
         "entity_prophet_alyasa",
         "entity_prophet_ayyub",
         "entity_prophet_dawud",
@@ -55446,9 +55437,7 @@
       "relatedAnimals": [
         "entity_animal_whale"
       ],
-      "relatedObjects": [
-        "entity_object_ark"
-      ],
+      "relatedObjects": [],
       "relatedEvents": [],
       "relatedTopics": [],
       "relatedProphets": [

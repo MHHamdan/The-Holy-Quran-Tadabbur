@@ -1,7 +1,7 @@
 # Quran Prophets Atlas — Build Summary
 
 - Version: 1.0.0
-- Generated: 2026-10-15T00:07:41.862Z
+- Generated: 2026-10-15T01:19:41.247Z
 - Prophets represented: **25** (canonical: 25)
 - Total explicit mentions: **501**
 - Total contextual mentions: **4**

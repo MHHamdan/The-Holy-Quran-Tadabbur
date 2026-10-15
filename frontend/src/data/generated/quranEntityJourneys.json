@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-10-15T00:06:31.918Z",
+  "generatedAt": "2026-10-15T01:19:40.113Z",
   "totalEntities": 84,
   "journeysByStageType": {
     "mushaf_order": 84,
@@ -14494,30 +14494,6 @@
               },
               {
                 "surahNumber": 2,
-                "ayahStart": 128
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 134
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 141
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 143
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 213
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 221
-              },
-              {
-                "surahNumber": 2,
                 "ayahStart": 253
               }
             ],
@@ -14552,18 +14528,6 @@
               {
                 "surahNumber": 3,
                 "ayahStart": 45
-              },
-              {
-                "surahNumber": 3,
-                "ayahStart": 104
-              },
-              {
-                "surahNumber": 3,
-                "ayahStart": 110
-              },
-              {
-                "surahNumber": 3,
-                "ayahStart": 113
               }
             ],
             "reviewStatus": "needs_review",
@@ -14574,14 +14538,6 @@
             "labelArabic": "سورة رقم 4",
             "labelEnglish": "Surah 4",
             "ayahReferences": [
-              {
-                "surahNumber": 4,
-                "ayahStart": 11
-              },
-              {
-                "surahNumber": 4,
-                "ayahStart": 41
-              },
               {
                 "surahNumber": 4,
                 "ayahStart": 156
@@ -14610,14 +14566,6 @@
               {
                 "surahNumber": 5,
                 "ayahStart": 46
-              },
-              {
-                "surahNumber": 5,
-                "ayahStart": 48
-              },
-              {
-                "surahNumber": 5,
-                "ayahStart": 66
               },
               {
                 "surahNumber": 5,
@@ -14692,19 +14640,7 @@
             "ayahReferences": [
               {
                 "surahNumber": 23,
-                "ayahStart": 43
-              },
-              {
-                "surahNumber": 23,
-                "ayahStart": 44
-              },
-              {
-                "surahNumber": 23,
                 "ayahStart": 50
-              },
-              {
-                "surahNumber": 23,
-                "ayahStart": 52
               }
             ],
             "reviewStatus": "needs_review",
@@ -14728,18 +14664,6 @@
             "labelArabic": "سورة رقم 43",
             "labelEnglish": "Surah 43",
             "ayahReferences": [
-              {
-                "surahNumber": 43,
-                "ayahStart": 22
-              },
-              {
-                "surahNumber": 43,
-                "ayahStart": 23
-              },
-              {
-                "surahNumber": 43,
-                "ayahStart": 33
-              },
               {
                 "surahNumber": 43,
                 "ayahStart": 57
@@ -14814,30 +14738,6 @@
               },
               {
                 "surahNumber": 2,
-                "ayahStart": 128
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 134
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 141
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 143
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 213
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 221
-              },
-              {
-                "surahNumber": 2,
                 "ayahStart": 253
               },
               {
@@ -14865,26 +14765,6 @@
                 "ayahStart": 45
               },
               {
-                "surahNumber": 3,
-                "ayahStart": 104
-              },
-              {
-                "surahNumber": 3,
-                "ayahStart": 110
-              },
-              {
-                "surahNumber": 3,
-                "ayahStart": 113
-              },
-              {
-                "surahNumber": 4,
-                "ayahStart": 11
-              },
-              {
-                "surahNumber": 4,
-                "ayahStart": 41
-              },
-              {
                 "surahNumber": 4,
                 "ayahStart": 156
               },
@@ -14903,14 +14783,6 @@
               {
                 "surahNumber": 5,
                 "ayahStart": 46
-              },
-              {
-                "surahNumber": 5,
-                "ayahStart": 48
-              },
-              {
-                "surahNumber": 5,
-                "ayahStart": 66
               },
               {
                 "surahNumber": 5,
@@ -14958,35 +14830,11 @@
               },
               {
                 "surahNumber": 23,
-                "ayahStart": 43
-              },
-              {
-                "surahNumber": 23,
-                "ayahStart": 44
-              },
-              {
-                "surahNumber": 23,
                 "ayahStart": 50
-              },
-              {
-                "surahNumber": 23,
-                "ayahStart": 52
               },
               {
                 "surahNumber": 33,
                 "ayahStart": 7
-              },
-              {
-                "surahNumber": 43,
-                "ayahStart": 22
-              },
-              {
-                "surahNumber": 43,
-                "ayahStart": 23
-              },
-              {
-                "surahNumber": 43,
-                "ayahStart": 33
               },
               {
                 "surahNumber": 43,
@@ -15041,14 +14889,6 @@
               },
               {
                 "surahNumber": 5,
-                "ayahStart": 48
-              },
-              {
-                "surahNumber": 5,
-                "ayahStart": 66
-              },
-              {
-                "surahNumber": 5,
                 "ayahStart": 72
               },
               {
@@ -15092,30 +14932,6 @@
               },
               {
                 "surahNumber": 2,
-                "ayahStart": 128
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 134
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 141
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 143
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 213
-              },
-              {
-                "surahNumber": 2,
-                "ayahStart": 221
-              },
-              {
-                "surahNumber": 2,
                 "ayahStart": 253
               }
             ],
@@ -15152,18 +14968,6 @@
               {
                 "surahNumber": 3,
                 "ayahStart": 45
-              },
-              {
-                "surahNumber": 3,
-                "ayahStart": 104
-              },
-              {
-                "surahNumber": 3,
-                "ayahStart": 110
-              },
-              {
-                "surahNumber": 3,
-                "ayahStart": 113
               }
             ],
             "reviewStatus": "needs_review",
@@ -15176,14 +14980,6 @@
             "labelArabic": "سورة رقم 4 — ترتيب نزول غير محقق",
             "labelEnglish": "Surah 4 — revelation order unreferenced",
             "ayahReferences": [
-              {
-                "surahNumber": 4,
-                "ayahStart": 11
-              },
-              {
-                "surahNumber": 4,
-                "ayahStart": 41
-              },
               {
                 "surahNumber": 4,
                 "ayahStart": 156
@@ -15247,19 +15043,7 @@
             "ayahReferences": [
               {
                 "surahNumber": 23,
-                "ayahStart": 43
-              },
-              {
-                "surahNumber": 23,
-                "ayahStart": 44
-              },
-              {
-                "surahNumber": 23,
                 "ayahStart": 50
-              },
-              {
-                "surahNumber": 23,
-                "ayahStart": 52
               }
             ],
             "reviewStatus": "needs_review",
@@ -15287,18 +15071,6 @@
             "labelArabic": "سورة رقم 43 — ترتيب نزول غير محقق",
             "labelEnglish": "Surah 43 — revelation order unreferenced",
             "ayahReferences": [
-              {
-                "surahNumber": 43,
-                "ayahStart": 22
-              },
-              {
-                "surahNumber": 43,
-                "ayahStart": 23
-              },
-              {
-                "surahNumber": 43,
-                "ayahStart": 33
-              },
               {
                 "surahNumber": 43,
                 "ayahStart": 57
@@ -27021,19 +26793,6 @@
         "certainty": "high",
         "sections": [
           {
-            "sectionId": "mushaf:entity_object_ark:s2",
-            "labelArabic": "سورة رقم 2",
-            "labelEnglish": "Surah 2",
-            "ayahReferences": [
-              {
-                "surahNumber": 2,
-                "ayahStart": 164
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
             "sectionId": "mushaf:entity_object_ark:s7",
             "labelArabic": "سورة رقم 7",
             "labelEnglish": "Surah 7",
@@ -27051,10 +26810,6 @@
             "labelArabic": "سورة رقم 10",
             "labelEnglish": "Surah 10",
             "ayahReferences": [
-              {
-                "surahNumber": 10,
-                "ayahStart": 22
-              },
               {
                 "surahNumber": 10,
                 "ayahStart": 73
@@ -27081,83 +26836,10 @@
             "warnings": []
           },
           {
-            "sectionId": "mushaf:entity_object_ark:s14",
-            "labelArabic": "سورة رقم 14",
-            "labelEnglish": "Surah 14",
-            "ayahReferences": [
-              {
-                "surahNumber": 14,
-                "ayahStart": 32
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s16",
-            "labelArabic": "سورة رقم 16",
-            "labelEnglish": "Surah 16",
-            "ayahReferences": [
-              {
-                "surahNumber": 16,
-                "ayahStart": 14
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s17",
-            "labelArabic": "سورة رقم 17",
-            "labelEnglish": "Surah 17",
-            "ayahReferences": [
-              {
-                "surahNumber": 17,
-                "ayahStart": 66
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s18",
-            "labelArabic": "سورة رقم 18",
-            "labelEnglish": "Surah 18",
-            "ayahReferences": [
-              {
-                "surahNumber": 18,
-                "ayahStart": 71
-              },
-              {
-                "surahNumber": 18,
-                "ayahStart": 79
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s22",
-            "labelArabic": "سورة رقم 22",
-            "labelEnglish": "Surah 22",
-            "ayahReferences": [
-              {
-                "surahNumber": 22,
-                "ayahStart": 65
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
             "sectionId": "mushaf:entity_object_ark:s23",
             "labelArabic": "سورة رقم 23",
             "labelEnglish": "Surah 23",
             "ayahReferences": [
-              {
-                "surahNumber": 23,
-                "ayahStart": 22
-              },
               {
                 "surahNumber": 23,
                 "ayahStart": 27
@@ -27191,114 +26873,6 @@
               {
                 "surahNumber": 29,
                 "ayahStart": 15
-              },
-              {
-                "surahNumber": 29,
-                "ayahStart": 65
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s30",
-            "labelArabic": "سورة رقم 30",
-            "labelEnglish": "Surah 30",
-            "ayahReferences": [
-              {
-                "surahNumber": 30,
-                "ayahStart": 46
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s31",
-            "labelArabic": "سورة رقم 31",
-            "labelEnglish": "Surah 31",
-            "ayahReferences": [
-              {
-                "surahNumber": 31,
-                "ayahStart": 31
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s35",
-            "labelArabic": "سورة رقم 35",
-            "labelEnglish": "Surah 35",
-            "ayahReferences": [
-              {
-                "surahNumber": 35,
-                "ayahStart": 12
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s36",
-            "labelArabic": "سورة رقم 36",
-            "labelEnglish": "Surah 36",
-            "ayahReferences": [
-              {
-                "surahNumber": 36,
-                "ayahStart": 41
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s37",
-            "labelArabic": "سورة رقم 37",
-            "labelEnglish": "Surah 37",
-            "ayahReferences": [
-              {
-                "surahNumber": 37,
-                "ayahStart": 140
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s40",
-            "labelArabic": "سورة رقم 40",
-            "labelEnglish": "Surah 40",
-            "ayahReferences": [
-              {
-                "surahNumber": 40,
-                "ayahStart": 80
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s43",
-            "labelArabic": "سورة رقم 43",
-            "labelEnglish": "Surah 43",
-            "ayahReferences": [
-              {
-                "surahNumber": 43,
-                "ayahStart": 12
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
-            "sectionId": "mushaf:entity_object_ark:s45",
-            "labelArabic": "سورة رقم 45",
-            "labelEnglish": "Surah 45",
-            "ayahReferences": [
-              {
-                "surahNumber": 45,
-                "ayahStart": 12
               }
             ],
             "reviewStatus": "needs_review",
@@ -27322,16 +26896,8 @@
             "labelEnglish": "Suggested reading order — not a confirmed historical chronology",
             "ayahReferences": [
               {
-                "surahNumber": 2,
-                "ayahStart": 164
-              },
-              {
                 "surahNumber": 7,
                 "ayahStart": 64
-              },
-              {
-                "surahNumber": 10,
-                "ayahStart": 22
               },
               {
                 "surahNumber": 10,
@@ -27344,34 +26910,6 @@
               {
                 "surahNumber": 11,
                 "ayahStart": 38
-              },
-              {
-                "surahNumber": 14,
-                "ayahStart": 32
-              },
-              {
-                "surahNumber": 16,
-                "ayahStart": 14
-              },
-              {
-                "surahNumber": 17,
-                "ayahStart": 66
-              },
-              {
-                "surahNumber": 18,
-                "ayahStart": 71
-              },
-              {
-                "surahNumber": 18,
-                "ayahStart": 79
-              },
-              {
-                "surahNumber": 22,
-                "ayahStart": 65
-              },
-              {
-                "surahNumber": 23,
-                "ayahStart": 22
               },
               {
                 "surahNumber": 23,
@@ -27388,42 +26926,6 @@
               {
                 "surahNumber": 29,
                 "ayahStart": 15
-              },
-              {
-                "surahNumber": 29,
-                "ayahStart": 65
-              },
-              {
-                "surahNumber": 30,
-                "ayahStart": 46
-              },
-              {
-                "surahNumber": 31,
-                "ayahStart": 31
-              },
-              {
-                "surahNumber": 35,
-                "ayahStart": 12
-              },
-              {
-                "surahNumber": 36,
-                "ayahStart": 41
-              },
-              {
-                "surahNumber": 37,
-                "ayahStart": 140
-              },
-              {
-                "surahNumber": 40,
-                "ayahStart": 80
-              },
-              {
-                "surahNumber": 43,
-                "ayahStart": 12
-              },
-              {
-                "surahNumber": 45,
-                "ayahStart": 12
               }
             ],
             "reviewStatus": "needs_review",
@@ -27444,21 +26946,6 @@
         "certainty": "disputed",
         "sections": [
           {
-            "sectionId": "revelation:entity_object_ark:s2",
-            "labelArabic": "سورة رقم 2 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 2 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 2,
-                "ayahStart": 164
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
             "sectionId": "revelation:entity_object_ark:s7",
             "labelArabic": "سورة رقم 7 — ترتيب نزول غير محقق",
             "labelEnglish": "Surah 7 — revelation order unreferenced",
@@ -27478,10 +26965,6 @@
             "labelArabic": "سورة رقم 10 — ترتيب نزول غير محقق",
             "labelEnglish": "Surah 10 — revelation order unreferenced",
             "ayahReferences": [
-              {
-                "surahNumber": 10,
-                "ayahStart": 22
-              },
               {
                 "surahNumber": 10,
                 "ayahStart": 73
@@ -27512,93 +26995,10 @@
             ]
           },
           {
-            "sectionId": "revelation:entity_object_ark:s14",
-            "labelArabic": "سورة رقم 14 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 14 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 14,
-                "ayahStart": 32
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s16",
-            "labelArabic": "سورة رقم 16 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 16 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 16,
-                "ayahStart": 14
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s17",
-            "labelArabic": "سورة رقم 17 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 17 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 17,
-                "ayahStart": 66
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s18",
-            "labelArabic": "سورة رقم 18 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 18 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 18,
-                "ayahStart": 71
-              },
-              {
-                "surahNumber": 18,
-                "ayahStart": 79
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s22",
-            "labelArabic": "سورة رقم 22 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 22 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 22,
-                "ayahStart": 65
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
             "sectionId": "revelation:entity_object_ark:s23",
             "labelArabic": "سورة رقم 23 — ترتيب نزول غير محقق",
             "labelEnglish": "Surah 23 — revelation order unreferenced",
             "ayahReferences": [
-              {
-                "surahNumber": 23,
-                "ayahStart": 22
-              },
               {
                 "surahNumber": 23,
                 "ayahStart": 27
@@ -27636,130 +27036,6 @@
               {
                 "surahNumber": 29,
                 "ayahStart": 15
-              },
-              {
-                "surahNumber": 29,
-                "ayahStart": 65
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s30",
-            "labelArabic": "سورة رقم 30 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 30 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 30,
-                "ayahStart": 46
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s31",
-            "labelArabic": "سورة رقم 31 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 31 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 31,
-                "ayahStart": 31
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s35",
-            "labelArabic": "سورة رقم 35 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 35 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 35,
-                "ayahStart": 12
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s36",
-            "labelArabic": "سورة رقم 36 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 36 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 36,
-                "ayahStart": 41
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s37",
-            "labelArabic": "سورة رقم 37 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 37 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 37,
-                "ayahStart": 140
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s40",
-            "labelArabic": "سورة رقم 40 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 40 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 40,
-                "ayahStart": 80
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s43",
-            "labelArabic": "سورة رقم 43 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 43 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 43,
-                "ayahStart": 12
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
-            "sectionId": "revelation:entity_object_ark:s45",
-            "labelArabic": "سورة رقم 45 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 45 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 45,
-                "ayahStart": 12
               }
             ],
             "reviewStatus": "needs_review",
@@ -27773,7 +27049,7 @@
           "ibn_kathir"
         ],
         "warnings": [
-          "20 of 20 surahs lack a verified revelation-order seed — order shown is approximate."
+          "6 of 6 surahs lack a verified revelation-order seed — order shown is approximate."
         ]
       },
       "thematic_order": {
@@ -27787,16 +27063,8 @@
             "labelEnglish": "All mentions",
             "ayahReferences": [
               {
-                "surahNumber": 2,
-                "ayahStart": 164
-              },
-              {
                 "surahNumber": 7,
                 "ayahStart": 64
-              },
-              {
-                "surahNumber": 10,
-                "ayahStart": 22
               },
               {
                 "surahNumber": 10,
@@ -27809,34 +27077,6 @@
               {
                 "surahNumber": 11,
                 "ayahStart": 38
-              },
-              {
-                "surahNumber": 14,
-                "ayahStart": 32
-              },
-              {
-                "surahNumber": 16,
-                "ayahStart": 14
-              },
-              {
-                "surahNumber": 17,
-                "ayahStart": 66
-              },
-              {
-                "surahNumber": 18,
-                "ayahStart": 71
-              },
-              {
-                "surahNumber": 18,
-                "ayahStart": 79
-              },
-              {
-                "surahNumber": 22,
-                "ayahStart": 65
-              },
-              {
-                "surahNumber": 23,
-                "ayahStart": 22
               },
               {
                 "surahNumber": 23,
@@ -27853,42 +27093,6 @@
               {
                 "surahNumber": 29,
                 "ayahStart": 15
-              },
-              {
-                "surahNumber": 29,
-                "ayahStart": 65
-              },
-              {
-                "surahNumber": 30,
-                "ayahStart": 46
-              },
-              {
-                "surahNumber": 31,
-                "ayahStart": 31
-              },
-              {
-                "surahNumber": 35,
-                "ayahStart": 12
-              },
-              {
-                "surahNumber": 36,
-                "ayahStart": 41
-              },
-              {
-                "surahNumber": 37,
-                "ayahStart": 140
-              },
-              {
-                "surahNumber": 40,
-                "ayahStart": 80
-              },
-              {
-                "surahNumber": 43,
-                "ayahStart": 12
-              },
-              {
-                "surahNumber": 45,
-                "ayahStart": 12
               }
             ],
             "reviewStatus": "needs_review",
@@ -31445,19 +30649,6 @@
         "certainty": "high",
         "sections": [
           {
-            "sectionId": "mushaf:entity_event_flood:s7",
-            "labelArabic": "سورة رقم 7",
-            "labelEnglish": "Surah 7",
-            "ayahReferences": [
-              {
-                "surahNumber": 7,
-                "ayahStart": 133
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": []
-          },
-          {
             "sectionId": "mushaf:entity_event_flood:s29",
             "labelArabic": "سورة رقم 29",
             "labelEnglish": "Surah 29",
@@ -31488,10 +30679,6 @@
             "labelEnglish": "Suggested reading order — not a confirmed historical chronology",
             "ayahReferences": [
               {
-                "surahNumber": 7,
-                "ayahStart": 133
-              },
-              {
                 "surahNumber": 29,
                 "ayahStart": 14
               }
@@ -31514,21 +30701,6 @@
         "certainty": "disputed",
         "sections": [
           {
-            "sectionId": "revelation:entity_event_flood:s7",
-            "labelArabic": "سورة رقم 7 — ترتيب نزول غير محقق",
-            "labelEnglish": "Surah 7 — revelation order unreferenced",
-            "ayahReferences": [
-              {
-                "surahNumber": 7,
-                "ayahStart": 133
-              }
-            ],
-            "reviewStatus": "needs_review",
-            "warnings": [
-              "No revelation-order source for this surah; placed by mushaf order as fallback."
-            ]
-          },
-          {
             "sectionId": "revelation:entity_event_flood:s29",
             "labelArabic": "سورة رقم 29 — ترتيب نزول غير محقق",
             "labelEnglish": "Surah 29 — revelation order unreferenced",
@@ -31549,7 +30721,7 @@
           "ibn_kathir"
         ],
         "warnings": [
-          "2 of 2 surahs lack a verified revelation-order seed — order shown is approximate."
+          "1 of 1 surahs lack a verified revelation-order seed — order shown is approximate."
         ]
       },
       "thematic_order": {
@@ -31562,10 +30734,6 @@
             "labelArabic": "جميع ذكر الكيان",
             "labelEnglish": "All mentions",
             "ayahReferences": [
-              {
-                "surahNumber": 7,
-                "ayahStart": 133
-              },
               {
                 "surahNumber": 29,
                 "ayahStart": 14

@@ -1,19 +1,19 @@
 # Quran Story Connection Scan — Summary
 
-Generated: 2026-10-15T00:04:10.248Z
+Generated: 2026-10-15T01:19:33.803Z
 
 - Scanned surahs: **114** / 114
-- Total entity detections: **861**
+- Total entity detections: **863**
 - Distinct entities detected: **86**
 - Cross-surah links: **54**
-- Unmapped cluster candidates: **165**
+- Unmapped cluster candidates: **164**
 
 ## Entity-type counts
 
 - angel: 6
 - animal: 26
 - event: 5
-- object: 31
+- object: 33
 - people_or_nation: 111
 - person: 138
 - place: 44

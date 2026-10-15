@@ -1,11 +1,11 @@
 # Quran Entity Relations — Enriched Summary
 
-Generated at: 2026-10-15T00:06:30.600Z
+Generated at: 2026-10-15T01:19:39.096Z
 Version: 1.0.0
 
 ## Totals
 
-- Base explicit relations: **1571**
+- Base explicit relations: **1549**
 - Coreference-derived edges: **53**
 - Conflicts (none expected): **0**
 

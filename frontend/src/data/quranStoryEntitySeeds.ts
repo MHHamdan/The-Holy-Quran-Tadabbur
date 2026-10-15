@@ -42,9 +42,14 @@ export const STORY_ENTITY_ALIAS_SCOPES: Record<string, Record<string, StoryAlias
   entity_person_aziz: { '*': { surahs: [12] } },
   // "الطير" occurs in many unrelated ayat; Ibrahim's birds are 2:260.
   entity_animal_birds_ibrahim: { '*': { ranges: [[2, 260, 260]] } },
-  // "الفلك" / "السفينة" are any ship; keep the ayat that describe Nuh's ark.
+  // "الفلك" / "السفينة" are any ship; keep the ayat that describe Nuh's ark
+  // (7:64 and 10:73 close the Nuh passages that open at 7:59 and 10:71).
   entity_object_ark: {
-    '*': { ranges: [[11, 37, 44], [23, 27, 28], [26, 119, 119], [29, 15, 15], [54, 13, 13]] },
+    '*': {
+      ranges: [
+        [7, 64, 64], [10, 73, 73], [11, 37, 44], [23, 27, 28], [26, 119, 119], [29, 15, 15], [54, 13, 13],
+      ],
+    },
   },
   // "حية" also matches "وحيه" (his revelation, 20:114) after ة→ه normalisation;
   // keep the staff-turned-serpent passages only.

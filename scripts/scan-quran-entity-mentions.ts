@@ -34,11 +34,14 @@ import {
   type EntitySeed,
   type QuranEntityType,
 } from '../frontend/src/types/quranEntityGraph';
+import { STORY_ENTITY_ALIAS_SCOPES } from '../frontend/src/data/quranStoryEntitySeeds';
 import {
   LEMMA_BY_ENTITY,
   QAC_PATH,
   countAliasOccurrences,
+  inScope,
   loadQacProperNounIndex,
+  type AyahScope,
   qacAyahsForEntity,
   tokenise,
 } from './qac-proper-noun-lemmas';
@@ -54,7 +57,7 @@ const OUT_MD = join(ROOT, 'docs/generated/quran-entity-mentions-summary.md');
 
 const TOTAL_SURAHS = 114;
 const TOTAL_AYAHS = 6236;
-const VERSION = '2.0.0'; // 2.0: QAC proper-noun lemmas + whole-token alias matching
+const VERSION = '2.1.0'; // 2.1: alias ayah scopes + ta-marbuta-safe pronoun aliases
 
 // ---------------------------------------------------------------------------
 // Arabic normalisation: strip tashkeel, normalise alif/ya/hamza/ta-marbuta.
@@ -62,12 +65,16 @@ const VERSION = '2.0.0'; // 2.0: QAC proper-noun lemmas + whole-token alias matc
 
 const ARABIC_DIACRITICS = /[ً-ٰٟؐ-ؚۖ-ۭـ]/g;
 
-function normaliseArabic(s: string): string {
-  return s
+/**
+ * `keepTaMarbuta` keeps ة distinct from ه. Pronoun-suffixed aliases need it:
+ * "أمه" (his mother) must not match "أمة" (a nation), nor "زوجه" match "زوجة".
+ */
+function normaliseArabic(s: string, keepTaMarbuta = false): string {
+  const base = s
     .replace(ARABIC_DIACRITICS, '')
     .replace(/[آأإٱ]/g, 'ا')
-    .replace(/ى/g, 'ي')
-    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي');
+  return (keepTaMarbuta ? base : base.replace(/ة/g, 'ه'))
     .replace(/ء/g, '')               // drop stand-alone hamza so إسرءيل ↔ إسرائيل
     .replace(/[​-‏﻿]/g, '')
     .trim();
@@ -104,6 +111,10 @@ interface AliasEntry {
   mentionType: EntityMentionType;
   /** Generic / common-word alias → downgrade mention. */
   isGeneric: boolean;
+  /** Ayah scope for ambiguous aliases (shared with the story-connections scan). */
+  scope?: AyahScope;
+  /** Match against the ayah normalised without ة→ه (pronoun-suffixed aliases). */
+  keepTaMarbuta: boolean;
 }
 
 /**
@@ -178,23 +189,35 @@ function buildAliasTable(seeds: EntitySeed[]): AliasEntry[] {
   const entries: AliasEntry[] = [];
   for (const s of seeds) {
     const hasLemma = !!LEMMA_BY_ENTITY[s.entityId];
+    const scopes = STORY_ENTITY_ALIAS_SCOPES[s.entityId] ?? {};
     for (const a of s.aliasesArabic) {
-      const norm = normaliseArabic(a);
+      const mentionType = classifyAlias(s, a);
+      const keepTaMarbuta = mentionType === 'pronoun_context';
+      const norm = normaliseArabic(a, keepTaMarbuta);
       if (!norm) continue;
       // Aliases shorter than 3 chars after normalisation are skipped.
       if (norm.length < 3) continue;
-      const mentionType = classifyAlias(s, a);
       // Entities with a QAC proper-noun lemma get their name mentions from
       // QAC; their name-style aliases (explicit_name / alias) are dropped
       // because surface matching cannot tell "صالحا" (righteous) from the
-      // prophet Salih, or "قرون" (generations) from Qarun.
-      if (hasLemma && (mentionType === 'explicit_name' || mentionType === 'alias')) continue;
+      // prophet Salih, or "قرون" (generations) from Qarun. Pronoun aliases are
+      // dropped for the same reason: "أمه" (his mother) cannot say whose
+      // mother (4:11 is inheritance law, not Maryam); the named ayat already
+      // come from QAC.
+      if (
+        hasLemma &&
+        (mentionType === 'explicit_name' || mentionType === 'alias' || mentionType === 'pronoun_context')
+      ) {
+        continue;
+      }
       entries.push({
         entityId: s.entityId,
         alias: a,
         normalised: norm,
         mentionType,
         isGeneric: isGenericAlias(a),
+        scope: scopes[a] ?? scopes['*'],
+        keepTaMarbuta,
       });
     }
   }
@@ -231,8 +254,11 @@ const ALIAS_ONLY_MAX_CONFIDENCE = 0.6;
 
 function detectInAyah(
   normAyah: string,
+  normAyahKeepTa: string,
   aliasTable: AliasEntry[],
   qacEntityIds: string[] = [],
+  surah = 0,
+  ayah = 0,
 ): AyahDetection[] {
   const bestByEntity = new Map<string, AyahDetection>();
   for (const entityId of qacEntityIds) {
@@ -246,8 +272,10 @@ function detectInAyah(
     });
   }
   const tokens = tokenise(normAyah);
+  const tokensKeepTa = tokenise(normAyahKeepTa);
   for (const entry of aliasTable) {
-    if (countAliasOccurrences(tokens, entry.normalised) === 0) continue;
+    if (surah > 0 && !inScope(entry.scope, surah, ayah)) continue;
+    if (countAliasOccurrences(entry.keepTaMarbuta ? tokensKeepTa : tokens, entry.normalised) === 0) continue;
     const det: AyahDetection = {
       entityId: entry.entityId,
       alias: entry.alias,
@@ -338,7 +366,14 @@ function main(): void {
   for (const a of ayahs) {
     const norm = normaliseArabic(a.aya_text ?? '');
     if (!norm) continue;
-    const detections = detectInAyah(norm, aliasTable, qacEntityIndex.get(`${a.sura_no}:${a.aya_no}`) ?? []);
+    const detections = detectInAyah(
+      norm,
+      normaliseArabic(a.aya_text ?? '', true),
+      aliasTable,
+      qacEntityIndex.get(`${a.sura_no}:${a.aya_no}`) ?? [],
+      a.sura_no,
+      a.aya_no,
+    );
     if (detections.length === 0) continue;
     for (const d of detections) {
       rawHits.push({ surahNumber: a.sura_no, ayahNumber: a.aya_no, detection: d });

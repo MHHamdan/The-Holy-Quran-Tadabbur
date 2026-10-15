@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-10-15T00:06:30.600Z",
-  "baseRelationCount": 1571,
+  "generatedAt": "2026-10-15T01:19:39.096Z",
+  "baseRelationCount": 1549,
   "coreferenceEdgeCount": 53,
   "baseRelations": [
     {
@@ -1066,29 +1066,6 @@
     },
     {
       "sourceEntityId": "entity_animal_whale",
-      "targetEntityId": "entity_object_ark",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 37,
-          "ayahStart": 140,
-          "ayahEnd": 142
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_animal_whale",
       "targetEntityId": "entity_prophet_musa",
       "relationType": "same_surah_context",
       "evidenceReferences": [
@@ -1214,8 +1191,8 @@
       "relationType": "same_story",
       "evidenceReferences": [
         {
-          "surahNumber": 7,
-          "ayahStart": 64
+          "surahNumber": 29,
+          "ayahStart": 15
         }
       ],
       "sourceIds": [
@@ -1255,97 +1232,6 @@
     },
     {
       "sourceEntityId": "entity_event_flood",
-      "targetEntityId": "entity_people_aal_firawn",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 7,
-          "ayahStart": 130,
-          "ayahEnd": 133
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_event_flood",
-      "targetEntityId": "entity_people_bani_israel",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 7,
-          "ayahStart": 133,
-          "ayahEnd": 134
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_event_flood",
-      "targetEntityId": "entity_people_qawm_nuh",
-      "relationType": "same_story",
-      "evidenceReferences": [
-        {
-          "surahNumber": 7,
-          "ayahStart": 69
-        }
-      ],
-      "sourceIds": [
-        "stories_manifest"
-      ],
-      "confidence": 0.7,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from shared seed storyId; story attribution requires reviewer sign-off."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_event_flood",
-      "targetEntityId": "entity_person_firawn",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 7,
-          "ayahStart": 130,
-          "ayahEnd": 133
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_event_flood",
       "targetEntityId": "entity_prophet_ibrahim",
       "relationType": "same_surah_context",
       "evidenceReferences": [
@@ -1353,34 +1239,6 @@
           "surahNumber": 29,
           "ayahStart": 14,
           "ayahEnd": 16
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_event_flood",
-      "targetEntityId": "entity_prophet_musa",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 7,
-          "ayahStart": 131,
-          "ayahEnd": 133
-        },
-        {
-          "surahNumber": 7,
-          "ayahStart": 133,
-          "ayahEnd": 134
         }
       ],
       "sourceIds": [
@@ -2080,35 +1938,12 @@
     },
     {
       "sourceEntityId": "entity_object_ark",
-      "targetEntityId": "entity_animal_whale",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 37,
-          "ayahStart": 140,
-          "ayahEnd": 142
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_object_ark",
       "targetEntityId": "entity_event_flood",
       "relationType": "same_story",
       "evidenceReferences": [
         {
-          "surahNumber": 7,
-          "ayahStart": 64
+          "surahNumber": 29,
+          "ayahStart": 15
         }
       ],
       "sourceIds": [
@@ -2216,29 +2051,6 @@
     },
     {
       "sourceEntityId": "entity_object_ark",
-      "targetEntityId": "entity_place_sinai",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 23,
-          "ayahStart": 20,
-          "ayahEnd": 22
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_object_ark",
       "targetEntityId": "entity_prophet_harun",
       "relationType": "same_surah_context",
       "evidenceReferences": [
@@ -2288,11 +2100,6 @@
       "targetEntityId": "entity_prophet_ibrahim",
       "relationType": "same_surah_context",
       "evidenceReferences": [
-        {
-          "surahNumber": 14,
-          "ayahStart": 32,
-          "ayahEnd": 35
-        },
         {
           "surahNumber": 29,
           "ayahStart": 15,
@@ -2377,11 +2184,6 @@
           "ayahEnd": 38
         },
         {
-          "surahNumber": 23,
-          "ayahStart": 22,
-          "ayahEnd": 23
-        },
-        {
           "surahNumber": 26,
           "ayahStart": 116,
           "ayahEnd": 119
@@ -2390,29 +2192,6 @@
           "surahNumber": 29,
           "ayahStart": 14,
           "ayahEnd": 15
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_object_ark",
-      "targetEntityId": "entity_prophet_yunus",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 37,
-          "ayahStart": 139,
-          "ayahEnd": 140
         }
       ],
       "sourceIds": [
@@ -4156,29 +3935,6 @@
     },
     {
       "sourceEntityId": "entity_people_aal_firawn",
-      "targetEntityId": "entity_event_flood",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 7,
-          "ayahStart": 130,
-          "ayahEnd": 133
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_people_aal_firawn",
       "targetEntityId": "entity_object_tablets",
       "relationType": "same_story",
       "evidenceReferences": [
@@ -5365,29 +5121,6 @@
     },
     {
       "sourceEntityId": "entity_people_bani_israel",
-      "targetEntityId": "entity_event_flood",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 7,
-          "ayahStart": 133,
-          "ayahEnd": 134
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_people_bani_israel",
       "targetEntityId": "entity_object_table_spread",
       "relationType": "same_surah_context",
       "evidenceReferences": [
@@ -5705,11 +5438,6 @@
       "targetEntityId": "entity_person_maryam",
       "relationType": "same_surah_context",
       "evidenceReferences": [
-        {
-          "surahNumber": 2,
-          "ayahStart": 211,
-          "ayahEnd": 213
-        },
         {
           "surahNumber": 5,
           "ayahStart": 70,
@@ -8323,28 +8051,6 @@
       "humanReviewRequired": true,
       "warnings": [
         "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_people_qawm_nuh",
-      "targetEntityId": "entity_event_flood",
-      "relationType": "same_story",
-      "evidenceReferences": [
-        {
-          "surahNumber": 7,
-          "ayahStart": 69
-        }
-      ],
-      "sourceIds": [
-        "stories_manifest"
-      ],
-      "confidence": 0.7,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from shared seed storyId; story attribution requires reviewer sign-off."
       ]
     },
     {
@@ -11205,29 +10911,6 @@
     },
     {
       "sourceEntityId": "entity_person_firawn",
-      "targetEntityId": "entity_event_flood",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 7,
-          "ayahStart": 130,
-          "ayahEnd": 133
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_person_firawn",
       "targetEntityId": "entity_event_sea_crossing",
       "relationType": "same_story",
       "evidenceReferences": [
@@ -12215,16 +11898,6 @@
       "targetEntityId": "entity_person_maryam",
       "relationType": "same_surah_context",
       "evidenceReferences": [
-        {
-          "surahNumber": 23,
-          "ayahStart": 43,
-          "ayahEnd": 46
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 44,
-          "ayahEnd": 46
-        },
         {
           "surahNumber": 66,
           "ayahStart": 11,
@@ -15508,11 +15181,6 @@
       "relationType": "same_surah_context",
       "evidenceReferences": [
         {
-          "surahNumber": 2,
-          "ayahStart": 211,
-          "ayahEnd": 213
-        },
-        {
           "surahNumber": 5,
           "ayahStart": 70,
           "ayahEnd": 72
@@ -15687,16 +15355,6 @@
       "targetEntityId": "entity_person_firawn",
       "relationType": "same_surah_context",
       "evidenceReferences": [
-        {
-          "surahNumber": 23,
-          "ayahStart": 43,
-          "ayahEnd": 46
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 44,
-          "ayahEnd": 46
-        },
         {
           "surahNumber": 66,
           "ayahStart": 11,
@@ -16008,16 +15666,6 @@
           "surahNumber": 19,
           "ayahStart": 27,
           "ayahEnd": 28
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 43,
-          "ayahEnd": 45
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 44,
-          "ayahEnd": 45
         }
       ],
       "sourceIds": [
@@ -16058,56 +15706,6 @@
       "relationType": "same_surah_context",
       "evidenceReferences": [
         {
-          "surahNumber": 2,
-          "ayahStart": 125,
-          "ayahEnd": 128
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 126,
-          "ayahEnd": 128
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 127,
-          "ayahEnd": 128
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 128,
-          "ayahEnd": 130
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 132,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 133,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 135
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 141
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 143
-        },
-        {
           "surahNumber": 3,
           "ayahStart": 33,
           "ayahEnd": 36
@@ -16121,11 +15719,6 @@
           "surahNumber": 57,
           "ayahStart": 26,
           "ayahEnd": 27
-        },
-        {
-          "surahNumber": 43,
-          "ayahStart": 23,
-          "ayahEnd": 26
         }
       ],
       "sourceIds": [
@@ -16300,11 +15893,6 @@
         },
         {
           "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
-          "surahNumber": 2,
           "ayahStart": 253,
           "ayahEnd": 253
         },
@@ -16337,11 +15925,6 @@
           "surahNumber": 5,
           "ayahStart": 46,
           "ayahEnd": 46
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 46,
-          "ayahEnd": 48
         },
         {
           "surahNumber": 5,
@@ -16444,11 +16027,6 @@
           "ayahEnd": 50
         },
         {
-          "surahNumber": 23,
-          "ayahStart": 50,
-          "ayahEnd": 52
-        },
-        {
           "surahNumber": 33,
           "ayahStart": 7,
           "ayahEnd": 7
@@ -16522,92 +16100,6 @@
       "humanReviewRequired": true,
       "warnings": [
         "Marked as theological-clarification passage; interpretation must be deferred to verified tafsir."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_person_maryam",
-      "targetEntityId": "entity_prophet_ishaq",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 2,
-          "ayahStart": 133,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 141
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 143
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_person_maryam",
-      "targetEntityId": "entity_prophet_ismail",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 2,
-          "ayahStart": 125,
-          "ayahEnd": 128
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 127,
-          "ayahEnd": 128
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 133,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 141
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 143
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
       ]
     },
     {
@@ -16711,11 +16203,6 @@
           "ayahEnd": 87
         },
         {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
           "surahNumber": 5,
           "ayahStart": 17,
           "ayahEnd": 20
@@ -16727,23 +16214,8 @@
         },
         {
           "surahNumber": 23,
-          "ayahStart": 43,
-          "ayahEnd": 45
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 44,
-          "ayahEnd": 45
-        },
-        {
-          "surahNumber": 23,
           "ayahStart": 49,
           "ayahEnd": 50
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 49,
-          "ayahEnd": 52
         },
         {
           "surahNumber": 33,
@@ -16861,49 +16333,6 @@
     },
     {
       "sourceEntityId": "entity_person_maryam",
-      "targetEntityId": "entity_prophet_yaqub",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 2,
-          "ayahStart": 132,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 133,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 141
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 143
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_person_maryam",
       "targetEntityId": "entity_prophet_zakariyya",
       "relationType": "family_of",
       "evidenceReferences": [
@@ -16998,10 +16427,6 @@
         {
           "surahNumber": 57,
           "ayahStart": 27
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66
         }
       ],
       "sourceIds": [
@@ -17033,26 +16458,6 @@
           "surahNumber": 5,
           "ayahStart": 46,
           "ayahEnd": 47
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 46,
-          "ayahEnd": 48
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 47,
-          "ayahEnd": 48
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66,
-          "ayahEnd": 66
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66,
-          "ayahEnd": 68
         },
         {
           "surahNumber": 5,
@@ -17090,10 +16495,6 @@
         {
           "surahNumber": 3,
           "ayahStart": 36
-        },
-        {
-          "surahNumber": 4,
-          "ayahStart": 11
         }
       ],
       "sourceIds": [
@@ -17120,16 +16521,6 @@
           "surahNumber": 3,
           "ayahStart": 36,
           "ayahEnd": 37
-        },
-        {
-          "surahNumber": 4,
-          "ayahStart": 11,
-          "ayahEnd": 11
-        },
-        {
-          "surahNumber": 43,
-          "ayahStart": 31,
-          "ayahEnd": 33
         }
       ],
       "sourceIds": [
@@ -17160,10 +16551,6 @@
         {
           "surahNumber": 61,
           "ayahStart": 6
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66
         }
       ],
       "sourceIds": [
@@ -17200,21 +16587,6 @@
           "surahNumber": 5,
           "ayahStart": 46,
           "ayahEnd": 46
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 46,
-          "ayahEnd": 48
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66,
-          "ayahEnd": 66
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66,
-          "ayahEnd": 68
         },
         {
           "surahNumber": 5,
@@ -18244,29 +17616,6 @@
           "surahNumber": 3,
           "ayahStart": 93,
           "ayahEnd": 96
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_place_sinai",
-      "targetEntityId": "entity_object_ark",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 23,
-          "ayahStart": 20,
-          "ayahEnd": 22
         }
       ],
       "sourceIds": [
@@ -22290,16 +21639,6 @@
           "surahNumber": 19,
           "ayahStart": 27,
           "ayahEnd": 28
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 43,
-          "ayahEnd": 45
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 44,
-          "ayahEnd": 45
         }
       ],
       "sourceIds": [
@@ -23823,11 +23162,6 @@
       "relationType": "same_surah_context",
       "evidenceReferences": [
         {
-          "surahNumber": 14,
-          "ayahStart": 32,
-          "ayahEnd": 35
-        },
-        {
           "surahNumber": 29,
           "ayahStart": 15,
           "ayahEnd": 16
@@ -24282,56 +23616,6 @@
       "relationType": "same_surah_context",
       "evidenceReferences": [
         {
-          "surahNumber": 2,
-          "ayahStart": 125,
-          "ayahEnd": 128
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 126,
-          "ayahEnd": 128
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 127,
-          "ayahEnd": 128
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 128,
-          "ayahEnd": 130
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 132,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 133,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 135
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 141
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 143
-        },
-        {
           "surahNumber": 3,
           "ayahStart": 33,
           "ayahEnd": 36
@@ -24345,11 +23629,6 @@
           "surahNumber": 57,
           "ayahStart": 26,
           "ayahEnd": 27
-        },
-        {
-          "surahNumber": 43,
-          "ayahStart": 23,
-          "ayahEnd": 26
         }
       ],
       "sourceIds": [
@@ -27442,11 +26721,6 @@
         },
         {
           "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
-          "surahNumber": 2,
           "ayahStart": 253,
           "ayahEnd": 253
         },
@@ -27479,11 +26753,6 @@
           "surahNumber": 5,
           "ayahStart": 46,
           "ayahEnd": 46
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 46,
-          "ayahEnd": 48
         },
         {
           "surahNumber": 5,
@@ -27584,11 +26853,6 @@
           "surahNumber": 23,
           "ayahStart": 50,
           "ayahEnd": 50
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 50,
-          "ayahEnd": 52
         },
         {
           "surahNumber": 33,
@@ -28984,44 +28248,6 @@
     },
     {
       "sourceEntityId": "entity_prophet_ishaq",
-      "targetEntityId": "entity_person_maryam",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 2,
-          "ayahStart": 133,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 141
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 143
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_prophet_ishaq",
       "targetEntityId": "entity_place_sinai",
       "relationType": "same_surah_context",
       "evidenceReferences": [
@@ -30277,54 +29503,6 @@
           "surahNumber": 2,
           "ayahStart": 122,
           "ayahEnd": 125
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_prophet_ismail",
-      "targetEntityId": "entity_person_maryam",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 2,
-          "ayahStart": 125,
-          "ayahEnd": 128
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 127,
-          "ayahEnd": 128
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 133,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 141
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 143
         }
       ],
       "sourceIds": [
@@ -33102,34 +32280,6 @@
     },
     {
       "sourceEntityId": "entity_prophet_musa",
-      "targetEntityId": "entity_event_flood",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 7,
-          "ayahStart": 131,
-          "ayahEnd": 133
-        },
-        {
-          "surahNumber": 7,
-          "ayahStart": 133,
-          "ayahEnd": 134
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_prophet_musa",
       "targetEntityId": "entity_event_sea_crossing",
       "relationType": "mentioned_with",
       "evidenceReferences": [
@@ -34684,11 +33834,6 @@
           "ayahEnd": 87
         },
         {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
           "surahNumber": 5,
           "ayahStart": 17,
           "ayahEnd": 20
@@ -34700,23 +33845,8 @@
         },
         {
           "surahNumber": 23,
-          "ayahStart": 43,
-          "ayahEnd": 45
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 44,
-          "ayahEnd": 45
-        },
-        {
-          "surahNumber": 23,
           "ayahStart": 49,
           "ayahEnd": 50
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 49,
-          "ayahEnd": 52
         },
         {
           "surahNumber": 33,
@@ -36620,11 +35750,6 @@
           "surahNumber": 11,
           "ayahStart": 36,
           "ayahEnd": 38
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 22,
-          "ayahEnd": 23
         },
         {
           "surahNumber": 26,
@@ -41420,49 +40545,6 @@
     },
     {
       "sourceEntityId": "entity_prophet_yaqub",
-      "targetEntityId": "entity_person_maryam",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 2,
-          "ayahStart": 132,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 133,
-          "ayahEnd": 134
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 134,
-          "ayahEnd": 136
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 141
-        },
-        {
-          "surahNumber": 2,
-          "ayahStart": 140,
-          "ayahEnd": 143
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_prophet_yaqub",
       "targetEntityId": "entity_place_sinai",
       "relationType": "same_surah_context",
       "evidenceReferences": [
@@ -42770,29 +41852,6 @@
           "surahNumber": 68,
           "ayahStart": 48,
           "ayahEnd": 48
-        }
-      ],
-      "sourceIds": [
-        "tanzil_quran_uthmani"
-      ],
-      "confidence": 0.55,
-      "explanationArabic": "ترتبط هذه الآيات لأنها تذكر هاتين الذاتين في سياق قرآني واحد، ويحتاج التفصيل إلى مراجعة تفسيرية.",
-      "explanationEnglish": "These ayahs are linked because both entities appear in the same Quranic context. Detailed interpretation requires tafsir review.",
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Inferred from co-mention within a 3-ayah window; verify with tafsir before promoting."
-      ]
-    },
-    {
-      "sourceEntityId": "entity_prophet_yunus",
-      "targetEntityId": "entity_object_ark",
-      "relationType": "same_surah_context",
-      "evidenceReferences": [
-        {
-          "surahNumber": 37,
-          "ayahStart": 139,
-          "ayahEnd": 140
         }
       ],
       "sourceIds": [
@@ -45415,10 +44474,6 @@
         {
           "surahNumber": 57,
           "ayahStart": 27
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66
         }
       ],
       "sourceIds": [
@@ -45450,26 +44505,6 @@
           "surahNumber": 5,
           "ayahStart": 46,
           "ayahEnd": 47
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 46,
-          "ayahEnd": 48
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 47,
-          "ayahEnd": 48
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66,
-          "ayahEnd": 66
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66,
-          "ayahEnd": 68
         },
         {
           "surahNumber": 5,
@@ -45812,10 +44847,6 @@
           "ayahStart": 29
         },
         {
-          "surahNumber": 5,
-          "ayahStart": 66
-        },
-        {
           "surahNumber": 9,
           "ayahStart": 111
         },
@@ -45826,6 +44857,10 @@
         {
           "surahNumber": 3,
           "ayahStart": 48
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 66
         },
         {
           "surahNumber": 5,
@@ -46278,10 +45313,6 @@
         {
           "surahNumber": 3,
           "ayahStart": 36
-        },
-        {
-          "surahNumber": 4,
-          "ayahStart": 11
         }
       ],
       "sourceIds": [
@@ -46308,16 +45339,6 @@
           "surahNumber": 3,
           "ayahStart": 36,
           "ayahEnd": 37
-        },
-        {
-          "surahNumber": 4,
-          "ayahStart": 11,
-          "ayahEnd": 11
-        },
-        {
-          "surahNumber": 43,
-          "ayahStart": 31,
-          "ayahEnd": 33
         }
       ],
       "sourceIds": [
@@ -47232,10 +46253,6 @@
         {
           "surahNumber": 61,
           "ayahStart": 6
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66
         }
       ],
       "sourceIds": [
@@ -47272,21 +46289,6 @@
           "surahNumber": 5,
           "ayahStart": 46,
           "ayahEnd": 46
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 46,
-          "ayahEnd": 48
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66,
-          "ayahEnd": 66
-        },
-        {
-          "surahNumber": 5,
-          "ayahStart": 66,
-          "ayahEnd": 68
         },
         {
           "surahNumber": 5,
@@ -47605,10 +46607,6 @@
           "ayahStart": 29
         },
         {
-          "surahNumber": 5,
-          "ayahStart": 66
-        },
-        {
           "surahNumber": 9,
           "ayahStart": 111
         },
@@ -47619,6 +46617,10 @@
         {
           "surahNumber": 3,
           "ayahStart": 48
+        },
+        {
+          "surahNumber": 5,
+          "ayahStart": 66
         },
         {
           "surahNumber": 5,

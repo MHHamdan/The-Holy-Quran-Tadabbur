@@ -1,13 +1,13 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-10-15T00:04:10.248Z",
+  "generatedAt": "2026-10-15T01:19:33.803Z",
   "scannedSurahs": 114,
-  "totalEntitiesDetected": 861,
+  "totalEntitiesDetected": 863,
   "entityTypeCounts": {
     "prophet": 500,
     "person": 138,
     "people_or_nation": 111,
-    "object": 31,
+    "object": 33,
     "place": 44,
     "animal": 26,
     "angel": 6,
@@ -766,6 +766,7 @@
         "entity_prophet_adam",
         "entity_person_iblis",
         "entity_prophet_nuh",
+        "entity_object_ark",
         "entity_prophet_hud",
         "entity_people_aad",
         "entity_people_qawm_nuh",
@@ -866,11 +867,12 @@
           ]
         },
         {
-          "candidateId": "7:65",
+          "candidateId": "7:64",
           "surahNumber": 7,
-          "ayahStart": 65,
+          "ayahStart": 64,
           "ayahEnd": 65,
           "entityIds": [
+            "entity_object_ark",
             "entity_prophet_hud",
             "entity_people_aad"
           ],
@@ -1177,6 +1179,7 @@
       "surahNameEnglish": "Yunus",
       "detectedEntityIds": [
         "entity_prophet_nuh",
+        "entity_object_ark",
         "entity_prophet_musa",
         "entity_prophet_harun",
         "entity_person_firawn",
@@ -1188,21 +1191,10 @@
           "candidateId": "10:71",
           "surahNumber": 10,
           "ayahStart": 71,
-          "ayahEnd": 71,
-          "entityIds": [
-            "entity_prophet_nuh"
-          ],
-          "reviewStatus": "needs_review",
-          "warnings": [
-            "Auto-clustered from adjacent entity hits; requires review."
-          ]
-        },
-        {
-          "candidateId": "10:75",
-          "surahNumber": 10,
-          "ayahStart": 75,
           "ayahEnd": 90,
           "entityIds": [
+            "entity_prophet_nuh",
+            "entity_object_ark",
             "entity_prophet_musa",
             "entity_prophet_harun",
             "entity_person_firawn",
@@ -5802,6 +5794,20 @@
     {
       "entityId": "entity_object_ark",
       "occurrences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 64,
+          "ayahEnd": 64,
+          "detectionType": "alias_match",
+          "matchedAliasArabic": "الفلك"
+        },
+        {
+          "surahNumber": 10,
+          "ayahStart": 73,
+          "ayahEnd": 73,
+          "detectionType": "alias_match",
+          "matchedAliasArabic": "الفلك"
+        },
         {
           "surahNumber": 11,
           "ayahStart": 37,
@@ -12441,6 +12447,20 @@
       "reviewStatus": "needs_review"
     },
     {
+      "entityId": "entity_object_ark",
+      "surahNumbers": [
+        7,
+        10,
+        11,
+        23,
+        26,
+        29
+      ],
+      "occurrenceCount": 8,
+      "edgeType": "REPEATED_NARRATIVE",
+      "reviewStatus": "needs_review"
+    },
+    {
       "entityId": "entity_people_qawm_lut",
       "surahNumbers": [
         11,
@@ -12510,18 +12530,6 @@
         17,
         54,
         91
-      ],
-      "occurrenceCount": 6,
-      "edgeType": "REPEATED_NARRATIVE",
-      "reviewStatus": "needs_review"
-    },
-    {
-      "entityId": "entity_object_ark",
-      "surahNumbers": [
-        11,
-        23,
-        26,
-        29
       ],
       "occurrenceCount": 6,
       "edgeType": "REPEATED_NARRATIVE",
@@ -12803,7 +12811,6 @@
     "9:114",
     "9:120",
     "10:71",
-    "10:75",
     "11:17",
     "11:25",
     "11:32",

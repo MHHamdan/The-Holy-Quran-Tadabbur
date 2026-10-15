@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-10-15T00:37:28.729Z",
-  "nodeCount": 967,
-  "edgeCount": 1873,
+  "generatedAt": "2026-10-15T01:19:35.907Z",
+  "nodeCount": 969,
+  "edgeCount": 1879,
   "nodes": [
     {
       "id": "surah:1",
@@ -4332,6 +4332,24 @@
         "surahNumber": 19,
         "ayahStart": 23,
         "ayahEnd": 23
+      }
+    },
+    {
+      "id": "ayah_range:7:64-64",
+      "type": "ayah_range",
+      "metadata": {
+        "surahNumber": 7,
+        "ayahStart": 64,
+        "ayahEnd": 64
+      }
+    },
+    {
+      "id": "ayah_range:10:73-73",
+      "type": "ayah_range",
+      "metadata": {
+        "surahNumber": 10,
+        "ayahStart": 73,
+        "ayahEnd": 73
       }
     },
     {
@@ -10088,6 +10106,48 @@
           "surahNumber": 19,
           "ayahStart": 23,
           "ayahEnd": 23,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "MENTIONED_IN:entity:entity_object_ark->ayah_range:7:64-64",
+      "sourceNodeId": "entity:entity_object_ark",
+      "targetNodeId": "ayah_range:7:64-64",
+      "edgeType": "MENTIONED_IN",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 64,
+          "ayahEnd": 64,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        }
+      ],
+      "confidence": 0.6,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "MENTIONED_IN:entity:entity_object_ark->ayah_range:10:73-73",
+      "sourceNodeId": "entity:entity_object_ark",
+      "targetNodeId": "ayah_range:10:73-73",
+      "edgeType": "MENTIONED_IN",
+      "evidenceReferences": [
+        {
+          "surahNumber": 10,
+          "ayahStart": 73,
+          "ayahEnd": 73,
           "sourceIds": [
             "concepts_dictionary"
           ],
@@ -28097,6 +28157,48 @@
           "surahNumber": 19,
           "ayahStart": 23,
           "ayahEnd": 23,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "APPEARS_IN_SURAH:entity:entity_object_ark->surah:7",
+      "sourceNodeId": "entity:entity_object_ark",
+      "targetNodeId": "surah:7",
+      "edgeType": "APPEARS_IN_SURAH",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 64,
+          "ayahEnd": 64,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        }
+      ],
+      "confidence": 0.7,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": []
+    },
+    {
+      "edgeId": "APPEARS_IN_SURAH:entity:entity_object_ark->surah:10",
+      "sourceNodeId": "entity:entity_object_ark",
+      "targetNodeId": "surah:10",
+      "edgeType": "APPEARS_IN_SURAH",
+      "evidenceReferences": [
+        {
+          "surahNumber": 10,
+          "ayahStart": 73,
+          "ayahEnd": 73,
           "sourceIds": [
             "concepts_dictionary"
           ],
@@ -90295,6 +90397,316 @@
       ]
     },
     {
+      "edgeId": "REPEATED_NARRATIVE:surah:7->surah:10",
+      "sourceNodeId": "surah:7",
+      "targetNodeId": "surah:10",
+      "edgeType": "REPEATED_NARRATIVE",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 10,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 23,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 29,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Cross-surah link inferred from entity co-occurrence."
+      ]
+    },
+    {
+      "edgeId": "REPEATED_NARRATIVE:surah:10->surah:11",
+      "sourceNodeId": "surah:10",
+      "targetNodeId": "surah:11",
+      "edgeType": "REPEATED_NARRATIVE",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 10,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 23,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 29,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Cross-surah link inferred from entity co-occurrence."
+      ]
+    },
+    {
+      "edgeId": "REPEATED_NARRATIVE:surah:11->surah:23",
+      "sourceNodeId": "surah:11",
+      "targetNodeId": "surah:23",
+      "edgeType": "REPEATED_NARRATIVE",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 10,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 23,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 29,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Cross-surah link inferred from entity co-occurrence."
+      ]
+    },
+    {
+      "edgeId": "REPEATED_NARRATIVE:surah:23->surah:26",
+      "sourceNodeId": "surah:23",
+      "targetNodeId": "surah:26",
+      "edgeType": "REPEATED_NARRATIVE",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 10,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 23,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 29,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Cross-surah link inferred from entity co-occurrence."
+      ]
+    },
+    {
+      "edgeId": "REPEATED_NARRATIVE:surah:26->surah:29",
+      "sourceNodeId": "surah:26",
+      "targetNodeId": "surah:29",
+      "edgeType": "REPEATED_NARRATIVE",
+      "evidenceReferences": [
+        {
+          "surahNumber": 7,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 10,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 11,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 23,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 26,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        },
+        {
+          "surahNumber": 29,
+          "ayahStart": 1,
+          "sourceIds": [
+            "concepts_dictionary"
+          ],
+          "evidenceType": "dictionary_alias"
+        }
+      ],
+      "confidence": 0.55,
+      "reviewStatus": "needs_review",
+      "humanReviewRequired": true,
+      "warnings": [
+        "Cross-surah link inferred from entity co-occurrence."
+      ]
+    },
+    {
       "edgeId": "REPEATED_NARRATIVE:surah:11->surah:22",
       "sourceNodeId": "surah:11",
       "targetNodeId": "surah:22",
@@ -91406,144 +91818,6 @@
         },
         {
           "surahNumber": 91,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        }
-      ],
-      "confidence": 0.55,
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Cross-surah link inferred from entity co-occurrence."
-      ]
-    },
-    {
-      "edgeId": "REPEATED_NARRATIVE:surah:11->surah:23",
-      "sourceNodeId": "surah:11",
-      "targetNodeId": "surah:23",
-      "edgeType": "REPEATED_NARRATIVE",
-      "evidenceReferences": [
-        {
-          "surahNumber": 11,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        },
-        {
-          "surahNumber": 26,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        },
-        {
-          "surahNumber": 29,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        }
-      ],
-      "confidence": 0.55,
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Cross-surah link inferred from entity co-occurrence."
-      ]
-    },
-    {
-      "edgeId": "REPEATED_NARRATIVE:surah:23->surah:26",
-      "sourceNodeId": "surah:23",
-      "targetNodeId": "surah:26",
-      "edgeType": "REPEATED_NARRATIVE",
-      "evidenceReferences": [
-        {
-          "surahNumber": 11,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        },
-        {
-          "surahNumber": 26,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        },
-        {
-          "surahNumber": 29,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        }
-      ],
-      "confidence": 0.55,
-      "reviewStatus": "needs_review",
-      "humanReviewRequired": true,
-      "warnings": [
-        "Cross-surah link inferred from entity co-occurrence."
-      ]
-    },
-    {
-      "edgeId": "REPEATED_NARRATIVE:surah:26->surah:29",
-      "sourceNodeId": "surah:26",
-      "targetNodeId": "surah:29",
-      "edgeType": "REPEATED_NARRATIVE",
-      "evidenceReferences": [
-        {
-          "surahNumber": 11,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        },
-        {
-          "surahNumber": 23,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        },
-        {
-          "surahNumber": 26,
-          "ayahStart": 1,
-          "sourceIds": [
-            "concepts_dictionary"
-          ],
-          "evidenceType": "dictionary_alias"
-        },
-        {
-          "surahNumber": 29,
           "ayahStart": 1,
           "sourceIds": [
             "concepts_dictionary"

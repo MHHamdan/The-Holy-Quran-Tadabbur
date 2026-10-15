@@ -1,20 +1,20 @@
 # Quran Entity Relations — Build Summary
 
-Generated at: 2026-10-15T00:06:29.153Z
+Generated at: 2026-10-15T01:19:36.912Z
 Builder version: 1.0.0
 
 ## Totals
 
-- Total relations: **1571**
+- Total relations: **1549**
 - Entities involved: **76**
 
 ## Relations by type
 
 | Type | Count |
 |---|---:|
-| same_surah_context | 966 |
+| same_surah_context | 946 |
 | mentioned_with | 448 |
-| same_story | 114 |
+| same_story | 112 |
 | mother_of | 9 |
 | son_of | 9 |
 | family_of | 8 |
@@ -33,11 +33,11 @@ Builder version: 1.0.0
 | entity_person_maryam | entity_prophet_isa | mentioned_with | 0.7 | 22 | needs_review |
 | entity_person_maryam | entity_prophet_isa | mother_of | 0.85 | 1 | needs_review |
 | entity_person_maryam | entity_prophet_isa | same_story | 0.7 | 1 | needs_review |
-| entity_person_maryam | entity_prophet_isa | same_surah_context | 0.55 | 36 | needs_review |
+| entity_person_maryam | entity_prophet_isa | same_surah_context | 0.55 | 33 | needs_review |
 | entity_person_maryam | entity_prophet_isa | theological_discussion | 0.55 | 4 | needs_review |
 | entity_prophet_isa | entity_person_maryam | mentioned_with | 0.7 | 22 | needs_review |
 | entity_prophet_isa | entity_person_maryam | same_story | 0.7 | 1 | needs_review |
-| entity_prophet_isa | entity_person_maryam | same_surah_context | 0.55 | 36 | needs_review |
+| entity_prophet_isa | entity_person_maryam | same_surah_context | 0.55 | 33 | needs_review |
 | entity_prophet_isa | entity_person_maryam | son_of | 0.85 | 1 | needs_review |
 | entity_prophet_isa | entity_person_maryam | theological_discussion | 0.55 | 4 | needs_review |
 

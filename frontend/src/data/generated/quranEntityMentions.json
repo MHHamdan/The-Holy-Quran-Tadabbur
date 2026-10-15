@@ -1,9 +1,9 @@
 {
-  "version": "2.0.0",
-  "generatedAt": "2026-10-15T00:05:32.570Z",
+  "version": "2.1.0",
+  "generatedAt": "2026-10-15T01:19:31.376Z",
   "scannedSurahs": 114,
   "totalEntities": 90,
-  "totalMentions": 1002,
+  "totalMentions": 964,
   "mentionsByEntityType": {
     "prophet": 505,
     "jinn": 11,
@@ -11,56 +11,55 @@
     "person": 91,
     "scripture": 107,
     "place": 31,
-    "woman": 53,
+    "woman": 34,
     "angel": 10,
-    "object": 32,
     "family_relation": 1,
-    "event": 7,
+    "event": 6,
+    "object": 14,
     "animal": 9
   },
   "mentionsBySurah": {
-    "2": 82,
-    "3": 55,
-    "4": 28,
-    "5": 50,
+    "2": 75,
+    "3": 52,
+    "4": 26,
+    "5": 48,
     "6": 25,
-    "7": 69,
+    "7": 68,
     "8": 5,
     "9": 15,
-    "10": 22,
+    "10": 21,
     "11": 51,
     "12": 34,
-    "14": 13,
+    "14": 12,
     "15": 9,
-    "16": 7,
-    "17": 25,
-    "18": 17,
+    "16": 6,
+    "17": 24,
+    "18": 15,
     "19": 23,
     "20": 39,
     "21": 28,
-    "22": 12,
-    "23": 14,
+    "22": 11,
+    "23": 10,
     "25": 11,
     "26": 38,
     "27": 25,
     "28": 38,
-    "29": 20,
-    "30": 2,
-    "31": 3,
+    "29": 19,
+    "30": 1,
+    "31": 2,
     "32": 3,
     "33": 10,
     "34": 6,
-    "35": 1,
-    "36": 4,
-    "37": 17,
+    "36": 3,
+    "37": 16,
     "38": 25,
     "39": 1,
-    "40": 28,
+    "40": 27,
     "41": 7,
     "42": 5,
-    "43": 15,
+    "43": 11,
     "44": 3,
-    "45": 2,
+    "45": 1,
     "46": 5,
     "47": 2,
     "48": 4,
@@ -6876,78 +6875,6 @@
         },
         {
           "surahNumber": 2,
-          "ayahNumber": 128,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 2,
-          "ayahNumber": 134,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 2,
-          "ayahNumber": 141,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 2,
-          "ayahNumber": 143,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 2,
-          "ayahNumber": 213,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 2,
-          "ayahNumber": 221,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 2,
           "ayahNumber": 253,
           "mentionType": "explicit_name",
           "confidence": 0.95,
@@ -7038,66 +6965,6 @@
           "humanReviewRequired": true
         },
         {
-          "surahNumber": 3,
-          "ayahNumber": 104,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 3,
-          "ayahNumber": 110,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 3,
-          "ayahNumber": 113,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 4,
-          "ayahNumber": 11,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 4,
-          "ayahNumber": 41,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
           "surahNumber": 4,
           "ayahNumber": 156,
           "mentionType": "explicit_name",
@@ -7158,30 +7025,6 @@
           "sourceIds": [
             "tanzil_quran_uthmani",
             "quranic_arabic_corpus"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 5,
-          "ayahNumber": 48,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 5,
-          "ayahNumber": 66,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -7331,30 +7174,6 @@
         },
         {
           "surahNumber": 23,
-          "ayahNumber": 43,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 23,
-          "ayahNumber": 44,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 23,
           "ayahNumber": 50,
           "mentionType": "explicit_name",
           "confidence": 0.95,
@@ -7362,18 +7181,6 @@
           "sourceIds": [
             "tanzil_quran_uthmani",
             "quranic_arabic_corpus"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 23,
-          "ayahNumber": 52,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -7387,42 +7194,6 @@
           "sourceIds": [
             "tanzil_quran_uthmani",
             "quranic_arabic_corpus"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 43,
-          "ayahNumber": 22,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 43,
-          "ayahNumber": 23,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 43,
-          "ayahNumber": 33,
-          "mentionType": "pronoun_context",
-          "confidence": 0.35,
-          "matchedText": "أمه",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
           ],
           "reviewStatus": "needs_review",
           "humanReviewRequired": true
@@ -11524,32 +11295,8 @@
       "labelEnglish": "Ark of Nuh",
       "mentions": [
         {
-          "surahNumber": 2,
-          "ayahNumber": 164,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
           "surahNumber": 7,
           "ayahNumber": 64,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 10,
-          "ayahNumber": 22,
           "mentionType": "alias",
           "confidence": 0.6,
           "matchedText": "الفلك",
@@ -11586,90 +11333,6 @@
         {
           "surahNumber": 11,
           "ayahNumber": 38,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 14,
-          "ayahNumber": 32,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 16,
-          "ayahNumber": 14,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 17,
-          "ayahNumber": 66,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 18,
-          "ayahNumber": 71,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "السفينة",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 18,
-          "ayahNumber": 79,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "السفينة",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 22,
-          "ayahNumber": 65,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 23,
-          "ayahNumber": 22,
           "mentionType": "alias",
           "confidence": 0.6,
           "matchedText": "الفلك",
@@ -11721,114 +11384,6 @@
           "mentionType": "alias",
           "confidence": 0.6,
           "matchedText": "السفينة",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 29,
-          "ayahNumber": 65,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 30,
-          "ayahNumber": 46,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 31,
-          "ayahNumber": 31,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 35,
-          "ayahNumber": 12,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 36,
-          "ayahNumber": 41,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 37,
-          "ayahNumber": 140,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 40,
-          "ayahNumber": 80,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 43,
-          "ayahNumber": 12,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
-        {
-          "surahNumber": 45,
-          "ayahNumber": 12,
-          "mentionType": "alias",
-          "confidence": 0.6,
-          "matchedText": "الفلك",
           "sourceIds": [
             "tanzil_quran_uthmani"
           ],
@@ -13277,18 +12832,6 @@
       "labelArabic": "الطوفان",
       "labelEnglish": "The Flood",
       "mentions": [
-        {
-          "surahNumber": 7,
-          "ayahNumber": 133,
-          "mentionType": "explicit_name",
-          "confidence": 0.6,
-          "matchedText": "الطوفان",
-          "sourceIds": [
-            "tanzil_quran_uthmani"
-          ],
-          "reviewStatus": "needs_review",
-          "humanReviewRequired": true
-        },
         {
           "surahNumber": 29,
           "ayahNumber": 14,

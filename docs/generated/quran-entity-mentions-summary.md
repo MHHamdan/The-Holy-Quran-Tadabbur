@@ -1,12 +1,12 @@
 # Quran Entity Mentions — Scan Summary
 
-Generated at: 2026-10-15T00:05:32.570Z
-Scanner version: 2.0.0
+Generated at: 2026-10-15T01:19:31.376Z
+Scanner version: 2.1.0
 
 ## Totals
 
 - Entities seeded: **90**
-- Total mentions detected: **1002**
+- Total mentions detected: **964**
 - Surahs scanned: **114** (of 114)
 - Entities with zero detections: **6**
 
@@ -18,13 +18,13 @@ Scanner version: 2.0.0
 | people_or_nation | 145 |
 | scripture | 107 |
 | person | 91 |
-| woman | 53 |
-| object | 32 |
+| woman | 34 |
 | place | 31 |
+| object | 14 |
 | jinn | 11 |
 | angel | 10 |
 | animal | 9 |
-| event | 7 |
+| event | 6 |
 | family_relation | 1 |
 
 ## Top 10 entities by mention count
@@ -35,33 +35,26 @@ Scanner version: 2.0.0
 | The Quran | scripture | 77 |
 | Firawn (Pharaoh) | person | 67 |
 | Ibrahim (Abraham) | prophet | 63 |
-| Maryam (Mary) | woman | 50 |
 | Nuh (Noah) | prophet | 43 |
 | Children of Israel | people_or_nation | 40 |
 | Isa (Jesus) | prophet | 33 |
+| Maryam (Mary) | woman | 31 |
 | Lut (Lot) | prophet | 27 |
 | Yusuf (Joseph) | prophet | 26 |
 
 ## Maryam mention map
 
 - entityId: `entity_person_maryam`
-- Total mentions: **50**
+- Total mentions: **31**
 - Surahs containing Maryam mentions: **12** (2, 3, 4, 5, 9, 19, 23, 33, 43, 57, 61, 66)
 
 Mention-type breakdown:
 - `explicit_name`: 31
-- `pronoun_context`: 19
 
 First 25 mentions:
 | Surah | Ayah | Type | Conf | Matched |
 |---:|---:|---|---:|---|
 | 2 | 87 | explicit_name | 0.95 | مريم |
-| 2 | 128 | pronoun_context | 0.35 | أمه |
-| 2 | 134 | pronoun_context | 0.35 | أمه |
-| 2 | 141 | pronoun_context | 0.35 | أمه |
-| 2 | 143 | pronoun_context | 0.35 | أمه |
-| 2 | 213 | pronoun_context | 0.35 | أمه |
-| 2 | 221 | pronoun_context | 0.35 | أمه |
 | 2 | 253 | explicit_name | 0.95 | مريم |
 | 3 | 36 | explicit_name | 0.95 | مريم |
 | 3 | 37 | explicit_name | 0.95 | مريم |
@@ -69,17 +62,23 @@ First 25 mentions:
 | 3 | 43 | explicit_name | 0.95 | مريم |
 | 3 | 44 | explicit_name | 0.95 | مريم |
 | 3 | 45 | explicit_name | 0.95 | مريم |
-| 3 | 104 | pronoun_context | 0.35 | أمه |
-| 3 | 110 | pronoun_context | 0.35 | أمه |
-| 3 | 113 | pronoun_context | 0.35 | أمه |
-| 4 | 11 | pronoun_context | 0.35 | أمه |
-| 4 | 41 | pronoun_context | 0.35 | أمه |
 | 4 | 156 | explicit_name | 0.95 | مريم |
 | 4 | 157 | explicit_name | 0.95 | مريم |
 | 4 | 171 | explicit_name | 0.95 | مريم |
 | 5 | 17 | explicit_name | 0.95 | مريم |
 | 5 | 46 | explicit_name | 0.95 | مريم |
-| 5 | 48 | pronoun_context | 0.35 | أمه |
+| 5 | 72 | explicit_name | 0.95 | مريم |
+| 5 | 75 | explicit_name | 0.95 | مريم |
+| 5 | 78 | explicit_name | 0.95 | مريم |
+| 5 | 110 | explicit_name | 0.95 | مريم |
+| 5 | 112 | explicit_name | 0.95 | مريم |
+| 5 | 114 | explicit_name | 0.95 | مريم |
+| 5 | 116 | explicit_name | 0.95 | مريم |
+| 9 | 31 | explicit_name | 0.95 | مريم |
+| 19 | 16 | explicit_name | 0.95 | مريم |
+| 19 | 27 | explicit_name | 0.95 | مريم |
+| 19 | 34 | explicit_name | 0.95 | مريم |
+| 23 | 50 | explicit_name | 0.95 | مريم |
 
 ## Entities with zero detections
 
