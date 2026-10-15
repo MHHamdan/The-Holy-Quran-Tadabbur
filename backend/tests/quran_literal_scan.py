@@ -1,12 +1,17 @@
 """
 Find hand-typed Qur'an text in the frontend sources.
 
-A vowelled Arabic run (6+ harakat, 3+ words) whose letter skeleton occurs in
-the Qur'an must be a byte-exact substring of the canonical Tanzil text
-(aya_text or aya_text_emlaey of one verse, or of consecutive verses joined by
-a space or ' ۝ '). Anything else is Qur'an text that was typed or altered by
-hand. Exceptions (e.g. a hadith that quotes a phrase) go in
-quran_literal_allowlist.json with a reason; there should be very few.
+An Arabic run whose letter skeleton occurs in the Qur'an must be a byte-exact
+substring of the canonical Tanzil text (aya_text or aya_text_emlaey of one
+verse, or of consecutive verses joined by a space or ' ۝ '). Anything else is
+Qur'an text that was typed or altered by hand. A run is checked when it is
+  - vowelled (3+ harakat): 2+ words and a skeleton of 8+ letters;
+  - unvowelled or lightly vowelled: 4+ words and 14+ letters (canonical text
+    is always vowelled, so such a run can never match it).
+Exceptions (dhikr formulas or hadith wording that overlaps the Qur'an) go in
+quran_literal_allowlist.json with a reason. Fields that a generator derives
+mechanically from the canonical text are listed in DERIVED_FIELDS and are
+checked against their record's verse by test_quran_canonical_integrity.py.
 
 Used by tests/test_quran_canonical_integrity.py; run directly to list hits:
     python tests/quran_literal_scan.py
@@ -66,6 +71,27 @@ def canonical():
     return "\n".join(texts), "\n".join(skel)
 
 
+# Generated JSON fields copied from the canonical verse by a script, e.g. the
+# call phrase that scripts/scan-quranic-calls.ts cuts from the diacritic-
+# stripped aya_text_emlaey. Lines holding these keys are not scanned.
+DERIVED_FIELDS = {
+    "frontend/src/data/generated/quranicCallsAtlas.json": ('"callText":',),
+    "frontend/src/data/generated/quranicCallsClassified.json": ('"callText":',),
+}
+
+
+def needs_check(run: str) -> bool:
+    """Whether a run is long or vowelled enough to be a Qur'an quotation."""
+    harakat = len(_HARAKAT.findall(run))
+    words = len(run.split())
+    letters = len(skeleton(run))
+    if words >= 2 and harakat >= 3:
+        return letters >= 8
+    if words >= 4:
+        return letters >= 14
+    return False
+
+
 def _allowlist() -> list:
     if not ALLOWLIST.exists():
         return []
@@ -83,15 +109,15 @@ def scan(paths=None):
     )
     for path in files:
         rel = str(path.relative_to(ROOT))
+        derived = DERIVED_FIELDS.get(rel, ())
         for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if derived and line.lstrip().startswith(derived):
+                continue
             # ' ۝ ' joins separate quoted segments; each must be verbatim.
             segments = (seg for m in _RUN.finditer(line) for seg in m.group(0).split("۝"))
             for run in segments:
                 run = run.strip()
-                if len(_HARAKAT.findall(run)) < 6 or len(run.split()) < 3:
-                    continue
-                sk = skeleton(run)
-                if len(sk) < 12 or sk not in canon_skel:
+                if not needs_check(run) or skeleton(run) not in canon_skel:
                     continue
                 if run in canon_text or (rel, run) in allowed:
                     continue

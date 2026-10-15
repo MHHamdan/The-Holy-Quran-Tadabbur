@@ -32,7 +32,7 @@ MARKERS = ROOT / "data" / "manifests" / "quran_structure_markers.json"
 EXCERPTS = ROOT / "frontend" / "src" / "data" / "generated" / "quranExcerpts.json"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from quran_literal_scan import scan  # noqa: E402
+from quran_literal_scan import DERIVED_FIELDS, scan  # noqa: E402
 
 # Files owned by other workstreams that still type Qur'an text; each must be
 # removed from this set when fixed (the test fails if a listed file is clean).
@@ -42,6 +42,21 @@ PENDING_OTHER_WORKSTREAMS = {
     "frontend/src/pages/QuranPage.tsx",
     "frontend/src/pages/tools/ZakatCalculatorPage.tsx",
     "frontend/src/i18n/translations.ts",
+    # Unvowelled quotations found once the scanner checked unvowelled runs.
+    "frontend/src/pages/SearchPage.tsx",
+    "frontend/src/pages/QuranicCallsAtlasPage.tsx",
+    "frontend/src/data/quranicCallPatterns.ts",
+    "frontend/src/data/juzOverview.ts",
+    "frontend/src/data/quranTopicSeeds.ts",
+    "frontend/src/data/quranEntitySeeds.ts",
+    "frontend/src/data/generated/quranTopicAtlas.json",
+    "frontend/src/data/generated/quranProphetStoryPages.json",
+    "frontend/src/data/generated/quranPlacesIndex.json",
+    # Story titles that quote a verse (e.g. 62:5, 17:60) come from
+    # data/manifests/stories.json; fix them there and regenerate these.
+    "frontend/src/data/generated/surahMemoryAtlas.json",
+    "frontend/src/data/generated/quranStoryRegistry.json",
+    "frontend/src/data/generated/quranKnowledgeGraph.json",
 }
 
 
@@ -184,6 +199,32 @@ def test_scanner_flags_a_single_changed_mark(tmp_path, tanzil):
     finally:
         target.unlink()
     assert [n for _, n, _ in hits] == [2]
+
+
+def test_scanner_flags_unvowelled_quotation(tanzil):
+    """Canonical text is vowelled, so a typed unvowelled quotation is never verbatim."""
+    verse = next(v for v in tanzil["verses"] if len(v["aya_text_emlaey"].split()) >= 8)
+    plain = re.sub("[\u064B-\u065F\u0670\u06D6-\u06ED]", "", verse["aya_text_emlaey"])
+    plain = " ".join(plain.split()[:6])
+    target = ROOT / "frontend" / "src" / "__ws3_scan_probe_plain__.ts"
+    target.write_text(f"export const quote = '\"{plain}\"';\n", encoding="utf-8")
+    try:
+        hits = scan([target])
+    finally:
+        target.unlink()
+    assert [n for _, n, _ in hits] == [1]
+
+
+def test_derived_call_phrases_come_from_their_verse():
+    """callText lines are skipped by the scanner, so check they are cut from the record's verse."""
+    strip = re.compile("[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u0640]")
+    for rel in DERIVED_FIELDS:
+        data = json.loads((ROOT / rel).read_text(encoding="utf-8"))
+        calls = data["calls"]
+        assert calls, rel
+        for c in calls:
+            if c.get("callText"):
+                assert c["callText"] in strip.sub("", c["ayahTextEmlaei"]), (rel, c["callId"])
 
 
 def test_generated_excerpts_are_verbatim(tanzil):
