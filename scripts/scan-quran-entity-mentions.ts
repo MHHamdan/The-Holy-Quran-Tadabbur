@@ -34,6 +34,14 @@ import {
   type EntitySeed,
   type QuranEntityType,
 } from '../frontend/src/types/quranEntityGraph';
+import {
+  LEMMA_BY_ENTITY,
+  QAC_PATH,
+  countAliasOccurrences,
+  loadQacProperNounIndex,
+  qacAyahsForEntity,
+  tokenise,
+} from './qac-proper-noun-lemmas';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -46,7 +54,7 @@ const OUT_MD = join(ROOT, 'docs/generated/quran-entity-mentions-summary.md');
 
 const TOTAL_SURAHS = 114;
 const TOTAL_AYAHS = 6236;
-const VERSION = '1.0.0';
+const VERSION = '2.0.0'; // 2.0: QAC proper-noun lemmas + whole-token alias matching
 
 // ---------------------------------------------------------------------------
 // Arabic normalisation: strip tashkeel, normalise alif/ya/hamza/ta-marbuta.
@@ -169,17 +177,23 @@ function isGenericAlias(alias: string): boolean {
 function buildAliasTable(seeds: EntitySeed[]): AliasEntry[] {
   const entries: AliasEntry[] = [];
   for (const s of seeds) {
+    const hasLemma = !!LEMMA_BY_ENTITY[s.entityId];
     for (const a of s.aliasesArabic) {
       const norm = normaliseArabic(a);
       if (!norm) continue;
-      // Aliases shorter than 3 chars after normalisation are skipped (handled
-      // again at detection time, but skipping here avoids them entirely).
+      // Aliases shorter than 3 chars after normalisation are skipped.
       if (norm.length < 3) continue;
+      const mentionType = classifyAlias(s, a);
+      // Entities with a QAC proper-noun lemma get their name mentions from
+      // QAC; their name-style aliases (explicit_name / alias) are dropped
+      // because surface matching cannot tell "صالحا" (righteous) from the
+      // prophet Salih, or "قرون" (generations) from Qarun.
+      if (hasLemma && (mentionType === 'explicit_name' || mentionType === 'alias')) continue;
       entries.push({
         entityId: s.entityId,
         alias: a,
         normalised: norm,
-        mentionType: classifyAlias(s, a),
+        mentionType,
         isGeneric: isGenericAlias(a),
       });
     }
@@ -190,61 +204,83 @@ function buildAliasTable(seeds: EntitySeed[]): AliasEntry[] {
 }
 
 // ---------------------------------------------------------------------------
-// Per-ayah detection with word-boundary check.
+// Per-ayah detection: QAC proper-noun lemmas + whole-token alias matching.
 // ---------------------------------------------------------------------------
-
-const ARABIC_LETTER = /[ء-ي]/;
 
 interface AyahDetection {
   entityId: string;
   alias: string;
   mentionType: EntityMentionType;
   isGeneric: boolean;
+  /** true when the detection comes from a QAC POS:PN lemma tag. */
+  fromQac?: boolean;
 }
 
-function detectInAyah(normAyah: string, aliasTable: AliasEntry[]): AyahDetection[] {
-  const out: AyahDetection[] = [];
-  // Track each entityId once per ayah — choose the strongest mention type seen.
-  const bestByEntity = new Map<string, AyahDetection>();
-  for (const entry of aliasTable) {
-    if (entry.normalised.length < 3) continue;
+const MENTION_RANK: Record<EntityMentionType, number> = {
+  explicit_name: 7,
+  alias: 6,
+  title: 5,
+  family_relation: 4,
+  story_context: 3,
+  tafsir_context: 2,
+  pronoun_context: 1,
+};
 
-    let idx = normAyah.indexOf(entry.normalised);
-    while (idx !== -1) {
-      const after = idx + entry.normalised.length < normAyah.length
-        ? normAyah[idx + entry.normalised.length]
-        : ' ';
-      if (!ARABIC_LETTER.test(after)) {
-        const det: AyahDetection = {
-          entityId: entry.entityId,
-          alias: entry.alias,
-          mentionType: entry.mentionType,
-          isGeneric: entry.isGeneric,
-        };
-        const existing = bestByEntity.get(entry.entityId);
-        if (!existing) {
-          bestByEntity.set(entry.entityId, det);
-        } else {
-          // Prefer strongest mention type (explicit > alias > title > family > story > pronoun > tafsir)
-          const rank: Record<EntityMentionType, number> = {
-            explicit_name: 7,
-            alias: 6,
-            title: 5,
-            family_relation: 4,
-            story_context: 3,
-            tafsir_context: 2,
-            pronoun_context: 1,
-          };
-          if (rank[det.mentionType] > rank[existing.mentionType]) {
-            bestByEntity.set(entry.entityId, det);
-          }
-        }
-        break; // one occurrence per alias per ayah is enough
-      }
-      idx = normAyah.indexOf(entry.normalised, idx + 1);
+/** Confidence ceiling for anything that is not a QAC proper-noun hit. */
+const ALIAS_ONLY_MAX_CONFIDENCE = 0.6;
+
+function detectInAyah(
+  normAyah: string,
+  aliasTable: AliasEntry[],
+  qacEntityIds: string[] = [],
+): AyahDetection[] {
+  const bestByEntity = new Map<string, AyahDetection>();
+  for (const entityId of qacEntityIds) {
+    const seed = QURAN_ENTITY_SEEDS.find((s) => s.entityId === entityId);
+    bestByEntity.set(entityId, {
+      entityId,
+      alias: seed?.aliasesArabic[0] ?? '',
+      mentionType: 'explicit_name',
+      isGeneric: false,
+      fromQac: true,
+    });
+  }
+  const tokens = tokenise(normAyah);
+  for (const entry of aliasTable) {
+    if (countAliasOccurrences(tokens, entry.normalised) === 0) continue;
+    const det: AyahDetection = {
+      entityId: entry.entityId,
+      alias: entry.alias,
+      mentionType: entry.mentionType,
+      isGeneric: entry.isGeneric,
+    };
+    const existing = bestByEntity.get(entry.entityId);
+    if (!existing || (!existing.fromQac && MENTION_RANK[det.mentionType] > MENTION_RANK[existing.mentionType])) {
+      bestByEntity.set(entry.entityId, det);
     }
   }
-  for (const det of bestByEntity.values()) out.push(det);
+  return Array.from(bestByEntity.values());
+}
+
+/** "s:a" → entity ids whose QAC proper-noun lemma occurs in that ayah. */
+function buildQacEntityIndex(seeds: EntitySeed[]): Map<string, string[]> {
+  const idx = loadQacProperNounIndex();
+  if (!idx) {
+    throw new Error(
+      `QAC morphology not found at ${QAC_PATH}. It is required to resolve proper nouns ` +
+        '(see scripts/qac-proper-noun-lemmas.ts).',
+    );
+  }
+  const out = new Map<string, string[]>();
+  for (const seed of seeds) {
+    const keys = qacAyahsForEntity(seed.entityId, idx);
+    if (!keys) continue;
+    for (const k of keys) {
+      const arr = out.get(k) ?? [];
+      arr.push(seed.entityId);
+      out.set(k, arr);
+    }
+  }
   return out;
 }
 
@@ -260,6 +296,7 @@ function main(): void {
   }
 
   const aliasTable = buildAliasTable(QURAN_ENTITY_SEEDS);
+  const qacEntityIndex = buildQacEntityIndex(QURAN_ENTITY_SEEDS);
   const generatedAt = new Date().toISOString();
 
   // Per-entity result accumulator
@@ -301,7 +338,7 @@ function main(): void {
   for (const a of ayahs) {
     const norm = normaliseArabic(a.aya_text ?? '');
     if (!norm) continue;
-    const detections = detectInAyah(norm, aliasTable);
+    const detections = detectInAyah(norm, aliasTable, qacEntityIndex.get(`${a.sura_no}:${a.aya_no}`) ?? []);
     if (detections.length === 0) continue;
     for (const d of detections) {
       rawHits.push({ surahNumber: a.sura_no, ayahNumber: a.aya_no, detection: d });
@@ -328,14 +365,15 @@ function main(): void {
       const seed = QURAN_ENTITY_SEEDS.find((s) => s.entityId === d.entityId);
       const baseConf = MENTION_TYPE_CONFIDENCE[d.mentionType];
       const downgrade = d.isGeneric ? 0.2 : 0;
-      const confidence = Math.max(0.05, Math.round((baseConf - downgrade) * 100) / 100);
+      const ceiling = d.fromQac ? 1 : ALIAS_ONLY_MAX_CONFIDENCE;
+      const confidence = Math.max(0.05, Math.round((Math.min(baseConf, ceiling) - downgrade) * 100) / 100);
       const mention: EntityMention = {
         surahNumber,
         ayahNumber,
         mentionType: d.mentionType,
         confidence,
         matchedText: d.alias,
-        sourceIds: ['tanzil_quran_uthmani'],
+        sourceIds: d.fromQac ? ['tanzil_quran_uthmani', 'quranic_arabic_corpus'] : ['tanzil_quran_uthmani'],
         reviewStatus: defaultMentionReviewStatus(d.mentionType),
         humanReviewRequired: defaultHumanReviewRequired(d.mentionType),
       };

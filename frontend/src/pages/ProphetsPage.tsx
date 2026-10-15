@@ -11,6 +11,7 @@ import { Search, AlertCircle, BookOpen, Users, Star, ChevronRight } from 'lucide
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { Skeleton } from '../components/ui/Skeleton';
+import { getReviewBadgeLabel } from '../utils/reviewStatus';
 import {
   prophetsApi,
   type ProphetListResponse,
@@ -169,8 +170,8 @@ export function ProphetsPage() {
             </h1>
             <p className={clsx('text-sm text-gray-500', isAr && 'font-arabic')}>
               {isAr
-                ? `${data?.prophets.length ?? 25} نبياً · موثق من القرآن الكريم`
-                : `${data?.prophets.length ?? 25} prophets · verified from the Quran`}
+                ? `${data?.prophets.length ?? 25} نبياً · المواضع مستخرجة من وسوم أسماء الأعلام في مدوّنة القرآن العربية · قيد المراجعة`
+                : `${data?.prophets.length ?? 25} prophets · mentions detected from Quranic Arabic Corpus proper-noun tags · under review`}
             </p>
           </div>
         </div>
@@ -296,7 +297,7 @@ export function ProphetsPage() {
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       : 'bg-amber-50 text-amber-700 border-amber-200',
                   )}>
-                    {p.reviewStatus}
+                    {getReviewBadgeLabel(p.reviewStatus === 'verified' ? 'approved' : 'needs_review', isAr ? 'ar' : 'en')}
                   </span>
                   {ptMeta && (
                     <span className={`inline-block px-2 py-0.5 text-[10px] rounded-full border bg-${ptMeta.color}-50 text-${ptMeta.color}-700 border-${ptMeta.color}-200`}>

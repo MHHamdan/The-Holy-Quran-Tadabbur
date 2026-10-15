@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-10-14T04:32:06.728Z",
+  "generatedAt": "2026-10-15T00:06:27.733Z",
   "totalChains": 29,
   "chainsByType": {
     "surah_level": 9,
@@ -337,6 +337,7 @@
         "em:entity_prophet_isa:4:157:explicit_name",
         "em:entity_prophet_isa:4:163:explicit_name",
         "em:entity_prophet_isa:4:171:explicit_name",
+        "em:entity_prophet_isa:4:172:explicit_name",
         "cm_000010",
         "cm_000011",
         "cm_000013",
@@ -358,7 +359,10 @@
       "chainId": "chain_000016",
       "entityId": "entity_prophet_isa",
       "mentions": [
+        "em:entity_prophet_isa:5:17:explicit_name",
         "em:entity_prophet_isa:5:46:explicit_name",
+        "em:entity_prophet_isa:5:72:explicit_name",
+        "em:entity_prophet_isa:5:75:explicit_name",
         "em:entity_prophet_isa:5:78:explicit_name",
         "em:entity_prophet_isa:5:110:explicit_name",
         "em:entity_prophet_isa:5:112:explicit_name",
@@ -392,6 +396,8 @@
       "chainId": "chain_000017",
       "entityId": "entity_prophet_isa",
       "mentions": [
+        "em:entity_prophet_isa:9:30:explicit_name",
+        "em:entity_prophet_isa:9:31:explicit_name",
         "cm_000039",
         "cm_000041",
         "cm_000042"

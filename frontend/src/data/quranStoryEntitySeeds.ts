@@ -24,6 +24,41 @@
 
 import type { QuranStoryEntity } from '../types/quranStoryConnection';
 
+/**
+ * Per-entity / per-alias ayah scopes for ambiguous aliases. A hit for a scoped
+ * alias outside its scope is discarded by the scanner. Key '*' applies to all
+ * aliases of the entity. Ranges are [surah, ayahStart, ayahEnd].
+ *
+ * Named prophets, persons, nations and places with a Quranic Arabic Corpus
+ * proper-noun lemma are resolved from QAC instead (scripts/qac-proper-noun-lemmas.ts).
+ */
+export interface StoryAliasScope {
+  surahs?: number[];
+  ranges?: Array<[number, number, number]>;
+}
+
+export const STORY_ENTITY_ALIAS_SCOPES: Record<string, Record<string, StoryAliasScope>> = {
+  // "العزيز" is also the Divine Name al-'Aziz; the person appears only in Surah Yusuf.
+  entity_person_aziz: { '*': { surahs: [12] } },
+  // "الطير" occurs in many unrelated ayat; Ibrahim's birds are 2:260.
+  entity_animal_birds_ibrahim: { '*': { ranges: [[2, 260, 260]] } },
+  // "الفلك" / "السفينة" are any ship; keep the ayat that describe Nuh's ark.
+  entity_object_ark: {
+    '*': { ranges: [[11, 37, 44], [23, 27, 28], [26, 119, 119], [29, 15, 15], [54, 13, 13]] },
+  },
+  // "حية" also matches "وحيه" (his revelation, 20:114) after ة→ه normalisation;
+  // keep the staff-turned-serpent passages only.
+  entity_animal_snake_staff: {
+    '*': { ranges: [[7, 107, 117], [20, 17, 21], [20, 65, 70], [26, 32, 45], [27, 10, 10], [28, 31, 31]] },
+  },
+  // "سدا" also means "a barrier" generally (e.g. 36:9).
+  entity_object_barrier: { 'سدا': { ranges: [[18, 93, 94]] } },
+  // "أصحاب الجنة" is usually the people of Paradise; the garden owners are in Al-Qalam.
+  entity_people_ashab_jannah: { '*': { surahs: [68] } },
+  // "الطوفان" in 7:133 is a plague on Pharaoh's people, not Nuh's flood.
+  entity_event_flood: { '*': { surahs: [29] } },
+};
+
 // ---------------------------------------------------------------------------
 // Helper: shorthand factory for unreviewed seed entries.
 // ---------------------------------------------------------------------------
@@ -329,7 +364,7 @@ export const PERSON_SEEDS: QuranStoryEntity[] = [
   seed({
     entityId: 'entity_person_dhulqarnayn', type: 'person',
     labelArabic: 'ذو القرنين', labelEnglish: 'Dhul-Qarnayn',
-    aliasesArabic: ['ذو القرنين', 'ذا القرنين'],
+    aliasesArabic: ['ذو القرنين', 'ذا القرنين', 'ذي القرنين'],
     aliasesEnglish: ['Dhul-Qarnayn'],
     transliterations: ['Dhul-Qarnayn'],
     relatedStories: ['story_dhulqarnayn'],
@@ -370,11 +405,11 @@ export const PERSON_SEEDS: QuranStoryEntity[] = [
   seed({
     entityId: 'entity_person_hawwa', type: 'person',
     labelArabic: 'حواء', labelEnglish: 'Hawwa (Eve)',
-    aliasesArabic: ['زوجه', 'حواء'],
+    aliasesArabic: ['حواء'],
     aliasesEnglish: ['Hawwa', 'Eve'],
     transliterations: ['Hawwa', 'Eve'],
     relatedStories: ['story_adam'],
-    warnings: ['Hawwa is never named explicitly in the Quran; "زوجه" matches are needs_review.'],
+    warnings: ['Hawwa is never named explicitly in the Quran; the generic "زوجه" alias was removed (it matched any "his wife").'],
   }),
   seed({
     entityId: 'entity_person_aziz', type: 'person',
@@ -383,7 +418,7 @@ export const PERSON_SEEDS: QuranStoryEntity[] = [
     aliasesEnglish: ['Aziz of Egypt'],
     transliterations: ['Aziz'],
     relatedStories: ['story_yusuf'],
-    warnings: ['"العزيز" is also a Divine Name; scanner downgrades confidence outside Surah Yusuf.'],
+    warnings: ['"العزيز" is also a Divine Name; the scanner only accepts it inside Surah Yusuf (see STORY_ENTITY_ALIAS_SCOPES).'],
   }),
   seed({
     entityId: 'entity_person_imran', type: 'person',
@@ -612,7 +647,7 @@ export const ANIMAL_SEEDS: QuranStoryEntity[] = [
   seed({
     entityId: 'entity_animal_snake_staff', type: 'animal',
     labelArabic: 'حية موسى', labelEnglish: 'Snake of Musa',
-    aliasesArabic: ['حية', 'ثعبان', 'الجان'],
+    aliasesArabic: ['حية', 'ثعبان'],
     aliasesEnglish: ['Snake', 'Serpent'],
     relatedStories: ['story_musa'],
   }),
@@ -632,7 +667,7 @@ export const PLACE_SEEDS: QuranStoryEntity[] = [
   seed({
     entityId: 'entity_place_madinah', type: 'place',
     labelArabic: 'المدينة', labelEnglish: 'Madinah',
-    aliasesArabic: ['يثرب', 'المدينة'],
+    aliasesArabic: ['يثرب'],
     aliasesEnglish: ['Madinah', 'Yathrib'],
     warnings: ['"المدينة" is common; scanner downgrades confidence for non-Madani surahs.'],
   }),
@@ -775,10 +810,10 @@ export const OBJECT_EVENT_SEEDS: QuranStoryEntity[] = [
   seed({
     entityId: 'entity_event_fire_ibrahim', type: 'event',
     labelArabic: 'نار إبراهيم', labelEnglish: 'Fire of Ibrahim',
-    aliasesArabic: ['حرقوه', 'نارا'],
+    aliasesArabic: ['حرقوه'],
     aliasesEnglish: ['Fire of Ibrahim'],
     relatedStories: ['story_ibrahim'],
-    warnings: ['"نارا" matches many ayahs about Hellfire; downgrade confidence outside Surah Al-Anbiya/Al-Saffat.'],
+    warnings: ['The generic "نارا" alias was removed: it matched ayat about Hellfire.'],
   }),
   seed({
     entityId: 'entity_event_virgin_birth', type: 'event',

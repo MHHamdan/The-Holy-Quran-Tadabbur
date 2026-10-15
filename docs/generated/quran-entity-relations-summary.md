@@ -1,20 +1,20 @@
 # Quran Entity Relations — Build Summary
 
-Generated at: 2026-05-17T23:46:46.112Z
+Generated at: 2026-10-15T00:06:29.153Z
 Builder version: 1.0.0
 
 ## Totals
 
-- Total relations: **1705**
-- Entities involved: **79**
+- Total relations: **1571**
+- Entities involved: **76**
 
 ## Relations by type
 
 | Type | Count |
 |---|---:|
-| same_surah_context | 1066 |
-| mentioned_with | 478 |
-| same_story | 118 |
+| same_surah_context | 966 |
+| mentioned_with | 448 |
+| same_story | 114 |
 | mother_of | 9 |
 | son_of | 9 |
 | family_of | 8 |

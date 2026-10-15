@@ -24,7 +24,18 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { resolve, join, dirname } from 'path';
 import {
   QURAN_STORY_ENTITY_SEEDS,
+  STORY_ENTITY_ALIAS_SCOPES,
+  type StoryAliasScope,
 } from '../frontend/src/data/quranStoryEntitySeeds';
+import {
+  LEMMA_BY_ENTITY,
+  QAC_PATH,
+  countAliasOccurrences,
+  inScope,
+  loadQacProperNounIndex,
+  qacAyahsForEntity,
+  tokenise,
+} from './qac-proper-noun-lemmas';
 import { QURAN_STORIES_FIRST_BATCH } from '../frontend/src/data/quranStories';
 import {
   DETECTION_CONFIDENCE,
@@ -62,6 +73,7 @@ function normaliseArabic(s: string): string {
     .replace(/[آأإٱ]/g, 'ا') // أ إ آ ٱ (alef-wasla) -> ا
     .replace(/ى/g, 'ي')                 // ى -> ي
     .replace(/ة/g, 'ه')                 // ة -> ه (loose matching)
+    .replace(/ء/g, '')                  // drop stand-alone hamza so ءال ↔ آل
     .replace(/[​-‏﻿]/g, '') // BOM + zero-width
     .trim();
 }
@@ -96,23 +108,32 @@ interface AliasEntry {
   alias: string;
   normalised: string;
   detectionType: DetectionType;
-  warningBoostSurahs?: number[];
+  scope?: StoryAliasScope;
 }
 
+/**
+ * Build the alias table.
+ *
+ * Entities with a QAC proper-noun lemma (LEMMA_BY_ENTITY) are detected from
+ * QAC; for them only multi-word descriptive aliases (e.g. "ذا النون") are kept,
+ * because single-word name aliases are fully covered by the lemma and
+ * single-word generic aliases ("الرسول", "الشيطان") are not names.
+ */
 function buildAliasTable(seeds: QuranStoryEntity[]): AliasEntry[] {
   const entries: AliasEntry[] = [];
   for (const seed of seeds) {
+    const hasLemma = !!LEMMA_BY_ENTITY[seed.entityId];
+    const scopes = STORY_ENTITY_ALIAS_SCOPES[seed.entityId] ?? {};
     for (const alias of seed.aliasesArabic) {
       const norm = normaliseArabic(alias);
       if (!norm) continue;
-      // Aliases >= 4 chars are treated as alias_match; very short aliases
-      // (<= 3) are downgraded — e.g. "سبأ" — still scanned but flagged.
-      const dt: DetectionType = 'alias_match';
+      if (hasLemma && !norm.includes(' ')) continue;
       entries.push({
         entityId: seed.entityId,
         alias,
         normalised: norm,
-        detectionType: dt,
+        detectionType: 'alias_match',
+        scope: scopes[alias] ?? scopes['*'],
       });
     }
   }
@@ -121,34 +142,66 @@ function buildAliasTable(seeds: QuranStoryEntity[]): AliasEntry[] {
   return entries;
 }
 
+/**
+ * Detect entities in one ayah.
+ *
+ * - `qacEntityIds`: entities whose QAC proper-noun lemma occurs in this ayah
+ *   (detectionType explicit_name).
+ * - Aliases match whole tokens only (optionally with a whitelisted clitic
+ *   prefix), so "العزيز" no longer matches inside other words and "هود" does
+ *   not match "اليهود" / "مشهود".
+ */
 function detectInAyah(
   normAyah: string,
-  aliasTable: AliasEntry[]
+  aliasTable: AliasEntry[],
+  surah = 0,
+  ayah = 0,
+  qacEntityIds: string[] = [],
 ): Array<{ entityId: string; alias: string; detectionType: DetectionType }> {
   const found: Array<{ entityId: string; alias: string; detectionType: DetectionType }> = [];
   const seenEntityIds = new Set<string>();
+  for (const entityId of qacEntityIds) {
+    if (seenEntityIds.has(entityId)) continue;
+    const name = QURAN_STORY_ENTITY_SEEDS.find((e) => e.entityId === entityId)?.aliasesArabic[0] ?? '';
+    found.push({ entityId, alias: name, detectionType: 'explicit_name' });
+    seenEntityIds.add(entityId);
+  }
+  const tokens = tokenise(normAyah);
   for (const entry of aliasTable) {
+    if (seenEntityIds.has(entry.entityId)) continue;
     if (entry.normalised.length < 3) continue; // skip too-short candidates
-    if (!normAyah.includes(entry.normalised)) continue;
-    // Word-boundary check. The alias must end at a word boundary so that
-    // "الرس" does not match inside "الرسول". On the leading side we accept
-    // attachment because Arabic clitic prefixes (و، ف، ل، ب، ك) are common.
-    const idx = normAyah.indexOf(entry.normalised);
-    const after = idx + entry.normalised.length < normAyah.length
-      ? normAyah[idx + entry.normalised.length]
-      : ' ';
-    const arabicLetter = /[ء-ي]/;
-    if (arabicLetter.test(after)) continue;
-    if (!seenEntityIds.has(entry.entityId)) {
-      found.push({
-        entityId: entry.entityId,
-        alias: entry.alias,
-        detectionType: entry.detectionType,
-      });
-      seenEntityIds.add(entry.entityId);
-    }
+    if (surah > 0 && !inScope(entry.scope, surah, ayah)) continue;
+    if (countAliasOccurrences(tokens, entry.normalised) === 0) continue;
+    found.push({
+      entityId: entry.entityId,
+      alias: entry.alias,
+      detectionType: entry.detectionType,
+    });
+    seenEntityIds.add(entry.entityId);
   }
   return found;
+}
+
+/** ayahKey ("s:a") → entity ids whose QAC lemma occurs there. */
+function buildQacEntityIndex(seeds: QuranStoryEntity[]): Map<string, string[]> {
+  const idx = loadQacProperNounIndex();
+  if (!idx) {
+    throw new Error(
+      `QAC morphology not found at ${QAC_PATH}. It is required to resolve proper nouns ` +
+        '(see scripts/qac-proper-noun-lemmas.ts).',
+    );
+  }
+  const out = new Map<string, string[]>();
+  for (const seed of seeds) {
+    const keys = qacAyahsForEntity(seed.entityId, idx);
+    if (!keys) continue;
+    for (const k of keys) {
+      const arr = out.get(k) ?? [];
+      arr.push(seed.entityId);
+      out.set(k, arr);
+    }
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -252,6 +305,7 @@ function main(): void {
   }
 
   const aliasTable = buildAliasTable(QURAN_STORY_ENTITY_SEEDS);
+  const qacEntityIndex = buildQacEntityIndex(QURAN_STORY_ENTITY_SEEDS);
   const storyCoverage = indexExistingStories();
 
   // Group ayahs by surah
@@ -278,7 +332,7 @@ function main(): void {
 
     for (const a of surahAyahs) {
       const norm = normaliseArabic(a.aya_text ?? '');
-      const matches = detectInAyah(norm, aliasTable);
+      const matches = detectInAyah(norm, aliasTable, s, a.aya_no, qacEntityIndex.get(`${s}:${a.aya_no}`) ?? []);
       if (matches.length === 0) continue;
       const idsInAyah: string[] = [];
       for (const m of matches) {
@@ -414,6 +468,7 @@ function buildSummaryMd(scan: ScanOutput): string {
   lines.push('');
   lines.push('## Notes');
   lines.push('- All detected entities default to `needs_review` and `humanReviewRequired = true`.');
+  lines.push('- Named prophets, persons, nations and places are resolved from Quranic Arabic Corpus proper-noun (POS:PN) lemmas; other aliases match whole tokens only.');
   lines.push('- This summary is generated; do not edit by hand.');
   return lines.join('\n');
 }

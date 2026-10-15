@@ -1,6 +1,6 @@
 # Quran Entity Journeys — Build Summary
 
-Generated at: 2026-05-17T23:46:50.446Z
+Generated at: 2026-10-15T00:06:31.918Z
 Builder version: 1.0.0
 
 ## Totals
@@ -26,7 +26,7 @@ Builder version: 1.0.0
 | Surah 2 | 8 |
 | Surah 3 | 9 |
 | Surah 4 | 5 |
-| Surah 5 | 12 |
+| Surah 5 | 11 |
 | Surah 9 | 1 |
 | Surah 19 | 3 |
 | Surah 23 | 4 |
@@ -45,7 +45,7 @@ Builder version: 1.0.0
 
 | Section | Ayahs |
 |---|---:|
-| Suggested reading order — not a confirmed historical chronology | 51 |
+| Suggested reading order — not a confirmed historical chronology | 50 |
 
 ### revelation_order
 - certainty: disputed
@@ -56,7 +56,7 @@ Builder version: 1.0.0
 
 | Section | Ayahs |
 |---|---:|
-| Surah 5 — referenced revelation order 114 | 12 |
+| Surah 5 — referenced revelation order 114 | 11 |
 | Surah 2 — revelation order unreferenced | 8 |
 | Surah 3 — revelation order unreferenced | 9 |
 | Surah 4 — revelation order unreferenced | 5 |
