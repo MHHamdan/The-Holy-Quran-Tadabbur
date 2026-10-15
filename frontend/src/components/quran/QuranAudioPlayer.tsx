@@ -21,8 +21,11 @@ import {
   VERSE_REPEATS,
 } from '../../stores/readerSettingsStore';
 import {
+  hasPlaylist,
+  isSavedVerse,
   offlineAudioSupported,
   playableUrl,
+  recordSurahVerses,
   removeSurah,
   saveSurah,
   savedSurah,
@@ -50,6 +53,26 @@ interface QuranAudioPlayerProps {
 }
 
 type PlaybackState = 'idle' | 'loading' | 'playing' | 'paused';
+
+/**
+ * Audio Session API (WKWebView on iOS 16.4+): ask for "playback" so recitation
+ * keeps playing with the ring/silent switch on. No-op elsewhere.
+ */
+function requestPlaybackAudioSession() {
+  const nav = navigator as Navigator & { audioSession?: { type: string } };
+  try {
+    if (nav.audioSession && nav.audioSession.type !== 'playback') nav.audioSession.type = 'playback';
+  } catch { /* not supported */ }
+}
+
+/** Every alternative source the API gave for one verse (same verse, same reciter). */
+function collectFallbackUrls(verseInfo: VerseAudioInfo | undefined): string[] {
+  if (!verseInfo) return [];
+  const urls: string[] = [];
+  if (verseInfo.fallback_url) urls.push(verseInfo.fallback_url);
+  if (verseInfo.fallback_urls) urls.push(...verseInfo.fallback_urls.filter((u): u is string => !!u));
+  return [...new Set(urls)].filter((u) => u !== verseInfo.url);
+}
 
 // =============================================================================
 // DEFAULT RECITERS
@@ -100,10 +123,6 @@ export function QuranAudioPlayer({
   const [verseAudios, setVerseAudios] = useState<VerseAudioInfo[]>([]);
   const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
 
-  // Fallback URL tracking - supports multiple fallback URLs for high availability
-  const [fallbackUrls, setFallbackUrls] = useState<string[]>([]);
-  const [currentFallbackIndex, setCurrentFallbackIndex] = useState(0);
-
   // Track if we should auto-play after loading (used with startFromAya)
   const [pendingAutoPlay, setPendingAutoPlay] = useState(false);
 
@@ -113,9 +132,17 @@ export function QuranAudioPlayer({
   const playsOfVerseRef = useRef(1);
   // blob: URL of the saved copy now loaded (web), revoked when replaced
   const blobUrlRef = useRef<string | null>(null);
+  // Fallback sources already tried for the verse now loaded. Reset by
+  // setSource on every verse change, so a fallback is always the SAME verse
+  // (and, from the API, the same reciter): never verse 1 while 1:3 is shown.
+  const fallbackAttemptRef = useRef(0);
+  // Whether playback was requested, so a fallback resumes only if it should.
+  const wantPlayRef = useRef(false);
 
   /** Point the player at a verse, preferring its offline copy, and optionally play. */
   const setSource = useCallback(async (audio: HTMLAudioElement, url: string, sura: number, play: boolean) => {
+    fallbackAttemptRef.current = 0;
+    wantPlayRef.current = play;
     const src = await playableUrl(selectedReciter, sura, url);
     if (blobUrlRef.current && blobUrlRef.current !== src) {
       URL.revokeObjectURL(blobUrlRef.current);
@@ -123,7 +150,10 @@ export function QuranAudioPlayer({
     }
     if (src.startsWith('blob:')) blobUrlRef.current = src;
     audio.src = src;
-    if (play) await audio.play().catch(() => undefined);
+    if (play) {
+      requestPlaybackAudioSession();
+      await audio.play().catch(() => undefined);
+    }
   }, [selectedReciter]);
   useEffect(() => () => {
     if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
@@ -146,126 +176,80 @@ export function QuranAudioPlayer({
     loadReciters();
   }, []);
 
-  // Helper to collect all fallback URLs for a verse
-  const collectFallbackUrls = (verseInfo: VerseAudioInfo): string[] => {
-    const urls: string[] = [];
-    if (verseInfo.fallback_url) urls.push(verseInfo.fallback_url);
-    if (verseInfo.fallback_urls) urls.push(...verseInfo.fallback_urls.filter(u => u));
-    return urls;
-  };
-
   // Load audio based on mode
   const loadAudio = useCallback(async () => {
     setPlaybackState('loading');
     setError(null);
-    setFallbackUrls([]);
-    setCurrentFallbackIndex(0);
 
     try {
-      let audioUrl = '';
-      let fallbacks: string[] = [];
       let startSura = suraNo ?? 0;
+      let verses: VerseAudioInfo[] = [];
+      let startIndex = 0;
 
       if (mode === 'surah' && suraNo) {
         // Verse by verse, so the reader can highlight and follow each verse.
-        // 286 (the longest surah) means "to the end"; the API clamps it.
-        const response = await audioApi.getRangeAudio(suraNo, startFromAya ?? 1, 286, selectedReciter);
-        const verses = response.data.verse_audios;
-        setVerseAudios(verses);
-
-        const targetVerse = verses[0];
-        audioUrl = targetVerse?.url || '';
-        if (targetVerse) fallbacks = collectFallbackUrls(targetVerse);
-        setFallbackUrls(fallbacks);
-        setCurrentVerseIndex(0);
-
-        if (startFromAya && targetVerse && onVerseChange) {
-          onVerseChange(targetVerse.sura_no, targetVerse.aya_no);
+        const offline = savedSurah(selectedReciter, suraNo);
+        if (offline && hasPlaylist(offline)) {
+          // Saved for offline: the playlist comes from the device, no API call.
+          const from = startFromAya ?? 1;
+          verses = offline.ayahs
+            .map((aya, i) => ({ sura_no: suraNo, aya_no: aya, reference: `${suraNo}:${aya}`, url: offline.urls[i] }))
+            .filter((v) => v.aya_no >= from);
+        } else {
+          // 286 (the longest surah) means "to the end"; the API clamps it.
+          const response = await audioApi.getRangeAudio(suraNo, startFromAya ?? 1, 286, selectedReciter);
+          verses = response.data.verse_audios;
+          // A surah saved before playlists were recorded: fill its playlist now.
+          if (offline && (startFromAya ?? 1) === 1) {
+            recordSurahVerses(selectedReciter, suraNo, verses.map((v) => ({ aya_no: v.aya_no, url: v.url })));
+          }
         }
-        if (autoPlay && startFromAya) {
-          setPendingAutoPlay(true);
+        if (startFromAya && verses[0] && onVerseChange) {
+          onVerseChange(verses[0].sura_no, verses[0].aya_no);
         }
+        if (autoPlay && startFromAya) setPendingAutoPlay(true);
       } else if (mode === 'verse' && suraNo && ayaNo) {
         const response = await audioApi.getVerseAudio(suraNo, ayaNo, selectedReciter);
-        audioUrl = response.data.audio_url;
-        // Collect all fallback URLs
-        if (response.data.fallback_url) fallbacks.push(response.data.fallback_url);
-        setFallbackUrls(fallbacks);
-        setVerseAudios([{
+        const data = response.data as typeof response.data & { fallback_urls?: string[] };
+        verses = [{
           sura_no: suraNo,
           aya_no: ayaNo,
           reference: `${suraNo}:${ayaNo}`,
-          url: audioUrl,
-          fallback_url: response.data.fallback_url
-        }]);
+          url: data.audio_url,
+          fallback_url: data.fallback_url,
+          fallback_urls: data.fallback_urls,
+        }];
       } else if (mode === 'range' && suraNo && ayaStart && ayaEnd) {
         const response = await audioApi.getRangeAudio(suraNo, ayaStart, ayaEnd, selectedReciter);
-        const verses = response.data.verse_audios;
-        setVerseAudios(verses);
-
-        // Find the starting verse index if startFromAya is specified
-        let startIndex = 0;
+        verses = response.data.verse_audios;
         if (startFromAya && verses.length > 0) {
           const targetSura = startFromSura || suraNo;
-          const foundIndex = verses.findIndex(v =>
-            v.aya_no === startFromAya && v.sura_no === targetSura
-          );
-          if (foundIndex >= 0) {
-            startIndex = foundIndex;
-          }
+          const foundIndex = verses.findIndex(v => v.aya_no === startFromAya && v.sura_no === targetSura);
+          if (foundIndex >= 0) startIndex = foundIndex;
         }
-
-        const targetVerse = verses[startIndex];
-        audioUrl = targetVerse?.url || '';
-        if (targetVerse) fallbacks = collectFallbackUrls(targetVerse);
-        setFallbackUrls(fallbacks);
-        setCurrentVerseIndex(startIndex);
-
-        // Notify about the starting verse
-        if (startIndex > 0 && targetVerse && onVerseChange) {
-          onVerseChange(targetVerse.sura_no, targetVerse.aya_no);
+        if (startIndex > 0 && verses[startIndex] && onVerseChange) {
+          onVerseChange(verses[startIndex].sura_no, verses[startIndex].aya_no);
         }
-
-        // Set auto-play flag if requested
-        if (autoPlay && startFromAya) {
-          setPendingAutoPlay(true);
-        }
+        if (autoPlay && startFromAya) setPendingAutoPlay(true);
       } else if (mode === 'page' && pageNo) {
         const response = await audioApi.getPageAudio(pageNo, selectedReciter);
-        const verses = response.data.verse_audios;
-        setVerseAudios(verses);
-
-        // Find the starting verse index if startFromAya is specified
-        let startIndex = 0;
+        verses = response.data.verse_audios;
         if (startFromAya && verses.length > 0) {
-          const foundIndex = verses.findIndex(v => {
+          const foundIndex = verses.findIndex(v =>
             // Match by aya number, and optionally sura number for cross-sura pages
-            const ayaMatch = v.aya_no === startFromAya;
-            const suraMatch = startFromSura ? v.sura_no === startFromSura : true;
-            return ayaMatch && suraMatch;
-          });
-          if (foundIndex >= 0) {
-            startIndex = foundIndex;
-          }
+            v.aya_no === startFromAya && (startFromSura ? v.sura_no === startFromSura : true));
+          if (foundIndex >= 0) startIndex = foundIndex;
         }
-
-        const targetVerse = verses[startIndex];
-        audioUrl = targetVerse?.url || '';
-        startSura = targetVerse?.sura_no ?? 0;
-        if (targetVerse) fallbacks = collectFallbackUrls(targetVerse);
-        setFallbackUrls(fallbacks);
-        setCurrentVerseIndex(startIndex);
-
-        // Notify about the starting verse
-        if (startIndex > 0 && targetVerse && onVerseChange) {
-          onVerseChange(targetVerse.sura_no, targetVerse.aya_no);
+        startSura = verses[startIndex]?.sura_no ?? 0;
+        if (startIndex > 0 && verses[startIndex] && onVerseChange) {
+          onVerseChange(verses[startIndex].sura_no, verses[startIndex].aya_no);
         }
-
-        // Set auto-play flag if requested
-        if (autoPlay && startFromAya) {
-          setPendingAutoPlay(true);
-        }
+        if (autoPlay && startFromAya) setPendingAutoPlay(true);
       }
+
+      setVerseAudios(verses);
+      setCurrentVerseIndex(startIndex);
+      const audioUrl = verses[startIndex]?.url ?? '';
 
       playsOfVerseRef.current = 1;
       if (audioUrl && audioRef.current) {
@@ -277,7 +261,12 @@ export function QuranAudioPlayer({
       }
     } catch (err) {
       console.error('Failed to load audio:', err);
-      setError(language === 'ar' ? 'فشل تحميل الصوت' : 'Failed to load audio');
+      const offlineNow = typeof navigator !== 'undefined' && navigator.onLine === false;
+      setError(offlineNow
+        ? (language === 'ar'
+          ? 'لا يوجد اتصال. احفظ السورة للاستماع دون اتصال حين تكون متصلاً.'
+          : 'You are offline. Save the surah for offline listening while connected.')
+        : (language === 'ar' ? 'فشل تحميل الصوت' : 'Failed to load audio'));
       setPlaybackState('idle');
     }
   }, [mode, suraNo, ayaNo, ayaStart, ayaEnd, pageNo, selectedReciter, language, startFromAya, startFromSura, autoPlay, onVerseChange, setSource]);
@@ -343,21 +332,22 @@ export function QuranAudioPlayer({
     };
     const handlePause = () => setPlaybackState('paused');
     const handleError = () => {
-      // Try next fallback URL if available
-      if (fallbackUrls.length > 0 && currentFallbackIndex < fallbackUrls.length && audio) {
-        const nextFallback = fallbackUrls[currentFallbackIndex];
-        console.log(`Audio failed, trying fallback ${currentFallbackIndex + 1}/${fallbackUrls.length}:`, nextFallback);
-        setCurrentFallbackIndex(prev => prev + 1);
-        audio.src = nextFallback;
+      // An empty src (cleared on unmount/reload) is not a playback failure.
+      if (!audio.getAttribute('src')) return;
+      // Alternatives for THIS verse only (same reciter, from the API).
+      const fallbacks = collectFallbackUrls(verseAudios[currentVerseIndex]);
+      const attempt = fallbackAttemptRef.current;
+      if (attempt < fallbacks.length) {
+        fallbackAttemptRef.current = attempt + 1;
+        audio.src = fallbacks[attempt];
         audio.load();
-        audio.play().catch(() => {
-          // If this fallback also fails, the error handler will be called again
-          console.warn('Fallback also failed:', nextFallback);
-        });
+        if (wantPlayRef.current) {
+          // If this fallback also fails, the error handler runs again.
+          audio.play().catch(() => undefined);
+        }
         return;
       }
-      // All fallbacks exhausted
-      console.error('All audio sources failed');
+      // All sources for this verse failed: say so, never play another verse.
       setError(language === 'ar' ? 'خطأ في تشغيل الصوت - يرجى المحاولة مرة أخرى' : 'Audio playback error - please try again');
       setPlaybackState('idle');
     };
@@ -377,7 +367,7 @@ export function QuranAudioPlayer({
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('error', handleError);
     };
-  }, [verseAudios, currentVerseIndex, isRepeat, verseRepeat, language, onVerseChange, fallbackUrls, currentFallbackIndex, setSource]);
+  }, [verseAudios, currentVerseIndex, isRepeat, verseRepeat, language, onVerseChange, setSource]);
 
   // Update volume
   useEffect(() => {
@@ -399,21 +389,26 @@ export function QuranAudioPlayer({
   useEffect(() => {
     const next = verseAudios[currentVerseIndex + 1];
     if (!next) return;
+    // A saved verse plays from the device; preloading would hit the network.
+    if (isSavedVerse(selectedReciter, next.sura_no, next.url)) return;
     const preload = new Audio();
     preload.preload = 'auto';
     preload.src = next.url;
     return () => {
       preload.src = '';
     };
-  }, [verseAudios, currentVerseIndex]);
+  }, [verseAudios, currentVerseIndex, selectedReciter]);
 
   // Control functions
   const togglePlay = () => {
     if (!audioRef.current) return;
     if (playbackState === 'playing') {
+      wantPlayRef.current = false;
       audioRef.current.pause();
     } else {
-      audioRef.current.play();
+      wantPlayRef.current = true;
+      requestPlaybackAudioSession();
+      audioRef.current.play().catch(() => undefined);
     }
   };
 
@@ -493,18 +488,16 @@ export function QuranAudioPlayer({
     return () => saveAbort.current?.abort();
   }, [selectedReciter, suraNo]);
 
-  const surahUrls = async () =>
-    (await audioApi.getRangeAudio(suraNo!, 1, 286, selectedReciter)).data.verse_audios.map((v) => v.url);
-
   const handleSaveOffline = async () => {
     if (!suraNo || saveProgress) return;
     const controller = new AbortController();
     saveAbort.current = controller;
     setSaveError(false);
     try {
-      const urls = await surahUrls();
-      setSaveProgress({ done: 0, total: urls.length });
-      const entry = await saveSurah(selectedReciter, suraNo, urls,
+      const verses = (await audioApi.getRangeAudio(suraNo, 1, 286, selectedReciter)).data.verse_audios
+        .map((v) => ({ aya_no: v.aya_no, url: v.url }));
+      setSaveProgress({ done: 0, total: verses.length });
+      const entry = await saveSurah(selectedReciter, suraNo, verses,
         (done, total) => setSaveProgress({ done, total }), controller.signal);
       setSaved(entry);
     } catch {
@@ -514,10 +507,11 @@ export function QuranAudioPlayer({
     }
   };
 
+  // Uses only the local index: works offline and leaves nothing behind.
   const handleRemoveOffline = async () => {
     if (!suraNo) return;
     try {
-      await removeSurah(selectedReciter, suraNo, await surahUrls());
+      await removeSurah(selectedReciter, suraNo);
     } finally {
       setSaved(null);
     }

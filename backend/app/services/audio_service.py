@@ -10,10 +10,13 @@ Supported reciters:
 - Mahmoud Khalil Al-Husary
 - Muhammad Siddiq Al-Minshawi
 
-Audio sources (with fallback priority):
-1. Primary: everyayah.com (per-verse audio, most reliable)
-2. Fallback 1: cdn.islamic.network (alquran.cloud CDN)
-3. Fallback 2: verses.quran.com (Quran.com CDN)
+Audio sources (with fallback priority), always the SAME reciter and style:
+1. Primary: everyayah.com (per-verse audio)
+2. Fallback: cdn.islamic.network (alquran.cloud CDN), only where that CDN
+   carries the same reciter in the same style (murattal vs mujawwad).
+
+There is never a silent fallback to a different reciter: when both fail the
+player shows an error instead of playing someone else's recitation.
 
 Arabic: خدمة صوت القرآن الكريم
 """
@@ -44,14 +47,14 @@ class ReciterInfo:
     name_ar: str
     name_en: str
     style: str  # murattal, mujawwad
-    # CDN subfolder for quranicaudio.com (surah-level)
-    quranicaudio_folder: str
     # Subfolder for everyayah.com (verse-by-verse)
     everyayah_folder: str
-    # alquran.cloud edition identifier
+    # alquran.cloud edition identifier for the SAME reciter and style
+    # ("" when that CDN has no matching edition: no fallback then)
     alquran_cloud_id: str = ""
-    # Quran.com recitation ID (for verses.quran.com)
-    quran_com_id: int = 0
+    # Bitrate folder that serves this edition on cdn.islamic.network
+    # (some editions only exist at 64 kbps; 128 returns 403 for them)
+    alquran_cloud_bitrate: int = 128
 
 
 # Verse count per Surah (for calculating absolute ayah number)
@@ -94,77 +97,76 @@ RECITERS: Dict[str, ReciterInfo] = {
         name_ar="سعود الشريم",
         name_en="Saud Al-Shuraim",
         style="murattal",
-        quranicaudio_folder="Saud_Ash-Shuraim_64kbps",
         everyayah_folder="Saood_ash-Shuraym_128kbps",
-        alquran_cloud_id="ar.saudshuraim",
-        quran_com_id=6,
+        alquran_cloud_id="ar.saoodshuraym",
+        alquran_cloud_bitrate=64,
     ),
     Reciter.MAHER_MUAIQLY: ReciterInfo(
         id="maher_muaiqly",
         name_ar="ماهر المعيقلي",
         name_en="Maher Al-Muaiqly",
         style="murattal",
-        quranicaudio_folder="Maher_AlMuaiqly_64kbps",
         everyayah_folder="MaherAlMuaiqly128kbps",
         alquran_cloud_id="ar.mahermuaiqly",
-        quran_com_id=7,
     ),
     Reciter.MISHARY_AFASY: ReciterInfo(
         id="mishary_afasy",
         name_ar="مشاري العفاسي",
         name_en="Mishary Al-Afasy",
         style="murattal",
-        quranicaudio_folder="Alafasy_64kbps",
         everyayah_folder="Alafasy_128kbps",
         alquran_cloud_id="ar.alafasy",
-        quran_com_id=7,
     ),
     Reciter.ABDUL_BASIT: ReciterInfo(
         id="abdul_basit",
         name_ar="عبد الباسط عبد الصمد",
         name_en="Abdul Basit Abdul Samad",
         style="mujawwad",
-        quranicaudio_folder="Abdul_Basit_Mujawwad_128kbps",
         everyayah_folder="Abdul_Basit_Mujawwad_128kbps",
-        alquran_cloud_id="ar.abdulbasitmurattal",
-        quran_com_id=1,
+        # The CDN only has his murattal recitation; no same-style fallback.
+        alquran_cloud_id="",
     ),
     Reciter.HUSARY: ReciterInfo(
         id="husary",
         name_ar="محمود خليل الحصري",
         name_en="Mahmoud Khalil Al-Husary",
         style="murattal",
-        quranicaudio_folder="Husary_64kbps",
         everyayah_folder="Husary_128kbps",
         alquran_cloud_id="ar.husary",
-        quran_com_id=5,
     ),
     Reciter.MINSHAWI: ReciterInfo(
         id="minshawi",
         name_ar="محمد صديق المنشاوي",
         name_en="Muhammad Siddiq Al-Minshawi",
         style="mujawwad",
-        quranicaudio_folder="Minshawy_Mujawwad_192kbps",
         everyayah_folder="Minshawy_Mujawwad_192kbps",
-        alquran_cloud_id="ar.minshawi",
-        quran_com_id=8,
+        alquran_cloud_id="ar.minshawimujawwad",
+        alquran_cloud_bitrate=64,
     ),
 }
 
 # CDN base URLs (ordered by reliability)
 EVERYAYAH_BASE = "https://everyayah.com/data"
-ALQURAN_CLOUD_BASE = "https://cdn.islamic.network/quran/audio/128"
-QURANICAUDIO_BASE = "https://download.quranicaudio.com/quran"
+ALQURAN_CLOUD_BASE = "https://cdn.islamic.network/quran/audio"
+
+
+def _alquran_cloud_url(info: "ReciterInfo", sura_no: int, aya_no: int) -> Optional[str]:
+    if not info.alquran_cloud_id:
+        return None
+    absolute_ayah = get_absolute_ayah_number(sura_no, aya_no)
+    return (
+        f"{ALQURAN_CLOUD_BASE}/{info.alquran_cloud_bitrate}/"
+        f"{info.alquran_cloud_id}/{absolute_ayah}.mp3"
+    )
 
 
 class QuranAudioService:
     """
     Service for getting Quran audio URLs with multi-fallback support.
 
-    Priority order:
-    1. everyayah.com (fastest, verse-level)
-    2. cdn.islamic.network (alquran.cloud CDN)
-    3. quranicaudio.com (surah-level fallback)
+    Priority order (same reciter only):
+    1. everyayah.com (verse-level)
+    2. cdn.islamic.network (alquran.cloud CDN), when it has the same edition
 
     Arabic: خدمة الحصول على روابط الصوت مع دعم البدائل المتعددة
     """
@@ -231,25 +233,11 @@ class QuranAudioService:
         reciter: str = "mishary_afasy",
     ) -> Optional[str]:
         """
-        Get audio URL for a complete Surah.
-
-        Args:
-            sura_no: Surah number (1-114)
-            reciter: Reciter ID
-
-        Returns:
-            Audio URL or None if not found
+        Whole-surah audio is not offered: the app plays verse by verse from
+        the sources above. (The former quranicaudio.com surah links had no
+        confirmed licence and are removed.) Always returns None.
         """
-        if sura_no < 1 or sura_no > 114:
-            return None
-
-        reciter_info = RECITERS.get(reciter)
-        if not reciter_info:
-            reciter_info = RECITERS[Reciter.MISHARY_AFASY]
-
-        # Format: 001.mp3, 002.mp3, etc.
-        sura_str = str(sura_no).zfill(3)
-        return f"{QURANICAUDIO_BASE}/{reciter_info.quranicaudio_folder}/{sura_str}.mp3"
+        return None
 
     def get_verse_audio_url(
         self,
@@ -314,14 +302,10 @@ class QuranAudioService:
             "primary": f"{EVERYAYAH_BASE}/{reciter_info.everyayah_folder}/{sura_str}{aya_str}.mp3",
         }
 
-        # Fallback 1: alquran.cloud CDN (uses absolute ayah number)
-        if reciter_info.alquran_cloud_id:
-            absolute_ayah = get_absolute_ayah_number(sura_no, aya_no)
-            urls["fallback1"] = f"{ALQURAN_CLOUD_BASE}/{reciter_info.alquran_cloud_id}/{absolute_ayah}.mp3"
-
-        # Fallback 2: Alternative everyayah folder (Mishary Afasy as universal fallback)
-        if reciter != "mishary_afasy":
-            urls["fallback2"] = f"{EVERYAYAH_BASE}/Alafasy_128kbps/{sura_str}{aya_str}.mp3"
+        # Fallback: alquran.cloud CDN, same reciter and style only
+        fallback = _alquran_cloud_url(reciter_info, sura_no, aya_no)
+        if fallback:
+            urls["fallback1"] = fallback
 
         return urls
 
@@ -353,23 +337,14 @@ class QuranAudioService:
 
         sura_str = str(sura_no).zfill(3)
         aya_str = str(aya_no).zfill(3)
-        absolute_ayah = get_absolute_ayah_number(sura_no, aya_no)
 
-        # 1. Primary: everyayah.com with requested reciter
+        # 1. Primary: everyayah.com with the requested reciter
         urls.append(f"{EVERYAYAH_BASE}/{reciter_info.everyayah_folder}/{sura_str}{aya_str}.mp3")
 
-        # 2. alquran.cloud CDN
-        if reciter_info.alquran_cloud_id:
-            urls.append(f"{ALQURAN_CLOUD_BASE}/{reciter_info.alquran_cloud_id}/{absolute_ayah}.mp3")
-
-        # 3. Mishary Afasy fallback (most reliable)
-        if reciter != "mishary_afasy":
-            urls.append(f"{EVERYAYAH_BASE}/Alafasy_128kbps/{sura_str}{aya_str}.mp3")
-            urls.append(f"{ALQURAN_CLOUD_BASE}/ar.alafasy/{absolute_ayah}.mp3")
-
-        # 4. Husary fallback (widely available)
-        if reciter != "husary":
-            urls.append(f"{EVERYAYAH_BASE}/Husary_128kbps/{sura_str}{aya_str}.mp3")
+        # 2. alquran.cloud CDN, same reciter and style only
+        fallback = _alquran_cloud_url(reciter_info, sura_no, aya_no)
+        if fallback:
+            urls.append(fallback)
 
         return urls
 
@@ -431,7 +406,7 @@ class QuranAudioService:
                     "aya_no": aya_no,
                     "reference": f"{sura_no}:{aya_no}",
                     "url": urls.get("primary"),
-                    "fallback_urls": [urls.get("fallback1"), urls.get("fallback2")],
+                    "fallback_urls": [u for u in [urls.get("fallback1")] if u],
                 })
         return verses
 
@@ -474,10 +449,7 @@ class QuranAudioService:
                     "aya_no": aya_no,
                     "reference": f"{sura_no}:{aya_no}",
                     "url": urls.get("primary"),
-                    "fallback_urls": [
-                        u for u in [urls.get("fallback1"), urls.get("fallback2")]
-                        if u
-                    ],
+                    "fallback_urls": [u for u in [urls.get("fallback1")] if u],
                 })
 
         return {
