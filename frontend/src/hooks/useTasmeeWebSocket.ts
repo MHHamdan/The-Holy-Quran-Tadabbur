@@ -1,16 +1,69 @@
 /**
- * useTasmeeWebSocket - WebSocket hook for real-time Tasmeeʿ audio streaming
+ * useTasmeeWebSocket - WebSocket hook for Tasmeeʿ word-by-word follow-along
  *
  * Handles:
+ * - Session authentication (first frame carries the session token)
  * - Audio capture with ScriptProcessorNode (4096 samples = 256ms)
  * - Float32 to Int16 conversion for transmission
  * - Binary audio streaming over WebSocket
  * - Progressive reveal message handling
+ * - Practice without speech recognition: when STT is unavailable the words
+ *   are revealed locally, with no socket at all
+ *
+ * `error` holds a language-neutral code ("PERMISSION_DENIED",
+ * "STT_UNAVAILABLE:ai_quota_exceeded", ...). The page turns it into Arabic
+ * or English text; the hook never produces user-facing copy.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { api } from '../lib/api';
 import { wsUrl } from '../lib/config';
-import { isNativeApp } from '../lib/native';
+
+// ---------------------------------------------------------------------------
+// Sessions created on this device (id + token), for "delete my data".
+// The server keeps Tasmee rows for TASMEE_RETENTION_DAYS (90) at most.
+// ---------------------------------------------------------------------------
+
+export const TASMEE_SESSIONS_STORAGE_KEY = 'tadabbur-tasmee-sessions';
+const REMEMBER_DAYS = 90;
+
+export interface RememberedTasmeeSession {
+  id: string;
+  token: string;
+  createdAt: number;
+}
+
+export function listTasmeeSessions(): RememberedTasmeeSession[] {
+  try {
+    const rows = JSON.parse(localStorage.getItem(TASMEE_SESSIONS_STORAGE_KEY) ?? '[]');
+    return Array.isArray(rows) ? rows.filter((r) => r && typeof r.id === 'string' && typeof r.token === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function rememberTasmeeSession(id: string, token: string): void {
+  const cutoff = Date.now() - REMEMBER_DAYS * 86_400_000;
+  const rows = listTasmeeSessions().filter((r) => r.createdAt >= cutoff && r.id !== id);
+  rows.push({ id, token, createdAt: Date.now() });
+  try { localStorage.setItem(TASMEE_SESSIONS_STORAGE_KEY, JSON.stringify(rows.slice(-200))); } catch { /* storage unavailable */ }
+}
+
+/**
+ * Delete every Tasmee session this device created (server rows, their events
+ * and possible slips), then forget them locally. Returns the server count.
+ */
+export async function deleteRememberedTasmeeSessions(): Promise<number> {
+  const rows = listTasmeeSessions();
+  let deleted = 0;
+  for (let i = 0; i < rows.length; i += 200) {
+    const batch = rows.slice(i, i + 200).map(({ id, token }) => ({ id, token }));
+    const res = await api.post<{ deleted: number }>('/tasmee/sessions/delete', { sessions: batch });
+    deleted += res.data.deleted;
+  }
+  try { localStorage.removeItem(TASMEE_SESSIONS_STORAGE_KEY); } catch { /* storage unavailable */ }
+  return deleted;
+}
 
 // Types
 export interface ProgressiveWord {
@@ -51,16 +104,28 @@ export interface TasmeeWSState {
   audioLevel: number;
   error: string | null;
   isComplete: boolean;
+  /** Speech recognition is unavailable: practise by revealing words locally. */
+  sttUnavailable: boolean;
 }
 
 export interface TasmeeWSOptions {
-  sessionId: number;
+  sessionId: string;
+  token: string;
   onPointerUpdate?: (position: number, progress: number) => void;
   onWordsRevealed?: (words: ProgressiveWord[], source: 'alignment' | 'tap') => void;
   onMistakeAlert?: (mistake: MistakeAlert) => void;
   onComplete?: () => void;
   onError?: (error: string) => void;
 }
+
+/** Server close codes (see backend/app/api/routes/tasmee.py). */
+const CLOSE_CODE_ERRORS: Record<number, string> = {
+  4001: 'SESSION_UNAUTHORIZED',
+  4004: 'SESSION_NOT_FOUND',
+  4008: 'SESSION_LIMIT',
+  4009: 'SESSION_NOT_ACTIVE',
+  4029: 'RATE_LIMITED',
+};
 
 const TARGET_SAMPLE_RATE = 16000;  // What backend expects
 const BUFFER_SIZE = 4096; // ~256ms chunks at browser sample rate
@@ -84,8 +149,28 @@ function resample(inputBuffer: Float32Array, fromRate: number, toRate: number): 
   return output;
 }
 
+function micErrorCode(name: string | undefined): string {
+  switch (name) {
+    case 'NotAllowedError':
+    case 'PermissionDeniedError':
+      return 'PERMISSION_DENIED';
+    case 'NotFoundError':
+    case 'DevicesNotFoundError':
+      return 'NO_MICROPHONE';
+    case 'NotReadableError':
+    case 'TrackStartError':
+      return 'MIC_IN_USE';
+    case 'SecurityError':
+      return 'HTTPS_REQUIRED';
+    case 'NotSupportedError':
+      return 'MIC_UNSUPPORTED';
+    default:
+      return 'MIC_ERROR';
+  }
+}
+
 export function useTasmeeWebSocket(options: TasmeeWSOptions) {
-  const { sessionId, onPointerUpdate, onWordsRevealed, onMistakeAlert, onComplete, onError } = options;
+  const { sessionId, token, onPointerUpdate, onWordsRevealed, onMistakeAlert, onComplete, onError } = options;
 
   // State
   const [state, setState] = useState<TasmeeWSState>({
@@ -104,6 +189,7 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
     audioLevel: 0,
     error: null,
     isComplete: false,
+    sttUnavailable: false,
   });
 
   // Refs
@@ -114,59 +200,28 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   // Releases the microphone; set to stopStreaming below (used by handlers created earlier).
   const releaseMicRef = useRef<() => void>(() => undefined);
+  // Latest state for callbacks that must not be re-created on every update.
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
-  // Get WebSocket URL
-  const getWsUrl = useCallback(() => {
-    return wsUrl(`/api/v1/tasmee/ws/${sessionId}`);
-  }, [sessionId]);
+  /** Seed the word list (from POST /sessions) so practice works without a socket. */
+  const loadWords = useCallback((words: Array<{ word: string; position: number }>) => {
+    setState(prev => (prev.words.length > 0 ? prev : {
+      ...prev,
+      totalWords: words.length,
+      words: words.map((w, i) => ({
+        word: w.word,
+        position: w.position ?? i,
+        isRevealed: false,
+        status: i === 0 ? 'current' : 'pending',
+      })),
+    }));
+  }, []);
 
-  // Connect to WebSocket
-  const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      console.log('[TasmeeWS] Already connected');
-      return;
-    }
-
-    const wsUrl = getWsUrl();
-    console.log('[TasmeeWS] Connecting to:', wsUrl);
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      console.log('[TasmeeWS] Connection opened');
-      setState(prev => ({ ...prev, isConnected: true, error: null }));
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('[TasmeeWS] Message received:', data.type);
-        handleMessage(data);
-      } catch (e) {
-        console.error('[TasmeeWS] Failed to parse message:', e);
-      }
-    };
-
-    ws.onerror = (event) => {
-      console.error('[TasmeeWS] Error:', event);
-      const errorMsg = 'WebSocket connection error';
-      setState(prev => ({ ...prev, error: errorMsg }));
-      onError?.(errorMsg);
-    };
-
-    ws.onclose = (event) => {
-      console.log('[TasmeeWS] Closed:', event.code, event.reason);
-      // Never keep the microphone open without a server to stream to.
-      releaseMicRef.current();
-      setState(prev => ({ ...prev, isConnected: false, isStreaming: false }));
-      if (event.code === 4003) {
-        setState(prev => ({ ...prev, error: prev.error?.startsWith('STT_UNAVAILABLE') ? prev.error : 'STT_UNAVAILABLE: unavailable' }));
-      } else if (event.code !== 1000 && event.code !== 1001) {
-        const errorMsg = `CONNECTION_LOST: The connection to the server was lost${event.reason ? ` (${event.reason})` : ` (code ${event.code})`}. Your recording was stopped; try again when you are back online.`;
-        setState(prev => ({ ...prev, error: errorMsg }));
-      }
-    };
-  }, [getWsUrl, onError]);
+  /** Switch to practice without speech recognition (local reveal). */
+  const markSttUnavailable = useCallback((reason = 'unavailable') => {
+    setState(prev => ({ ...prev, sttUnavailable: true, error: `STT_UNAVAILABLE:${reason}` }));
+  }, []);
 
   // Handle incoming messages
   const handleMessage = useCallback((data: any) => {
@@ -177,6 +232,8 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
           totalWords: data.total_words,
           pointer: data.pointer,
           revealedUpTo: data.revealed_up_to,
+          sttUnavailable: false,
+          error: null,
           words: data.words.map((w: any) => ({
             word: w.word,
             position: w.position,
@@ -187,7 +244,6 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
         break;
 
       case 'pointer_update':
-        console.log(`[TasmeeWS] Pointer update: position=${data.position}, revealed_up_to=${data.revealed_up_to}, progress=${data.progress}`);
         setState(prev => ({
           ...prev,
           pointer: data.position,
@@ -195,7 +251,7 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
           isComplete: data.is_complete,
           words: prev.words.map((word, idx) => ({
             ...word,
-            status: idx < data.position ? 'completed' : idx === data.position ? 'current' : word.status,
+            status: idx < data.position ? (word.status === 'error' ? 'error' : 'completed') : idx === data.position ? 'current' : word.status,
             isRevealed: idx < data.revealed_up_to,
           })),
         }));
@@ -206,22 +262,14 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
         break;
 
       case 'reveal_words': {
-        console.log(`[TasmeeWS] Reveal words: ${data.words.length} words, revealed_up_to=${data.revealed_up_to}, source=${data.reveal_source}`);
         setState(prev => {
           const newWords = [...prev.words];
           data.words.forEach((w: any) => {
             if (newWords[w.position]) {
-              newWords[w.position] = {
-                ...newWords[w.position],
-                isRevealed: true,
-              };
+              newWords[w.position] = { ...newWords[w.position], isRevealed: true };
             }
           });
-          return {
-            ...prev,
-            revealedUpTo: data.revealed_up_to,
-            words: newWords,
-          };
+          return { ...prev, revealedUpTo: data.revealed_up_to, words: newWords };
         });
         const revealedWords = data.words.map((w: any) => ({
           word: w.word,
@@ -257,7 +305,6 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
       }
 
       case 'config_updated':
-        console.log('[TasmeeWS] Config updated from server:', data);
         setState(prev => ({
           ...prev,
           config: {
@@ -271,7 +318,11 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
       case 'stt_unavailable':
         // Speech recognition (HF) failed for an audio window; the server closes
         // the socket with 4003 after repeated failures.
-        setState(prev => ({ ...prev, error: `STT_UNAVAILABLE: ${data.reason ?? 'unavailable'}` }));
+        setState(prev => ({ ...prev, error: `STT_UNAVAILABLE:${data.reason ?? 'unavailable'}` }));
+        break;
+
+      case 'session_limit':
+        setState(prev => ({ ...prev, error: 'SESSION_LIMIT' }));
         break;
 
       case 'reset_complete':
@@ -292,74 +343,78 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
     }
   }, [onPointerUpdate, onWordsRevealed, onMistakeAlert, onComplete]);
 
-  // Audio chunk counter for logging
-  const chunkCountRef = useRef(0);
+  // Connect to WebSocket
+  const connect = useCallback(() => {
+    if (!sessionId || !token) return;
+    if (wsRef.current && wsRef.current.readyState <= WebSocket.OPEN) return;
+
+    const ws = new WebSocket(wsUrl(`/api/v1/tasmee/ws/${encodeURIComponent(sessionId)}`));
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      // The token travels in the first frame, never in the URL.
+      ws.send(JSON.stringify({ type: 'auth', token }));
+      setState(prev => ({ ...prev, isConnected: true, error: prev.sttUnavailable ? prev.error : null }));
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        handleMessage(JSON.parse(event.data));
+      } catch {
+        /* ignore malformed frames */
+      }
+    };
+
+    ws.onerror = () => {
+      onError?.('CONNECTION_ERROR');
+    };
+
+    ws.onclose = (event) => {
+      if (wsRef.current === ws) wsRef.current = null;
+      // Never keep the microphone open without a server to stream to.
+      releaseMicRef.current();
+      setState(prev => ({ ...prev, isConnected: false, isStreaming: false }));
+      if (event.code === 4003) {
+        setState(prev => ({
+          ...prev,
+          sttUnavailable: true,
+          error: prev.error?.startsWith('STT_UNAVAILABLE') ? prev.error : 'STT_UNAVAILABLE:unavailable',
+        }));
+      } else if (CLOSE_CODE_ERRORS[event.code]) {
+        setState(prev => ({ ...prev, error: CLOSE_CODE_ERRORS[event.code] }));
+      } else if (event.code !== 1000 && event.code !== 1001) {
+        setState(prev => ({ ...prev, error: 'CONNECTION_LOST' }));
+      }
+    };
+  }, [sessionId, token, handleMessage, onError]);
+
+  // Audio chunk counter
   const actualSampleRateRef = useRef(TARGET_SAMPLE_RATE);
 
   // Check if microphone API is available
-  const checkMicrophoneSupport = useCallback((): { supported: boolean; error?: string } => {
-    // Check secure context first (required for getUserMedia except localhost)
+  const checkMicrophoneSupport = useCallback((): string | null => {
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const isSecure = window.isSecureContext;
-
-    console.log(`[TasmeeAudio] Security check: hostname=${window.location.hostname}, isSecureContext=${isSecure}, isLocalhost=${isLocalhost}`);
-
-    if (!isSecure && !isLocalhost) {
-      return {
-        supported: false,
-        error: `HTTPS_REQUIRED: Microphone requires HTTPS. You are accessing via HTTP (${window.location.protocol}//${window.location.host}). Open the app over https:// (local development on localhost is also allowed).`
-      };
-    }
-
-    // Check if mediaDevices API exists
-    if (!navigator.mediaDevices) {
-      return {
-        supported: false,
-        error: 'MEDIA_DEVICES_UNAVAILABLE: navigator.mediaDevices is not available. This may be due to HTTP context or old browser.'
-      };
-    }
-
-    // Check if getUserMedia exists
-    if (!navigator.mediaDevices.getUserMedia) {
-      return {
-        supported: false,
-        error: 'GET_USER_MEDIA_UNAVAILABLE: getUserMedia is not available. Please use a modern browser (Chrome, Firefox, Safari, Edge).'
-      };
-    }
-
-    return { supported: true };
+    if (!window.isSecureContext && !isLocalhost) return 'HTTPS_REQUIRED';
+    if (!navigator.mediaDevices?.getUserMedia) return 'MIC_UNSUPPORTED';
+    return null;
   }, []);
 
-  // Start audio streaming
-  const startStreaming = useCallback(async () => {
-    console.log('[TasmeeAudio] startStreaming called');
-
+  /** Start streaming the microphone. Resolves true only if streaming started. */
+  const startStreaming = useCallback(async (): Promise<boolean> => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      const errorMsg = 'WebSocket not connected - cannot start streaming';
-      console.error('[TasmeeAudio]', errorMsg);
-      setState(prev => ({ ...prev, error: errorMsg }));
-      return;
+      setState(prev => ({ ...prev, error: prev.sttUnavailable ? prev.error : 'NOT_CONNECTED' }));
+      return false;
     }
+    if (streamRef.current) return true;
 
-    // Check if already streaming
-    if (streamRef.current) {
-      console.log('[TasmeeAudio] Already streaming, ignoring');
-      return;
-    }
-
-    // Check microphone support first
-    const supportCheck = checkMicrophoneSupport();
-    if (!supportCheck.supported) {
-      console.error('[TasmeeAudio]', supportCheck.error);
-      setState(prev => ({ ...prev, error: supportCheck.error!, isStreaming: false }));
-      onError?.(supportCheck.error!);
-      return;
+    const unsupported = checkMicrophoneSupport();
+    if (unsupported) {
+      setState(prev => ({ ...prev, error: unsupported, isStreaming: false }));
+      onError?.(unsupported);
+      return false;
     }
 
     try {
-      console.log('[TasmeeAudio] Requesting microphone access...');
-
-      // Request microphone access with modern API
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
@@ -368,31 +423,24 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
         },
       });
 
-      // Verify we got audio tracks
       const audioTracks = stream.getAudioTracks();
       if (audioTracks.length === 0) {
-        throw new Error('No audio tracks in stream');
+        throw Object.assign(new Error('No audio tracks in stream'), { name: 'NotFoundError' });
       }
-      console.log(`[TasmeeAudio] Microphone access granted. Track: ${audioTracks[0].label}, enabled: ${audioTracks[0].enabled}, readyState: ${audioTracks[0].readyState}`);
 
       streamRef.current = stream;
 
       // Interruptions: the OS can end the track (incoming call, another app
       // taking the mic, permission revoked in Settings, headset unplugged).
-      const interrupted = (why: string) => {
+      const interrupted = (why: 'system' | 'background') => {
         if (streamRef.current !== stream) return;
         releaseMicRef.current();
-        setState(prev => ({ ...prev, error: `RECORDING_INTERRUPTED: ${why} Tap Try Again to continue.` }));
+        setState(prev => ({ ...prev, error: `RECORDING_INTERRUPTED:${why}` }));
       };
-      audioTracks[0].addEventListener('ended', () =>
-        interrupted('The microphone stopped (a call, another app, or a permission change).'));
+      audioTracks[0].addEventListener('ended', () => interrupted('system'));
 
-      // Create audio context with browser's default sample rate
       audioContextRef.current = new AudioContext();
-
-      // Resume AudioContext if suspended (browser autoplay policy)
       if (audioContextRef.current.state === 'suspended') {
-        console.log('[TasmeeAudio] AudioContext suspended, resuming...');
         await audioContextRef.current.resume();
       }
 
@@ -400,33 +448,23 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
       ctx.onstatechange = () => {
         // iOS reports "interrupted" during calls/Siri; other platforms suspend.
         if ((ctx.state as string) === 'interrupted') {
-          interrupted('Recording was interrupted by the system.');
+          interrupted('system');
         } else if (ctx.state === 'suspended' && streamRef.current === stream) {
-          ctx.resume().catch(() => interrupted('Audio was suspended by the system.'));
+          ctx.resume().catch(() => interrupted('system'));
         }
       };
 
       actualSampleRateRef.current = audioContextRef.current.sampleRate;
-      console.log(`[TasmeeAudio] AudioContext created. State: ${audioContextRef.current.state}, Browser rate: ${actualSampleRateRef.current}Hz, Target: ${TARGET_SAMPLE_RATE}Hz`);
-
-      if (actualSampleRateRef.current !== TARGET_SAMPLE_RATE) {
-        console.log(`[TasmeeAudio] Will resample from ${actualSampleRateRef.current}Hz to ${TARGET_SAMPLE_RATE}Hz`);
-      }
-
       sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
-
-      // Create script processor for audio data
       scriptProcessorRef.current = audioContextRef.current.createScriptProcessor(BUFFER_SIZE, 1, 1);
-      chunkCountRef.current = 0;
 
       scriptProcessorRef.current.onaudioprocess = (event) => {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
           return;
         }
-
         const inputBuffer = event.inputBuffer.getChannelData(0);
 
-        // Calculate audio level for UI (RMS as percentage)
+        // Audio level for the UI (RMS)
         let sum = 0;
         for (let i = 0; i < inputBuffer.length; i++) {
           sum += inputBuffer[i] * inputBuffer[i];
@@ -434,73 +472,26 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
         const rms = Math.sqrt(sum / inputBuffer.length);
         setState(prev => ({ ...prev, audioLevel: rms }));
 
-        // Resample to 16kHz if needed
         const resampledBuffer = resample(inputBuffer, actualSampleRateRef.current, TARGET_SAMPLE_RATE);
-
-        // Convert Float32 to Int16
         const int16Array = new Int16Array(resampledBuffer.length);
         for (let i = 0; i < resampledBuffer.length; i++) {
           const s = Math.max(-1, Math.min(1, resampledBuffer[i]));
           int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
         }
-
-        // Send binary audio data
         wsRef.current.send(int16Array.buffer);
-
-        // Log every 10th chunk to avoid spam
-        chunkCountRef.current++;
-        if (chunkCountRef.current % 10 === 1) {
-          console.log(`[TasmeeAudio] Sent chunk #${chunkCountRef.current}: ${int16Array.byteLength} bytes (from ${inputBuffer.length} samples), RMS: ${rms.toFixed(4)}`);
-        }
       };
 
-      // Connect audio nodes
       sourceRef.current.connect(scriptProcessorRef.current);
       scriptProcessorRef.current.connect(audioContextRef.current.destination);
 
-      console.log('[TasmeeAudio] Audio pipeline connected, streaming started');
       setState(prev => ({ ...prev, isStreaming: true, error: null }));
-
+      return true;
     } catch (error: any) {
-      console.error('[TasmeeAudio] Failed to start audio streaming:', error);
-      console.error('[TasmeeAudio] Error details - name:', error.name, 'message:', error.message);
-
-      // Provide specific error messages based on error type
-      let errorMsg = 'Failed to access microphone';
-
-      switch (error.name) {
-        case 'NotAllowedError':
-        case 'PermissionDeniedError':
-          errorMsg = isNativeApp
-            ? 'PERMISSION_DENIED: Microphone permission denied. Allow microphone access for Tadabbur in your device Settings, then try again.'
-            : 'PERMISSION_DENIED: Microphone permission denied. Please click the lock icon in your browser address bar and allow microphone access.';
-          break;
-        case 'NotFoundError':
-        case 'DevicesNotFoundError':
-          errorMsg = 'NO_MICROPHONE: No microphone found. Please connect a microphone and try again.';
-          break;
-        case 'NotReadableError':
-        case 'TrackStartError':
-          errorMsg = 'MIC_IN_USE: Microphone is in use by another application. Please close other apps using the mic.';
-          break;
-        case 'OverconstrainedError':
-          errorMsg = 'MIC_CONSTRAINTS: Microphone does not support requested settings. Try with different audio settings.';
-          break;
-        case 'SecurityError':
-          errorMsg = 'SECURITY_ERROR: Microphone access blocked due to security policy. HTTPS is required.';
-          break;
-        case 'TypeError':
-          errorMsg = 'API_ERROR: getUserMedia API error. This may indicate the API is not available.';
-          break;
-        case 'AbortError':
-          errorMsg = 'ABORTED: Microphone access was aborted. Please try again.';
-          break;
-        default:
-          errorMsg = `MIC_ERROR (${error.name}): ${error.message || 'Unknown error accessing microphone'}`;
-      }
-
-      setState(prev => ({ ...prev, error: errorMsg, isStreaming: false }));
-      onError?.(errorMsg);
+      releaseMicRef.current();
+      const code = micErrorCode(error?.name);
+      setState(prev => ({ ...prev, error: code, isStreaming: false }));
+      onError?.(code);
+      return false;
     }
   }, [onError, checkMicrophoneSupport]);
 
@@ -533,47 +524,48 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
     const onVisibility = () => {
       if (document.hidden && streamRef.current) {
         stopStreaming();
-        setState(prev => ({ ...prev, error: 'RECORDING_INTERRUPTED: Recording paused because the app went to the background. Tap Try Again to continue.' }));
+        setState(prev => ({ ...prev, error: 'RECORDING_INTERRUPTED:background' }));
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, [stopStreaming]);
 
-  // Send reveal request (tap to reveal)
+  /** Reveal the next words: through the server, or locally when there is no socket. */
   const sendRevealRequest = useCallback((count?: number) => {
-    const requestCount = count || state.config.tapRevealCount;
-    console.log(`[TasmeeWS] sendRevealRequest called, count: ${requestCount}`);
+    const requestCount = count || stateRef.current.config.tapRevealCount;
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      const message = {
-        type: 'reveal_request',
-        count: requestCount,
-      };
-      console.log('[TasmeeWS] Sending reveal_request:', message);
-      wsRef.current.send(JSON.stringify(message));
-    } else {
-      console.warn('[TasmeeWS] Cannot send reveal_request - WebSocket not open');
+      wsRef.current.send(JSON.stringify({ type: 'reveal_request', count: requestCount }));
+      return;
     }
-  }, [state.config.tapRevealCount]);
-
-  // Update configuration
-  const updateConfig = useCallback((config: Partial<TasmeeWSConfig>) => {
-    console.log('[TasmeeWS] updateConfig called with:', config);
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      const message = {
-        type: 'config_update',
-        ...config,
-      };
-      console.log('[TasmeeWS] Sending config_update:', message);
-      wsRef.current.send(JSON.stringify(message));
-
-      // Also update local state immediately for responsiveness
-      setState(prev => ({
+    // Practice without speech recognition: reveal and advance locally.
+    setState(prev => {
+      if (prev.words.length === 0) return prev;
+      const upTo = Math.min(prev.revealedUpTo + requestCount, prev.words.length);
+      return {
         ...prev,
-        config: { ...prev.config, ...config },
+        revealedUpTo: upTo,
+        pointer: upTo,
+        isComplete: upTo >= prev.words.length,
+        words: prev.words.map((w, i) => ({
+          ...w,
+          isRevealed: i < upTo,
+          status: i < upTo ? 'completed' : i === upTo ? 'current' : 'pending',
+        })),
+      };
+    });
+  }, []);
+
+  /** Update reveal configuration (server expects snake_case keys). */
+  const updateConfig = useCallback((config: Partial<TasmeeWSConfig>) => {
+    setState(prev => ({ ...prev, config: { ...prev.config, ...config } }));
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'config_update',
+        ...(config.revealMode && { reveal_mode: config.revealMode }),
+        ...(config.tapRevealCount && { tap_reveal_count: config.tapRevealCount }),
+        ...(config.hybridThreshold !== undefined && { hybrid_threshold: config.hybridThreshold }),
       }));
-    } else {
-      console.warn('[TasmeeWS] Cannot send config_update - WebSocket not open');
     }
   }, []);
 
@@ -594,6 +586,21 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
     setState(prev => ({ ...prev, isConnected: false, isStreaming: false }));
   }, [stopStreaming]);
 
+  /** Drop all words and progress (new session). */
+  const clear = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      pointer: 0,
+      revealedUpTo: 0,
+      totalWords: 0,
+      words: [],
+      mistakes: [],
+      error: null,
+      isComplete: false,
+      sttUnavailable: false,
+    }));
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -613,6 +620,9 @@ export function useTasmeeWebSocket(options: TasmeeWSOptions) {
     updateConfig,
     reset,
     disconnect,
+    loadWords,
+    markSttUnavailable,
+    clear,
   };
 }
 

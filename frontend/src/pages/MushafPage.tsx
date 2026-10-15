@@ -53,6 +53,12 @@ import { useReaderSettingsStore, verseTextFor, bismillahFor, applyReaderThemeToD
 import { ReaderThemePicker } from '../components/quran/ReaderThemePicker';
 import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import { surahVerseCount } from '../data/surahVerseCounts';
+import { SURAH_NAMES } from '../data/surahNames';
+import { TafsirSourceFooter, type TafsirEditionMeta } from '../components/reader/TafsirSourceFooter';
+import {
+  firstPageOfJuz, firstPageOfSurah, surahOnPage, SURAH_REVELATION, TOTAL_MUSHAF_PAGES,
+} from '../components/reader/surahNavigation';
+import { playableUrl } from '../lib/offlineAudio';
 
 // =============================================================================
 // Types & Interfaces
@@ -61,13 +67,14 @@ import { surahVerseCount } from '../data/surahVerseCounts';
 interface TafsirEdition {
   id: string;
   translationKey: string;
-  has_audio: boolean;
 }
 
 interface TafsirData {
   text: string;
-  audio_url?: string;
+  /** Provider the text was retrieved from (quran_com, quran_tafseer). */
   source: string;
+  /** Edition metadata from the API: title, author, language. */
+  edition: TafsirEditionMeta;
 }
 
 interface ReciterOption {
@@ -79,29 +86,22 @@ interface ReciterOption {
 // Constants
 // =============================================================================
 
-const TOTAL_PAGES = 604;
+const TOTAL_PAGES = TOTAL_MUSHAF_PAGES;
 
-// First Mushaf page for each Juz (King Fahd Madinah Mushaf, 604-page edition)
-const JUZ_FIRST_PAGE: Record<number, number> = {
-  1:1,2:22,3:42,4:62,5:82,6:102,7:121,8:142,9:162,10:182,
-  11:201,12:222,13:242,14:262,15:282,16:302,17:322,18:342,19:362,20:382,
-  21:402,22:422,23:442,24:462,25:482,26:502,27:522,28:542,29:562,30:582,
-};
-
-const ARABIC_TAFSIR_EDITIONS: TafsirEdition[] = [
-  { id: 'muyassar', translationKey: 'tafseer_muyassar', has_audio: true },
-  { id: 'ibn_kathir', translationKey: 'tafseer_ibn_kathir', has_audio: false },
-  { id: 'tabari', translationKey: 'tafseer_tabari', has_audio: false },
-  { id: 'qurtubi', translationKey: 'tafseer_qurtubi', has_audio: false },
-  { id: 'jalalayn', translationKey: 'tafseer_jalalayn', has_audio: false },
-  { id: 'saadi', translationKey: 'tafseer_saadi', has_audio: false },
-  { id: 'baghawi', translationKey: 'tafseer_baghawi', has_audio: false },
+// Arabic tafsir editions, shown in both UI languages (always right-to-left).
+// No English tafsir is offered: the English editions previously listed here
+// (Ibn Kathir EN, Ma'arif al-Qur'an, Tazkirul Quran) have no confirmed licence
+// and are awaiting owner review. Tafsir audio stays off until its terms are
+// confirmed.
+const TAFSIR_EDITIONS: TafsirEdition[] = [
+  { id: 'muyassar', translationKey: 'tafseer_muyassar' },
+  { id: 'ibn_kathir', translationKey: 'tafseer_ibn_kathir' },
+  { id: 'tabari', translationKey: 'tafseer_tabari' },
+  { id: 'qurtubi', translationKey: 'tafseer_qurtubi' },
+  { id: 'jalalayn', translationKey: 'tafseer_jalalayn' },
+  { id: 'saadi', translationKey: 'tafseer_saadi' },
+  { id: 'baghawi', translationKey: 'tafseer_baghawi' },
 ];
-
-// No English tafsir is licensed yet: the Ibn Kathir (Darussalam), Ma'arif and
-// Tazkirul Quran translations are copyrighted and the backend no longer
-// proxies them. The verse panel says so instead of showing a failed request.
-const ENGLISH_TAFSIR_EDITIONS: TafsirEdition[] = [];
 
 const RECITERS: ReciterOption[] = [
   { id: 'mishary_afasy', translationKey: 'reciter_mishary' },
@@ -114,27 +114,6 @@ const RECITERS: ReciterOption[] = [
 const ARABIC_NUMS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 
 
-// Curated Makki/Madani classification — scholarly consensus (Al-Suyuti).
-// This is structural UI metadata, not Quran text.
-const REVELATION_TYPE: Record<number, 'makki' | 'madani' | 'unknown'> = {
-  1:'makki',2:'madani',3:'madani',4:'madani',5:'madani',6:'makki',7:'makki',
-  8:'madani',9:'madani',10:'makki',11:'makki',12:'makki',13:'unknown',14:'makki',
-  15:'makki',16:'makki',17:'makki',18:'makki',19:'makki',20:'makki',21:'makki',
-  22:'unknown',23:'makki',24:'madani',25:'makki',26:'makki',27:'makki',28:'makki',
-  29:'unknown',30:'makki',31:'makki',32:'makki',33:'madani',34:'makki',35:'makki',
-  36:'makki',37:'makki',38:'makki',39:'makki',40:'makki',41:'makki',42:'makki',
-  43:'makki',44:'makki',45:'makki',46:'makki',47:'madani',48:'madani',49:'madani',
-  50:'makki',51:'makki',52:'makki',53:'makki',54:'makki',55:'unknown',56:'makki',
-  57:'madani',58:'madani',59:'madani',60:'madani',61:'madani',62:'madani',63:'madani',
-  64:'madani',65:'madani',66:'madani',67:'makki',68:'makki',69:'makki',70:'makki',
-  71:'makki',72:'makki',73:'makki',74:'makki',75:'makki',76:'unknown',77:'makki',
-  78:'makki',79:'makki',80:'makki',81:'makki',82:'makki',83:'makki',84:'makki',
-  85:'makki',86:'makki',87:'makki',88:'makki',89:'makki',90:'makki',91:'makki',
-  92:'makki',93:'makki',94:'makki',95:'makki',96:'makki',97:'unknown',98:'madani',
-  99:'unknown',100:'makki',101:'makki',102:'makki',103:'makki',104:'makki',105:'makki',
-  106:'makki',107:'makki',108:'makki',109:'makki',110:'madani',111:'makki',112:'makki',
-  113:'makki',114:'makki',
-};
 
 // =============================================================================
 // Typed page items — surah header OR verse
@@ -220,8 +199,9 @@ function useTafsir(
       });
       return {
         text: response.data.text || '',
-        audio_url: response.data.audio_url,
         source: response.data.source || '',
+        // Keep the edition metadata: the excerpt is never shown without it.
+        edition: { id: edition, language: 'ar', ...(response.data.edition ?? {}) },
       };
     },
     staleTime: staleTimes.tafsir,
@@ -271,6 +251,7 @@ interface VersePanelProps {
   edition: TafsirEdition | undefined;
   language: 'ar' | 'en';
   isPlaying: boolean;
+  audioError: boolean;
   onPlayAudio: () => void;
   onOpenAI: () => void;
   onClose: () => void;
@@ -281,6 +262,7 @@ const VersePanel = memo(function VersePanel({
   edition,
   language,
   isPlaying,
+  audioError,
   onPlayAudio,
   onOpenAI,
   onClose,
@@ -329,76 +311,90 @@ const VersePanel = memo(function VersePanel({
     edition?.id ?? '',
     showTafsir,
   );
+  const tafsirLang = tafsirData?.edition.language === 'en' ? 'en' : 'ar';
+  const ar = language === 'ar';
+  const actionBtn = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-h-[36px]';
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-amber-400 shadow-2xl z-50 max-h-[50vh] overflow-y-auto safe-area-bottom">
-      {/* Header */}
-      <div className="sticky top-0 bg-gradient-to-r from-emerald-700 to-emerald-600 text-white px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="font-mushaf text-lg">
+    <div
+      className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-amber-400 shadow-2xl z-50 max-h-[50vh] overflow-y-auto overflow-x-hidden safe-area-bottom"
+      dir={ar ? 'rtl' : 'ltr'}
+      role="dialog"
+      aria-label={ar ? 'الآية المحددة' : 'Selected verse'}
+    >
+      {/* Header: reference + close on the first row, actions wrap below */}
+      <div className="sticky top-0 bg-gradient-to-r from-emerald-700 to-emerald-600 text-white px-4 py-3 space-y-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="font-mushaf text-lg truncate" dir="rtl" lang="ar">
             {verse.sura_name_ar} : {toArabicNumber(verse.aya_no)}
           </span>
-          <span className="text-sm text-white/70">
+          <span className="text-sm text-white/70 truncate" dir="ltr" lang="en">
             ({verse.sura_name_en} {verse.sura_no}:{verse.aya_no})
           </span>
+          <button
+            onClick={onClose}
+            className="ms-auto p-2 rounded-lg hover:bg-white/20 transition-colors flex-shrink-0"
+            aria-label={ar ? 'إغلاق' : 'Close'}
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={onPlayAudio}
-            className={clsx(
-              'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-              isPlaying ? 'bg-red-500 hover:bg-red-600' : 'bg-white/20 hover:bg-white/30'
-            )}
+            className={clsx(actionBtn, isPlaying ? 'bg-red-500 hover:bg-red-600' : 'bg-white/20 hover:bg-white/30')}
+            aria-pressed={isPlaying}
           >
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             {isPlaying ? t('mushaf_pause') : t('mushaf_listen')}
           </button>
           <button
             onClick={copyVerseWithAttribution}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white/20 hover:bg-white/30 transition-colors"
-            title={language === 'ar' ? 'نسخ الآية مع المصدر' : 'Copy verse with attribution'}
+            className={clsx(actionBtn, 'bg-white/20 hover:bg-white/30')}
+            aria-label={ar ? 'نسخ الآية مع المصدر' : 'Copy verse with attribution'}
+            title={ar ? 'نسخ الآية مع المصدر' : 'Copy verse with attribution'}
           >
             {copiedVerse ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4" />}
-            <span className="hidden sm:inline">{copiedVerse ? (language === 'ar' ? 'تم النسخ' : 'Copied') : (language === 'ar' ? 'نسخ' : 'Copy')}</span>
+            <span className="hidden sm:inline">{copiedVerse ? (ar ? 'تم النسخ' : 'Copied') : (ar ? 'نسخ' : 'Copy')}</span>
           </button>
           <button
             onClick={toggleBookmark}
-            className={clsx(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-              bookmarked ? 'bg-amber-400 hover:bg-amber-500 text-white' : 'bg-white/20 hover:bg-white/30'
-            )}
-            title={language === 'ar' ? (bookmarked ? 'إزالة الإشارة' : 'حفظ الآية') : (bookmarked ? 'Remove bookmark' : 'Bookmark verse')}
+            className={clsx(actionBtn, bookmarked ? 'bg-amber-400 hover:bg-amber-500 text-white' : 'bg-white/20 hover:bg-white/30')}
+            aria-pressed={bookmarked}
+            aria-label={ar ? (bookmarked ? 'إزالة الإشارة' : 'حفظ الآية') : (bookmarked ? 'Remove bookmark' : 'Bookmark verse')}
+            title={ar ? (bookmarked ? 'إزالة الإشارة' : 'حفظ الآية') : (bookmarked ? 'Remove bookmark' : 'Bookmark verse')}
           >
             {bookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
-            <span className="hidden sm:inline">{bookmarked ? (language === 'ar' ? 'محفوظة' : 'Saved') : (language === 'ar' ? 'حفظ' : 'Save')}</span>
+            <span className="hidden sm:inline">{bookmarked ? (ar ? 'محفوظة' : 'Saved') : (ar ? 'حفظ' : 'Save')}</span>
           </button>
           <button
             onClick={shareVerse}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white/20 hover:bg-white/30 transition-colors"
-            title={language === 'ar' ? 'مشاركة الآية' : 'Share verse'}
+            className={clsx(actionBtn, 'bg-white/20 hover:bg-white/30')}
+            aria-label={ar ? 'مشاركة الآية' : 'Share verse'}
+            title={ar ? 'مشاركة الآية' : 'Share verse'}
           >
             <Share2 className="w-4 h-4" />
-            <span className="hidden sm:inline">{language === 'ar' ? 'مشاركة' : 'Share'}</span>
+            <span className="hidden sm:inline">{ar ? 'مشاركة' : 'Share'}</span>
           </button>
           <button
             onClick={onOpenAI}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-500 hover:bg-purple-600 transition-colors"
+            className={clsx(actionBtn, 'bg-purple-500 hover:bg-purple-600')}
           >
             <Sparkles className="w-4 h-4" />
             {t('ai_assistant')}
           </button>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
       </div>
 
+      {audioError && (
+        <p role="status" className="px-4 py-2 text-sm bg-red-50 text-red-700 border-b border-red-200">
+          {ar ? 'تعذّر تشغيل التلاوة' : 'Could not play recitation'}
+        </p>
+      )}
+
       {/* Selected Verse Text */}
       <div className="px-6 py-4 bg-amber-50 border-b border-amber-200">
-        <p className="font-mushaf text-xl text-gray-900 leading-loose text-center" dir="rtl">
+        <p className="font-mushaf text-xl text-gray-900 leading-loose text-center" dir="rtl" lang="ar">
           {verse.text_imlaei}
         </p>
       </div>
@@ -420,11 +416,18 @@ const VersePanel = memo(function VersePanel({
         <button
           onClick={() => setShowTafsir(!showTafsir)}
           className="flex items-center gap-2 text-emerald-700 font-medium mb-3"
+          aria-expanded={showTafsir}
         >
           <BookOpen className="w-5 h-5" />
           {t(edition.translationKey)}
           {showTafsir ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
+
+        {!ar && (
+          <p className="text-xs text-gray-500 mb-2" dir="ltr" lang="en">
+            No licensed English tafsir is available yet; the Arabic text is shown.
+          </p>
+        )}
 
         {showTafsir && (
           <div className="bg-gray-50 rounded-lg p-4">
@@ -434,15 +437,16 @@ const VersePanel = memo(function VersePanel({
                 {t('tafseer_loading')}
               </div>
             ) : tafsirData?.text ? (
-              <p
-                className={clsx(
-                  'text-gray-800 leading-relaxed',
-                  language === 'ar' ? 'font-arabic text-lg' : ''
-                )}
-                dir={language === 'ar' ? 'rtl' : 'ltr'}
-              >
-                {tafsirData.text}
-              </p>
+              <>
+                <p
+                  className={clsx('text-gray-800 leading-relaxed', tafsirLang === 'ar' && 'font-arabic text-lg')}
+                  dir={tafsirLang === 'ar' ? 'rtl' : 'ltr'}
+                  lang={tafsirLang}
+                >
+                  {tafsirData.text}
+                </p>
+                <TafsirSourceFooter edition={tafsirData.edition} provider={tafsirData.source} language={language} />
+              </>
             ) : (
               <p className="text-gray-500 text-center">{t('tafseer_not_found')}</p>
             )}
@@ -491,7 +495,7 @@ const GroundedAnswerCard = memo(function GroundedAnswerCard({
           <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <div className={clsx('flex-1', isRTL && 'text-right')} dir={dir}>
             <p className="font-medium">
-              {response.error_code === 'ai_quota_exceeded'
+              {response.error_code === 'ai_quota_exceeded' || response.warnings?.includes('ai_quota_exceeded')
                 ? (language === 'ar' ? 'تم بلوغ حدّ خدمة الذكاء الاصطناعي مؤقتاً.' : 'AI usage limit reached for now.')
                 : (language === 'ar' ? 'خدمة الذكاء الاصطناعي غير متاحة حالياً.' : 'The AI service is temporarily unavailable.')}
             </p>
@@ -748,7 +752,7 @@ const AIAssistant = memo(function AIAssistant({
   return (
     <div
       className={clsx(
-        'fixed inset-y-0 w-96 bg-white shadow-2xl z-50 flex flex-col',
+        'fixed inset-y-0 w-full sm:w-96 bg-white shadow-2xl z-50 flex flex-col',
         isRTL ? 'left-0 border-r border-gray-200' : 'right-0 border-l border-gray-200'
       )}
       dir={isRTL ? 'rtl' : 'ltr'}
@@ -759,7 +763,7 @@ const AIAssistant = memo(function AIAssistant({
           <Sparkles className="w-5 h-5" />
           <span className="font-bold text-lg">{t('ai_assistant')}</span>
         </div>
-        <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors">
+        <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" aria-label={isRTL ? 'إغلاق' : 'Close'}>
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -770,7 +774,7 @@ const AIAssistant = memo(function AIAssistant({
           <p className="text-sm text-emerald-700 font-semibold mb-2">
             {verse.sura_name_ar} : {verse.aya_no}
           </p>
-          <p className="font-mushaf text-gray-800 leading-relaxed text-lg" dir="rtl">
+          <p className="font-mushaf text-gray-800 leading-relaxed text-lg" dir="rtl" lang="ar">
             {verse.text_imlaei}
           </p>
         </div>
@@ -952,11 +956,7 @@ export function MushafPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  // Get tafsir editions based on language
-  const tafsirEditions = useMemo(
-    () => language === 'ar' ? ARABIC_TAFSIR_EDITIONS : ENGLISH_TAFSIR_EDITIONS,
-    [language]
-  );
+  const tafsirEditions = TAFSIR_EDITIONS;
 
   // State
   // Opens at ?page=, else where the reader left off, else page 1.
@@ -970,22 +970,22 @@ export function MushafPage() {
   } = useReaderSettingsStore();
   useEffect(() => applyReaderThemeToDocument(theme), [theme]);
   const fontSize = Math.round(28 * fontScale);
-  const [selectedTafsir, setSelectedTafsir] = useState(() =>
-    language === 'ar' ? 'muyassar' : ''
-  );
+  const [selectedTafsir, setSelectedTafsir] = useState('muyassar');
   const [showSettings, setShowSettings] = useState(false);
   const [showAI, setShowAI] = useState(false);
   const [playingVerseId, setPlayingVerseId] = useState<number | null>(null);
+  const [audioError, setAudioError] = useState(false);
   const [currentTafsirText, setCurrentTafsirText] = useState('');
+  // Same-verse, same-reciter alternatives for the verse now loaded.
+  const audioFallbacksRef = useRef<string[]>([]);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Data Fetching
   const { data: verses = [], isLoading, error, prefetchAdjacent } = usePageVerses(currentPage);
 
-  // Reset tafsir when language changes
+  // Reset the selection when the language changes
   useEffect(() => {
-    setSelectedTafsir(language === 'ar' ? 'muyassar' : '');
     setSelectedVerse(null);
     setCurrentTafsirText('');
   }, [language]);
@@ -1006,6 +1006,16 @@ export function MushafPage() {
   useEffect(() => {
     const first = verses[0];
     if (!first) return;
+    // Every surah on the page is read up to its last verse here (a surah whose
+    // last verse is on this page counts as read); the page start is recorded
+    // last so "continue reading" reopens this page.
+    const lastOnPage = new Map<number, Verse>();
+    for (const v of verses) lastOnPage.set(v.sura_no, v);
+    for (const v of lastOnPage.values()) {
+      recordReadingPosition({
+        surah: v.sura_no, aya: v.aya_no, nameAr: v.sura_name_ar, nameEn: v.sura_name_en, page: currentPage,
+      });
+    }
     recordReadingPosition({
       surah: first.sura_no, aya: first.aya_no,
       nameAr: first.sura_name_ar, nameEn: first.sura_name_en, page: currentPage,
@@ -1015,6 +1025,9 @@ export function MushafPage() {
   // Navigate pages
   const goToPage = useCallback((page: number) => {
     if (page >= 1 && page <= TOTAL_PAGES) {
+      // The verse being recited is no longer on screen: stop it.
+      audioRef.current?.pause();
+      setAudioError(false);
       startTransition(() => {
         setCurrentPage(page);
         setSelectedVerse(null);
@@ -1032,19 +1045,42 @@ export function MushafPage() {
       return;
     }
 
+    setAudioError(false);
     try {
       const response = await api.get(`/quran/audio/verse/${verse.sura_no}/${verse.aya_no}`, {
         params: { reciter: selectedReciter }
       });
-      if (audioRef.current && response.data.audio_url) {
-        audioRef.current.src = response.data.audio_url;
-        audioRef.current.play().catch(console.error);
-        setPlayingVerseId(verse.id);
-      }
-    } catch (err) {
-      console.error('Failed to play audio:', err);
+      const primary: string | undefined = response.data.audio_url;
+      const audio = audioRef.current;
+      if (!audio || !primary) throw new Error('no_audio');
+      const alternatives: string[] = [
+        ...(response.data.fallback_urls ?? []),
+        ...(response.data.fallback_url ? [response.data.fallback_url] : []),
+      ];
+      audioFallbacksRef.current = alternatives.filter((u, i) => !!u && u !== primary && alternatives.indexOf(u) === i);
+      // Prefer the offline copy when this surah was saved for this reciter.
+      audio.src = await playableUrl(selectedReciter, verse.sura_no, primary);
+      setPlayingVerseId(verse.id);
+      await audio.play().catch(() => undefined);
+    } catch {
+      setPlayingVerseId(null);
+      setAudioError(true);
     }
   }, [playingVerseId, selectedReciter]);
+
+  // A source failed: try this verse's next alternative, else say so.
+  const handleAudioError = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || !audio.getAttribute('src')) return;
+    const next = audioFallbacksRef.current.shift();
+    if (next) {
+      audio.src = next;
+      audio.play().catch(() => undefined);
+      return;
+    }
+    setPlayingVerseId(null);
+    setAudioError(true);
+  }, []);
 
   // Handle verse click
   const handleVerseClick = useCallback((verse: Verse) => {
@@ -1081,7 +1117,7 @@ export function MushafPage() {
           suraNameEn: verse.sura_name_en,
           ayahCount: surahVerseCount(verse.sura_no),
           bismillahText,
-          revelationType: REVELATION_TYPE[verse.sura_no] ?? 'unknown',
+          revelationType: SURAH_REVELATION[verse.sura_no] ?? 'unknown',
         });
         lastSuraNo = verse.sura_no;
       }
@@ -1106,11 +1142,14 @@ export function MushafPage() {
       <audio
         ref={audioRef}
         onEnded={() => setPlayingVerseId(null)}
-        onError={() => setPlayingVerseId(null)}
+        onError={handleAudioError}
       />
 
       {/* Navigation Bar */}
-      <nav className="sticky top-0 z-40 bg-gradient-to-r from-emerald-800 to-emerald-700 text-white shadow-lg">
+      <nav
+        className="sticky top-[var(--app-header-h,0px)] z-40 bg-gradient-to-r from-emerald-800 to-emerald-700 text-white shadow-lg"
+        aria-label={language === 'ar' ? 'التنقل في المصحف' : 'Mushaf navigation'}
+      >
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-2">
           {/* Page Navigation */}
           <div className="flex items-center gap-2">
@@ -1119,6 +1158,7 @@ export function MushafPage() {
               disabled={currentPage >= TOTAL_PAGES || isPending}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 transition-colors"
               title={t('mushaf_next_page')}
+              aria-label={t('mushaf_next_page')}
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -1126,6 +1166,7 @@ export function MushafPage() {
             <div className="flex items-center gap-1 px-3 py-1 bg-white/10 rounded-lg">
               <input
                 type="number"
+                aria-label={language === 'ar' ? 'رقم الصفحة' : 'Page number'}
                 value={currentPage}
                 onChange={(e) => goToPage(parseInt(e.target.value) || 1)}
                 min={1}
@@ -1140,6 +1181,7 @@ export function MushafPage() {
               disabled={currentPage <= 1 || isPending}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 transition-colors"
               title={t('mushaf_prev_page')}
+              aria-label={t('mushaf_prev_page')}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -1154,14 +1196,36 @@ export function MushafPage() {
             )}
           </div>
 
+          {/* Surah Jump Selector */}
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="mushaf-surah" className="text-white/70 text-xs hidden sm:block">
+              {language === 'ar' ? 'سورة' : 'Surah'}
+            </label>
+            <select
+              id="mushaf-surah"
+              value={surahOnPage(currentPage)}
+              onChange={(e) => goToPage(firstPageOfSurah(parseInt(e.target.value, 10)))}
+              className="max-w-[9rem] px-2 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm border border-white/20 outline-none cursor-pointer"
+              aria-label={language === 'ar' ? 'انتقل إلى السورة' : 'Jump to surah'}
+            >
+              {SURAH_NAMES.map((s, i) => (
+                <option key={i + 1} value={i + 1} className="bg-emerald-800">
+                  {i + 1}. {language === 'ar' ? s.ar : s.en}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Juz Jump Selector */}
           <div className="flex items-center gap-1.5">
-            <label className="text-white/70 text-xs hidden sm:block">
+            <label htmlFor="mushaf-juz" className="text-white/70 text-xs hidden sm:block">
               {language === 'ar' ? 'جزء' : 'Juz'}
             </label>
             <select
+              id="mushaf-juz"
+              aria-label={language === 'ar' ? 'انتقل إلى الجزء' : 'Jump to Juz'}
               value={verses[0]?.juz_no ?? 1}
-              onChange={(e) => goToPage(JUZ_FIRST_PAGE[parseInt(e.target.value)] ?? 1)}
+              onChange={(e) => goToPage(firstPageOfJuz(parseInt(e.target.value, 10)))}
               className="px-2 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm border border-white/20 outline-none cursor-pointer"
               title={language === 'ar' ? 'انتقل إلى الجزء' : 'Jump to Juz'}
             >
@@ -1179,6 +1243,7 @@ export function MushafPage() {
               onClick={() => setFontScale(fontScale - 0.1)}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               title={t('mushaf_zoom_out')}
+              aria-label={t('mushaf_zoom_out')}
             >
               <ZoomOut className="w-5 h-5" />
             </button>
@@ -1187,6 +1252,7 @@ export function MushafPage() {
               onClick={() => setFontScale(fontScale + 0.1)}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               title={t('mushaf_zoom_in')}
+              aria-label={t('mushaf_zoom_in')}
             >
               <ZoomIn className="w-5 h-5" />
             </button>
@@ -1200,6 +1266,8 @@ export function MushafPage() {
                 showAI ? 'bg-purple-500' : 'bg-white/10 hover:bg-white/20'
               )}
               title={t('ai_assistant')}
+              aria-label={t('ai_assistant')}
+              aria-pressed={showAI}
             >
               <Sparkles className="w-5 h-5" />
             </button>
@@ -1211,6 +1279,8 @@ export function MushafPage() {
                 showSettings ? 'bg-amber-500' : 'bg-white/10 hover:bg-white/20'
               )}
               title={t('mushaf_settings')}
+              aria-label={t('mushaf_settings')}
+              aria-expanded={showSettings}
             >
               <Settings className="w-5 h-5" />
             </button>
@@ -1222,15 +1292,16 @@ export function MushafPage() {
           <div className="bg-emerald-700/50 px-4 py-3 flex flex-wrap gap-4">
             {tafsirEditions.length > 0 && (
             <div className="flex items-center gap-2">
-              <label className={clsx('text-sm text-white/80', language === 'ar' && 'font-arabic')}>{t('mushaf_tafsir')}:</label>
+              <label htmlFor="mushaf-tafsir" className={clsx('text-sm text-white/80', language === 'ar' && 'font-arabic')}>{t('mushaf_tafsir')}:</label>
               <select
+                id="mushaf-tafsir"
                 value={selectedTafsir}
                 onChange={(e) => setSelectedTafsir(e.target.value)}
                 className="px-3 py-1.5 rounded bg-white/15 text-white text-sm border border-white/20"
               >
                 {tafsirEditions.map(ed => (
                   <option key={ed.id} value={ed.id} className="bg-emerald-800">
-                    {t(ed.translationKey)} {ed.has_audio ? '🔊' : ''}
+                    {t(ed.translationKey)}
                   </option>
                 ))}
               </select>
@@ -1238,8 +1309,9 @@ export function MushafPage() {
             )}
 
             <div className="flex items-center gap-2">
-              <label className={clsx('text-sm text-white/80', language === 'ar' && 'font-arabic')}>{t('mushaf_reciter')}:</label>
+              <label htmlFor="mushaf-reciter" className={clsx('text-sm text-white/80', language === 'ar' && 'font-arabic')}>{t('mushaf_reciter')}:</label>
               <select
+                id="mushaf-reciter"
                 value={selectedReciter}
                 onChange={(e) => setSelectedReciter(e.target.value)}
                 className="px-3 py-1.5 rounded bg-white/15 text-white text-sm border border-white/20"
@@ -1264,10 +1336,10 @@ export function MushafPage() {
       </div>
 
       {/* Main Content */}
-      <main className={clsx(
+      <div className={clsx(
         'transition-all duration-300 pb-16',
-        showAI && language === 'ar' ? 'ml-96' : '',
-        showAI && language === 'en' ? 'mr-96' : '',
+        showAI && language === 'ar' ? 'sm:ml-96' : '',
+        showAI && language === 'en' ? 'sm:mr-96' : '',
         selectedVerse ? 'pb-72' : ''
       )}>
         <div className="max-w-4xl mx-auto px-4 py-6">
@@ -1309,7 +1381,7 @@ export function MushafPage() {
                 </div>
               ) : (
                 // ── KSU-style flowing text — all verses of the page as one paragraph ──
-                <div className="ksu-quran-page" dir="rtl">
+                <div className="ksu-quran-page" dir="rtl" lang="ar">
                   {pageItems.map((item) => {
                     if (item.type === 'header') {
                       return (
@@ -1374,7 +1446,7 @@ export function MushafPage() {
             {t('mushaf_click_verse_hint') || 'Click on any verse to view tafseer and listen to recitation'}
           </p>
         </div>
-      </main>
+      </div>
 
       {/* Selected Verse Panel */}
       {selectedVerse && (
@@ -1383,6 +1455,7 @@ export function MushafPage() {
           edition={selectedEdition}
           language={language}
           isPlaying={playingVerseId === selectedVerse.id}
+          audioError={audioError}
           onPlayAudio={() => playVerse(selectedVerse)}
           onOpenAI={handleOpenAI}
           onClose={() => setSelectedVerse(null)}

@@ -11,17 +11,23 @@
  * Arabic: صفحة القرآن الكريم المحسنة
  */
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { apiUrl } from '../lib/config';
-import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft, Book, ChevronLeft, ChevronRight, BookOpen,
   Languages, GitBranch, FileText, Headphones, Bookmark, BookmarkCheck,
   Copy, Check, Share2, Search, SlidersHorizontal, Image as ImageIcon,
+  CheckCircle2, WifiOff,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
-import { quranApi, grammarApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
+import { api, quranApi, grammarApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
+import { queryKeys, staleTimes } from '../lib/queryClient';
 import { useBookmarksStore } from '../stores/bookmarksStore';
-import { recordSurahVisit, recordReadingPosition } from '../hooks/useReadingProgress';
+import {
+  recordSurahVisit, recordReadingPosition, markSurahRead, getReadingProgress,
+} from '../hooks/useReadingProgress';
+import { OfflineReaderSection } from '../components/reader/OfflineReaderSection';
 import { VerseText } from '../components/quran/WordMeaningPopover';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { ErrorPanel, parseAPIError, type APIErrorData } from '../components/common/ErrorPanel';
@@ -66,32 +72,19 @@ const toArabicNum = (num: number): string => {
   return num.toString().split('').map(d => arabicNums[parseInt(d)]).join('');
 };
 
-// Bismillah detection patterns for exclusion from highlighting
-const BISMILLAH_PATTERNS = [
-  'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
-  'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-  'بسم الله الرحمن الرحيم',
-];
-
-
 /**
- * Check if a verse is primarily the Bismillah phrase.
- * Used to exclude from concept highlighting to avoid redundant matches.
+ * The only ayah that consists of the Basmala is Al-Fatiha 1:1 (elsewhere it is
+ * an opening shown apart from the ayah). Decided structurally, never by
+ * matching typed Qur'an text. Used to keep 1:1 out of concept highlighting.
  */
-const isBismillahVerse = (text: string): boolean => {
-  if (!text) return false;
-  const normalized = text.replace(/[\u064B-\u065F\u0670]/g, '').trim();
-  return BISMILLAH_PATTERNS.some(pattern => {
-    const normPattern = pattern.replace(/[\u064B-\u065F\u0670]/g, '').trim();
-    // Check if verse is essentially just Bismillah (allowing minor variations)
-    return normalized === normPattern ||
-           normalized.replace(/\s+/g, '') === normPattern.replace(/\s+/g, '');
-  });
-};
+const isBismillahVerse = (verse: Pick<Verse, 'sura_no' | 'aya_no'>): boolean =>
+  verse.sura_no === 1 && verse.aya_no === 1;
 
 
 export function QuranPage() {
   const { suraNo } = useParams<{ suraNo: string }>();
+  const currentSura = Number(suraNo ?? '1');
+  const validSura = Number.isInteger(currentSura) && currentSura >= 1 && currentSura <= 114;
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const highlightAya = searchParams.get('aya');
@@ -100,11 +93,7 @@ export function QuranPage() {
   const conceptsParam = searchParams.get('concepts'); // Multiple concept IDs (comma-separated)
 
   const { language } = useLanguageStore();
-  const [verses, setVerses] = useState<Verse[]>([]);
-  const [suras, setSuras] = useState<SuraInfo[]>([]);
-  const [loading, setLoading] = useState(true);
-  // Verse text comes from the backend; a failed load must not look like an empty surah.
-  const [loadError, setLoadError] = useState<APIErrorData | null>(null);
+  const location = useLocation();
   const {
     view: viewMode, setView: setViewMode, script, fontScale, translationKeys, autoScroll, theme,
   } = useReaderSettingsStore();
@@ -132,6 +121,8 @@ export function QuranPage() {
   const { addBookmark, removeBookmark, isBookmarked } = useBookmarksStore();
   const highlightRef = useRef<HTMLSpanElement>(null);
   const [copiedVerseId, setCopiedVerseId] = useState<number | null>(null);
+  const [markedRead, setMarkedRead] = useState(false);
+  useEffect(() => setMarkedRead(false), [currentSura]);
 
   const copyVerse = useCallback((verse: Verse, displayText: string) => {
     const ref = `(${verse.sura_name_ar} ${toArabicNum(verse.aya_no)})`;
@@ -195,31 +186,44 @@ export function QuranPage() {
       .catch(() => {});
   }, []);
 
-  const currentSura = parseInt(suraNo || '1', 10);
+  // Data: React Query, persisted to IndexedDB for canonical keys, so a surah
+  // or page read once (or saved with "Save Qur'an offline") opens offline.
+  const metadataQuery = useQuery({
+    queryKey: queryKeys.quran.metadata(),
+    queryFn: async () => (await api.get<{ suras?: SuraInfo[] }>('/quran/metadata')).data,
+    staleTime: staleTimes.quranText,
+    networkMode: 'offlineFirst',
+  });
+  const suras: SuraInfo[] = metadataQuery.data?.suras ?? [];
 
-  // Load metadata
-  useEffect(() => {
-    async function loadMetadata() {
-      try {
-        const metaRes = await fetch(apiUrl('/api/v1/quran/metadata'));
-        const meta = await metaRes.json();
-        setSuras(meta.suras || []);
-      } catch (error) {
-        console.error('Failed to load metadata:', error);
-      }
-    }
-    loadMetadata();
-  }, []);
+  const pageMode = navMode === 'page' && currentPage >= 1 && currentPage <= 604;
+  const versesQuery = useQuery({
+    queryKey: pageMode
+      ? queryKeys.quran.pageWithTranslations(currentPage, translationsKey)
+      : queryKeys.quran.suraWithTranslations(currentSura, translationsKey),
+    queryFn: async () => (pageMode
+      ? await quranApi.getPageVerses(currentPage, activeTranslations)
+      : await quranApi.getSuraVerses(currentSura, activeTranslations)).data,
+    enabled: pageMode || validSura,
+    staleTime: staleTimes.quranText,
+    networkMode: 'offlineFirst',
+    placeholderData: undefined,
+  });
+  const verses: Verse[] = versesQuery.data ?? [];
+  const loading = (pageMode || validSura) && (versesQuery.isPending || versesQuery.isPlaceholderData) && versesQuery.fetchStatus !== 'paused';
+  // No data and no connection: the request is paused (offlineFirst) or failed offline.
+  const offline = !versesQuery.data && (versesQuery.fetchStatus === 'paused' ||
+    (versesQuery.isError && typeof navigator !== 'undefined' && navigator.onLine === false));
+  // Verse text comes from the backend; a failed load must not look like an empty surah.
+  const loadError: APIErrorData | null = versesQuery.isError && !versesQuery.data ? parseAPIError(versesQuery.error) : null;
+  const retryLoad = () => { void versesQuery.refetch(); };
 
-  // Load content based on navigation mode
+  // In surah mode, follow the surah's first page for page navigation.
   useEffect(() => {
-    if (navMode === 'page' && currentPage >= 1 && currentPage <= 604) {
-      loadPage(currentPage);
-    } else if (currentSura >= 1 && currentSura <= 114) {
-      loadSura(currentSura);
+    if (navMode === 'surah' && versesQuery.data && versesQuery.data.length > 0) {
+      setCurrentPage(versesQuery.data[0].page_no);
     }
-    // translationsKey stands in for activeTranslations (a new array every render)
-  }, [currentSura, navMode, currentPage, translationsKey]);
+  }, [navMode, versesQuery.data]);
 
   // Record surah visit for reading progress tracking
   useEffect(() => {
@@ -254,7 +258,10 @@ export function QuranPage() {
       }
       clearTimeout(timer);
       timer = setTimeout(() => {
-        const top = verses.find((v) => visible.has(`${v.sura_no}:${v.aya_no}`));
+        // Reaching the surah's last verse completes it in the khatmah plan.
+        const last = verses[verses.length - 1];
+        const lastInView = navMode === 'surah' && last && visible.has(`${last.sura_no}:${last.aya_no}`);
+        const top = lastInView ? last : verses.find((v) => visible.has(`${v.sura_no}:${v.aya_no}`));
         if (top) {
           recordReadingPosition({
             surah: top.sura_no, aya: top.aya_no, nameAr: top.sura_name_ar, nameEn: top.sura_name_en,
@@ -269,7 +276,7 @@ export function QuranPage() {
       clearTimeout(timer);
       observer.disconnect();
     };
-  }, [loading, verses, viewMode]);
+  }, [loading, verses, viewMode, navMode]);
 
   // Follow the verse being recited
   useEffect(() => {
@@ -361,40 +368,6 @@ export function QuranPage() {
     }
   }, [currentPage, navMode]);
 
-  async function loadSura(suraNo: number) {
-    setLoading(true);
-    setLoadError(null);
-    try {
-      const res = await quranApi.getSuraVerses(suraNo, activeTranslations);
-      setVerses(res.data);
-      // Set current page from first verse
-      if (res.data.length > 0) {
-        setCurrentPage(res.data[0].page_no);
-      }
-    } catch (error) {
-      console.error('Failed to load sura:', error);
-      setVerses([]);
-      setLoadError(parseAPIError(error));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadPage(pageNo: number) {
-    setLoading(true);
-    setLoadError(null);
-    try {
-      const res = await quranApi.getPageVerses(pageNo, activeTranslations);
-      setVerses(res.data);
-    } catch (error) {
-      console.error('Failed to load page:', error);
-      setVerses([]);
-      setLoadError(parseAPIError(error));
-    } finally {
-      setLoading(false);
-    }
-  }
-
   // Navigation functions
   const navigateToPage = (page: number) => {
     if (page >= 1 && page <= 604) {
@@ -433,20 +406,84 @@ export function QuranPage() {
     return acc;
   }, {} as Record<number, Verse[]>);
 
+  const isAr = language === 'ar';
+  // Came here from another screen of the app: go back there; opened directly
+  // (deep link, notification, new tab): offer the Mushaf.
+  const cameFromApp = location.key !== 'default';
+  const backLink = cameFromApp ? (
+    <button
+      type="button"
+      onClick={() => navigate(-1)}
+      className={clsx('inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-6', isAr && 'font-arabic')}
+    >
+      <ArrowLeft className={clsx('w-4 h-4', isAr && 'rotate-180')} aria-hidden="true" />
+      {isAr ? 'رجوع' : 'Back'}
+    </button>
+  ) : (
+    <Link
+      to="/mushaf"
+      className={clsx('inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-6', isAr && 'font-arabic')}
+    >
+      <ArrowLeft className={clsx('w-4 h-4', isAr && 'rotate-180')} aria-hidden="true" />
+      {isAr ? 'المصحف' : 'Mushaf'}
+    </Link>
+  );
+
+  if (navMode === 'surah' && !validSura) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center" dir={isAr ? 'rtl' : 'ltr'}>
+        <div className="card">
+          <Book className="w-10 h-10 text-gray-300 mx-auto mb-3" aria-hidden="true" />
+          <h1 className={clsx('text-xl font-bold mb-2', isAr && 'font-arabic')}>
+            {isAr ? 'السورة غير موجودة' : 'Surah not found'}
+          </h1>
+          <p className={clsx('text-sm text-gray-500 mb-5', isAr && 'font-arabic')}>
+            {isAr ? 'أرقام السور من ١ إلى ١١٤.' : 'Surah numbers run from 1 to 114.'}
+          </p>
+          <div className="flex justify-center gap-3 flex-wrap">
+            <Link to="/quran/1" className="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm hover:bg-primary-700">
+              {isAr ? 'سورة الفاتحة' : 'Al-Fatiha'}
+            </Link>
+            <Link to="/mushaf" className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm hover:bg-gray-200">
+              {isAr ? 'المصحف' : 'Mushaf'}
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const readComplete = navMode === 'surah' && getReadingProgress().visited.has(currentSura);
+  const markReadBlock = navMode === 'surah' && verses.length > 0 && (
+    <div className="flex justify-center my-6">
+      {readComplete || markedRead ? (
+        <span className={clsx('inline-flex items-center gap-2 text-sm text-emerald-700', isAr && 'font-arabic')} role="status">
+          <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+          {isAr ? 'السورة مقروءة في خطة الختمة' : 'Surah marked as read in your khatmah plan'}
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            markSurahRead(currentSura, verses[0].sura_name_ar, verses[0].sura_name_en);
+            setMarkedRead(true);
+          }}
+          className={clsx('inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-emerald-300 text-emerald-700 text-sm hover:bg-emerald-50', isAr && 'font-arabic')}
+        >
+          <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+          {isAr ? 'تعليم السورة كمقروءة' : 'Mark surah as read'}
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div
       className="reader-surface max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
       data-theme={theme}
-      dir={language === 'ar' ? 'rtl' : 'ltr'}
+      dir={isAr ? 'rtl' : 'ltr'}
     >
-      {/* Back Link */}
-      <Link
-        to="/stories"
-        className={clsx('inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-6', language === 'ar' && 'font-arabic')}
-      >
-        <ArrowLeft className={clsx('w-4 h-4', language === 'ar' && 'rotate-180')} />
-        {language === 'ar' ? 'العودة للقصص' : 'Back to Stories'}
-      </Link>
+      {backLink}
 
       {/* Header */}
       <div className="card mb-6">
@@ -575,6 +612,7 @@ export function QuranPage() {
                   <button
                     onClick={() => navigateToPage(currentPage - 1)}
                     disabled={currentPage <= 1}
+                    aria-label={isAr ? 'الصفحة السابقة' : 'Previous page'}
                     className={clsx(
                       'p-2 rounded-lg hover:bg-gray-100 transition-colors',
                       currentPage <= 1 && 'opacity-50 pointer-events-none'
@@ -586,6 +624,7 @@ export function QuranPage() {
                     type="number"
                     min="1"
                     max="604"
+                    aria-label={isAr ? 'رقم الصفحة' : 'Page number'}
                     value={currentPage}
                     onChange={(e) => navigateToPage(parseInt(e.target.value, 10))}
                     className="input py-1 px-2 w-20 text-center text-sm"
@@ -594,6 +633,7 @@ export function QuranPage() {
                   <button
                     onClick={() => navigateToPage(currentPage + 1)}
                     disabled={currentPage >= 604}
+                    aria-label={isAr ? 'الصفحة التالية' : 'Next page'}
                     className={clsx(
                       'p-2 rounded-lg hover:bg-gray-100 transition-colors',
                       currentPage >= 604 && 'opacity-50 pointer-events-none'
@@ -606,6 +646,9 @@ export function QuranPage() {
                 <>
                   <Link
                     to={`/quran/${Math.max(1, currentSura - 1)}`}
+                    aria-label={isAr ? 'السورة السابقة' : 'Previous surah'}
+                    aria-disabled={currentSura <= 1 || undefined}
+                    tabIndex={currentSura <= 1 ? -1 : undefined}
                     className={clsx(
                       'p-2 rounded-lg hover:bg-gray-100 transition-colors',
                       currentSura <= 1 && 'opacity-50 pointer-events-none'
@@ -615,6 +658,7 @@ export function QuranPage() {
                   </Link>
                   <select
                     value={currentSura}
+                    aria-label={isAr ? 'اختر السورة' : 'Choose surah'}
                     onChange={(e) => navigateToSura(parseInt(e.target.value, 10))}
                     className="input py-1 px-2 w-auto text-sm"
                   >
@@ -626,6 +670,9 @@ export function QuranPage() {
                   </select>
                   <Link
                     to={`/quran/${Math.min(114, currentSura + 1)}`}
+                    aria-label={isAr ? 'السورة التالية' : 'Next surah'}
+                    aria-disabled={currentSura >= 114 || undefined}
+                    tabIndex={currentSura >= 114 ? -1 : undefined}
                     className={clsx(
                       'p-2 rounded-lg hover:bg-gray-100 transition-colors',
                       currentSura >= 114 && 'opacity-50 pointer-events-none'
@@ -641,13 +688,16 @@ export function QuranPage() {
       </div>
 
       {showSettings && (
-        <ReaderSettingsPanel language={language} onClose={() => setShowSettings(false)} />
+        <>
+          <ReaderSettingsPanel language={language} onClose={() => setShowSettings(false)} />
+          <OfflineReaderSection language={language} translations={activeTranslations} />
+        </>
       )}
 
       {/* Audio Player */}
       {showAudioPlayer && (
         <div className="mb-6">
-          <ErrorBoundary fallback={<div className="h-16 flex items-center justify-center text-sm text-amber-600 bg-amber-50 rounded-lg border border-amber-200">Audio player unavailable</div>}>
+          <ErrorBoundary fallback={<div className="h-16 flex items-center justify-center text-sm text-amber-600 bg-amber-50 rounded-lg border border-amber-200">{isAr ? 'مشغّل التلاوة غير متاح' : 'Audio player unavailable'}</div>}>
             <Suspense fallback={<div className="h-16 animate-pulse bg-gray-100 rounded-lg" />}>
               <QuranAudioPlayer
                 mode={navMode === 'page' ? 'page' : 'surah'}
@@ -669,17 +719,29 @@ export function QuranPage() {
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full" />
         </div>
+      ) : offline ? (
+        <div className="card text-center py-10" role="status">
+          <WifiOff className="w-10 h-10 text-gray-300 mx-auto mb-3" aria-hidden="true" />
+          <h2 className={clsx('text-lg font-semibold mb-1', isAr && 'font-arabic')}>
+            {isAr ? 'لا يوجد اتصال' : 'You are offline'}
+          </h2>
+          <p className={clsx('text-sm text-gray-500 mb-4', isAr && 'font-arabic')}>
+            {isAr
+              ? 'هذه السورة غير محفوظة على الجهاز بعد. اتصل بالإنترنت ثم احفظ القرآن للقراءة دون اتصال من الإعدادات.'
+              : 'This surah is not saved on this device yet. Connect, then save the Qur’an for offline reading from Settings.'}
+          </p>
+          <button onClick={retryLoad} className="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm hover:bg-primary-700">
+            {isAr ? 'حاول مجددًا' : 'Try again'}
+          </button>
+        </div>
       ) : loadError ? (
-        <ErrorPanel
-          error={loadError}
-          onRetry={() => (navMode === 'page' ? loadPage(currentPage) : loadSura(currentSura))}
-        />
+        <ErrorPanel error={loadError} onRetry={retryLoad} />
       ) : viewMode === 'mushaf' ? (
         /* Mushaf Style View */
         <div className="reader-mushaf rounded-2xl bg-[#fefcf3] border-2 border-amber-200 shadow-lg overflow-hidden">
           {/* Decorative Header */}
           <div className="bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 text-center py-4 px-6">
-            <h2 className="text-2xl font-bold font-arabic text-amber-50 tracking-widest">
+            <h2 className="text-2xl font-bold font-arabic text-amber-50 tracking-widest" lang={navMode === 'surah' || isAr ? 'ar' : 'en'}>
               {navMode === 'surah'
                 ? verses[0]?.sura_name_ar
                 : language === 'ar' ? `صفحة ${toArabicNum(currentPage)}` : `Page ${currentPage}`}
@@ -698,12 +760,12 @@ export function QuranPage() {
           <div className="p-6">
 
           {/* Verses in Mushaf Style */}
-          <div className={clsx('reader-arabic text-center leading-[3] text-gray-900', quranFont)} style={arabicFontSize} dir="rtl">
+          <div className={clsx('reader-arabic text-center leading-[3] text-gray-900', quranFont)} style={arabicFontSize} dir="rtl" lang="ar">
             {verses.map((verse, idx) => {
               const verseKey = `${verse.sura_no}:${verse.aya_no}`;
               // Exclude Bismillah verses from concept highlighting to avoid redundant matches
               const isConceptHighlighted = conceptHighlights.has(verseKey) &&
-                                           !isBismillahVerse(verse.text_imlaei);
+                                           !isBismillahVerse(verse);
               // Highlight specific verse: check both aya_no AND sura_no to avoid cross-sura false matches on same page
               const isHighlighted = (highlightAya &&
                                     parseInt(highlightAya, 10) === verse.aya_no &&
@@ -782,6 +844,7 @@ export function QuranPage() {
             </span>
           </div>
           </div>
+          {markReadBlock}
           <QuranTextAttribution language={language} className="mt-3 text-center" />
         </div>
       ) : (
@@ -790,7 +853,7 @@ export function QuranPage() {
           {verses.map((verse, verseIdx) => {
             const verseKey = `${verse.sura_no}:${verse.aya_no}`;
             const isConceptHighlighted = conceptHighlights.has(verseKey) &&
-                                         !isBismillahVerse(verse.text_imlaei);
+                                         !isBismillahVerse(verse);
             const isHighlighted = (highlightAya &&
                                   parseInt(highlightAya, 10) === verse.aya_no &&
                                   verse.sura_no === currentSura) ||
@@ -819,7 +882,7 @@ export function QuranPage() {
               >
                 {/* Bismillah banner */}
                 {listBismillah && (
-                  <div className="bg-amber-50 border-b border-amber-100 py-3 px-5 text-center" dir="rtl">
+                  <div className="bg-amber-50 border-b border-amber-100 py-3 px-5 text-center" dir="rtl" lang="ar">
                     <span className={clsx('text-lg text-amber-800 tracking-wide', quranFont)}>
                       {listBismillah}
                     </span>
@@ -843,7 +906,7 @@ export function QuranPage() {
                       {toArabicNum(verse.aya_no)}
                     </span>
                     {navMode === 'page' && (
-                      <span className="text-xs text-gray-400">{verse.sura_name_ar}</span>
+                      <span className="text-xs text-gray-400" dir="rtl" lang="ar">{verse.sura_name_ar}</span>
                     )}
                     <VerseMarkers verse={verse} language={language} />
                   </div>
@@ -853,7 +916,7 @@ export function QuranPage() {
                 </div>
 
                 {/* Arabic text */}
-                <div className="px-5 pt-2 pb-3" dir="rtl">
+                <div className="px-5 pt-2 pb-3" dir="rtl" lang="ar">
                   <p className={clsx('reader-arabic leading-[2.2] text-gray-900', quranFont)} style={arabicFontSize}>
                     <VerseText text={listDisplayText} sura={verse.sura_no} aya={verse.aya_no} />
                   </p>
@@ -987,7 +1050,7 @@ export function QuranPage() {
                   <div className="border-t border-gray-100">
                     {showGrammar && (
                       <div className="p-4 bg-gray-50/50">
-                        <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Grammar analysis unavailable</div>}>
+                        <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">{isAr ? 'الإعراب غير متاح' : 'Grammar analysis unavailable'}</div>}>
                           <Suspense fallback={<div className="h-24 animate-pulse bg-gray-100 rounded-xl" />}>
                             <GrammarAnalysisView
                               suraNo={verse.sura_no}
@@ -1000,7 +1063,7 @@ export function QuranPage() {
                     )}
                     {showSimilar && (
                       <div className="p-4 bg-gray-50/50">
-                        <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Similar verses unavailable</div>}>
+                        <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">{isAr ? 'الآيات المتشابهة غير متاحة' : 'Similar verses unavailable'}</div>}>
                           <Suspense fallback={<div className="h-32 animate-pulse bg-gray-100 rounded-xl" />}>
                             <SimilarVersesPanel
                               suraNo={verse.sura_no}
@@ -1014,7 +1077,7 @@ export function QuranPage() {
                     )}
                     {showTafsir && (
                       <div className="p-4 bg-gray-50/50">
-                        <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">Tafsir unavailable</div>}>
+                        <ErrorBoundary fallback={<div className="text-sm text-amber-600 p-2">{isAr ? 'التفسير غير متاح' : 'Tafsir unavailable'}</div>}>
                           <Suspense fallback={<div className="h-48 animate-pulse bg-gray-100 rounded-xl" />}>
                             <TafsirPanel
                               sura={verse.sura_no}
@@ -1031,6 +1094,7 @@ export function QuranPage() {
               </div>
             );
           })}
+          {markReadBlock}
           <QuranTextAttribution language={language} className="text-center pt-2" />
         </div>
       )}

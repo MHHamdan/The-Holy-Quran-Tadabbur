@@ -6,16 +6,18 @@ import type { AsmaNameSummary } from '../../lib/api';
 
 /**
  * AsmaAudioPlayer — plays the canonical Quranic verse for each of the 99
- * Names of Allah, using the Quran.com per-ayah CDN (Mishary Rashid Alafasy).
+ * Names of Allah from the everyayah.com per-ayah files (Mishary Rashid
+ * Alafasy), the same source the Qur'an reader uses. (Quran.com's terms allow
+ * only individual, non-commercial use, so its CDN is not used.)
  *
- * URL pattern: https://verses.quran.com/Alafasy/mp3/{SSS}{AAA}.mp3
- * Reciter attribution is rendered in the player chrome (required by license).
+ * URL pattern: https://everyayah.com/data/Alafasy_128kbps/{SSS}{AAA}.mp3
+ * The reciter is named in the player chrome.
  *
  * No Quran text is rendered here — only the surah/ayah reference label
  * underneath the currently-playing Name.
  */
 
-const CDN_BASE = 'https://verses.quran.com/Alafasy/mp3';
+const CDN_BASE = 'https://everyayah.com/data/Alafasy_128kbps';
 const RECITER_NAME_EN = 'Mishary Rashid Alafasy';
 const RECITER_NAME_AR = 'مشاري راشد العفاسي';
 

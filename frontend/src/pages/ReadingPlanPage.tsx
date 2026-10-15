@@ -11,7 +11,7 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BookMarked, Target, CalendarCheck, Flame, CheckCircle2,
-  Circle, ChevronRight, Trophy,
+  Circle, CircleDot, ChevronRight, Trophy,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { useReadingProgress } from '../hooks/useReadingProgress';
@@ -76,7 +76,9 @@ export function ReadingPlanPage() {
   const [dateInput, setDateInput] = useState(goal?.targetDate ?? '');
   const [editingGoal, setEditingGoal] = useState(!goal);
 
+  // `visited` holds surahs read to the end; `started` those only opened.
   const visited = progress.visited;
+  const started = progress.started;
   const remaining = 114 - visited.size;
 
   // Compute remaining page count
@@ -124,6 +126,9 @@ export function ReadingPlanPage() {
             {isRtl
               ? `${toAr(visited.size)} من ${toAr(114)} سورة مكتملة`
               : `${visited.size} of 114 surahs completed`}
+            {started.size > 0 && (isRtl
+              ? ` · ${toAr(started.size)} قيد القراءة`
+              : ` · ${started.size} in progress`)}
           </p>
         </div>
         {streak > 0 && (
@@ -254,10 +259,14 @@ export function ReadingPlanPage() {
               {isRtl ? 'مقروءة' : 'Read'}
             </span>
             <span className="flex items-center gap-1">
+              <CircleDot className="w-3.5 h-3.5 text-amber-500" />
+              {isRtl ? 'بدأت' : 'Started'}
+            </span>
+            <span className="flex items-center gap-1">
               <Circle className="w-3.5 h-3.5 text-gray-300" />
               {isRtl ? 'لم تُقرأ' : 'Unread'}
             </span>
-            {visited.size > 0 && (
+            {(visited.size > 0 || started.size > 0) && (
               <button
                 onClick={() => {
                   if (window.confirm(isRtl ? 'إعادة تعيين كل التقدم؟' : 'Reset all progress?')) {
@@ -276,7 +285,11 @@ export function ReadingPlanPage() {
           {Array.from({ length: 114 }, (_, i) => {
             const surahNo = i + 1;
             const isRead = visited.has(surahNo);
+            const isStarted = !isRead && started.has(surahNo);
             const name = SURAH_NAMES[i];
+            const stateLabel = isRead
+              ? (isRtl ? 'مقروءة' : 'read')
+              : isStarted ? (isRtl ? 'بدأت' : 'started') : (isRtl ? 'لم تُقرأ' : 'unread');
             return (
               <Link
                 key={surahNo}
@@ -285,9 +298,12 @@ export function ReadingPlanPage() {
                   'relative flex flex-col items-center justify-center p-1.5 rounded-lg transition-all text-center group',
                   isRead
                     ? 'bg-emerald-100 border border-emerald-200 hover:bg-emerald-200'
+                    : isStarted
+                    ? 'bg-amber-50 border border-amber-200 hover:bg-amber-100'
                     : 'bg-gray-50 border border-gray-100 hover:bg-violet-50 hover:border-violet-200'
                 )}
                 title={`${surahNo}. ${name.en} / ${name.ar}`}
+                aria-label={`${surahNo}. ${isRtl ? name.ar : name.en} (${stateLabel})`}
               >
                 <span className={clsx(
                   'text-[10px] font-bold leading-none',
@@ -298,6 +314,9 @@ export function ReadingPlanPage() {
                 {isRead && (
                   <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500 absolute bottom-0.5 right-0.5" />
                 )}
+                {isStarted && (
+                  <CircleDot className="w-2.5 h-2.5 text-amber-500 absolute bottom-0.5 right-0.5" />
+                )}
               </Link>
             );
           })}
@@ -306,8 +325,8 @@ export function ReadingPlanPage() {
         {/* Quick mark as read (for surahs you've read outside the app) */}
         <p className={clsx('text-xs text-gray-400 mt-4 text-center', isRtl && 'font-arabic')}>
           {isRtl
-            ? 'تتبع تقدمك تلقائياً عند تصفح أي سورة — أو اضغط عليها لفتحها'
-            : 'Progress is tracked automatically when you browse any surah'}
+            ? 'تُحسب السورة مقروءة حين تبلغ آخر آية فيها أو تضغط «تعليمها كمقروءة» في نهايتها.'
+            : 'A surah counts as read when you reach its last verse or tap "Mark as read" at its end.'}
         </p>
       </div>
 

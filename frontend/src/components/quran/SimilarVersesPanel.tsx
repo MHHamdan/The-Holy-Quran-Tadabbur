@@ -30,6 +30,7 @@ import {
   SimilarityScores,
 } from '../../lib/api';
 import clsx from 'clsx';
+import { QuranTextAttribution } from './QuranTextAttribution';
 
 interface Props {
   suraNo: number;
@@ -259,6 +260,7 @@ function MatchCard({
       <div
         className="px-3 pb-3 text-right font-arabic leading-relaxed cursor-pointer hover:text-primary-700"
         dir="rtl"
+        lang="ar"
         onClick={handleClick}
       >
         {match.text_uthmani}
@@ -636,7 +638,7 @@ export function SimilarVersesPanel({ suraNo, ayaNo, verseText, onVerseSelect }: 
             {data.source_verse.reference} - {isArabic ? data.source_verse.sura_name_ar : data.source_verse.sura_name_en}
           </span>
         </div>
-        <p className="font-arabic text-lg leading-relaxed text-gray-800">
+        <p className="font-arabic text-lg leading-relaxed text-gray-800" lang="ar">
           {verseText || data.source_verse.text_uthmani}
         </p>
         {data.source_themes && data.source_themes.length > 0 && (
@@ -770,6 +772,7 @@ export function SimilarVersesPanel({ suraNo, ayaNo, verseText, onVerseSelect }: 
           )}
         </span>
       </div>
+      <QuranTextAttribution language={language} className="text-center" />
     </div>
   );
 }
