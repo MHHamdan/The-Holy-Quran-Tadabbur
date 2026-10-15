@@ -2,10 +2,11 @@
 Restoring the lost space between a quoted Qur'an span and the commentary.
 
 In ~458 Tabari and 63 Qurtubi chunks a vowelled Qur'an fragment runs straight
-into the commentary ('بِكَلِمَاتٍقال أبو جعفر'), so the Qur'anic word looks
+into the commentary (a vowelled word glued to 'قال أبو جعفر'), so the Qur'anic word looks
 altered. seed_tafseer.restore_quote_boundaries inserts one U+0020 there and
 nothing else: the letters and marks are byte-identical once spaces are removed.
 """
+import json
 import sys
 from pathlib import Path
 
@@ -17,17 +18,29 @@ sys.path.insert(0, str(BACKEND / "scripts" / "ingest"))
 
 from seed_tafseer import _GLUED, _is_vowelled_quote, restore_quote_boundaries  # noqa: E402
 
+ROOT = BACKEND.parent
+_VERSES = {
+    (v["sura_no"], v["aya_no"]): v["aya_text_emlaey"]
+    for v in json.loads((ROOT / "data" / "raw" / "quran_tanzil.json").read_text(encoding="utf-8"))["verses"]
+}
+
+# Glued fixtures are built from canonical verse text (never typed here): the
+# verse runs straight into the commentary, as in the corrupted upstream rows.
+_GLUE = [
+    ((2, 124), "قال أبو جعفر"),
+    ((11, 97), "أي شأنه"),
+    ((2, 41), "قال أبو جعفر"),
+    ((3, 185), "يعني بذلك"),
+    ((2, 2), "وقيل غير ذلك"),
+]
 FIXED = [
-    ("وَإِذِ ابْتَلَى إِبْرَاهِيمَ رَبُّهُ بِكَلِمَاتٍقال أبو جعفر", "بِكَلِمَاتٍ قال أبو جعفر"),
-    ("وَمَلَئِهِ فَاتَّبَعُوا أَمْرَ فِرْعَوْنَأي شأنه", "فِرْعَوْنَ أي شأنه"),
-    ("وَلا تُؤْمِنُوا بِهِقال أبو جعفر", "بِهِ قال"),
-    ("وَأَنْتُمْ تَعْلَمُونَ مِنَ النَّاسِقال أبو جعفر", "النَّاسِ قال"),
-    ("فِي الْيَوْمِ الآخِرِيعني بذلك", "الآخِرِ يعني"),
+    (_VERSES[ref] + tail, _VERSES[ref].split()[-1] + " " + tail.split()[0])
+    for ref, tail in _GLUE
 ]
 
 UNCHANGED = [
     "قال ابن عباس: يُقال يوم القيامة",
-    "استرجع عُمر فَقال: إنا لله",
+    "ثم إن عُمر فَقال: نعم",
     "يرغب برأيه عن رَأي الله",
     "أنما نُشِط من عِقال",
     "وهو قول الجمهور، وهي رواية",
