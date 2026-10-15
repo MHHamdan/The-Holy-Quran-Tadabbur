@@ -60,8 +60,15 @@ grep -qx postgres <<<"$RUNNING" || die "postgres is not running"
 
 # --- Postgres ----------------------------------------------------------------
 say "Postgres: pg_restore --clean"
+# pg_restore keeps going past errors (most complete restore) but exits non-zero
+# when any occurred: that must fail the script, not report success.
+PG_LOG="$(mktemp)"
+trap 'rm -f "$PG_LOG"' EXIT
+PG_STATUS=0
 dc exec -T postgres sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --no-owner --no-acl' \
-  < "$SRC/postgres.dump" 2>&1 | grep -vE '^pg_restore: (dropping|creating|processing|implied)' || true
+  < "$SRC/postgres.dump" >"$PG_LOG" 2>&1 || PG_STATUS=$?
+grep -vE '^pg_restore: (dropping|creating|processing|implied)' "$PG_LOG" >&2 || true
+[ "$PG_STATUS" -eq 0 ] || die "pg_restore failed (exit $PG_STATUS); the database may be partially restored"
 ROWS="$(dc exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT COALESCE(SUM(n_live_tup),0) FROM pg_stat_user_tables"' | tr -d '[:space:]')"
 say "  restored (~${ROWS} live rows)"
 
