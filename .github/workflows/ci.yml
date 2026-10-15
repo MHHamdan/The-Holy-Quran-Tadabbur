@@ -146,6 +146,8 @@ jobs:
         run: npx tsx ../scripts/validate-quran-integrity.ts
       - run: npm run typecheck
       - run: npm run lint
+      - name: Unit tests (vitest)
+        run: npx vitest run
       - name: Build (same-origin API; a loopback VITE_API_URL fails the build)
         run: npm run build
         env:
