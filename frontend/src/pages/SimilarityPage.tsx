@@ -35,6 +35,7 @@ import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { quranApi, api, AdvancedSimilarityMatch, SimilarityScores } from '../lib/api';
 import { parseAPIError } from '../components/common';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1251,6 +1252,7 @@ export function SimilarityPage() {
             <p className="font-arabic text-2xl text-right leading-loose text-gray-900" dir="rtl">
               {sourceVerse.text_uthmani}
             </p>
+            <QuranTextAttribution language={language} className="mt-2" />
             {advancedData?.source_themes && advancedData.source_themes.length > 0 && (
               <div className={clsx('flex items-center gap-2 mt-3 flex-wrap', isAr && 'flex-row-reverse')}>
                 <Tag className="w-3.5 h-3.5 text-emerald-500" />
@@ -1411,6 +1413,7 @@ export function SimilarityPage() {
                   <p className="font-arabic text-xl text-right leading-loose" dir="rtl">
                     {highlightSharedWords(selectedMatch.text_uthmani, selectedMatch.shared_words ?? [])}
                   </p>
+                  <QuranTextAttribution language={language} />
                   {selectedMatch.similarity_explanation_en && (
                     <p className="text-sm text-gray-600 italic" dir={isAr ? 'rtl' : 'ltr'}>
                       {isAr ? selectedMatch.similarity_explanation_ar : selectedMatch.similarity_explanation_en}
@@ -1448,6 +1451,7 @@ export function SimilarityPage() {
                   />
                 );
               })}
+              {fusedMatches.length > 0 && <QuranTextAttribution language={language} className="text-center" />}
             </div>
           )}
         </div>
