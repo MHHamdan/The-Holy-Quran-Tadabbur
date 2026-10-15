@@ -24,6 +24,7 @@ import {
 import type { ChallengeQuestion, ChallengeCategory } from '../utils/challengePool';
 import { useLanguageStore } from '../stores/languageStore';
 import clsx from 'clsx';
+import { localDateStr, localYesterdayStr } from '../utils/localDate';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -119,14 +120,13 @@ const ACHIEVEMENTS: Achievement[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Local calendar day (the challenge rolls over at the reader's midnight, not UTC's).
 function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
+  return localDateStr();
 }
 
 function yesterdayStr(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
+  return localYesterdayStr();
 }
 
 function toAr(n: number): string {
@@ -197,7 +197,7 @@ function WeekCalendar({
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().slice(0, 10);
+    const dateStr = localDateStr(d);
     days.push({
       dateStr,
       isToday: dateStr === today,
@@ -249,7 +249,7 @@ function ActivityHeatmap({
   for (let i = 34; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().slice(0, 10);
+    const dateStr = localDateStr(d);
     cells.push({ dateStr, record: history[dateStr], isToday: dateStr === today });
   }
 

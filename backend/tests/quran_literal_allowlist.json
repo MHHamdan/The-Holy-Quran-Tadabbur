@@ -20,6 +20,21 @@
       "file": "frontend/src/data/generated/asmaAllahAtlas.json",
       "text": "ذُو الجَلَالِ وَالإِكْرَامِ",
       "reason": "The same Divine Name label, generated from asmaAllahSeeds.ts."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
+      "reason": "Closing words of the tahlil dhikr (لا إله إلا الله وحده لا شريك له ...), a hadith dhikr, not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "لَا إِلَهَ إِلَّا اللَّهُ",
+      "reason": "The tahlil (la ilaha illa Allah) as a dhikr formula, not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "فَالِقَ الْحَبِّ وَالنَّوَى",
+      "reason": "Words of a hadith sleep supplication (Allahumma rabba al-samawat ...), not a verse quotation."
     }
   ]
 }
