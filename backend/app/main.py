@@ -19,9 +19,10 @@ from pydantic import ValidationError
 import os
 
 from app.core.config import settings
-from app.ai.hf_client import HFErrorKind, HFInferenceError
+from app.ai.hf_client import HFInferenceError
 from app.kg.client import SurrealDBError, KGInvalidIdentifier
 from app.core.production_checks import production_config_problems, safe_cors_origins
+from app.core.ai_errors import hf_failure_response
 
 
 def _cors_origins() -> list[str]:
@@ -271,19 +272,10 @@ async def knowledge_graph_error_handler(request: Request, exc: SurrealDBError):
 
 @app.exception_handler(HFInferenceError)
 async def hf_inference_error_handler(request: Request, exc: HFInferenceError):
-    """An uncaught Hugging Face failure: 429 for quota, otherwise 503."""
+    """An uncaught Hugging Face failure: 429 ai_quota_exceeded, otherwise 503."""
     request_id = getattr(request.state, 'request_id', str(uuid.uuid4()))
     logger.error(f"[{request_id}] {exc}")
-    quota = exc.kind == HFErrorKind.QUOTA
-    return error_response(
-        code=ErrorCode.SERVICE_UNAVAILABLE,
-        message_en=("The AI service has reached its usage limit. Please try again later."
-                    if quota else "The AI service is temporarily unavailable."),
-        message_ar=("بلغت خدمة الذكاء الاصطناعي حد الاستخدام. حاول لاحقاً."
-                    if quota else "خدمة الذكاء الاصطناعي غير متاحة مؤقتاً."),
-        request_id=request_id,
-        status_code=429 if quota else 503,
-    )
+    return hf_failure_response(exc, request_id)
 
 
 @app.exception_handler(Exception)
