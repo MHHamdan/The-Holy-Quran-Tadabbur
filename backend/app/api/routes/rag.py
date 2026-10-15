@@ -407,7 +407,7 @@ async def ask_question(
             return response_dict
 
         # Calculate total processing time
-        processing_time = int((datetime.now() - ctx.start_time).total_seconds() * 1000)
+        processing_time = ctx.elapsed_ms()
         result.processing_time_ms = processing_time
 
         # Log success

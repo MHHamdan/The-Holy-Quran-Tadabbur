@@ -15,6 +15,7 @@ SECURITY:
 import uuid
 import hashlib
 import logging
+import time
 from enum import Enum
 from typing import Optional, Dict, Any
 from dataclasses import dataclass, field
@@ -167,6 +168,9 @@ class RAGRequestContext:
     question_hash: str
     language: str
     start_time: datetime = field(default_factory=datetime.utcnow)
+    # Durations use a monotonic clock: subtracting naive local and UTC
+    # datetimes gave negative processing times (-14,400,000 ms at UTC-4).
+    start_monotonic: float = field(default_factory=time.monotonic)
 
     # Stats collected during processing
     retrieval_chunk_count: int = 0
@@ -183,9 +187,13 @@ class RAGRequestContext:
             language=language,
         )
 
+    def elapsed_ms(self) -> int:
+        """Milliseconds since the request started (monotonic, never negative)."""
+        return max(0, int((time.monotonic() - self.start_monotonic) * 1000))
+
     def log_success(self, route: str = "/rag/ask"):
         """Log successful request with stats."""
-        elapsed_ms = int((datetime.utcnow() - self.start_time).total_seconds() * 1000)
+        elapsed_ms = self.elapsed_ms()
         logger.info(
             f"RAG Success [{self.correlation_id}]: "
             f"chunks={self.retrieval_chunk_count}, "

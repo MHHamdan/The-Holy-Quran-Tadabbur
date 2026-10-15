@@ -180,7 +180,7 @@ class RAGPipeline:
             GroundedResponse if fast-path applicable, None otherwise
         """
         import time
-        start_time = time.time()
+        start_time = time.monotonic()
 
         # Check if query mentions a famous verse
         verse_ref = extract_verse_reference(question)
@@ -270,7 +270,7 @@ class RAGPipeline:
                 "How did scholars interpret this verse?",
             ]
 
-        processing_time = int((time.time() - start_time) * 1000)
+        processing_time = int((time.monotonic() - start_time) * 1000)
         logger.info(f"[FAST-PATH] Response built in {processing_time}ms")
 
         # Citations with reliability level and catalogued author
@@ -333,7 +333,7 @@ class RAGPipeline:
         import time
         from app.rag.retrieval import thematic_keyword_matches
 
-        start_time = time.time()
+        start_time = time.monotonic()
 
         # Whole-word keyword match (see thematic_keyword_matches)
         if not thematic_keyword_matches(question):
@@ -420,7 +420,7 @@ class RAGPipeline:
                 "Are there related prophetic supplications (duas)?",
             ]
 
-        processing_time = int((time.time() - start_time) * 1000)
+        processing_time = int((time.monotonic() - start_time) * 1000)
 
         return GroundedResponse(
             answer=answer,
@@ -475,7 +475,7 @@ class RAGPipeline:
             Other languages will be coerced to English. For display-only
             translations in other languages, use the /translations endpoint.
         """
-        start_time = time.time()
+        start_time = time.monotonic()
 
         # Validate language - RAG only supports ar/en
         if language not in RAG_SUPPORTED_LANGUAGES:
@@ -1197,7 +1197,7 @@ class RAGPipeline:
             evidence_source_count=len({c.source_id for c in chunks}),
             tafsir_by_source=self._group_tafsir_by_source(chunks, language),
             related_verses=await self._extract_related_verses(chunks, language),
-            processing_time_ms=int((time.time() - start_time) * 1000),
+            processing_time_ms=int((time.monotonic() - start_time) * 1000),
             api_version=settings.api_version,
         )
 
