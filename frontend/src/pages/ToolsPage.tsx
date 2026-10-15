@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Video, Newspaper, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar, Library, ShieldCheck, Brain } from 'lucide-react';
+import { Video, Globe, BookOpen, Map, Plane, DollarSign, Clock, Calendar, Library, ShieldCheck, Brain } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import clsx from 'clsx';
 
@@ -12,6 +12,8 @@ interface ToolModule {
   icon: React.ElementType;
   path: string;
   color: string;
+  /** Lists links to outside websites whose content the app does not check. */
+  external?: boolean;
 }
 
 const TOOL_MODULES: ToolModule[] = [
@@ -59,31 +61,23 @@ const TOOL_MODULES: ToolModule[] = [
     id: 'videos',
     name_en: 'Islamic Videos',
     name_ar: 'الفيديوهات الإسلامية',
-    description_en: 'Educational videos and lectures from trusted Islamic scholars and institutions',
-    description_ar: 'فيديوهات ومحاضرات تعليمية من علماء ومؤسسات إسلامية موثقة',
+    description_en: 'Links to lecture videos on YouTube',
+    description_ar: 'روابط لمحاضرات مرئية على YouTube',
     icon: Video,
     path: '/tools/videos',
     color: 'red',
-  },
-  {
-    id: 'news',
-    name_en: 'Islamic News',
-    name_ar: 'الأخبار الإسلامية',
-    description_en: 'Curated news from trusted Islamic sources and Muslim communities worldwide',
-    description_ar: 'أخبار منتقاة من مصادر إسلامية موثقة ومجتمعات مسلمة حول العالم',
-    icon: Newspaper,
-    path: '/tools/news',
-    color: 'blue',
+    external: true,
   },
   {
     id: 'books',
     name_en: 'Islamic Books',
     name_ar: 'الكتب الإسلامية',
-    description_en: 'Access Islamic books, manuscripts, and scholarly publications from the Internet Archive',
-    description_ar: 'الوصول إلى الكتب الإسلامية والمخطوطات والمنشورات العلمية',
+    description_en: 'Search books and manuscripts on the Internet Archive (archive.org)',
+    description_ar: 'البحث عن الكتب والمخطوطات في أرشيف الإنترنت (archive.org)',
     icon: BookOpen,
     path: '/tools/books',
     color: 'amber',
+    external: true,
   },
   {
     id: 'trips',
@@ -97,13 +91,14 @@ const TOOL_MODULES: ToolModule[] = [
   },
   {
     id: 'web',
-    name_en: 'Islamic Web Search',
-    name_ar: 'البحث الإسلامي',
-    description_en: 'Search verified Islamic websites and scholarly resources from trusted sources',
-    description_ar: 'البحث في المواقع الإسلامية الموثقة والموارد العلمية من مصادر موثوقة',
+    name_en: 'Islamic websites',
+    name_ar: 'مواقع إسلامية',
+    description_en: 'Links to outside Islamic websites (not reviewed by us)',
+    description_ar: 'روابط لمواقع إسلامية خارجية لا نراجع محتواها',
     icon: Globe,
     path: '/tools/web',
     color: 'indigo',
+    external: true,
   },
   {
     id: 'vocabulary',
@@ -150,17 +145,34 @@ export function ToolsPage() {
         </h1>
         <p className={clsx('text-gray-600 max-w-2xl mx-auto', isRtl && 'font-arabic')}>
           {isRtl
-            ? 'مجموعة من الأدوات المفيدة للمسلمين - حاسبة الزكاة، البحث عن المساجد، والمزيد'
-            : 'A collection of helpful tools for Muslims - Zakat calculator, mosque finder, and more'}
+            ? 'أدوات يومية: مواقيت الصلاة والتقويم الهجري وحاسبة الزكاة والمساجد القريبة والمزيد'
+            : 'Daily tools: prayer times, Hijri calendar, Zakat calculator, nearby mosques and more'}
         </p>
       </div>
 
       {/* Tools Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {TOOL_MODULES.map((tool) => (
+        {TOOL_MODULES.filter((tool) => !tool.external).map((tool) => (
           <ToolCard key={tool.id} tool={tool} language={language} />
         ))}
       </div>
+
+      {/* Outside link collections, kept apart from the app's own tools */}
+      <section className="mt-12" aria-labelledby="external-tools">
+        <h2 id="external-tools" className={clsx('text-xl font-bold text-gray-900 mb-1', isRtl && 'font-arabic')}>
+          {isRtl ? 'روابط خارجية' : 'External resources'}
+        </h2>
+        <p className={clsx('text-sm text-gray-600 mb-4', isRtl && 'font-arabic')}>
+          {isRtl
+            ? 'هذه الصفحات تعرض روابط لمواقع خارجية لا نتحقق من محتواها.'
+            : 'These pages list links to outside websites whose content we do not check.'}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {TOOL_MODULES.filter((tool) => tool.external).map((tool) => (
+            <ToolCard key={tool.id} tool={tool} language={language} />
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -206,9 +218,9 @@ function ToolCard({ tool, language }: ToolCardProps) {
           <Icon className={clsx('w-6 h-6', colors.icon)} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className={clsx('text-lg font-semibold text-gray-900 group-hover:text-primary-600 mb-1', language === 'ar' && 'font-arabic')}>
+          <h2 className={clsx('text-lg font-semibold text-gray-900 group-hover:text-primary-600 mb-1', language === 'ar' && 'font-arabic')}>
             {name}
-          </h3>
+          </h2>
           <p className={clsx('text-sm text-gray-600', language === 'ar' && 'font-arabic')}>{description}</p>
         </div>
       </div>

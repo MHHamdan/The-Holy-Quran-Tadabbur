@@ -1,8 +1,10 @@
 /**
- * ZakatCalculatorPage - FANG-level production component
+ * ZakatCalculatorPage
  *
  * Features:
- * - Real-time metal prices with caching
+ * - Gold/silver prices: live when a server-side source is available;
+ *   otherwise the user enters today's price per gram (empty by default —
+ *   the calculator never falls back to old prices for the nisab)
  * - Persistent state in localStorage
  * - Memoized calculations for performance
  * - Full accessibility (ARIA, keyboard navigation)
@@ -32,8 +34,10 @@ import {
 import { useLanguageStore } from '../../stores/languageStore';
 import {
   getMetalPrices,
+  manualMetalPrices,
   type MetalPrices,
 } from '../../lib/islamicApis';
+import { ayahHref, formatAyahRef, type AyahRef } from '../../utils/ayahRef';
 import { useAsync } from '../../hooks/useAsync';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { ErrorBoundary, InlineError } from '../../components/ui/ErrorBoundary';
@@ -277,8 +281,16 @@ function useZakatCalculation(
 // Sub-Components
 // ============================================
 
+interface ManualPrices {
+  gold: number | null;
+  silver: number | null;
+}
+
 interface NisabInfoCardProps {
   metalPrices: MetalPrices | null;
+  liveAvailable: boolean;
+  manual: ManualPrices;
+  onManualChange: (next: ManualPrices) => void;
   loading: boolean;
   currency: Currency;
   onRefresh: () => void;
@@ -286,8 +298,50 @@ interface NisabInfoCardProps {
   formatCurrency: (amount: number) => string;
 }
 
+function ManualPriceInput({
+  id,
+  label,
+  value,
+  onChange,
+  currency,
+}: {
+  id: string;
+  label: string;
+  value: number | null;
+  onChange: (v: number | null) => void;
+  currency: Currency;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-amber-900 mb-1">
+        {label}
+      </label>
+      <div className="flex items-center gap-2">
+        <input
+          id={id}
+          type="number"
+          inputMode="decimal"
+          min={0}
+          step="any"
+          dir="ltr"
+          value={value ?? ''}
+          onChange={(e) => {
+            const v = parseFloat(e.target.value);
+            onChange(Number.isFinite(v) && v > 0 ? v : null);
+          }}
+          className="w-full min-h-11 px-3 py-2 border border-amber-300 rounded-lg bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+        />
+        <span className="text-sm text-amber-900" dir="ltr">{currency.symbol}/g</span>
+      </div>
+    </div>
+  );
+}
+
 const NisabInfoCard = memo(function NisabInfoCard({
   metalPrices,
+  liveAvailable,
+  manual,
+  onManualChange,
   loading,
   currency,
   onRefresh,
@@ -307,13 +361,40 @@ const NisabInfoCard = memo(function NisabInfoCard({
         <button
           onClick={onRefresh}
           disabled={loading}
-          className="p-1 text-emerald-600 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded disabled:opacity-50"
+          className="tap text-emerald-700 hover:text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded disabled:opacity-50"
           aria-label={isArabic ? 'تحديث الأسعار' : 'Refresh prices'}
           aria-busy={loading}
         >
           <RefreshCw className={clsx('w-4 h-4', loading && 'animate-spin')} aria-hidden="true" />
         </button>
       </div>
+
+      {!loading && !liveAvailable && (
+        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3" role="status">
+          <p className={clsx('flex items-start gap-2 text-sm font-medium text-amber-900', isArabic && 'font-arabic')}>
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            {isArabic
+              ? 'الأسعار الحية للذهب والفضة غير متاحة. أدخل سعر الجرام اليوم بعملتك ليُحسب النصاب.'
+              : "Live gold and silver prices are unavailable. Enter today's price per gram in your currency to calculate the nisab."}
+          </p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <ManualPriceInput
+              id="zakat-gold-price"
+              label={isArabic ? 'سعر جرام الذهب (عيار ٢٤)' : 'Gold price per gram (24k)'}
+              value={manual.gold}
+              onChange={(gold) => onManualChange({ ...manual, gold })}
+              currency={currency}
+            />
+            <ManualPriceInput
+              id="zakat-silver-price"
+              label={isArabic ? 'سعر جرام الفضة' : 'Silver price per gram'}
+              value={manual.silver}
+              onChange={(silver) => onManualChange({ ...manual, silver })}
+              currency={currency}
+            />
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -354,13 +435,15 @@ const NisabInfoCard = memo(function NisabInfoCard({
               <dd className="text-xs text-emerald-600">({SILVER_NISAB_GRAMS}g)</dd>
             </div>
           </dl>
-          <p className="text-xs text-emerald-600 mt-2">
-            {isArabic ? 'مصدر الأسعار:' : 'Source:'} {metalPrices.source}
+          <p className="text-xs text-emerald-800 mt-2">
+            {metalPrices.source === 'manual'
+              ? (isArabic ? 'محسوب من الأسعار التي أدخلتها.' : 'Calculated from the prices you entered.')
+              : <>{isArabic ? 'مصدر الأسعار:' : 'Source:'} <bdi dir="ltr">{metalPrices.source}</bdi></>}
           </p>
         </>
-      ) : (
-        <p className="text-emerald-700">{isArabic ? 'تعذر تحميل الأسعار' : 'Failed to load prices'}</p>
-      )}
+      ) : liveAvailable ? (
+        <p className="text-emerald-800">{isArabic ? 'تعذر تحميل الأسعار' : 'Failed to load prices'}</p>
+      ) : null}
     </section>
   );
 });
@@ -627,6 +710,10 @@ interface ZakatRecipientsProps {
   isArabic: boolean;
 }
 
+/** At-Tawbah 9:60 names the eight categories. The verse text is not typed
+ *  here: the reference opens it in the reader, from the canonical text. */
+const RECIPIENTS_VERSE: AyahRef = { sura: 9, ayaStart: 60 };
+
 const ZakatRecipients = memo(function ZakatRecipients({ isArabic }: ZakatRecipientsProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -634,7 +721,7 @@ const ZakatRecipients = memo(function ZakatRecipients({ isArabic }: ZakatRecipie
     <section aria-label={isArabic ? 'مصارف الزكاة' : 'Zakat Recipients'} className="mb-6">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium focus:outline-none focus:underline"
+        className="flex items-center gap-2 min-h-11 text-emerald-800 hover:text-emerald-900 font-medium focus:outline-none focus:underline"
         aria-expanded={isOpen}
       >
         <HelpCircle className="w-5 h-5" aria-hidden="true" />
@@ -643,8 +730,12 @@ const ZakatRecipients = memo(function ZakatRecipients({ isArabic }: ZakatRecipie
 
       {isOpen && (
         <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-          <p className="text-sm text-gray-600 mb-4 font-arabic text-right" dir="rtl" lang="ar">
-            قال الله تعالى: "إِنَّمَا الصَّدَقَاتُ لِلْفُقَرَاءِ وَالْمَسَاكِينِ وَالْعَامِلِينَ عَلَيْهَا وَالْمُؤَلَّفَةِ قُلُوبُهُمْ وَفِي الرِّقَابِ وَالْغَارِمِينَ وَفِي سَبِيلِ اللَّهِ وَابْنِ السَّبِيلِ" (التوبة: 60)
+          <p className={clsx('text-sm text-gray-700 mb-4', isArabic && 'font-arabic')}>
+            {isArabic ? 'ذُكرت هذه الأصناف في سورة التوبة، الآية ' : 'These categories are named in Surah At-Tawbah, '}
+            <Link to={ayahHref(RECIPIENTS_VERSE)} className="text-emerald-800 underline">
+              <bdi dir="ltr">{formatAyahRef(RECIPIENTS_VERSE)}</bdi>
+            </Link>
+            {isArabic ? ' — اضغط لقراءة الآية.' : ' — open the verse to read it.'}
           </p>
           <ul className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {ZAKAT_RECIPIENTS.map((recipient) => (
@@ -682,11 +773,26 @@ function ZakatCalculatorPageContent() {
     [currencyCode]
   );
 
-  // Metal prices
-  const { prices: metalPrices, loading: loadingPrices, error: pricesError, refetch } = useMetalPrices();
+  // Metal prices: live if a source answered, otherwise what the user typed
+  // (per gram, in the selected currency; stored per currency).
+  const { prices: livePrices, loading: loadingPrices, error: pricesError, refetch } = useMetalPrices();
+  const liveAvailable = !!livePrices && livePrices.source !== 'unavailable' && livePrices.goldPerGram > 0;
+  const [manualByCurrency, setManualByCurrency] = useLocalStorage<Record<string, ManualPrices>>('zakat_manual_prices', {});
+  const manual = manualByCurrency[currencyCode] ?? { gold: null, silver: null };
+  const setManual = useCallback(
+    (next: ManualPrices) => setManualByCurrency((prev) => ({ ...prev, [currencyCode]: next })),
+    [currencyCode, setManualByCurrency]
+  );
+  const metalPrices = useMemo<MetalPrices | null>(() => {
+    if (liveAvailable) return livePrices ?? null;
+    if (!manual.gold || !manual.silver) return null;
+    // The calculator multiplies USD prices by currency.rate; manual prices are
+    // already in the selected currency, so divide once to keep them exact.
+    return manualMetalPrices(manual.gold / selectedCurrency.rate, manual.silver / selectedCurrency.rate);
+  }, [liveAvailable, livePrices, manual.gold, manual.silver, selectedCurrency.rate]);
 
   // Calculate zakat
-  const zakatResult = useZakatCalculation(assets, metalPrices ?? null, selectedCurrency);
+  const zakatResult = useZakatCalculation(assets, metalPrices, selectedCurrency);
 
   // Format currency helper
   const formatCurrency = useCallback(
@@ -727,7 +833,7 @@ function ZakatCalculatorPageContent() {
   );
 
   return (
-    <main
+    <div
       className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
       dir={isArabic ? 'rtl' : 'ltr'}
     >
@@ -751,8 +857,8 @@ function ZakatCalculatorPageContent() {
             </h1>
             <p className={clsx('text-gray-600', isArabic && 'font-arabic')}>
               {isArabic
-                ? 'احسب زكاة مالك بدقة مع أسعار الذهب والفضة الحالية'
-                : 'Calculate your Zakat accurately with current gold and silver prices'}
+                ? 'تقدير تقريبي لزكاة مالك بحسب أسعار الذهب والفضة التي تدخلها'
+                : 'An estimate of your Zakat, based on the gold and silver prices you enter'}
             </p>
           </div>
         </div>
@@ -760,7 +866,10 @@ function ZakatCalculatorPageContent() {
 
       {/* Nisab Info */}
       <NisabInfoCard
-        metalPrices={metalPrices ?? null}
+        metalPrices={metalPrices}
+        liveAvailable={liveAvailable}
+        manual={manual}
+        onManualChange={setManual}
         loading={loadingPrices}
         currency={selectedCurrency}
         onRefresh={refetch}
@@ -826,7 +935,7 @@ function ZakatCalculatorPageContent() {
             : 'This calculator is for guidance only. Please consult a qualified scholar for a precise ruling based on your situation.'}
         </p>
       </footer>
-    </main>
+    </div>
   );
 }
 

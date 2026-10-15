@@ -1,180 +1,164 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book, MessageCircle, Home, Globe, BookOpen, Wrench, Network, Search, Link2, Compass, BookOpenCheck, Mic, Activity, Sparkles, Heart, Layers, RefreshCw, Users, Bookmark, Star, Flame, CalendarCheck, HandHeart, BookCopy, GraduationCap, Smile, BarChart2, PenLine, Baby, Wind, AlarmClock, Trophy, Lightbulb, GitCompare, FlipHorizontal2, Sigma, Scroll, Megaphone, Columns3 } from 'lucide-react';
-import { useBookmarksStore } from '../../stores/bookmarksStore';
+import { Book, Globe, Search } from 'lucide-react';
+import clsx from 'clsx';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
-import clsx from 'clsx';
 import { FeedbackButton } from '../feedback/FeedbackButton';
+import { activeTabFor, TABS } from './navConfig';
+import { BottomNav, tabTarget } from './BottomNav';
+import { MoreSheet } from './MoreSheet';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
+/** Routes that fill the viewport (chat composer): no global footer. */
+const NO_FOOTER_ROUTES = ['/ask'];
+
 export function Layout({ children }: LayoutProps) {
   const { language, toggleLanguage, direction } = useLanguageStore();
-  const { bookmarks } = useBookmarksStore();
   const location = useLocation();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const isAr = language === 'ar';
+  const active = activeTabFor(location.pathname);
 
-  const navItems = [
-    { path: '/', label: 'nav_home', icon: Home },
-    { path: '/mushaf', label: 'nav_mushaf', icon: BookOpenCheck },
-    { path: '/bookmarks', label: 'nav_bookmarks', icon: Bookmark },
-    { path: '/challenge', label: 'nav_challenge', icon: Flame },
-    { path: '/reading-plan', label: 'nav_reading_plan', icon: CalendarCheck },
-    { path: '/duas', label: 'nav_duas', icon: HandHeart },
-    { path: '/juz', label: 'nav_juz', icon: BookCopy },
-    { path: '/learn', label: 'nav_learn', icon: GraduationCap },
-    { path: '/stories', label: 'nav_stories', icon: Book },
-    { path: '/surah-atlas', label: 'nav_surah_atlas', icon: Layers },
-    { path: '/prophets', label: 'nav_prophets', icon: Users },
-    { path: '/memorization', label: 'nav_memorization', icon: RefreshCw },
-    { path: '/concepts', label: 'nav_concepts', icon: Network },
-    { path: '/themes', label: 'nav_themes', icon: Compass },
-    { path: '/miracles', label: 'nav_miracles', icon: Sparkles },
-    { path: '/asma-allah', label: 'nav_asma_allah', icon: Star },
-    { path: '/similarity', label: 'nav_similarity', icon: Link2 },
-    { path: '/tafsir/compare', label: 'nav_tafsir_compare', icon: Columns3 },
-    { path: '/search', label: 'nav_search', icon: Search },
-    { path: '/ask', label: 'nav_ask', icon: MessageCircle },
-    { path: '/tasmee', label: 'nav_tasmee', icon: Mic },
-    { path: '/stats', label: 'nav_stats', icon: BarChart2 },
-    { path: '/journal', label: 'nav_journal', icon: PenLine },
-    { path: '/names', label: 'nav_names', icon: Baby },
-    { path: '/dhikr', label: 'nav_dhikr', icon: Wind },
-    { path: '/asbab', label: 'nav_asbab', icon: Scroll },
-    { path: '/timeline', label: 'nav_timeline', icon: AlarmClock },
-    { path: '/quiz', label: 'nav_quiz', icon: Trophy },
-    { path: '/quranic-calls', label: 'nav_quranic_calls', icon: Megaphone },
-    { path: '/guidance', label: 'nav_guidance', icon: Smile },
-    { path: '/wonders', label: 'nav_wonders', icon: Lightbulb },
-    { path: '/compare', label: 'nav_compare', icon: GitCompare },
-    { path: '/flashcards', label: 'nav_flashcards', icon: FlipHorizontal2 },
-    { path: '/roots', label: 'nav_roots', icon: Sigma },
-    { path: '/therapy', label: 'nav_therapy', icon: Heart },
-    { path: '/sources', label: 'nav_sources', icon: BookOpen },
-    { path: '/tools', label: 'nav_tools', icon: Wrench },
-    { path: '/status', label: 'nav_status', icon: Activity },
-  ];
+  // Close the More sheet whenever the route changes.
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [location.pathname]);
 
   const LangToggle = () => (
     <button
+      type="button"
       onClick={toggleLanguage}
-      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors flex-shrink-0"
-      title={language === 'en' ? 'Switch to Arabic / تدبر القرآن' : 'Switch to English / Taddabur Al-Quran'}
+      // The accessible name starts with the visible label (WCAG 2.5.3).
+      aria-label={`${language === 'en' ? 'العربية' : 'English'} — ${t('lang_switch_aria', language)}`}
+      className="flex min-h-11 items-center gap-2 rounded-lg bg-primary-700 px-3 py-2.5 text-white transition-colors hover:bg-primary-800 flex-shrink-0"
     >
-      <Globe className="w-4 h-4" />
-      <span className={clsx('font-semibold text-sm whitespace-nowrap', language === 'en' ? 'font-arabic' : '')}>
-        {language === 'en' ? 'تدبر القرآن' : 'Taddabur Al-Quran'}
+      <Globe className="h-4 w-4" aria-hidden="true" />
+      <span
+        lang={language === 'en' ? 'ar' : 'en'}
+        className={clsx('whitespace-nowrap text-sm font-semibold', language === 'en' && 'font-arabic')}
+      >
+        {language === 'en' ? 'العربية' : 'English'}
       </span>
     </button>
   );
 
+  const showFooter = !NO_FOOTER_ROUTES.includes(location.pathname);
+
   return (
-    <div className="app-shell min-h-screen bg-gray-50" dir={direction}>
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50 safe-area-top">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16 gap-3">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center">
-                <Book className="w-5 h-5 text-white" />
-              </div>
-              <h1 className={clsx('text-lg font-bold text-gray-900 hidden sm:block', language === 'ar' && 'font-arabic')}>
-                {t('app_title', language)}
-              </h1>
-            </Link>
+    <div className="app-shell flex min-h-screen flex-col bg-gray-50 bottom-nav-clearance" dir={direction}>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:start-2 focus:top-2 focus:z-[70] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-primary-800 focus:shadow-lg"
+      >
+        {t('skip_to_content', language)}
+      </a>
 
-            {/* Desktop Navigation — icons only on md, icons+text on xl */}
-            <nav className="hidden md:flex items-center gap-0.5 flex-1 overflow-x-auto">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
+      {/* Header: logo, primary sections (md+), search and language */}
+      <header className="app-header app-header-inset sticky top-0 z-50 bg-white shadow-sm">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 sm:px-6 md:h-16 lg:px-8">
+          <Link
+            to="/"
+            aria-label={t('header_home', language)}
+            className="tap flex flex-shrink-0 items-center gap-2 rounded-lg"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-700" aria-hidden="true">
+              <Book className="h-5 w-5 text-white" />
+            </span>
+            <span className={clsx('hidden text-lg font-bold text-gray-900 lg:block', isAr && 'font-arabic')}>
+              {t('app_title', language)}
+            </span>
+          </Link>
 
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={clsx(
-                      'relative flex items-center gap-1.5 px-2.5 py-2 rounded-lg transition-colors flex-shrink-0',
-                      isActive
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    )}
-                    title={t(item.label, language)}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className={clsx('font-medium text-sm hidden xl:inline', language === 'ar' && 'font-arabic')}>{t(item.label, language)}</span>
-                    {item.path === '/bookmarks' && bookmarks.length > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-amber-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                        {bookmarks.length > 9 ? '9+' : bookmarks.length}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Language Toggle — always visible on desktop */}
-            <div className="hidden md:flex flex-shrink-0">
-              <LangToggle />
-            </div>
-
-            {/* Mobile: language toggle always in top-right */}
-            <div className="md:hidden ms-auto">
-              <LangToggle />
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Navigation row — icons + short labels */}
-        <div className="md:hidden border-t border-gray-100 overflow-x-auto">
-          <div className="flex py-1 px-2 gap-1 min-w-max">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={clsx(
-                    'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg flex-shrink-0',
-                    isActive ? 'text-primary-600 bg-primary-50' : 'text-gray-500'
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className={clsx('text-xs whitespace-nowrap', language === 'ar' && 'font-arabic')}>{t(item.label, language)}</span>
+          <nav aria-label={t('nav_primary_label', language)} className="hidden flex-1 items-center justify-center gap-1 md:flex">
+            {TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = active === tab.id;
+              const target = tabTarget(tab.id, tab.to, active);
+              const cls = clsx(
+                'flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors',
+                isActive || (tab.to === null && moreOpen) ? 'bg-primary-50 text-primary-800' : 'text-gray-700 hover:bg-gray-100',
+                isAr && 'font-arabic',
+              );
+              return target ? (
+                <Link key={tab.id} to={target} aria-current={isActive ? 'page' : undefined} className={cls}>
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  {t(tab.labelKey, language)}
                 </Link>
+              ) : (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setMoreOpen(true)}
+                  aria-haspopup="dialog"
+                  aria-expanded={moreOpen}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={cls}
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  {t(tab.labelKey, language)}
+                </button>
               );
             })}
+          </nav>
+
+          <div className="ms-auto flex items-center gap-1 md:ms-0">
+            <Link
+              to="/search"
+              aria-label={t('header_search', language)}
+              aria-current={location.pathname === '/search' ? 'page' : undefined}
+              className="tap rounded-lg text-gray-700 hover:bg-gray-100"
+            >
+              <Search className="h-5 w-5" aria-hidden="true" />
+            </Link>
+            <LangToggle />
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1">{children}</main>
+      <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
+        {children}
+      </main>
 
-      {/* Floating feedback button — available on every page */}
       <FeedbackButton />
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className={clsx('text-center text-sm text-gray-500', language === 'ar' && 'font-arabic')}>
-            {t('footer_disclaimer', language)}
-          </p>
-          <nav className={clsx('mt-2 flex justify-center gap-4 text-xs text-gray-400', language === 'ar' && 'font-arabic')}>
-            <Link to="/privacy" className="hover:text-primary-600 underline">
-              {language === 'ar' ? 'سياسة الخصوصية' : 'Privacy policy'}
-            </Link>
-            <Link to="/sources" className="hover:text-primary-600 underline">
-              {language === 'ar' ? 'المصادر والتراخيص' : 'Sources & licences'}
-            </Link>
-          </nav>
-        </div>
-      </footer>
+      {showFooter && (
+        <footer className="mt-auto border-t border-gray-100 bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <p className={clsx('text-center text-sm text-gray-600', isAr && 'font-arabic')}>
+              {t('footer_disclaimer', language)}
+            </p>
+            <p className={clsx('mt-1 text-center text-xs text-gray-600', isAr && 'font-arabic')}>
+              <a href="https://tanzil.net" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary-700">
+                {t('footer_quran_text_credit', language)} (<bdi dir="ltr">tanzil.net, CC BY 3.0</bdi>)
+              </a>
+            </p>
+            <nav
+              aria-label={t('more_section_app', language)}
+              className={clsx('mt-2 flex flex-wrap justify-center gap-x-4 text-sm text-gray-600', isAr && 'font-arabic')}
+            >
+              <Link to="/about" className="inline-block py-2 underline hover:text-primary-700">
+                {t('footer_about', language)}
+              </Link>
+              <Link to="/privacy" className="inline-block py-2 underline hover:text-primary-700">
+                {t('footer_privacy', language)}
+              </Link>
+              <Link to="/sources" className="inline-block py-2 underline hover:text-primary-700">
+                {t('footer_sources', language)}
+              </Link>
+              <Link to="/licenses" className="inline-block py-2 underline hover:text-primary-700">
+                {t('footer_licenses', language)}
+              </Link>
+            </nav>
+          </div>
+        </footer>
+      )}
+
+      <BottomNav language={language} active={active} moreOpen={moreOpen} onMore={() => setMoreOpen(true)} />
+      <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
     </div>
   );
 }

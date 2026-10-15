@@ -23,6 +23,7 @@ import {
   ArrowRightLeft,
 } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
+import { t } from '../../i18n/translations';
 import {
   getHijriCalendarMonth,
   gregorianToHijri,
@@ -166,7 +167,7 @@ function useDateConverter() {
       const hijri = await gregorianToHijri(gregorianDate);
       setResult({ type: 'toHijri', result: hijri });
     } catch (err) {
-      setError('Invalid date format. Use DD-MM-YYYY');
+      setError(t('invalid_date', useLanguageStore.getState().language));
     } finally {
       setConvertingToHijri(false);
     }
@@ -180,7 +181,7 @@ function useDateConverter() {
       const gregorian = await hijriToGregorian(hijriDate);
       setResult({ type: 'toGregorian', result: gregorian });
     } catch (err) {
-      setError('Invalid date format. Use DD-MM-YYYY');
+      setError(t('invalid_date', useLanguageStore.getState().language));
     } finally {
       setConvertingToGregorian(false);
     }
@@ -247,7 +248,7 @@ const CalendarNavigation = memo(function CalendarNavigation({
   const monthInfo = HIJRI_MONTHS.find((m) => m.number === month);
 
   return (
-    <div className="mb-4 flex items-center justify-between" role="navigation" aria-label="Calendar navigation">
+    <div className="mb-4 flex items-center justify-between" role="navigation" aria-label={isArabic ? 'التنقل بين الأشهر' : 'Calendar navigation'}>
       <button
         onClick={onPrevious}
         className="p-2 text-gray-600 hover:text-purple-600 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -828,7 +829,7 @@ function HijriCalendarPageContent() {
             href="https://aladhan.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-purple-600 hover:underline focus:outline-none focus:underline"
+            className="text-purple-700 underline focus:outline-none"
           >
             AlAdhan API
           </a>

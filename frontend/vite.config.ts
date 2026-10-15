@@ -1,7 +1,8 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { compression } from 'vite-plugin-compression2'
+import license from 'rollup-plugin-license'
 import fs from 'fs'
 import path from 'path'
 
@@ -61,9 +62,119 @@ const enforceApiUrlPolicy = {
   },
 }
 
+/**
+ * Content-Security-Policy, injected as a <meta> tag into the built index.html
+ * (web and Android/iOS: the native WebView has no nginx to send headers).
+ * Mirrors the header policy in nginx-security-headers.conf. Not applied to
+ * the dev server, whose React refresh preamble is an inline script.
+ *
+ * connect-src lists every host the client calls directly: the API origin,
+ * prayer times (AlAdhan), place search (Nominatim, Overpass), books
+ * (archive.org) and the recitation CDNs used for offline audio downloads.
+ */
+const CSP_CONNECT_HOSTS = [
+  'https://api.aladhan.com',
+  'https://nominatim.openstreetmap.org',
+  'https://overpass-api.de',
+  'https://archive.org',
+  'https://everyayah.com',
+  'https://cdn.islamic.network',
+  'https://download.quranicaudio.com',
+  'https://verses.quran.com',
+]
+
+export function buildCsp(apiUrl: string | undefined): string {
+  const connect = ["'self'", 'data:', 'blob:', ...CSP_CONNECT_HOSTS]
+  const api = (apiUrl ?? '').trim()
+  if (api) {
+    try {
+      const origin = new URL(api).origin
+      connect.push(origin, origin.replace(/^http/, 'ws'))
+    } catch {
+      // apiUrlProblem() already rejects malformed values for mobile builds
+    }
+  } else if (process.env.CSP_EXTRA_CONNECT) {
+    connect.push(...process.env.CSP_EXTRA_CONNECT.split(/\s+/).filter(Boolean))
+  }
+  return [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self' data:",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' data: blob: https:",
+    `connect-src ${connect.join(' ')}`,
+    "worker-src 'self'",
+    "frame-src 'none'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ')
+}
+
+const injectCsp = (apiUrl: string | undefined) => ({
+  name: 'tadabbur-csp',
+  apply: 'build' as const,
+  transformIndexHtml(html: string) {
+    const meta = `<meta http-equiv="Content-Security-Policy" content="${buildCsp(apiUrl)}" />`
+    return html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n    ${meta}`)
+  },
+})
+
+const FONT_PACKAGES = [
+  '@fontsource/scheherazade-new',
+  '@fontsource/noto-naskh-arabic',
+  '@fontsource/amiri',
+  '@fontsource/inter',
+]
+
+interface LicenseEntry {
+  name: string
+  version: string | null
+  license: string | null
+  author: string | null
+  repository: string | null
+  licenseText: string | null
+  noticeText: string | null
+}
+
+/** Names of all non-dev packages in package-lock.json. */
+function productionPackages(): string[] {
+  const lock = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package-lock.json'), 'utf8'))
+  return Object.entries(lock.packages as Record<string, { dev?: boolean; devOptional?: boolean }>)
+    .filter(([key, v]) => key.startsWith('node_modules/') && !v.dev && !v.devOptional)
+    .map(([key]) => key.slice(key.lastIndexOf('node_modules/') + 'node_modules/'.length))
+}
+
+/** Notice entry from an installed package's package.json and licence file. */
+function readPackageNotice(name: string): LicenseEntry | null {
+  const dir = path.resolve(__dirname, 'node_modules', name)
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'))
+    const files = fs.readdirSync(dir)
+    const read = (re: RegExp) => {
+      const f = files.find((n) => re.test(n))
+      return f ? fs.readFileSync(path.join(dir, f), 'utf8') : null
+    }
+    const author = typeof pkg.author === 'string' ? pkg.author : pkg.author?.name ?? null
+    return {
+      name,
+      version: pkg.version ?? null,
+      license: typeof pkg.license === 'string' ? pkg.license : pkg.license?.type ?? null,
+      author,
+      repository: typeof pkg.repository === 'string' ? pkg.repository : pkg.repository?.url ?? null,
+      licenseText: read(/^(licen[cs]e|copying)(\.(md|txt))?$/i),
+      noticeText: read(/^notice(\.(md|txt))?$/i),
+    }
+  } catch {
+    return null
+  }
+}
+
 export default defineConfig(({ mode }) => ({
   plugins: [
     enforceApiUrlPolicy,
+    injectCsp(loadEnv(mode, process.cwd(), '').VITE_API_URL),
     react(),
     VitePWA({
       // "prompt": a new build is downloaded in the background and activated
@@ -77,7 +188,9 @@ export default defineConfig(({ mode }) => ({
       manifest: false, // we manage manifest.json ourselves in /public
       workbox: {
         // App shell: hashed JS/CSS + index.html, precached and versioned per build.
-        globPatterns: ['**/*.{js,css,html,ico,svg,woff2,png}'],
+        // Fonts are not precached (every subset of every weight would be
+        // downloaded on install); they are cached on first use below.
+        globPatterns: ['**/*.{js,css,html,ico,svg,png}'],
         cleanupOutdatedCaches: true,
         // SPA routes fall back to the cached shell offline; API, health and
         // backend docs must never be answered with index.html.
@@ -110,6 +223,16 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
+            // Self-hosted font files (hashed names, immutable).
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/assets/fonts/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'fonts-v1',
+              expiration: { maxEntries: 60, maxAgeSeconds: 365 * 24 * 3600 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
             // Static JSON shipped with the frontend (atlas/graph data). Same
             // origin only; revalidated so a redeploy is picked up next visit.
             urlPattern: ({ url, sameOrigin }) =>
@@ -121,26 +244,50 @@ export default defineConfig(({ mode }) => ({
               cacheableResponse: { statuses: [200] },
             },
           },
-          {
-            // Google Fonts: the stylesheet changes rarely, font files never.
-            urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com',
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'google-fonts-css', expiration: { maxEntries: 10 } },
-          },
-          {
-            urlPattern: ({ url }) => url.origin === 'https://fonts.gstatic.com',
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-files',
-              expiration: { maxEntries: 40, maxAgeSeconds: 365 * 24 * 3600 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
         ],
       },
       devOptions: {
         // Keep SW disabled in dev so hot-reload is unaffected
         enabled: false,
+      },
+    }),
+    // Third-party notices: every npm package in the bundle with its licence
+    // text, written next to index.html and shown on /licenses (LicensesPage).
+    license({
+      thirdParty: {
+        includePrivate: false,
+        output: {
+          file: path.resolve(__dirname, 'dist', 'third-party-licenses.json'),
+          template(dependencies) {
+            // Everything bundled into the JS, as rollup saw it.
+            const bundled = new Map<string, LicenseEntry>()
+            for (const d of dependencies) {
+              if (!d.name) continue
+              bundled.set(d.name, {
+                name: d.name,
+                version: d.version,
+                license: d.license,
+                author: d.author ? d.author.text() : null,
+                repository: typeof d.repository === 'string' ? d.repository : d.repository?.url ?? null,
+                licenseText: d.licenseText,
+                noticeText: d.noticeText,
+              })
+            }
+            // Plus every other production dependency (native Capacitor code
+            // shipped in the Android/iOS packages, transitive helpers), from
+            // the lockfile. Fonts are listed separately below.
+            for (const name of productionPackages()) {
+              if (bundled.has(name) || FONT_PACKAGES.includes(name)) continue
+              const entry = readPackageNotice(name)
+              if (entry) bundled.set(name, entry)
+            }
+            const entries = [...bundled.values()].sort((a, b) => a.name.localeCompare(b.name))
+            // Self-hosted fonts are CSS-only packages; add them with their
+            // OFL licence text.
+            const fonts = FONT_PACKAGES.map(readPackageNotice).filter((f): f is LicenseEntry => !!f)
+            return JSON.stringify({ generatedAt: new Date().toISOString().slice(0, 10), packages: entries, fonts })
+          },
+        },
       },
     }),
     // Build-time precompression: ship .gz (and .br) alongside every text asset so

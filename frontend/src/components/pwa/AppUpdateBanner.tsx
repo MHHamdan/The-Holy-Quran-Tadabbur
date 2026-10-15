@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { RefreshCw, WifiOff, X } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
+import { t } from '../../i18n/translations';
 
 const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000;
 
@@ -70,17 +71,14 @@ function Banners({ online, needRefresh, onReload, onDismiss }: {
 
   return (
     <div
-      className="fixed inset-x-0 bottom-20 sm:bottom-4 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none"
+      className="fixed inset-x-0 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none"
+      style={{ bottom: 'calc(var(--bottom-nav-h, 0px) + 1rem)' }}
       dir={isAr ? 'rtl' : 'ltr'}
     >
       {!online && (
         <div role="status" className="pointer-events-auto flex items-center gap-2 rounded-xl bg-gray-900/90 text-white text-sm px-4 py-2 shadow-lg max-w-md">
-          <WifiOff className="w-4 h-4 flex-shrink-0" />
-          <span>
-            {isAr
-              ? 'أنت غير متصل. الصفحات المحفوظة من القرآن والتفسير متاحة، أما ميزات الذكاء الاصطناعي فتحتاج إلى اتصال.'
-              : 'You are offline. Saved Qur\'an and tafsir pages still work; AI features need a connection.'}
-          </span>
+          <WifiOff className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+          <span className={isAr ? 'font-arabic' : undefined}>{t('offline_banner', language)}</span>
         </div>
       )}
       {needRefresh && (
@@ -89,14 +87,14 @@ function Banners({ online, needRefresh, onReload, onDismiss }: {
           <span className="flex-1">{isAr ? 'يتوفر إصدار جديد من التطبيق.' : 'A new version of the app is available.'}</span>
           <button
             onClick={onReload}
-            className="rounded-lg bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 text-xs font-medium"
+            className="min-h-11 rounded-lg bg-primary-600 hover:bg-primary-700 text-white px-3 text-xs font-medium"
           >
             {isAr ? 'تحديث' : 'Reload'}
           </button>
           <button
             onClick={onDismiss}
             aria-label={isAr ? 'لاحقاً' : 'Later'}
-            className="p-1 rounded text-gray-400 hover:text-gray-600"
+            className="tap rounded text-gray-500 hover:text-gray-700"
           >
             <X className="w-4 h-4" />
           </button>

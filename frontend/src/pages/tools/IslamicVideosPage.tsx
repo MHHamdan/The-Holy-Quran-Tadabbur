@@ -183,6 +183,7 @@ export function IslamicVideosPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={handleKeyPress}
+            aria-label={isArabic ? 'ابحث عن محاضرات' : 'Search lectures'}
             placeholder={isArabic ? 'ابحث عن محاضرات إسلامية...' : 'Search for Islamic lectures...'}
             className={clsx(
               'w-full py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500',
@@ -227,6 +228,7 @@ export function IslamicVideosPage() {
           <Filter className="w-4 h-4 text-gray-500" />
           <select
             value={selectedDuration}
+            aria-label={isArabic ? 'المدة' : 'Duration'}
             onChange={(e) => setSelectedDuration(e.target.value)}
             className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
           >

@@ -6,7 +6,7 @@
  * Source: al-Wahidi (d. 468 AH) via alquran.cloud ar.wahidi edition.
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { Fragment, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -38,6 +38,7 @@ function SurahSelector({
     <div className="relative">
       <select
         value={selected}
+        aria-label={lang === 'ar' ? 'اختر السورة' : 'Choose a surah'}
         onChange={(e) => onChange(Number(e.target.value))}
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
         className="w-full appearance-none rounded-xl border border-emerald-200 bg-white px-4 py-3 pr-10 text-sm font-medium text-gray-800 shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
@@ -48,7 +49,7 @@ function SurahSelector({
           </option>
         ))}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
     </div>
   );
 }
@@ -69,15 +70,18 @@ function AsbabCard({
   const ref = `${surah}:${ayah}`;
   const surahName = SURAH_NAMES[surah - 1];
 
+  // Highlight matches as React <mark> elements; the API text is rendered as
+  // text nodes only, never parsed as HTML.
   const highlighted = useMemo(() => {
-    if (!highlight.trim()) return text;
-    const escaped = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
-    return parts.map((p) =>
-      new RegExp(escaped, 'i').test(p)
-        ? `<mark class="bg-yellow-200 text-yellow-900 rounded px-0.5">${p}</mark>`
-        : p
-    ).join('');
+    const q = highlight.trim();
+    if (!q) return text;
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matcher = new RegExp(`^${escaped}$`, 'i');
+    return text.split(new RegExp(`(${escaped})`, 'gi')).map((p, i) =>
+      matcher.test(p)
+        ? <mark key={i} className="bg-yellow-200 text-yellow-900 rounded px-0.5">{p}</mark>
+        : <Fragment key={i}>{p}</Fragment>
+    );
   }, [text, highlight]);
 
   return (
@@ -85,17 +89,17 @@ function AsbabCard({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-emerald-50 border-b border-emerald-100">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-600 text-white text-xs font-bold">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-700 text-white text-xs font-bold">
             {ayah}
           </span>
           <div dir="rtl">
             <p className="text-sm font-semibold text-emerald-800">{surahName?.ar}</p>
-            <p className="text-xs text-emerald-600">{surahName?.en} · {ref}</p>
+            <p className="text-xs text-emerald-700">{surahName?.en} · {ref}</p>
           </div>
         </div>
         <Link
           to={`/quran/${surah}?aya=${ayah}`}
-          className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 transition-colors"
+          className="flex items-center gap-1 text-xs text-emerald-700 hover:text-emerald-800 transition-colors"
         >
           <ExternalLink className="h-3.5 w-3.5" />
           <span>الآية</span>
@@ -107,8 +111,9 @@ function AsbabCard({
         <p
           dir="rtl"
           className="text-base leading-loose text-gray-800 font-arabic text-right"
-          dangerouslySetInnerHTML={{ __html: highlighted }}
-        />
+        >
+          {highlighted}
+        </p>
       </div>
     </div>
   );
@@ -195,11 +200,12 @@ export function AsbabAlNuzulPage() {
         <SurahSelector selected={selectedSurah} onChange={setSelectedSurah} lang={lang} />
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            aria-label={lang === 'ar' ? 'ابحث في النصوص' : 'Search occasions'}
             placeholder={lang === 'ar' ? 'ابحث في النصوص...' : 'Search occasions...'}
             dir={lang === 'ar' ? 'rtl' : 'ltr'}
             className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-9 py-3 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
@@ -207,7 +213,7 @@ export function AsbabAlNuzulPage() {
           {search && (
             <button
               onClick={clearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600"
             >
               <X className="h-4 w-4" />
             </button>

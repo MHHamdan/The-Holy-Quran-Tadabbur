@@ -7,12 +7,23 @@
  * - AlQuran.cloud: Quran text and translations
  * - EveryAyah: Quran audio files
  * - MP3Quran.net: Reciters and audio
- * - FreeGoldAPI: Gold/Silver prices
  * - Internet Archive: Islamic books search
  * - Nominatim/OSM: Geocoding and place search
+ *
+ * Location privacy: coordinates are rounded with coarsen() (2 decimals,
+ * about 1.1 km) before they leave the device. Full precision is used only
+ * on the device itself (Qibla bearing).
  */
 
 import axios from 'axios';
+
+export { safeHttpUrl } from './safeUrl';
+
+/** Round a latitude/longitude to 2 decimals (~1.1 km) before it is sent to
+ *  any third-party service. */
+export function coarsen(value: number): number {
+  return Math.round(value * 100) / 100;
+}
 
 // ============================================
 // ALADHAN API - Prayer Times & Islamic Calendar
@@ -106,8 +117,8 @@ export async function getPrayerTimes(
     `https://api.aladhan.com/v1/timings/${dateStr}`,
     {
       params: {
-        latitude,
-        longitude,
+        latitude: coarsen(latitude),
+        longitude: coarsen(longitude),
         method,
       },
     }
@@ -127,8 +138,8 @@ export async function getPrayerTimesForMonth(
     `https://api.aladhan.com/v1/calendar/${year}/${month}`,
     {
       params: {
-        latitude,
-        longitude,
+        latitude: coarsen(latitude),
+        longitude: coarsen(longitude),
         method,
       },
     }
@@ -189,66 +200,51 @@ export async function getIslamicHolidays(year: number): Promise<Array<{
 }
 
 // ============================================
-// GOLD & SILVER PRICES API
-// https://freegoldapi.com (No API key required)
+// GOLD & SILVER PRICES
 // ============================================
+//
+// There is no live price source: the previous client-side call used a public
+// demo token that the provider rejects (403), and a real key cannot ship in
+// the app. The calculator therefore asks the user for today's price per gram.
+// A server-side proxy whose key stays on the server can return live prices
+// here later (source !== 'unavailable').
 
 export interface MetalPrices {
   gold: number; // USD per troy ounce
   silver: number; // USD per troy ounce
   goldPerGram: number;
   silverPerGram: number;
+  /** ISO date the prices refer to */
   timestamp: string;
+  /** 'unavailable' when no live source answered; prices are then 0 */
   source: string;
 }
 
-// Fallback to static prices if API fails (updated periodically)
-const FALLBACK_PRICES: MetalPrices = {
-  gold: 2650, // ~$2650/oz as of late 2024
-  silver: 31, // ~$31/oz
-  goldPerGram: 85.2,
-  silverPerGram: 1.0,
-  timestamp: new Date().toISOString(),
-  source: 'fallback',
+export const TROY_OZ_TO_GRAMS = 31.1035;
+
+export const NO_LIVE_PRICES: MetalPrices = {
+  gold: 0,
+  silver: 0,
+  goldPerGram: 0,
+  silverPerGram: 0,
+  timestamp: '',
+  source: 'unavailable',
 };
 
 export async function getMetalPrices(): Promise<MetalPrices> {
-  try {
-    // Try Gold-API.com free endpoint first
-    const response = await axios.get('https://www.goldapi.io/api/XAU/USD', {
-      headers: {
-        'x-access-token': 'goldapi-demo', // Demo key
-      },
-      timeout: 5000,
-    });
+  return NO_LIVE_PRICES;
+}
 
-    const goldPricePerOz = response.data.price;
-
-    // Get silver price
-    const silverResponse = await axios.get('https://www.goldapi.io/api/XAG/USD', {
-      headers: {
-        'x-access-token': 'goldapi-demo',
-      },
-      timeout: 5000,
-    });
-
-    const silverPricePerOz = silverResponse.data.price;
-
-    // Convert to grams (1 troy oz = 31.1035 grams)
-    const TROY_OZ_TO_GRAMS = 31.1035;
-
-    return {
-      gold: goldPricePerOz,
-      silver: silverPricePerOz,
-      goldPerGram: goldPricePerOz / TROY_OZ_TO_GRAMS,
-      silverPerGram: silverPricePerOz / TROY_OZ_TO_GRAMS,
-      timestamp: new Date().toISOString(),
-      source: 'goldapi.io',
-    };
-  } catch (error) {
-    console.warn('Failed to fetch metal prices, using fallback:', error);
-    return FALLBACK_PRICES;
-  }
+/** Prices built from what the user typed (per gram, in their currency). */
+export function manualMetalPrices(goldPerGram: number, silverPerGram: number): MetalPrices {
+  return {
+    gold: goldPerGram * TROY_OZ_TO_GRAMS,
+    silver: silverPerGram * TROY_OZ_TO_GRAMS,
+    goldPerGram,
+    silverPerGram,
+    timestamp: new Date().toISOString(),
+    source: 'manual',
+  };
 }
 
 // Nisab calculation helpers
@@ -291,6 +287,18 @@ export interface ArchiveBook {
   downloadUrl?: string;
 }
 
+/** archive.org links for an item; the identifier comes from the API and is
+ *  URL-encoded so it can only ever form a path segment. */
+function archiveUrls(identifier: unknown) {
+  const id = encodeURIComponent(String(identifier ?? ''));
+  return {
+    imageUrl: `https://archive.org/services/img/${id}`,
+    detailsUrl: `https://archive.org/details/${id}`,
+    readUrl: `https://archive.org/details/${id}`,
+    downloadUrl: `https://archive.org/download/${id}`,
+  };
+}
+
 export async function searchIslamicBooks(
   query: string,
   options: {
@@ -329,10 +337,7 @@ export async function searchIslamicBooks(
     mediatype: doc.mediatype,
     downloads: doc.downloads,
     subjects: Array.isArray(doc.subject) ? doc.subject : doc.subject ? [doc.subject] : [],
-    imageUrl: `https://archive.org/services/img/${doc.identifier}`,
-    detailsUrl: `https://archive.org/details/${doc.identifier}`,
-    readUrl: `https://archive.org/details/${doc.identifier}`,
-    downloadUrl: `https://archive.org/download/${doc.identifier}`,
+    ...archiveUrls(doc.identifier),
   }));
 
   return {
@@ -373,10 +378,7 @@ export async function getCollectionBooks(
     mediatype: doc.mediatype,
     downloads: doc.downloads,
     subjects: [],
-    imageUrl: `https://archive.org/services/img/${doc.identifier}`,
-    detailsUrl: `https://archive.org/details/${doc.identifier}`,
-    readUrl: `https://archive.org/details/${doc.identifier}`,
-    downloadUrl: `https://archive.org/download/${doc.identifier}`,
+    ...archiveUrls(doc.identifier),
   }));
 }
 
@@ -430,8 +432,8 @@ export async function reverseGeocode(
   try {
     const response = await axios.get('https://nominatim.openstreetmap.org/reverse', {
       params: {
-        lat: latitude,
-        lon: longitude,
+        lat: coarsen(latitude),
+        lon: coarsen(longitude),
         format: 'json',
         addressdetails: 1,
       },
@@ -454,121 +456,8 @@ export async function reverseGeocode(
 }
 
 // ============================================
-// RSS FEED PROXY (for CORS)
-// Using rss2json.com free tier or allorigins.win
-// ============================================
-
-export interface RSSItem {
-  title: string;
-  link: string;
-  description: string;
-  pubDate: string;
-  author?: string;
-  thumbnail?: string;
-  categories?: string[];
-}
-
-export interface RSSFeed {
-  title: string;
-  link: string;
-  description: string;
-  items: RSSItem[];
-}
-
-const RSS_FEEDS = {
-  muslimmatters: 'https://muslimmatters.org/feed/',
-  aboutislam: 'https://aboutislam.net/blog/feed/',
-  productivemuslim: 'https://productivemuslim.com/feed/',
-  ilmfeed: 'https://ilmfeed.com/feed/',
-  yaqeen: 'https://yaqeeninstitute.org/feed/',
-} as const;
-
-export async function fetchRSSFeed(feedUrl: string): Promise<RSSFeed | null> {
-  try {
-    // Use rss2json.com as a CORS proxy (free tier: 10,000 requests/day)
-    const response = await axios.get('https://api.rss2json.com/v1/api.json', {
-      params: {
-        rss_url: feedUrl,
-      },
-      timeout: 10000,
-    });
-
-    if (response.data.status !== 'ok') {
-      throw new Error('Failed to parse RSS feed');
-    }
-
-    return {
-      title: response.data.feed.title,
-      link: response.data.feed.link,
-      description: response.data.feed.description,
-      items: response.data.items.map((item: any) => ({
-        title: item.title,
-        link: item.link,
-        description: item.description?.replace(/<[^>]*>/g, '').slice(0, 300) || '',
-        pubDate: item.pubDate,
-        author: item.author,
-        thumbnail: item.thumbnail || item.enclosure?.link,
-        categories: item.categories,
-      })),
-    };
-  } catch (error) {
-    console.error('Failed to fetch RSS feed:', error);
-    return null;
-  }
-}
-
-export async function fetchMultipleFeeds(
-  sources: Array<keyof typeof RSS_FEEDS>
-): Promise<RSSItem[]> {
-  const feeds = await Promise.all(
-    sources.map((source) => fetchRSSFeed(RSS_FEEDS[source]))
-  );
-
-  // Combine and sort by date
-  const allItems = feeds
-    .filter((feed): feed is RSSFeed => feed !== null)
-    .flatMap((feed) =>
-      feed.items.map((item) => ({
-        ...item,
-        source: feed.title,
-        sourceUrl: feed.link,
-      }))
-    );
-
-  return allItems.sort(
-    (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
-  );
-}
-
-export { RSS_FEEDS };
-
-// ============================================
 // HELPER FUNCTIONS
 // ============================================
-
-// Format relative time
-export function formatRelativeTime(dateStr: string, isArabic: boolean): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMins < 60) {
-    return isArabic ? `منذ ${diffMins} دقيقة` : `${diffMins} minutes ago`;
-  } else if (diffHours < 24) {
-    return isArabic ? `منذ ${diffHours} ساعة` : `${diffHours} hours ago`;
-  } else if (diffDays < 7) {
-    return isArabic ? `منذ ${diffDays} يوم` : `${diffDays} days ago`;
-  } else {
-    return date.toLocaleDateString(isArabic ? 'ar-SA' : 'en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  }
-}
 
 // Arabic number conversion
 export function toArabicNumerals(num: number | string): string {
@@ -576,13 +465,28 @@ export function toArabicNumerals(num: number | string): string {
   return String(num).replace(/[0-9]/g, (d) => arabicNumerals[parseInt(d)]);
 }
 
-// Format prayer time
-export function formatPrayerTime(time: string, is24Hour: boolean = false): string {
-  if (is24Hour) return time;
-
-  const [hours, minutes] = time.split(':').map(Number);
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const hour12 = hours % 12 || 12;
-
-  return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
+/**
+ * Format an AlAdhan "HH:mm" (optionally followed by " (TZ)") time for display.
+ * Arabic uses Arabic-Indic digits and ص/م (e.g. "٥:١٥ ص"); English uses
+ * "5:15 AM". The time is rendered as a wall-clock value (UTC formatting of a
+ * fixed date), so the device time zone never shifts it.
+ */
+export function formatPrayerTime(time: string, is24Hour: boolean = false, language: 'ar' | 'en' = 'en'): string {
+  const match = /^(\d{1,2}):(\d{2})/.exec(time.trim());
+  if (!match) return time;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const locale = language === 'ar' ? 'ar-SA-u-nu-arab' : 'en-US';
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: !is24Hour,
+      timeZone: 'UTC',
+    }).format(new Date(Date.UTC(2000, 0, 1, hours, minutes)));
+  } catch {
+    if (is24Hour) return `${match[1]}:${match[2]}`;
+    const hour12 = hours % 12 || 12;
+    return `${hour12}:${match[2]} ${hours >= 12 ? 'PM' : 'AM'}`;
+  }
 }

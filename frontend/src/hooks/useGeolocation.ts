@@ -90,7 +90,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}): {
   clearWatch: () => void;
 } {
   const {
-    enableHighAccuracy = true,
+    enableHighAccuracy = false,
     maximumAge = 0,
     timeout = 10000,
     watch = false,

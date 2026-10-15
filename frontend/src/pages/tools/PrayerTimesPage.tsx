@@ -162,6 +162,27 @@ interface NextPrayerCardProps {
   isArabic: boolean;
 }
 
+/** "2 hours 5 minutes" in English, or the Arabic form with the right
+ *  plural (ساعة / ساعتان / ساعات) and Arabic-Indic digits. */
+export function formatRemaining(h: number, m: number, isArabic: boolean): string {
+  if (!isArabic) return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  const nf = new Intl.NumberFormat('ar-SA-u-nu-arab');
+  const pr = new Intl.PluralRules('ar');
+  const unit = (n: number, one: string, two: string, few: string, many: string) => {
+    switch (pr.select(n)) {
+      case 'one': return one;
+      case 'two': return two;
+      case 'few': return `${nf.format(n)} ${few}`;
+      default: return `${nf.format(n)} ${many}`;
+    }
+  };
+  const hours = unit(h, 'ساعة', 'ساعتان', 'ساعات', 'ساعة');
+  const minutes = unit(m, 'دقيقة', 'دقيقتان', 'دقائق', 'دقيقة');
+  if (h > 0 && m > 0) return `${hours} و${minutes}`;
+  if (h > 0) return hours;
+  return minutes;
+}
+
 const NextPrayerCard = memo(function NextPrayerCard({
   prayerData,
   currentTime,
@@ -186,9 +207,7 @@ const NextPrayerCard = memo(function NextPrayerCard({
         return {
           name: prayerName,
           time: timeStr,
-          remaining: h > 0
-            ? isArabic ? `${h} ساعة و ${m} دقيقة` : `${h}h ${m}m`
-            : isArabic ? `${m} دقيقة` : `${m}m`,
+          remaining: formatRemaining(h, m, isArabic),
         };
       }
     }
@@ -204,7 +223,7 @@ const NextPrayerCard = memo(function NextPrayerCard({
     return {
       name: 'Fajr',
       time: fajrTime,
-      remaining: isArabic ? `${h} ساعة و ${m} دقيقة` : `${h}h ${m}m`,
+      remaining: formatRemaining(h, m, isArabic),
     };
   }, [prayerData, currentTime, isArabic]);
 
@@ -223,11 +242,11 @@ const NextPrayerCard = memo(function NextPrayerCard({
           <h2 className="text-3xl font-bold mb-1">
             {isArabic ? PRAYERS[nextPrayer.name]?.name_ar : nextPrayer.name}
           </h2>
-          <p className="text-xl" aria-label={`Time: ${formatPrayerTime(nextPrayer.time, use24Hour)}`}>
-            {formatPrayerTime(nextPrayer.time, use24Hour)}
+          <p className="text-xl tabular-nums">
+            {formatPrayerTime(nextPrayer.time, use24Hour, isArabic ? 'ar' : 'en')}
           </p>
         </div>
-        <div className="text-right">
+        <div className="text-end">
           <p className="text-primary-100 text-sm mb-1">
             {isArabic ? 'الوقت المتبقي' : 'Time Remaining'}
           </p>
@@ -268,7 +287,7 @@ const PrayerCard = memo(function PrayerCard({
           ? 'border-primary-500 bg-primary-50 shadow-md'
           : 'border-gray-200 hover:border-gray-300'
       )}
-      aria-label={`${isArabic ? prayer.name_ar : prayer.name_en}: ${formatPrayerTime(time, use24Hour)}`}
+      aria-label={`${isArabic ? prayer.name_ar : prayer.name_en}: ${formatPrayerTime(time, use24Hour, isArabic ? 'ar' : 'en')}`}
     >
       <div className="flex items-center gap-3">
         <div
@@ -300,9 +319,7 @@ const PrayerCard = memo(function PrayerCard({
               isNext ? 'text-primary-600' : 'text-gray-700'
             )}
           >
-            {isArabic
-              ? toArabicNumerals(formatPrayerTime(time, use24Hour))
-              : formatPrayerTime(time, use24Hour)}
+            {formatPrayerTime(time, use24Hour, isArabic ? 'ar' : 'en')}
           </p>
         </div>
         {isNext && (
@@ -402,7 +419,7 @@ const AdditionalTimes = memo(function AdditionalTimes({
           <div key={key}>
             <dt className="text-gray-500">{isArabic ? label_ar : label_en}</dt>
             <dd className="font-semibold tabular-nums">
-              {formatPrayerTime(timings[key as keyof typeof timings], use24Hour)}
+              {formatPrayerTime(timings[key as keyof typeof timings], use24Hour, isArabic ? 'ar' : 'en')}
             </dd>
           </div>
         ))}
@@ -558,14 +575,14 @@ const DateNavigator = memo(function DateNavigator({
     >
       <button
         onClick={() => onDateChange(-1)}
-        className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+        className="tap text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
         aria-label={isArabic ? 'اليوم السابق' : 'Previous day'}
       >
         <ChevronLeft className={clsx('w-5 h-5', isArabic && 'rotate-180')} aria-hidden="true" />
       </button>
       <div className="text-center min-w-[200px]">
         <p className="font-semibold text-gray-900">
-          {date.toLocaleDateString(isArabic ? 'ar-SA' : 'en-US', {
+          {date.toLocaleDateString(isArabic ? 'ar-SA-u-ca-gregory-nu-arab' : 'en-US', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -573,14 +590,16 @@ const DateNavigator = memo(function DateNavigator({
           })}
         </p>
         {hijriDate && (
-          <p className="text-sm text-gray-500">
-            {hijriDate.day} {hijriDate.month.ar} {hijriDate.year}
+          <p className="text-sm text-gray-600">
+            {isArabic
+              ? `${toArabicNumerals(hijriDate.day)} ${hijriDate.month.ar} ${toArabicNumerals(hijriDate.year)}`
+              : `${hijriDate.day} ${hijriDate.month.en} ${hijriDate.year} AH`}
           </p>
         )}
       </div>
       <button
         onClick={() => onDateChange(1)}
-        className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+        className="tap text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
         aria-label={isArabic ? 'اليوم التالي' : 'Next day'}
       >
         <ChevronRight className={clsx('w-5 h-5', isArabic && 'rotate-180')} aria-hidden="true" />
@@ -615,7 +634,7 @@ function PrayerTimesPageContent() {
 
   // Geolocation
   const { state: geoState, getCurrentPosition } = useGeolocation({
-    enableHighAccuracy: true,
+    enableHighAccuracy: false, // coarse is enough; only ~1 km precision is sent anyway
     timeout: 10000,
   });
 
@@ -698,7 +717,7 @@ function PrayerTimesPageContent() {
   }, [geoState.coords, geoState.loading, geoState.error, getCurrentPosition]);
 
   return (
-    <main
+    <div
       className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
       dir={isArabic ? 'rtl' : 'ltr'}
     >
@@ -829,13 +848,13 @@ function PrayerTimesPageContent() {
             href="https://aladhan.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary-600 hover:underline focus:underline focus:outline-none"
+            className="text-primary-700 underline focus:outline-none"
           >
             AlAdhan API
           </a>
         </p>
       </footer>
-    </main>
+    </div>
   );
 }
 

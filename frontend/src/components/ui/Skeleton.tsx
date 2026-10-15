@@ -10,6 +10,13 @@
 
 import clsx from 'clsx';
 import { memo } from 'react';
+import { useLanguageStore } from '../../stores/languageStore';
+import { t } from '../../i18n/translations';
+
+/** "Loading…" in the current UI language (read by screen readers). */
+function useLoadingLabel(): string {
+  return t('loading', useLanguageStore((s) => s.language));
+}
 
 interface SkeletonProps {
   className?: string;
@@ -28,6 +35,7 @@ export const Skeleton = memo(function Skeleton({
   animation = 'pulse',
   lines = 1,
 }: SkeletonProps) {
+  const loadingLabel = useLoadingLabel();
   const baseClasses = clsx(
     'bg-gray-200',
     animation === 'pulse' && 'animate-pulse',
@@ -46,7 +54,7 @@ export const Skeleton = memo(function Skeleton({
 
   if (lines > 1) {
     return (
-      <div className="space-y-2" role="status" aria-busy="true" aria-label="Loading">
+      <div className="space-y-2" role="status" aria-busy="true" aria-label={loadingLabel}>
         {Array.from({ length: lines }).map((_, i) => (
           <div
             key={i}
@@ -57,7 +65,7 @@ export const Skeleton = memo(function Skeleton({
             }}
           />
         ))}
-        <span className="sr-only">Loading...</span>
+        <span className="sr-only">{loadingLabel}</span>
       </div>
     );
   }
@@ -68,21 +76,22 @@ export const Skeleton = memo(function Skeleton({
       style={style}
       role="status"
       aria-busy="true"
-      aria-label="Loading"
+      aria-label={loadingLabel}
     >
-      <span className="sr-only">Loading...</span>
+      <span className="sr-only">{loadingLabel}</span>
     </div>
   );
 });
 
 // Pre-built skeleton compositions
 export const SkeletonCard = memo(function SkeletonCard({ className }: { className?: string }) {
+  const loadingLabel = useLoadingLabel();
   return (
     <div
       className={clsx('p-4 bg-white border border-gray-200 rounded-lg', className)}
       role="status"
       aria-busy="true"
-      aria-label="Loading card"
+      aria-label={loadingLabel}
     >
       <div className="flex items-start gap-4">
         <Skeleton variant="rounded" width={48} height={48} />
@@ -92,7 +101,7 @@ export const SkeletonCard = memo(function SkeletonCard({ className }: { classNam
           <Skeleton variant="text" width="80%" />
         </div>
       </div>
-      <span className="sr-only">Loading...</span>
+      <span className="sr-only">{loadingLabel}</span>
     </div>
   );
 });
@@ -106,8 +115,9 @@ export const SkeletonTable = memo(function SkeletonTable({
   columns?: number;
   className?: string;
 }) {
+  const loadingLabel = useLoadingLabel();
   return (
-    <div className={clsx('space-y-3', className)} role="status" aria-busy="true" aria-label="Loading table">
+    <div className={clsx('space-y-3', className)} role="status" aria-busy="true" aria-label={loadingLabel}>
       {/* Header */}
       <div className="flex gap-4 pb-2 border-b border-gray-200">
         {Array.from({ length: columns }).map((_, i) => (
@@ -122,7 +132,7 @@ export const SkeletonTable = memo(function SkeletonTable({
           ))}
         </div>
       ))}
-      <span className="sr-only">Loading...</span>
+      <span className="sr-only">{loadingLabel}</span>
     </div>
   );
 });
@@ -134,20 +144,22 @@ export const SkeletonList = memo(function SkeletonList({
   count?: number;
   className?: string;
 }) {
+  const loadingLabel = useLoadingLabel();
   return (
-    <div className={clsx('space-y-4', className)} role="status" aria-busy="true" aria-label="Loading list">
+    <div className={clsx('space-y-4', className)} role="status" aria-busy="true" aria-label={loadingLabel}>
       {Array.from({ length: count }).map((_, i) => (
         <SkeletonCard key={i} />
       ))}
-      <span className="sr-only">Loading...</span>
+      <span className="sr-only">{loadingLabel}</span>
     </div>
   );
 });
 
 // Prayer times specific skeleton
 export const SkeletonPrayerTimes = memo(function SkeletonPrayerTimes() {
+  const loadingLabel = useLoadingLabel();
   return (
-    <div className="space-y-4" role="status" aria-busy="true" aria-label="Loading prayer times">
+    <div className="space-y-4" role="status" aria-busy="true" aria-label={loadingLabel}>
       {/* Location */}
       <div className="flex items-center gap-2">
         <Skeleton variant="circular" width={20} height={20} />
@@ -163,15 +175,16 @@ export const SkeletonPrayerTimes = memo(function SkeletonPrayerTimes() {
           </div>
         ))}
       </div>
-      <span className="sr-only">Loading...</span>
+      <span className="sr-only">{loadingLabel}</span>
     </div>
   );
 });
 
 // Calendar specific skeleton
 export const SkeletonCalendar = memo(function SkeletonCalendar() {
+  const loadingLabel = useLoadingLabel();
   return (
-    <div className="space-y-4" role="status" aria-busy="true" aria-label="Loading calendar">
+    <div className="space-y-4" role="status" aria-busy="true" aria-label={loadingLabel}>
       {/* Header */}
       <div className="flex justify-between items-center">
         <Skeleton variant="rounded" width={32} height={32} />
@@ -192,7 +205,7 @@ export const SkeletonCalendar = memo(function SkeletonCalendar() {
           <Skeleton key={i} variant="rounded" height={40} />
         ))}
       </div>
-      <span className="sr-only">Loading...</span>
+      <span className="sr-only">{loadingLabel}</span>
     </div>
   );
 });
