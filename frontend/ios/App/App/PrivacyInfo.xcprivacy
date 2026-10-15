@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!-- App privacy manifest. Must agree with the in-app policy (/privacy) and the
-     App Store privacy labels. No tracking; nothing is linked to identity.
-     Plugins (Capacitor, Filesystem, ...) ship their own manifests for the
-     required-reason APIs they use. -->
+     App Store privacy labels (docs/store/data-safety.md). No tracking; nothing
+     is linked to identity.
+     Required-reason APIs: Capacitor core declares none, and the Filesystem
+     plugin's dependency (IONFilesystemLib) has no manifest of its own, so its
+     file-timestamp use is declared here. When adding a plugin, re-run
+       grep -rlE 'UserDefaults|attributesOfItem|creationDate|modificationDate|systemUptime|volumeAvailableCapacity' node_modules/@capacitor/*/ios
+     and declare whatever it finds. -->
 <plist version="1.0">
 <dict>
 	<key>NSPrivacyTracking</key>
@@ -67,6 +71,17 @@
 		</dict>
 	</array>
 	<key>NSPrivacyAccessedAPITypes</key>
-	<array/>
+	<array>
+		<dict>
+			<!-- @capacitor/filesystem (IONFilesystemLib) reads creation and
+			     modification dates of files inside the app container -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

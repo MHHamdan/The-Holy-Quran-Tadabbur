@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Export options for the App Store Connect upload (mobile-release.yml,
+     job ios-upload, v* tags only). teamID is filled in by CI from the
+     APPLE_TEAM_ID secret; it is not committed. Version and build numbers are
+     set at archive time (CURRENT_PROJECT_VERSION / MARKETING_VERSION), so Xcode
+     must not rewrite them. -->
+<plist version="1.0">
+<dict>
+	<key>method</key>
+	<string>app-store-connect</string>
+	<key>destination</key>
+	<string>upload</string>
+	<key>signingStyle</key>
+	<string>automatic</string>
+	<key>teamID</key>
+	<string>SET_BY_CI</string>
+	<key>manageAppVersionAndBuildNumber</key>
+	<false/>
+	<key>uploadSymbols</key>
+	<true/>
+	<key>testFlightInternalTestingOnly</key>
+	<false/>
+</dict>
+</plist>
