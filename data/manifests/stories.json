@@ -12111,7 +12111,7 @@
           ]
         },
         {
-          "id": "sulayman_death",
+          "id": "sulayman_death_story_sulayman_jinn",
           "narrative_order": 2,
           "aspect": "lesson",
           "sura_no": 34,
@@ -12216,7 +12216,7 @@
       ],
       "segments": [
         {
-          "id": "ibrahim_idols",
+          "id": "ibrahim_idols_story_ibrahim_fire",
           "narrative_order": 1,
           "aspect": "confrontation",
           "sura_no": 21,
@@ -12233,7 +12233,7 @@
           ]
         },
         {
-          "id": "ibrahim_fire",
+          "id": "ibrahim_fire_story_ibrahim_fire",
           "narrative_order": 2,
           "aspect": "miracle",
           "sura_no": 21,
@@ -12536,7 +12536,7 @@
       ],
       "segments": [
         {
-          "id": "isa_cradle",
+          "id": "isa_cradle_story_isa_miracles",
           "narrative_order": 1,
           "aspect": "miracle",
           "sura_no": 3,
@@ -12570,7 +12570,7 @@
           ]
         },
         {
-          "id": "isa_table",
+          "id": "isa_table_story_isa_miracles",
           "narrative_order": 3,
           "aspect": "miracle",
           "sura_no": 5,
@@ -12751,7 +12751,7 @@
       ],
       "segments": [
         {
-          "id": "yusuf_dream",
+          "id": "yusuf_dream_story_yusuf_dream",
           "narrative_order": 1,
           "aspect": "dream",
           "sura_no": 12,

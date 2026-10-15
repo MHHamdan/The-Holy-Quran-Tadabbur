@@ -220,6 +220,33 @@ class TestDataCompleteness:
         assert len(invalid_segments) == 0, \
             f"Segments with invalid verse refs: {invalid_segments}"
 
+    def test_segment_ids_unique_across_stories(self, manifest_path):
+        """Segment ids are DB primary keys; a duplicate makes the seeder's
+        session.merge() overwrite the earlier story's segment (this dropped
+        21:51-70 from story_ibrahim and the dream from story_yusuf)."""
+        if not manifest_path.exists():
+            pytest.skip("Manifest file not found")
+        manifest = load_manifest(manifest_path)
+        owners: Dict[str, List[str]] = {}
+        for story in manifest.get('stories', []):
+            for segment in story.get('segments', []):
+                owners.setdefault(segment.get('id'), []).append(story.get('id'))
+        dupes = {k: v for k, v in owners.items() if len(v) > 1}
+        assert dupes == {}, f"Duplicate segment ids: {dupes}"
+
+    def test_seeder_rejects_duplicate_segment_ids(self):
+        """The seeder's validator must report duplicate segment ids as errors."""
+        import importlib.util
+        seeder = Path(__file__).parent.parent.parent / "scripts" / "ingest" / "seed_stories.py"
+        spec = importlib.util.spec_from_file_location("seed_stories_mod", seeder)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        manifest = {"stories": [
+            {"id": "story_a", "segments": [{"id": "x"}, {"id": "y"}]},
+            {"id": "story_b", "segments": [{"id": "x"}]},
+        ]}
+        assert mod.find_duplicate_segment_ids(manifest) == {"x": ["story_a", "story_b"]}
+
     def test_minimum_story_count(self, manifest_path):
         """Manifest must have minimum number of stories."""
         if not manifest_path.exists():

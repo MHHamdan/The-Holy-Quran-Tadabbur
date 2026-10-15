@@ -79,6 +79,14 @@ class StoryValidator:
         for story in manifest.get("stories", []):
             self._validate_story(story)
 
+        # Segment ids are primary keys: a duplicate id across stories makes
+        # session.merge() overwrite the earlier segment (last write wins), which
+        # silently dropped core passages from story_ibrahim / yusuf / isa.
+        for seg_id, owners in find_duplicate_segment_ids(manifest).items():
+            self.errors.append(ValidationError(
+                "ERROR", seg_id, f"duplicate segment id in stories {', '.join(owners)}"
+            ))
+
         # Print results
         if self.warnings:
             print(f"\n  WARNINGS ({len(self.warnings)}):")
@@ -206,6 +214,15 @@ class StoryValidator:
 
         self._verse_cache[cache_key] = exists
         return exists
+
+
+def find_duplicate_segment_ids(manifest: dict) -> Dict[str, List[str]]:
+    """Return {segment_id: [story ids]} for every segment id used more than once."""
+    owners: Dict[str, List[str]] = {}
+    for story in manifest.get("stories", []):
+        for seg in story.get("segments", []):
+            owners.setdefault(seg.get("id"), []).append(story.get("id"))
+    return {k: v for k, v in owners.items() if len(v) > 1}
 
 
 def get_db_url() -> str:
