@@ -327,6 +327,46 @@ TAFSIR_CATALOG = {
 }
 
 
+# Short names under which a work is commonly cited ("[Ibn Kathir, 2:255]",
+# "[الطبري، ٢:٢٥٥]"). Citation matching accepts these, the catalogue names
+# and the authors' full names — always as exact (normalised) aliases.
+SOURCE_CITATION_ALIASES: Dict[str, List[str]] = {
+    "ibn_kathir": ["Ibn Kathir", "ابن كثير"],
+    "tabari": ["Al-Tabari", "Tabari", "الطبري", "جامع البيان"],
+    "qurtubi": ["Al-Qurtubi", "Qurtubi", "القرطبي"],
+    "jalalayn": ["Al-Jalalayn", "Jalalayn", "الجلالين"],
+    "muyassar": ["Al-Muyassar", "Muyassar", "الميسر", "التفسير الميسر"],
+    "saadi": ["Al-Sa'di", "As-Saadi", "Al-Saadi", "السعدي"],
+    "ibn_ashur": ["Ibn Ashur", "ابن عاشور"],
+    "baghawi": ["Al-Baghawi", "Baghawi", "البغوي"],
+    "fi_zilal": ["Fi Zilal al-Quran", "في ظلال القرآن"],
+    "sha_rawi": ["Al-Sha'rawi", "الشعراوي"],
+    "tantawi": ["Tantawi", "Al-Wasit", "طنطاوي", "الوسيط"],
+}
+
+
+def source_base_id(source_id: str) -> str:
+    """'ibn_kathir_ar' -> 'ibn_kathir' (DB ids carry a language suffix)."""
+    sid = (source_id or "").strip()
+    for suffix in ("_ar", "_en"):
+        if sid.endswith(suffix):
+            return sid[: -len(suffix)]
+    return sid
+
+
+def catalog_entry(source_id: str) -> Optional[Dict[str, Any]]:
+    """TAFSIR_CATALOG entry for a (possibly language-suffixed) source id."""
+    return TAFSIR_CATALOG.get(source_base_id(source_id))
+
+
+def source_author(source_id: str, language: str = "en") -> Optional[str]:
+    """Catalogued author of a tafsir work, or None when not catalogued (never guessed)."""
+    entry = catalog_entry(source_id)
+    if not entry:
+        return None
+    return entry.get("author_ar" if language == "ar" else "author_en") or None
+
+
 # =============================================================================
 # THEMATIC TAFSIR CATEGORIES
 # =============================================================================

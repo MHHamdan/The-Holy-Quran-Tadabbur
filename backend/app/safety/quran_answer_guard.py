@@ -61,6 +61,25 @@ _FATWA_KEYWORDS = frozenset({
     "فتوى", "يجوز", "يحرم", "المسألة الفقهية",
 })
 
+# Generated answers: phrases where the answer ITSELF asserts a ruling.
+# Keyword spotting ("يجوز", "can i", "حكم") over-blocks ordinary tafsir prose,
+# so model output is checked against these assertions instead.
+_RULING_ASSERTIONS = tuple(re.compile(p, re.IGNORECASE) for p in (
+    r"\b(it|this|that|doing (so|this|that)|such an act|such a thing)\s+is\s+"
+    r"(strictly\s+|absolutely\s+|clearly\s+|therefore\s+)?(haram|halal|forbidden|prohibited|"
+    r"impermissible|permissible|obligatory|mandatory|a (major |grave |minor )?sin|sinful|makruh|"
+    r"lawful|unlawful)\b",
+    r"\bwhoever\b[^.]{0,80}\b(is|are|becomes?)\s+(sinful|a sinner|in sin|cursed|a disbeliever|"
+    r"out of islam)\b",
+    r"\b(you|muslims|a muslim)\s+(are|is)\s+(not\s+)?(allowed|permitted|obliged|required)\s+to\b",
+    r"\b(i|we)\s+(rule|declare)\s+(that|it)\b|\bmy (ruling|fatwa)\b",
+    r"(هذا|ذلك|فهو|فهي|وهو|وهي|إنه|إنها|فإنه|فإنها)\s+(حرام|حلال|محرم|محرمة|مباح|مباحة|واجب|"
+    r"واجبة|جائز|جائزة|مكروه|مكروهة)",
+    r"(لا\s+)?يجوز\s+(لك|لكم|للمسلم|للمسلمة|للمرأة|للرجل)",
+    r"(يأثم|فهو آثم|فهي آثمة)",
+    r"(أفتي|نفتي|فتواي)",
+))
+
 # Keywords that indicate a scientific miracle claim
 _SCIENTIFIC_MIRACLE_KEYWORDS = frozenset({
     "scientific miracle", "science proves", "quran predicted", "modern science",
@@ -164,6 +183,7 @@ class QuranAnswerGuard:
         intent: str,
         *,
         is_translation: bool = False,
+        generated: bool = False,
     ) -> GuardResult:
         """
         Run all guard checks on an answer before it is returned to the user.
@@ -173,6 +193,9 @@ class QuranAnswerGuard:
             source_ids: Source IDs cited in this answer.
             intent: Question intent (tafsir_summary, fatwa_like, scientific_miracle_claim, etc.)
             is_translation: True if this answer is a translation, not tafsir.
+            generated: True for model output (the RAG pipeline). Fatwa content is
+                then detected by ruling ASSERTIONS ("it is haram", "يجوز لك")
+                rather than by bare keywords that also occur in tafsir prose.
 
         Returns:
             GuardResult. If passed=False, the caller must substitute the safe refusal.
@@ -181,7 +204,7 @@ class QuranAnswerGuard:
         labels: List[str] = []
 
         # Rule 1: fatwa-like intent or content → hard block
-        fatwa_block = self._check_fatwa(answer_text, intent)
+        fatwa_block = self._check_fatwa(answer_text, intent, generated=generated)
         if fatwa_block:
             return GuardResult(
                 passed=False,
@@ -290,7 +313,7 @@ class QuranAnswerGuard:
         """Return list of invalid AyahRef objects found in text."""
         return [ref for ref in self.parse_ayah_refs(text) if not ref.is_valid]
 
-    def _check_fatwa(self, text: str, intent: str) -> Optional[str]:
+    def _check_fatwa(self, text: str, intent: str, generated: bool = False) -> Optional[str]:
         """Return a hard-block reason if fatwa-like content is detected."""
         if intent == "fatwa_like":
             return (
@@ -299,13 +322,16 @@ class QuranAnswerGuard:
                 "هذه المنصة لا تُصدر فتاوى دينية. يُرجى الرجوع إلى عالم إسلامي مؤهل."
             )
         text_lower = text.lower()
-        for kw in _FATWA_KEYWORDS:
-            if kw.lower() in text_lower:
-                return (
-                    "Answer contains fatwa-like content. "
-                    "This platform provides informational tafsir only, not religious rulings. "
-                    "— هذه المنصة تقدم معلومات تفسيرية فقط، ولا تُصدر أحكامًا دينية."
-                )
+        if generated:
+            hits = any(p.search(text) for p in _RULING_ASSERTIONS)
+        else:
+            hits = any(kw.lower() in text_lower for kw in _FATWA_KEYWORDS)
+        if hits:
+            return (
+                "Answer contains fatwa-like content. "
+                "This platform provides informational tafsir only, not religious rulings. "
+                "— هذه المنصة تقدم معلومات تفسيرية فقط، ولا تُصدر أحكامًا دينية."
+            )
         return None
 
     def _is_scientific_miracle(self, text: str, intent: str) -> bool:

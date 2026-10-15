@@ -770,14 +770,17 @@ async def delete_session(session_id: str):
 
 class ValidateCitationsRequest(BaseModel):
     """Request schema for citation validation."""
-    answer: str = Field(..., description="Answer text with citations")
-    retrieved_chunk_ids: List[str] = Field(..., description="List of retrieved chunk IDs")
+    answer: str = Field(..., max_length=20000, description="Answer text with citations")
+    retrieved_chunk_ids: List[str] = Field(
+        ..., max_length=50, description="List of retrieved chunk IDs (at most 50)"
+    )
 
 
 @router.post("/validate-citations", response_model=ValidationResult)
 async def validate_citations(
     request: ValidateCitationsRequest,
     session: AsyncSession = Depends(get_async_session),
+    _rate: None = Depends(rag_rate_limit),
 ):
     """
     Validate that all citations in an answer exist in retrieved sources.

@@ -39,6 +39,7 @@ from app.rag.types import (
 )
 from app.safety.grounding import (
     UNVERIFIED_QUOTE_EN,
+    QuranIndex,
     build_corpus_index,
     fence_source,
     is_quran_self_citation,
@@ -54,9 +55,11 @@ REPO = Path(__file__).resolve().parents[3]
 with open(REPO / "data/raw/quran_tanzil.json", encoding="utf-8") as fh:
     _QURAN = json.load(fh)["verses"]
 _VERSE = {(v["sura_no"], v["aya_no"]): v for v in _QURAN}
-QURAN_INDEX = build_corpus_index(t for v in _QURAN for t in (v["aya_text"], v["aya_text_emlaey"]))
+QURAN_INDEX = QuranIndex((v["sura_no"], v["aya_no"], v["aya_text"], v["aya_text_emlaey"]) for v in _QURAN)
 
-KURSI_OPENING = "ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلۡحَيُّ ٱلۡقَيُّومُۚ"
+# Opening words of 2:255, taken from the canonical Tanzil data (never hand-typed).
+_KURSI_WORDS = _VERSE[(2, 255)]["aya_text"].split()
+KURSI_OPENING = " ".join(_KURSI_WORDS[:7])
 # Short, clearly-labelled evidence strings standing in for retrieved tafsir.
 EVIDENCE_MUYASSAR = "TEST-EVIDENCE: الله هو المعبود بحق وحده لا شريك له، الحي القيوم"
 EVIDENCE_KATHIR = "TEST-EVIDENCE: هذه الآية أعظم آية في كتاب الله"
@@ -97,10 +100,15 @@ def _session():
     """Session whose SQL returns canonical Qur'an rows / surah names."""
     async def execute(stmt, params=None):
         sql = str(stmt)
+        if "DISTINCT sura_no" in sql:
+            names = {(v["sura_no"], v["sura_name_ar"], v["sura_name_en"]) for v in _QURAN}
+            return SimpleNamespace(all=lambda: sorted(names))
         if "sura_name_ar" in sql:
             v = _VERSE[(params["s"], 1)]
             return SimpleNamespace(first=lambda: (v["sura_name_ar"], v["sura_name_en"]))
-        rows = [(v["aya_text"], v["aya_text_emlaey"]) for v in _QURAN]
+        if "FROM translations" in sql:
+            return SimpleNamespace(all=lambda: [])
+        rows = [(v["sura_no"], v["aya_no"], v["aya_text"], v["aya_text_emlaey"]) for v in _QURAN]
         return SimpleNamespace(all=lambda: rows)
 
     session = MagicMock()
@@ -111,8 +119,10 @@ def _session():
 @pytest.fixture(autouse=True)
 def _reset_quran_cache():
     RAGPipeline._quran_index = None
+    RAGPipeline._surah_index = None
     yield
     RAGPipeline._quran_index = None
+    RAGPipeline._surah_index = None
 
 
 def _pipeline(llm=None):
@@ -157,7 +167,8 @@ class TestNoFabricatedQuran:
         assert report.removed == [fake]
 
     def test_altered_verse_is_removed(self):
-        altered = KURSI_OPENING.replace("ٱلۡقَيُّومُ", "ٱلۡعَظِيمُ")
+        # Swap the last word for another canonical word (the end of 2:255).
+        altered = KURSI_OPENING.replace(_KURSI_WORDS[6], _KURSI_WORDS[-1])
         out, report = verify_quotations(f"«{altered}»", QURAN_INDEX, "")
         assert report.removed and altered not in out
 

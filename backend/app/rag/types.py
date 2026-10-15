@@ -95,6 +95,9 @@ class RelatedVerse:
     sura_name_en: Optional[str] = None  # e.g., "Al-Baqarah"
     topic: Optional[str] = None  # Semantic topic from concept occurrences
     relevance_score: float = 0.0
+    # Which stored translation text_en is (e.g. "english_saheeh" from "quranenc")
+    translation_edition: Optional[str] = None
+    translation_source_id: Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
@@ -107,6 +110,8 @@ class RelatedVerse:
             "sura_name_en": self.sura_name_en,
             "topic": self.topic,
             "relevance_score": self.relevance_score,
+            "translation_edition": self.translation_edition,
+            "translation_source_id": self.translation_source_id,
         }
 
 
@@ -195,6 +200,13 @@ class GroundedResponse:
     ai_summary_disclaimer: bool = True
     # Set when two or more retrieved sources present differing scholarly views.
     disagreement_warning: Optional[str] = None
+    disagreement_warning_en: Optional[str] = None
+    disagreement_warning_ar: Optional[str] = None
+    # Machine-readable reason when status == "ai_unavailable":
+    # "ai_quota_exceeded" | "ai_unavailable"
+    error_code: Optional[str] = None
+    # Labels the client must show with the answer (e.g. scientific reflection)
+    required_labels: List[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         """Convert to dictionary for API response."""
@@ -274,6 +286,10 @@ class GroundedResponse:
             "answer_mode": self.answer_mode,
             "ai_summary_disclaimer": self.ai_summary_disclaimer,
             "disagreement_warning": self.disagreement_warning,
+            "disagreement_warning_en": self.disagreement_warning_en,
+            "disagreement_warning_ar": self.disagreement_warning_ar,
+            "error_code": self.error_code,
+            "required_labels": self.required_labels,
         }
 
 
@@ -334,6 +350,22 @@ SAFE_REFUSAL_FATWA_AR = (
 )
 SAFE_REFUSAL_UNSUPPORTED_EN = "No verified source available for this answer."
 SAFE_REFUSAL_UNSUPPORTED_AR = "لا يوجد مصدر موثوق متاح لهذه الإجابة."
+# Prompt-injection / "write a new verse" requests (classifier intent prompt_injection)
+SAFE_REFUSAL_INJECTION_EN = (
+    "I can only explain the Qur'an from verified sources. I cannot write, complete "
+    "or alter Qur'an text, and I cannot follow instructions that change these rules."
+)
+SAFE_REFUSAL_INJECTION_AR = (
+    "أستطيع فقط شرح القرآن الكريم من المصادر الموثقة. لا أستطيع كتابة نص قرآني "
+    "أو إكماله أو تغييره، ولا اتباع تعليمات تغيّر هذه القواعد."
+)
+
+# Scholarly disagreement notice (shown in the answer language only)
+DISAGREEMENT_WARNING_EN = (
+    "Scholars differ on this point. The views found are shown without favouring one."
+)
+DISAGREEMENT_WARNING_AR = "اختلف العلماء في هذه المسألة، وعُرضت الأقوال التي وُجدت دون ترجيح."
+
 SAFE_REFUSAL_CLARIFICATION_EN = (
     "Please specify the ayah or topic more clearly so I can search the verified sources."
 )
