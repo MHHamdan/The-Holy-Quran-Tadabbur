@@ -166,6 +166,15 @@ export function SemanticSearchPanel({
         </div>
       )}
 
+      {/* AI service unavailable: keyword results stand in */}
+      {results?.degraded && (
+        <div className="query-expansion" role="status" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          {language === 'ar'
+            ? (results.message_ar ?? 'البحث الدلالي غير متاح مؤقتاً — تُعرض نتائج البحث النصي.')
+            : (results.message_en ?? 'Semantic search is temporarily unavailable — showing keyword results.')}
+        </div>
+      )}
+
       {/* Error Message */}
       {error && (
         <div className="error-message">
