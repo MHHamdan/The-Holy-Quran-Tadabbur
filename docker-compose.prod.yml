@@ -10,7 +10,12 @@
 # Only the web container publishes a port (WEB_PORT, default 8080). TLS: either
 # enable the bundled Caddy terminator with `--profile tls` and PUBLIC_DOMAIN
 # (then set WEB_BIND=127.0.0.1 so 8080 is not reachable from outside), or put
-# your own TLS proxy / load balancer in front of the web port.
+# your own TLS proxy / load balancer in front of the web port. With your own
+# proxy, set TRUSTED_PROXY_CIDRS to the address(es) nginx sees it connect from
+# (an LB's private range, or the docker gateway for a proxy on the host), and
+# make it put the client address last in X-Forwarded-For (overwrite or append)
+# and set X-Forwarded-Proto. Without that every client shares the proxy's
+# address and therefore one set of rate limits.
 
 x-restart: &restart
   restart: unless-stopped
@@ -209,6 +214,10 @@ services:
     <<: [*restart, *logging, *hardening]
     ports:
       - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8080}:8080"
+    environment:
+      # Upstream proxies trusted for X-Forwarded-For/-Proto (comma-separated
+      # addresses or CIDRs). Default: the bundled caddy service.
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-172.28.0.10}
     read_only: true
     tmpfs: [/tmp]
     depends_on:
@@ -235,7 +244,8 @@ services:
       - caddy_config:/config
     networks:
       default:
-        # frontend/nginx.conf trusts X-Forwarded-For only from this address.
+        # nginx (web) trusts X-Forwarded-For only from TRUSTED_PROXY_CIDRS,
+        # which defaults to this address.
         ipv4_address: 172.28.0.10
     depends_on:
       web:
@@ -244,8 +254,9 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 128M }
 
-# Fixed subnet: FORWARDED_ALLOW_IPS (backend) and set_real_ip_from
-# (frontend/nginx.conf, the caddy address 172.28.0.10) depend on it.
+# Fixed subnet: FORWARDED_ALLOW_IPS (backend) and the default
+# TRUSTED_PROXY_CIDRS of the web service (the caddy address 172.28.0.10)
+# depend on it.
 networks:
   default:
     ipam:

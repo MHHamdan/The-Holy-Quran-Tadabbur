@@ -43,6 +43,9 @@ RUN npm run build
 FROM ${NGINX_IMAGE} AS production
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY nginx-security-headers.conf /etc/nginx/snippets/security-headers.conf
+# Renders the trusted upstream proxy list (TRUSTED_PROXY_CIDRS) into /tmp
+# before nginx starts; nginx.conf includes it.
+COPY --chmod=0755 docker-entrypoint.d/15-trusted-proxies.sh /docker-entrypoint.d/15-trusted-proxies.sh
 COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
