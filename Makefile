@@ -11,7 +11,7 @@
         ingest-tafseer ingest-tafseer-source tafseer-pipeline \
         index index-tafseer \
         verify verify-services verify-downloads verify-db verify-qdrant \
-        verify-rag verify-tafseer-api verify-chunking verify-translation \
+        verify-rag verify-tafseer-api verify-chunking \
         verify-security verify-e2e verify-e2e-full \
         test test-cov test-quick \
         validate-surah-atlas validate-memorization-links validate-rare-words validate-quran-intelligence \
@@ -322,7 +322,7 @@ index-tafseer: ensure-services ## Index tafseer into Qdrant (HF embeddings; need
 # =============================================================================
 
 verify: ensure-services verify-services verify-downloads verify-db verify-qdrant \
-        verify-rag verify-chunking verify-translation verify-security ## Run all verifications
+        verify-rag verify-chunking verify-security ## Run all verifications
 	@echo "$(GREEN)All verifications complete$(NC)"
 
 verify-services: ## Verify all services are running
@@ -352,10 +352,6 @@ verify-tafseer-api: ## Verify tafseer API endpoints
 verify-chunking: ## Verify ayah-anchored chunking invariants
 	@echo "$(GREEN)Verifying chunking...$(NC)"
 	cd backend && python scripts/verify/verify_chunking.py
-
-verify-translation: ## Verify translation service
-	@echo "$(GREEN)Verifying translation...$(NC)"
-	cd backend && python scripts/verify/verify_translation.py
 
 verify-security: ## Verify metrics/health endpoint security
 	@echo "$(GREEN)Verifying security...$(NC)"

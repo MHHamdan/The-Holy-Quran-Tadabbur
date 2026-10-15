@@ -6,7 +6,6 @@ Ensures no breaking changes to frontend contracts.
 """
 import pytest
 import sys
-sys.path.insert(0, '/home/mhamdan/tadabbur/backend')
 
 from pydantic import ValidationError
 from app.api.schemas import (

@@ -3,7 +3,6 @@ Tests for Advanced Atlas Service - FANG Level Features
 """
 import pytest
 import sys
-sys.path.insert(0, '/home/mhamdan/tadabbur/backend')
 
 from app.services.advanced_atlas_service import AdvancedAtlasService
 
