@@ -223,9 +223,11 @@ const TodayCard = memo(function TodayCard({ todayHijri, isArabic }: TodayCardPro
       <p className="text-2xl font-bold" aria-live="polite">
         {todayHijri.weekday.ar} - {todayHijri.day} {todayHijri.month.ar} {todayHijri.year}
       </p>
-      <p className="text-purple-100">
-        {todayHijri.weekday.en} - {todayHijri.day} {todayHijri.month.en} {todayHijri.year} AH
-      </p>
+      {!isArabic && (
+        <p className="text-purple-100">
+          {todayHijri.weekday.en} - {todayHijri.day} {todayHijri.month.en} {todayHijri.year} AH
+        </p>
+      )}
     </div>
   );
 });
@@ -281,6 +283,9 @@ interface CalendarDayCellProps {
   tabIndex: number;
 }
 
+/** Gregorian month names as used in the Levant/Gulf (يناير ... ديسمبر). */
+const GREGORIAN_MONTHS_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
 const CalendarDayCell = memo(function CalendarDayCell({
   day,
   isArabic,
@@ -289,7 +294,9 @@ const CalendarDayCell = memo(function CalendarDayCell({
   tabIndex,
 }: CalendarDayCellProps) {
   const displayDay = isArabic ? toArabicNumerals(day.hijri.day) : day.hijri.day;
-  const gregorianDisplay = `${day.gregorian.day} ${day.gregorian.month.en.slice(0, 3)}`;
+  const gregorianDisplay = isArabic
+    ? `${toArabicNumerals(String(Number(day.gregorian.day)))} ${GREGORIAN_MONTHS_AR[day.gregorian.month.number - 1] ?? ''}`
+    : `${day.gregorian.day} ${day.gregorian.month.en.slice(0, 3)}`;
 
   return (
     <div
@@ -586,16 +593,15 @@ const ConversionResult = memo(function ConversionResult({
       </div>
       {result.type === 'toHijri' ? (
         <p className="text-purple-800 text-lg">
-          {(result.result as HijriDate).day}{' '}
-          {(result.result as HijriDate).month.ar} (
-          {(result.result as HijriDate).month.en}){' '}
-          {(result.result as HijriDate).year} AH
+          {isArabic
+            ? `${toArabicNumerals((result.result as HijriDate).day)} ${(result.result as HijriDate).month.ar} ${toArabicNumerals((result.result as HijriDate).year)} هـ`
+            : `${(result.result as HijriDate).day} ${(result.result as HijriDate).month.ar} (${(result.result as HijriDate).month.en}) ${(result.result as HijriDate).year} AH`}
         </p>
       ) : (
         <p className="text-purple-800 text-lg">
-          {(result.result as GregorianDate).day}{' '}
-          {(result.result as GregorianDate).month.en}{' '}
-          {(result.result as GregorianDate).year}
+          {isArabic
+            ? `${toArabicNumerals((result.result as GregorianDate).day)} ${GREGORIAN_MONTHS_AR[(result.result as GregorianDate).month.number - 1] ?? ''} ${toArabicNumerals((result.result as GregorianDate).year)}`
+            : `${(result.result as GregorianDate).day} ${(result.result as GregorianDate).month.en} ${(result.result as GregorianDate).year}`}
         </p>
       )}
     </div>
