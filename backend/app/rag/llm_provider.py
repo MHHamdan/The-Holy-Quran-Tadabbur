@@ -38,6 +38,7 @@ PROVIDER_NAME = "huggingface"
 
 # Reasoning models may emit a hidden chain of thought; it must never reach users.
 _THINK_BLOCK = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
+_THINK_OPEN = re.compile(r"<\s*/?\s*think\s*>", re.IGNORECASE)
 
 
 @dataclass
@@ -88,7 +89,7 @@ class HuggingFaceLLM(BaseLLM):
         from app.core.config import settings
 
         self.model = model or settings.hf_llm_model_id
-        self.timeout = timeout or settings.hf_timeout_seconds
+        self.timeout = timeout or min(settings.hf_timeout_seconds, settings.hf_chat_timeout_seconds)
         self.max_retries = max_retries
 
     async def generate(
@@ -150,7 +151,9 @@ class HuggingFaceLLM(BaseLLM):
             raise HFInferenceError(HFErrorKind.MALFORMED, "chat")
 
         content = _THINK_BLOCK.sub("", content).strip()
-        if not content:
+        # An unclosed <think> (output cut at max_tokens) would leak the chain
+        # of thought: treat it as unusable output.
+        if not content or _THINK_OPEN.search(content):
             raise HFInferenceError(HFErrorKind.MALFORMED, "chat")
 
         usage = getattr(output, "usage", None)

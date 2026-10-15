@@ -15,8 +15,10 @@ request headers, or raw upstream response bodies.
 from __future__ import annotations
 
 import logging
+import threading
+import time
 from enum import Enum
-from typing import Optional
+from typing import Dict, Optional
 
 import httpx
 
@@ -81,10 +83,70 @@ def get_hf_token() -> Optional[str]:
     return value or None
 
 
+# ---------------------------------------------------------------- cooldown
+#
+# After quota exhaustion (402/429) or a rejected token (401/403) every further
+# call is bound to fail, yet each would still pay full latency and burn the
+# worker. Those failures open a short process-wide cooldown during which
+# require_hf_token() fails fast without any HTTP request.
+
+COOLDOWN_SECONDS: Dict[HFErrorKind, float] = {
+    HFErrorKind.QUOTA: 60.0,
+    HFErrorKind.AUTH: 300.0,
+    HFErrorKind.FORBIDDEN: 300.0,
+}
+MAX_RETRY_AFTER_SECONDS = 3600.0
+_cooldown_until: Dict[HFErrorKind, float] = {}
+_cooldown_lock = threading.Lock()
+
+
+def record_failure(err: "HFInferenceError", retry_after: Optional[float] = None) -> None:
+    """Open (or extend) the cooldown for quota/auth failures."""
+    seconds = COOLDOWN_SECONDS.get(err.kind)
+    if seconds is None:
+        return
+    if err.kind == HFErrorKind.QUOTA and retry_after and retry_after > 0:
+        seconds = min(float(retry_after), MAX_RETRY_AFTER_SECONDS)
+    until = time.monotonic() + seconds
+    with _cooldown_lock:
+        if until > _cooldown_until.get(err.kind, 0.0):
+            _cooldown_until[err.kind] = until
+    logger.warning("Hugging Face %s cooldown for %.0fs", err.kind.value, seconds)
+
+
+def active_cooldown() -> Optional[HFErrorKind]:
+    """The failure kind currently cooling down, if any (auth before quota)."""
+    now = time.monotonic()
+    with _cooldown_lock:
+        for kind in (HFErrorKind.AUTH, HFErrorKind.FORBIDDEN, HFErrorKind.QUOTA):
+            if _cooldown_until.get(kind, 0.0) > now:
+                return kind
+    return None
+
+
+def hf_cooldown_state() -> dict:
+    """For health checks: {"active", "kind", "seconds_remaining"} (no secrets)."""
+    kind = active_cooldown()
+    if kind is None:
+        return {"active": False, "kind": None, "seconds_remaining": 0}
+    with _cooldown_lock:
+        remaining = _cooldown_until.get(kind, 0.0) - time.monotonic()
+    return {"active": True, "kind": kind.value, "seconds_remaining": max(0, int(remaining + 0.5))}
+
+
+def reset_cooldown() -> None:
+    """Clear every cooldown (tests, or an operator after rotating the token)."""
+    with _cooldown_lock:
+        _cooldown_until.clear()
+
+
 def require_hf_token(task: str) -> str:
     token = get_hf_token()
     if not token:
         raise HFInferenceError(HFErrorKind.NOT_CONFIGURED, task)
+    kind = active_cooldown()
+    if kind is not None:
+        raise HFInferenceError(kind, task)
     return token
 
 
@@ -125,8 +187,20 @@ def _is_transport(exc: BaseException, base_name: str) -> bool:
     )
 
 
+def _retry_after(response) -> Optional[float]:
+    try:
+        value = response.headers.get("retry-after")
+        return float(value) if value is not None else None
+    except Exception:  # noqa: BLE001 - absent or HTTP-date form: use the default
+        return None
+
+
 def classify_exception(exc: BaseException, task: str) -> HFInferenceError:
-    """Map any exception raised by an HF call to an ``HFInferenceError``."""
+    """
+    Map any exception raised by an HF call to an ``HFInferenceError``.
+
+    Quota and auth failures also open the process-wide cooldown.
+    """
     if isinstance(exc, HFInferenceError):
         return exc
 
@@ -138,7 +212,9 @@ def classify_exception(exc: BaseException, task: str) -> HFInferenceError:
         if status == 400 and _NO_PROVIDER in message:
             # The router answers 400 when no enabled provider serves the model.
             return HFInferenceError(HFErrorKind.MODEL_UNAVAILABLE, task, status)
-        return HFInferenceError(_status_to_kind(status), task, status)
+        err = HFInferenceError(_status_to_kind(status), task, status)
+        record_failure(err, _retry_after(response))
+        return err
 
     try:
         from huggingface_hub.errors import InferenceTimeoutError

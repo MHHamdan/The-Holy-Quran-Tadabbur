@@ -155,7 +155,7 @@ def _post_pairs(model: str, payload: list):
         f"{HF_INFERENCE_BASE}/{model}",
         headers={"Authorization": f"Bearer {require_hf_token('rerank')}"},
         json={"inputs": payload},
-        timeout=settings.hf_timeout_seconds,
+        timeout=min(settings.hf_timeout_seconds, settings.hf_rerank_timeout_seconds),
     )
     response.raise_for_status()
     return response.json()

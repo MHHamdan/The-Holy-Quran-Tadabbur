@@ -86,7 +86,8 @@ def main():
 
     start_time = datetime.now()
     collection_name = os.getenv("QDRANT_COLLECTION", settings.qdrant_collection_tafseer)
-    embedder = HFEmbeddingModel()
+    # Batch indexing: retry transient upstream errors with the full timeout.
+    embedder = HFEmbeddingModel(max_attempts=3, timeout=settings.hf_timeout_seconds)
     dimension = embedder.get_sentence_embedding_dimension()
     print(f"  Model: {embedder.model_name} ({dimension}-d)")
 
