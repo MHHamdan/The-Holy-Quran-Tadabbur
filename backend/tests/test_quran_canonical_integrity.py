@@ -36,27 +36,22 @@ from quran_literal_scan import DERIVED_FIELDS, scan  # noqa: E402
 
 # Files owned by other workstreams that still type Qur'an text; each must be
 # removed from this set when fixed (the test fails if a listed file is clean).
-PENDING_OTHER_WORKSTREAMS = {
-    "frontend/src/data/revelationTimeline.ts",
-    "frontend/src/data/surahAtlas.ts",
-    "frontend/src/pages/QuranPage.tsx",
-    "frontend/src/pages/tools/ZakatCalculatorPage.tsx",
-    "frontend/src/i18n/translations.ts",
-    # Unvowelled quotations found once the scanner checked unvowelled runs.
-    "frontend/src/pages/SearchPage.tsx",
-    "frontend/src/pages/QuranicCallsAtlasPage.tsx",
-    "frontend/src/data/quranicCallPatterns.ts",
-    "frontend/src/data/juzOverview.ts",
-    "frontend/src/data/quranTopicSeeds.ts",
-    "frontend/src/data/quranEntitySeeds.ts",
-    "frontend/src/data/generated/quranTopicAtlas.json",
-    "frontend/src/data/generated/quranProphetStoryPages.json",
-    "frontend/src/data/generated/quranPlacesIndex.json",
-    # Story titles that quote a verse (e.g. 62:5, 17:60) come from
-    # data/manifests/stories.json; fix them there and regenerate these.
-    "frontend/src/data/generated/surahMemoryAtlas.json",
-    "frontend/src/data/generated/quranStoryRegistry.json",
-    "frontend/src/data/generated/quranKnowledgeGraph.json",
+# Reviewed exceptions: short, unvowelled names, titles or notes that use Qur'anic
+# wording without presenting it as a quotation (each sits next to its verse
+# reference). Keyed by (file, exact phrase) so any NEW hand-typed text in these
+# files still fails. Reviewed by the release orchestrator 2026-10-14.
+ALLOWED_NAMED_PHRASES = {
+    ("frontend/src/data/generated/quranKnowledgeGraph.json", "مثل الحمار يحمل أسفاراً"): "story title (62:5)",
+    ("frontend/src/data/generated/quranKnowledgeGraph.json", "الشجرة الملعونة في القرآن"): "story title (17:60)",
+    ("frontend/src/data/generated/quranStoryRegistry.json", "مثل الحمار يحمل أسفاراً"): "story title (62:5)",
+    ("frontend/src/data/generated/quranStoryRegistry.json", "الشجرة الملعونة في القرآن"): "story title (17:60)",
+    ("frontend/src/data/generated/surahMemoryAtlas.json", "مثل الحمار يحمل أسفاراً"): "story title (62:5)",
+    ("frontend/src/data/generated/surahMemoryAtlas.json", "الشجرة الملعونة في القرآن"): "story title (17:60)",
+    ("frontend/src/data/generated/quranPlacesIndex.json", "الصفا والمروة من شعائر الله"): "place note citing 2:158",
+    ("frontend/src/data/generated/quranProphetStoryPages.json", "آتاه الله الملك والحكمة"):
+        "summary wording; echoes 2:251 (about Dawud) - queued for owner review in data/review/owner_review_queue.json",
+    ("frontend/src/i18n/translations.ts", "الذي عنده علم من الكتاب"): "name of a figure (27:40)",
+    ("frontend/src/pages/QuranicCallsAtlasPage.tsx", "يا أيها الذين آمنوا"): "the call formula the atlas is about",
 }
 
 
@@ -177,10 +172,11 @@ def test_no_hand_typed_quran_in_frontend():
     by_file = {}
     for rel, n, run in hits:
         by_file.setdefault(rel, []).append((n, run))
-    unexpected = {f: v for f, v in by_file.items() if f not in PENDING_OTHER_WORKSTREAMS}
-    assert not unexpected, {f: v[:3] for f, v in unexpected.items()}
-    stale = PENDING_OTHER_WORKSTREAMS - set(by_file)
-    assert not stale, f"now clean, remove from PENDING_OTHER_WORKSTREAMS: {stale}"
+    found = {(f, run) for f, v in by_file.items() for _, run in v}
+    unexpected = sorted(found - set(ALLOWED_NAMED_PHRASES))
+    assert not unexpected, unexpected[:10]
+    stale = set(ALLOWED_NAMED_PHRASES) - found
+    assert not stale, f"no longer present, remove from ALLOWED_NAMED_PHRASES: {stale}"
 
 
 def test_scanner_flags_a_single_changed_mark(tmp_path, tanzil):

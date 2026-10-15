@@ -1,117 +1,127 @@
 {
-  "description": "Items that need an owner or scholar decision before anything is re-enabled, re-shown or published. Until an item is resolved, the current handling stays in place. Nothing in this file is rendered by the app.",
-  "source": "Release v1 completion plan (owner_review list) plus content claims withheld during integration.",
-  "last_updated": "2026-10-14",
-  "items": [
-    {
-      "id": "theme_tawheed:112:1-4",
-      "finding_ids": ["themes-mostly-empty"],
-      "reason": "The segment summary stated that Surah Al-Ikhlas equals one-third of the Qur'an, and its evidence snippet said this comes from authentic hadith. No hadith reference (collection, number, grader) was cited, and the snippet is not verbatim tafsir text.",
-      "current_handling": "Claim withheld. summary_ar/summary_en emptied and the evidence snippet removed in backend/app/data/themes/quranic_themes.json (the verse reference 112:1-4 and the ibn_kathir_ar chunk reference are kept). The API also withholds the stored DB text (backend/app/api/routes/themes.py SUMMARY_WITHHELD_SEGMENT_IDS) until the themes are reseeded.",
-      "decision_needed": "Approve removing the claim, or supply a verified hadith source (collection, number, grader) and the exact wording to show."
-    },
-    {
-      "id": "theme_tawheed:2:255",
-      "finding_ids": ["themes-mostly-empty"],
-      "reason": "The segment title and summary called Ayat al-Kursi the greatest verse of the Qur'an, and its evidence snippet said this is established by authentic hadith. No hadith reference was cited, and the snippet is not verbatim tafsir text.",
-      "current_handling": "Claim withheld. Title reduced to the verse name (Ayat al-Kursi), summary_ar/summary_en emptied and the evidence snippet removed in backend/app/data/themes/quranic_themes.json (verse reference 2:255 and the ibn_kathir_ar chunk reference kept). The API withholds the stored DB text and overrides the title (themes.py SUMMARY_WITHHELD_SEGMENT_IDS, _WITHHELD_TITLE_OVERRIDES).",
-      "decision_needed": "Approve removing the claim, or supply a verified hadith source and the exact wording to show."
-    },
-    {
-      "id": "quran-streamlit-serves-kfgqpc / legal-kfgqpc-text-public-repo",
-      "reason": "KFGQPC-derived Qur'an text files are tracked in the public repository: assets/hafs_smart_v8.json, data/raw/quran_uthmani.json, streamlit_data/hafs_smart_v8.json.",
-      "current_handling": "Files still tracked; the app serves the Tanzil text (CC BY 3.0). Nothing deleted and history not purged.",
-      "decision_needed": "Delete the files (and possibly purge history) or obtain written KFGQPC permission; approve replacing the KFGQPC cross-check test with a committed skeleton-fingerprint file."
-    },
-    {
-      "id": "quran-manifest-metadata-inconsistent",
-      "reason": "Tanzil seat orthography at 12:39 and 12:41 (tatweel vs dotless ya) and the authority wording in quran_hafs.json need approval.",
-      "current_handling": "Canonical Tanzil text left unchanged; wording not changed.",
-      "decision_needed": "Approve the Tanzil orthography as canonical display text and the authority wording."
-    },
-    {
-      "id": "quran-mushaf-words-provenance",
-      "reason": "Vocabulary word forms currently come from qurancdn word text; page/line layout data relies on Quran.com API terms.",
-      "current_handling": "Unchanged pending decision.",
-      "decision_needed": "Approve deriving word forms from the canonical Tanzil text and confirm the Quran.com API terms for any layout data kept."
-    },
-    {
-      "id": "tafsir-english-licensed-ingest",
-      "reason": "QuranEnc terms must be confirmed for english_mokhtasar, arabic_mokhtasar and arabic_moyassar.",
-      "current_handling": "Not loaded into the DB; license_verified stays 0 and the feature flag stays off.",
-      "decision_needed": "Confirm the QuranEnc terms in writing before enabling."
-    },
-    {
-      "id": "tafsir-english-db-sources-mislicensed",
-      "reason": "Ibn Kathir EN (Darussalam) and Jalalayn EN (Royal Aal al-Bayt) have no recorded licence.",
-      "current_handling": "Disabled for compare and RAG by migration ws3b; English compare filter returns no unlicensed sources.",
-      "decision_needed": "Decide whether to seek publisher permission to re-enable them."
-    },
-    {
-      "id": "tafsir-copyrighted-english-proxy",
-      "reason": "Ma'arif, Tazkirul Quran, Ibn Kathir EN and al-Wasit are copyrighted English tafsir that were proxied.",
-      "current_handling": "Proxy returns 403; editions removed from the Mushaf UI.",
-      "decision_needed": "Written permission is required before any of them returns."
-    },
-    {
-      "id": "surah-atlas-blocked-maududi-summaries",
-      "reason": "Tafhim al-Qur'an (Maududi) surah intros are copyrighted.",
-      "current_handling": "Blocked / not shown.",
-      "decision_needed": "Publisher permission needed to re-enable."
-    },
-    {
-      "id": "legal-muyassar-and-audio-licences",
-      "reason": "King Fahd Complex terms for al-Tafsir al-Muyassar and the streaming/offline-caching rights for everyayah, islamic.network and quranicaudio are unconfirmed.",
-      "current_handling": "Sources attributed without claiming rights; licence confirmation pending in data/manifests/audio_sources.json.",
-      "decision_needed": "Confirm the terms and record them in data/manifests/audio_sources.json."
-    },
-    {
-      "id": "audio-licensing-confirmation / tafsir-audio-unverified",
-      "reason": "read.tafsir.one tafsir-audio terms are unconfirmed.",
-      "current_handling": "has_audio=false; no tafsir-audio marker in the Mushaf.",
-      "decision_needed": "Confirm the terms before enabling tafsir audio."
-    },
-    {
-      "id": "duas-hadith-unsourced-misattributed / hadith-grades-without-grader / situation-atlas-filler-hadith-ref",
-      "reason": "Hadith texts, numbers, narrators and grades were shown without a verifiable grader; situation references were filler.",
-      "current_handling": "Hidden or labelled; hadith notes not rendered (see data/manifests/review/quranic_names_hadith.json for the names page queue).",
-      "decision_needed": "A scholar must verify each hadith text, number, narrator and grader and supply situation-specific references before anything is re-shown."
-    },
-    {
-      "id": "trivia-sajdah-count-weak-hadith",
-      "reason": "The sajdah-count explanation depends on madhhab differences; the 'heart of the Qur'an' item rests on a weak hadith.",
-      "current_handling": "Item removed / wording held for approval.",
-      "decision_needed": "Approve the sajdah-count wording and the removal of the 'heart of the Qur'an' item."
-    },
-    {
-      "id": "editorial-wonders-paraphrase-labelled-quranic-source",
-      "reason": "Wonders cards paraphrased verses while labelled as Qur'anic source.",
-      "current_handling": "/wonders unlinked from home and hubs; rewritten cards not shown.",
-      "decision_needed": "Approve or reject any rewritten cards before they are shown again."
-    },
-    {
-      "id": "editorial-memorization-pairs-unreviewed-errors / quran-memorization-links-misquote-20-12",
-      "reason": "The 130 memorisation pairs were not scholar-reviewed and at least one (20:12) misquoted.",
-      "current_handling": "Held in a review queue.",
-      "decision_needed": "Scholarly review of all 130 pairs."
-    },
-    {
-      "id": "stories-inter-story-connections-presented-as-fact / stories-chronology-certainty-overstated",
-      "reason": "Five inter-story connections and the chronology ordering were presented as fact.",
-      "current_handling": "The 5 connections are hidden; chronology labelled with its basis.",
-      "decision_needed": "Scholar sign-off on the connections and the chronology ordering."
-    },
-    {
-      "id": "editorial-memory-atlas-false-facts",
-      "reason": "Notable-surah notes in the memory atlas contained false facts.",
-      "current_handling": "Notes shown only when reviewStatus is approved.",
-      "decision_needed": "Approve each note before it is shown again."
-    },
-    {
-      "id": "prompts.py edits (rag-citation-nonnumeric-bypass, rag-prompt-injection-question)",
-      "reason": "Changing the citation examples in backend/app/rag/prompts.py to numeric-only references and fencing the question requires peer review (CLAUDE.md).",
-      "current_handling": "prompts.py unchanged; the validator resolves surah-name citations and the question is fenced and sanitised at the pipeline call site.",
-      "decision_needed": "Peer review of the prompts.py change."
-    }
-  ]
+ "description": "Items that need an owner or scholar decision before anything is re-enabled, re-shown or published. Until an item is resolved, the current handling stays in place. Nothing in this file is rendered by the app.",
+ "source": "Release v1 completion plan (owner_review list) plus content claims withheld during integration.",
+ "last_updated": "2026-10-14",
+ "items": [
+  {
+   "id": "theme_tawheed:112:1-4",
+   "finding_ids": [
+    "themes-mostly-empty"
+   ],
+   "reason": "The segment summary stated that Surah Al-Ikhlas equals one-third of the Qur'an, and its evidence snippet said this comes from authentic hadith. No hadith reference (collection, number, grader) was cited, and the snippet is not verbatim tafsir text.",
+   "current_handling": "Claim withheld. summary_ar/summary_en emptied and the evidence snippet removed in backend/app/data/themes/quranic_themes.json (the verse reference 112:1-4 and the ibn_kathir_ar chunk reference are kept). The API also withholds the stored DB text (backend/app/api/routes/themes.py SUMMARY_WITHHELD_SEGMENT_IDS) until the themes are reseeded.",
+   "decision_needed": "Approve removing the claim, or supply a verified hadith source (collection, number, grader) and the exact wording to show."
+  },
+  {
+   "id": "theme_tawheed:2:255",
+   "finding_ids": [
+    "themes-mostly-empty"
+   ],
+   "reason": "The segment title and summary called Ayat al-Kursi the greatest verse of the Qur'an, and its evidence snippet said this is established by authentic hadith. No hadith reference was cited, and the snippet is not verbatim tafsir text.",
+   "current_handling": "Claim withheld. Title reduced to the verse name (Ayat al-Kursi), summary_ar/summary_en emptied and the evidence snippet removed in backend/app/data/themes/quranic_themes.json (verse reference 2:255 and the ibn_kathir_ar chunk reference kept). The API withholds the stored DB text and overrides the title (themes.py SUMMARY_WITHHELD_SEGMENT_IDS, _WITHHELD_TITLE_OVERRIDES).",
+   "decision_needed": "Approve removing the claim, or supply a verified hadith source and the exact wording to show."
+  },
+  {
+   "id": "quran-streamlit-serves-kfgqpc / legal-kfgqpc-text-public-repo",
+   "reason": "KFGQPC-derived Qur'an text files are tracked in the public repository: assets/hafs_smart_v8.json, data/raw/quran_uthmani.json, streamlit_data/hafs_smart_v8.json.",
+   "current_handling": "Files still tracked; the app serves the Tanzil text (CC BY 3.0). Nothing deleted and history not purged.",
+   "decision_needed": "Delete the files (and possibly purge history) or obtain written KFGQPC permission; approve replacing the KFGQPC cross-check test with a committed skeleton-fingerprint file."
+  },
+  {
+   "id": "quran-manifest-metadata-inconsistent",
+   "reason": "Tanzil seat orthography at 12:39 and 12:41 (tatweel vs dotless ya) and the authority wording in quran_hafs.json need approval.",
+   "current_handling": "Canonical Tanzil text left unchanged; wording not changed.",
+   "decision_needed": "Approve the Tanzil orthography as canonical display text and the authority wording."
+  },
+  {
+   "id": "quran-mushaf-words-provenance",
+   "reason": "Vocabulary word forms currently come from qurancdn word text; page/line layout data relies on Quran.com API terms.",
+   "current_handling": "Unchanged pending decision.",
+   "decision_needed": "Approve deriving word forms from the canonical Tanzil text and confirm the Quran.com API terms for any layout data kept."
+  },
+  {
+   "id": "tafsir-english-licensed-ingest",
+   "reason": "QuranEnc terms must be confirmed for english_mokhtasar, arabic_mokhtasar and arabic_moyassar.",
+   "current_handling": "Not loaded into the DB; license_verified stays 0 and the feature flag stays off.",
+   "decision_needed": "Confirm the QuranEnc terms in writing before enabling."
+  },
+  {
+   "id": "tafsir-english-db-sources-mislicensed",
+   "reason": "Ibn Kathir EN (Darussalam) and Jalalayn EN (Royal Aal al-Bayt) have no recorded licence.",
+   "current_handling": "Disabled for compare and RAG by migration ws3b; English compare filter returns no unlicensed sources.",
+   "decision_needed": "Decide whether to seek publisher permission to re-enable them."
+  },
+  {
+   "id": "tafsir-copyrighted-english-proxy",
+   "reason": "Ma'arif, Tazkirul Quran, Ibn Kathir EN and al-Wasit are copyrighted English tafsir that were proxied.",
+   "current_handling": "Proxy returns 403; editions removed from the Mushaf UI.",
+   "decision_needed": "Written permission is required before any of them returns."
+  },
+  {
+   "id": "surah-atlas-blocked-maududi-summaries",
+   "reason": "Tafhim al-Qur'an (Maududi) surah intros are copyrighted.",
+   "current_handling": "Blocked / not shown.",
+   "decision_needed": "Publisher permission needed to re-enable."
+  },
+  {
+   "id": "legal-muyassar-and-audio-licences",
+   "reason": "King Fahd Complex terms for al-Tafsir al-Muyassar and the streaming/offline-caching rights for everyayah, islamic.network and quranicaudio are unconfirmed.",
+   "current_handling": "Sources attributed without claiming rights; licence confirmation pending in data/manifests/audio_sources.json.",
+   "decision_needed": "Confirm the terms and record them in data/manifests/audio_sources.json."
+  },
+  {
+   "id": "audio-licensing-confirmation / tafsir-audio-unverified",
+   "reason": "read.tafsir.one tafsir-audio terms are unconfirmed.",
+   "current_handling": "has_audio=false; no tafsir-audio marker in the Mushaf.",
+   "decision_needed": "Confirm the terms before enabling tafsir audio."
+  },
+  {
+   "id": "duas-hadith-unsourced-misattributed / hadith-grades-without-grader / situation-atlas-filler-hadith-ref",
+   "reason": "Hadith texts, numbers, narrators and grades were shown without a verifiable grader; situation references were filler.",
+   "current_handling": "Hidden or labelled; hadith notes not rendered (see data/manifests/review/quranic_names_hadith.json for the names page queue).",
+   "decision_needed": "A scholar must verify each hadith text, number, narrator and grader and supply situation-specific references before anything is re-shown."
+  },
+  {
+   "id": "trivia-sajdah-count-weak-hadith",
+   "reason": "The sajdah-count explanation depends on madhhab differences; the 'heart of the Qur'an' item rests on a weak hadith.",
+   "current_handling": "Item removed / wording held for approval.",
+   "decision_needed": "Approve the sajdah-count wording and the removal of the 'heart of the Qur'an' item."
+  },
+  {
+   "id": "editorial-wonders-paraphrase-labelled-quranic-source",
+   "reason": "Wonders cards paraphrased verses while labelled as Qur'anic source.",
+   "current_handling": "/wonders unlinked from home and hubs; rewritten cards not shown.",
+   "decision_needed": "Approve or reject any rewritten cards before they are shown again."
+  },
+  {
+   "id": "editorial-memorization-pairs-unreviewed-errors / quran-memorization-links-misquote-20-12",
+   "reason": "The 130 memorisation pairs were not scholar-reviewed and at least one (20:12) misquoted.",
+   "current_handling": "Held in a review queue.",
+   "decision_needed": "Scholarly review of all 130 pairs."
+  },
+  {
+   "id": "stories-inter-story-connections-presented-as-fact / stories-chronology-certainty-overstated",
+   "reason": "Five inter-story connections and the chronology ordering were presented as fact.",
+   "current_handling": "The 5 connections are hidden; chronology labelled with its basis.",
+   "decision_needed": "Scholar sign-off on the connections and the chronology ordering."
+  },
+  {
+   "id": "editorial-memory-atlas-false-facts",
+   "reason": "Notable-surah notes in the memory atlas contained false facts.",
+   "current_handling": "Notes shown only when reviewStatus is approved.",
+   "decision_needed": "Approve each note before it is shown again."
+  },
+  {
+   "id": "prompts.py edits (rag-citation-nonnumeric-bypass, rag-prompt-injection-question)",
+   "reason": "Changing the citation examples in backend/app/rag/prompts.py to numeric-only references and fencing the question requires peer review (CLAUDE.md).",
+   "current_handling": "prompts.py unchanged; the validator resolves surah-name citations and the question is fenced and sanitised at the pipeline call site.",
+   "decision_needed": "Peer review of the prompts.py change."
+  },
+  {
+   "id": "prophet-story-sulayman-summary-2-251-wording",
+   "reason": "quranProphetStoryPages.json summary for Sulayman uses the wording 'آتاه الله الملك والحكمة', which in 2:251 is said of Dawud. The fact (kingdom and wisdom given to Sulayman) is Qur'anic (27:15-16, 38:35-40, 21:79) but the phrasing should cite the right verse or be reworded by a reviewer.",
+   "current_handling": "shown unchanged; listed as a reviewed exception in backend/tests/test_quran_canonical_integrity.py",
+   "decision_needed": "approve, re-cite or reword (scripts/build-missing-prophet-story-pages.ts)"
+  }
+ ]
 }
