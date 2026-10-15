@@ -59,6 +59,7 @@ import {
   firstPageOfJuz, firstPageOfSurah, surahOnPage, SURAH_REVELATION, TOTAL_MUSHAF_PAGES,
 } from '../components/reader/surahNavigation';
 import { playableUrl } from '../lib/offlineAudio';
+import { AudioSourceAttribution, audioHost } from '../components/quran/AudioSourceAttribution';
 
 // =============================================================================
 // Types & Interfaces
@@ -252,6 +253,8 @@ interface VersePanelProps {
   language: 'ar' | 'en';
   isPlaying: boolean;
   audioError: boolean;
+  /** Host of the recitation file loaded for this verse, for the credit line. */
+  audioSourceHost: string | null;
   onPlayAudio: () => void;
   onOpenAI: () => void;
   onClose: () => void;
@@ -263,6 +266,7 @@ const VersePanel = memo(function VersePanel({
   language,
   isPlaying,
   audioError,
+  audioSourceHost,
   onPlayAudio,
   onOpenAI,
   onClose,
@@ -393,6 +397,7 @@ const VersePanel = memo(function VersePanel({
           {ar ? 'تعذّر تشغيل التلاوة' : 'Could not play recitation'}
         </p>
       )}
+      {isPlaying && <AudioSourceAttribution host={audioSourceHost} language={language} className="px-4 pt-2" />}
 
       {/* Selected Verse Text */}
       <div className="px-6 py-4 bg-amber-50 border-b border-amber-200">
@@ -989,6 +994,7 @@ export function MushafPage() {
   const [showAI, setShowAI] = useState(false);
   const [playingVerseId, setPlayingVerseId] = useState<number | null>(null);
   const [audioError, setAudioError] = useState(false);
+  const [audioSourceHost, setAudioSourceHost] = useState<string | null>(null);
   const [currentTafsirText, setCurrentTafsirText] = useState('');
   // Same-verse, same-reciter alternatives for the verse now loaded.
   const audioFallbacksRef = useRef<string[]>([]);
@@ -1074,6 +1080,7 @@ export function MushafPage() {
       audioFallbacksRef.current = alternatives.filter((u, i) => !!u && u !== primary && alternatives.indexOf(u) === i);
       // Prefer the offline copy when this surah was saved for this reciter.
       audio.src = await playableUrl(selectedReciter, verse.sura_no, primary);
+      setAudioSourceHost(audioHost(primary));
       setPlayingVerseId(verse.id);
       await audio.play().catch(() => undefined);
     } catch {
@@ -1089,6 +1096,7 @@ export function MushafPage() {
     const next = audioFallbacksRef.current.shift();
     if (next) {
       audio.src = next;
+      setAudioSourceHost(audioHost(next));
       audio.play().catch(() => undefined);
       return;
     }
@@ -1470,6 +1478,7 @@ export function MushafPage() {
           language={language}
           isPlaying={playingVerseId === selectedVerse.id}
           audioError={audioError}
+          audioSourceHost={audioSourceHost}
           onPlayAudio={() => playVerse(selectedVerse)}
           onOpenAI={handleOpenAI}
           onClose={() => setSelectedVerse(null)}
