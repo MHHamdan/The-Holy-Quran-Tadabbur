@@ -16,7 +16,15 @@
     </style>
 
 
+    <!-- Launch theme. Android 12+ draws the system splash from the
+         windowSplashScreen* items (brand blue + launcher foreground), so it no
+         longer starts on the default background and then flashes to the
+         legacy blue splash; android:background still serves Android 11 and
+         older. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

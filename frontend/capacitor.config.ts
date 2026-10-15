@@ -39,8 +39,9 @@ const config: CapacitorConfig = {
     },
     Keyboard: {
       // Resize the web view's body so inputs (Ask, Search) stay above the keyboard.
+      // No resizeOnFullScreen: Capacitor 8's SystemBars already pads the view by
+      // the IME inset, and both together leave a double gap above the keyboard.
       resize: 'body',
-      resizeOnFullScreen: true,
     },
     LocalNotifications: {
       // Monochrome status-bar icon (res/drawable/ic_stat_tadabbur.xml);
