@@ -19,6 +19,7 @@
 
 import { readFileSync, existsSync } from 'fs';
 import { spawnSync } from 'child_process';
+import { QURANIC_DUAS } from '../frontend/src/data/quranicDuas';
 import { resolve, join } from 'path';
 
 // ---------------------------------------------------------------------------
@@ -567,6 +568,47 @@ function readEnabledDbSources(): { rows: DbSourceRow[]; error?: string } {
 }
 
 // ---------------------------------------------------------------------------
+// Duʿā excerpts: verbatim Tanzil Uthmani, one segment per verse of the range
+// ---------------------------------------------------------------------------
+
+const DUA_SEGMENT_SEPARATOR = ' ۝ ';
+
+function checkDuasVerbatim(ayahs: QuranAyah[]): CheckResult {
+  return check('Duʿā Arabic (quranicDuas.ts) is verbatim Tanzil text for its range', () => {
+    const errors: string[] = [];
+    const byKey = new Map(ayahs.map((a) => [`${a.sura_no}:${a.aya_no}`, String(a.aya_text ?? '')]));
+    for (const dua of QURANIC_DUAS) {
+      const last = dua.ayahEnd ?? dua.ayah;
+      const segments = dua.ayatUthmani.split(DUA_SEGMENT_SEPARATOR);
+      const expected = last - dua.ayah + 1;
+      if (segments.length !== expected) {
+        errors.push(`${dua.id}: ${segments.length} segment(s) for ${expected} verse(s) ${dua.surah}:${dua.ayah}-${last}`);
+        continue;
+      }
+      segments.forEach((seg, i) => {
+        const ref = `${dua.surah}:${dua.ayah + i}`;
+        const verse = byKey.get(ref);
+        if (!verse) {
+          errors.push(`${dua.id}: no verse ${ref}`);
+          return;
+        }
+        const at = verse.indexOf(seg);
+        if (!seg.trim() || at === -1) {
+          errors.push(`${dua.id}: segment ${i + 1} is not verbatim text of ${ref}`);
+          return;
+        }
+        const before = at === 0 ? ' ' : verse[at - 1];
+        const after = at + seg.length === verse.length ? ' ' : verse[at + seg.length];
+        if (before !== ' ' || after !== ' ') {
+          errors.push(`${dua.id}: segment ${i + 1} of ${ref} does not start and end on word boundaries`);
+        }
+      });
+    }
+    return { errors, warnings: [] };
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Qur'an excerpts: generated file matches the canonical text
 // ---------------------------------------------------------------------------
 
@@ -634,6 +676,7 @@ async function main() {
     results.push(checkNoEmptyArabicText(ayahs));
     results.push(checkArabicTextNotEnglish(ayahs));
     results.push(checkAyahCountPerSurah(ayahs));
+    results.push(checkDuasVerbatim(ayahs));
   } else if (existsSync(QURAN_JSON_PATH)) {
     results.push({
       name: 'Quran data loaded',
