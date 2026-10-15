@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Bookmark, Trash2, ExternalLink, BookmarkX, Search, X, Pencil, Check } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { useBookmarksStore } from '../stores/bookmarksStore';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import clsx from 'clsx';
 
 function toArabicNumber(n: number): string {
@@ -272,6 +273,9 @@ export function BookmarksPage() {
           );
         })}
       </div>
+      {bookmarks.length > 0 && (
+        <QuranTextAttribution language={language} className="mt-6 text-center" />
+      )}
     </div>
   );
 }

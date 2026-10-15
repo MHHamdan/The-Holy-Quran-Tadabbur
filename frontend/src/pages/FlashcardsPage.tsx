@@ -234,7 +234,7 @@ export function FlashcardsPage() {
                     : (ar ? `أول آية في سورة ${SURAH_NAMES[current.surah - 1]?.ar}` : `The first verse of ${SURAH_NAMES[current.surah - 1]?.en}`)}
                 </p>
                 {cue && (
-                  <p className={clsx('text-xl leading-loose text-gray-800', quranFont)}>
+                  <p className={clsx('text-xl leading-loose text-gray-800', quranFont)} lang="ar">
                     {verseTextFor(cue, script).replace(/^\uFEFF/, '')}
                   </p>
                 )}
@@ -251,7 +251,7 @@ export function FlashcardsPage() {
                 </button>
               ) : target ? (
                 <div className="rounded-xl border-2 border-emerald-200 p-4" dir="rtl">
-                  <p className={clsx('text-2xl leading-loose text-gray-900', quranFont)}>
+                  <p className={clsx('text-2xl leading-loose text-gray-900', quranFont)} lang="ar">
                     {verseTextFor(target, script).replace(/^\uFEFF/, '')}
                   </p>
                   <Link
