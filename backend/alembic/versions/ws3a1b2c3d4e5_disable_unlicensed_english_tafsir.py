@@ -14,7 +14,7 @@ credited to their translator.
 Idempotent: safe to re-run.
 
 Revision ID: ws3a1b2c3d4e5
-Revises: u0v1w2x3y4z5
+Revises: ws2a1b2c3d4e5
 Create Date: 2026-10-14
 """
 from typing import Sequence, Union
@@ -22,7 +22,7 @@ from typing import Sequence, Union
 from alembic import op
 
 revision: str = "ws3a1b2c3d4e5"
-down_revision: Union[str, None] = "u0v1w2x3y4z5"
+down_revision: Union[str, None] = "ws2a1b2c3d4e5"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

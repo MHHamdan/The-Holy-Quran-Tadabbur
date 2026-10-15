@@ -6,7 +6,7 @@ a UUID public_id and require the token returned once at creation; only its
 SHA-256 is stored.
 
 Revision ID: ws5a1b2c3d4e5
-Revises: u0v1w2x3y4z5
+Revises: ws4b2c3d4e5f6
 Create Date: 2026-10-14
 """
 from typing import Sequence, Union
@@ -14,7 +14,7 @@ from typing import Sequence, Union
 from alembic import op
 
 revision: str = "ws5a1b2c3d4e5"
-down_revision: Union[str, None] = "u0v1w2x3y4z5"
+down_revision: Union[str, None] = "ws4b2c3d4e5f6"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

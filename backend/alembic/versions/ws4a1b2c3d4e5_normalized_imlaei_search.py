@@ -16,7 +16,7 @@ Also adds:
 Idempotent: IF NOT EXISTS everywhere; re-running the backfill is harmless.
 
 Revision ID: ws4a1b2c3d4e5
-Revises: u0v1w2x3y4z5
+Revises: ws3b2c3d4e5f6
 Create Date: 2026-10-14
 """
 from typing import Sequence, Union
@@ -25,7 +25,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "ws4a1b2c3d4e5"
-down_revision: Union[str, None] = "u0v1w2x3y4z5"
+down_revision: Union[str, None] = "ws3b2c3d4e5f6"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
