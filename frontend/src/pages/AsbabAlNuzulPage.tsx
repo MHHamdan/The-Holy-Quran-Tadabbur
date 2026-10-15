@@ -6,7 +6,7 @@
  * Source: al-Wahidi (d. 468 AH) via alquran.cloud ar.wahidi edition.
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { Fragment, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -69,15 +69,18 @@ function AsbabCard({
   const ref = `${surah}:${ayah}`;
   const surahName = SURAH_NAMES[surah - 1];
 
+  // Highlight matches as React <mark> elements; the API text is rendered as
+  // text nodes only, never parsed as HTML.
   const highlighted = useMemo(() => {
-    if (!highlight.trim()) return text;
-    const escaped = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
-    return parts.map((p) =>
-      new RegExp(escaped, 'i').test(p)
-        ? `<mark class="bg-yellow-200 text-yellow-900 rounded px-0.5">${p}</mark>`
-        : p
-    ).join('');
+    const q = highlight.trim();
+    if (!q) return text;
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matcher = new RegExp(`^${escaped}$`, 'i');
+    return text.split(new RegExp(`(${escaped})`, 'gi')).map((p, i) =>
+      matcher.test(p)
+        ? <mark key={i} className="bg-yellow-200 text-yellow-900 rounded px-0.5">{p}</mark>
+        : <Fragment key={i}>{p}</Fragment>
+    );
   }, [text, highlight]);
 
   return (
@@ -107,8 +110,9 @@ function AsbabCard({
         <p
           dir="rtl"
           className="text-base leading-loose text-gray-800 font-arabic text-right"
-          dangerouslySetInnerHTML={{ __html: highlighted }}
-        />
+        >
+          {highlighted}
+        </p>
       </div>
     </div>
   );

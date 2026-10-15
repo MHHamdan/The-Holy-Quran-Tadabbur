@@ -615,7 +615,7 @@ function PrayerTimesPageContent() {
 
   // Geolocation
   const { state: geoState, getCurrentPosition } = useGeolocation({
-    enableHighAccuracy: true,
+    enableHighAccuracy: false, // coarse is enough; only ~1 km precision is sent anyway
     timeout: 10000,
   });
 

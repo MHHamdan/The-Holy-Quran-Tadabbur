@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, MapPin, Navigation, Clock, Phone, Globe, Loader2, Search, Filter, Compass, ExternalLink } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
+import { coarsen, safeHttpUrl } from '../../lib/islamicApis';
+import { Dialog } from '../../components/ui/Dialog';
 import clsx from 'clsx';
 
 interface Place {
@@ -83,7 +85,8 @@ export function MosqueFinderPage() {
         setError(errorMsg);
         setLocationLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      // Coarse location is enough for nearby places and the Qibla bearing.
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 10 * 60 * 1000 }
     );
   }, [isArabic]);
 
@@ -117,16 +120,20 @@ export function MosqueFinderPage() {
     try {
       // Build Overpass API query for mosques
       const overpassUrl = 'https://overpass-api.de/api/interpreter';
+      // Only a rounded position (~1 km) leaves the device; the exact one is
+      // kept for local distances and the Qibla bearing.
+      const qLat = coarsen(location.lat);
+      const qLon = coarsen(location.lon);
 
       let query = '';
       if (selectedType === 'mosque') {
         query = `
           [out:json][timeout:25];
           (
-            node["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${location.lat},${location.lon});
-            way["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${location.lat},${location.lon});
-            node["building"="mosque"](around:${radius},${location.lat},${location.lon});
-            way["building"="mosque"](around:${radius},${location.lat},${location.lon});
+            node["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${qLat},${qLon});
+            way["amenity"="place_of_worship"]["religion"="muslim"](around:${radius},${qLat},${qLon});
+            node["building"="mosque"](around:${radius},${qLat},${qLon});
+            way["building"="mosque"](around:${radius},${qLat},${qLon});
           );
           out body center;
         `;
@@ -134,8 +141,8 @@ export function MosqueFinderPage() {
         query = `
           [out:json][timeout:25];
           (
-            node["cuisine"~"halal|muslim"](around:${radius},${location.lat},${location.lon});
-            node["diet:halal"="yes"](around:${radius},${location.lat},${location.lon});
+            node["cuisine"~"halal|muslim"](around:${radius},${qLat},${qLon});
+            node["diet:halal"="yes"](around:${radius},${qLat},${qLon});
           );
           out body;
         `;
@@ -143,8 +150,8 @@ export function MosqueFinderPage() {
         query = `
           [out:json][timeout:25];
           (
-            node["amenity"="community_centre"]["religion"="muslim"](around:${radius},${location.lat},${location.lon});
-            node["name"~"islamic|muslim|masjid",i](around:${radius},${location.lat},${location.lon});
+            node["amenity"="community_centre"]["religion"="muslim"](around:${radius},${qLat},${qLon});
+            node["name"~"islamic|muslim|masjid",i](around:${radius},${qLat},${qLon});
           );
           out body;
         `;
@@ -152,8 +159,8 @@ export function MosqueFinderPage() {
         query = `
           [out:json][timeout:25];
           (
-            node["shop"~"supermarket|convenience"]["diet:halal"="yes"](around:${radius},${location.lat},${location.lon});
-            node["name"~"halal",i]["shop"](around:${radius},${location.lat},${location.lon});
+            node["shop"~"supermarket|convenience"]["diet:halal"="yes"](around:${radius},${qLat},${qLon});
+            node["name"~"halal",i]["shop"](around:${radius},${qLat},${qLon});
           );
           out body;
         `;
@@ -424,11 +431,17 @@ export function MosqueFinderPage() {
         )}
       </div>
 
-      {/* Place Detail Modal */}
-      {selectedPlace && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+      {/* Place Detail Dialog */}
+      <Dialog
+        open={!!selectedPlace}
+        onClose={() => setSelectedPlace(null)}
+        labelledBy="place-dialog-title"
+        dir={isArabic ? 'rtl' : 'ltr'}
+        className="max-w-lg p-6"
+      >
+        {selectedPlace && (
+          <>
+            <h3 id="place-dialog-title" className="text-xl font-bold text-gray-900 mb-2">
               {isArabic && selectedPlace.name_ar ? selectedPlace.name_ar : selectedPlace.name}
             </h3>
 
@@ -454,11 +467,11 @@ export function MosqueFinderPage() {
                   </a>
                 </div>
               )}
-              {selectedPlace.website && (
+              {safeHttpUrl(selectedPlace.website) && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Globe className="w-4 h-4 text-gray-400" />
+                  <Globe className="w-4 h-4 text-gray-500" aria-hidden="true" />
                   <a
-                    href={selectedPlace.website}
+                    href={safeHttpUrl(selectedPlace.website) ?? undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-teal-600 hover:underline flex items-center gap-1"
@@ -491,9 +504,9 @@ export function MosqueFinderPage() {
                 {isArabic ? 'الاتجاهات' : 'Directions'}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Dialog>
     </div>
   );
 }
