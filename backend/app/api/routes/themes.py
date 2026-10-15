@@ -283,6 +283,25 @@ class SegmentEvidenceResponse(BaseModel):
 
 
 # =============================================================================
+# Withheld segment summaries (owner review)
+#
+# These segment summaries state a hadith claim (e.g. "Surah Al-Ikhlas equals
+# one-third of the Quran") without a hadith citation, and the attached
+# evidence "snippet" is not text from the cited tafsir chunk. Until the owner
+# sources or removes the claim, the summary and snippet are withheld; the
+# segment itself (verse reference) is still served.
+# =============================================================================
+
+SUMMARY_WITHHELD_SEGMENT_IDS = frozenset({"theme_tawheed:112:1-4"})
+
+
+def _public_summary(segment_id: Optional[str], text_value: Optional[str]) -> str:
+    if segment_id in SUMMARY_WITHHELD_SEGMENT_IDS:
+        return ""
+    return text_value or ""
+
+
+# =============================================================================
 # LISTING ENDPOINTS
 # =============================================================================
 
@@ -834,8 +853,8 @@ async def get_themes_by_ayah(
             segment_id=o.segment_id,
             segment_title_ar=o.segment_title_ar,
             segment_title_en=o.segment_title_en,
-            summary_ar=o.summary_ar,
-            summary_en=o.summary_en,
+            summary_ar=_public_summary(o.segment_id, o.summary_ar),
+            summary_en=_public_summary(o.segment_id, o.summary_en),
         )
         for o in occurrences
     ]
@@ -963,8 +982,8 @@ async def get_theme_segments(
                 verse_reference=getattr(s, 'verse_reference', f"{s.sura_no}:{s.ayah_start}-{s.ayah_end}"),
                 title_ar=s.title_ar,
                 title_en=s.title_en,
-                summary_ar=s.summary_ar,
-                summary_en=s.summary_en,
+                summary_ar=_public_summary(s.id, s.summary_ar),
+                summary_en=_public_summary(s.id, s.summary_en),
                 semantic_tags=getattr(s, 'semantic_tags', []),
                 revelation_context=getattr(s, 'revelation_context', None),
                 is_entry_point=getattr(s, 'is_entry_point', False),
@@ -1027,6 +1046,13 @@ async def get_segment_evidence(
 
     if not evidence:
         raise HTTPException(status_code=404, detail=f"Segment not found: {segment_id}")
+
+    if segment_id in SUMMARY_WITHHELD_SEGMENT_IDS:
+        evidence = dict(evidence)
+        evidence["evidence_sources"] = [
+            {k: v for k, v in (src or {}).items() if k != "snippet"}
+            for src in evidence.get("evidence_sources", [])
+        ]
 
     return SegmentEvidenceResponse(**evidence)
 
@@ -1126,8 +1152,8 @@ async def get_theme_timeline(
             verse_reference=t.verse_reference,
             title_ar=t.title_ar,
             title_en=t.title_en,
-            summary_ar=t.summary_ar,
-            summary_en=t.summary_en,
+            summary_ar=_public_summary(t.segment_id, t.summary_ar),
+            summary_en=_public_summary(t.segment_id, t.summary_en),
             revelation_context=t.revelation_context,
             is_entry_point=t.is_entry_point,
             is_verified=t.is_verified,

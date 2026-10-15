@@ -263,7 +263,9 @@ def seed_segments(session: Session, data: dict) -> int:
             semantic_tags=segment.get("semantic_tags", []),
             revelation_context=segment.get("revelation_context"),
             is_entry_point=segment.get("is_entry_point", False),
-            is_verified=True,  # Manually curated
+            # Curated, but not scholar-reviewed: never published as verified
+            # (the evidence chunk ids did not resolve to tafseer_chunks).
+            is_verified=False,
             importance_weight=segment.get("importance_weight", 0.5),
             evidence_sources=evidence_sources,
             evidence_chunk_ids=evidence_chunk_ids,
