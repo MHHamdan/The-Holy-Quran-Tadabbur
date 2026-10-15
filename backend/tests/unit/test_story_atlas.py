@@ -278,6 +278,15 @@ class TestPlaceTimeBasis:
         badr = badr[: badr.index('"era_basis"') + 40]
         assert '"era_basis": "tradition"' in badr
 
+    def test_evidence_basis_enums_match_stored_values(self):
+        """Both EvidenceBasis enums accept every value the seed/DB may store."""
+        from app.models.story_atlas import EvidenceBasis as ModelBasis
+        from app.verify.registry import EvidenceBasis as RegistryBasis
+
+        allowed = {"explicit", "inferred", "tradition", "unknown"}
+        assert {b.value for b in ModelBasis} == allowed
+        assert {b.value for b in RegistryBasis} == allowed
+
     def test_places_have_basis(self, db_session):
         """Each place must have a basis (explicit, inferred, or unknown)."""
         result = db_session.execute(text("""

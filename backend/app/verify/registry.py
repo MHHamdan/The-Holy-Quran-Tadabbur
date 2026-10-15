@@ -52,6 +52,7 @@ class EvidenceBasis(str, Enum):
     """Basis for claims."""
     EXPLICIT = "explicit"    # صريح في القرآن
     INFERRED = "inferred"    # مستنبط من التفسير
+    TRADITION = "tradition"  # من الروايات والتاريخ (غير مذكور في القرآن)
     UNKNOWN = "unknown"      # غير محدد
 
 
