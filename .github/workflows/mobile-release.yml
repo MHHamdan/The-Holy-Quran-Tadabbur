@@ -1,23 +1,35 @@
 # Mobile release builds.
 #
-# - android: Play-ready App Bundle (AAB). Signed with the upload key when the
-#   ANDROID_UPLOAD_* secrets exist; otherwise built unsigned with a warning.
-# - ios: compiles the app for devices with Xcode, unsigned
-#   (CODE_SIGNING_ALLOWED=NO). Proves the native project builds; signing,
-#   archiving and App Store upload still need the owner's Apple account.
+# - android: Play-ready App Bundle (AAB), linted, version-stamped and checked
+#   with bundletool. Signed with the upload key when the ANDROID_UPLOAD_*
+#   secrets exist; branch builds without them are unsigned with a warning, and
+#   a v* tag without them FAILS (an unsigned bundle cannot be uploaded).
+# - ios: compiles the app for devices with Xcode 26 (App Store Connect only
+#   accepts builds made with Xcode 26 / the iOS 26 SDK since 2026-04-28),
+#   unsigned (CODE_SIGNING_ALLOWED=NO). Proves the native project builds.
+# - ios-upload (v* tags only): signed archive + App Store Connect upload with
+#   an App Store Connect API key. Fails when the Apple secrets are missing.
+#
+# Version numbers (scripts/store/release_version.sh): the build number is the
+# workflow run number (Android versionCode, iOS CURRENT_PROJECT_VERSION), so it
+# increases with every run; the version name is the tag without "v"
+# (v1.2.0-rc1 -> versionName 1.2.0-rc1, iOS MARKETING_VERSION 1.2.0).
 #
 # Runs on pushes that touch the app, version tags (v*), and manually. Secrets
 # are only read on pushes/tags/manual runs in this repository, never on pull
 # requests, so forks cannot reach them.
 #
 # Repository variables (Settings > Secrets and variables > Actions > Variables):
-#   PRODUCTION_API_URL   public HTTPS API origin compiled into the apps (required
-#                        for a store build; a CI placeholder is used otherwise)
+#   PRODUCTION_API_URL   public HTTPS API origin compiled into the apps
+#                        (required for a v* tag; a CI placeholder otherwise)
+#   PRIVACY_CONTACT      privacy contact e-mail shown on /privacy (required for
+#                        a v* tag: Play and App Store expect a contact point)
 #   PUBLIC_WEB_URL       public web address for shared verse links (optional)
-#   PRIVACY_CONTACT      privacy contact e-mail shown on /privacy (optional)
-# Repository secrets (Android signing):
-#   ANDROID_UPLOAD_KEYSTORE_BASE64, ANDROID_UPLOAD_STORE_PASSWORD,
-#   ANDROID_UPLOAD_KEY_ALIAS, ANDROID_UPLOAD_KEY_PASSWORD
+# Repository secrets:
+#   Android signing  ANDROID_UPLOAD_KEYSTORE_BASE64, ANDROID_UPLOAD_STORE_PASSWORD,
+#                    ANDROID_UPLOAD_KEY_ALIAS, ANDROID_UPLOAD_KEY_PASSWORD
+#   iOS upload       APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64
+#                    (App Store Connect API key with the App Manager role)
 
 name: Mobile release
 
@@ -27,6 +39,7 @@ on:
     branches: ["**"]
     paths:
       - "frontend/**"
+      - "scripts/store/**"
       - ".github/workflows/mobile-release.yml"
     tags: ["v*"]
   workflow_dispatch:
@@ -42,14 +55,19 @@ env:
   VITE_API_URL: ${{ vars.PRODUCTION_API_URL || 'https://api.ci-placeholder.invalid' }}
   VITE_PUBLIC_WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
   VITE_PRIVACY_CONTACT: ${{ vars.PRIVACY_CONTACT }}
+  # Version name for branch builds; tags use their own vX.Y.Z.
+  APP_VERSION_DEFAULT: "1.0.0"
+  # Minimum Xcode major for App Store Connect uploads.
+  XCODE_MAJOR_MIN: "26"
 
 jobs:
   android:
     name: Android App Bundle
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     defaults:
       run:
+        shell: bash
         working-directory: frontend
     steps:
       - uses: actions/checkout@v5
@@ -62,30 +80,55 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+      - name: Store build needs the production API URL and a privacy contact
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          API_URL: ${{ vars.PRODUCTION_API_URL }}
+          PRIVACY: ${{ vars.PRIVACY_CONTACT }}
+        run: ../scripts/store/require_release_vars.sh
+      - name: Version numbers
+        id: ver
+        run: ../scripts/store/release_version.sh
       - run: npm ci --no-audit --no-fund
-      - name: Store build needs the production API URL
-        if: startsWith(github.ref, 'refs/tags/v') && vars.PRODUCTION_API_URL == ''
-        run: |
-          echo "::error::Set the PRODUCTION_API_URL repository variable before tagging a release."
-          exit 1
       - run: npm run build:mobile
       - run: npx cap sync android
-      - name: Upload key (from secrets, if configured)
+      - name: Capacitor config has no Keyboard.resizeOnFullScreen
+        run: |
+          test -f android/app/src/main/assets/capacitor.config.json
+          if grep -q resizeOnFullScreen android/app/src/main/assets/capacitor.config.json; then
+            echo "::error::resizeOnFullScreen conflicts with Capacitor 8 SystemBars IME handling"; exit 1
+          fi
+      - name: Upload key (from secrets; required on v* tags)
         id: key
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
         run: |
           if [ -n "$KEYSTORE_B64" ]; then
+            if [ -z "$STORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+              echo "::error::ANDROID_UPLOAD_KEYSTORE_BASE64 is set but a password or the key alias is missing."; exit 1
+            fi
             echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
             echo "store_file=$RUNNER_TEMP/upload.jks" >> "$GITHUB_OUTPUT"
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "::error::ANDROID_UPLOAD_* secrets are not set: a release tag must produce a signed, uploadable bundle."
+            exit 1
           else
             echo "::warning::ANDROID_UPLOAD_* secrets not set: building an UNSIGNED bundle (not uploadable to Play)."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
           fi
+      - name: Android lint (release variant)
+        run: cd android && ./gradlew :app:lintRelease --no-daemon
       - name: Build release bundle
         env:
+          TADABBUR_VERSION_CODE: ${{ steps.ver.outputs.code }}
+          TADABBUR_VERSION_NAME: ${{ steps.ver.outputs.name }}
           TADABBUR_UPLOAD_STORE_FILE: ${{ steps.key.outputs.store_file }}
           TADABBUR_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
           TADABBUR_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
@@ -96,31 +139,75 @@ jobs:
       - name: Remove the decoded key
         if: always()
         run: rm -f "$RUNNER_TEMP/upload.jks"
-      - uses: actions/upload-artifact@v4
+      - name: Bundle manifest (version, permissions, backup rules)
+        env:
+          AAB: android/app/build/outputs/bundle/release/app-release.aab
+          EXPECT_CODE: ${{ steps.ver.outputs.code }}
+          EXPECT_NAME: ${{ steps.ver.outputs.name }}
+        run: ../scripts/store/check_aab.sh
+      - name: Bundle signature
+        if: steps.key.outputs.signed == 'true'
+        run: |
+          out="$(jarsigner -verify android/app/build/outputs/bundle/release/app-release.aab 2>&1)"
+          echo "$out" | tail -5
+          echo "$out" | grep -q "jar verified." || { echo "::error::the release bundle is not signed"; exit 1; }
+      - uses: actions/upload-artifact@v7
         with:
           name: tadabbur-android-aab
           path: frontend/android/app/build/outputs/bundle/release/*.aab
           retention-days: 14
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: android-lint-report
+          path: frontend/android/app/build/reports/lint-results-release.*
+          if-no-files-found: ignore
+          retention-days: 14
 
   ios:
-    name: iOS device build (unsigned)
+    name: iOS device build (Xcode 26, unsigned)
     runs-on: macos-15
     timeout-minutes: 45
     defaults:
       run:
+        shell: bash
         working-directory: frontend
     steps:
       - uses: actions/checkout@v5
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "26"
+      - name: Xcode 26 or newer (App Store Connect requirement)
+        run: ../scripts/store/require_xcode.sh
       - uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      - name: Store build needs the production API URL and a privacy contact
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          API_URL: ${{ vars.PRODUCTION_API_URL }}
+          PRIVACY: ${{ vars.PRIVACY_CONTACT }}
+        run: ../scripts/store/require_release_vars.sh
+      - name: Version numbers
+        id: ver
+        run: ../scripts/store/release_version.sh
+      - name: Privacy manifest is valid and declares the file-timestamp API
+        run: |
+          plutil -lint ios/App/App/PrivacyInfo.xcprivacy
+          plutil -extract NSPrivacyAccessedAPITypes.0.NSPrivacyAccessedAPIType raw ios/App/App/PrivacyInfo.xcprivacy | grep -qx NSPrivacyAccessedAPICategoryFileTimestamp
+          plutil -extract NSPrivacyAccessedAPITypes.0.NSPrivacyAccessedAPITypeReasons.0 raw ios/App/App/PrivacyInfo.xcprivacy | grep -qx C617.1
+          plutil -lint ios/ExportOptions.plist
       - run: npm ci --no-audit --no-fund
       - run: npm run build:mobile
       - run: npx cap sync ios
       - name: Xcode build for devices, without signing
+        env:
+          BUILD_NUMBER: ${{ steps.ver.outputs.code }}
+          MARKETING: ${{ steps.ver.outputs.marketing }}
         run: |
+          set -o pipefail
           xcodebuild -version
           xcodebuild \
             -project ios/App/App.xcodeproj \
@@ -129,12 +216,143 @@ jobs:
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -derivedDataPath "$RUNNER_TEMP/dd" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" MARKETING_VERSION="$MARKETING" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
-            build | tail -40
+            build 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log" | tail -40
+          grep -Eq 'iPhoneOS(2[6-9]|[3-9][0-9])[.0-9]*\.sdk' "$RUNNER_TEMP/xcodebuild.log" \
+            || { echo "::error::the build did not use an iOS 26+ SDK"; exit 1; }
           ls "$RUNNER_TEMP/dd/Build/Products/Release-iphoneos/"
-      - name: Bundle contains the privacy manifest and Arabic name
+      - name: Build warnings
+        if: always()
+        run: |
+          echo "Distinct compiler/linker warnings:"
+          grep -E ': warning:' "$RUNNER_TEMP/xcodebuild.log" 2>/dev/null | sort -u | head -100 || true
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: ios-xcodebuild-log
+          path: ${{ runner.temp }}/xcodebuild.log
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Bundle contains the privacy manifest, Arabic name and version
+        env:
+          BUILD_NUMBER: ${{ steps.ver.outputs.code }}
+          MARKETING: ${{ steps.ver.outputs.marketing }}
         run: |
           APP="$RUNNER_TEMP/dd/Build/Products/Release-iphoneos/App.app"
           test -f "$APP/PrivacyInfo.xcprivacy"
+          plutil -extract NSPrivacyAccessedAPITypes.0.NSPrivacyAccessedAPIType raw "$APP/PrivacyInfo.xcprivacy" | grep -qx NSPrivacyAccessedAPICategoryFileTimestamp
           test -f "$APP/ar.lproj/InfoPlist.strings"
-          plutil -p "$APP/Info.plist" | grep -E "CFBundleIdentifier|NSLocationWhenInUseUsageDescription|ITSAppUsesNonExemptEncryption"
+          plutil -p "$APP/Info.plist" | grep -E "CFBundleIdentifier|NSLocationWhenInUseUsageDescription|ITSAppUsesNonExemptEncryption|CFBundleVersion|CFBundleShortVersionString"
+          test "$(plutil -extract CFBundleVersion raw "$APP/Info.plist")" = "$BUILD_NUMBER"
+          test "$(plutil -extract CFBundleShortVersionString raw "$APP/Info.plist")" = "$MARKETING"
+
+  ios-upload:
+    # Signed archive + upload to App Store Connect (TestFlight), tags only.
+    # Needs the owner's Apple Developer Program membership, the App ID
+    # com.mhamdan.tadabbur, the App Store Connect app record and an API key.
+    name: iOS archive and App Store Connect upload
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: ios
+    runs-on: macos-15
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+        working-directory: frontend
+    steps:
+      - name: Apple secrets are configured
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        working-directory: .
+        run: |
+          missing=""
+          for v in APPLE_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8_BASE64; do
+            [ -n "${!v}" ] || missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::missing repository secrets for the App Store upload:$missing"; exit 1
+          fi
+      - uses: actions/checkout@v5
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "26"
+      - name: Xcode 26 or newer (App Store Connect requirement)
+        run: ../scripts/store/require_xcode.sh
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Store build needs the production API URL and a privacy contact
+        env:
+          API_URL: ${{ vars.PRODUCTION_API_URL }}
+          PRIVACY: ${{ vars.PRIVACY_CONTACT }}
+        run: ../scripts/store/require_release_vars.sh
+      - name: Version numbers
+        id: ver
+        run: ../scripts/store/release_version.sh
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build:mobile
+      - run: npx cap sync ios
+      - name: App Store Connect API key
+        env:
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          umask 077
+          echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/AuthKey.p8"
+          cp ios/ExportOptions.plist "$RUNNER_TEMP/ExportOptions.plist"
+          plutil -replace teamID -string "$APPLE_TEAM_ID" "$RUNNER_TEMP/ExportOptions.plist"
+      - name: Archive (signed, automatic provisioning)
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          BUILD_NUMBER: ${{ steps.ver.outputs.code }}
+          MARKETING: ${{ steps.ver.outputs.marketing }}
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Automatic \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" MARKETING_VERSION="$MARKETING" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            archive 2>&1 | tee "$RUNNER_TEMP/xcodebuild-archive.log" | tail -40
+      - name: Export and upload to App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            2>&1 | tee "$RUNNER_TEMP/xcodebuild-export.log" | tail -40
+      - name: Remove the API key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/AuthKey.p8"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: ios-archive-logs
+          path: |
+            ${{ runner.temp }}/xcodebuild-archive.log
+            ${{ runner.temp }}/xcodebuild-export.log
+          if-no-files-found: ignore
+          retention-days: 14
