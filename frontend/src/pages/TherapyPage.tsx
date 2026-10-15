@@ -3,6 +3,14 @@ import { Heart, AlertTriangle, ArrowLeft, Loader2, Sparkles, BookOpen } from 'lu
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import { therapyApi } from '../lib/api';
+import {
+  deleteTherapySessions,
+  forgetTherapySessions,
+  rememberTherapySession,
+  rememberedTherapySessions,
+  saveReflection,
+} from '../lib/therapySessions';
+import { startPendingErasureRetry } from '../lib/dataErasure';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { LiveVerse } from '../components/quran/LiveVerse';
 import {
@@ -73,6 +81,9 @@ function loadReflections(): ReflectionEntry[] {
   }
 }
 
+// The journal shows the latest 50 entries. Deletion does not depend on this
+// list: every session's {id, token} is kept separately (lib/therapySessions),
+// pruned only by age.
 function saveReflections(entries: ReflectionEntry[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, 50)));
@@ -107,7 +118,17 @@ export function TherapyPage() {
 
   const [reflections, setReflections] = useState<ReflectionEntry[]>(loadReflections);
   const [chatSessionIds, setChatSessionIds] = useState<string[]>([]);
+  // Every guidance/chat session this device holds a key for (not capped at 50)
+  const [knownSessionIds, setKnownSessionIds] = useState<string[]>(
+    () => rememberedTherapySessions().filter(k => k.token).map(k => k.id),
+  );
+  const refreshKnownSessions = useCallback(() => {
+    setKnownSessionIds(rememberedTherapySessions().filter(k => k.token).map(k => k.id));
+  }, []);
   const [personalization, setPersonalization] = useState<PersonalizationContext>(loadPersonalization);
+
+  // Finish any "Delete my data" that could not reach the server earlier
+  useEffect(() => { startPendingErasureRetry(); }, []);
 
   // Load healing themes on mount
   useEffect(() => {
@@ -134,6 +155,9 @@ export function TherapyPage() {
         reinforcement_index: personalization.reinforcement_index,
       });
       setGuidance(result);
+      // Keep the session key (id + one-time token) before anything else
+      rememberTherapySession(result.session_id, (result as { client_token?: string | null }).client_token);
+      refreshKnownSessions();
       // Show reinforcement briefly after cards appear
       setTimeout(() => setShowReinforcement(true), 600);
 
@@ -167,7 +191,7 @@ export function TherapyPage() {
     } finally {
       setAsking(false);
     }
-  }, [language]);
+  }, [language, refreshKnownSessions]);
 
   const handleThemeSelect = useCallback(async (key: string) => {
     if (key === selectedTheme) {
@@ -192,7 +216,7 @@ export function TherapyPage() {
   }, [selectedTheme]);
 
   const handleSaveReflection = useCallback(async (sessionId: string, text: string) => {
-    await therapyApi.saveReflection({ session_id: sessionId, reflection: text });
+    await saveReflection(sessionId, text);
     setReflections(prev => {
       const updated = prev.map(e =>
         e.session_id === sessionId ? { ...e, reflection: text } : e
@@ -203,28 +227,35 @@ export function TherapyPage() {
   }, []);
 
   const handleDeleteReflection = useCallback((sessionId: string) => {
-    // Also erase the server copy; the local list is updated either way.
-    therapyApi.deleteSessions([sessionId]).catch(() => undefined);
+    // Also erase the server copy. Its key is forgotten only once the server
+    // confirms, so a failed delete is still covered by "Delete my data".
+    const key = rememberedTherapySessions().find(k => k.id === sessionId) ?? { id: sessionId, createdAt: Date.now() };
+    deleteTherapySessions([key])
+      .then(() => { forgetTherapySessions([sessionId]); refreshKnownSessions(); })
+      .catch(() => undefined);
     setReflections(prev => {
       const updated = prev.filter(e => e.session_id !== sessionId);
       saveReflections(updated);
       return updated;
     });
-  }, []);
+  }, [refreshKnownSessions]);
 
   const handleChatSessionCreated = useCallback((id: string) => {
     setChatSessionIds(prev => prev.includes(id) ? prev : [id, ...prev]);
-  }, []);
+    refreshKnownSessions();
+  }, [refreshKnownSessions]);
 
   const currentGuidance = guidance ?? themeData;
   const activeCards = guidance?.cards ?? themeData?.cards ?? [];
   const activeDisclaimer = guidance?.disclaimer_en ?? themeData?.disclaimer_en;
 
-  // All session IDs for insights (guidance + chat)
-  const allSessionIds = [
+  // All session IDs for insights and the journal (guidance + chat); the
+  // calls send each id with its token
+  const allSessionIds = [...new Set([
     ...reflections.map(r => r.session_id),
     ...chatSessionIds,
-  ];
+    ...knownSessionIds,
+  ])];
 
   const tabs: Array<{ key: TabKey; label: string }> = [
     { key: 'guidance', label: t('therapy_guidance_tab', language) },

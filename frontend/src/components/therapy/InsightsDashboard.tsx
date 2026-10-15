@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { BarChart2, TrendingUp, TrendingDown, Minus, Heart, Star, Sprout } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t, translateTheme } from '../../i18n/translations';
-import { therapyApi } from '../../lib/api';
+import { fetchInsights } from '../../lib/therapySessions';
 import type { InsightsResponse } from '../../types/therapy';
 import { EmotionGrowthMap } from './EmotionGrowthMap';
 import clsx from 'clsx';
@@ -23,7 +23,7 @@ export function InsightsDashboard({ sessionIds }: InsightsDashboardProps) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    therapyApi.getInsights(sessionIds, language)
+    fetchInsights(sessionIds, language)
       .then(data => { if (!cancelled) setInsights(data); })
       .catch(() => { if (!cancelled) setError('Could not load insights'); })
       .finally(() => { if (!cancelled) setLoading(false); });

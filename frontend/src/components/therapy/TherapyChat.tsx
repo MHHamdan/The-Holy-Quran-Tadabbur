@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, Bot, User, BookOpen, AlertCircle, Heart, Shield, Sparkles, Compass } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t, type Language } from '../../i18n/translations';
-import { therapyApi } from '../../lib/api';
+import { chatTurn } from '../../lib/therapySessions';
 import type { ChatResponse, GuidanceCard as GuidanceCardType } from '../../types/therapy';
 import { SpiritualGuidanceCard } from './SpiritualGuidanceCard';
 import clsx from 'clsx';
@@ -48,6 +48,7 @@ export function TherapyChat({ initialEmotion, onSessionCreated }: TherapyChatPro
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [conversationSessionId, setConversationSessionId] = useState<string | null>(null);
+  const [conversationToken, setConversationToken] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,16 +71,20 @@ export function TherapyChat({ initialEmotion, onSessionCreated }: TherapyChatPro
     }));
 
     try {
-      const data = await therapyApi.chat({
+      const data = await chatTurn({
         message: text,
         language,
         emotion_override: initialEmotion,
         session_id: conversationSessionId ?? undefined,
+        session_token: conversationToken ?? undefined,
         conversation_context: priorContext.length > 0 ? priorContext : undefined,
       });
 
-      if (!conversationSessionId) {
+      // A client_token means the server started a session (first turn, or the
+      // old one expired); chatTurn has already stored its key on the device.
+      if (data.client_token) {
         setConversationSessionId(data.session_id);
+        setConversationToken(data.client_token);
         onSessionCreated?.(data.session_id);
       }
 

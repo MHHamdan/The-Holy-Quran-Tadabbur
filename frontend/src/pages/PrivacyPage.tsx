@@ -4,12 +4,19 @@
  * with backend/app/api/routes (therapy, tasmee, feedback, search) and
  * frontend/src/lib/islamicApis.ts when they change.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { ShieldCheck, Trash2 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
-import { eraseAllMyData } from '../lib/dataErasure';
+import {
+  eraseAllMyData,
+  hasPendingErasure,
+  pendingErasureParts,
+  retryPendingErasure,
+  startPendingErasureRetry,
+  type ErasurePart,
+} from '../lib/dataErasure';
 
 const EFFECTIVE = '2026-10-14';
 const CONTACT = (import.meta.env.VITE_PRIVACY_CONTACT || '').trim();
@@ -36,11 +43,13 @@ const SECTIONS: Section[] = [
   {
     title: { en: 'Sent to our server', ar: 'ما يُرسل إلى خادمنا' },
     items: [
-      { en: 'Questions you ask the AI assistant, to answer them with cited sources. The conversation is kept for up to 24 hours so follow-up questions work, then deleted.', ar: 'الأسئلة التي توجّهها إلى المساعد الذكي، للإجابة عنها مع ذكر المصادر. تُحفظ المحادثة مدة أقصاها ٢٤ ساعة لتعمل الأسئلة المتابِعة، ثم تُحذف.' },
-      { en: 'Spiritual guidance: your message is used to answer and is not stored. We keep the detected feeling, the theme and the verse references shown, without anything that identifies you, for up to 180 days. A reflection you choose to save is kept with it until you delete it or 180 days pass.', ar: 'الإرشاد الروحي: تُستخدم رسالتك للإجابة ولا تُحفظ. نحتفظ بالشعور المكتشَف والموضوع ومراجع الآيات المعروضة، دون أي معرّف لك، مدة أقصاها ١٨٠ يومًا. والتأمّل الذي تختار حفظه يبقى معها حتى تحذفه أو تمضي ١٨٠ يومًا.' },
+      { en: 'Questions you ask the AI assistant, to answer them with cited sources. The conversation is kept for up to 24 hours so follow-up questions work, then deleted; "Delete my data" deletes it sooner.', ar: 'الأسئلة التي توجّهها إلى المساعد الذكي، للإجابة عنها مع ذكر المصادر. تُحفظ المحادثة مدة أقصاها ٢٤ ساعة لتعمل الأسئلة المتابِعة، ثم تُحذف، ويحذفها زر «حذف بياناتي» قبل ذلك.' },
+      { en: 'Spiritual guidance and its conversation mode: your message is used to answer and is not stored. We keep the detected feeling, the theme and the verse references shown, without anything that identifies you, for up to 180 days. A reflection you choose to save is kept with it until you delete it or 180 days pass. Each session is locked with a secret key that only this device holds, so only this device can read or delete it.', ar: 'الإرشاد الروحي ووضع المحادثة فيه: تُستخدم رسالتك للإجابة ولا تُحفظ. نحتفظ بالشعور المكتشَف والموضوع ومراجع الآيات المعروضة، دون أي معرّف لك، مدة أقصاها ١٨٠ يومًا. والتأمّل الذي تختار حفظه يبقى معها حتى تحذفه أو تمضي ١٨٠ يومًا. وكل جلسة محمية بمفتاح سري لا يملكه إلا هذا الجهاز، فلا يقرؤها أو يحذفها غيره.' },
       { en: 'Recitation practice (Tasmeeʿ): microphone audio is streamed while you recite, turned into text to compare with the verse, and never saved. The recognised words and possible mistakes of each session are kept without your identity for up to 90 days, then deleted; "Delete my data" removes this device\'s sessions sooner.', ar: 'التسميع: يُرسل صوت الميكروفون أثناء التلاوة ويُحوَّل إلى نص لمقارنته بالآية، ولا يُحفظ الصوت أبدًا. وتُحفظ الكلمات المتعرَّف عليها والأخطاء المحتملة لكل جلسة دون هويتك مدة أقصاها ٩٠ يومًا ثم تُحذف، ويحذف زر «حذف بياناتي» جلسات هذا الجهاز قبل ذلك.' },
-      { en: 'Feedback you send: your message and the page it is about. No name or contact details are requested.', ar: 'الملاحظات التي ترسلها: نص ملاحظتك والصفحة التي تخصها. لا نطلب اسمًا ولا وسيلة تواصل.' },
-      { en: 'Searches: the query, to return results. Recent searches may also be held in server memory for your session and are lost on restart.', ar: 'البحث: نص البحث لإرجاع النتائج. وقد تُحفظ عمليات البحث الأخيرة مؤقتًا في ذاكرة الخادم لجلستك وتزول عند إعادة تشغيله.' },
+      { en: 'Feedback you send: your message and the page it is about. No name or contact details are requested. Feedback is not linked to your device, so "Delete my data" cannot find it; ask us through the contact below to remove a message.', ar: 'الملاحظات التي ترسلها: نص ملاحظتك والصفحة التي تخصها. لا نطلب اسمًا ولا وسيلة تواصل. ولا ترتبط الملاحظات بجهازك، فلا يستطيع زر «حذف بياناتي» الوصول إليها؛ اطلب منّا حذفها عبر وسيلة التواصل أدناه.' },
+      { en: 'Our server is backed up daily; backups are kept for up to five weeks and then overwritten, so deleted data can remain in a backup until then.', ar: 'يُنسخ خادمنا احتياطيًا كل يوم، وتُحفظ النسخ مدة أقصاها خمسة أسابيع ثم تُستبدل، فقد تبقى البيانات المحذوفة في نسخة احتياطية حتى ذلك الحين.' },
+      { en: 'Searches: the query, to return results. Your recent searches may also be held in server memory under a random key from this device, to suggest them back to you only; they are never shown to anyone else, and are removed after 30 days, on restart, or by "Delete my data".', ar: 'البحث: نص البحث لإرجاع النتائج. وقد تُحفظ عمليات بحثك الأخيرة مؤقتًا في ذاكرة الخادم بمفتاح عشوائي من هذا الجهاز، لاقتراحها عليك وحدك؛ فلا تُعرض لأي شخص آخر، وتُحذف بعد ٣٠ يومًا أو عند إعادة تشغيل الخادم أو بزر «حذف بياناتي».' },
+      { en: 'Dhikr counts stay on your device. Older versions of the app also sent anonymous daily dhikr totals (no identifier of any kind); those are deleted after 30 days.', ar: 'يبقى عدّاد الأذكار على جهازك. وكانت إصدارات أقدم من التطبيق ترسل مجاميع يومية مجهولة للأذكار (دون أي معرّف)، وتُحذف تلك بعد ٣٠ يومًا.' },
       { en: 'Your IP address is held in memory for about a minute to limit abuse, and is not written to our logs.', ar: 'يُحفظ عنوان IP في الذاكرة نحو دقيقة للحدّ من الإساءة، ولا يُكتب في سجلاتنا.' },
     ],
   },
@@ -80,17 +89,45 @@ const SECTIONS: Section[] = [
 export function PrivacyPage() {
   const { language } = useLanguageStore();
   const ar = language === 'ar';
-  const [state, setState] = useState<'idle' | 'working' | 'done' | 'partial'>('idle');
+  const [state, setState] = useState<'idle' | 'working' | 'done' | 'partial'>(
+    () => (hasPendingErasure() ? 'partial' : 'idle'),
+  );
+  const [pending, setPending] = useState<ErasurePart[]>(pendingErasureParts);
   const pick = (b: Bi) => (ar ? b.ar : b.en);
+
+  // A previous "Delete my data" that could not reach the server is retried
+  // here (and whenever the device comes back online).
+  useEffect(() => {
+    startPendingErasureRetry();
+    if (!hasPendingErasure()) return;
+    let cancelled = false;
+    retryPendingErasure()
+      .then((r) => {
+        if (cancelled || !r) return;
+        setPending(r.pending);
+        setState(r.serverError ? 'partial' : 'done');
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
 
   async function erase() {
     if (!confirm(ar
-      ? 'سيُحذف كل ما حفظه التطبيق لك على هذا الجهاز وعلى خادمنا. لا يمكن التراجع. متابعة؟'
-      : 'This deletes everything the app keeps for you on this device and on our server. It cannot be undone. Continue?')) return;
+      ? 'سيُحذف من خادمنا ما أنشأه هذا الجهاز: جلسات الإرشاد ومحادثاته والتأمّلات المحفوظة، وجلسات التسميع، وعمليات البحث الأخيرة، ومحادثة المساعد الذكي. ثم تُحذف كل بيانات التطبيق من هذا الجهاز. لا يشمل ذلك الملاحظات التي أرسلتها (فهي غير مرتبطة بجهازك)، ولا النسخ الاحتياطية للخادم التي تُستبدل خلال خمسة أسابيع. لا يمكن التراجع. متابعة؟'
+      : 'This deletes from our server what this device created: guidance sessions and conversations with any saved reflections, Tasmeeʿ sessions, recent searches and the AI assistant conversation. Then it deletes all app data from this device. It does not include feedback you sent (it is not linked to your device) or server backups, which are overwritten within five weeks. It cannot be undone. Continue?')) return;
     setState('working');
     const result = await eraseAllMyData();
+    setPending(result.pending);
     setState(result.serverError ? 'partial' : 'done');
   }
+
+  const PART_NAMES: Record<ErasurePart, Bi> = {
+    guidance: { en: 'guidance sessions and reflections', ar: 'جلسات الإرشاد والتأمّلات' },
+    tasmee: { en: 'Tasmeeʿ sessions', ar: 'جلسات التسميع' },
+    search: { en: 'recent searches', ar: 'عمليات البحث الأخيرة' },
+    assistant: { en: 'the AI assistant conversation', ar: 'محادثة المساعد الذكي' },
+  };
+  const pendingNames = pending.map((p) => pick(PART_NAMES[p])).join(ar ? '، ' : ', ');
 
   return (
     <div className={clsx('max-w-3xl mx-auto px-4 sm:px-6 py-8', ar && 'font-arabic')} dir={ar ? 'rtl' : 'ltr'}>
@@ -125,13 +162,13 @@ export function PrivacyPage() {
         <h2 className="text-lg font-semibold text-red-900 mb-1">{ar ? 'حذف بياناتي' : 'Delete my data'}</h2>
         <p className="text-sm text-red-800 mb-3">
           {ar
-            ? 'يحذف من خادمنا جلسات الإرشاد والتأمّلات وجلسات التسميع التي أنشأها هذا الجهاز، ثم يحذف من جهازك كل بيانات التطبيق، ونسخة نص القرآن المحفوظة للقراءة دون اتصال، والتلاوات المحفوظة، والتذكير.'
-            : 'First deletes the guidance sessions, reflections and Tasmeeʿ sessions this device created from our server, then deletes from this device all app data, the Qur\'an text saved for offline reading, saved recitations and the reminder.'}
+            ? 'يحذف أولًا من خادمنا ما أنشأه هذا الجهاز: جلسات الإرشاد ومحادثاته والتأمّلات، وجلسات التسميع، وعمليات البحث الأخيرة، ومحادثة المساعد الذكي. ثم يحذف من جهازك كل بيانات التطبيق، ونسخة نص القرآن المحفوظة للقراءة دون اتصال، والتلاوات المحفوظة، والتذكير. إذا تعذّر الوصول إلى الخادم، يحتفظ الجهاز بمفاتيح ما لم يُحذف بعد ويعيد المحاولة تلقائيًا.'
+            : 'First deletes from our server what this device created: guidance sessions and conversations with their reflections, Tasmeeʿ sessions, recent searches and the AI assistant conversation. Then deletes from this device all app data, the Qur\'an text saved for offline reading, saved recitations and the reminder. If the server cannot be reached, the device keeps only the keys to what is still on the server and tries again automatically.'}
         </p>
         <button
           type="button"
           onClick={erase}
-          disabled={state === 'working' || state === 'done'}
+          disabled={state === 'working'}
           className="inline-flex min-h-11 items-center gap-2 px-4 py-2 rounded-lg bg-red-700 text-white text-sm font-medium hover:bg-red-800 disabled:opacity-50"
         >
           <Trash2 className="w-4 h-4" />
@@ -142,8 +179,8 @@ export function PrivacyPage() {
             {state === 'done'
               ? (ar ? 'حُذفت بياناتك.' : 'Your data has been deleted.')
               : (ar
-                ? 'حُذفت بيانات الجهاز، لكن تعذّر الوصول إلى الخادم. احتفظنا بمفاتيح جلسات التسميع على جهازك لتتمكّن من إعادة المحاولة لاحقًا.'
-                : 'Device data was deleted, but the server could not be reached. The keys to this device\'s Tasmeeʿ sessions were kept so you can try again later.')}
+                ? `حُذفت بيانات الجهاز، لكن لم يُحذف بعدُ من الخادم: ${pendingNames || 'بعض البيانات'}. احتفظ الجهاز بمفاتيحها فقط، وستُعاد المحاولة تلقائيًا عند الاتصال بالإنترنت أو عند فتح التطبيق، أو اضغط الزر مرة أخرى.`
+                : `Device data was deleted, but these are not yet deleted from the server: ${pendingNames || 'some data'}. Only their keys were kept on this device; deletion is retried automatically when you are online or reopen the app, or press the button again.`)}
           </p>
         )}
       </section>
