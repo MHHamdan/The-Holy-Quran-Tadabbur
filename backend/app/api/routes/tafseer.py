@@ -658,7 +658,8 @@ async def list_comparable_sources(
                     "language", "era", "era_label_ar", "era_label_en",
                     "death_year_hijri", "death_year_ce", "methodology",
                     "methodology_label_ar", "methodology_label_en",
-                    "word_count", "license_verified",
+                    "word_count", "license_verified", "license",
+                    "source_url", "translator",
                 )
             }
             for entry in result["entries"]

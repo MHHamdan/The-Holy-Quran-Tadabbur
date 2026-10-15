@@ -37,6 +37,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
+import { getSourceById } from '../../data/sourceRegistry';
 import clsx from 'clsx';
 
 // =============================================================================
@@ -231,6 +232,82 @@ export function TafsirMarkedText({ text }: { text: string }) {
   }
   if (buf) parts.push(buf);
   return <>{parts}</>;
+}
+
+// =============================================================================
+// Attribution footer (exported so other tafsir views, e.g. the Mushaf sheet,
+// show the same title, author, licence and source line)
+// =============================================================================
+
+const HOST_LABELS: Record<string, string> = {
+  quran_com: 'Quran.com',
+  quran_tafseer: 'quran-tafseer.com',
+  tafsir_one: 'read.tafsir.one',
+};
+
+export interface TafsirAttributionEdition {
+  id: string;
+  name_ar: string;
+  name_en: string;
+  author_ar: string;
+  author_en: string;
+  db_source_id?: string;
+}
+
+export function TafsirAttributionFooter({
+  edition,
+  source,
+  sourceUrl,
+  language,
+}: {
+  edition: TafsirAttributionEdition;
+  /** Host the text was fetched from (API `source` field). */
+  source: string;
+  sourceUrl?: string;
+  language: 'ar' | 'en';
+}) {
+  const ar = language === 'ar';
+  const registry = edition.db_source_id ? getSourceById(edition.db_source_id) : undefined;
+  const host = HOST_LABELS[source] ?? source;
+  return (
+    <div
+      className={clsx('pt-2 border-t border-gray-100 text-xs text-gray-500 space-y-0.5', ar && 'font-arabic')}
+      dir={ar ? 'rtl' : 'ltr'}
+    >
+      <p>
+        <span dir={ar ? 'rtl' : 'ltr'}>{ar ? edition.name_ar : edition.name_en}</span>
+        {' — '}
+        <span>{ar ? edition.author_ar : edition.author_en}</span>
+        {' · '}
+        <bdi dir="ltr" className="font-mono text-[10px]">{edition.db_source_id ?? edition.id}</bdi>
+      </p>
+      <p>
+        {ar ? 'الترخيص: ' : 'Licence: '}
+        {registry ? (
+          <span dir="ltr" lang="en">{registry.licenseOrTerms}</span>
+        ) : (
+          <span>{ar ? 'غير موثّق بعد' : 'not yet recorded'}</span>
+        )}
+      </p>
+      <p className="flex items-center gap-2 flex-wrap">
+        <span>
+          {ar ? 'المصدر: ' : 'Source: '}
+          <bdi dir="ltr">{host}</bdi>
+        </span>
+        {sourceUrl && (
+          <a
+            href={sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700 hover:underline"
+          >
+            <ExternalLink className="w-3 h-3" />
+            {ar ? 'عرض المصدر' : 'View source'}
+          </a>
+        )}
+      </p>
+    </div>
+  );
 }
 
 // =============================================================================
@@ -545,13 +622,6 @@ export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: Tafsir
     ? `https://read.tafsir.one/audio/${selectedEdition.slug}/${String(sura).padStart(3, '0')}.mp3`
     : null;
 
-  const sourceLabel =
-    tafsirData?.source === 'quran_com'
-      ? 'Quran.com'
-      : tafsirData?.source === 'quran_tafseer'
-      ? 'quran-tafseer.com'
-      : 'read.tafsir.one';
-
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* Header */}
@@ -860,26 +930,19 @@ export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: Tafsir
                 </div>
               </CollapsibleSection>
 
-              {/* Source Attribution */}
-              <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-gray-100">
-                <span>
-                  {language === 'ar' ? 'المصدر: ' : 'Source: '}
-                  {sourceLabel}
-                </span>
-                <a
-                  href={
-                    tafsirData.source === 'quran_com'
-                      ? `https://quran.com/${sura}/${ayah}/tafsirs`
-                      : `https://read.tafsir.one/${selectedEdition.slug}`
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-amber-600 hover:text-amber-700 hover:underline"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  {language === 'ar' ? 'عرض المصدر' : 'View Source'}
-                </a>
-              </div>
+              {/* Source attribution: title, author, licence and where the text came from */}
+              <TafsirAttributionFooter
+                edition={selectedEdition}
+                source={tafsirData.source}
+                sourceUrl={
+                  tafsirData.source === 'quran_com'
+                    ? `https://quran.com/${sura}/${ayah}/tafsirs`
+                    : tafsirData.source === 'quran_tafseer'
+                    ? 'http://quran-tafseer.com'
+                    : `https://read.tafsir.one/${selectedEdition.slug}`
+                }
+                language={language}
+              />
             </>
           ) : (
             <div className="text-center py-8 text-gray-400">

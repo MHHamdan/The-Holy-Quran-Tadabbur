@@ -1,10 +1,27 @@
+/**
+ * Sources & licences — every source the app shows text or data from.
+ *
+ * Sections are built from SOURCE_REGISTRY (frontend/src/data/sourceRegistry.ts),
+ * so a source cannot be used without appearing here; blocked sources and
+ * entries no longer used at runtime are left out. The tafsir section keeps the
+ * live list from /rag/sources. No numeric "reliability" score is shown to
+ * readers: ranking classical scholars by percentage is not something the app
+ * can source. Admin mode (enable/disable sources) only appears with ?admin=1
+ * or an admin token already in this tab.
+ */
 import { useState, useEffect } from 'react';
-import { BookOpen, Shield, CheckCircle, AlertCircle, ChevronDown, ChevronUp, ToggleLeft, ToggleRight, Lock, X, Key } from 'lucide-react';
+import { BookOpen, Shield, CheckCircle, AlertCircle, ChevronDown, ChevronUp, ToggleLeft, ToggleRight, Lock, X, Key, ExternalLink } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { ragApi, TafseerSource } from '../lib/api';
 import clsx from 'clsx';
 import { SourceBadge } from '../components/common/SourceBadge';
-import type { ReliabilityLevel } from '../data/sourceRegistry';
+import {
+  SOURCE_REGISTRY,
+  isSourceDisplayBlocked,
+  type ReliabilityLevel,
+  type Source,
+  type SourceType,
+} from '../data/sourceRegistry';
 
 function scoreToReliability(score: number): ReliabilityLevel {
   if (score >= 0.97) return 'canonical';
@@ -14,6 +31,97 @@ function scoreToReliability(score: number): ReliabilityLevel {
 }
 
 const ADMIN_TOKEN_KEY = 'tadabbur_admin_token';
+
+/** Registry entries kept for provenance but not used at runtime. */
+function isRetired(source: Source): boolean {
+  const notes = source.notes.trimStart();
+  return notes.startsWith('NOT SERVED') || notes.startsWith('Not used at runtime');
+}
+
+/** Sources listed to readers: neither blocked nor retired. */
+function listedSources(types: SourceType[]): Source[] {
+  return SOURCE_REGISTRY.filter(
+    (s) => types.includes(s.type) && !isSourceDisplayBlocked(s) && !isRetired(s),
+  );
+}
+
+const REGISTRY_SECTIONS: { key: string; types: SourceType[]; ar: string; en: string }[] = [
+  { key: 'quran', types: ['quran_text'], ar: 'نص القرآن الكريم', en: 'Qur’an text' },
+  { key: 'translations', types: ['translation'], ar: 'الترجمات', en: 'Translations' },
+  { key: 'lexicons', types: ['lexicon'], ar: 'المعاجم والمفردات', en: 'Lexicons and vocabulary' },
+  { key: 'audio', types: ['audio'], ar: 'التلاوات الصوتية', en: 'Recitations' },
+  { key: 'services', types: ['service'], ar: 'خدمات أخرى', en: 'Other services' },
+];
+
+const HOW_WE_USE_SOURCES = {
+  en: 'The Qur’an text is shown exactly as published by the Tanzil Project. Translations come from QuranEnc. When you ask a question, the app first finds passages from the tafsir books listed below, then an AI model summarises only those passages and cites them. If no passage answers the question, the app says so instead of guessing. AI summaries are not tafsir and not fatwa.',
+  ar: 'يُعرض نص القرآن الكريم كما نشره مشروع تنزيل دون تغيير، والترجمات من موقع QuranEnc. عند طرح سؤال يبحث التطبيق أولاً عن مقاطع من كتب التفسير المذكورة أدناه، ثم يلخّصها نموذج ذكاء اصطناعي مع ذكر مصدر كل مقطع. وإذا لم يجد ما يجيب عن السؤال صرّح بذلك ولم يخمّن. ملخصات الذكاء الاصطناعي ليست تفسيراً ولا فتوى.',
+};
+
+function licenceStatusLabel(source: Source, ar: boolean): string | null {
+  switch (source.licenseStatus) {
+    case 'cleared':
+      return null;
+    case 'restricted':
+      return ar ? 'استخدام مقيَّد' : 'Restricted use';
+    case 'unverified':
+      return ar ? 'الترخيص قيد التحقق' : 'Licence under review';
+    default:
+      return null;
+  }
+}
+
+function RegistrySourceCard({ source, language }: { source: Source; language: 'ar' | 'en' }) {
+  const ar = language === 'ar';
+  const status = licenceStatusLabel(source, ar);
+  return (
+    <li className="card p-4" dir={ar ? 'rtl' : 'ltr'}>
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className={clsx('font-semibold text-gray-900', ar && 'font-arabic')}>
+          {ar ? source.titleArabic : source.titleEnglish}
+        </h3>
+        {status && (
+          <span className={clsx('text-[11px] px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200', ar && 'font-arabic')}>
+            {status}
+          </span>
+        )}
+      </div>
+      <p className="mt-1 text-sm text-gray-600" dir="ltr" lang="en">{source.author}</p>
+      <p className={clsx('mt-2 text-xs text-gray-600', ar && 'font-arabic')}>
+        <span className="font-medium">{ar ? 'الترخيص والشروط: ' : 'Licence and terms: '}</span>
+        {/* Registry terms are recorded in English. */}
+        <span dir="ltr" lang="en">{source.licenseOrTerms}</span>
+      </p>
+      {source.sourceUrl.startsWith('http') && (
+        <a
+          href={source.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-flex items-center gap-1 text-xs text-primary-700 hover:underline"
+          dir="ltr"
+        >
+          <ExternalLink className="w-3 h-3" />
+          {source.sourceUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+        </a>
+      )}
+    </li>
+  );
+}
+
+function RegistrySection({ title, sources, language }: { title: string; sources: Source[]; language: 'ar' | 'en' }) {
+  if (sources.length === 0) return null;
+  const ar = language === 'ar';
+  return (
+    <section className="mb-8">
+      <h2 className={clsx('text-xl font-semibold text-gray-900 mb-3', ar && 'font-arabic')}>{title}</h2>
+      <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {sources.map((s) => (
+          <RegistrySourceCard key={s.sourceId} source={s} language={language} />
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 interface SourcesResponse {
   sources: TafseerSource[];
@@ -35,6 +143,8 @@ export function SourcesPage() {
   const [tokenInput, setTokenInput] = useState('');
   const [adminError, setAdminError] = useState<string | null>(null);
   const isAdminMode = !!adminToken;
+  const adminRequested =
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('admin') === '1';
 
   const [sources, setSources] = useState<TafseerSource[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,7 +282,7 @@ export function SourcesPage() {
               {isRtl ? 'خروج' : 'Exit'}
             </button>
           </div>
-        ) : (
+        ) : adminRequested ? (
           <button
             onClick={() => setShowAdminModal(true)}
             className={clsx('text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1', isRtl && 'flex-row-reverse font-arabic')}
@@ -180,7 +290,7 @@ export function SourcesPage() {
             <Key className="w-4 h-4" />
             {isRtl ? 'وضع المسؤول' : 'Admin Mode'}
           </button>
-        )}
+        ) : null}
       </div>
 
       {/* Admin Token Modal */}
@@ -238,14 +348,37 @@ export function SourcesPage() {
       <div className="mb-8">
         <h1 className={clsx('text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3', isRtl && 'font-arabic flex-row-reverse')}>
           <BookOpen className="w-8 h-8 text-primary-600" />
-          {isRtl ? 'مصادر التفسير' : 'Tafseer Sources'}
+          {isRtl ? 'المصادر والتراخيص' : 'Sources & licences'}
         </h1>
         <p className={clsx('text-gray-600', isRtl && 'font-arabic text-right')}>
           {isRtl
-            ? 'المصادر المتاحة للتفسير القرآني مع بيانات المصدر والتحقق'
-            : 'Available sources for Quranic tafseer with provenance data and verification status'}
+            ? 'كل مصدر يعرض التطبيق نصّه أو بياناته، مع ترخيصه ورابطه.'
+            : 'Every source whose text or data the app shows, with its licence and a link.'}
         </p>
       </div>
+
+      {/* How we use sources */}
+      <section className="mb-8 p-4 bg-primary-50 border border-primary-100 rounded-lg">
+        <h2 className={clsx('font-semibold text-primary-900 mb-1', isRtl && 'font-arabic')}>
+          {isRtl ? 'كيف نستخدم المصادر' : 'How we use sources'}
+        </h2>
+        <p className={clsx('text-sm text-primary-900 leading-relaxed', isRtl && 'font-arabic')} dir={isRtl ? 'rtl' : 'ltr'}>
+          {isRtl ? HOW_WE_USE_SOURCES.ar : HOW_WE_USE_SOURCES.en}
+        </p>
+      </section>
+
+      {REGISTRY_SECTIONS.slice(0, 2).map((sec) => (
+        <RegistrySection
+          key={sec.key}
+          title={isRtl ? sec.ar : sec.en}
+          sources={listedSources(sec.types)}
+          language={language}
+        />
+      ))}
+
+      <h2 className={clsx('text-xl font-semibold text-gray-900 mb-3', isRtl && 'font-arabic')}>
+        {isRtl ? 'التفاسير' : 'Tafsir'}
+      </h2>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -285,6 +418,17 @@ export function SourcesPage() {
             isAdminMode={isAdminMode}
             isToggling={togglingSource === source.id}
             onToggleEnabled={() => handleToggleSource(source.id, source.is_enabled)}
+          />
+        ))}
+      </div>
+
+      <div className="mt-8">
+        {REGISTRY_SECTIONS.slice(2).map((sec) => (
+          <RegistrySection
+            key={sec.key}
+            title={isRtl ? sec.ar : sec.en}
+            sources={listedSources(sec.types)}
+            language={language}
           />
         ))}
       </div>
@@ -348,7 +492,9 @@ function SourceCard({ source, language, isExpanded, onToggle, isAdminMode, isTog
                 isEnabled ? 'text-gray-900' : 'text-gray-500',
                 language === 'ar' && 'font-arabic'
               )}>{name}</h3>
-              <SourceBadge reliabilityLevel={scoreToReliability(source.reliability_score)} compact />
+              {isAdminMode && (
+                <SourceBadge reliabilityLevel={scoreToReliability(source.reliability_score)} compact />
+              )}
               {!isEnabled && (
                 <span className="flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
                   {language === 'ar' ? 'معطل' : 'Disabled'}
@@ -362,6 +508,13 @@ function SourceCard({ source, language, isExpanded, onToggle, isAdminMode, isTog
               )}
             </div>
           <p className="text-sm text-gray-600">{author}</p>
+          {((source as any).license || (source as any).license_type) && (
+            <p className={clsx('text-xs text-gray-500 mt-1', language === 'ar' && 'font-arabic')}>
+              {language === 'ar' ? 'الترخيص: ' : 'Licence: '}
+              <span dir="ltr" lang="en">{(source as any).license || (source as any).license_type}</span>
+              {!licenseVerified && (language === 'ar' ? ' (قيد التحقق)' : ' (under review)')}
+            </p>
+          )}
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <span className={clsx(
               'text-xs px-2 py-0.5 rounded',
@@ -385,14 +538,19 @@ function SourceCard({ source, language, isExpanded, onToggle, isAdminMode, isTog
                   : source.methodology}
               </span>
             )}
-            <span className={clsx(
-              'text-xs px-2 py-0.5 rounded',
-              source.reliability_score >= 0.9 ? 'bg-green-100 text-green-700' :
-              source.reliability_score >= 0.7 ? 'bg-yellow-100 text-yellow-700' :
-              'bg-red-100 text-red-700'
-            )}>
-              {language === 'ar' ? 'موثوقية' : 'Reliability'}: {Math.round(source.reliability_score * 100)}%
-            </span>
+            {(source as any).death_year_hijri && (
+              <span className="text-xs text-gray-500">
+                {language === 'ar' ? 'ت. ' : 'd. '}
+                <bdi>{(source as any).death_year_hijri}</bdi>
+                {language === 'ar' ? 'هـ' : ' AH'}
+              </span>
+            )}
+            {/* Admin-only: an internal retrieval weight, not a judgement of the scholar. */}
+            {isAdminMode && (
+              <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                {language === 'ar' ? 'وزن الاسترجاع' : 'Retrieval weight'}: <bdi>{source.reliability_score.toFixed(2)}</bdi>
+              </span>
+            )}
           </div>
         </div>
           {isExpanded ? (

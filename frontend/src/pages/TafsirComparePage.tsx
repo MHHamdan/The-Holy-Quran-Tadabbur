@@ -142,7 +142,7 @@ export function TafsirComparePage() {
         </div>
       </div>
 
-      <TafsirComparison key={`${surah}:${ayah}`} surah={surah} ayah={ayah} />
+      <TafsirComparison key={`${surah}:${ayah}`} surah={surah} ayah={ayah} showHeading={false} />
     </div>
   );
 }

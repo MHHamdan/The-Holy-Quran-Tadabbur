@@ -16,7 +16,8 @@ export type SourceType =
   | 'metadata'
   | 'audio'
   | 'internal_mapping'
-  | 'lexicon';           // Classical Arabic dictionaries and Quranic vocabulary works
+  | 'lexicon'            // Classical Arabic dictionaries and Quranic vocabulary works
+  | 'service';           // Third-party services the app calls (prayer times, maps)
 
 export type ReliabilityLevel =
   | 'canonical'   // Mutawatir Quran text, or universally accepted scholarly work
@@ -739,6 +740,79 @@ export const SOURCE_REGISTRY: Source[] = [
     sourceUrl: 'https://verses.quran.com/Alafasy/mp3/',
     lastVerifiedAt: '2026-05-17',
     notes: 'Per-ayah MP3 stream. URL pattern: https://verses.quran.com/Alafasy/mp3/{SSS}{AAA}.mp3 (zero-padded surah/ayah). Used by the Asmā\' Allah al-Ḥusnā page to recite the primary Quranic verse of each Name. Reciter name "Mishary Rashid Alafasy" must always be displayed in the player.',
+  },
+
+  {
+    sourceId: 'everyayah_audio',
+    titleArabic: 'تلاوات الآيات — EveryAyah',
+    titleEnglish: 'Per-verse recitations — EveryAyah',
+    author: 'everyayah.com (reciter recordings)',
+    language: 'ar',
+    type: 'audio',
+    reliabilityLevel: 'supporting',
+    licenseOrTerms: 'Free public recordings; streaming and offline-caching terms not yet confirmed with the site.',
+    sourceUrl: 'https://everyayah.com',
+    lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified',
+    notes: 'Primary per-verse audio host in backend/app/services/audio_service.py (EVERYAYAH_BASE). Reciter name shown in the player. Terms pending owner confirmation.',
+  },
+  {
+    sourceId: 'islamic_network_audio',
+    titleArabic: 'تلاوات — شبكة Islamic Network',
+    titleEnglish: 'Recitations — Islamic Network CDN',
+    author: 'cdn.islamic.network (alquran.cloud)',
+    language: 'ar',
+    type: 'audio',
+    reliabilityLevel: 'supporting',
+    licenseOrTerms: 'Free public CDN; redistribution terms not yet confirmed.',
+    sourceUrl: 'https://alquran.cloud/cdn',
+    lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified',
+    notes: 'Fallback audio host in backend/app/services/audio_service.py (ALQURAN_CLOUD_BASE). Terms pending owner confirmation.',
+  },
+  {
+    sourceId: 'quranicaudio_audio',
+    titleArabic: 'تلاوات السور — QuranicAudio',
+    titleEnglish: 'Surah recitations — QuranicAudio',
+    author: 'download.quranicaudio.com',
+    language: 'ar',
+    type: 'audio',
+    reliabilityLevel: 'supporting',
+    licenseOrTerms: 'Free public recordings; redistribution terms not yet confirmed.',
+    sourceUrl: 'https://quranicaudio.com',
+    lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified',
+    notes: 'Surah-level audio host in backend/app/services/audio_service.py (QURANICAUDIO_BASE). Terms pending owner confirmation.',
+  },
+
+  // === Third-party services ===
+  {
+    sourceId: 'aladhan_api',
+    titleArabic: 'مواقيت الصلاة والتقويم الهجري — AlAdhan',
+    titleEnglish: 'Prayer times and Hijri calendar — AlAdhan',
+    author: 'AlAdhan (api.aladhan.com)',
+    language: 'ar,en',
+    type: 'service',
+    reliabilityLevel: 'supporting',
+    licenseOrTerms: 'Public API. Receives the location or city you enter; nothing is sent to our server.',
+    sourceUrl: 'https://aladhan.com/prayer-times-api',
+    lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified',
+    notes: 'Called from the browser by frontend/src/lib/islamicApis.ts (prayer times, Hijri date conversion). See the privacy page.',
+  },
+  {
+    sourceId: 'openstreetmap',
+    titleArabic: 'الخرائط وأسماء الأماكن — OpenStreetMap',
+    titleEnglish: 'Maps and place names — OpenStreetMap',
+    author: 'OpenStreetMap contributors (Nominatim, Overpass)',
+    language: 'ar,en',
+    type: 'service',
+    reliabilityLevel: 'supporting',
+    licenseOrTerms: 'Map data © OpenStreetMap contributors, Open Database License (ODbL). Attribution required.',
+    sourceUrl: 'https://www.openstreetmap.org/copyright',
+    lastVerifiedAt: '2026-10-14',
+    licenseStatus: 'cleared',
+    notes: 'Place search and mosque finder. Receives your location from the browser; nothing is sent to our server.',
   },
 
   // === Asmā' Allah al-Ḥusnā — Tirmidhi list reference (curated) ===
