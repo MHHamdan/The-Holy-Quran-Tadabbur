@@ -192,6 +192,76 @@ def test_every_prophet_has_mushaf_journey(atlas: Dict[str, Any]) -> None:
         assert "mushaf_order" in types, f"{p['prophetId']} missing mushaf_order journey"
 
 
+QAC_PATH = ROOT / "data" / "raw" / "quranic-corpus-morphology.txt"
+LEMMA_MAP_PATH = ROOT / "scripts" / "qac-proper-noun-lemmas.ts"
+
+
+def _lemma_by_entity() -> Dict[str, list]:
+    import re
+
+    text = LEMMA_MAP_PATH.read_text(encoding="utf-8")
+    block = text.split("LEMMA_BY_ENTITY", 1)[1].split("};", 1)[0]
+    out: Dict[str, list] = {}
+    for m in re.finditer(r"^\s*(entity_[a-z_]+):\s*\[([^\]]*)\]", block, re.M):
+        out[m.group(1)] = re.findall(r"'([^']+)'", m.group(2))
+    return out
+
+
+def _qac_pn_index() -> Dict[str, set]:
+    idx: Dict[str, set] = {}
+    with QAC_PATH.open(encoding="utf-8") as fh:
+        for line in fh:
+            if not line.startswith("("):
+                continue
+            cols = line.rstrip("\n").split("\t")
+            if len(cols) < 4 or "POS:PN" not in cols[3]:
+                continue
+            lem = [f[4:] for f in cols[3].split("|") if f.startswith("LEM:")]
+            if not lem:
+                continue
+            s, a = cols[0].strip("()").split(":")[:2]
+            idx.setdefault(lem[0], set()).add((int(s), int(a)))
+    return idx
+
+
+def test_explicit_counts_match_qac(atlas: Dict[str, Any]) -> None:
+    """explicitMentions must be exactly the ayat where QAC tags the prophet's
+    proper-noun lemma — no substring false positives (صالحا, اليهود, يحيى verb)."""
+    if not QAC_PATH.exists():
+        pytest.skip("QAC morphology (data/raw, untracked) not present")
+    lemmas = _lemma_by_entity()
+    idx = _qac_pn_index()
+    checked = 0
+    for p in atlas["profiles"]:
+        entity_id = "entity_" + p["prophetId"]
+        if entity_id not in lemmas:
+            continue
+        expected = set()
+        for lem in lemmas[entity_id]:
+            assert lem in idx, f"{entity_id}: lemma {lem!r} not tagged POS:PN in QAC"
+            expected |= idx[lem]
+        got = {(m["surahNumber"], m["ayahNumber"]) for m in p["explicitMentions"]}
+        assert got == expected, (
+            f"{p['prophetId']}: extra={sorted(got - expected)[:10]} missing={sorted(expected - got)[:10]}"
+        )
+        checked += 1
+    assert checked >= 24
+
+
+def test_explicit_counts_known_values(atlas: Dict[str, Any]) -> None:
+    """Pinned counts that do not need the QAC file (regression for the
+    substring-match bug: salih was 64, hud 23, yahya 8)."""
+    profiles = _by_id(atlas)
+    counts = {k: len(profiles[k]["explicitMentions"]) for k in ("prophet_hud", "prophet_salih", "prophet_yahya")}
+    assert counts == {"prophet_hud": 7, "prophet_salih": 9, "prophet_yahya": 5}
+    hud = {(m["surahNumber"], m["ayahNumber"]) for m in profiles["prophet_hud"]["explicitMentions"]}
+    assert hud == {(7, 65), (11, 50), (11, 53), (11, 58), (11, 60), (11, 89), (26, 124)}
+    for p in atlas["profiles"]:
+        for m in p["contextualMentions"]:
+            if m["linkType"] == "alias":
+                assert m["confidence"] <= 0.6
+
+
 def test_story_world_order_not_high_certainty(atlas: Dict[str, Any]) -> None:
     for p in atlas["profiles"]:
         for j in p.get("journeys", []):

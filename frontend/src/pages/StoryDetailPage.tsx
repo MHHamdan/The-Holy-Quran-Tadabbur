@@ -34,6 +34,9 @@ import {
   GroupedSegmentList,
 } from '../components/stories/StoryReadingPanel';
 import { STORY_RECURRENCES } from '../data/quranMemorizationLinks';
+import { ProvenanceLabel } from '../components/common/ProvenanceLabel';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { storyTitle, relationTypeLabel, sourceLabel } from '../components/stories/storyLabels';
 import type { StoryRecurrenceEntry } from '../types/quranMemorization';
 import clsx from 'clsx';
 
@@ -140,6 +143,11 @@ export function StoryDetailPage() {
 
   const name = language === 'ar' ? story.name_ar : story.name_en;
   const summary = language === 'ar' ? story.summary_ar : story.summary_en;
+  // The Themes / Insights views are built from narrative_role and
+  // semantic_tags, which only a few segments carry; offer them only when at
+  // least half of the segments are annotated.
+  const annotatedCount = story.segments.filter((s) => !!s.narrative_role).length;
+  const hasNarrativeAnnotations = story.segments.length > 0 && annotatedCount / story.segments.length >= 0.5;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -154,14 +162,14 @@ export function StoryDetailPage() {
 
       {/* Header */}
       <div className="card mb-8">
-        <div className="flex items-start gap-4 mb-6">
-          <div className="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
-            <Book className="w-7 h-7 text-primary-600" />
+        <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 mb-6">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Book className="w-6 h-6 sm:w-7 sm:h-7 text-primary-600" />
           </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className={clsx('text-2xl font-bold', language === 'ar' && 'font-arabic')}>{name}</h1>
-              <span className="text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+              <h1 className={clsx('text-xl sm:text-2xl font-bold break-words', language === 'ar' && 'font-arabic')}>{name}</h1>
+              <span className="self-start text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded">
                 {translateCategory(story.category, language)}
               </span>
             </div>
@@ -330,15 +338,12 @@ export function StoryDetailPage() {
           {/* Rich related stories with evidence references */}
           {richStory.relatedStories.length > 0 && (
             <div className="card border border-amber-200 bg-amber-50/30">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
                 <Network className="w-4 h-4 text-primary-600" />
                 <h3 className="text-sm font-semibold text-gray-800">
                   {language === 'ar' ? 'القصص ذات الصلة' : 'Related Stories'}
                 </h3>
-                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full border border-yellow-200 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {language === 'ar' ? 'مراجعة معلقة' : 'Pending Review'}
-                </span>
+                <ProvenanceLabel kind="analytical" status="needs_review" language={language} />
               </div>
               <p className="text-xs text-amber-700 mb-3 flex items-start gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
@@ -354,10 +359,10 @@ export function StoryDetailPage() {
                         to={`/stories/${related.storyId}`}
                         className="text-sm font-medium text-primary-700 hover:text-primary-900 transition-colors"
                       >
-                        {related.storyId}
+                        {storyTitle(related.storyId, language)}
                       </Link>
                       <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
-                        {related.relationType.replace(/_/g, ' ')}
+                        {relationTypeLabel(related.relationType, language)}
                       </span>
                     </div>
                     <p className="text-xs text-gray-600 mb-2 leading-relaxed" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -398,11 +403,14 @@ export function StoryDetailPage() {
               {language === 'ar' ? 'المصادر المرجعية' : 'Reference Sources'}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {richStory.sourceIds.map((sid) => (
-                <span key={sid} className="text-xs bg-white border border-gray-200 text-gray-600 px-2 py-1 rounded">
-                  {sid}
-                </span>
-              ))}
+              {richStory.sourceIds
+                .map((sid) => ({ sid, label: sourceLabel(sid, language) }))
+                .filter((s): s is { sid: string; label: string } => !!s.label)
+                .map(({ sid, label }) => (
+                  <span key={sid} className="text-xs bg-white border border-gray-200 text-gray-600 px-2 py-1 rounded" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                    {label}
+                  </span>
+                ))}
             </div>
             <p className="text-xs text-gray-500 mt-2">
               {language === 'ar'
@@ -414,15 +422,15 @@ export function StoryDetailPage() {
       )}
 
       {/* View Toggle */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <h2 className={clsx('text-lg font-semibold flex-1', language === 'ar' && 'font-arabic')}>
           {t('story_segments', language)} ({story.segments.length})
         </h2>
-        <div className="flex bg-gray-100 rounded-lg p-1">
+        <div className="flex bg-gray-100 rounded-lg p-1 overflow-x-auto max-w-full">
           <button
             onClick={() => setViewMode('list')}
             className={clsx(
-              'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
+              'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
               viewMode === 'list'
                 ? 'bg-white shadow text-primary-600'
                 : 'text-gray-600 hover:text-gray-900'
@@ -431,10 +439,12 @@ export function StoryDetailPage() {
             <List className="w-4 h-4" />
             {t('view_list', language)}
           </button>
+          {/* The graph is a vertical chain that duplicates the list and is
+              unreadable on phones, so it is offered from 640px up only. */}
           <button
             onClick={() => setViewMode('graph')}
             className={clsx(
-              'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
+              'hidden sm:flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
               viewMode === 'graph'
                 ? 'bg-white shadow text-primary-600'
                 : 'text-gray-600 hover:text-gray-900'
@@ -443,30 +453,34 @@ export function StoryDetailPage() {
             <Network className="w-4 h-4" />
             {t('view_graph', language)}
           </button>
-          <button
-            onClick={() => setViewMode('themes')}
-            className={clsx(
-              'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
-              viewMode === 'themes'
-                ? 'bg-white shadow text-primary-600'
-                : 'text-gray-600 hover:text-gray-900'
-            )}
-          >
-            <BarChart3 className="w-4 h-4" />
-            {language === 'ar' ? 'المواضيع' : 'Themes'}
-          </button>
-          <button
-            onClick={() => setViewMode('insights')}
-            className={clsx(
-              'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
-              viewMode === 'insights'
-                ? 'bg-white shadow text-primary-600'
-                : 'text-gray-600 hover:text-gray-900'
-            )}
-          >
-            <Lightbulb className="w-4 h-4" />
-            {language === 'ar' ? 'تحليل' : 'Insights'}
-          </button>
+          {hasNarrativeAnnotations && (
+            <button
+              onClick={() => setViewMode('themes')}
+              className={clsx(
+                'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
+                viewMode === 'themes'
+                  ? 'bg-white shadow text-primary-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              )}
+            >
+              <BarChart3 className="w-4 h-4" />
+              {language === 'ar' ? 'المواضيع' : 'Themes'}
+            </button>
+          )}
+          {hasNarrativeAnnotations && (
+            <button
+              onClick={() => setViewMode('insights')}
+              className={clsx(
+                'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
+                viewMode === 'insights'
+                  ? 'bg-white shadow text-primary-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              )}
+            >
+              <Lightbulb className="w-4 h-4" />
+              {language === 'ar' ? 'تحليل' : 'Insights'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -508,6 +522,7 @@ export function StoryDetailPage() {
                       </div>
                     </div>
                   </button>
+                  <SegmentEvidenceChips segment={segment as SegmentWithEvidence} language={language} />
 
                   {/* Expanded Verse Content */}
                   {isExpanded && (
@@ -579,6 +594,7 @@ export function StoryDetailPage() {
                 </div>
               );
             })}
+          <QuranTextAttribution language={language} className="mt-2" />
         </div>
       ) : viewMode === 'graph' ? (
         <div className="card p-0 overflow-hidden" style={{ height: '700px' }}>
@@ -804,13 +820,65 @@ function SegmentSummary({
       {isAlternate && (
         <span
           className={clsx(
-            'inline-block text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5',
+            'inline-block text-[11px] text-gray-600 bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5',
             isAr && 'font-arabic',
           )}
         >
           {isAr ? 'الملخّص متاح بالإنجليزية فقط' : 'Summary available in Arabic only'}
         </span>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Segment tafsir evidence — resolved server-side to real tafseer_chunks
+// (GET /stories/{id} segments[].evidence). Shown as one chip per source with
+// its title and author, linking to the tafsir comparison for the passage.
+// Never the tafsir text itself and never a raw source id.
+// ---------------------------------------------------------------------------
+
+interface SegmentEvidenceRef {
+  chunk_id: string;
+  source_id: string;
+  title?: string | null;
+  title_ar?: string | null;
+  author?: string | null;
+  author_ar?: string | null;
+  sura_no: number;
+  aya_start: number;
+  aya_end: number;
+}
+
+type SegmentWithEvidence = StorySegment & { evidence?: SegmentEvidenceRef[] };
+
+function SegmentEvidenceChips({ segment, language }: { segment: SegmentWithEvidence; language: 'ar' | 'en' }) {
+  const isAr = language === 'ar';
+  const bySource = new Map<string, SegmentEvidenceRef>();
+  for (const ev of segment.evidence ?? []) {
+    if (!bySource.has(ev.source_id)) bySource.set(ev.source_id, ev);
+  }
+  if (bySource.size === 0) return null;
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-1.5" dir={isAr ? 'rtl' : 'ltr'}>
+      <span className={clsx('text-xs text-gray-500', isAr && 'font-arabic')}>
+        {isAr ? 'في كتب التفسير:' : 'In tafsir:'}
+      </span>
+      {Array.from(bySource.values()).map((ev) => {
+        const title = (isAr ? ev.title_ar : ev.title) || sourceLabel(ev.source_id, language);
+        const author = isAr ? ev.author_ar || ev.author : ev.author;
+        if (!title) return null;
+        return (
+          <Link
+            key={ev.source_id}
+            to={`/tafsir/compare/${segment.sura_no}/${segment.aya_start}`}
+            title={author ?? undefined}
+            className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-800 border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-100"
+          >
+            <span dir={isAr ? 'rtl' : 'ltr'}>{title}</span>
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -928,7 +996,7 @@ function StoryPeopleStrip({ storyId, language }: { storyId: string; language: 'a
                 return (
                   <Link
                     key={pid}
-                    to={`/story-atlas?person=${encodeURIComponent(pid)}`}
+                    to={`/stories?person=${encodeURIComponent(pid)}`}
                     title={isArabic ? p.noteArabic : p.noteEnglish}
                     className="inline-flex items-center text-xs font-medium text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded hover:bg-indigo-100"
                   >
@@ -978,7 +1046,7 @@ function StoryPlaceStrip({ storyId, language }: { storyId: string; language: 'ar
                 return (
                   <Link
                     key={pid}
-                    to={`/story-atlas?place=${encodeURIComponent(pid)}`}
+                    to={`/stories?place=${encodeURIComponent(pid)}`}
                     title={isArabic ? p.noteArabic : p.noteEnglish}
                     className="inline-flex items-center text-xs font-medium text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded hover:bg-amber-100"
                   >
@@ -1028,7 +1096,7 @@ function StorySubcategoryStrip({ storyId, language }: { storyId: string; languag
                 return (
                   <Link
                     key={sc}
-                    to={`/story-atlas?subcategory=${encodeURIComponent(sc)}`}
+                    to={`/stories?subcategory=${encodeURIComponent(sc)}`}
                     className="inline-flex items-center text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded hover:bg-emerald-100"
                   >
                     {isArabic ? label.ar : label.en}

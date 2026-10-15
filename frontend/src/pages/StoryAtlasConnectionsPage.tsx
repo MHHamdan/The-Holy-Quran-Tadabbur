@@ -30,6 +30,9 @@ import {
   Users,
 } from 'lucide-react';
 import clsx from 'clsx';
+import { toUserWarnings } from '../utils/userWarnings';
+import { storyTitle } from '../components/stories/storyLabels';
+import { ProvenanceLabel } from '../components/common/ProvenanceLabel';
 import { useLanguageStore } from '../stores/languageStore';
 import connectionScan from '../data/generated/quranStoryConnections.json';
 import { QURAN_STORY_ENTITY_SEEDS } from '../data/quranStoryEntitySeeds';
@@ -84,6 +87,13 @@ const REVIEW_BADGE: Record<string, { ar: string; en: string; color: string }> = 
   needs_review: { ar: 'بحاجة للمراجعة', en: 'Needs review', color: 'bg-amber-100 text-amber-800' },
   verified: { ar: 'موثّق', en: 'Verified', color: 'bg-emerald-100 text-emerald-800' },
   rejected: { ar: 'مرفوض', en: 'Rejected', color: 'bg-red-100 text-red-800' },
+};
+
+const CERTAINTY_LABELS: Record<string, { ar: string; en: string }> = {
+  high: { ar: 'مرتفعة', en: 'High' },
+  medium: { ar: 'متوسطة', en: 'Medium' },
+  low: { ar: 'غير مؤكد', en: 'Uncertain' },
+  disputed: { ar: 'محل خلاف', en: 'Disputed' },
 };
 
 function entityById(id: string): QuranStoryEntity | undefined {
@@ -392,16 +402,16 @@ function EntityExplorer() {
                 <div className="flex flex-wrap gap-2">
                   {selected.relatedStories.map((sid) => (
                     <Link key={sid} to={`/stories/${sid}`} className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded">
-                      {sid}
+                      {storyTitle(sid, isArabic ? 'ar' : 'en')}
                     </Link>
                   ))}
                 </div>
               </div>
             )}
 
-            {selected.warnings.length > 0 && (
-              <div className="mt-4 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
-                {selected.warnings.join(' / ')}
+            {toUserWarnings(selected.warnings, isArabic ? 'ar' : 'en').length > 0 && (
+              <div className={clsx('mt-4 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800', isArabic && 'font-arabic')} dir={isArabic ? 'rtl' : 'ltr'}>
+                {toUserWarnings(selected.warnings, isArabic ? 'ar' : 'en').map((w) => w.text).join(isArabic ? '، ' : ' / ')}
               </div>
             )}
           </div>
@@ -609,7 +619,7 @@ function ChronologyView() {
               </div>
               <div className="text-xs flex flex-col items-end gap-1">
                 <ReviewBadge status={c.reviewStatus} />
-                <span className="text-gray-500">{isArabic ? 'دقة' : 'certainty'}: {c.certainty}</span>
+                <span className="text-gray-500">{isArabic ? 'درجة اليقين' : 'Certainty'}: {CERTAINTY_LABELS[c.certainty]?.[isArabic ? 'ar' : 'en'] ?? ''}</span>
               </div>
             </li>
           ))}
@@ -629,7 +639,7 @@ function ChronologyView() {
               </div>
               <div className="text-xs flex flex-col items-end gap-1">
                 <ReviewBadge status={c.reviewStatus} />
-                <span className="text-gray-500">{c.certainty}</span>
+                <span className="text-gray-500">{CERTAINTY_LABELS[c.certainty]?.[isArabic ? 'ar' : 'en'] ?? ''}</span>
               </div>
             </li>
           ))}
@@ -650,7 +660,7 @@ export function StoryAtlasConnectionsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={isArabic ? 'rtl' : 'ltr'}>
-      <Link to="/story-atlas" className="inline-flex items-center text-sm text-emerald-700 mb-4 hover:underline">
+      <Link to="/stories" className="inline-flex items-center text-sm text-emerald-700 mb-4 hover:underline">
         <ArrowLeft className="w-4 h-4 mr-1" />
         {isArabic ? 'العودة إلى أطلس القصص' : 'Back to Story Atlas'}
       </Link>
@@ -666,6 +676,9 @@ export function StoryAtlasConnectionsPage() {
             ? 'كل الروابط هنا مرشّحات تتطلب مراجعة علمية. لا يوجد نص قرآني داخل البيانات؛ المراجع فقط بأرقام السورة والآية.'
             : 'All links are candidate inferences pending scholarly review. No Quran text is embedded in the data — references only.'}
         </p>
+        <div className="mt-2">
+          <ProvenanceLabel kind="auto_detected" status="needs_review" language={isArabic ? 'ar' : 'en'} />
+        </div>
       </header>
 
       <nav className="flex flex-wrap gap-2 mb-4">

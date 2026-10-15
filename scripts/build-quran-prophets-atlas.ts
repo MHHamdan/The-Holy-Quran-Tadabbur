@@ -24,6 +24,7 @@
  *   - The atlas MUST have exactly 25 prophets.
  */
 
+import { LEMMA_BY_ENTITY } from './qac-proper-noun-lemmas';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { resolve, join, dirname } from 'path';
 
@@ -227,14 +228,18 @@ function entityType(eid: string): string {
 }
 
 function linkFromMention(
-  m: { surahNumber: number; ayahNumber: number; mentionType: string; sourceIds: string[] },
+  m: { surahNumber: number; ayahNumber: number; mentionType: string; sourceIds: string[]; confidence?: number },
   linkType: ProphetAyahLinkType,
 ): ProphetAyahLink {
+  // Never exceed the confidence the scanner assigned to the mention (alias-only
+  // matches are capped at 0.6 there; QAC proper-noun hits keep 0.95).
+  const base = PROPHET_LINK_CONFIDENCE[linkType];
+  const confidence = typeof m.confidence === 'number' ? Math.min(base, m.confidence) : base;
   return {
     surahNumber: m.surahNumber,
     ayahNumber: m.ayahNumber,
     linkType,
-    confidence: PROPHET_LINK_CONFIDENCE[linkType],
+    confidence,
     sourceIds: m.sourceIds && m.sourceIds.length > 0 ? m.sourceIds : ['tanzil_quran_uthmani'],
     reviewStatus: 'needs_review',
     humanReviewRequired: true,
@@ -274,10 +279,15 @@ function buildProfile(seed: typeof QURAN_PROPHET_SEEDS[number]): QuranProphetPro
     );
   } else {
     for (const m of ent.mentions) {
+      // explicitMentions = ayat where the prophet is named (QAC proper-noun
+      // lemma). Titles / descriptive aliases ("ذا النون") are contextual —
+      // except for prophets whose name QAC does not tag as a proper noun
+      // (Dhul-Kifl), where the name-title is the only way they are named.
       if (m.mentionType === 'explicit_name') {
         explicit.push(linkFromMention(m, 'explicit_name'));
       } else if (m.mentionType === 'alias' || m.mentionType === 'title') {
-        explicit.push(linkFromMention(m, 'alias'));
+        if (LEMMA_BY_ENTITY[seed.entityId]) contextual.push(linkFromMention(m, 'alias'));
+        else explicit.push(linkFromMention(m, 'alias'));
       } else if (
         m.mentionType === 'story_context' ||
         m.mentionType === 'family_relation' ||

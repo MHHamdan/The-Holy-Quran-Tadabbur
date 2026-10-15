@@ -421,12 +421,12 @@ def insert_segment(
         INSERT INTO theme_segments (
             id, theme_id, segment_order, sura_no, ayah_start, ayah_end,
             title_ar, title_en, summary_ar, summary_en, match_type, confidence, reasons_ar,
-            is_core, evidence_sources, evidence_chunk_ids, discovered_at,
+            is_core, is_verified, evidence_sources, evidence_chunk_ids, discovered_at,
             created_at, updated_at
         ) VALUES (
             :id, :theme_id, :segment_order, :sura_no, :ayah_start, :ayah_end,
             :title_ar, :title_en, :summary_ar, :summary_en, :match_type, :confidence, :reasons_ar,
-            :is_core, :evidence_sources, :evidence_chunk_ids, NOW(),
+            :is_core, FALSE, :evidence_sources, :evidence_chunk_ids, NOW(),
             NOW(), NOW()
         )
         ON CONFLICT (id) DO UPDATE SET

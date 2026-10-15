@@ -13,6 +13,7 @@ import {
   ThematicTafsirResponse, ThematicTafsirSegment, ThemeStoriesResponse, ThemeStoryItem,
 } from '../lib/api';
 import clsx from 'clsx';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 
 // Sura names mapping (Arabic)
 const SURA_NAMES_AR: Record<number, string> = {
@@ -299,6 +300,9 @@ export function ThemeDetailPage() {
   };
 
   const colorClass = categoryColors[theme.category] || 'bg-gray-100 text-gray-700 border-gray-200';
+  // A theme without any verse segment shows one notice instead of zeroed
+  // stats and empty tabs.
+  const noSegments = !(coverage?.total_segments || theme.segment_count);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -325,6 +329,7 @@ export function ThemeDetailPage() {
           </div>
 
           {/* Stats */}
+          {!noSegments && (
           <div className="flex flex-wrap gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-primary-600">{coverage?.total_segments || theme.segment_count}</div>
@@ -345,6 +350,7 @@ export function ThemeDetailPage() {
               </div>
             )}
           </div>
+          )}
         </div>
 
         {/* Coverage Stats */}
@@ -577,12 +583,27 @@ export function ThemeDetailPage() {
         )}
       </div>
 
+      {noSegments ? (
+        <div className={clsx('card text-center py-10 text-gray-600', language === 'ar' && 'font-arabic')}>
+          <BookOpen className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+          <p className="font-medium">
+            {language === 'ar'
+              ? 'لا توجد لهذا الموضوع مقاطع قرآنية مراجعة بعد.'
+              : 'This theme has no reviewed verse segments yet.'}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            {language === 'ar'
+              ? 'سيُتاح المحتوى بعد إعداده ومراجعته.'
+              : 'Content will appear once it has been prepared and reviewed.'}
+          </p>
+        </div>
+      ) : (<>
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b">
+      <div className="flex gap-1 mb-6 border-b overflow-x-auto max-w-full">
         <button
           onClick={() => setActiveTab('segments')}
           className={clsx(
-            'px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors',
+            'px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0',
             activeTab === 'segments'
               ? 'border-primary-600 text-primary-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -594,7 +615,7 @@ export function ThemeDetailPage() {
         <button
           onClick={() => setActiveTab('consequences')}
           className={clsx(
-            'px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors',
+            'px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0',
             activeTab === 'consequences'
               ? 'border-primary-600 text-primary-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -606,7 +627,7 @@ export function ThemeDetailPage() {
         <button
           onClick={() => setActiveTab('related')}
           className={clsx(
-            'px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors',
+            'px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0',
             activeTab === 'related'
               ? 'border-primary-600 text-primary-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -618,7 +639,7 @@ export function ThemeDetailPage() {
         <button
           onClick={() => setActiveTab('tafsir')}
           className={clsx(
-            'px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors',
+            'px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0',
             activeTab === 'tafsir'
               ? 'border-emerald-600 text-emerald-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -630,7 +651,7 @@ export function ThemeDetailPage() {
         <button
           onClick={() => setActiveTab('stories')}
           className={clsx(
-            'px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors',
+            'px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0',
             activeTab === 'stories'
               ? 'border-amber-600 text-amber-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -810,6 +831,8 @@ export function ThemeDetailPage() {
           language={language}
         />
       )}
+      <QuranTextAttribution language={language} className="mt-6" />
+      </>)}
     </div>
   );
 }

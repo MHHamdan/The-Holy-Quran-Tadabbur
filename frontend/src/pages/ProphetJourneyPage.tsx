@@ -10,6 +10,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Loader2, AlertCircle, BookOpen } from 'lucide-react';
 import clsx from 'clsx';
+import { toUserWarnings } from '../utils/userWarnings';
+import { topicLabel } from '../components/stories/storyLabels';
 import { useLanguageStore } from '../stores/languageStore';
 import {
   prophetsApi,
@@ -178,17 +180,20 @@ export function ProphetJourneyPage() {
             )}
             {s.relatedTopics.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {s.relatedTopics.map((t) => (
-                  <span key={t} className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded">
-                    {t}
-                  </span>
-                ))}
+                {s.relatedTopics
+                  .map((t) => ({ t, label: topicLabel(t, language === 'ar' ? 'ar' : 'en') }))
+                  .filter((x): x is { t: string; label: string } => !!x.label)
+                  .map(({ t, label }) => (
+                    <span key={t} className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded" dir={dir}>
+                      {label}
+                    </span>
+                  ))}
               </div>
             )}
-            {s.warnings.length > 0 && (
-              <ul className="mt-2 text-xs text-amber-700 list-disc list-inside">
-                {s.warnings.map((w) => (
-                  <li key={w}>{w}</li>
+            {toUserWarnings(s.warnings, language === 'ar' ? 'ar' : 'en').length > 0 && (
+              <ul className={clsx('mt-2 text-xs text-amber-700 list-disc list-inside', language === 'ar' && 'font-arabic')} dir={dir}>
+                {toUserWarnings(s.warnings, language === 'ar' ? 'ar' : 'en').map((w) => (
+                  <li key={w.code + w.text}>{w.text}</li>
                 ))}
               </ul>
             )}

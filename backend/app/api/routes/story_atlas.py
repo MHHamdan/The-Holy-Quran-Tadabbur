@@ -9,15 +9,28 @@ Endpoints:
 - GET /story-atlas/{cluster_id}/timeline: Get linear timeline
 - GET /story-atlas/{cluster_id}/related: Get related clusters
 """
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field
+from sqlalchemy import distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_async_session
+from app.models.story_atlas import StoryEvent
 from app.services.story_atlas import StoryAtlasService, get_role_style
 from app.services.similarity import SimilarityService
+
+
+async def _cluster_ids_with_events(session: AsyncSession) -> Set[str]:
+    """Clusters that have at least one event.
+
+    29 of the 37 legacy clusters have no events (only a summary and lessons);
+    they are not listed, not linked as related, and their detail returns 404 —
+    the registry stories at /stories cover them.
+    """
+    rows = await session.execute(select(distinct(StoryEvent.cluster_id)))
+    return {r[0] for r in rows.all()}
 
 
 def _cache_immutable(response: Response) -> None:
@@ -209,15 +222,21 @@ async def list_clusters(
     - search: Full-text search in titles and summaries
     """
     service = StoryAtlasService(session)
-    clusters, total = await service.list_clusters(
+    # Fetch every match, drop clusters without events, then paginate here so
+    # `total` stays consistent with what is listed (37 clusters at most).
+    all_clusters, _ = await service.list_clusters(
         category=category,
         era=era,
         person=person,
         tag=tag,
         search=search,
-        limit=limit,
-        offset=offset,
+        limit=10000,
+        offset=0,
     )
+    with_events = await _cluster_ids_with_events(session)
+    non_empty = [c for c in all_clusters if c.id in with_events]
+    total = len(non_empty)
+    clusters = non_empty[offset:offset + limit]
 
     return ClusterListResponse(
         clusters=[
@@ -331,7 +350,7 @@ async def get_cluster(
     service = StoryAtlasService(session)
     cluster = await service.get_cluster(cluster_id)
 
-    if not cluster:
+    if not cluster or not cluster.get("events"):
         raise HTTPException(status_code=404, detail=f"Cluster '{cluster_id}' not found")
 
     return ClusterDetailResponse(**cluster)
@@ -452,8 +471,9 @@ async def get_related_clusters(
         raise HTTPException(status_code=404, detail=f"Cluster '{cluster_id}' not found")
 
     related = await service.get_related_clusters(cluster_id)
+    with_events = await _cluster_ids_with_events(session)
 
-    return [RelatedClusterResponse(**r) for r in related]
+    return [RelatedClusterResponse(**r) for r in related if r.get("cluster_id") in with_events]
 
 
 class SimilarClusterResponse(BaseModel):

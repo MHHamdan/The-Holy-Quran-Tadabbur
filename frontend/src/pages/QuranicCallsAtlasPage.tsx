@@ -9,6 +9,9 @@ import {
   Book, Star, Heart, Zap, ArrowRight, Volume2,
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
+import { toUserWarnings } from '../utils/userWarnings';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { topicLabel } from '../components/stories/storyLabels';
 
 const API = apiUrl('/api/v1/quranic-calls');
 
@@ -393,11 +396,14 @@ function CallDetailModal({ call, isRtl, onClose }: { call: QuranicCallItem; isRt
             <div>
               <p className="text-xs text-gray-400 mb-2">{isRtl ? 'الموضوعات' : 'Topics'}</p>
               <div className="flex flex-wrap gap-1.5" dir={isRtl ? 'rtl' : 'ltr'}>
-                {call.relatedTopics.map(t => (
-                  <span key={t} className="text-xs px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100">
-                    {t}
-                  </span>
-                ))}
+                {call.relatedTopics
+                  .map(t => ({ t, label: topicLabel(t, isRtl ? 'ar' : 'en') }))
+                  .filter((x): x is { t: string; label: string } => !!x.label)
+                  .map(({ t, label }) => (
+                    <span key={t} className="text-xs px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100">
+                      {label}
+                    </span>
+                  ))}
               </div>
             </div>
           )}
@@ -416,10 +422,10 @@ function CallDetailModal({ call, isRtl, onClose }: { call: QuranicCallItem; isRt
             </div>
           )}
 
-          {call.warnings.length > 0 && (
-            <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+          {toUserWarnings(call.warnings, isRtl ? 'ar' : 'en').length > 0 && (
+            <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800" dir={isRtl ? 'rtl' : 'ltr'}>
               <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />
-              <span>{call.warnings[0]}</span>
+              <span>{toUserWarnings(call.warnings, isRtl ? 'ar' : 'en')[0].text}</span>
             </div>
           )}
 
@@ -810,12 +816,12 @@ export default function QuranicCallsAtlasPage() {
               <Megaphone className="w-7 h-7" />
             </div>
             <span className="text-sm font-semibold bg-white/15 px-3 py-1 rounded-full backdrop-blur">
-              {isRtl ? 'القرآن الكريم' : 'Quranic Atlas — Phase Y'}
+              {isRtl ? 'القرآن الكريم' : 'The Holy Quran'}
             </span>
           </div>
 
-          <h1 className="text-3xl md:text-5xl font-bold mb-2 leading-tight" dir="rtl">
-            أطلس النداءات القرآنية
+          <h1 className="text-3xl md:text-5xl font-bold mb-2 leading-tight" dir={isRtl ? 'rtl' : 'ltr'}>
+            {isRtl ? 'أطلس النداءات القرآنية' : 'Atlas of Quranic Calls'}
           </h1>
           <p dir={isRtl ? 'rtl' : 'ltr'} className="text-white/75 text-base md:text-lg mb-6 max-w-2xl">
             {isRtl
@@ -1171,6 +1177,7 @@ export default function QuranicCallsAtlasPage() {
             )}
           </div>
         )}
+        <QuranTextAttribution language={isRtl ? 'ar' : 'en'} className="mt-6" />
       </div>
 
       {/* ── DETAIL MODAL ─────────────────────────────────────────────────── */}

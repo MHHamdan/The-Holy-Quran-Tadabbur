@@ -20,6 +20,7 @@ import { readFileSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
 import { QURAN_STORY_ENTITY_SEEDS } from '../frontend/src/data/quranStoryEntitySeeds';
 import type { ScanOutput } from '../frontend/src/types/quranStoryConnection';
+import { loadQacProperNounIndex, qacAyahsForEntity } from './qac-proper-noun-lemmas';
 
 const ROOT = resolve(__dirname, '..');
 const SCAN_PATH = join(ROOT, 'frontend/src/data/generated/quranStoryConnections.json');
@@ -114,6 +115,58 @@ for (const s of scan.surahs) {
       warn(`Surah ${s.surahNumber}: cluster ${c.candidateId} has no entities`);
     }
   }
+}
+
+// 6. Deny-checks for known false-positive classes (substring matches of
+//    common words / Divine Names). These must never come back.
+const occ = (id: string) =>
+  scan.entityIndex.find((e) => e.entityId === id)?.occurrences ?? [];
+for (const o of occ('entity_person_aziz')) {
+  if (o.surahNumber !== 12) {
+    err(`entity_person_aziz detected outside Surah Yusuf at ${o.surahNumber}:${o.ayahStart} (Divine Name al-'Aziz)`);
+  }
+}
+const DENY: Record<string, string[]> = {
+  // "نارا" = Hellfire
+  entity_event_fire_ibrahim: ['4:10', '4:56', '66:6', '111:3'],
+  // "هودا" = Jews, "مشهود" / "شهود" = witnessed
+  entity_prophet_hud: ['2:111', '2:135', '85:3', '85:7', '2:113', '5:18', '5:51', '9:30', '11:103'],
+  // "جسدا" / "حسدا"
+  entity_object_barrier: ['7:148', '20:88', '21:8', '38:34', '2:109'],
+  // "تحية", "الجان" (the jinn), "وحيه"
+  entity_animal_snake_staff: ['4:86', '55:15', '20:114'],
+  // "نزيد" / "مزيد"
+  entity_person_zayd: ['2:58', '50:35'],
+  // "المدينة" = a city in other narratives
+  entity_place_madinah: ['12:30', '28:15', '18:19'],
+  // "صالحا" = righteous deeds
+  entity_prophet_salih: ['2:62', '18:110'],
+  // verb "يحيى" (lives)
+  entity_prophet_yahya: ['8:42', '20:74', '87:13'],
+};
+for (const [id, keys] of Object.entries(DENY)) {
+  const hits = new Set(occ(id).map((o) => `${o.surahNumber}:${o.ayahStart}`));
+  for (const k of keys) if (hits.has(k)) err(`${id} must not be detected at ${k} (known false positive)`);
+}
+const birds = occ('entity_animal_birds_ibrahim');
+if (birds.some((o) => !(o.surahNumber === 2 && o.ayahStart === 260))) {
+  err('entity_animal_birds_ibrahim must only occur at 2:260');
+}
+
+// 7. QAC proper-noun cross-check (only when the untracked QAC file exists).
+const qac = loadQacProperNounIndex();
+if (qac) {
+  for (const ent of scan.entityIndex) {
+    const expected = qacAyahsForEntity(ent.entityId, qac);
+    if (!expected) continue;
+    for (const o of ent.occurrences) {
+      if (o.detectionType !== 'explicit_name') continue;
+      const k = `${o.surahNumber}:${o.ayahStart}`;
+      if (!expected.has(k)) err(`${ent.entityId} explicit_name at ${k} has no QAC proper-noun lemma`);
+    }
+  }
+} else {
+  warn('QAC morphology file not present — skipped proper-noun cross-check.');
 }
 
 // Report

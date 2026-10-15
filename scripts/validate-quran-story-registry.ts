@@ -125,11 +125,12 @@ for (const e of registry.stories) {
     }
   }
 
-  // Soft: relatedStories that don't resolve should be flagged in warnings
+  // Hard: every relatedStories id must be a registry story. A dangling id
+  // becomes a /stories/<id> 404 link (segment ids such as "musa_sinai" used
+  // to leak in from the manifest's segment-level connections).
   for (const rs of e.relatedStories) {
-    if (!allIds.has(rs) && !e.warnings.some((w) => w.includes(rs))) {
-      // Note as warning only, not a hard failure
-      // (manifest may reference DB-only story IDs that are not in registry)
+    if (!allIds.has(rs)) {
+      fail(`${e.storyId}: relatedStories id "${rs}" is not a story in the registry`);
     }
   }
 

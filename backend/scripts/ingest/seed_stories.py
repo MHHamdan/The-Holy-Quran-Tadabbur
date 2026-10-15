@@ -79,6 +79,14 @@ class StoryValidator:
         for story in manifest.get("stories", []):
             self._validate_story(story)
 
+        # Segment ids are primary keys: a duplicate id across stories makes
+        # session.merge() overwrite the earlier segment (last write wins), which
+        # silently dropped core passages from story_ibrahim / yusuf / isa.
+        for seg_id, owners in find_duplicate_segment_ids(manifest).items():
+            self.errors.append(ValidationError(
+                "ERROR", seg_id, f"duplicate segment id in stories {', '.join(owners)}"
+            ))
+
         # Print results
         if self.warnings:
             print(f"\n  WARNINGS ({len(self.warnings)}):")
@@ -208,6 +216,15 @@ class StoryValidator:
         return exists
 
 
+def find_duplicate_segment_ids(manifest: dict) -> Dict[str, List[str]]:
+    """Return {segment_id: [story ids]} for every segment id used more than once."""
+    owners: Dict[str, List[str]] = {}
+    for story in manifest.get("stories", []):
+        for seg in story.get("segments", []):
+            owners.setdefault(seg.get("id"), []).append(story.get("id"))
+    return {k: v for k, v in owners.items() if len(v) > 1}
+
+
 def get_db_url() -> str:
     return os.getenv("DATABASE_URL", "postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur")
 
@@ -307,6 +324,11 @@ def seed_cross_story_connections(session: Session, connections: list) -> int:
     """Seed cross-story connections from manifest."""
     count = 0
     for conn_data in connections:
+        # Connections flagged needs_review (cited verses do not clearly
+        # support the claim) are not published until a scholar reviews them.
+        if conn_data.get("needs_review"):
+            print(f"  Skipping connection {conn_data.get('id', 'unknown')} - needs_review")
+            continue
         explanation = conn_data.get("explanation", {})
 
         # Calculate strength based on connection type
@@ -434,6 +456,16 @@ def main():
                 session, manifest.get("inter_story_connections", [])
             )
             print(f"  Seeded {cross_conn_count} cross-story connections")
+
+            # Map the manifest's legacy tafsir citations (ibn_kathir:S:A-B)
+            # to real tafseer_chunks ids.
+            import importlib.util
+            _spec = importlib.util.spec_from_file_location(
+                "resolve_story_evidence", SCRIPT_DIR / "resolve_story_evidence.py"
+            )
+            _resolver = importlib.util.module_from_spec(_spec)
+            _spec.loader.exec_module(_resolver)
+            _resolver.resolve()
 
             # Audit log
             AuditLog.log(

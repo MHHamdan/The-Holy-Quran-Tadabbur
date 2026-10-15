@@ -37,6 +37,9 @@ import {
 } from '../lib/api';
 import { ErrorPanel, parseAPIError, DataIncompleteNotice, APIErrorData, ConceptDetailSkeleton } from '../components/common';
 import clsx from 'clsx';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { ProvenanceLabel } from '../components/common/ProvenanceLabel';
+import { storyTitle } from '../components/stories/storyLabels';
 
 // Enhanced type configuration with gradients
 const TYPE_CONFIG: Record<string, {
@@ -734,6 +737,7 @@ function OccurrencesTab({
             </div>
           );
         })}
+        <QuranTextAttribution language={language} className="mt-3" />
       </div>
     </div>
   );
@@ -819,7 +823,7 @@ function OccurrenceItem({
           "flex-shrink-0 text-sm font-bold px-3 py-1.5 rounded-lg min-w-[70px] text-center",
           "bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-100"
         )}>
-          {occurrence.verse_reference || occurrence.ref_id || '-'}
+          {occurrence.verse_reference || (occurrence.ref_type === 'story' && occurrence.ref_id ? storyTitle(occurrence.ref_id, language) : '-')}
         </div>
 
         {/* Content Area */}
@@ -997,8 +1001,16 @@ function AssociationsTab({
                         : (TYPE_CONFIG[assoc.other_concept_type]?.label.en || assoc.other_concept_type)}
                     </p>
                   </div>
-                  {assoc.has_sufficient_evidence && (
+                  {/* Only a relation that cites an ayah gets a check mark;
+                      co-occurrence / curated pairings are labelled instead. */}
+                  {assoc.has_sufficient_evidence ? (
                     <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  ) : (
+                    <ProvenanceLabel
+                      kind={(assoc as { derivation?: string }).derivation === 'co_occurrence' ? 'auto_detected' : 'analytical'}
+                      language={language}
+                      compact
+                    />
                   )}
                 </Link>
               );

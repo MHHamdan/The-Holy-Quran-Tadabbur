@@ -47,6 +47,24 @@ else:
     CONCEPTS_DIR = PROJECT_ROOT / "data" / "concepts"
 
 
+def occurrence_is_verified(sura_no, ayah_start, evidence_chunk_ids) -> bool:
+    """An occurrence is verified only with a verse location AND tafsir evidence.
+
+    Story-level occurrences (no sura/ayah, no evidence) were seeded as
+    verified=True — 174 of 179 rows — which the UI showed as checked facts.
+    """
+    return bool(sura_no) and bool(ayah_start) and bool(evidence_chunk_ids)
+
+
+def association_has_sufficient_evidence(evidence_refs: dict) -> bool:
+    """Sufficient evidence means at least one ayah reference.
+
+    Story co-occurrence (story_themes) or a curated pairing alone is not
+    evidence for a relation such as "Sulayman attribute_of repentance".
+    """
+    return bool((evidence_refs or {}).get("ayah_refs"))
+
+
 def get_db_url() -> str:
     return os.getenv("DATABASE_URL", "postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur")
 
@@ -348,13 +366,14 @@ def create_story_occurrences(
             if not concept:
                 continue
 
-            # Create occurrence for story-level link
+            # Create occurrence for story-level link. A story-level link has
+            # no ayah range and no tafsir evidence, so it is never "verified".
             occurrence = Occurrence(
                 concept_id=concept_id,
                 ref_type="story",
                 ref_id=story_id,
                 weight=1.0,
-                is_verified=True,
+                is_verified=occurrence_is_verified(None, None, None),
             )
             session.add(occurrence)
             count += 1
@@ -461,7 +480,7 @@ def create_concept_associations(
             is_directional=False,
             strength=strength,
             evidence_refs=evidence_refs,
-            has_sufficient_evidence=len(story_ids) >= 2,
+            has_sufficient_evidence=association_has_sufficient_evidence(evidence_refs),
             source="story_themes",
         )
 
@@ -540,7 +559,7 @@ def link_miracles_to_persons(session: Session, curated: dict) -> int:
                     "ayah_refs": [],
                     "source": "curated_dict"
                 },
-                has_sufficient_evidence=True,
+                has_sufficient_evidence=False,  # curated pairing, no ayah_refs yet
                 source="curated_dict",
             )
 
@@ -572,7 +591,7 @@ def link_miracles_to_persons(session: Session, curated: dict) -> int:
                     "ayah_refs": [],
                     "source": "curated_dict"
                 },
-                has_sufficient_evidence=True,
+                has_sufficient_evidence=False,  # curated pairing, no ayah_refs yet
                 source="curated_dict",
             )
 

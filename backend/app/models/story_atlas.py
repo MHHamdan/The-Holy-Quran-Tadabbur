@@ -63,6 +63,7 @@ class EvidenceBasis(str, Enum):
     """Basis for claims about place/time."""
     EXPLICIT = "explicit"    # Directly stated in Quran
     INFERRED = "inferred"    # Derived from tafsir
+    TRADITION = "tradition"  # From historical/narrative tradition, not stated in the Quran
     UNKNOWN = "unknown"      # Cannot be determined
 
 

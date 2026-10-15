@@ -236,3 +236,78 @@ class TestSurahAtlasSearch:
     async def test_search_returns_review_status(self, client: AsyncClient):
         r = await client.get("/api/v1/surah-atlas/search?q=Ibrahim")
         assert r.json()["reviewStatus"] == "needs_review"
+
+
+# ---------------------------------------------------------------------------
+# Frontend Surah Atlas data integrity (no network / DB)
+# ---------------------------------------------------------------------------
+
+_ROOT = __import__("pathlib").Path(__file__).resolve().parents[3]
+_ATLAS_TS = _ROOT / "frontend" / "src" / "data" / "surahAtlas.ts"
+_REFS_VALIDATOR = _ROOT / "scripts" / "validate-surah-atlas-story-refs.ts"
+_MENTIONS = _ROOT / "frontend" / "src" / "data" / "generated" / "quranEntityMentions.json"
+
+
+def _story_entity_map() -> dict:
+    import re
+
+    block = _REFS_VALIDATOR.read_text(encoding="utf-8").split("STORY_ENTITY_MAP", 1)[1].split("};", 1)[0]
+    return {
+        m.group(1): re.findall(r"'([^']+)'", m.group(2))
+        for m in re.finditer(r"^\s*(story_[a-z_]+):\s*\[([^\]]*)\]", block, re.M)
+    }
+
+
+def _named_ayahs() -> dict:
+    import json
+
+    data = json.loads(_MENTIONS.read_text(encoding="utf-8"))
+    out: dict = {}
+    for e in data["entities"]:
+        out[e["entityId"]] = {
+            (m["surahNumber"], m["ayahNumber"])
+            for m in e["mentions"]
+            if m["mentionType"] == "explicit_name" and "quranic_arabic_corpus" in m["sourceIds"]
+        }
+    return out
+
+
+class TestSurahAtlasFrontendData:
+    """Mirrors scripts/validate-surah-atlas-story-refs.ts using the
+    QAC-derived explicit mentions, so it runs without node or the QAC file."""
+
+    async def test_mention_only_refs_are_named_in_range(self):
+        import re
+
+        text = _ATLAS_TS.read_text(encoding="utf-8")
+        story_map = _story_entity_map()
+        named = _named_ayahs()
+        surah = None
+        failures = []
+        checked = 0
+        for line in text.split("\n"):
+            m = re.match(r"\s*surahNumber: (\d+),", line)
+            if m:
+                surah = int(m.group(1))
+            r = re.search(
+                r"storyId: ['\"]([a-z_]+)['\"], coverage: ['\"]mention_only['\"], "
+                r"ayahRange: \{ display: ['\"][^'\"]+['\"], start: (\d+), end: (\d+)",
+                line,
+            )
+            if not r:
+                continue
+            checked += 1
+            story_id, start, end = r.group(1), int(r.group(2)), int(r.group(3))
+            entities = story_map.get(story_id)
+            if not entities:
+                failures.append(f"{surah} {story_id}: unmapped")
+                continue
+            if not any((surah, a) in named.get(eid, set()) for eid in entities for a in range(start, end + 1)):
+                failures.append(f"{surah} {story_id} {start}-{end}")
+        assert checked > 0
+        assert failures == [], failures
+
+    async def test_no_blocked_maududi_summaries(self):
+        text = _ATLAS_TS.read_text(encoding="utf-8")
+        assert "maududi_tafhim" not in text
+        assert "Tafhim al-Quran (quran.com)" not in text

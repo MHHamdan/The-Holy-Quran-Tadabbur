@@ -11,6 +11,9 @@ import {
   Hash, Map, Scroll, Star, ChevronRight, ExternalLink,
 } from 'lucide-react';
 import clsx from 'clsx';
+import { toUserWarnings } from '../utils/userWarnings';
+import { getReviewBadgeLabel } from '../utils/reviewStatus';
+import { storyTitle, topicLabel } from '../components/stories/storyLabels';
 import { useLanguageStore } from '../stores/languageStore';
 import { Skeleton } from '../components/ui/Skeleton';
 import { prophetsApi, type ProphetProfile, type ProphetStoryPage } from '../lib/api';
@@ -136,9 +139,9 @@ function StoryTimeline({ sections, language }: {
                     {isAr ? s.summaryArabic : s.summaryEnglish}
                   </p>
                 )}
-                {s.warnings.length > 0 && (
-                  <ul className="mt-2 text-xs text-amber-700 list-disc list-inside space-y-0.5">
-                    {s.warnings.map((w) => <li key={w}>{w}</li>)}
+                {toUserWarnings(s.warnings, isAr ? 'ar' : 'en').length > 0 && (
+                  <ul className={clsx('mt-2 text-xs text-amber-700 list-disc list-inside space-y-0.5', isAr && 'font-arabic')}>
+                    {toUserWarnings(s.warnings, isAr ? 'ar' : 'en').map((w) => <li key={w.code + w.text}>{w.text}</li>)}
                   </ul>
                 )}
               </div>
@@ -257,30 +260,25 @@ export function ProphetDetailPage() {
           {storyPage && <CoverageBadge pageType={storyPage.pageType} language={language} />}
           {storyPage && (
             <span className="inline-flex items-center px-2.5 py-0.5 text-xs rounded-full border bg-amber-50 text-amber-700 border-amber-200">
-              {storyPage.reviewStatus}
+              {getReviewBadgeLabel(storyPage.reviewStatus === 'verified' ? 'approved' : 'needs_review', isAr ? 'ar' : 'en')}
             </span>
           )}
         </div>
       )}
 
       {/* Warnings */}
-      {data.warnings.length > 0 && (
-        <div className="mb-5 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm">
-          <p className="font-semibold mb-1">{isAr ? 'تنبيهات المراجعة' : 'Review warnings'}</p>
-          <ul className="list-disc list-inside space-y-1">
-            {data.warnings.map((w) => <li key={w}>{w}</li>)}
-          </ul>
-        </div>
-      )}
-
-      {storyPage?.warnings && storyPage.warnings.length > 0 && (
-        <div className="mb-5 p-3 bg-rose-50 border border-rose-200 text-rose-900 rounded-xl text-sm">
-          <p className="font-semibold mb-1">{isAr ? 'تنبيهات صفحة القصة' : 'Story-page warnings'}</p>
-          <ul className="list-disc list-inside space-y-1">
-            {storyPage.warnings.map((w) => <li key={w}>{w}</li>)}
-          </ul>
-        </div>
-      )}
+      {(() => {
+        const notes = toUserWarnings([...data.warnings, ...(storyPage?.warnings ?? [])], isAr ? 'ar' : 'en');
+        if (notes.length === 0) return null;
+        return (
+          <div className={clsx('mb-5 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm', isAr && 'font-arabic')}>
+            <p className="font-semibold mb-1">{isAr ? 'تنبيهات' : 'Notes'}</p>
+            <ul className="list-disc list-inside space-y-1">
+              {notes.map((w) => <li key={w.code + w.text}>{w.text}</li>)}
+            </ul>
+          </div>
+        );
+      })()}
 
       {/* Story timeline */}
       {storyPage && storyPage.storySections.length > 0 && (
@@ -330,11 +328,15 @@ export function ProphetDetailPage() {
             <p className="text-sm text-gray-400">—</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
-              {data.relatedTopics.slice(0, 24).map((t) => (
-                <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
-                  {t.replace(/^topic_/, '')}
-                </span>
-              ))}
+              {data.relatedTopics
+                .map((t) => ({ t, label: topicLabel(t, isAr ? 'ar' : 'en') }))
+                .filter((x): x is { t: string; label: string } => !!x.label)
+                .slice(0, 24)
+                .map(({ t, label }) => (
+                  <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100" dir={isAr ? 'rtl' : 'ltr'}>
+                    {label}
+                  </span>
+                ))}
               {data.relatedTopics.length > 24 && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
                   +{data.relatedTopics.length - 24}
@@ -363,7 +365,7 @@ export function ProphetDetailPage() {
                   className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50 transition-colors text-sm text-emerald-700 group"
                 >
                   <BookOpen className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="flex-1">{sid.replace(/^story_/, '').replace(/_/g, ' ')}</span>
+                  <span className="flex-1">{storyTitle(sid, isAr ? 'ar' : 'en')}</span>
                   <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-emerald-500 transition-colors" />
                 </Link>
               </li>

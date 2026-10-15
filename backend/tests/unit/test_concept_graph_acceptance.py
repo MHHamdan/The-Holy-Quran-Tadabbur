@@ -507,6 +507,50 @@ class TestAssociationEvidence:
             "Association should have constraint for evidence requirement"
 
 
+class TestEvidenceFlags:
+    """is_verified / has_sufficient_evidence must reflect real evidence.
+
+    174 of 179 occurrences were story-level links (no sura, no tafsir
+    evidence) seeded as verified; 51 co-occurrence associations with no ayah
+    reference carried has_sufficient_evidence=true.
+    """
+
+    @staticmethod
+    def _seeder():
+        import importlib.util
+        path = Path(__file__).parent.parent.parent / "scripts" / "ingest" / "seed_concepts.py"
+        spec = importlib.util.spec_from_file_location("seed_concepts_mod", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def test_occurrence_verified_requires_location_and_evidence(self):
+        m = self._seeder()
+        assert m.occurrence_is_verified(None, None, None) is False
+        assert m.occurrence_is_verified(2, 30, []) is False
+        assert m.occurrence_is_verified(None, None, ["abc"]) is False
+        assert m.occurrence_is_verified(2, 30, ["abc"]) is True
+
+    def test_association_sufficiency_requires_ayah_refs(self):
+        m = self._seeder()
+        assert m.association_has_sufficient_evidence({"ayah_refs": [], "story_refs": ["story_a", "story_b"]}) is False
+        assert m.association_has_sufficient_evidence({}) is False
+        assert m.association_has_sufficient_evidence({"ayah_refs": ["2:30"]}) is True
+
+    def test_seeder_never_hardcodes_verified_story_links(self):
+        path = Path(__file__).parent.parent.parent / "scripts" / "ingest" / "seed_concepts.py"
+        src = path.read_text(encoding="utf-8")
+        assert "is_verified=True" not in src
+        assert "has_sufficient_evidence=True" not in src
+        assert "has_sufficient_evidence=len(story_ids)" not in src
+
+    def test_associations_route_hides_co_occurrence_by_default(self):
+        routes_path = Path(__file__).parent.parent.parent / "app" / "api" / "routes" / "concepts.py"
+        src = routes_path.read_text(encoding="utf-8")
+        assert "include_derived: bool = Query(" in src
+        assert '"co_occurrence"' in src
+
+
 # ============================================================================
 # 7. API RESPONSE SCHEMA VALIDATION
 # ============================================================================

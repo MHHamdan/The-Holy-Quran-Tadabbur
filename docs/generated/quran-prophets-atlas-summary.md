@@ -1,44 +1,44 @@
 # Quran Prophets Atlas — Build Summary
 
 - Version: 1.0.0
-- Generated: 2026-05-18T01:55:00.507Z
+- Generated: 2026-10-15T01:19:41.247Z
 - Prophets represented: **25** (canonical: 25)
-- Total explicit mentions: **574**
-- Total contextual mentions: **2**
+- Total explicit mentions: **501**
+- Total contextual mentions: **4**
 - Total coreference mentions: **25**
-- Total prophet-to-prophet relations: **1268**
+- Total prophet-to-prophet relations: **1184**
 - Total journeys: **125**
-- Total ayah links: **601**
+- Total ayah links: **530**
 
 ## Per-prophet snapshot
 
 | Prophet | Explicit | Contextual | Coref | Surahs | Topics | Stories | Relations |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Adam | 25 | 0 | 0 | 9 | 3 | 1 | 20 |
+| Adam | 25 | 0 | 0 | 9 | 3 | 1 | 16 |
 | Idris (Enoch) | 2 | 0 | 0 | 2 | 0 | 1 | 20 |
-| Nuh (Noah) | 43 | 0 | 0 | 28 | 6 | 1 | 76 |
-| Hud | 23 | 0 | 0 | 10 | 7 | 1 | 32 |
-| Salih | 64 | 0 | 0 | 32 | 10 | 1 | 38 |
-| Ibrahim (Abraham) | 51 | 0 | 0 | 24 | 2 | 1 | 74 |
-| Lut (Lot) | 27 | 0 | 0 | 14 | 3 | 1 | 56 |
-| Ismail (Ishmael) | 12 | 0 | 0 | 8 | 3 | 0 | 75 |
-| Ishaq (Isaac) | 16 | 0 | 0 | 12 | 2 | 0 | 70 |
-| Yaqub (Jacob) | 16 | 0 | 0 | 10 | 3 | 0 | 70 |
+| Nuh (Noah) | 43 | 0 | 0 | 28 | 5 | 1 | 76 |
+| Hud | 7 | 0 | 0 | 3 | 2 | 1 | 14 |
+| Salih | 9 | 0 | 0 | 4 | 2 | 1 | 18 |
+| Ibrahim (Abraham) | 63 | 0 | 0 | 25 | 5 | 1 | 74 |
+| Lut (Lot) | 27 | 0 | 0 | 14 | 3 | 1 | 54 |
+| Ismail (Ishmael) | 12 | 0 | 0 | 8 | 3 | 0 | 71 |
+| Ishaq (Isaac) | 16 | 0 | 0 | 12 | 2 | 0 | 66 |
+| Yaqub (Jacob) | 16 | 0 | 0 | 10 | 3 | 0 | 66 |
 | Yusuf (Joseph) | 26 | 0 | 0 | 3 | 3 | 1 | 53 |
 | Ayyub (Job) | 4 | 0 | 0 | 4 | 0 | 1 | 62 |
-| Shuayb (Jethro) | 10 | 0 | 0 | 4 | 5 | 1 | 12 |
-| Musa (Moses) | 131 | 0 | 0 | 34 | 15 | 1 | 70 |
-| Harun (Aaron) | 30 | 0 | 0 | 19 | 3 | 0 | 70 |
+| Shuayb (Jethro) | 10 | 0 | 0 | 4 | 5 | 1 | 10 |
+| Musa (Moses) | 131 | 0 | 0 | 34 | 15 | 1 | 64 |
+| Harun (Aaron) | 20 | 0 | 0 | 13 | 0 | 0 | 62 |
 | Dhul-Kifl | 2 | 0 | 0 | 2 | 0 | 0 | 22 |
-| Dawud (David) | 16 | 0 | 0 | 9 | 4 | 1 | 63 |
+| Dawud (David) | 16 | 0 | 0 | 9 | 4 | 1 | 61 |
 | Sulayman (Solomon) | 16 | 0 | 0 | 7 | 2 | 1 | 63 |
-| Ilyas (Elijah) | 2 | 0 | 0 | 2 | 0 | 0 | 40 |
+| Ilyas (Elijah) | 3 | 0 | 0 | 2 | 0 | 0 | 40 |
 | Al-Yasa (Elisha) | 2 | 0 | 0 | 2 | 0 | 0 | 44 |
-| Yunus (Jonah) | 6 | 0 | 0 | 6 | 0 | 1 | 62 |
+| Yunus (Jonah) | 4 | 2 | 0 | 6 | 0 | 1 | 62 |
 | Zakariyya (Zechariah) | 6 | 0 | 1 | 4 | 0 | 1 | 45 |
-| Yahya (John) | 8 | 0 | 0 | 7 | 1 | 1 | 45 |
-| Isa (Jesus) | 31 | 2 | 24 | 13 | 7 | 1 | 76 |
-| Muhammad (peace be upon him) | 5 | 0 | 0 | 5 | 2 | 0 | 10 |
+| Yahya (John) | 5 | 0 | 0 | 4 | 0 | 1 | 45 |
+| Isa (Jesus) | 31 | 2 | 24 | 13 | 7 | 1 | 70 |
+| Muhammad (peace be upon him) | 5 | 0 | 0 | 5 | 2 | 0 | 6 |
 
 ## Prophets missing a curated story page
 - prophet_ismail

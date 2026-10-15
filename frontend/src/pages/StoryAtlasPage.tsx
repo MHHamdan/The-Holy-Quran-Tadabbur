@@ -5,8 +5,6 @@ import {
   Book,
   Search,
   AlertTriangle,
-  Users,
-  Layers,
   ArrowRight,
   Network,
   ChevronDown,
@@ -14,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import clsx from 'clsx';
+import { toUserWarnings } from '../utils/userWarnings';
 import { ConnectedStoriesPanel } from '../components/stories/ConnectedStoriesPanel';
 
 import {
@@ -193,8 +192,6 @@ export function StoryAtlasPage() {
         </p>
       </div>
 
-      {/* Coverage dashboard */}
-      <CoverageDashboard isArabic={isArabic} />
 
       {!healthy ? (
         <div className="text-center py-12 card border border-red-200 bg-red-50">
@@ -296,18 +293,6 @@ export function StoryAtlasPage() {
                 ? `${filtered.length} من ${registry.stories.length} قصة`
                 : `${filtered.length} of ${registry.stories.length} stories`}
             </span>
-            <span className="text-gray-300">·</span>
-            <span>
-              {isArabic
-                ? `${registry.coverage.generatedCandidates} مرشحة`
-                : `${registry.coverage.generatedCandidates} candidates`}
-            </span>
-            <span className="text-gray-300">·</span>
-            <span>
-              {isArabic
-                ? `${registry.coverage.missingMetadataCount} ناقصة البيانات`
-                : `${registry.coverage.missingMetadataCount} missing metadata`}
-            </span>
           </div>
 
           {/* Results grid */}
@@ -333,84 +318,6 @@ export function StoryAtlasPage() {
   );
 }
 
-function CoverageDashboard({ isArabic }: { isArabic: boolean }) {
-  const registry = getRegistry();
-  const c = registry.coverage;
-
-  const stats = [
-    {
-      labelAr: 'إجمالي القصص',
-      labelEn: 'Total stories',
-      value: c.totalStories,
-      icon: Book,
-    },
-    {
-      labelAr: 'قصص محرّرة',
-      labelEn: 'Authored',
-      value: c.authoredStories,
-      icon: Layers,
-    },
-    {
-      labelAr: 'صفحات الأنبياء',
-      labelEn: 'Prophet profiles',
-      value: c.prophetProfiles,
-      icon: Users,
-    },
-    {
-      labelAr: 'مرشحة',
-      labelEn: 'Candidates',
-      value: c.generatedCandidates,
-      icon: Layers,
-    },
-    {
-      labelAr: 'سور مغطاة',
-      labelEn: 'Surahs covered',
-      value: c.surahsCovered,
-      icon: Book,
-    },
-    {
-      labelAr: 'أنبياء مغطاة',
-      labelEn: 'Prophets covered',
-      value: c.prophetsCovered,
-      icon: Users,
-    },
-    {
-      labelAr: 'مدى آيات',
-      labelEn: 'Ayah ranges',
-      value: c.ayahRangesLinked,
-      icon: Book,
-    },
-    {
-      labelAr: 'بانتظار المراجعة',
-      labelEn: 'Review pending',
-      value: c.reviewPendingCount,
-      icon: AlertTriangle,
-    },
-  ];
-
-  return (
-    <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-      {stats.map((s) => (
-        <div
-          key={s.labelEn}
-          className="rounded-lg border border-gray-200 bg-white p-3 text-center"
-        >
-          <s.icon className="w-4 h-4 mx-auto mb-1 text-primary-600" />
-          <div className="text-lg font-semibold text-gray-900">{s.value}</div>
-          <div
-            className={clsx(
-              'text-xs text-gray-500 leading-tight',
-              isArabic && 'font-arabic',
-            )}
-          >
-            {isArabic ? s.labelAr : s.labelEn}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function RegistryStoryCard({
   story,
   isArabic,
@@ -421,15 +328,12 @@ function RegistryStoryCard({
   const [showConnections, setShowConnections] = useState(false);
   const title = isArabic ? story.titleArabic : story.titleEnglish;
   const catLabel = REGISTRY_CATEGORY_LABELS[story.category];
-  const needsReview = story.reviewStatus !== 'verified';
   const sourceLabel =
     story.sourceType === 'authored_story'
-      ? isArabic ? 'قصة محرّرة' : 'Authored'
+      ? isArabic ? 'قصة محرّرة' : 'Curated story'
       : story.sourceType === 'prophet_story_page'
         ? isArabic ? 'صفحة نبي' : 'Prophet page'
-        : story.sourceType === 'entity_story_cluster'
-          ? isArabic ? 'عنقود كيان' : 'Entity cluster'
-          : isArabic ? 'مرشحة' : 'Candidate';
+        : isArabic ? 'مستخرجة آليًا' : 'Auto-detected';
 
   const detail = story.detailRoute || `/stories/${story.storyId}`;
 
@@ -446,11 +350,6 @@ function RegistryStoryCard({
           <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded">
             {sourceLabel}
           </span>
-          {needsReview && (
-            <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded">
-              {isArabic ? 'تحتاج مراجعة' : 'Needs review'}
-            </span>
-          )}
         </div>
       </div>
 
@@ -597,11 +496,17 @@ function RegistryStoryCard({
         </div>
       )}
 
-      {story.warnings.length > 0 && (
-        <div className="text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded mb-3" dir={isArabic ? 'rtl' : 'ltr'}>
-          {story.warnings[0]}
-        </div>
-      )}
+      {(() => {
+        const notes = toUserWarnings(story.warnings, isArabic ? 'ar' : 'en').filter(
+          (w) => w.code !== 'pending_review',
+        );
+        if (notes.length === 0) return null;
+        return (
+          <div className={clsx('text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded mb-3', isArabic && 'font-arabic')} dir={isArabic ? 'rtl' : 'ltr'}>
+            {notes[0].text}
+          </div>
+        );
+      })()}
 
       <div className="mt-auto pt-3 flex items-center justify-between border-t border-gray-100">
         <Link

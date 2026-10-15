@@ -5,6 +5,7 @@ import {
   ChevronRight, Lightbulb, Network, AlertTriangle, Clock, ExternalLink, Book,
 } from 'lucide-react';
 import clsx from 'clsx';
+import { sourceLabel } from './storyLabels';
 import type {
   QuranStory, StorySegment, AudienceLevel, SegmentSectionType,
 } from '../../types/quranStory';
@@ -255,7 +256,7 @@ function SegmentCard({
           <Book className="w-3.5 h-3.5 text-gray-400" />
           <span className="text-xs text-gray-500">
             {language === 'ar' ? 'المصادر: ' : 'Sources: '}
-            {segment.sourceIds.join(', ')}
+            {segment.sourceIds.map((sid) => sourceLabel(sid, language)).filter(Boolean).join(language === 'ar' ? '، ' : ', ')}
           </span>
           {segment.sunniReview.disagreementNotes.length > 0 && (
             <span className="text-xs text-orange-600 ms-2">

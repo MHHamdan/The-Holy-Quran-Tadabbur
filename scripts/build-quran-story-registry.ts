@@ -114,7 +114,7 @@ interface ManifestStory {
   summary_en?: string;
   suras_mentioned?: number[];
   segments?: ManifestSegment[];
-  connections?: Array<{ source: string; target: string; type?: string }>;
+  connections?: Array<{ source?: string; target?: string; story_id?: string; type?: string }>;
 }
 interface ManifestFile {
   stories: ManifestStory[];
@@ -170,6 +170,8 @@ interface KGFile {
 }
 
 const manifest = loadJSON<ManifestFile>(MANIFEST)!;
+const MANIFEST_STORY_IDS = new Set(manifest.stories.map((s) => s.id));
+const ALL_SEGMENT_IDS = new Set(manifest.stories.flatMap((s) => (s.segments ?? []).map((g) => g.id)));
 const prophetPages = loadJSON<ProphetPagesFile>(PROPHET_PAGES, true);
 const prophetsAtlas = loadJSON<ProphetsAtlasFile>(PROPHETS_ATLAS, true);
 const entityMentions = loadJSON<EntityMentionsFile>(ENTITY_MENTIONS, true);
@@ -375,9 +377,17 @@ function fromManifest(story: ManifestStory): RegistryStoryEntry {
   const reviewStatus: 'verified' | 'needs_review' | 'missing_metadata' =
     refs.length === 0 ? 'missing_metadata' : 'needs_review';
 
+  // Manifest `connections` come in two shapes:
+  //   {story_id, type}  → a story-level link (use story_id)
+  //   {source, target}  → a segment-to-segment link inside the story; these
+  //                       hold SEGMENT ids and must not become relatedStories.
   const relatedStories = (story.connections || [])
-    .map((c) => (c.target === story.id ? c.source : c.target))
-    .filter((id) => !!id && id !== story.id);
+    .map((c) => {
+      if (c.story_id) return c.story_id;
+      const other = c.target === story.id ? c.source : c.target;
+      return other && !ALL_SEGMENT_IDS.has(other) ? other : undefined;
+    })
+    .filter((id): id is string => !!id && id !== story.id && MANIFEST_STORY_IDS.has(id));
 
   return {
     storyId: story.id,

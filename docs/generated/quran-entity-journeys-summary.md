@@ -1,6 +1,6 @@
 # Quran Entity Journeys — Build Summary
 
-Generated at: 2026-05-17T23:46:50.446Z
+Generated at: 2026-10-15T01:19:40.113Z
 Builder version: 1.0.0
 
 ## Totals
@@ -23,15 +23,15 @@ Builder version: 1.0.0
 
 | Section | Ayahs |
 |---|---:|
-| Surah 2 | 8 |
-| Surah 3 | 9 |
-| Surah 4 | 5 |
-| Surah 5 | 12 |
+| Surah 2 | 2 |
+| Surah 3 | 6 |
+| Surah 4 | 3 |
+| Surah 5 | 9 |
 | Surah 9 | 1 |
 | Surah 19 | 3 |
-| Surah 23 | 4 |
+| Surah 23 | 1 |
 | Surah 33 | 1 |
-| Surah 43 | 4 |
+| Surah 43 | 1 |
 | Surah 57 | 1 |
 | Surah 61 | 2 |
 | Surah 66 | 1 |
@@ -45,7 +45,7 @@ Builder version: 1.0.0
 
 | Section | Ayahs |
 |---|---:|
-| Suggested reading order — not a confirmed historical chronology | 51 |
+| Suggested reading order — not a confirmed historical chronology | 31 |
 
 ### revelation_order
 - certainty: disputed
@@ -56,15 +56,15 @@ Builder version: 1.0.0
 
 | Section | Ayahs |
 |---|---:|
-| Surah 5 — referenced revelation order 114 | 12 |
-| Surah 2 — revelation order unreferenced | 8 |
-| Surah 3 — revelation order unreferenced | 9 |
-| Surah 4 — revelation order unreferenced | 5 |
+| Surah 5 — referenced revelation order 114 | 9 |
+| Surah 2 — revelation order unreferenced | 2 |
+| Surah 3 — revelation order unreferenced | 6 |
+| Surah 4 — revelation order unreferenced | 3 |
 | Surah 9 — revelation order unreferenced | 1 |
 | Surah 19 — revelation order unreferenced | 3 |
-| Surah 23 — revelation order unreferenced | 4 |
+| Surah 23 — revelation order unreferenced | 1 |
 | Surah 33 — revelation order unreferenced | 1 |
-| Surah 43 — revelation order unreferenced | 4 |
+| Surah 43 — revelation order unreferenced | 1 |
 | Surah 57 — revelation order unreferenced | 1 |
 | Surah 61 — revelation order unreferenced | 2 |
 | Surah 66 — revelation order unreferenced | 1 |

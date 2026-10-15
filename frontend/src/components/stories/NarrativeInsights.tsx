@@ -11,6 +11,7 @@ import { useMemo } from 'react';
 import { StorySegment } from '../../lib/api';
 import { Language } from '../../i18n/translations';
 import { Lightbulb, TrendingUp, Star, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ProvenanceLabel } from '../common/ProvenanceLabel';
 
 interface NarrativeInsightsProps {
   segments: StorySegment[];
@@ -110,11 +111,14 @@ export function NarrativeInsights({ segments, language, storyName: _storyName }:
           <TrendingUp className="w-5 h-5 text-primary-600" />
           {isArabic ? 'القوس السردي' : 'Narrative Arc'}
         </h3>
-        <p className="text-sm text-gray-500 mb-6">
+        <p className="text-sm text-gray-500 mb-2">
           {isArabic
             ? 'تحليل بنية القصة وفقاً للنموذج السردي الخماسي'
             : 'Story structure analysis following the five-act narrative model'}
         </p>
+        <div className="mb-6">
+          <ProvenanceLabel kind="analytical" status="needs_review" language={language} />
+        </div>
 
         {/* Arc visualization */}
         <div className="relative">

@@ -111,6 +111,8 @@ class AssociationResponse(BaseModel):
     explanation_ar: Optional[str] = None
     explanation_en: Optional[str] = None
     has_sufficient_evidence: bool = False
+    # "co_occurrence" (only shared a story), "curated_dict", ... — never tafsir.
+    derivation: Optional[str] = None
 
 
 class ConceptTypeFacetResponse(BaseModel):
@@ -339,7 +341,8 @@ async def get_concept_occurrences(
                 context_ar=get_context_ar(o),
                 context_en=o.context_en,
                 has_evidence=o.has_evidence,
-                is_verified=o.is_verified,
+                # Verified requires a verse location and tafsir evidence.
+                is_verified=bool(o.is_verified and o.sura_no and o.ayah_start and o.has_evidence),
             )
             for o in occurrences
         ],
@@ -354,6 +357,10 @@ async def get_concept_associations(
     concept_id: str,
     relation_type: Optional[str] = Query(None, description="Filter by relation type"),
     limit: int = Query(50, ge=1, le=200),
+    include_derived: bool = Query(
+        False,
+        description="Include associations derived only from story co-occurrence (source=story_themes)",
+    ),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -361,13 +368,39 @@ async def get_concept_associations(
 
     Relation types: cause_effect, similarity, contrast, elaboration, summarization,
                    attribute_of, sunnah_pattern, part_of, related
+
+    Associations derived only from two concepts appearing in the same story
+    (source=story_themes, e.g. "Sulayman attribute_of repentance") are not
+    evidence of a relation and are excluded unless include_derived=true; they
+    are then marked derivation="co_occurrence". has_sufficient_evidence is
+    true only when the association cites at least one ayah reference.
     """
+    from app.models.concept import Association
+
     service = ConceptGraphService(session)
     associations = await service.get_concept_associations(
         concept_id=concept_id,
         relation_type=relation_type,
         limit=limit,
     )
+    meta = {}
+    if associations:
+        rows = await session.execute(
+            select(Association.id, Association.source, Association.evidence_refs).where(
+                Association.id.in_([a.id for a in associations])
+            )
+        )
+        meta = {r.id: (r.source, r.evidence_refs or {}) for r in rows.all()}
+
+    def _derivation(a) -> str:
+        source = meta.get(a.id, (None, {}))[0]
+        return "co_occurrence" if source == "story_themes" else (source or "unknown")
+
+    def _has_ayah_refs(a) -> bool:
+        refs = meta.get(a.id, (None, {}))[1]
+        return bool(isinstance(refs, dict) and refs.get("ayah_refs"))
+
+    associations = [a for a in associations if include_derived or _derivation(a) != "co_occurrence"]
 
     return [
         AssociationResponse(
@@ -385,7 +418,8 @@ async def get_concept_associations(
             strength=a.strength,
             explanation_ar=a.explanation_ar,
             explanation_en=a.explanation_en,
-            has_sufficient_evidence=a.has_sufficient_evidence,
+            has_sufficient_evidence=bool(a.has_sufficient_evidence) and _has_ayah_refs(a),
+            derivation=_derivation(a),
         )
         for a in associations
     ]
