@@ -79,6 +79,19 @@ def test_unlicensed_and_broken_editions_removed():
     assert not ({168, 169, 817, 93} & ALLOWED_QURAN_COM_IDS)
 
 
+def test_mushaf_page_requests_no_unlicensed_english_tafsir():
+    """The Mushaf verse panel must not call the disabled Quran.com proxy."""
+    from pathlib import Path
+    page = (Path(__file__).resolve().parents[3] / "frontend" / "src" / "pages" / "MushafPage.tsx").read_text(
+        encoding="utf-8"
+    )
+    assert "/tafseer/quran-com/" not in page
+    assert "quran_com_id" not in page
+    for eid in ("en_ibn_kathir", "en_maarif", "en_tazkirul"):
+        assert eid not in page
+    assert "No licensed English tafsir is available yet" in page
+
+
 @pytest_asyncio.fixture
 async def client():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
