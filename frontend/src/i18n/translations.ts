@@ -150,14 +150,164 @@ export const translations: Translations = {
     en: 'Roots',
   },
 
+  // App shell — five-tab information architecture (Read / Explore / Tadabbur / Memorise / More)
+  nav_read: { ar: 'اقرأ', en: 'Read' },
+  nav_explore: { ar: 'استكشف', en: 'Explore' },
+  nav_tadabbur: { ar: 'تدبّر', en: 'Tadabbur' },
+  nav_memorise: { ar: 'احفظ', en: 'Memorise' },
+  nav_more: { ar: 'المزيد', en: 'More' },
+  nav_primary_label: { ar: 'التنقل الرئيسي', en: 'Main navigation' },
+  nav_more_dialog_label: { ar: 'كل الأقسام', en: 'All sections' },
+  nav_open_more: { ar: 'فتح قائمة المزيد', en: 'Open the More menu' },
+  skip_to_content: { ar: 'انتقل إلى المحتوى', en: 'Skip to content' },
+  header_search: { ar: 'البحث في القرآن', en: 'Search the Quran' },
+  header_home: { ar: 'الصفحة الرئيسية', en: 'Home page' },
+  lang_switch_aria: { ar: 'التبديل إلى الإنجليزية', en: 'Switch to Arabic' },
+
+  // Hub pages
+  hub_explore_title: { ar: 'استكشف القرآن', en: 'Explore the Quran' },
+  hub_explore_subtitle: { ar: 'القصص والأنبياء والمحاور والمفاهيم وأدوات الفهم', en: 'Stories, prophets, themes, concepts and study tools' },
+  hub_memorise_title: { ar: 'الحفظ والمراجعة', en: 'Memorise and review' },
+  hub_memorise_subtitle: { ar: 'أدوات تساعدك على الحفظ وتثبيته', en: 'Tools that help you memorise and keep what you memorised' },
+  hub_more_title: { ar: 'المزيد', en: 'More' },
+  hub_more_subtitle: { ar: 'أدوات يومية وإعدادات ومعلومات عن التطبيق', en: 'Daily tools, settings and information about the app' },
+  more_section_reflect: { ar: 'التدبر والتأمل', en: 'Reflection' },
+  more_section_reading: { ar: 'قراءتي', en: 'My reading' },
+  more_section_daily: { ar: 'أدوات يومية', en: 'Daily tools' },
+  more_section_learn: { ar: 'تعلّم', en: 'Learn' },
+  more_section_app: { ar: 'عن التطبيق', en: 'About the app' },
+  more_section_settings: { ar: 'الإعدادات', en: 'Settings' },
+  more_section_external: { ar: 'روابط خارجية', en: 'External resources' },
+  more_external_note: {
+    ar: 'هذه الصفحات تعرض روابط لمواقع خارجية لا نتحقق من محتواها.',
+    en: 'These pages list links to outside websites whose content we do not check.',
+  },
+  more_language: { ar: 'اللغة', en: 'Language' },
+  more_report_issue: { ar: 'أبلغ عن مشكلة', en: 'Report a problem' },
+  more_report_issue_desc: { ar: 'أخبرنا عن خطأ في النص أو المصدر أو الواجهة', en: 'Tell us about a text, source or interface problem' },
+
+  // Not found (catch-all route)
+  not_found_title: { ar: 'الصفحة غير موجودة', en: 'Page not found' },
+  not_found_body: { ar: 'ربما تغيّر الرابط أو حُذفت الصفحة.', en: 'The link may have changed or the page was removed.' },
+  not_found_home: { ar: 'الرئيسية', en: 'Home' },
+  not_found_read: { ar: 'اقرأ القرآن', en: 'Read the Quran' },
+  not_found_search: { ar: 'البحث', en: 'Search' },
+
+  // Error boundary and unavailable panels
+  err_boundary_title: { ar: 'حدث خطأ غير متوقع', en: 'Something went wrong' },
+  err_boundary_body: {
+    ar: 'تعذّر عرض هذا الجزء من الصفحة. يمكنك إعادة المحاولة أو الرجوع إلى الرئيسية.',
+    en: 'This part of the page could not be shown. You can try again or go back to the home page.',
+  },
+  err_boundary_retry: { ar: 'إعادة المحاولة', en: 'Try again' },
+  err_boundary_home: { ar: 'الرئيسية', en: 'Home' },
+  err_boundary_details: { ar: 'تفاصيل الخطأ', en: 'Error details' },
+  panel_unavailable: { ar: 'هذا القسم غير متاح حالياً.', en: 'This section is not available right now.' },
+
+  // About page
+  about_title: { ar: 'عن تدبّر', en: 'About Tadabbur' },
+  about_what_title: { ar: 'ما هو تدبّر؟', en: 'What is Tadabbur?' },
+  about_what_body: {
+    ar: 'تدبّر يعينك على قراءة القرآن الكريم وفهمه والتأمل فيه. يُعرض النص كما نشره مشروع تنزيل، وتأتي الشروح من كتب تفسير مسمّاة.',
+    en: "Tadabbur helps you read, understand and reflect on the Qur'an. The Qur'an text is shown exactly as published by the Tanzil Project; explanations come from named tafsir books.",
+  },
+  about_ai_title: { ar: 'ما يفعله الذكاء الاصطناعي وما لا يفعله', en: 'What AI does and does not do' },
+  about_ai_body: {
+    ar: 'يقتصر دور الذكاء الاصطناعي على تلخيص ما يجده في تلك الكتب مع ذكر المصدر، ولا يُصدر فتاوى ولا ينشئ تفسيراً جديداً.',
+    en: 'AI only summarises passages it found in those books and cites them. It does not issue fatwas or create new tafsir.',
+  },
+  about_ai_mistakes: {
+    ar: 'قد تخطئ الملخصات الآلية، فارجع دائماً إلى المصدر المذكور، واسأل أهل العلم فيما يحتاج إلى فتوى.',
+    en: 'Automatic summaries can be wrong. Always check the cited source, and ask a qualified scholar about anything that needs a ruling.',
+  },
+  about_sources_title: { ar: 'المصادر والخصوصية', en: 'Sources and privacy' },
+  about_feedback_title: { ar: 'الملاحظات', en: 'Feedback' },
+  about_feedback_body: {
+    ar: 'إذا رأيت خطأً في نص أو مصدر أو ترجمة فاستخدم زر «أبلغ عن مشكلة».',
+    en: 'If you see a mistake in a text, source or translation, use the “Report a problem” button.',
+  },
+  about_link_sources: { ar: 'المصادر والتراخيص', en: 'Sources & licences' },
+  about_link_privacy: { ar: 'سياسة الخصوصية', en: 'Privacy policy' },
+  about_link_licenses: { ar: 'تراخيص البرمجيات والخطوط', en: 'Software and font licences' },
+
+  // Footer
+  footer_about: { ar: 'عن تدبّر', en: 'About' },
+  footer_privacy: { ar: 'سياسة الخصوصية', en: 'Privacy policy' },
+  footer_sources: { ar: 'المصادر والتراخيص', en: 'Sources & licences' },
+  footer_licenses: { ar: 'تراخيص البرمجيات', en: 'Open-source licences' },
+  footer_quran_text_credit: { ar: 'نص القرآن: مشروع تنزيل', en: "Qur'an text: Tanzil Project" },
+
+  // Ask page intro (rendered by AskPage)
+  ask_intro_title: { ar: 'كيف تعمل الإجابات', en: 'How answers work' },
+  ask_intro_body: {
+    ar: 'كيف تعمل الإجابات: نبحث في كتب التفسير المعتمدة ثم يلخّص الذكاء الاصطناعي ما وجدناه مع ذكر المصدر. ليست فتوى ولا تفسيراً جديداً.',
+    en: 'How answers work: we search the listed tafsir books, then AI summarises what was found and cites each source. It is not a fatwa or new tafsir.',
+  },
+  ask_intro_sources_link: { ar: 'المصادر', en: 'Sources' },
+  ask_intro_how_to_ask_link: { ar: 'كيف أسأل؟', en: 'How to ask' },
+  ask_tip_cited_answers: { ar: 'إجابات موثّقة بالمصادر', en: 'answers with cited sources' },
+
+  // Home page — honest feature wording
+  home_ask_desc: {
+    ar: 'يبحث في كتب التفسير المذكورة ثم يلخّص ما وجده مع ذكر المصدر — وقد يخطئ',
+    en: 'Searches the listed tafsir books and summarises what it finds, citing each source — it can make mistakes',
+  },
+  home_tasmee_desc: {
+    ar: 'يتابع التطبيق تلاوتك كلمةً كلمة تلقائياً، وقد يخطئ',
+    en: 'Word-by-word follow-along of your recitation (automatic, may be wrong)',
+  },
+  home_sources_desc: {
+    ar: 'كتب التفسير والترجمات والنصوص التي يعتمد عليها التطبيق مع تراخيصها',
+    en: 'The tafsir books, translations and texts the app uses, with their licences',
+  },
+  home_quiz_desc: {
+    ar: 'أسئلة جاهزة عن القرآن، وأسئلة يولّدها الذكاء الاصطناعي لأي سورة — راجع الإجابات في المصدر',
+    en: 'Ready-made Quran questions, plus AI-generated questions for any surah — check answers against the source',
+  },
+  home_notice_body: {
+    ar: 'نص القرآن من مشروع تنزيل. إجابات الذكاء الاصطناعي تلخيص للمصادر التفسيرية المذكورة وقد تخطئ، فارجع دائماً إلى المصدر. ليست فتوى ولا تفسيراً جديداً.',
+    en: "Qur'an text from Tanzil. AI answers summarise the cited tafsir sources and may contain mistakes — always check the source. They are not fatwas or new tafsir.",
+  },
+
+  // Onboarding
+  onboarding_intro: {
+    ar: 'تدبّر يعينك على قراءة القرآن الكريم وفهمه والتأمل فيه، مع ذكر مصدر كل شرح.',
+    en: "Tadabbur helps you read, understand and reflect on the Qur'an, with a source for every explanation.",
+  },
+  onboarding_language: { ar: 'اللغة', en: 'Language' },
+
+  // Offline banner
+  offline_banner: {
+    ar: 'أنت غير متصل. الصفحات التي فتحتها سابقاً تعمل، أما ميزات الذكاء الاصطناعي فتحتاج إلى اتصال.',
+    en: 'You are offline. Pages you have already opened still work; AI features need a connection.',
+  },
+
+  // Generic UI strings shared by Skeleton / EmptyState / API errors
+  copy: { ar: 'نسخ', en: 'Copy' },
+  copied: { ar: 'تم النسخ', en: 'Copied' },
+  copy_arabic: { ar: 'نسخ النص العربي', en: 'Copy Arabic text' },
+  invalid_date: {
+    ar: 'صيغة التاريخ غير صحيحة. استخدم يوم-شهر-سنة مثل 25-12-2024',
+    en: 'Invalid date. Use DD-MM-YYYY, e.g. 25-12-2024',
+  },
+  audio_load_failed: { ar: 'تعذّر تحميل التلاوة لهذه الآية', en: 'Could not load audio for this verse' },
+  insights_failed: { ar: 'تعذّر تحميل الإحصاءات', en: 'Could not load insights' },
+  err_network: {
+    ar: 'تعذّر الاتصال بالخادم. تحقّق من اتصالك ثم أعد المحاولة.',
+    en: "Can't reach the server. Check your connection and try again.",
+  },
+  err_request_unprocessed: { ar: 'تعذّر قبول الطلب: بعض الحقول غير صحيحة', en: 'Request could not be processed' },
+  err_copy_details: { ar: 'نسخ تفاصيل الخطأ', en: 'Copy error details' },
+  err_report_problem: { ar: 'أبلغنا', en: 'Report problem' },
+
   // Common
   app_title: {
     ar: 'تدبر القرآن',
-    en: 'Taddabur Al-Quran',
+    en: 'Tadabbur Al-Quran',
   },
   app_subtitle: {
-    ar: 'منصة معرفة قرآنية مبنية على المصادر',
-    en: 'RAG-Grounded Quranic Knowledge Platform',
+    ar: 'اقرأ وتدبّر وافهم — مع المصادر',
+    en: 'Read, understand and reflect — with sources',
   },
   loading: {
     ar: 'جاري التحميل...',
@@ -590,8 +740,8 @@ export const translations: Translations = {
 
   // Footer
   footer_disclaimer: {
-    ar: 'جميع الإجابات مستندة إلى مصادر تفسيرية موثقة',
-    en: 'All answers are grounded in authenticated tafseer sources',
+    ar: 'نص القرآن من مشروع تنزيل. إجابات الذكاء الاصطناعي تلخيص للمصادر التفسيرية المذكورة وقد تخطئ، فارجع دائماً إلى المصدر.',
+    en: "Qur'an text from Tanzil. AI answers summarise the cited tafsir sources and may contain mistakes — always check the source.",
   },
 
   // Sample questions
@@ -843,7 +993,7 @@ export const translations: Translations = {
   nav_prophets: { ar: 'الأنبياء', en: 'Prophets' },
   nav_tasmee: { ar: 'التسميع', en: 'Memorize' },
   tasmee_title: { ar: 'التسميع', en: 'Tasmeeʿ' },
-  tasmee_subtitle: { ar: 'تدرب على حفظ القرآن الكريم مع التصحيح الفوري', en: 'Practice Quran memorization with real-time feedback' },
+  tasmee_subtitle: { ar: 'تدرّب على الحفظ: يتابع التطبيق تلاوتك كلمةً كلمة', en: 'Practise memorization: the app follows your recitation word by word' },
   tasmee_select_range: { ar: 'اختر نطاق الآيات', en: 'Select Verse Range' },
   tasmee_surah: { ar: 'السورة', en: 'Surah' },
   tasmee_aya_start: { ar: 'من الآية', en: 'From Ayah' },
@@ -1152,7 +1302,6 @@ export const translations: Translations = {
   quran_grammar: { ar: 'إعراب', en: 'Grammar' },
   quran_similar: { ar: 'آيات متشابهة', en: 'Similar Verses' },
   quran_back_stories: { ar: 'العودة للقصص', en: 'Back to Stories' },
-  quran_bismillah: { ar: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', en: 'In the name of Allah, the Most Gracious, the Most Merciful' },
 
   // =============================================================================
   // Ask Page - صفحة اسأل
@@ -1774,7 +1923,6 @@ export const translations: Translations = {
   therapy_duas_tab:     { ar: 'أدعية نبوية', en: "Prophetic Du'as" },
   therapy_daily_tab:    { ar: 'ممارسات يومية', en: 'Daily Practices' },
   therapy_intro_title:  { ar: 'القرآن شفاء للقلوب', en: 'The Quran — Healing for the Heart' },
-  therapy_intro_verse:  { ar: 'القرآن شفاءٌ ورحمةٌ للمؤمنين', en: '"We send down of the Quran what is a healing and a mercy to those who believe"' },
   therapy_intro_ref:    { ar: 'سورة الإسراء، الآية ٨٢', en: 'Al-Isra 17:82' },
   // Chat UI
   chat_intro: { ar: 'شاركني ما تشعر به وسأرشدك بالقرآن الكريم.', en: 'Share what you are feeling and I will guide you with the Quran.' },

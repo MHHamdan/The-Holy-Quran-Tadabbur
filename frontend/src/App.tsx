@@ -64,7 +64,6 @@ const ConceptDetailPage = lazy(() => import('./pages/ConceptDetailPage').then(m 
 // Themes feature
 const ThemesPage = lazy(() => import('./pages/ThemesPage').then(m => ({ default: m.ThemesPage })));
 const ThemeDetailPage = lazy(() => import('./pages/ThemeDetailPage').then(m => ({ default: m.ThemeDetailPage })));
-const ThemeAdminPage = lazy(() => import('./pages/ThemeAdminPage').then(m => ({ default: m.ThemeAdminPage })));
 
 // Other pages
 const MiraclesPage = lazy(() => import('./pages/MiraclesPage').then(m => ({ default: m.MiraclesPage })));
@@ -88,7 +87,6 @@ const ToolsPage = lazy(() => import('./pages/ToolsPage').then(m => ({ default: m
 const ZakatCalculatorPage = lazy(() => import('./pages/tools/ZakatCalculatorPage').then(m => ({ default: m.ZakatCalculatorPage })));
 const MosqueFinderPage = lazy(() => import('./pages/tools/MosqueFinderPage').then(m => ({ default: m.MosqueFinderPage })));
 const IslamicVideosPage = lazy(() => import('./pages/tools/IslamicVideosPage').then(m => ({ default: m.IslamicVideosPage })));
-const IslamicNewsPage = lazy(() => import('./pages/tools/IslamicNewsPage').then(m => ({ default: m.IslamicNewsPage })));
 const IslamicBooksPage = lazy(() => import('./pages/tools/IslamicBooksPage').then(m => ({ default: m.IslamicBooksPage })));
 const HajjUmrahGuidePage = lazy(() => import('./pages/tools/HajjUmrahGuidePage').then(m => ({ default: m.HajjUmrahGuidePage })));
 const IslamicWebSearchPage = lazy(() => import('./pages/tools/IslamicWebSearchPage').then(m => ({ default: m.IslamicWebSearchPage })));
@@ -123,14 +121,31 @@ const LearnPage = lazy(() => import('./pages/LearnPage').then(m => ({ default: m
 const AsmaAllahPage = lazy(() => import('./pages/AsmaAllahPage').then(m => ({ default: m.AsmaAllahPage })));
 const AsmaAllahDetailPage = lazy(() => import('./pages/AsmaAllahDetailPage').then(m => ({ default: m.AsmaAllahDetailPage })));
 
-// Admin / Status
-const StatusDashboardPage = lazy(() => import('./pages/admin/StatusDashboardPage').then(m => ({ default: m.StatusDashboardPage })));
+// Admin and developer pages (/status, /admin/*, /themes/admin) are only
+// registered in development or when VITE_ENABLE_ADMIN=true is set at build
+// time. In other builds the condition is a constant false, so the bundler
+// drops these imports and the pages are not shipped to users at all.
+const ADMIN_ENABLED = import.meta.env.DEV || import.meta.env.VITE_ENABLE_ADMIN === 'true';
+const StatusDashboardPage = ADMIN_ENABLED
+  ? lazy(() => import('./pages/admin/StatusDashboardPage').then(m => ({ default: m.StatusDashboardPage })))
+  : null;
+const ReviewDashboardPage = ADMIN_ENABLED
+  ? lazy(() => import('./pages/admin/ReviewDashboardPage').then(m => ({ default: m.ReviewDashboardPage })))
+  : null;
+const AdminFeedbackPage = ADMIN_ENABLED
+  ? lazy(() => import('./pages/admin/AdminFeedbackPage').then(m => ({ default: m.AdminFeedbackPage })))
+  : null;
+const ThemeAdminPage = ADMIN_ENABLED
+  ? lazy(() => import('./pages/ThemeAdminPage').then(m => ({ default: m.ThemeAdminPage })))
+  : null;
 
-// Admin / Review Workflow (Phase 6)
-const ReviewDashboardPage = lazy(() => import('./pages/admin/ReviewDashboardPage').then(m => ({ default: m.ReviewDashboardPage })));
-
-// Admin / Feedback (Phase G)
-const AdminFeedbackPage = lazy(() => import('./pages/admin/AdminFeedbackPage').then(m => ({ default: m.AdminFeedbackPage })));
+// App shell: hubs, about, licences, not found
+const ExploreHubPage = lazy(() => import('./pages/ExploreHubPage'));
+const MemoriseHubPage = lazy(() => import('./pages/MemoriseHubPage'));
+const MorePage = lazy(() => import('./pages/MorePage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const LicensesPage = lazy(() => import('./pages/LicensesPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Spiritual Guidance / Heart Care (Phase T)
 const TherapyPage = lazy(() => import('./pages/TherapyPage').then(m => ({ default: m.TherapyPage })));
@@ -188,6 +203,12 @@ function AsmaThemeRedirect() {
 function TopicsRedirect() {
   const { topicId } = useParams<{ topicId: string }>();
   return <Navigate to={`/concepts/${topicId ?? ''}`} replace />;
+}
+
+/** /story-atlas?person=… → /stories?person=… (keeps the filters). */
+function StoryAtlasRedirect() {
+  const { search } = useLocation();
+  return <Navigate to={`/stories${search}`} replace />;
 }
 
 // =============================================================================
@@ -278,7 +299,17 @@ function App() {
 
           {/* Quran & Mushaf */}
           <Route path="/mushaf" element={<MushafPage />} />
+          {/* Surah / juz index. Interim: the juz navigator, until the
+              SurahIndexPage (Surah | Juz | Page tabs) replaces it here. */}
+          <Route path="/quran" element={<JuzNavigatorPage />} />
           <Route path="/quran/:suraNo" element={<QuranPage />} />
+
+          {/* Hubs (five-tab navigation) */}
+          <Route path="/explore" element={<ExploreHubPage />} />
+          <Route path="/memorise" element={<MemoriseHubPage />} />
+          <Route path="/more" element={<MorePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/licenses" element={<LicensesPage />} />
 
           {/* Search & AI */}
           <Route path="/ask" element={<AskPage />} />
@@ -298,7 +329,7 @@ function App() {
 
           {/* Themes */}
           <Route path="/themes" element={<ThemesPage />} />
-          <Route path="/themes/admin" element={<ThemeAdminPage />} />
+          {ThemeAdminPage && <Route path="/themes/admin" element={<ThemeAdminPage />} />}
           <Route path="/themes/:themeId" element={<ThemeDetailPage />} />
 
           {/* Other Features */}
@@ -324,7 +355,6 @@ function App() {
           <Route path="/tools/finance" element={<ZakatCalculatorPage />} />
           <Route path="/tools/maps" element={<MosqueFinderPage />} />
           <Route path="/tools/videos" element={<IslamicVideosPage />} />
-          <Route path="/tools/news" element={<IslamicNewsPage />} />
           <Route path="/tools/books" element={<IslamicBooksPage />} />
           <Route path="/tools/trips" element={<HajjUmrahGuidePage />} />
           <Route path="/tools/web" element={<IslamicWebSearchPage />} />
@@ -332,12 +362,10 @@ function App() {
           <Route path="/tools/prompt-guide" element={<PromptGuidePage />} />
           <Route path="/tools/surah-memory-atlas" element={<SurahMemoryAtlasPage />} />
 
-          {/* Admin / Status Dashboard */}
-          <Route path="/status" element={<StatusDashboardPage />} />
-
-          {/* Admin / Review Workflow */}
-          <Route path="/admin/review" element={<ReviewDashboardPage />} />
-          <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
+          {/* Admin / developer pages (development or VITE_ENABLE_ADMIN builds only) */}
+          {StatusDashboardPage && <Route path="/status" element={<StatusDashboardPage />} />}
+          {ReviewDashboardPage && <Route path="/admin/review" element={<ReviewDashboardPage />} />}
+          {AdminFeedbackPage && <Route path="/admin/feedback" element={<AdminFeedbackPage />} />}
 
           {/* Spiritual Guidance / Heart Care */}
           <Route path="/therapy" element={<TherapyPage />} />
@@ -397,8 +425,8 @@ function App() {
           {/* Quranic Calls Atlas */}
           <Route path="/quranic-calls" element={<QuranicCallsAtlasPage />} />
 
-          {/* Juz Navigator */}
-          <Route path="/juz" element={<JuzNavigatorPage />} />
+          {/* Juz Navigator — now the Juz tab of the /quran index */}
+          <Route path="/juz" element={<Navigate to="/quran?tab=juz" replace />} />
 
           {/* Learning Paths */}
           <Route path="/learn" element={<LearnPage />} />
@@ -411,10 +439,15 @@ function App() {
           <Route path="/asbab" element={<AsbabAlNuzulPage />} />
 
           {/* Legacy / aliased routes — redirect to canonical paths */}
-          <Route path="/story-atlas" element={<Navigate to="/stories" replace />} />
+          <Route path="/story-atlas" element={<StoryAtlasRedirect />} />
+          {/* The news tool was removed (its feed proxy failed on every request). */}
+          <Route path="/tools/news" element={<Navigate to="/tools" replace />} />
           <Route path="/themes/asma" element={<Navigate to="/asma-allah" replace />} />
           <Route path="/themes/asma/:nameId" element={<AsmaThemeRedirect />} />
           <Route path="/topics/:topicId" element={<TopicsRedirect />} />
+
+          {/* Anything else */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
       </ErrorBoundary>

@@ -1,6 +1,65 @@
+/* Self-hosted fonts (SIL OFL 1.1, via @fontsource). Bundled with the web
+   build and the Android/iOS apps, so Qur'an text renders in the right font
+   offline and no font request leaves the device. Each file declares
+   unicode-range subsets, so browsers only download the scripts they use. */
+@import '@fontsource/scheherazade-new/400.css';
+@import '@fontsource/scheherazade-new/700.css';
+@import '@fontsource/noto-naskh-arabic/400.css';
+@import '@fontsource/noto-naskh-arabic/500.css';
+@import '@fontsource/noto-naskh-arabic/600.css';
+@import '@fontsource/noto-naskh-arabic/700.css';
+@import '@fontsource/amiri/400.css';
+@import '@fontsource/amiri/700.css';
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-ext-400.css';
+@import '@fontsource/inter/latin-500.css';
+@import '@fontsource/inter/latin-ext-500.css';
+@import '@fontsource/inter/latin-600.css';
+@import '@fontsource/inter/latin-ext-600.css';
+@import '@fontsource/inter/latin-700.css';
+@import '@fontsource/inter/latin-ext-700.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* App shell geometry. --app-header-h is the sticky header height including the
+   status-bar inset; sticky toolbars below it use top-[var(--app-header-h)].
+   --bottom-nav-h is the phone tab bar (0 from md up, where it is hidden). */
+:root {
+  --app-header-h: calc(3.5rem + env(safe-area-inset-top, 0px));
+  --bottom-nav-h: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 768px) {
+  :root {
+    --app-header-h: calc(4rem + env(safe-area-inset-top, 0px));
+    --bottom-nav-h: 0px;
+  }
+}
+
+/* Status-bar strip. On Android 15+ (edge-to-edge) the status bar is
+   transparent and the plugin's background colour is ignored; the app keeps
+   light status-bar icons, so paint the inset area in the brand colour instead
+   of leaving it white behind the header. No-op where the inset is 0. */
+.app-header-inset {
+  border-top: env(safe-area-inset-top, 0px) solid #0369a1;
+}
+
+/* Content clears the fixed phone tab bar. */
+.bottom-nav-clearance {
+  padding-bottom: var(--bottom-nav-h);
+}
+
+/* Floating buttons sit above the tab bar on phones and clear the home
+   indicator on larger screens. */
+.fab-offset {
+  bottom: calc(var(--bottom-nav-h) + 1rem);
+}
+@media (min-width: 768px) {
+  .fab-offset {
+    bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
 
 /* Safe area inset for iOS notch/home indicator */
 .safe-area-bottom {
@@ -32,8 +91,6 @@ body {
      Navigation labels, source IDs, and technical terms remain in the sans-serif stack. */
   [dir="rtl"] .font-arabic,
   [dir="rtl"] .arabic-text,
-  [dir="rtl"] .verse-text,
-  [dir="rtl"] .font-mushaf,
   [dir="rtl"] p:lang(ar),
   [dir="rtl"] span:lang(ar) {
     font-family: 'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', serif;
@@ -50,7 +107,7 @@ body {
 
   /* Quran verse styling - King Fahad Mushaf style */
   .verse-text {
-    font-family: 'Amiri Quran', 'Scheherazade New', 'Amiri', serif;
+    font-family: 'Scheherazade New', 'Amiri', serif;
     font-size: 1.75rem;
     line-height: 2.8;
     color: #1a1a2e;
@@ -61,8 +118,11 @@ body {
     font-family: 'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', serif;
   }
 
-  /* King Fahad Mushaf — Scheherazade New is the correct SIL Uthmani-Hafs font */
-  .font-mushaf {
+  /* Uthmani script needs Scheherazade New (full set of Uthmani marks) in both
+     languages. The [dir="rtl"] form is listed so the UI-font rule above, which
+     has the same specificity, cannot win in the Arabic interface. */
+  .font-mushaf,
+  [dir="rtl"] .font-mushaf {
     font-family: 'Scheherazade New', 'Noto Naskh Arabic', 'Amiri', serif;
     font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
     text-rendering: optimizeLegibility;
@@ -204,6 +264,11 @@ body {
 }
 
 @layer components {
+  /* Minimum 44x44 touch target for icon buttons and small links. */
+  .tap {
+    @apply inline-flex min-h-11 min-w-11 items-center justify-center;
+  }
+
   .btn-primary {
     @apply px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700
            transition-colors duration-200 font-medium;
@@ -568,3 +633,16 @@ html[data-reader-theme="night"] :is(body, .app-shell) { background: #0b1220; }
 .reader-surface[data-theme="night"] :is(.bg-amber-50, .bg-amber-100) { background-color: #2a2414; }
 .reader-surface[data-theme="night"].mushaf-root { background: #0b1220; }
 .reader-surface[data-theme="sepia"].mushaf-root { background: #f4ecd8; }
+
+/* Respect the OS "reduce motion" setting: no animations, transitions or
+   smooth scrolling. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
