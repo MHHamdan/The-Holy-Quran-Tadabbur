@@ -11,7 +11,14 @@
 import { useState } from 'react';
 import { AlertCircle, Copy, CheckCircle, RefreshCw, MessageSquare } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
+import { translations } from '../../i18n/translations';
+import { useFeedbackDialog } from '../feedback/feedbackStore';
 import clsx from 'clsx';
+
+/** Request ids that carry no information and are not shown. */
+export function hasUsefulRequestId(id: string | undefined | null): boolean {
+  return !!id && !['n/a', 'unknown', 'none', ''].includes(id.trim().toLowerCase());
+}
 
 export interface APIErrorData {
   code: string;
@@ -43,6 +50,7 @@ export function ErrorPanel({
 }: ErrorPanelProps) {
   const { language } = useLanguageStore();
   const [copied, setCopied] = useState(false);
+  const openFeedback = useFeedbackDialog((st) => st.openDialog);
   const isArabic = language === 'ar';
 
   if (!error) return null;
@@ -78,15 +86,18 @@ export function ErrorPanel({
         dir={isArabic ? 'rtl' : 'ltr'}
       >
         <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-        <span className="text-red-700 flex-1">{message}</span>
-        <span className="text-red-400 text-xs font-mono">{error.request_id}</span>
+        <span className="text-red-800 flex-1">{message}</span>
+        {hasUsefulRequestId(error.request_id) && (
+          <span className="text-red-700 text-xs font-mono" dir="ltr">{error.request_id}</span>
+        )}
         {onRetry && (
           <button
+            type="button"
             onClick={onRetry}
-            className="p-1 hover:bg-red-100 rounded transition-colors"
-            title={isArabic ? 'إعادة المحاولة' : 'Retry'}
+            className="tap hover:bg-red-100 rounded transition-colors"
+            aria-label={isArabic ? 'إعادة المحاولة' : 'Retry'}
           >
-            <RefreshCw className="w-4 h-4 text-red-600" />
+            <RefreshCw className="w-4 h-4 text-red-700" aria-hidden="true" />
           </button>
         )}
       </div>
@@ -116,9 +127,9 @@ export function ErrorPanel({
           {error.details && error.details.length > 0 && (
             <ul className="mt-3 space-y-1">
               {error.details.map((detail, idx) => (
-                <li key={idx} className="text-sm text-red-600">
+                <li key={idx} className="text-sm text-red-700">
                   {detail.field && (
-                    <span className="font-mono text-red-500">{detail.field}: </span>
+                    <span className="font-mono text-red-700" dir="ltr">{detail.field}: </span>
                   )}
                   {isArabic && detail.message_ar ? detail.message_ar : detail.message}
                 </li>
@@ -139,23 +150,26 @@ export function ErrorPanel({
 
       {/* Request ID and Actions */}
       <div className="mt-4 pt-4 border-t border-red-200 flex flex-wrap items-center gap-3">
-        {/* Request ID */}
-        <div className="flex items-center gap-2 text-sm text-red-500">
-          <span className="font-medium">
-            {isArabic ? 'معرف الطلب:' : 'Request ID:'}
-          </span>
-          <code className="px-2 py-0.5 bg-red-100 rounded font-mono text-xs">
-            {error.request_id}
-          </code>
-        </div>
+        {/* Request ID (only when the server gave one) */}
+        {hasUsefulRequestId(error.request_id) && (
+          <div className="flex items-center gap-2 text-sm text-red-700">
+            <span className="font-medium">
+              {isArabic ? 'معرّف الطلب:' : 'Request ID:'}
+            </span>
+            <code className="px-2 py-0.5 bg-red-100 rounded font-mono text-xs">
+              {error.request_id}
+            </code>
+          </div>
+        )}
 
         <div className="flex-1" />
 
         {/* Copy Diagnostics */}
         <button
           onClick={copyDiagnostics}
+          type="button"
           className={clsx(
-            'flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors',
+            'flex min-h-11 items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors',
             copied
               ? 'bg-green-100 text-green-700'
               : 'bg-red-100 text-red-700 hover:bg-red-200'
@@ -169,7 +183,7 @@ export function ErrorPanel({
           ) : (
             <>
               <Copy className="w-4 h-4" />
-              {isArabic ? 'نسخ التشخيص' : 'Copy Diagnostics'}
+              {isArabic ? translations.err_copy_details.ar : translations.err_copy_details.en}
             </>
           )}
         </button>
@@ -177,8 +191,9 @@ export function ErrorPanel({
         {/* Retry Button */}
         {onRetry && (
           <button
+            type="button"
             onClick={onRetry}
-            className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+            className="flex min-h-11 items-center gap-2 px-3 py-1.5 bg-red-700 text-white text-sm rounded-lg hover:bg-red-800 transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
             {isArabic ? 'إعادة المحاولة' : 'Try Again'}
@@ -188,11 +203,15 @@ export function ErrorPanel({
         {/* Report to Admin */}
         {onReport && (
           <button
-            onClick={onReport}
-            className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors"
+            type="button"
+            onClick={() => {
+              onReport?.();
+              openFeedback();
+            }}
+            className="flex min-h-11 items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-800 text-sm rounded-lg hover:bg-gray-200 transition-colors"
           >
             <MessageSquare className="w-4 h-4" />
-            {isArabic ? 'إبلاغ المشرف' : 'Report to Admin'}
+            {isArabic ? translations.err_report_problem.ar : translations.err_report_problem.en}
           </button>
         )}
       </div>
@@ -218,6 +237,7 @@ export function parseAPIError(error: unknown): APIErrorData | null {
         headers?: Record<string, string>;
       };
       message?: string;
+      code?: string;
     };
 
     if (axiosError.response?.data?.error) {
@@ -227,23 +247,38 @@ export function parseAPIError(error: unknown): APIErrorData | null {
     // Fallback for old-style errors
     if (axiosError.response?.data) {
       const data = axiosError.response.data as Record<string, unknown>;
+      // FastAPI 422 puts an array of {loc, msg} objects in `detail`, which
+      // React cannot render as a message.
+      const detail = typeof data.detail === 'string' ? data.detail : null;
+      const details = Array.isArray(data.detail)
+        ? (data.detail as Array<{ loc?: unknown[]; msg?: string }>)
+            .filter((d) => d && typeof d.msg === 'string')
+            .map((d) => ({
+              field: Array.isArray(d.loc) ? d.loc.filter((x) => x !== 'body' && x !== 'query').join('.') || undefined : undefined,
+              message: d.msg as string,
+            }))
+        : undefined;
+      const unprocessed = translations.err_request_unprocessed;
       return {
-        code: (data.error_code as string) || 'unknown_error',
-        message: (data.message as string) || (data.detail as string) || 'An error occurred',
-        message_ar: (data.message_ar as string) || 'حدث خطأ',
+        code: (data.error_code as string) || (Array.isArray(data.detail) ? 'validation_error' : 'unknown_error'),
+        message: (typeof data.message === 'string' && data.message) || detail || unprocessed.en,
+        message_ar: (typeof data.message_ar === 'string' && data.message_ar) || (details ? unprocessed.ar : 'حدث خطأ'),
         request_id:
           (data.request_id as string) ||
           axiosError.response.headers?.['x-request-id'] ||
           'unknown',
+        ...(details && details.length ? { details } : {}),
       };
     }
 
-    // Network error
-    if (axiosError.message) {
+    // No response: network failure or timeout. The transport message
+    // ("Network Error", "timeout of 30000ms exceeded") is not shown.
+    if (axiosError.message || axiosError.code) {
+      const isTimeout = axiosError.code === 'ECONNABORTED' || axiosError.code === 'ETIMEDOUT' || /timeout/i.test(axiosError.message ?? '');
       return {
-        code: 'network_error',
-        message: axiosError.message,
-        message_ar: 'خطأ في الاتصال بالخادم',
+        code: isTimeout ? 'timeout' : 'network_error',
+        message: translations.err_network.en,
+        message_ar: translations.err_network.ar,
         request_id: 'N/A',
       };
     }

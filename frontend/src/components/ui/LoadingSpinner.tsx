@@ -10,6 +10,8 @@
 import clsx from 'clsx';
 import { memo } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useLanguageStore } from '../../stores/languageStore';
+import { t } from '../../i18n/translations';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -35,8 +37,10 @@ export const LoadingSpinner = memo(function LoadingSpinner({
   size = 'md',
   variant = 'primary',
   className,
-  label = 'Loading',
+  label,
 }: LoadingSpinnerProps) {
+  const language = useLanguageStore((s) => s.language);
+  label = label ?? t('loading', language);
   return (
     <div
       role="status"
@@ -64,9 +68,11 @@ interface LoadingOverlayProps {
 }
 
 export const LoadingOverlay = memo(function LoadingOverlay({
-  message = 'Loading...',
+  message,
   className,
 }: LoadingOverlayProps) {
+  const language = useLanguageStore((s) => s.language);
+  message = message ?? t('loading', language);
   return (
     <div
       className={clsx(
