@@ -935,9 +935,6 @@ export const quranApi = {
       params: { session_id: sessionId }
     }),
 
-  getSearchStats: () =>
-    api.get<SearchStats>('/quran/history/stats'),
-
   // Allah Names (أسماء الله الحسنى) API
   getAllahNames: (params?: {
     lang?: 'ar' | 'en';
@@ -1879,15 +1876,6 @@ export interface VerseRecommendation {
   reason: string;
   reason_ar: string;
   confidence: number;
-}
-
-export interface SearchStats {
-  active_sessions: number;
-  total_searches: number;
-  unique_queries: number;
-  total_verse_clicks: number;
-  top_searches: [string, number][];
-  top_clicked_verses: [string, number][];
 }
 
 // =============================================================================
@@ -3218,10 +3206,6 @@ import type {
   ThemesResponse,
   ThemeDetailResponse,
   EmotionsResponse,
-  ChatRequest,
-  ChatResponse,
-  InsightsResponse,
-  ReflectionsResponse,
   TopicResourcesResponse,
   SituationsListResponse,
   SituationDetail,
@@ -3241,23 +3225,8 @@ export const therapyApi = {
   getEmotions: () =>
     api.get<EmotionsResponse>('/therapy/emotions').then(r => r.data),
 
-  saveReflection: (body: { session_id: string; reflection: string }) =>
-    api.post('/therapy/reflect', body).then(r => r.data),
-
-  // Phase T2
-  chat: (body: ChatRequest) =>
-    api.post<ChatResponse>('/therapy/chat', body).then(r => r.data),
-
-  getInsights: (sessionIds: string[], language = 'en') =>
-    api.post<InsightsResponse>('/therapy/insights', { session_ids: sessionIds, language }).then(r => r.data),
-
-  // Phase T5-D — fetch saved reflections from the database
-  getReflections: (sessionIds: string[]) =>
-    api.post<ReflectionsResponse>('/therapy/reflections', { session_ids: sessionIds }).then(r => r.data),
-
-  /** Delete the server copy of these guidance sessions and any saved reflection. */
-  deleteSessions: (sessionIds: string[]) =>
-    api.post<{ deleted: number }>('/therapy/sessions/delete', { session_ids: sessionIds.slice(0, 200) }).then(r => r.data),
+  // Session-keyed calls (/reflect, /chat, /insights, /reflections,
+  // /sessions/delete) need the per-session token: use lib/therapySessions.
 
   // Phase T-Adaptive — topic-specific hadith + wise phrases
   getTopicResources: (topicKey: string) =>
