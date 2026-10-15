@@ -10,13 +10,17 @@ Each segment has:
 - narrative_role: Semantic role in the story
 - chronological_index: Position in timeline
 - semantic_tags: Thematic keywords
-- evidence_sources: Tafsir citations with snippets
+- evidence_sources: Tafsir references (source id + verse reference only; no
+  quoted text: the snippets once kept here were unsourced paraphrases)
 
 Each connection has:
 - edge_type: Relationship type
 - is_chronological: Whether it's a temporal edge
 - justification: Why this connection exists
-- evidence_chunk_ids: Tafsir grounding
+- evidence_chunk_ids: Tafsir grounding. Written as verse references
+  ("ibn_kathir_ar:18:83-84") below and resolved at seed time to the real
+  tafseer_chunks ids of that enabled, licence-verified source; a reference
+  that resolves to nothing is dropped, never substituted.
 
 Usage:
     python scripts/ingest/seed_story_graphs.py
@@ -28,6 +32,9 @@ from datetime import datetime
 
 # Add parent to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
+import json
+import re
 
 from sqlalchemy import create_engine, text, update
 from sqlalchemy.orm import sessionmaker
@@ -57,9 +64,8 @@ DHUL_QARNAYN_SEGMENTS = [
         "memorization_cue_ar": "سألوا ليمتحنوا - أجاب الله ليعلّم",
         "evidence_sources": [
             {
-                "source_id": "ibn_kathir_en",
+                "source_id": "ibn_kathir_ar",
                 "reference": "18:83",
-                "snippet": "They ask you about Dhul-Qarnayn. The Jews asked the Prophet about him, as a test, having been advised by the rabbis."
             }
         ],
         # Update ayah range to match correct split
@@ -80,14 +86,12 @@ DHUL_QARNAYN_SEGMENTS = [
         "memorization_cue_ar": "تمكين + أسباب = قوة صالحة",
         "evidence_sources": [
             {
-                "source_id": "ibn_kathir_en",
+                "source_id": "ibn_kathir_ar",
                 "reference": "18:84",
-                "snippet": "We established him in the earth, and We gave him the means to everything. This means: knowledge of how to reach his goals."
             },
             {
                 "source_id": "tabari_ar",
                 "reference": "18:84",
-                "snippet": "وآتيناه من كل شيء سبباً: أي علماً بالطرق والوسائل التي يتوصل بها إلى ما يريد"
             }
         ],
         "aya_start": 84,
@@ -107,14 +111,12 @@ DHUL_QARNAYN_SEGMENTS = [
         "memorization_cue_ar": "الاختبار ١: عذّب الظالم، أكرم المؤمن",
         "evidence_sources": [
             {
-                "source_id": "ibn_kathir_en",
+                "source_id": "ibn_kathir_ar",
                 "reference": "18:86-87",
-                "snippet": "We said: O Dhul-Qarnayn! Either punish them, or treat them with kindness. He said: As for him who wrongs, we shall punish him."
             },
             {
                 "source_id": "qurtubi_ar",
                 "reference": "18:86",
-                "snippet": "هذا تخيير بين القتال والدعوة، وهو اختبار لعدله وحكمه في الناس"
             }
         ],
         "aya_start": 85,
@@ -134,14 +136,12 @@ DHUL_QARNAYN_SEGMENTS = [
         "memorization_cue_ar": "الاختبار ٢: قوة على الضعفاء، اختار العدل",
         "evidence_sources": [
             {
-                "source_id": "ibn_kathir_en",
+                "source_id": "ibn_kathir_ar",
                 "reference": "18:90-91",
-                "snippet": "A people for whom We had not made any shelter against it (the sun). So it was - he dealt with them as he had dealt with the former people."
             },
             {
                 "source_id": "tabari_ar",
                 "reference": "18:91",
-                "snippet": "كذلك: أي كما فعل بأهل المغرب من العدل والإنصاف، فعل بأهل المشرق مثل ذلك"
             }
         ],
         "aya_start": 89,
@@ -161,14 +161,12 @@ DHUL_QARNAYN_SEGMENTS = [
         "memorization_cue_ar": "بين السدين: مظلومون يطلبون العون",
         "evidence_sources": [
             {
-                "source_id": "ibn_kathir_en",
+                "source_id": "ibn_kathir_ar",
                 "reference": "18:93-94",
-                "snippet": "He found a people who could scarcely understand speech. They said: O Dhul-Qarnayn! Verily Yajuj and Majuj are doing great mischief in the land."
             },
             {
                 "source_id": "qurtubi_ar",
                 "reference": "18:94",
-                "snippet": "يأجوج ومأجوج أمتان عظيمتان من ذرية يافث بن نوح، يفسدون في الأرض"
             }
         ],
         "aya_start": 92,
@@ -188,14 +186,12 @@ DHUL_QARNAYN_SEGMENTS = [
         "memorization_cue_ar": "الاختبار ٣: ما مكني فيه ربي خير",
         "evidence_sources": [
             {
-                "source_id": "ibn_kathir_en",
+                "source_id": "ibn_kathir_ar",
                 "reference": "18:95",
-                "snippet": "He said: That in which my Lord has established me is better. So help me with strength (labor), I will erect between you and them a barrier."
             },
             {
                 "source_id": "tabari_ar",
                 "reference": "18:95",
-                "snippet": "ما مكني فيه ربي خير من خرجكم: أي ما أعطاني الله من الملك والقدرة خير مما تعطونني"
             }
         ],
         "aya_start": 95,
@@ -215,14 +211,12 @@ DHUL_QARNAYN_SEGMENTS = [
         "memorization_cue_ar": "زبر الحديد + نار + قطر = سد لا يُخترق",
         "evidence_sources": [
             {
-                "source_id": "ibn_kathir_en",
+                "source_id": "ibn_kathir_ar",
                 "reference": "18:96",
-                "snippet": "Bring me blocks of iron - until he had filled up the gap between the two mountain-sides. He said: Blow! - till he made it (red as) fire. He said: Bring me molten copper to pour over it."
             },
             {
                 "source_id": "qurtubi_ar",
                 "reference": "18:96",
-                "snippet": "زبر الحديد: قطع الحديد الكبيرة. والقطر: النحاس المذاب. وهذا دليل على علمه بالصناعات"
             }
         ],
         "aya_start": 96,
@@ -242,14 +236,12 @@ DHUL_QARNAYN_SEGMENTS = [
         "memorization_cue_ar": "بعد النجاح: هذا رحمة من ربي",
         "evidence_sources": [
             {
-                "source_id": "ibn_kathir_en",
+                "source_id": "ibn_kathir_ar",
                 "reference": "18:98",
-                "snippet": "He said: This is a mercy from my Lord, but when the Promise of my Lord comes, He shall level it to the ground. And the Promise of my Lord is ever true."
             },
             {
                 "source_id": "tabari_ar",
                 "reference": "18:98",
-                "snippet": "هذا رحمة من ربي: أي هذا السد توفيق من الله ورحمة منه بعباده. فإذا جاء وعد ربي: يعني يوم القيامة"
             }
         ],
         "aya_start": 98,
@@ -266,7 +258,7 @@ DHUL_QARNAYN_CONNECTIONS = [
         "is_chronological": True,
         "strength": 1.0,
         "justification_en": "The question (83) is immediately followed by Allah's description of His empowerment (84)",
-        "evidence_chunk_ids": ["ibn_kathir_en:18:83-84"],
+        "evidence_chunk_ids": ["ibn_kathir_ar:18:83-84"],
     },
     {
         "source": "dhulqarnayn_empowerment",
@@ -275,7 +267,7 @@ DHUL_QARNAYN_CONNECTIONS = [
         "is_chronological": True,
         "strength": 1.0,
         "justification_en": "Divine empowerment enabled his journeys - 'fa atba'a sababan' (he followed a means) references the means given in 84",
-        "evidence_chunk_ids": ["ibn_kathir_en:18:84-85"],
+        "evidence_chunk_ids": ["ibn_kathir_ar:18:84-85"],
     },
     {
         "source": "dhulqarnayn_west",
@@ -284,7 +276,7 @@ DHUL_QARNAYN_CONNECTIONS = [
         "is_chronological": True,
         "strength": 1.0,
         "justification_en": "'Thumma atba'a sababan' (Then he followed another means) - clear temporal sequence",
-        "evidence_chunk_ids": ["ibn_kathir_en:18:89"],
+        "evidence_chunk_ids": ["ibn_kathir_ar:18:89"],
     },
     {
         "source": "dhulqarnayn_east",
@@ -293,7 +285,7 @@ DHUL_QARNAYN_CONNECTIONS = [
         "is_chronological": True,
         "strength": 1.0,
         "justification_en": "'Thumma atba'a sababan' again (92) - third journey to the barrier region",
-        "evidence_chunk_ids": ["ibn_kathir_en:18:92"],
+        "evidence_chunk_ids": ["ibn_kathir_ar:18:92"],
     },
     {
         "source": "dhulqarnayn_barrier_encounter",
@@ -302,7 +294,7 @@ DHUL_QARNAYN_CONNECTIONS = [
         "is_chronological": True,
         "strength": 1.0,
         "justification_en": "The people's plea (94) leads directly to his response (95)",
-        "evidence_chunk_ids": ["ibn_kathir_en:18:94-95"],
+        "evidence_chunk_ids": ["ibn_kathir_ar:18:94-95"],
     },
     {
         "source": "dhulqarnayn_refuses_tribute",
@@ -311,7 +303,7 @@ DHUL_QARNAYN_CONNECTIONS = [
         "is_chronological": True,
         "strength": 1.0,
         "justification_en": "His decision to help without payment (95) leads to the construction (96-97)",
-        "evidence_chunk_ids": ["ibn_kathir_en:18:95-97"],
+        "evidence_chunk_ids": ["ibn_kathir_ar:18:95-97"],
     },
     {
         "source": "dhulqarnayn_barrier",
@@ -320,7 +312,7 @@ DHUL_QARNAYN_CONNECTIONS = [
         "is_chronological": True,
         "strength": 1.0,
         "justification_en": "Upon completing the great work (97), he immediately attributes it to Allah's mercy (98)",
-        "evidence_chunk_ids": ["ibn_kathir_en:18:97-98"],
+        "evidence_chunk_ids": ["ibn_kathir_ar:18:97-98"],
     },
     # Thematic connections
     {
@@ -339,7 +331,7 @@ DHUL_QARNAYN_CONNECTIONS = [
         "is_chronological": False,
         "strength": 0.85,
         "justification_en": "Arc of righteous leadership: given everything (84) yet attributes all to Allah (98)",
-        "evidence_chunk_ids": ["ibn_kathir_en:18:84", "ibn_kathir_en:18:98"],
+        "evidence_chunk_ids": ["ibn_kathir_ar:18:84", "ibn_kathir_ar:18:98"],
     },
     {
         "source": "dhulqarnayn_refuses_tribute",
@@ -348,9 +340,41 @@ DHUL_QARNAYN_CONNECTIONS = [
         "is_chronological": False,
         "strength": 0.8,
         "justification_en": "Both show tawakkul: 'ma makkani fihi rabbi' (95) echoes 'hadha rahmah min rabbi' (98)",
-        "evidence_chunk_ids": ["ibn_kathir_en:18:95", "ibn_kathir_en:18:98"],
+        "evidence_chunk_ids": ["ibn_kathir_ar:18:95", "ibn_kathir_ar:18:98"],
     },
 ]
+
+
+_REF_RE = re.compile(r"^(?P<src>[a-z_]+_(?:ar|en)):(?P<s>\d{1,3}):(?P<a>\d{1,3})(?:-(?P<b>\d{1,3}))?$")
+
+
+def resolve_evidence_refs(session, refs):
+    """Verse references ("src:S:A-B") -> real chunk ids of that source, only
+    when the source is enabled and its licence verified."""
+    ids = []
+    for ref in refs:
+        m = _REF_RE.match(ref)
+        if not m:
+            print(f"   WARNING: unparseable evidence reference dropped: {ref}")
+            continue
+        a = int(m.group("a"))
+        b = int(m.group("b") or a)
+        rows = session.execute(
+            text("""
+                SELECT c.chunk_id FROM tafseer_chunks c
+                JOIN tafseer_sources s ON s.id = c.source_id
+                WHERE c.source_id = :src AND s.is_enabled = 1 AND s.license_verified = 1
+                  AND c.sura_no = :sura AND c.aya_start <= :b AND c.aya_end >= :a
+                ORDER BY c.aya_start, c.chunk_id
+            """),
+            {"src": m.group("src"), "sura": int(m.group("s")), "a": a, "b": b},
+        ).fetchall()
+        if not rows:
+            print(f"   WARNING: no enabled tafsir chunk for {ref}; dropped")
+        for (cid,) in rows:
+            if cid not in ids:
+                ids.append(cid)
+    return ids
 
 
 def main():
@@ -411,7 +435,7 @@ def main():
                     "is_entry_point": seg_data.get("is_entry_point", False),
                     "memorization_cue_ar": seg_data.get("memorization_cue_ar"),
                     "memorization_cue_en": seg_data.get("memorization_cue_en"),
-                    "evidence_sources": str(seg_data.get("evidence_sources", [])).replace("'", '"'),
+                    "evidence_sources": json.dumps(seg_data.get("evidence_sources", []), ensure_ascii=False),
                     "aya_start": seg_data.get("aya_start"),
                     "aya_end": seg_data.get("aya_end"),
                     "updated_at": datetime.utcnow(),
@@ -451,7 +475,7 @@ def main():
                     "is_entry_point": seg_data.get("is_entry_point", False),
                     "memorization_cue_ar": seg_data.get("memorization_cue_ar"),
                     "memorization_cue_en": seg_data.get("memorization_cue_en"),
-                    "evidence_sources": str(seg_data.get("evidence_sources", [])).replace("'", '"'),
+                    "evidence_sources": json.dumps(seg_data.get("evidence_sources", []), ensure_ascii=False),
                     "created_at": datetime.utcnow(),
                     "updated_at": datetime.utcnow(),
                 })
@@ -478,6 +502,12 @@ def main():
         # Insert new connections
         conn_count = 0
         for conn in DHUL_QARNAYN_CONNECTIONS:
+            evidence_ids = resolve_evidence_refs(session, conn["evidence_chunk_ids"])
+            if not evidence_ids:
+                # ck_connection_has_evidence needs one id; an edge with no
+                # resolvable evidence is not seeded.
+                print(f"   SKIPPED (no evidence): {conn['source']} -> {conn['target']}")
+                continue
             insert_conn = text("""
                 INSERT INTO story_connections (
                     source_segment_id, target_segment_id, edge_type, connection_type,
@@ -496,7 +526,7 @@ def main():
                 "is_chronological": conn["is_chronological"],
                 "strength": conn["strength"],
                 "justification_en": conn.get("justification_en"),
-                "evidence_chunk_ids": conn["evidence_chunk_ids"],
+                "evidence_chunk_ids": evidence_ids,
                 "created_at": datetime.utcnow(),
                 "updated_at": datetime.utcnow(),
             })
