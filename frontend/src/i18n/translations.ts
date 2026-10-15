@@ -251,6 +251,17 @@ export const translations: Translations = {
     en: 'Try specific questions such as "What does Ayat al-Kursi mean?" to get answers with cited sources.',
   },
 
+  // Tafsir methodology labels (SourcesPage; tokens from /rag/sources)
+  tafsir_method_bil_mathur: { ar: 'تفسير بالمأثور', en: 'Narration-based (bil-maʾthūr)' },
+  tafsir_method_narration_based: { ar: 'تفسير بالمأثور', en: 'Narration-based (bil-maʾthūr)' },
+  tafsir_method_bil_rai: { ar: 'تفسير بالرأي', en: 'Reasoned opinion (bil-raʾy)' },
+  tafsir_method_comprehensive: { ar: 'تفسير جامع', en: 'Comprehensive' },
+  tafsir_method_concise: { ar: 'تفسير موجز', en: 'Concise' },
+  tafsir_method_simplified: { ar: 'تفسير ميسَّر', en: 'Simplified' },
+  tafsir_method_fiqh_focused: { ar: 'عناية بالأحكام الفقهية', en: 'Focus on legal rulings' },
+  tafsir_method_linguistic: { ar: 'عناية باللغة', en: 'Linguistic' },
+  tafsir_method_translation: { ar: 'ترجمة', en: 'Translation' },
+
   // Home page — honest feature wording
   home_ask_desc: {
     ar: 'يبحث في كتب التفسير المذكورة ثم يلخّص ما وجده مع ذكر المصدر — وقد يخطئ',
@@ -2864,6 +2875,14 @@ export const aspectTranslations: Record<string, { ar: string; en: string }> = {
   afterlife: { ar: 'الآخرة', en: 'afterlife' },
   honor: { ar: 'الشرف', en: 'honor' },
 };
+
+/** Label for a tafsir methodology token, or null when the token is unknown
+ *  (a raw token such as "fiqh_focused" is never shown to readers). */
+export function tafsirMethodLabel(token: string | null | undefined, language: Language): string | null {
+  if (!token) return null;
+  const entry = translations[`tafsir_method_${token}`];
+  return entry ? entry[language] : null;
+}
 
 export function t(key: string, language: Language): string {
   const translation = translations[key];
