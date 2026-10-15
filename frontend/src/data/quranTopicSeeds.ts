@@ -658,7 +658,7 @@ export const COMMAND_PROHIBITION_TOPICS: QuranTopicSeed[] = [
     topicType: 'prohibition',
     labelArabic: 'النهي عن الكبر',
     labelEnglish: 'Prohibition of arrogance',
-    aliasesArabic: ['لا تستكبروا', 'لا تمش في الأرض مرحا', 'لا يحب المستكبرين'],
+    aliasesArabic: ['لا تستكبروا', 'في الأرض مرحا', 'لا يحب المستكبرين'],
     aliasesEnglish: ['prohibition of arrogance'],
   }),
   seed({

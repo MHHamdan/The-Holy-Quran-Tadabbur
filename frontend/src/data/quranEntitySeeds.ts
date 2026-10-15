@@ -647,7 +647,8 @@ export const PEOPLE_SEEDS: EntitySeed[] = [
     entityType: 'people_or_nation',
     labelArabic: 'أصحاب الفيل',
     labelEnglish: 'People of the Elephant',
-    // Quran rasm: أَصْحَٰبِ ٱلْفِيلِ → أصحب الفيل (dagger-alif on ح).
+    // The Uthmani rasm of 105:1 writes this word with a dagger alif on ح,
+    // so its plain-letter form is أصحب الفيل.
     aliasesArabic: ['أصحاب الفيل', 'أصحب الفيل'],
     aliasesEnglish: ['People of the Elephant'],
     transliterations: ['Ashab al-Fil'],
