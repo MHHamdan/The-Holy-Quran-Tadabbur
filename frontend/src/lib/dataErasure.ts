@@ -5,14 +5,13 @@
  *  1. server copies of guidance sessions / saved reflections (by the session
  *     ids this device created)
  *  1b. server Tasmeeʿ sessions (recognised words and mistakes) this device
- *     created, listed in localStorage under TASMEE_SESSIONS_KEY by TasmeePage
+ *     created, listed in localStorage under TASMEE_SESSIONS_KEY by useTasmeeWebSocket
  *  2. offline recitation files
  *  3. the scheduled reading reminder
  *  4. every tadabbur* entry in local storage (bookmarks, journal, progress,
  *     settings, flashcards, search history...)
  */
-import { therapyApi } from './api';
-import { apiUrl } from './config';
+import { api, therapyApi } from './api';
 import { isNativeApp } from './native';
 import { applyReminder, DEFAULT_REMINDER } from './reminders';
 
@@ -25,43 +24,40 @@ function guidanceSessionIds(): string[] {
   }
 }
 
-/** localStorage key where TasmeePage records the sessions this device created:
- *  a JSON array of { id, token? } (or plain id strings). */
-export const TASMEE_SESSIONS_KEY = 'tadabbur_tasmee_sessions';
+/** localStorage key where useTasmeeWebSocket (rememberTasmeeSession) records
+ *  the Tasmeeʿ sessions this device created: a JSON array of
+ *  { id, token, createdAt }. Must stay identical to TASMEE_SESSIONS_STORAGE_KEY
+ *  in hooks/useTasmeeWebSocket.ts. */
+export const TASMEE_SESSIONS_KEY = 'tadabbur-tasmee-sessions';
 
-interface StoredTasmeeSession { id: string; token?: string }
+export interface StoredTasmeeSession { id: string; token: string }
 
 export function tasmeeSessions(): StoredTasmeeSession[] {
   try {
     const raw = JSON.parse(localStorage.getItem(TASMEE_SESSIONS_KEY) ?? '[]') as unknown;
     if (!Array.isArray(raw)) return [];
     return raw
-      .map((e): StoredTasmeeSession | null => {
-        if (typeof e === 'string' || typeof e === 'number') return { id: String(e) };
-        if (e && typeof e === 'object' && 'id' in e) {
-          const o = e as { id: unknown; token?: unknown };
-          return { id: String(o.id), token: typeof o.token === 'string' ? o.token : undefined };
-        }
-        return null;
-      })
-      .filter((e): e is StoredTasmeeSession => !!e && !!e.id);
+      .filter((r): r is { id: string; token: string } =>
+        !!r && typeof r === 'object' && typeof (r as { id?: unknown }).id === 'string'
+        && typeof (r as { token?: unknown }).token === 'string')
+      .map(({ id, token }) => ({ id, token }));
   } catch {
     return [];
   }
 }
 
-async function deleteTasmeeSessions(sessions: StoredTasmeeSession[]): Promise<number> {
-  const res = await fetch(apiUrl('/api/v1/tasmee/sessions/delete'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      session_ids: sessions.map((s) => s.id),
-      client_tokens: sessions.map((s) => s.token ?? null),
-    }),
-  });
-  if (!res.ok) throw new Error(`tasmee delete failed: ${res.status}`);
-  const data = (await res.json().catch(() => ({}))) as { deleted?: number };
-  return data.deleted ?? 0;
+/** POST /tasmee/sessions/delete with { sessions: [{ id, token }] } in batches
+ *  of 200 (the server's limit), then forget the list locally. Throws if any
+ *  batch fails, leaving the list in place so the user can retry. */
+export async function deleteTasmeeSessions(): Promise<number> {
+  const rows = tasmeeSessions();
+  let deleted = 0;
+  for (let i = 0; i < rows.length; i += 200) {
+    const res = await api.post<{ deleted: number }>('/tasmee/sessions/delete', { sessions: rows.slice(i, i + 200) });
+    deleted += res.data?.deleted ?? 0;
+  }
+  try { localStorage.removeItem(TASMEE_SESSIONS_KEY); } catch { /* storage unavailable */ }
+  return deleted;
 }
 
 export interface ErasureResult {
@@ -81,13 +77,14 @@ export async function eraseAllMyData(): Promise<ErasureResult> {
     }
   }
 
-  const tasmee = tasmeeSessions();
-  for (let i = 0; i < tasmee.length; i += 200) {
-    try {
-      serverSessionsDeleted += await deleteTasmeeSessions(tasmee.slice(i, i + 200));
-    } catch {
-      serverError = true;
-    }
+  // Must run before the localStorage sweep below, which would otherwise erase
+  // the only record of the tokens needed to delete these server rows.
+  let keepTasmeeTokens = false;
+  try {
+    serverSessionsDeleted += await deleteTasmeeSessions();
+  } catch {
+    serverError = true;
+    keepTasmeeTokens = true; // keep the tokens so "Delete my data" can be retried
   }
 
   try {
@@ -104,6 +101,7 @@ export async function eraseAllMyData(): Promise<ErasureResult> {
   try {
     Object.keys(localStorage)
       .filter((k) => k.startsWith('tadabbur') || k.startsWith('zakat_'))
+      .filter((k) => !(keepTasmeeTokens && k === TASMEE_SESSIONS_KEY))
       .forEach((k) => localStorage.removeItem(k));
   } catch { /* storage unavailable */ }
 
