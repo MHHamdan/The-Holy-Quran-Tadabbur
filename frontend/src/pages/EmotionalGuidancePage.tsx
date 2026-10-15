@@ -17,6 +17,12 @@ import { useLanguageStore } from '../stores/languageStore';
 import { SURAH_NAMES } from '../data/surahNames';
 import { quranExcerpt } from '../utils/quranExcerpt';
 import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import {
+  HadithPendingReviewNote,
+  hadithSourceLine,
+  hasVerifiableHadithSource,
+  type HadithSource,
+} from '../components/therapy/hadithSource';
 
 interface EmotionalState {
   id: string;
@@ -38,8 +44,11 @@ interface EmotionalState {
   affirmationAr: string;
   keyRefEn: string;
   keyRefAr: string;
+  /** Free-text hadith kept for scholarly review. Never rendered unless
+   *  `hadithSource` (collection + number) has been recorded by a reviewer. */
   hadithEn: string;
   hadithAr: string;
+  hadithSource?: HadithSource;
   scholarlySrcEn: string;
   scholarlySrcAr: string;
 }
@@ -231,8 +240,8 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     labelAr: 'وحيد ومنفصل',
     emoji: '😶',
     color: 'teal',
-    quranResponseEn: 'Three Quranic verses establish divine presence at escalating levels of intimacy: 57:4 ("He is with you wherever you are"), 58:7 ("He is with them wherever they are"), and 50:16 ("closer to him than his jugular vein"). The last verse refers to Allah\'s awareness even of your thoughts before you articulate them. A Hadith Qudsi (Bukhari 7405) makes this intimate: "I am with My servant when he thinks of Me." The Quran also offers human community as a spiritual anchor: "Hold fast to the rope of Allah together" (3:103) — isolation is the exception, not the default Islamic state.',
-    quranResponseAr: `تُرسي ثلاث آيات قرآنية الحضور الإلهي بمستويات متصاعدة من القرب: 57:4 ("${quranExcerpt('57:4#30-34')}")، 58:7 ("${quranExcerpt('58:7#33-37')}")، 50:16 ("${quranExcerpt('50:16#11-15')}"). تُشير الآية الأخيرة إلى أن الله يُدرك أفكارك قبل أن تُعبّر عنها. ويُجسّد الحديث القدسي (البخاري 7405) هذا القرب: "أنا مع عبدي حين يذكرني." ويُقدّم القرآن الجماعة ملاذاً روحياً: "${quranExcerpt('3:103#1-4')}" (3:103) — العزلة استثناء، لا قاعدة في الإسلام.`,
+    quranResponseEn: 'Three Quranic verses establish divine presence at escalating levels of intimacy: 57:4 ("He is with you wherever you are"), 58:7 ("He is with them wherever they are"), and 50:16 ("closer to him than his jugular vein"). The last verse refers to Allah\'s awareness even of your thoughts before you articulate them. The Quran also offers human community as a spiritual anchor: "Hold fast to the rope of Allah together" (3:103) — isolation is the exception, not the default Islamic state.',
+    quranResponseAr: `تُرسي ثلاث آيات قرآنية الحضور الإلهي بمستويات متصاعدة من القرب: 57:4 ("${quranExcerpt('57:4#30-34')}")، 58:7 ("${quranExcerpt('58:7#33-37')}")، 50:16 ("${quranExcerpt('50:16#11-15')}"). تُشير الآية الأخيرة إلى أن الله يُدرك أفكارك قبل أن تُعبّر عنها. ويُقدّم القرآن الجماعة ملاذاً روحياً: "${quranExcerpt('3:103#1-4')}" (3:103) — العزلة استثناء، لا قاعدة في الإسلام.`,
     surahs: [
       { surah: 50, reasonEn: 'Qaf: "We are closer to him than his jugular vein" (50:16)', reasonAr: 'ق: "وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ" (50:16)' },
       { surah: 58, reasonEn: 'Al-Mujadila: "He is with them wherever they are" (58:7)', reasonAr: 'المجادلة: "هُوَ مَعَهُمْ أَيْنَ مَا كَانُوا" (58:7)' },
@@ -431,18 +440,25 @@ export function EmotionalGuidancePage() {
           </div>
         </div>
 
-        {/* Hadith reference */}
-        <div className={clsx('flex gap-2 p-2.5 rounded-xl bg-teal-50 border border-teal-100 mb-4', isRtl && 'flex-row-reverse')}>
-          <span className="text-teal-500 flex-shrink-0 text-sm leading-none mt-0.5">📜</span>
-          <div className="min-w-0">
-            <p className={clsx('text-[10px] font-semibold text-teal-600 mb-0.5', isRtl && 'font-arabic')}>
-              {isRtl ? 'حديث شريف' : 'Related Hadith'}
-            </p>
-            <p className={clsx('text-xs text-teal-800 leading-relaxed', isRtl ? 'font-arabic' : 'italic')}>
-              {isRtl ? selected.hadithAr : selected.hadithEn}
-            </p>
+        {/* Hadith: shown only with a reviewed collection + number */}
+        {hasVerifiableHadithSource(selected.hadithSource) ? (
+          <div className={clsx('flex gap-2 p-2.5 rounded-xl bg-teal-50 border border-teal-100 mb-4', isRtl && 'flex-row-reverse')}>
+            <span className="text-teal-500 flex-shrink-0 text-sm leading-none mt-0.5">📜</span>
+            <div className="min-w-0">
+              <p className={clsx('text-[10px] font-semibold text-teal-600 mb-0.5', isRtl && 'font-arabic')}>
+                {isRtl ? 'حديث شريف' : 'Related Hadith'}
+              </p>
+              <p className={clsx('text-xs text-teal-800 leading-relaxed', isRtl && 'font-arabic')}>
+                {isRtl ? selected.hadithAr : selected.hadithEn}
+              </p>
+              <p className="text-[11px] text-teal-700 mt-1" dir="ltr">
+                <bdi>{hadithSourceLine(selected.hadithSource)}</bdi>
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <HadithPendingReviewNote isRtl={isRtl} className="mb-4" />
+        )}
 
         {/* Duʿā recommendation */}
         <Link
@@ -480,7 +496,9 @@ export function EmotionalGuidancePage() {
 
         {/* Scholarly sources */}
         <p className={clsx('text-[10px] text-gray-400 leading-relaxed', isRtl && 'font-arabic text-right')}>
-          <span className="font-medium text-gray-500">{isRtl ? 'المصادر: ' : 'Sources: '}</span>
+          <span className="font-medium text-gray-500">
+            {isRtl ? 'قراءات مقترحة (اختيار تحريري بانتظار المراجعة): ' : 'Suggested reading (editorial selection, awaiting review): '}
+          </span>
           {isRtl ? selected.scholarlySrcAr : selected.scholarlySrcEn}
         </p>
 

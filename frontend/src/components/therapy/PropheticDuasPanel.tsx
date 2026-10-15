@@ -356,8 +356,13 @@ function DuaCard({ dua }: { dua: (typeof PROPHETIC_DUAS)['anxiety'][0] }) {
     }
   };
 
-  // Parse quran_ref "surah:ayah" → "/quran/surah" link
-  const quranLink = dua.quran_ref ? `/quran/${dua.quran_ref.split(':')[0]}` : null;
+  // quran_ref "surah:ayah" → "/quran/surah?aya=ayah" (opens at the verse)
+  const quranLink = dua.quran_ref
+    ? (() => {
+        const [s, a] = dua.quran_ref.split(':');
+        return a ? `/quran/${s}?aya=${a.split('-')[0]}` : `/quran/${s}`;
+      })()
+    : null;
 
   if (dua.is_quranic && dua.quran_ref) {
     return (
