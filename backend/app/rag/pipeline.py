@@ -112,17 +112,21 @@ from app.rag.source_validator import source_validator
 from app.safety.grounding import (
     QuranIndex,
     build_corpus_index,
+    check_claim_support,
     check_named_attributions,
+    check_quran_self_citations,
     contains_fiqh_disclaimer,
     drop_uncited_paragraphs,
     drop_unsupported_sentences,
     fence_conversation,
     fence_question,
     fence_source,
+    has_quran_voice,
     split_sentences,
+    verdict_supported,
     verify_quotations,
 )
-from app.safety.quran_answer_guard import QuranAnswerGuard
+from app.safety.quran_answer_guard import VERDICT_PERSONAL, QuranAnswerGuard
 from app.safety.quran_question_classifier import (
     quran_question_classifier,
     classifier_intent_to_query_intent,
@@ -540,7 +544,7 @@ class RAGPipeline:
         # 5. Check if we have enough evidence
         if not chunks:
             refusal_text = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
-            return GroundedResponse(
+            return self._mark_degraded(GroundedResponse(
                 answer=refusal_text,
                 citations=[],
                 status="no_verified_source",
@@ -555,7 +559,7 @@ class RAGPipeline:
                 tafsir_by_source={},
                 follow_up_suggestions=[],
                 api_version=settings.api_version,
-            )
+            ))
 
         # 6. Build context from retrieved chunks. Conversation history is
         # user-controlled, so it is kept OUT of the sources block.
@@ -624,10 +628,13 @@ class RAGPipeline:
 
         # Determine status based on citations and question
         if not validated.citations:
+            # A refusal from the validator (e.g. the fatwa notice for a ruling
+            # the model gave) keeps its own text; anything else uncited gets
+            # the language-specific no-source refusal.
+            if validated.answer_kind != "refusal":
+                validated.answer = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
             validated.status = "no_verified_source"
             validated.answer_kind = "refusal"
-            # Override answer with language-specific safe refusal text
-            validated.answer = SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN
         elif self._is_vague_question(question):
             validated.status = "needs_clarification"
         elif validated.confidence == 0.0:
@@ -1314,13 +1321,31 @@ class RAGPipeline:
         Validate citations, quotations and content of a generated answer and
         parse it into a structured response with confidence scoring.
 
-        Order: citations -> uncited paragraphs -> named scholars -> quotations
-        -> surviving citations -> source registry -> answer guard -> confidence.
+        Order: citations -> uncited paragraphs -> attributions (scholars,
+        hadith, consensus, recitation benefits) -> Qur'an self-citations ->
+        claim-to-evidence relevance -> quotations -> surviving citations ->
+        source registry -> answer guard -> confidence. Verdicts (rulings,
+        takfir, unsupported permissibility claims) are checked first, on the
+        untrimmed answer.
         """
         # 1. Citations: every bracketed attribution must resolve to a retrieved
         #    chunk (exact source alias, existing ayah, range inside the chunk).
         surah_index = await self._get_surah_index()
         matched = match_citations(raw_response, chunks, surah_index)
+        cited_chunks = {m.marker: m.chunk for m in matched.valid if m.chunk is not None}
+
+        # 1a. Verdicts anywhere in the model's own words, before any sentence
+        #     is trimmed: a ruling addressed to the reader, the validity of
+        #     their worship, or takfir means the whole answer is a fatwa and
+        #     is withheld; a permissibility claim stands only when the cited
+        #     evidence itself states it.
+        verdict = self._unsupported_verdict(raw_response, cited_chunks)
+        if verdict:
+            logger.warning(f"[ANSWER-GUARD] Ruling withheld: {verdict}")
+            return self._withheld_response(
+                SAFE_REFUSAL_FATWA_AR if language == "ar" else SAFE_REFUSAL_FATWA_EN,
+                "answer_withheld_by_guard", chunks, intent, language, query_expansion,
+            )
         invalid_count = len(matched.invalid)
         logger.debug(
             f"[CITATION] {len(matched.valid)} valid, {invalid_count} invalid citation markers"
@@ -1333,26 +1358,54 @@ class RAGPipeline:
         # 2. Every substantive paragraph must carry a citation.
         raw_response, uncited_dropped = drop_uncited_paragraphs(raw_response, CITATION_MARKER_PATTERN)
 
-        # 3. Sentences naming a scholar the evidence does not support.
-        cited_chunks = {m.marker: m.chunk for m in matched.valid if m.chunk is not None}
+        # 3. Attributions the evidence does not support: named scholars (on
+        #    the list or not), hadith reports, consensus claims, promised
+        #    benefits of recitation.
         raw_response, unsupported_names = check_named_attributions(
+            raw_response, cited_chunks, CITATION_MARKER_PATTERN
+        )
+
+        # 3b. Prose backed only by a Qur'an self-reference to an unretrieved
+        #     verse, and unquoted "Allah says that…" text that the verse's
+        #     stored translation/text and its tafsir do not carry.
+        quran_index = await self._get_quran_index()
+        quran_markers = {m.marker: m.cited for m in matched.valid if m.is_quran and m.cited}
+        quran_refs = sorted({
+            (m.cited[0], a) for m in matched.valid if m.is_quran
+            for a in range(m.cited[1], m.cited[2] + 1)
+        })
+        voice_refs = sorted(set(quran_refs) | {
+            (c.sura_no, a) for c in cited_chunks.values()
+            for a in range(c.aya_start, (c.aya_end or c.aya_start) + 1)
+        })[:40]
+        translations = await self._get_translations(quran_refs)
+        verse_texts = {ref: list(v) for ref, v in translations.items()}
+        if not has_quran_voice(raw_response):
+            voice_refs = []
+        if voice_refs:
+            extra = await self._get_translations([r for r in voice_refs if r not in verse_texts])
+            for ref, v in extra.items():
+                verse_texts.setdefault(ref, []).extend(v)
+        if quran_index:
+            for ref in voice_refs:
+                verse_texts.setdefault(ref, []).extend(quran_index.verse_text(*ref))
+        raw_response, quran_prose_removed = check_quran_self_citations(
+            raw_response, quran_markers, cited_chunks, chunks, CITATION_MARKER_PATTERN, verse_texts,
+        )
+
+        # 3c. Claim-to-evidence relevance for every sentence citing a chunk.
+        raw_response, irrelevant_dropped, weak_claims = check_claim_support(
             raw_response, cited_chunks, CITATION_MARKER_PATTERN
         )
 
         # 4. Quotations: Qur'an text is replaced by the canonical Tanzil text,
         #    verbatim tafsir is kept, anything else is removed.
-        quran_index = await self._get_quran_index()
         evidence_index = build_corpus_index(
             (c.content_ar or "") + " " + (c.content_en or "") + " " + (c.content or "") for c in chunks
         )
         english_evidence = "\n".join(
             filter(None, ((c.content_en or "") + " " + (c.content or "") for c in chunks))
         )
-        quran_refs = sorted({
-            (m.cited[0], a) for m in matched.valid if m.is_quran
-            for a in range(m.cited[1], m.cited[2] + 1)
-        })
-        translations = await self._get_translations(quran_refs)
         raw_response, quote_report = verify_quotations(
             raw_response, quran_index, evidence_index, language,
             translations=translations, english_evidence=english_evidence,
@@ -1437,7 +1490,8 @@ class RAGPipeline:
             source_reliability_scores=reliability_scores,
             relevance_scores=relevance_scores,
             has_primary_source=has_primary,
-            unsupported_claims=uncited_dropped + len(unsupported_names),
+            unsupported_claims=(uncited_dropped + len(unsupported_names) + len(quran_prose_removed)
+                                + irrelevant_dropped + weak_claims),
             chunk_ids=chunk_ids,
             source_ids=source_ids,
         )
@@ -1452,8 +1506,13 @@ class RAGPipeline:
         if invalid_count > 0:
             warnings.append(f"{invalid_count} citation(s) could not be validated against retrieved sources and were removed.")
 
-        if uncited_dropped or unsupported_names:
+        if uncited_dropped or unsupported_names or quran_prose_removed or irrelevant_dropped:
             warnings.append("unsupported_statements_removed")
+        if weak_claims:
+            warnings.append("weakly_supported_statements")
+
+        if quote_report.misreferenced:
+            warnings.append("quotation_reference_mismatch")
 
         if quote_report.removed:
             warnings.append(
@@ -1476,8 +1535,11 @@ class RAGPipeline:
             warnings.append("scientific_reflection_needs_review")
 
         # Add fiqh warning if needed — and guarantee the disclaimer is part of
-        # the answer itself, not only a side-channel warning.
-        if intent == QueryIntent.RULING:
+        # the answer itself, not only a side-channel warning. Ruling
+        # vocabulary in the answer's own words needs it whatever the intent.
+        if intent == QueryIntent.RULING or QuranAnswerGuard.has_ruling_vocabulary(
+            self._answer_own_text(raw_response, QueryIntent.VERSE_MEANING)
+        ):
             warnings.append(SAFE_REFUSAL_FIQH)
             if not contains_fiqh_disclaimer(raw_response):
                 raw_response = raw_response.rstrip() + "\n\n" + (
@@ -1548,6 +1610,18 @@ class RAGPipeline:
             evidence_source_count=len({c.source_id for c in chunks}),
             api_version=settings.api_version,
         )
+
+    @staticmethod
+    def _unsupported_verdict(answer: str, cited: Dict[str, RetrievedChunk]) -> Optional[str]:
+        """The first ruling the answer states that it may not, or None."""
+        text = re.sub(r"﴿[^﴾]*﴾|«[^»]*»|“[^”]*”|\"[^\"\n]*\"", " ", answer or "")
+        for kind, sentence, subject in QuranAnswerGuard().find_verdicts(text):
+            if kind == VERDICT_PERSONAL:
+                return f"{kind}: {sentence[:120]}"
+            chunks = [cited[m.group(0)] for m in CITATION_MARKER_RE.finditer(sentence) if m.group(0) in cited]
+            if not verdict_supported(CITATION_MARKER_RE.sub(" ", subject), chunks):
+                return f"{kind}: {sentence[:120]}"
+        return None
 
     @staticmethod
     def _answer_own_text(answer: str, intent: QueryIntent) -> str:

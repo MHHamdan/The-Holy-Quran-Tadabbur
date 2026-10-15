@@ -17,7 +17,7 @@ Reference: "تجربة تفسير القرآن الكريم بالذكاء ال�
 """
 import re
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from app.rag.source_validator import TRUSTED_SOURCE_IDS
 
@@ -79,6 +79,79 @@ _RULING_ASSERTIONS = tuple(re.compile(p, re.IGNORECASE) for p in (
     r"(يأثم|فهو آثم|فهي آثمة)",
     r"(أفتي|نفتي|فتواي)",
 ))
+
+# Verdicts no generated answer may give, whether or not a citation follows:
+# a ruling addressed to the reader, the validity of their worship or
+# contract, and takfir. A citation does not turn a personal fatwa into
+# tafsir, so these are checked on every sentence (quotations aside).
+_PERSONAL_VERDICTS = tuple(re.compile(p, re.IGNORECASE) for p in (
+    # "Your prayer is not valid…", "your divorce is binding"
+    r"\byour\s+(prayers?|salah|salat|fast|fasting|sawm|wudu|wudhu|ablution|ghusl|marriage|nikah|"
+    r"divorce|talaq|hajj|umrah|zakat|zakah|oath|repentance|tawbah)\s+(is|are|was|will\s+be|would\s+be|"
+    r"becomes?|remains?)\s+(still\s+|now\s+)?(not\s+)?(valid|invalid|void|accepted|unaccepted|correct|"
+    r"sound|nullified|broken|binding|effective|counted)\b",
+    r"\b(the\s+|a\s+|such\s+a\s+)?(prayer|salah|fast|wudu|ablution|ghusl|divorce|talaq|marriage|nikah)\s+"
+    r"(is|are)\s+(still\s+)?(not\s+)?(valid|invalid|void|nullified|binding)\b",
+    r"\bdivorce\s+(does\s+not|doesn'?t|does|will|will\s+not|won'?t)\s+(count|take\s+effect|occur)\b",
+    # "You must remove it…", "you should repeat your prayer", "you may not marry…"
+    r"\byou\s+(must|should|have\s+to|need\s+to|are\s+(required|obliged|obligated)\s+to|may\s+not|"
+    r"must\s+not|should\s+not|cannot|can'?t|are\s+not\s+allowed\s+to|are\s+allowed\s+to)\s+"
+    r"(?:\w+\s+){0,2}?(pray|fast|remove|repeat|redo|re-?perform|perform|pay|give|divorce|marry|remarry|"
+    r"break|make\s+up|wash|recite|wear|stop|eat|drink|take|abandon|leave)\b",
+    r"\b(you|muslims|a muslim)\s+(are|is)\s+(not\s+)?(allowed|permitted|obliged|required)\s+to\b",
+    r"\b(yes|no)\s*[,،]\s*(you|it|your|this|that)\b[^.\n]{0,60}\b(allowed|permitted|permissible|valid|"
+    r"invalid|halal|haram|lawful|must|may)\b",
+    r"\b(i|we)\s+(rule|declare)\s+(that|it)\b|\bmy\s+(ruling|fatwa)\b",
+    # Takfir: "Anyone who doubts this is a disbeliever (kafir)"
+    r"\b(anyone|anybody|whoever|whosoever|someone|a\s+person|he|she|they|those|one|a\s+muslim|any\s+muslim)"
+    r"\b[^.;\n]{0,80}?\b(is|are|becomes?|has\s+become|will\s+become|would\s+be)\s+(a\s+|an\s+)?"
+    r"(disbelievers?|kafirs?|kaafirs?|kuffar|apostates?|murtads?|non-?muslims?)\b",
+    r"\b(has|have|had)\s+left\s+(the\s+fold\s+of\s+)?islam\b|\bout\s+of\s+(the\s+fold\s+of\s+)?islam\b"
+    r"|\bexpelled\s+from\s+islam\b",
+    r"\bis\s+(a\s+)?k[aā]fir\b|\(\s*k[aā]fir\s*\)",
+    # Arabic: divorce verdicts, validity of the reader's worship, rulings
+    # addressed to the reader (singular — plural عليكم/لكم is the Qur'an's
+    # own address and appears in verse paraphrase), takfir.
+    r"(?<![ء-ي])[وف]?(لا\s+)?(يقع|تقع|وقع|يُحتسب|يحتسب)\s+(طلاقك|طلاقه|طلاقها|الطلاق|الطلقة|طلقة)(?![ء-ي])",
+    r"(?<![ء-ي])(طلاقك|الطلاق)\s+(لا\s+)?(يقع|واقع|صحيح|باطل|نافذ)(?![ء-ي])",
+    r"(?<![ء-ي])(صلاتك|صومك|صيامك|وضوؤك|وضوءك|غسلك|زواجك|نكاحك|طلاقك|حجك|عمرتك|زكاتك|توبتك|يمينك)\s+"
+    r"(لا\s+|غير\s+)?(صحيحة|صحيح|باطلة|باطل|مقبولة|مقبول|فاسدة|فاسد|تصح|يصح|تبطل|يبطل|تقبل|يقبل)(?![ء-ي])",
+    r"(?<![ء-ي])[وف]?(لا\s+)?(يجوز|تجوز|يحل|تحل|يحرم|تحرم|يجب|تجب|يلزم|يلزمك|يباح)\s+(لك|عليك|لكِ|عليكِ)(?![ء-ي])",
+    r"(?<![ء-ي])(فهو|فهي|فإنه|فإنها)\s+(آثم|آثمة)(?![ء-ي])|(?<![ء-ي])[وف]?(تأثم|أثمت)(?![ء-ي])",
+    r"(?<![ء-ي])(عليك|فعليك)\s+(أن|ان)\s+(تعيد|تقضي|تصلي|تصوم|تخرج|تدفع|تطلق|تزيل|تتوضأ|تغتسل|تكفر|تترك)",
+    r"(?<![ء-ي])نعم\s*[،,]\s*(يقع|يجوز|تجوز|يجب|تجب|يحل|تحل|يحرم|تحرم|صلاتك|صومك|طلاقك)(?![ء-ي])",
+    r"(?<![ء-ي])(فهو|فهي|فهم|فإنه|فإنها|إنه|إنها|وهو|وهي|هو|هي)\s+(كافر|كافرة|كفار|مرتد|مرتدة|مشرك)(?![ء-ي])",
+    r"(?<![ء-ي])[وف]?(تارك|من\s+ترك|من\s+شك|من\s+أنكر|من\s+ينكر|من\s+لم)[^.،؟\n]{0,60}?(?<![ء-ي])"
+    r"(كافر|مرتد|خارج\s+(عن|من)\s+(الملة|الإسلام))(?![ء-ي])",
+    r"(خرج|يخرج|خارج)\s+(عن|من)\s+(الملة|ملة\s+الإسلام|الإسلام)(?![ء-ي])",
+))
+
+# Permissibility claims with any subject ("Wine is permitted for believers",
+# "والربا حلال للمؤمنين"). Tafsir legitimately reports what a verse permits,
+# so these are not refused outright: the caller keeps one only when the
+# cited evidence states it (see find_verdicts / grounding.verdict_supported).
+_PERMISSIVE_VERDICTS = tuple(re.compile(p, re.IGNORECASE) for p in (
+    r"\b(?P<subj>[A-Za-z][\w'’-]*(?:\s+[A-Za-z][\w'’-]*){0,3}?)\s+(is|are)\s+(now\s+|therefore\s+|also\s+|"
+    r"thus\s+|then\s+|completely\s+|totally\s+|fully\s+|clearly\s+|perfectly\s+)?"
+    r"(permissible|halal|lawful|permitted(?!\s+to\b)|allowed(?!\s+to\b)|"
+    r"not\s+(haram|forbidden|prohibited|sinful|a\s+sin))\b",
+    r"(?<![ء-ي])(?P<subj>[وف]?ال[ء-ي]{2,})\s+(?:(هو|هي)\s+)?(حلال|مباح|مباحة|جائز|جائزة|ليس\s+بحرام|غير\s+محرم)"
+    r"(?![ء-ي])",
+    r"(?<![ء-ي])(حلال|مباح|مباحة)\s+(لل[ء-ي]+|لكم|لك|لنا|للناس)(?![ء-ي])",
+))
+
+# Ruling vocabulary: an answer that survives the checks above but still
+# speaks of rulings carries the fiqh disclaimer, whatever the intent.
+_RULING_VOCABULARY = re.compile(
+    r"\b(haram|halal|permissible|impermissible|forbidden|prohibited|obligatory|mandatory|makruh|"
+    r"lawful|unlawful|ruling|fiqh|sinful)\b"
+    r"|(?<![ء-ي])(حرام|حلال|محرم|محرمة|مباح|مباحة|واجب|واجبة|فرض|مكروه|مكروهة|يجوز|لا\s+يجوز|"
+    r"جائز|حكم\s+شرعي|الحكم\s+الشرعي|الفقه|فقهي|فقهية)(?![ء-ي])",
+    re.IGNORECASE,
+)
+
+VERDICT_PERSONAL = "personal_ruling"
+VERDICT_PERMISSIVE = "permissibility_claim"
 
 # Keywords that indicate a scientific miracle claim
 _SCIENTIFIC_MIRACLE_KEYWORDS = frozenset({
@@ -323,7 +396,7 @@ class QuranAnswerGuard:
             )
         text_lower = text.lower()
         if generated:
-            hits = any(p.search(text) for p in _RULING_ASSERTIONS)
+            hits = any(p.search(text) for p in _RULING_ASSERTIONS + _PERSONAL_VERDICTS)
         else:
             hits = any(kw.lower() in text_lower for kw in _FATWA_KEYWORDS)
         if hits:
@@ -333,6 +406,39 @@ class QuranAnswerGuard:
                 "— هذه المنصة تقدم معلومات تفسيرية فقط، ولا تُصدر أحكامًا دينية."
             )
         return None
+
+    # -------------------------------------------------------------------------
+    # Verdicts in generated answers
+    # -------------------------------------------------------------------------
+
+    def find_verdicts(self, text: str) -> List[Tuple[str, str, str]]:
+        """
+        Rulings stated by a generated answer, sentence by sentence.
+
+        Returns (kind, sentence, subject) triples. ``kind`` is
+        VERDICT_PERSONAL (a ruling addressed to the reader, the validity of
+        their worship, takfir: never allowed, cited or not) or
+        VERDICT_PERMISSIVE (a permissibility claim about ``subject``, allowed
+        only when the cited evidence states it). Pass the answer with its
+        verbatim quotations removed.
+        """
+        out: List[Tuple[str, str, str]] = []
+        for sentence in _split_sentences(text):
+            if any(p.search(sentence) for p in _PERSONAL_VERDICTS):
+                out.append((VERDICT_PERSONAL, sentence, ""))
+                continue
+            for p in _PERMISSIVE_VERDICTS:
+                m = p.search(sentence)
+                if m:
+                    subject = (m.groupdict().get("subj") or "").strip()
+                    out.append((VERDICT_PERMISSIVE, sentence, subject))
+                    break
+        return out
+
+    @staticmethod
+    def has_ruling_vocabulary(text: str) -> bool:
+        """True when the answer speaks of rulings (it then carries the fiqh disclaimer)."""
+        return bool(_RULING_VOCABULARY.search(text or ""))
 
     def _is_scientific_miracle(self, text: str, intent: str) -> bool:
         """Return True if the answer relates to a scientific miracle claim."""
@@ -362,6 +468,13 @@ class QuranAnswerGuard:
                     "— الربط القطعي بين الآيات والنظريات العلمية ممنوع بدون مراجعة علمية وشرعية متخصصة."
                 )
         return None
+
+
+_SENTENCES = re.compile(r"(?<=[.!?؟۔;؛])\s+|\n+")
+
+
+def _split_sentences(text: str) -> List[str]:
+    return [s for s in _SENTENCES.split(text or "") if s and s.strip()]
 
 
 # Module-level singleton
