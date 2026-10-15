@@ -58,6 +58,33 @@ export const OCCASION_META: Record<DuaOccasion, { labelEn: string; labelAr: stri
   doubt:                { labelEn: 'Doubt & Steadfastness', labelAr: 'الثبات', emoji: '🌿' },
 };
 
+/**
+ * A hadith or athar quoted next to a duʿā.
+ *
+ * Shown to readers only when kind is 'hadith' and both the collection and the
+ * hadith number are recorded; a grade is shown only with the scholar who gave
+ * it. Nothing here may be written from memory: entries without a number wait
+ * for a reviewer to look the narration up and record it.
+ */
+export interface SupportingNote {
+  kind: 'hadith' | 'athar' | 'tafsir';
+  textAr: string;
+  collection?: string;
+  /** Hadith number in the named collection (edition-specific). */
+  number?: string;
+  narrator?: string;
+  grade?: string;
+  grader?: string;
+  url?: string;
+  /** The reference exactly as the dataset first wrote it, kept for reviewers. Never rendered. */
+  referenceAsWrittenAr?: string;
+}
+
+/** True when a note carries enough provenance to show to readers. */
+export function isDisplayableNote(note: SupportingNote | undefined): note is SupportingNote {
+  return !!note && note.kind === 'hadith' && !!note.collection && !!note.number;
+}
+
 export interface QuranicDua {
   id: string;
   titleEn: string;
@@ -70,7 +97,8 @@ export interface QuranicDua {
   ayatUthmani: string;       // fallback; UI fetches live text_uthmani from API
   meaningEn: string;
   meaningAr: string;         // Arabic explanation shown in RTL mode
-  hadithAr?: string;         // supporting hadith (text + reference) shown in RTL mode
+  /** Hadith or athar related to the duʿā. Rendered only when verifiable (see isDisplayableNote). */
+  supportingNote?: SupportingNote;
   transliterationArabic: string;
   contextEn: string;
   contextAr: string;
@@ -103,7 +131,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ ۝ صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ',
     meaningEn: 'Guide us to the straight path — the path of those upon whom You have bestowed favour, not of those who have evoked [Your] anger or of those who are astray.',
     meaningAr: 'اهدنا إلى الطريق القويم، طريق الأنبياء والصديقين والشهداء والصالحين، وجنِّبنا طريق من استحق الغضب أو ضلَّ عن الهدى.',
-    hadithAr: 'عن أبي هريرة ﵁ قال: سمعتُ النبيَّ ﷺ يقول: «مَن صلَّى صلاةً لم يقرأ فيها بأمِّ القرآن فهي خِداجٌ» — رواه مسلم',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن أبي هريرة ﵁ قال: سمعتُ النبيَّ ﷺ يقول: «مَن صلَّى صلاةً لم يقرأ فيها بأمِّ القرآن فهي خِداجٌ»',
+      collection: 'صحيح مسلم',
+      narrator: 'أبي هريرة',
+      referenceAsWrittenAr: 'رواه مسلم',
+    },
     transliterationArabic: 'Ihdinā al-ṣirāṭa al-mustaqīm · ṣirāṭa alladhīna anʿamta ʿalayhim · ghayri al-maghḍūbi ʿalayhim wa-lā al-ḍāllīn',
     contextEn: "The closing of Al-Fatihah — recited in every rak'ah of ṣalāh. The single most repeated prayer in a Muslim's life.",
     contextAr: 'خاتمة الفاتحة — يتلى في كل ركعة. أكثر دعاء يتكرر في حياة المسلم.',
@@ -138,7 +172,6 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'وَإِذْ يَرْفَعُ إِبْرَٰهِـۧمُ ٱلْقَوَاعِدَ مِنَ ٱلْبَيْتِ وَإِسْمَـٰعِيلُ رَبَّنَا تَقَبَّلْ مِنَّآ ۖ إِنَّكَ أَنتَ ٱلسَّمِيعُ ٱلْعَلِيمُ ۝ رَبَّنَا وَٱجْعَلْنَا مُسْلِمَيْنِ لَكَ وَمِن ذُرِّيَّتِنَآ أُمَّةً مُّسْلِمَةً لَّكَ وَأَرِنَا مَنَاسِكَنَا وَتُبْ عَلَيْنَآ ۖ إِنَّكَ أَنتَ ٱلتَّوَّابُ ٱلرَّحِيمُ ۝ رَبَّنَا وَٱبْعَثْ فِيهِمْ رَسُولًا مِّنْهُمْ يَتْلُوا۟ عَلَيْهِمْ ءَايَـٰتِكَ وَيُعَلِّمُهُمُ ٱلْكِتَـٰبَ وَٱلْحِكْمَةَ وَيُزَكِّيهِمْ ۚ إِنَّكَ أَنتَ ٱلْعَزِيزُ ٱلْحَكِيمُ',
     meaningEn: 'Our Lord, accept [this] from us. Indeed You are the Hearing, the Knowing. Our Lord, and make us Muslims [in submission] to You and from our descendants a Muslim nation. Show us our rites and accept our repentance. Indeed, You are the Accepting of repentance, the Merciful. Our Lord, send among them a messenger from themselves who will recite to them Your verses and teach them the Book and wisdom and purify them.',
     meaningAr: 'دعاء مشترك بين إبراهيم وإسماعيل ﵉ لقبول بناء الكعبة، وأن يجعلهما مسلمَين مخلصَين، وأن يُبعث في ذريتهما نبيٌّ يعلِّمهم الكتاب والحكمة. استُجيب هذا الدعاء ببعثة النبي محمد ﷺ.',
-    hadithAr: 'عن أبي هريرة ﵁ قال: قال رسول الله ﷺ: «أنا دعوة أبي إبراهيم، وبشرى عيسى» — رواه أحمد والحاكم وصحَّحه',
     transliterationArabic: "Rabbanā taqabbal minnā, innaka anta al-Samīʿu al-ʿAlīm · Rabbanā wa-j'alnā muslimayni laka wa-min dhurriyyatinā ummatan muslimatan lak · wa-arinā manāsikanā wa-tub ʿalaynā, innaka anta al-Tawwābu al-Raḥīm · Rabbanā wa-bʿath fīhim rasūlan minhum",
     contextEn: "Three-part prayer: acceptance of worship, submission, and the prayer that foresaw Prophet Muhammad ﷺ.",
     contextAr: 'دعاء ثلاثي: قبول العمل، الإسلام، والتبشير بالنبي محمد ﷺ.',
@@ -171,7 +204,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَبَّنَآ ءَاتِنَا فِى ٱلدُّنْيَا حَسَنَةً وَفِى ٱلْـَٔاخِرَةِ حَسَنَةً وَقِنَا عَذَابَ ٱلنَّارِ',
     meaningEn: 'Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire.',
     meaningAr: 'دعاء يجمع خيرَي الدنيا والآخرة والنجاةَ من النار في كلمات قليلة، قال عنه العلماء: إنه يتضمن كل ما يُطلب ويُرجى.',
-    hadithAr: 'عن أنس ﵁ قال: «كان أكثر دعاء النبي ﷺ: ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار» — متفق عليه',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن أنس ﵁ قال: «كان أكثر دعاء النبي ﷺ: ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار»',
+      collection: 'صحيح البخاري وصحيح مسلم',
+      narrator: 'أنس',
+      referenceAsWrittenAr: 'متفق عليه',
+    },
     transliterationArabic: 'Rabbanā ātinā fī al-dunyā ḥasanatan wa-fī al-ākhirati ḥasanatan wa-qinā ʿadhāba al-nār',
     contextEn: "The Prophet ﷺ would often recite this duʿā. It covers every aspiration — worldly and eternal — in one supplication.",
     contextAr: 'كان النبي ﷺ يكثر من هذا الدعاء — يجمع الدنيا والآخرة والنجاة من النار.',
@@ -204,7 +243,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'ءَامَنَ ٱلرَّسُولُ بِمَآ أُنزِلَ إِلَيْهِ مِن رَّبِّهِۦ وَٱلْمُؤْمِنُونَ ۚ كُلٌّ ءَامَنَ بِٱللَّهِ وَمَلَـٰٓئِكَتِهِۦ وَكُتُبِهِۦ وَرُسُلِهِۦ لَا نُفَرِّقُ بَيْنَ أَحَدٍ مِّن رُّسُلِهِۦ ۚ وَقَالُوا۟ سَمِعْنَا وَأَطَعْنَا ۖ غُفْرَانَكَ رَبَّنَا وَإِلَيْكَ ٱلْمَصِيرُ ۝ رَبَّنَا لَا تُؤَاخِذْنَآ إِن نَّسِينَآ أَوْ أَخْطَأْنَا ۚ رَبَّنَا وَلَا تَحْمِلْ عَلَيْنَآ إِصْرًا كَمَا حَمَلْتَهُۥ عَلَى ٱلَّذِينَ مِن قَبْلِنَا ۚ رَبَّنَا وَلَا تُحَمِّلْنَا مَا لَا طَاقَةَ لَنَا بِهِۦ ۖ وَٱعْفُ عَنَّا وَٱغْفِرْ لَنَا وَٱرْحَمْنَآ ۚ أَنتَ مَوْلَىٰنَا فَٱنصُرْنَا عَلَى ٱلْقَوْمِ ٱلْكَـٰفِرِينَ',
     meaningEn: "Our Lord, do not impose blame upon us if we have forgotten or erred. Our Lord, and lay not upon us a burden like that which You laid upon those before us. Our Lord, and burden us not with that which we have no ability to bear. And pardon us; and forgive us; and have mercy upon us. You are our protector, so give us victory over the disbelieving people.",
     meaningAr: 'آيتان تجمعان الإيمان والتسليم وطلب العفو؛ يسأل المؤمنون فيهما ألا يُؤاخَذوا على النسيان والخطأ، وألا يُحمَّلوا ما لا طاقة لهم به، ويختتمون بطلب العفو والمغفرة والرحمة والنصر.',
-    hadithAr: 'عن ابن مسعود ﵁ قال: قال رسول الله ﷺ: «مَن قرأ بالآيتين من آخر سورة البقرة في ليلة كفَتاه» — متفق عليه',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن ابن مسعود ﵁ قال: قال رسول الله ﷺ: «مَن قرأ بالآيتين من آخر سورة البقرة في ليلة كفَتاه»',
+      collection: 'صحيح البخاري وصحيح مسلم',
+      narrator: 'ابن مسعود',
+      referenceAsWrittenAr: 'متفق عليه',
+    },
     transliterationArabic: "Rabbanā lā tuʾākhidhnā in nasīnā aw akhṭaʾnā · Rabbanā wa-lā taḥmil ʿalaynā iṣran kamā ḥamaltahu ʿalā alladhīna min qablinā · Rabbanā wa-lā tuḥammilnā mā lā ṭāqata lanā bih · wa-ʿfu ʿannā wa-ghfir lanā wa-rḥamnā · anta mawlānā fa-nṣurnā ʿalā al-qawm al-kāfirīn",
     contextEn: "The two closing verses of Sūrah Al-Baqarah — the Prophet ﷺ said they were sent as a treasure from beneath the Throne. Comprehensive forgiveness, mercy, and protection.",
     contextAr: 'آيتا خاتمة البقرة — أخبر النبي ﷺ أنهما أُنزلتا من كنز تحت العرش.',
@@ -223,7 +268,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً ۚ إِنَّكَ أَنتَ ٱلْوَهَّابُ ۝ رَبَّنَآ إِنَّكَ جَامِعُ ٱلنَّاسِ لِيَوْمٍ لَّا رَيْبَ فِيهِ ۚ إِنَّ ٱللَّهَ لَا يُخْلِفُ ٱلْمِيعَادَ',
     meaningEn: "Our Lord, let not our hearts deviate after You have guided us and grant us from Yourself mercy. Indeed, You are the Bestower. Our Lord, surely You will gather the people for a Day about which there is no doubt.",
     meaningAr: 'دعاء الراسخين في العلم ألا تنزلق قلوبهم عن الهداية بعد أن رُزقوها، وأن يمنحهم الله من عنده رحمةً تُثبِّتهم، مع اليقين بأن الله يجمع الناس ليوم الحساب.',
-    hadithAr: 'عن أم سلمة ﵂ قالت: «كان أكثر دعاء النبي ﷺ: يا مقلِّب القلوب ثبِّت قلبي على دينك» — رواه الترمذي وحسَّنه',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن أم سلمة ﵂ قالت: «كان أكثر دعاء النبي ﷺ: يا مقلِّب القلوب ثبِّت قلبي على دينك»',
+      collection: 'جامع الترمذي',
+      narrator: 'أم سلمة',
+      referenceAsWrittenAr: 'رواه الترمذي وحسَّنه',
+    },
     transliterationArabic: "Rabbanā lā tuzigh qulūbanā baʿda idh hadaytanā wa-hab lanā min ladunka raḥmah, innaka anta al-Wahhāb · Rabbanā innaka jāmiʿu al-nāsi li-yawmin lā rayba fīh",
     contextEn: "Prayer against losing faith after being guided — for protection from wavering hearts and heedlessness.",
     contextAr: 'الدعاء من الانزلاغ عن الهدى بعد التوفيق — حماية القلب من الزيغ.',
@@ -240,7 +291,6 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَبِّ هَبْ لِى مِن لَّدُنكَ ذُرِّيَّةً طَيِّبَةً ۖ إِنَّكَ سَمِيعُ ٱلدُّعَآءِ',
     meaningEn: 'My Lord, grant me from Yourself a good offspring. Indeed, You are the Hearer of supplication.',
     meaningAr: 'دعا زكريا ﵇ في محرابه لمَّا رأى رزق مريم يأتيها من عند الله؛ فانبعثت في قلبه شوقٌ إلى الذرية الصالحة، فطلب من الله الهبةَ لا بالأسباب بل من عنده مباشرةً، وتوكَّل على سميعيَّته.',
-    hadithAr: 'قال ابن كثير ﵀: «فاستجاب الله دعاءه وبشَّره بيحيى، وهو شيخ كبير وامرأته عاقر، فدلَّ ذلك على أنه لا شيء يتعذَّر على الله»',
     transliterationArabic: 'Rabbi hab lī min ladunka dhurriyyatan ṭayyibah, innaka samīʿu al-duʿāʾ',
     contextEn: "Zakariyyā's prayer for a righteous child, answered with the birth of Yaḥyā (John). Recited by those seeking children.",
     contextAr: 'دعاء زكريا طلباً للذرية الطيبة — استُجيب فوُلد له يحيى. يُستحب لمن يطلب الولد.',
@@ -395,7 +445,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَّبِّ ٱرْحَمْهُمَا كَمَا رَبَّيَانِى صَغِيرًا',
     meaningEn: 'My Lord, have mercy upon them as they brought me up [when I was] small.',
     meaningAr: 'أوجز القرآن دعاءَ البرِّ للوالدين في خمس كلمات، يطلب فيها الولدُ لوالديه رحمةً تساوي رحمتهما به وهو طفل عاجز — وهي مقايسةٌ توقِّد القلب على الدوام.',
-    hadithAr: 'عن أبي هريرة ﵁ قال: قال رسول الله ﷺ: «رَغِمَ أنفُه، رَغِمَ أنفُه، رَغِمَ أنفُه» قيل: مَن يا رسول الله؟ قال: «مَن أدرك والديه عند الكبر أحدهما أو كليهما فلم يدخل الجنة» — رواه مسلم',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن أبي هريرة ﵁ قال: قال رسول الله ﷺ: «رَغِمَ أنفُه، رَغِمَ أنفُه، رَغِمَ أنفُه» قيل: مَن يا رسول الله؟ قال: «مَن أدرك والديه عند الكبر أحدهما أو كليهما فلم يدخل الجنة»',
+      collection: 'صحيح مسلم',
+      narrator: 'أبي هريرة',
+      referenceAsWrittenAr: 'رواه مسلم',
+    },
     transliterationArabic: 'Rabbi irḥamhumā kamā rabbayānī ṣaghīrā',
     contextEn: "The Quranic duʿā for parents — to be recited for both living and deceased parents alike.",
     contextAr: 'الدعاء القرآني للوالدين — يُقال لهما حيّين وميتين.',
@@ -450,7 +506,6 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَبِّ ٱشْرَحْ لِى صَدْرِى ۝ وَيَسِّرْ لِىٓ أَمْرِى ۝ وَٱحْلُلْ عُقْدَةً مِّن لِّسَانِى ۝ يَفْقَهُوا۟ قَوْلِى',
     meaningEn: 'My Lord, expand for me my breast [with assurance] and ease for me my task and untie the knot from my tongue that they may understand my speech.',
     meaningAr: 'دعا موسى ﵇ ربه قبل مواجهة فرعون طالبًا: انشراحَ الصدر ليحمل الرسالة، وتيسيرَ الأمر، وحلَّ عقدة اللسان ليُفهِم قوله — وهو مناسب لكل من يواجه امتحانًا أو خطابًا أو موقفًا عسيرًا.',
-    hadithAr: 'كان بعض السلف يوصون بتلاوة هذا الدعاء قبل طلب العلم وعند التحدث أمام الناس، اقتداءً بموسى ﵇',
     transliterationArabic: "Rabbi shraḥ lī ṣadrī · wa-yassir lī amrī · wa-ḥlul ʿuqdatan min lisānī · yafqahū qawlī",
     contextEn: "Mūsā's duʿā before confronting Pharaoh — excellent for anyone facing a difficult speech, exam, presentation, or hard conversation.",
     contextAr: 'دعاء موسى قبل مواجهة فرعون — مناسب لكل من يواجه خطاباً أو امتحاناً أو موقفاً عسيراً.',
@@ -467,7 +522,6 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَّبِّ زِدْنِى عِلْمًا',
     meaningEn: 'My Lord, increase me in knowledge.',
     meaningAr: 'أقصر دعاء قرآني وأبلغه في الوقت ذاته؛ يُعلِّمنا أن الازدياد من العلم غايةٌ لا نهاية لها، وأنه لا يُعان عليها إلا بالله — فلا يغترَّ عالم بما تعلَّم.',
-    hadithAr: 'عن ابن مسعود ﵁ قال: قال النبي ﷺ: «طلبُ العلم فريضةٌ على كل مسلم» — رواه ابن ماجه وصحَّحه الألباني',
     transliterationArabic: 'Rabbi zidnī ʿilmā',
     contextEn: "The shortest Quranic duʿā — a constant prayer for students, scholars, and anyone seeking understanding.",
     contextAr: 'أقصر دعاء قرآني وأبلغه — دعاء دائم لطالب العلم في كل وقت.',
@@ -486,7 +540,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'أَنِّى مَسَّنِىَ ٱلضُّرُّ وَأَنتَ أَرْحَمُ ٱلرَّٰحِمِينَ',
     meaningEn: 'Indeed, adversity has touched me, and you are the Most Merciful of the merciful.',
     meaningAr: 'أوجز أيوب ﵇ حاله في كلمتين بعد سنوات طويلة من الابتلاء: أخبر ربه بالضر ولم يشكُ، ثم توسَّل بوصف الرحمة — وهو نموذج في الكرامة عند الضراء.',
-    hadithAr: 'عن أبي هريرة ﵁ قال: قال رسول الله ﷺ: «أشد الناس بلاءً الأنبياء ثم الأمثل فالأمثل، يُبتلى الرجل على حسب دينه» — رواه الترمذي وصحَّحه',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن أبي هريرة ﵁ قال: قال رسول الله ﷺ: «أشد الناس بلاءً الأنبياء ثم الأمثل فالأمثل، يُبتلى الرجل على حسب دينه»',
+      collection: 'جامع الترمذي',
+      narrator: 'أبي هريرة',
+      referenceAsWrittenAr: 'رواه الترمذي وصحَّحه',
+    },
     transliterationArabic: 'Annī massaniya al-ḍurru wa-anta arḥamu al-rāḥimīn',
     contextEn: "Ayyūb's concise, dignified prayer after years of illness — a model of supplication in suffering without complaint.",
     contextAr: 'دعاء أيوب الموجز العميق بعد سنوات من الابتلاء — نموذج في التضرع الكريم.',
@@ -503,7 +563,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'لَّآ إِلَـٰهَ إِلَّآ أَنتَ سُبْحَـٰنَكَ إِنِّى كُنتُ مِنَ ٱلظَّـٰلِمِينَ',
     meaningEn: 'There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.',
     meaningAr: 'نادى يونس ﵇ ربه من ظلمات ثلاث — بطن الحوت والبحر والليل — ببضع كلمات تجمع التوحيد والتنزيه والاعتراف بالذنب، فاستُجيب له ونجا.',
-    hadithAr: 'عن سعد بن أبي وقاص ﵁ قال: قال رسول الله ﷺ: «دعوة ذي النون إذ دعا وهو في بطن الحوت: لا إله إلا أنت سبحانك إني كنت من الظالمين — فإنه لم يدعُ بها رجل مسلم في شيء قط إلا استجاب الله له» — رواه الترمذي وصحَّحه',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن سعد بن أبي وقاص ﵁ قال: قال رسول الله ﷺ: «دعوة ذي النون إذ دعا وهو في بطن الحوت: لا إله إلا أنت سبحانك إني كنت من الظالمين — فإنه لم يدعُ بها رجل مسلم في شيء قط إلا استجاب الله له»',
+      collection: 'جامع الترمذي',
+      narrator: 'سعد بن أبي وقاص',
+      referenceAsWrittenAr: 'رواه الترمذي وصحَّحه',
+    },
     transliterationArabic: 'Lā ilāha illā anta subḥānaka innī kuntu min al-ẓālimīn',
     contextEn: "Yūnus's prayer from within the whale — one of the most powerful duʿā in the Quran for relief from any distress.",
     contextAr: 'دعاء يونس من بطن الحوت — من أعظم الأدعية لرفع الكرب.',
@@ -538,7 +604,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَّبِّ أَعُوذُ بِكَ مِنْ هَمَزَٰتِ ٱلشَّيَـٰطِينِ ۝ وَأَعُوذُ بِكَ رَبِّ أَن يَحْضُرُونِ',
     meaningEn: 'My Lord, I seek refuge in You from the incitements of the devils, and I seek refuge in You, my Lord, lest they be present with me.',
     meaningAr: 'استعاذةٌ من نَخَسات الشياطين التي تُوقِع في الوسواس والغفلة، ومن حضورهم عند المرء في الخلوة والصلاة والمنام.',
-    hadithAr: 'عن سليمان بن صرد ﵁ قال: «كنت جالسًا مع النبي ﷺ ورجلان يستبَّان، فقال ﷺ: إني لأعلم كلمةً لو قالها لذهب عنه ما يجد: أعوذ بالله من الشيطان الرجيم» — متفق عليه',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن سليمان بن صرد ﵁ قال: «كنت جالسًا مع النبي ﷺ ورجلان يستبَّان، فقال ﷺ: إني لأعلم كلمةً لو قالها لذهب عنه ما يجد: أعوذ بالله من الشيطان الرجيم»',
+      collection: 'صحيح البخاري وصحيح مسلم',
+      narrator: 'سليمان بن صرد',
+      referenceAsWrittenAr: 'متفق عليه',
+    },
     transliterationArabic: "Rabbi aʿūdhu bika min hamazāti al-shayāṭīn · wa-aʿūdhu bika rabbi an yaḥḍurūn",
     contextEn: "For protection from Shayṭān — recited when feeling whispers, distraction in ṣalāh, or spiritual unease.",
     contextAr: 'للاستعاذة من وساوس الشيطان — عند التشتت في الصلاة أو الوسواس.',
@@ -573,7 +645,6 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَٰجِنَا وَذُرِّيَّـٰتِنَا قُرَّةَ أَعْيُنٍ وَٱجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا',
     meaningEn: 'Our Lord, grant us from among our wives and offspring comfort to our eyes and make us a leader [i.e., example] for the righteous.',
     meaningAr: 'يطلب عباد الرحمن ما يُقرُّ العين حقًّا: زوجةٌ وذريةٌ تسعد القلب وتُقرُّ الأعين بالطاعة والصلاح، ثم يطلبون فوق ذلك أن يُجعَلوا قدوةً للمتقين.',
-    hadithAr: 'قال الحسن البصري ﵀: «قرة أعين المؤمنين أن يروا أزواجهم وأولادهم يطيعون الله — فلا شيء أحبُّ إلى المؤمن من أن يرى حبيبه يُطيع الله»',
     transliterationArabic: "Rabbanā hab lanā min azwājinā wa-dhurriyyātinā qurrata aʿyun wa-j'alnā lil-muttaqīna imāmā",
     contextEn: "The duʿā of the ʿIbād al-Raḥmān — for a righteous spouse, righteous children, and leadership among the God-fearing.",
     contextAr: 'دعاء عباد الرحمن — للزوجة الصالحة والذرية الطيبة والإمامة في التقوى.',
@@ -610,7 +681,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَبِّ أَوْزِعْنِىٓ أَنْ أَشْكُرَ نِعْمَتَكَ ٱلَّتِىٓ أَنْعَمْتَ عَلَىَّ وَعَلَىٰ وَٰلِدَىَّ وَأَنْ أَعْمَلَ صَـٰلِحًا تَرْضَىٰهُ وَأَدْخِلْنِى بِرَحْمَتِكَ فِى عِبَادِكَ ٱلصَّـٰلِحِينَ',
     meaningEn: 'My Lord, enable me to be grateful for Your favour which You have bestowed upon me and upon my parents and to do righteousness of which You approve. And admit me by Your mercy into [the ranks of] Your righteous servants.',
     meaningAr: 'أُلهم سليمان ﵇ لمَّا سمع النملة أن يطلب القدرةَ على أداء الشكر لا الشكر وحده — وهو تواضعٌ عجيب من ملكٍ يملك ما لم يُملَّك لأحد قبله.',
-    hadithAr: 'عن معاذ بن جبل ﵁ قال: أخذ النبي ﷺ بيدي وقال: «يا معاذ، أوصيك: لا تدَعَنَّ في دبر كل صلاة أن تقول: اللهم أعنِّي على ذكرك وشكرك وحسن عبادتك» — رواه أبو داود وصحَّحه',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن معاذ بن جبل ﵁ قال: أخذ النبي ﷺ بيدي وقال: «يا معاذ، أوصيك: لا تدَعَنَّ في دبر كل صلاة أن تقول: اللهم أعنِّي على ذكرك وشكرك وحسن عبادتك»',
+      collection: 'سنن أبي داود',
+      narrator: 'معاذ بن جبل',
+      referenceAsWrittenAr: 'رواه أبو داود وصحَّحه',
+    },
     transliterationArabic: "Rabbi awziʿnī an ashkura niʿmataka allatī anʿamta ʿalayya wa-ʿalā wālidayya wa-an aʿmala ṣāliḥan tarḍāh wa-adkhilnī bi-raḥmatika fī ʿibādika al-ṣāliḥīn",
     contextEn: "Sulaymān's prayer upon hearing the ant — not just for gratitude but for being enabled to properly express it. A prayer of humility at the peak of power.",
     contextAr: 'دعاء سليمان حين سمع النملة — يطلب القدرة على أداء الشكر لا الشكر فقط.',
@@ -665,7 +742,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'سُبْحَـٰنَ ٱلَّذِى سَخَّرَ لَنَا هَـٰذَا وَمَا كُنَّا لَهُۥ مُقْرِنِينَ ۝ وَإِنَّآ إِلَىٰ رَبِّنَا لَمُنقَلِبُونَ',
     meaningEn: 'Exalted is He who has subjected this to us, and we could not have [otherwise] subdued it. And indeed we, to our Lord, will [surely] return.',
     meaningAr: 'دعاء ركوب المركبة: تنزيهٌ لله الذي سخَّر هذا المخلوق ونحن لم نكن قادرين على تسخيره، ثم استحضارٌ لحقيقة الرجوع إلى الله في كل لحظة.',
-    hadithAr: 'عن ابن عمر ﵁ أن النبي ﷺ كان إذا استوى على بعيره خارجًا إلى سفر كبَّر ثلاثًا ثم قال: «سبحان الذي سخَّر لنا هذا وما كنا له مقرنين وإنا إلى ربنا لمنقلبون» — رواه أبو داود والترمذي',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن ابن عمر ﵁ أن النبي ﷺ كان إذا استوى على بعيره خارجًا إلى سفر كبَّر ثلاثًا ثم قال: «سبحان الذي سخَّر لنا هذا وما كنا له مقرنين وإنا إلى ربنا لمنقلبون»',
+      collection: 'سنن أبي داود؛ جامع الترمذي',
+      narrator: 'ابن عمر',
+      referenceAsWrittenAr: 'رواه أبو داود والترمذي',
+    },
     transliterationArabic: "Subḥāna alladhī sakhkhara lanā hādhā wa-mā kunnā lahu muqrinīn · wa-innā ilā rabbinā la-munqalibūn",
     contextEn: "The Quranic duʿā for mounting any vehicle — car, plane, ship — affirming dependence on Allah and awareness of return to Him.",
     contextAr: 'دعاء ركوب المركبة — يُقال عند ركوب السيارة أو الطائرة أو السفينة.',
@@ -774,7 +857,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'قُلْ أَعُوذُ بِرَبِّ ٱلْفَلَقِ ۝ مِن شَرِّ مَا خَلَقَ ۝ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ ۝ وَمِن شَرِّ ٱلنَّفَّـٰثَـٰتِ فِى ٱلْعُقَدِ ۝ وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ',
     meaningEn: "Say, 'I seek refuge in the Lord of daybreak, from the evil of that which He created, and from the evil of darkness when it settles, and from the evil of those who blow on knots, and from the evil of an envier when he envies.'",
     meaningAr: 'استعاذةٌ شاملة برب الفجر من أربعة شرور: شر المخلوقات عمومًا، وشر ظلام الليل، وشر أهل السحر، وشر الحاسد — وهي تغطي الأذى الظاهر والخفي.',
-    hadithAr: 'عن عقبة بن عامر ﵁ قال: قال رسول الله ﷺ: «ألا أدلُّك على آيات أُنزلت الليلة لم يُرَ مثلُهن قط: قُل أعوذ برب الفلق وقل أعوذ برب الناس» — رواه مسلم',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن عقبة بن عامر ﵁ قال: قال رسول الله ﷺ: «ألا أدلُّك على آيات أُنزلت الليلة لم يُرَ مثلُهن قط: قُل أعوذ برب الفلق وقل أعوذ برب الناس»',
+      collection: 'صحيح مسلم',
+      narrator: 'عقبة بن عامر',
+      referenceAsWrittenAr: 'رواه مسلم',
+    },
     transliterationArabic: "Qul aʿūdhu bi-rabbi al-falaq · min sharri mā khalaqa · wa-min sharri ghāsiqin idhā waqab · wa-min sharri al-naffāthāti fī al-ʿuqad · wa-min sharri ḥāsidin idhā ḥasad",
     contextEn: "Recited morning and evening and before sleep for comprehensive protection from external harm, magic, and envy.",
     contextAr: 'تُقرأ صباحاً ومساءً وقبل النوم — للحماية الشاملة من الأذى والسحر والحسد.',
@@ -791,7 +880,15 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ ۝ مَلِكِ ٱلنَّاسِ ۝ إِلَـٰهِ ٱلنَّاسِ ۝ مِن شَرِّ ٱلْوَسْوَاسِ ٱلْخَنَّاسِ ۝ ٱلَّذِى يُوَسْوِسُ فِى صُدُورِ ٱلنَّاسِ ۝ مِنَ ٱلْجِنَّةِ وَٱلنَّاسِ',
     meaningEn: "Say, 'I seek refuge in the Lord of mankind, the Sovereign of mankind, the God of mankind, from the evil of the retreating whisperer — who whispers [evil] into the breasts of mankind — from among the jinn and mankind.'",
     meaningAr: 'استعاذةٌ بالله بثلاثة أسماء له على الناس — ربٌّ ومليكٌ وإله — من الوسواس الخنَّاس الذي ينكمش عند الذكر ويعود عند الغفلة، سواءٌ أكان من الجن أم من الإنس.',
-    hadithAr: 'عن عقبة بن عامر ﵁ قال: «أمرني رسول الله ﷺ أن أقرأ بالمعوِّذتين في دبر كل صلاة» — رواه أبو داود والنسائي وصحَّحه ابن حبان',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن عقبة بن عامر ﵁ قال: «أمرني رسول الله ﷺ أن أقرأ بالمعوِّذتين في دبر كل صلاة»',
+      collection: 'سنن أبي داود؛ سنن النسائي',
+      narrator: 'عقبة بن عامر',
+      grade: 'صحيح',
+      grader: 'ابن حبان',
+      referenceAsWrittenAr: 'رواه أبو داود والنسائي وصحَّحه ابن حبان',
+    },
     transliterationArabic: "Qul aʿūdhu bi-rabbi al-nās · maliki al-nās · ilāhi al-nās · min sharri al-waswāsi al-khannās · alladhī yuwaswisu fī ṣudūri al-nās · min al-jinnati wa-l-nās",
     contextEn: "Recited morning and evening, before sleep, and whenever feeling spiritual whispers or anxiety.",
     contextAr: 'تُقرأ صباحاً ومساءً وقبل النوم — للاستعاذة من وساوس الجن والإنس.',
@@ -846,7 +943,6 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'قُلِ ٱللَّهُمَّ مَـٰلِكَ ٱلْمُلْكِ تُؤْتِى ٱلْمُلْكَ مَن تَشَآءُ وَتَنزِعُ ٱلْمُلْكَ مِمَّن تَشَآءُ وَتُعِزُّ مَن تَشَآءُ وَتُذِلُّ مَن تَشَآءُ ۖ بِيَدِكَ ٱلْخَيْرُ ۖ إِنَّكَ عَلَىٰ كُلِّ شَىْءٍ قَدِيرٌ',
     meaningEn: "Say, 'O Allah, Owner of Sovereignty, You give sovereignty to whom You will and You take sovereignty away from whom You will. You honour whom You will and You humble whom You will. In Your hand is all good. Indeed, You are over all things competent.'",
     meaningAr: 'يُعلِّمنا الله أن ندعوه بوصف سلطانه المطلق — فالملك كله له: يُعطيه من يشاء وينزعه متى يشاء، والعزة والذلة بيده. فيه إقرارٌ بضعف الإنسان وعظمة الله.',
-    hadithAr: 'قال القرطبي ﵀: «ذُكر أن النبي ﷺ كان يقرأ هذه الآية ويُعجبه ذلك»، وأخرج ابن أبي حاتم أنه كان يقولها إذا أصبح',
     transliterationArabic: "Quli Allāhumma Mālika al-mulki tuʾtī al-mulka man tashāʾu wa-tanzaʿu al-mulka mimman tashāʾu · wa-tuʿizzu man tashāʾu wa-tudhillu man tashāʾu · bi-yadika al-khayr · innaka ʿalā kulli shayʾin qadīr",
     contextEn: "A comprehensive prayer acknowledging Allah's total control over honour, power, and outcomes. For moments of status change, loss of position, or worldly transition.",
     contextAr: 'دعاء جامع للإقرار بسلطان الله المطلق — مناسب حين تتقلَّب الأحوال.',
@@ -863,7 +959,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَبِّ إِنِّى نَذَرْتُ لَكَ مَا فِى بَطْنِى مُحَرَّرًا فَتَقَبَّلْ مِنِّىٓ ۖ إِنَّكَ أَنتَ ٱلسَّمِيعُ ٱلْعَلِيمُ ۝ رَبِّ إِنِّى وَضَعْتُهَآ أُنثَىٰ وَٱللَّهُ أَعْلَمُ بِمَا وَضَعَتْ وَلَيْسَ ٱلذَّكَرُ كَٱلْأُنثَىٰ ۖ وَإِنِّى سَمَّيْتُهَا مَرْيَمَ وَإِنِّىٓ أُعِيذُهَا بِكَ وَذُرِّيَّتَهَا مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ',
     meaningEn: "My Lord, I have pledged to You what is in my womb, consecrated for Your service, so accept this from me. Indeed, You are the Hearing, the Knowing. My Lord, I have delivered a female… I have named her Mary, and I seek refuge for her in You and her descendants from Satan, the expelled.",
     meaningAr: 'نذرت حنَّة ما في بطنها محرَّرًا لله، ثم لمَّا وُلدت أنثى سمَّتها مريم واستعاذت لها ولذريتها — فاستُجيب دعاؤها وكانت مريم أفضل نساء العالمين، وكان ابنها عيسى ﵇ من أولي العزم.',
-    hadithAr: 'عن أبي هريرة ﵁ قال: قال النبي ﷺ: «كل بني آدم يمسُّه الشيطانُ حين يُولَد، غير مريم وابنها» — متفق عليه. وهذا ثمرة دعاء أمِّها بالاستعاذة',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن أبي هريرة ﵁ قال: قال النبي ﷺ: «كل بني آدم يمسُّه الشيطانُ حين يُولَد، غير مريم وابنها»',
+      collection: 'صحيح البخاري وصحيح مسلم',
+      narrator: 'أبي هريرة',
+      referenceAsWrittenAr: 'متفق عليه',
+    },
     transliterationArabic: "Rabbi innī nadhartu laka mā fī baṭnī muḥarraran fa-taqabbal minnī · wa-innī sammaytuha Maryama wa-innī uʿīdhuhā bika wa-dhurriyyatahā min al-shayṭāni al-rajīm",
     contextEn: "Hannah's prayer of dedication and protection — the mother who dedicated her unborn child to Allah's service. A moving prayer for parents seeking to raise righteous children.",
     contextAr: 'دعاء الأم التي خصَّصت وليدها لخدمة الله — نموذج في الوالدية الروحية وتعويذ الأبناء.',
@@ -896,7 +998,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'حَسْبُنَا ٱللَّهُ وَنِعْمَ ٱلْوَكِيلُ',
     meaningEn: 'Allah is sufficient for us, and He is the best Disposer of affairs.',
     meaningAr: 'قالها المؤمنون حين جاءهم من يُخوِّفهم من جيش عرمرم مقبل، فلم يزدادوا إلا إيمانًا وقالوا هذه الكلمات — فانقلبوا بنعمة من الله وفضل لم يمسَّهم سوء.',
-    hadithAr: 'عن ابن عباس ﵁ قال: «حسبنا الله ونعم الوكيل» قالها إبراهيم حين أُلقي في النار، وقالها محمد ﷺ حين قيل له: إن الناس قد جمعوا لكم — رواه البخاري',
+    supportingNote: {
+      kind: 'athar',
+      textAr: 'عن ابن عباس ﵁ قال: «حسبنا الله ونعم الوكيل» قالها إبراهيم حين أُلقي في النار، وقالها محمد ﷺ حين قيل له: إن الناس قد جمعوا لكم',
+      collection: 'صحيح البخاري',
+      narrator: 'ابن عباس',
+      referenceAsWrittenAr: 'رواه البخاري',
+    },
     transliterationArabic: 'Ḥasbunā allāhu wa-niʿma al-wakīl',
     contextEn: "One of the most powerful short prayers — said by the companions facing an overwhelming army, and by Ibrahim before the fire. Complete surrender to Allah.",
     contextAr: 'قالها الصحابة أمام جيش عرمرم وإبراهيم أمام النار — كلمات قليلة تحمل التوكل المطلق.',
@@ -949,7 +1057,13 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'قُلْ إِنَّ صَلَاتِى وَنُسُكِى وَمَحْيَاىَ وَمَمَاتِى لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ ۝ لَا شَرِيكَ لَهُۥ ۖ وَبِذَٰلِكَ أُمِرْتُ وَأَنَا۠ أَوَّلُ ٱلْمُسْلِمِينَ',
     meaningEn: "Say, 'Indeed, my prayer, my rites of sacrifice, my living and my dying are for Allah, Lord of the worlds. No partner has He. And this I have been commanded, and I am the first of the Muslims.'",
     meaningAr: 'يُعلِّم الله نبيَّه ﷺ أن يُخلص وجوده كله له: الصلاةُ والعبادةُ والحياةُ والموتُ — كل شيء لله. إعلانٌ لتوحيد الإرادة وإخلاص الوجود من أوله إلى آخره.',
-    hadithAr: 'عن علي ﵁ قال: «كان رسول الله ﷺ إذا قام إلى الصلاة قال: وجَّهتُ وجهي للذي فطر السماوات والأرض... إن صلاتي ونسكي ومحياي ومماتي لله رب العالمين» — رواه مسلم',
+    supportingNote: {
+      kind: 'hadith',
+      textAr: 'عن علي ﵁ قال: «كان رسول الله ﷺ إذا قام إلى الصلاة قال: وجَّهتُ وجهي للذي فطر السماوات والأرض... إن صلاتي ونسكي ومحياي ومماتي لله رب العالمين»',
+      collection: 'صحيح مسلم',
+      narrator: 'علي',
+      referenceAsWrittenAr: 'رواه مسلم',
+    },
     transliterationArabic: "Qul inna ṣalātī wa-nusukī wa-maḥyāya wa-mamātī lillāhi Rabbi al-ʿālamīn · lā sharīka lahu · wa-bidhālika umirtu wa-anā awwalu al-muslimīn",
     contextEn: "The Muslim's declaration of total dedication — prayer, worship, life, and death all for Allah alone. Recited at the opening of ṣalāh or as a daily life-affirmation.",
     contextAr: 'إعلان الإخلاص الكامل — تُقال في استفتاح الصلاة أو كتأكيد يومي لمعنى العبودية.',
@@ -968,7 +1082,6 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَبَّنَآ أَفْرِغْ عَلَيْنَا صَبْرًا وَتَوَفَّنَا مُسْلِمِينَ',
     meaningEn: 'Our Lord, pour upon us patience and let us die as Muslims in submission to You.',
     meaningAr: 'لحظةٌ تاريخية: سحرةٌ جاؤوا مأجورين فآمنوا في ثوانٍ وفرعون يُهددهم بالقتل — فطلبوا شيئين فقط: الصبر على العذاب، والوفاة على الإسلام. لم يطلبوا النجاة بل الثبات.',
-    hadithAr: 'قال ابن كثير ﵀: «في ساعة واحدة صاروا كفاراً سحرةً، وفي آخرها صاروا شهداءَ بررةً، نفعتهم تلك اللحظة من الإيمان»',
     transliterationArabic: 'Rabbanā afrigh ʿalaynā ṣabran wa-tawaffanā muslimīn',
     contextEn: "One of the most moving Quranic prayers — said by Pharaoh's sorcerers after instant conversion, facing death. A prayer for patience in crisis and dying as Muslims.",
     contextAr: 'من أعمق أدعية القرآن — قاله السحرةُ في ثوانٍ من إيمانهم وهم يواجهون الموت. دعاء الصبر والخاتمة.',
@@ -1003,7 +1116,6 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'حَسْبِىَ ٱللَّهُ لَآ إِلَـٰهَ إِلَّا هُوَ ۖ عَلَيْهِ تَوَكَّلْتُ ۖ وَهُوَ رَبُّ ٱلْعَرْشِ ٱلْعَظِيمِ',
     meaningEn: 'Sufficient for me is Allah; there is no deity except Him. On Him I have relied, and He is the Lord of the Great Throne.',
     meaningAr: 'أُمر النبي ﷺ بقولها حين تولَّى المشركون — فيها توحيدٌ وتوكلٌ مطلق. قال النبي ﷺ: مَن قالها سبع مرات صباحًا وسبعًا مساءً كفاه الله ما أهمَّه.',
-    hadithAr: 'عن أبي الدرداء ﵁ قال: قال رسول الله ﷺ: «مَن قال حين يصبح وحين يمسي: حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم — سبع مرات — كفاه الله ما أهمَّه» — رواه أبو داود',
     transliterationArabic: 'Ḥasbiya allāhu lā ilāha illā huwa, ʿalayhi tawakkaltu, wa-huwa Rabbu al-ʿarshi al-ʿaẓīm',
     contextEn: "Prescribed by the Prophet ﷺ seven times morning and evening — Allah promises sufficiency for whatever concerns you.",
     contextAr: 'قالها النبي ﷺ صباحاً ومساءً سبعاً — ووعد بالكفاية في كل ما يهمّك.',
@@ -1092,7 +1204,6 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَّبِّ أَدْخِلْنِى مُدْخَلَ صِدْقٍ وَأَخْرِجْنِى مُخْرَجَ صِدْقٍ وَٱجْعَل لِّى مِن لَّدُنكَ سُلْطَـٰنًا نَّصِيرًا',
     meaningEn: "My Lord, cause me to enter a sound entrance and to exit a sound exit and grant me from Yourself a supporting authority.",
     meaningAr: 'دعاءٌ يُقال عند كل مدخل ومخرج في الحياة: دخول مكان، بداية مشروع، قرار جديد — يطلب المرء أن يكون دخوله وخروجه على الحق مع سلطان ونصرة من الله.',
-    hadithAr: 'عن أنس ﵁ قال: «كان رسول الله ﷺ إذا دخل المدينة قال: اللهم أدخلني مُدخَل صدق وأخرجني مُخرَج صدق» — رواه الترمذي وحسَّنه',
     transliterationArabic: 'Rabbi adkhilnī mudkhala ṣidqin wa-akhrijnī mukhraja ṣidqin wa-jʿal lī min ladunka sulṭānan naṣīrā',
     contextEn: "Recited for any new beginning — entering a city, starting a job, beginning a journey, making a major decision.",
     contextAr: 'يُقال عند كل بداية: دخول مدينة، بداية عمل، سفر، قرار مصيري.',
@@ -1163,7 +1274,6 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَبِّ إِنِّى لِمَآ أَنزَلْتَ إِلَىَّ مِنْ خَيْرٍ فَقِيرٌ',
     meaningEn: 'My Lord, indeed I am, for whatever good You would send down to me, in need.',
     meaningAr: 'وصل موسى ﵇ إلى مدين غريبًا وحيدًا جائعًا — فسقى غنم البنتين ثم جلس ظليلًا وقال هذا الدعاء. لم يطلب شيئًا محددًا بل أعلن حاجته لله مطلقًا. فأُجيب في الحال.',
-    hadithAr: 'قال ابن عطاء ﵀: «جمع هذا الدعاء الأدبَ والتواضعَ والتوكل؛ لم يُقيِّد الطلب بشيء بل فوَّض الأمر لله في كل خير يُنزِّله»',
     transliterationArabic: 'Rabbi innī limā anzalta ilayya min khayrin faqīr',
     contextEn: "One of the most profound prayers of need — Mūsā, alone and hungry in a foreign land, expressed total dependence without asking for anything specific. Answered immediately.",
     contextAr: 'دعاء موسى في الغربة والجوع — أعلن الحاجة الكاملة دون تقييد. استُجيب فورًا.',
@@ -1218,7 +1328,6 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     ayatUthmani: 'رَبِّ ٱغْفِرْ لِى وَهَبْ لِى مُلْكًا لَّا يَنۢبَغِى لِأَحَدٍ مِّنۢ بَعْدِىٓ ۖ إِنَّكَ أَنتَ ٱلْوَهَّابُ',
     meaningEn: 'My Lord, forgive me and grant me a kingdom such as will not belong to anyone after me. Indeed, You are the Bestower.',
     meaningAr: 'بدأ سليمان ﵇ دعاءه بالمغفرة قبل طلب الملك — فلم تُغرِّه النعمة عن الاستغفار. ثم طلب ملكًا فريدًا يكون آيةً لا مثيلَ له. فأُعطي ما طلب وزيادة.',
-    hadithAr: 'عن أبي هريرة ﵁ عن النبي ﷺ: «ذكرتُ دعوة أخي سليمان: رب هب لي ملكًا لا ينبغي لأحد من بعدي، فردَدتُ الشيطان أكبَّه الله وجهَه في التراب» — متفق عليه',
     transliterationArabic: "Rabbi ghfir lī wa-hab lī mulkan lā yanbaghī li-aḥadin min baʿdī, innaka anta al-Wahhāb",
     contextEn: "Sulaymān's prayer — beginning with forgiveness before asking for the greatest kingdom ever given. Humility even at the height of power.",
     contextAr: 'دعاء سليمان يبدأ بالمغفرة قبل الملك — نموذجٌ في التواضع عند قمة القوة.',

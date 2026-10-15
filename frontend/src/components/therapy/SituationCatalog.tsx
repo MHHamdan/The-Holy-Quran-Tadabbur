@@ -4,6 +4,18 @@ import { Heart, ExternalLink, ChevronDown, ChevronUp, Loader2, Stethoscope, Book
 import clsx from 'clsx';
 import { therapyApi } from '../../lib/api';
 import type { SituationSummary, SituationDetail } from '../../types/therapy';
+import { LiveVerse } from '../quran/LiveVerse';
+
+/**
+ * The API serves Qur'anic du'as by reference only (quran_ref + label, no
+ * text), so the verse is rendered from the canonical text. Hadith du'as keep
+ * their Arabic. (Fields beyond types/therapy.ts SituationDua.)
+ */
+interface SituationDuaRef {
+  quran_ref?: string | null;
+  label_en?: string | null;
+  label_ar?: string | null;
+}
 
 interface SituationCatalogProps {
   language: 'ar' | 'en';
@@ -155,7 +167,19 @@ function SituationCard({ summary, language, isExpanded, onToggle, onSelect }: Si
               <p className={clsx('text-[11px] font-semibold text-gray-600 mb-1.5', isRtl && 'font-arabic text-right')}>
                 {isRtl ? 'دعاء مأثور' : 'Prophetic du\'a'}
               </p>
-              {detail.duas.map(d => (
+              {detail.duas.map(d => {
+                const ref = d as typeof d & SituationDuaRef;
+                if (ref.quran_ref) {
+                  return (
+                    <div key={d.key} className="rounded-lg bg-emerald-50 border-s-4 border-emerald-300 px-3 py-2 mb-2">
+                      <p className={clsx('text-[11px] text-gray-600 mb-1', isRtl && 'font-arabic text-right')} dir={isRtl ? 'rtl' : 'ltr'}>
+                        {isRtl ? ref.label_ar : ref.label_en}
+                      </p>
+                      <LiveVerse reference={ref.quran_ref} language={language} />
+                    </div>
+                  );
+                }
+                return (
                 <blockquote
                   key={d.key}
                   className="rounded-lg bg-emerald-50 border-s-4 border-emerald-300 px-3 py-2 mb-2 text-sm leading-loose"
@@ -170,7 +194,8 @@ function SituationCard({ summary, language, isExpanded, onToggle, onSelect }: Si
                     {isRtl ? d.translation_ar : d.translation_en}
                   </p>
                 </blockquote>
-              ))}
+                );
+              })}
             </div>
           )}
 

@@ -1209,9 +1209,25 @@ _TOPIC_KNOWLEDGE: Dict[str, TopicBlock] = {
 # Public API
 # ---------------------------------------------------------------------------
 
+def is_verified_hadith(item: HadithEntry) -> bool:
+    """A hadith item may be shown only with a collection and hadith number.
+
+    None of the curated items above records a number yet; several give a grade
+    ("(sahih)", "(hasan)") without naming the scholar who graded it, two hold
+    Qur'an text (41:35, 3:134) under "hadith", and some attributions need
+    checking. They are withheld until a reviewer adds structured
+    ``collection`` and ``number`` fields (and ``grader`` for any grade). Never
+    fill these in from memory.
+    """
+    return bool(item.get("collection")) and bool(item.get("number"))
+
+
 def get_topic_resources(topic: str) -> Optional[TopicBlock]:
-    """Return the full knowledge block for the given topic key, or None."""
-    return _TOPIC_KNOWLEDGE.get(topic)
+    """Return the knowledge block for a topic key, with unverified hadith withheld."""
+    block = _TOPIC_KNOWLEDGE.get(topic)
+    if block is None:
+        return None
+    return {**block, "hadith": [h for h in block["hadith"] if is_verified_hadith(h)]}
 
 
 def get_topics_for_emotion(emotion: str) -> List[str]:
