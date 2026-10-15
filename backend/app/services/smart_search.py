@@ -416,7 +416,7 @@ async def smart_search(
             return out
         elif not (1 <= ref.aya_no <= count) or (ref.aya_end and not (ref.aya_no <= ref.aya_end <= count)):
             out["reference_error"] = {
-                "message_ar": f"سورة {_names(ref.sura_no)['name_ar']} فيها {count} آية فقط.",
+                "message_ar": f"{_names(ref.sura_no)['name_ar']} فيها {count} آية فقط.",
                 "message_en": f"Surah {ref.sura_no} has {count} verses.",
             }
             out["surahs"] = [_surah_entry(ref.sura_no)]

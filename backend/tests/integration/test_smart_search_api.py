@@ -40,6 +40,7 @@ async def test_reference_out_of_range(client):
     assert body["jump"] is None
     assert body["reference_error"]["message_en"]
     assert body["reference_error"]["message_ar"]
+    assert "سورة سورة" not in body["reference_error"]["message_ar"]
 
 
 async def test_bad_surah_number(client):
