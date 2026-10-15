@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { apiUrl } from '../lib/config';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Search, ExternalLink, BarChart3, BookOpen, Hash, CheckCircle, AlertCircle,
   ChevronDown, ChevronUp, Filter, BookMarked, Sparkles, Languages, Info,
-  GitBranch, TrendingUp, Layers, X, Loader2, Bookmark, BookmarkCheck
+  GitBranch, TrendingUp, Layers, X, Loader2, Bookmark, BookmarkCheck, CornerDownLeft
 } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { useSearchHistoryStore } from '../stores/searchHistoryStore';
@@ -13,7 +13,7 @@ import { t } from '../i18n/translations';
 import {
   quranApi, EnhancedSearchResponse, SearchMatch, WordAnalyticsResponse,
   SimilarVersesResponse, ConceptEvolutionResponse,
-  ThemeInfo, IntelligentSearchResponse
+  ThemeInfo, IntelligentSearchResponse, SmartSearchResponse, GroundedVerse, SmartSearchVerse
 } from '../lib/api';
 import clsx from 'clsx';
 import { TranslationSearchResults } from '../components/search/TranslationSearchResults';
@@ -369,6 +369,13 @@ export function SearchPage() {
   const [results, setResults] = useState<EnhancedSearchResponse | null>(null);
   const [analytics, setAnalytics] = useState<WordAnalyticsResponse | null>(null);
   const [intelligentSearchData, setIntelligentSearchData] = useState<IntelligentSearchResponse | null>(null);
+  // Reference jump / surah chips / alias from /quran/search/smart
+  const [smartData, setSmartData] = useState<SmartSearchResponse | null>(null);
+  // Which endpoint the verse list (and "load more") comes from
+  const [resultSource, setResultSource] = useState<'smart' | 'intelligent'>('smart');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlQuery = searchParams.get('q') ?? '';
+  const lastRunQuery = useRef<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<SearchError | null>(null);
 
@@ -491,8 +498,7 @@ export function SearchPage() {
   const selectSuggestion = (word: string) => {
     setQuery(word);
     setShowAutocomplete(false);
-    // Trigger search
-    setTimeout(() => handleSearch(undefined, 0), 100);
+    handleSearch(undefined, 0, word);
   };
 
   // Parse error response
@@ -518,24 +524,69 @@ export function SearchPage() {
 
   // Validate query - now accepts both Arabic and English
   const validateQuery = (q: string): SearchError | null => {
-    if (q.trim().length < 2) {
+    // References ("2:255", "٢:٢٥٥") and surah numbers ("2", "١٨") are valid
+    const hasDigit = /[0-9\u0660-\u0669\u06F0-\u06F9]/.test(q);
+    if (q.trim().length < 2 && !hasDigit) {
       return ERROR_CODES.QUERY_TOO_SHORT;
     }
-    // Accept both Arabic and English characters for bilingual search
+    // Accept Arabic, English and digits for bilingual search
     const hasArabic = /[\u0600-\u06FF]/.test(q);
     const hasEnglish = /[a-zA-Z]/.test(q);
-    if (!hasArabic && !hasEnglish) {
+    if (!hasArabic && !hasEnglish && !hasDigit) {
       return ERROR_CODES.INVALID_QUERY;
     }
     return null;
   };
 
-  async function handleSearch(e?: React.FormEvent, newOffset: number = 0) {
+  const fromSmartVerse = (v: SmartSearchVerse): SearchMatch => ({
+    verse_id: v.verse_id,
+    sura_no: v.sura_no,
+    sura_name_ar: v.sura_name_ar,
+    sura_name_en: v.sura_name_en,
+    aya_no: v.aya_no,
+    reference: v.reference,
+    text_uthmani: v.text_uthmani,
+    text_imlaei: v.text_imlaei,
+    page_no: v.page_no,
+    juz_no: v.juz_no,
+    highlighted_text: v.highlighted_text || v.text_uthmani,
+    context_before: '',
+    context_after: '',
+    relevance_score: v.match_type === 'exact' || v.match_type === 'alias' || v.match_type === 'reference' ? 1 : v.match_type === 'prefix' ? 0.8 : 0.6,
+    tfidf_score: 0,
+    exact_match: ['exact', 'alias', 'reference'].includes(v.match_type),
+    match_type: v.match_type,
+    result_type: 'quran_text',
+  });
+
+  const fromGroundedVerse = (verse: GroundedVerse): SearchMatch => ({
+    verse_id: verse.verse_id,
+    sura_no: verse.sura_no,
+    sura_name_ar: verse.sura_name_ar,
+    sura_name_en: verse.sura_name_en,
+    aya_no: verse.aya_no,
+    reference: verse.reference,
+    text_uthmani: verse.text_uthmani,
+    text_imlaei: verse.text_imlaei,
+    page_no: verse.page_no,
+    juz_no: verse.juz_no,
+    highlighted_text: verse.highlighted_text || verse.text_uthmani,
+    context_before: '',
+    context_after: '',
+    relevance_score: verse.relevance_score,
+    tfidf_score: verse.relevance_score,
+    exact_match: verse.match_type === 'exact' || verse.match_type === 'alias',
+    match_type: verse.match_type ?? 'normalized',
+    result_type: 'quran_text',
+  });
+
+  async function handleSearch(e?: React.FormEvent, newOffset: number = 0, explicitQuery?: string) {
     if (e) e.preventDefault();
-    if (!query.trim() || loading) return;
+    const q = (explicitQuery ?? query).trim();
+    if (!q || loading) return;
 
     // Validate query
-    const validationError = validateQuery(query);
+    const validationError = validateQuery(q);
     if (validationError) {
       setError(validationError);
       return;
@@ -544,99 +595,112 @@ export function SearchPage() {
     setLoading(true);
     setError(null);
     setOffset(newOffset);
-    if (newOffset === 0) setSubmittedQuery(query.trim());
     setShowAutocomplete(false);
+    if (newOffset === 0) {
+      setSubmittedQuery(q);
+      lastRunQuery.current = q;
+      // Keep the URL in sync so shared links and the back button work
+      if (searchParams.get('q') !== q) setSearchParams({ q }, { replace: true });
+    }
+
+    const toResponse = (matches: SearchMatch[], total: number, timeMs: number, related: string[]): EnhancedSearchResponse => ({
+      query: q,
+      query_normalized: q,
+      total_matches: total,
+      search_time_ms: timeMs,
+      matches,
+      sura_distribution: {},
+      juz_distribution: {},
+      related_terms: related,
+    });
 
     try {
-      // Use intelligent search for all queries (supports Arabic, English, and multi-concept)
-      const intelligentResult = await quranApi.intelligentSearch(query, {
-        limit: limit + newOffset,  // Get all results up to current offset + limit
-        include_related: includeSemantic,
-        lang: language,
-      });
+      let page: EnhancedSearchResponse | null = null;
+      let source: 'smart' | 'intelligent' = newOffset === 0 ? 'smart' : resultSource;
+      let smart: SmartSearchResponse | null = newOffset === 0 ? null : smartData;
 
-      const totalMatches = intelligentResult.data.total_matches;
+      if (source === 'smart') {
+        const started = performance.now();
+        const res = await quranApi.smartSearch(q, { lang: language, limit, offset: newOffset });
+        smart = res.data;
+        if (newOffset === 0) setSmartData(smart);
+        if (smart.verses.total > 0) {
+          page = toResponse(smart.verses.items.map(fromSmartVerse), smart.verses.total, performance.now() - started, []);
+        }
+      }
 
-      // Check for no results
-      if (totalMatches === 0) {
-        setError(ERROR_CODES.NO_RESULTS);
-        setResults(null);
-        setAnalytics(null);
+      // Related concepts (e.g. English "patience" -> صبر verses): the
+      // intelligent search, only when the literal search found no verses.
+      const hasLetters = /[a-zA-Z\u0600-\u06FF]/.test(q);
+      if (!page && includeSemantic && hasLetters && !smart?.jump && !smart?.reference_error) {
+        source = 'intelligent';
+        const intelligentResult = await quranApi.intelligentSearch(q, {
+          limit,
+          offset: newOffset,
+          include_related: includeSemantic,
+          lang: language,
+        });
+        if (intelligentResult.data.total_matches > 0) {
+          setIntelligentSearchData(intelligentResult.data);
+          page = toResponse(
+            intelligentResult.data.verses.map(fromGroundedVerse),
+            intelligentResult.data.total_matches,
+            intelligentResult.data.search_time_ms,
+            intelligentResult.data.related_searches,
+          );
+        }
+      } else if (newOffset === 0) {
         setIntelligentSearchData(null);
+      }
+      setResultSource(source);
+
+      const smartHasSomething = !!smart && (
+        !!smart.jump || !!smart.reference_error || smart.surahs.length > 0 || smart.translations.total > 0
+      );
+
+      if (!page) {
+        if (newOffset === 0) {
+          setResults(null);
+          setAnalytics(null);
+          if (!smartHasSomething && !/[a-zA-Z]/.test(q)) setError(ERROR_CODES.NO_RESULTS);
+          recordSearch(q, 'text', 0);
+        }
         return;
       }
 
-      // Store intelligent search data for display
-      setIntelligentSearchData(intelligentResult.data);
-
-      // Convert intelligent search results to EnhancedSearchResponse format for compatibility
-      const convertedMatches: SearchMatch[] = intelligentResult.data.verses.slice(newOffset).map(verse => ({
-        verse_id: verse.verse_id,
-        sura_no: verse.sura_no,
-        sura_name_ar: verse.sura_name_ar,
-        sura_name_en: verse.sura_name_en,
-        aya_no: verse.aya_no,
-        reference: verse.reference,
-        text_uthmani: verse.text_uthmani,
-        text_imlaei: verse.text_imlaei,
-        page_no: verse.page_no,
-        juz_no: verse.juz_no,
-        highlighted_text: verse.highlighted_text || verse.text_uthmani,
-        context_before: '',
-        context_after: '',
-        relevance_score: verse.relevance_score,
-        tfidf_score: verse.relevance_score,
-        exact_match: true,
-        match_type: 'semantic',
-        result_type: 'quran_text',
-        grounding: verse.grounding,
-        matched_concepts: verse.matched_concepts,
-        highlighted_terms: verse.highlighted_terms,
-      }));
-
-      const searchResult: EnhancedSearchResponse = {
-        query: intelligentResult.data.query,
-        query_normalized: intelligentResult.data.query,
-        total_matches: totalMatches,
-        search_time_ms: intelligentResult.data.search_time_ms,
-        matches: convertedMatches,
-        sura_distribution: {},  // Will compute from results
-        juz_distribution: {},
-        related_terms: intelligentResult.data.related_searches,
-      };
-
-      // Fetch analytics only on first search (for Arabic queries)
-      let analyticsResult = null;
-      if (newOffset === 0 && /[\u0600-\u06FF]/.test(query)) {
-        try {
-          analyticsResult = await quranApi.getWordAnalytics(query);
-        } catch {
-          console.warn('Could not fetch analytics');
-        }
-      }
-
       if (newOffset === 0) {
-        setResults(searchResult);
-        if (analyticsResult) {
-          setAnalytics(analyticsResult.data);
+        setResults(page);
+        // Word analytics for Arabic text queries
+        setAnalytics(null);
+        if (source === 'smart' && /[\u0600-\u06FF]/.test(q) && !smart?.jump) {
+          quranApi.getWordAnalytics(q)
+            .then((r) => setAnalytics(r.data))
+            .catch(() => console.warn('Could not fetch analytics'));
         }
-        // Record search in history
-        recordSearch(query, 'text', searchResult.total_matches);
+        recordSearch(q, 'text', page.total_matches);
       } else {
-        setResults(prev => prev ? {
-          ...searchResult,
-          matches: [...prev.matches, ...searchResult.matches],
-        } : searchResult);
+        const next = page;
+        setResults(prev => prev ? { ...next, matches: [...prev.matches, ...next.matches] } : next);
       }
     } catch (err) {
       console.error('Search error:', err);
       setError(parseError(err));
       setResults(null);
       setIntelligentSearchData(null);
+      setSmartData(null);
     } finally {
       setLoading(false);
     }
   }
+
+  // Deep links (/search?q=...) and back/forward navigation run the search
+  useEffect(() => {
+    const q = urlQuery.trim();
+    if (q && q !== lastRunQuery.current) {
+      setQuery(q);
+      handleSearch(undefined, 0, q);
+    }
+  }, [urlQuery]);
 
   function handleLoadMore() {
     handleSearch(undefined, offset + limit);
@@ -793,8 +857,13 @@ export function SearchPage() {
         </div>
       </form>
 
+      {/* Reference jump, surah chips, alias (smart search) */}
+      {smartData && submittedQuery && (
+        <SmartSearchCards data={smartData} language={language} />
+      )}
+
       {/* Literal matches in the translation of the meanings */}
-      {submittedQuery && !/[\u0600-\u06FF]/.test(submittedQuery) && (
+      {submittedQuery && !/[\u0600-\u06FF]/.test(submittedQuery) && !smartData?.jump && !smartData?.reference_error && (
         <TranslationSearchResults query={submittedQuery} language={language} />
       )}
 
@@ -839,7 +908,7 @@ export function SearchPage() {
               selectedTheme={selectedTheme}
               onSelectWord={(word) => {
                 setQuery(word);
-                setTimeout(() => handleSearch(undefined, 0), 100);
+                handleSearch(undefined, 0, word);
               }}
               onClearFilters={() => {
                 setSelectedSura(undefined);
@@ -976,7 +1045,7 @@ export function SearchPage() {
                       key={i}
                       onClick={() => {
                         setQuery(term);
-                        setTimeout(() => handleSearch(undefined, 0), 0);
+                        handleSearch(undefined, 0, term);
                       }}
                       className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded hover:bg-primary-200 transition-colors"
                     >
@@ -1075,9 +1144,96 @@ export function SearchPage() {
           language={language}
           onSelectWord={(word) => {
             setQuery(word);
-            setTimeout(() => handleSearch(undefined, 0), 100);
+            handleSearch(undefined, 0, word);
           }}
         />
+      )}
+    </div>
+  );
+}
+
+// =============================================================================
+// SMART SEARCH CARDS (reference jump, surah chips, alias)
+// =============================================================================
+
+function SmartSearchCards({ data, language }: { data: SmartSearchResponse; language: 'ar' | 'en' }) {
+  const { jump, reference_error: refError, surahs, alias } = data;
+  if (!jump && !refError && surahs.length === 0 && !alias) return null;
+
+  const jumpLink = jump
+    ? (jump.aya_no ? `/quran/${jump.sura_no}?aya=${jump.aya_no}` : `/quran/${jump.sura_no}`)
+    : null;
+  const jumpRef = jump
+    ? (jump.aya_no ? `${jump.sura_no}:${jump.aya_no}${jump.aya_end ? `-${jump.aya_end}` : ''}` : `${jump.sura_no}`)
+    : '';
+
+  return (
+    <div className="mb-6 space-y-3">
+      {jump && jumpLink && (
+        <Link
+          to={jumpLink}
+          className="flex items-center justify-between gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4 hover:bg-primary-100 transition-colors"
+          data-testid="search-jump-card"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <CornerDownLeft className="w-5 h-5 text-primary-600 flex-shrink-0" />
+            <div className="min-w-0">
+              <div className={clsx('font-semibold text-primary-800', language === 'ar' && 'font-arabic')}>
+                {language === 'ar' ? 'انتقل إلى' : 'Go to'}{' '}
+                <span dir="ltr">{jumpRef}</span>
+              </div>
+              <div className="text-sm text-primary-700">
+                <span dir="rtl" className="font-arabic">{jump.name_ar}</span>
+                {' · '}
+                <span dir="ltr">{jump.name_en}</span>
+              </div>
+            </div>
+          </div>
+          <ExternalLink className="w-4 h-4 text-primary-600 flex-shrink-0" />
+        </Link>
+      )}
+
+      {refError && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          <span dir={language === 'ar' ? 'rtl' : 'ltr'} className={clsx(language === 'ar' && 'font-arabic')}>
+            {language === 'ar' ? refError.message_ar : refError.message_en}
+          </span>
+        </div>
+      )}
+
+      {alias && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 flex flex-wrap items-center gap-2">
+          <CheckCircle className="w-4 h-4 flex-shrink-0" />
+          <span dir="rtl" className="font-arabic">{alias.label_ar}</span>
+          <span dir="ltr">({alias.label_en})</span>
+          <Link
+            to={`/quran/${alias.sura_no}?aya=${alias.aya_start}`}
+            className="text-emerald-700 underline"
+            dir="ltr"
+          >
+            {alias.sura_no}:{alias.aya_start}{alias.aya_end ? `-${alias.aya_end}` : ''}
+          </Link>
+        </div>
+      )}
+
+      {surahs.length > 0 && !(jump && !jump.aya_no) && (
+        <div className="flex flex-wrap items-center gap-2" data-testid="search-surah-chips">
+          <span className={clsx('text-sm text-gray-600', language === 'ar' && 'font-arabic')}>
+            {language === 'ar' ? 'سور:' : 'Surahs:'}
+          </span>
+          {surahs.map((s) => (
+            <Link
+              key={s.number}
+              to={`/quran/${s.number}`}
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm hover:border-primary-300 hover:bg-primary-50"
+            >
+              <span dir="ltr" className="text-xs text-gray-500">{s.number}</span>
+              <span dir="rtl" className="font-arabic">{s.name_ar}</span>
+              <span dir="ltr" className="text-gray-600">{s.name_en}</span>
+            </Link>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -1102,6 +1258,23 @@ function MatchTypeBadge({ matchType, language }: { matchType: string; language: 
           {t('search_match_root', language)}
         </span>
       );
+    case 'prefix':
+      return (
+        <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded">
+          {language === 'ar' ? 'بداية كلمة' : 'Word start'}
+        </span>
+      );
+    case 'alias':
+    case 'reference':
+      return (
+        <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+          <CheckCircle className="w-3 h-3" />
+          {matchType === 'alias'
+            ? (language === 'ar' ? 'اسم معروف للآية' : 'Known name')
+            : (language === 'ar' ? 'رقم الآية' : 'Reference')}
+        </span>
+      );
+    case 'concept_expansion':
     case 'semantic':
       return (
         <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">

@@ -809,7 +809,9 @@ class SemanticSearchService:
                         "themes": m.shared_themes,
                     } for m in result.matches],
                     source_themes=result.source_themes,
-                    search_method=result.search_method,
+                    # SimilaritySearchResult has no search_method field; reading
+                    # it raised AttributeError and every call fell back to [].
+                    search_method=getattr(result, "search_method", "advanced_similarity"),
                 )
             except Exception as e:
                 logger.error(f"Similarity service error: {e}")

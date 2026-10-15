@@ -40,3 +40,43 @@ async def test_range_starting_past_the_end_is_empty(client):
     r = await client.get("/api/v1/quran/audio/range/1/8/286")
     assert r.status_code == 200
     assert r.json()["verse_audios"] == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("path", ["/api/v1/quran/audio/verse/1/8", "/api/v1/quran/audio/verse/1/999", "/api/v1/quran/audio/verse/1/0"])
+async def test_verse_past_the_end_is_rejected(client, path):
+    """An out-of-range ayah must not map to another surah's verse on the fallback CDN."""
+    r = await client.get(path)
+    assert r.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_last_verse_is_accepted(client):
+    r = await client.get("/api/v1/quran/audio/verse/2/286")
+    assert r.status_code == 200
+    assert r.json()["reference"] == "2:286"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("path", [
+    "/api/v1/quran/audio/verse/1/1?reciter=nobody",
+    "/api/v1/quran/audio/range/1/1/7?reciter=nobody",
+    "/api/v1/quran/audio/page/1?reciter=nobody",
+])
+async def test_unknown_reciter_is_rejected(client, path):
+    r = await client.get(path)
+    assert r.status_code in (400, 422)
+
+
+@pytest.mark.asyncio
+async def test_surah_audio_route_removed(client):
+    """quranicaudio surah URLs all 404'd upstream; the route is gone."""
+    r = await client.get("/api/v1/quran/audio/surah/1")
+    assert r.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_reciters_are_cacheable(client):
+    r = await client.get("/api/v1/quran/audio/reciters")
+    assert r.status_code == 200
+    assert "max-age" in r.headers.get("cache-control", "")

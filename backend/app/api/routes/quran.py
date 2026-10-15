@@ -2,6 +2,7 @@
 Quran API routes for verses, translations, and tafseer.
 """
 import asyncio
+import copy
 import json
 import re
 import logging
@@ -18,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.admin_auth import require_admin_api_key
+from app.core.rate_limit import _get_client_ip
 from app.core.config import settings
 from app.db.database import get_async_session
 from app.models.quran import QuranVerse, Translation, TranslationEdition
@@ -88,6 +90,40 @@ class ResolveRateLimiter:
 _resolve_rate_limiter = ResolveRateLimiter(max_requests=30, window_seconds=60)
 
 
+class _TTLCache:
+    """Small bounded TTL cache for responses computed from immutable data
+    (Quran text, verse vectors, seeded tafsir). Per process; oldest entry is
+    evicted when full."""
+
+    def __init__(self, maxsize: int = 512, ttl_seconds: float = 3600.0):
+        self.maxsize = maxsize
+        self.ttl = ttl_seconds
+        self._data: Dict[Any, Tuple[float, Any]] = {}
+        self._lock = Lock()
+
+    def get(self, key):
+        with self._lock:
+            hit = self._data.get(key)
+            if hit is None:
+                return None
+            if time.monotonic() - hit[0] > self.ttl:
+                del self._data[key]
+                return None
+            return hit[1]
+
+    def set(self, key, value) -> None:
+        with self._lock:
+            if len(self._data) >= self.maxsize and key not in self._data:
+                oldest = min(self._data.items(), key=lambda kv: kv[1][0])[0]
+                del self._data[oldest]
+            self._data[key] = (time.monotonic(), value)
+
+
+_connections_cache = _TTLCache(maxsize=1024)
+_semantic_similar_cache = _TTLCache(maxsize=1024)
+_allah_names_cache = _TTLCache(maxsize=256)
+
+
 # Pydantic schemas
 class TranslationResponse(BaseModel):
     """Translation response schema."""
@@ -143,24 +179,6 @@ class TafseerChunkResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-class SuraMetadata(BaseModel):
-    """Sura metadata response."""
-    sura_no: int
-    name_ar: str
-    name_en: str
-    total_verses: int
-    revelation_type: Optional[str] = None
-
-
-class VerseResolveResponse(BaseModel):
-    """Response for verse text resolution."""
-    sura_no: int
-    aya_no: int
-    text_ar: str
-    confidence: float = Field(..., ge=0.0, le=1.0)
-    match_type: str  # "exact", "fuzzy", "partial"
 
 
 # =============================================================================
@@ -296,14 +314,9 @@ async def resolve_verse_text(
 
     logger = logging.getLogger(__name__)
 
-    # Rate limiting check
-    client_ip = "unknown"
-    if request:
-        client_ip = request.client.host if request.client else "unknown"
-        # Check forwarded headers for proxied requests
-        forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            client_ip = forwarded.split(",")[0].strip()
+    # Rate limiting check — client IP comes from the shared helper so every
+    # limiter in the app resolves the caller the same way.
+    client_ip = _get_client_ip(request)
 
     is_allowed, remaining = _resolve_rate_limiter.is_allowed(client_ip)
     if not is_allowed:
@@ -312,7 +325,7 @@ async def resolve_verse_text(
             code=ErrorCode.RATE_LIMITED,
             message_en="Too many requests. Please wait a moment before trying again.",
             message_ar="طلبات كثيرة جداً. يرجى الانتظار قليلاً قبل المحاولة مجدداً.",
-            request_id=f"resolve-ratelimit-{client_ip[:8]}",
+            request_id="resolve-ratelimit",
             status_code=429
         )
 
@@ -770,6 +783,7 @@ async def get_juz_verses(
 
 @router.get("/tafseer/{sura_no}/{aya_no}", response_model=List[TafseerChunkResponse])
 async def get_verse_tafseer(
+    http_response: Response,
     sura_no: int,
     aya_no: int,
     sources: Optional[List[str]] = Query(None, description="Filter by source IDs"),
@@ -790,6 +804,10 @@ async def get_verse_tafseer(
 
     if not verse_id:
         raise HTTPException(status_code=404, detail=f"Verse {sura_no}:{aya_no} not found")
+
+    # Seeded tafsir only changes on re-ingest; an hour keeps licence
+    # changes (sources hidden) visible the same day.
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
 
     # Get tafseer chunks
     query = select(TafseerChunk).where(
@@ -853,51 +871,43 @@ async def get_tafseer_sources(
 
 @router.get("/search")
 async def search_quran(
-    q: str = Query(..., min_length=2, description="Search query"),
+    http_response: Response,
+    q: str = Query(..., min_length=2, max_length=200, description="Search query"),
     limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0, le=6236),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
-    Search Quran text (simplified search, not full-text).
+    Search Quran text (simple substring search on the normalized search keys),
+    in Mushaf order, with the full match count in `total`.
     """
-    # Normalize query for diacritic-free search
-    from app.services.quran_search import normalize_arabic
     from sqlalchemy import func as _func
-    q_normalized = normalize_arabic(q)
+    from app.services.arabic_normalize import normalize_for_search, escape_like
 
-    # Search both text_normalized (Uthmanic) and normalized text_imlaei (standard spelling)
-    _dc = (
-        ''.join(chr(i) for i in range(0x0610, 0x061B))
-        + ''.join(chr(i) for i in range(0x064B, 0x0660))
-        + chr(0x0670)
-        + ''.join(chr(i) for i in range(0x06D6, 0x06DD))
-        + ''.join(chr(i) for i in range(0x06DF, 0x06E5))
-        + chr(0x06E7) + chr(0x06E8)
-        + ''.join(chr(i) for i in range(0x06EA, 0x06EE))
+    q_normalized = normalize_for_search(q)
+    if not q_normalized:
+        return {"query": q, "total": 0, "count": 0, "results": []}
+
+    pattern = f"%{escape_like(q_normalized)}%"
+    condition = or_(
+        QuranVerse.text_normalized.ilike(pattern, escape="\\"),
+        QuranVerse.text_imlaei_normalized.ilike(pattern, escape="\\"),
     )
-    _norm_imlaei = _func.replace(
-        _func.translate(
-            _func.regexp_replace(QuranVerse.text_imlaei, '[' + _dc + ']', '', 'g'),
-            'آأإٱ', chr(0x0627) * 4
-        ),
-        'ى', 'ي'
-    )
-    query = (
+    total = (await session.execute(
+        select(_func.count()).select_from(QuranVerse).where(condition)
+    )).scalar_one()
+    verses = (await session.execute(
         select(QuranVerse)
-        .where(
-            or_(
-                QuranVerse.text_normalized.ilike(f"%{q_normalized}%"),
-                _norm_imlaei.ilike(f"%{q_normalized}%"),
-            )
-        )
+        .where(condition)
+        .order_by(QuranVerse.sura_no, QuranVerse.aya_no)
+        .offset(offset)
         .limit(limit)
-    )
+    )).scalars().all()
 
-    result = await session.execute(query)
-    verses = result.scalars().all()
-
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
     return {
         "query": q,
+        "total": total,
         "count": len(verses),
         "results": [
             {
@@ -986,19 +996,6 @@ class WordAnalyticsResponse(BaseModel):
     co_occurring_words: List[dict]
 
 
-class GrammaticalFilterRequest(BaseModel):
-    """Request for filtering by grammatical role."""
-    role: Optional[str] = Field(None, description="Grammatical role filter (subject, object, verb, etc.)")
-    sentence_type: Optional[str] = Field(None, description="Sentence type filter (verbal, nominal, etc.)")
-
-
-# Transliteration marks used by the English editions ("Allāh", "Mūsā", "ʿĀd"):
-# folded away on both sides so plain-ASCII queries match.
-_FOLD_FROM = "āīūĀĪŪḥḤṣṢḍḌṭṬẓẒġĠʿʾ’‘"
-_FOLD_TO = "aiuAIUhHsSdDtTzZgG"  # shorter: the trailing marks are deleted
-_FOLD_TABLE = str.maketrans(_FOLD_FROM[: len(_FOLD_TO)], _FOLD_TO, _FOLD_FROM[len(_FOLD_TO):])
-
-
 class TranslationSearchHit(BaseModel):
     verse_id: int
     sura_no: int
@@ -1034,40 +1031,22 @@ async def search_translations(
 
     Searches the given editions, or the default edition of `lang`.
     """
-    from sqlalchemy import func as _func
+    from app.services.smart_search import (
+        default_edition_keys, search_translation_text, translation_terms,
+    )
 
     keys = _parse_translation_keys(translations)
     if not keys:
-        default = await session.execute(
-            select(TranslationEdition.key).where(
-                TranslationEdition.language == lang, TranslationEdition.is_default.is_(True)
-            )
-        )
-        keys = [k for k in default.scalars().all()]
+        keys = await default_edition_keys(session, lang)
     if not keys:
         raise HTTPException(status_code=404, detail=f"No translation available for language '{lang}'")
 
-    terms = [t for t in q.translate(_FOLD_TABLE).lower().split() if len(t) >= 2][:6]
-    if not terms:
+    if not translation_terms(q):
         raise HTTPException(status_code=400, detail="Query needs at least one word of 2+ characters")
 
-    folded = _func.lower(_func.translate(Translation.text, _FOLD_FROM, _FOLD_TO))
-    # Word-start match (\m): "ad" finds "ʿĀd", not "made". Terms are regex-escaped.
-    conditions = [Translation.translator.in_(keys)] + [
-        folded.op("~")("\\m" + re.sub(r"([^\w\s])", r"\\\1", t)) for t in terms
-    ]
-
-    total = (await session.execute(
-        select(_func.count()).select_from(Translation).where(*conditions)
-    )).scalar_one()
-    rows = (await session.execute(
-        select(Translation, QuranVerse)
-        .join(QuranVerse, QuranVerse.id == Translation.verse_id)
-        .where(*conditions)
-        .order_by(QuranVerse.id, Translation.translator)
-        .offset(offset)
-        .limit(limit)
-    )).all()
+    # Word-start match (\m): "ad" finds "ʿĀd", not "made". One scan: the
+    # total comes from count() over the same filtered rows.
+    total, rows, terms = await search_translation_text(session, q, keys, limit, offset)
 
     http_response.headers["Cache-Control"] = "public, max-age=3600"
     return TranslationSearchResponse(
@@ -1247,13 +1226,15 @@ async def search_by_root(
         # If no derived words found, use the root itself
         derived_words = [root]
 
-    # Search using the derived words
+    # Search the root and every derived word (OR over the normalized
+    # columns); no concept expansion, so results are root words only.
     search_service = QuranSearchService(session)
     result = await search_service.search(
         query=root,
         limit=limit,
         offset=offset,
-        include_semantic=True,  # This will expand using root
+        include_semantic=False,
+        terms_override=list(derived_words) + [root],
     )
 
     # Convert matches to response format
@@ -1319,9 +1300,13 @@ async def get_word_context(
     if not verse:
         raise HTTPException(status_code=404, detail="Verse not found")
 
-    # Check if word exists in verse
-    normalized_word = normalize_arabic(word)
-    if normalized_word not in normalize_arabic(verse.text_imlaei):
+    # Check if word exists in verse (shared search key on both normalized columns)
+    from app.services.arabic_normalize import normalize_for_search as _nfs
+    normalized_word = _nfs(word)
+    if not normalized_word or (
+        normalized_word not in (verse.text_imlaei_normalized or "")
+        and normalized_word not in (verse.text_normalized or "")
+    ):
         raise HTTPException(
             status_code=404,
             detail=f"Word '{word}' not found in verse {sura_no}:{aya_no}"
@@ -1653,9 +1638,9 @@ class ConceptEvolutionResponse(BaseModel):
 async def find_similar_verses(
     sura_no: int,
     aya_no: int,
-    top_k: int = Query(10, ge=1, le=50),
+    top_k: int = Query(10, ge=1, le=100),
     theme: Optional[str] = Query(None, description="Filter by theme (tawheed, prophets, afterlife, etc.)"),
-    cross_sura: bool = Query(True, description="Only return verses from other suras"),
+    exclude_same_sura: bool = Query(False, description="Only return verses from other suras"),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -1671,7 +1656,7 @@ async def find_similar_verses(
         aya_no: Aya number
         top_k: Maximum number of results
         theme: Filter by thematic category
-        cross_sura: If True, exclude verses from the same sura
+        exclude_same_sura: If True, exclude verses from the same sura
 
     Returns:
         List of semantically similar verses with scores
@@ -1699,18 +1684,23 @@ async def find_similar_verses(
                 detail=f"Invalid theme. Valid themes: {[t.value for t in ThematicCategory]}"
             )
 
+    cache_key = (sura_no, aya_no, top_k, theme_filter.value if theme_filter else None, exclude_same_sura)
+    cached = _semantic_similar_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     semantic_service = SemanticSearchService(session)
     result = await semantic_service.find_similar_verses(
         verse_text=source_verse.text_imlaei,
         top_k=top_k,
         theme_filter=theme_filter,
-        exclude_sura=sura_no if cross_sura else None,
+        exclude_sura=sura_no if exclude_same_sura else None,
     )
     # The service returns plain dicts; surah names come from the canonical table.
     similar = result.verses
     names = await _sura_names(session, {m["sura_no"] for m in similar})
 
-    return {
+    payload = {
         "source_verse": {
             "reference": f"{sura_no}:{aya_no}",
             "sura_name_ar": source_verse.sura_name_ar,
@@ -1733,12 +1723,16 @@ async def find_similar_verses(
                 connection_type=str(m.get("connection_type", "")),
             )
             for m in similar
-            if not (cross_sura and m["sura_no"] == sura_no)
+            if not (exclude_same_sura and m["sura_no"] == sura_no)
+            and not (m["sura_no"] == sura_no and m["aya_no"] == aya_no)
         ],
         "source_themes": result.source_themes,
         "search_method": result.search_method,
         "total_found": len(similar),
     }
+    if similar and result.search_method != "fallback":
+        _semantic_similar_cache.set(cache_key, payload)
+    return payload
 
 
 async def _sura_names(session: AsyncSession, sura_numbers: set) -> dict:
@@ -1774,6 +1768,11 @@ async def get_thematic_connections(
         except ValueError:
             pass
 
+    cache_key = (sura_no, aya_no, top_k, theme_filter.value if theme_filter else None)
+    cached = _connections_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     semantic_service = SemanticSearchService(session)
     result = await semantic_service.find_thematic_connections(
         sura_no=sura_no,
@@ -1786,7 +1785,7 @@ async def get_thematic_connections(
     def _theme(c):
         return (c.themes[0] if c.themes else (theme_filter.value if theme_filter else ""))
 
-    return {
+    payload = {
         "source_reference": f"{sura_no}:{aya_no}",
         "connections": [
             ThematicConnectionResponse(
@@ -1802,6 +1801,9 @@ async def get_thematic_connections(
         "dominant_themes": result.dominant_themes,
         "total_connections": len(connections),
     }
+    if connections:
+        _connections_cache.set(cache_key, payload)
+    return payload
 
 
 @router.get("/semantic/evolution/{concept}")
@@ -2472,59 +2474,6 @@ async def get_connection_types():
 # =============================================================================
 
 
-class CrossStoryConnectionResponse(BaseModel):
-    """Response for cross-story connection."""
-    verse_id: int
-    sura_no: int
-    sura_name_ar: str
-    sura_name_en: str
-    aya_no: int
-    text_uthmani: str
-    reference: str
-    prophet: str
-    theme_id: str
-    theme_ar: str
-    theme_en: str
-
-
-class CrossStoryResponse(BaseModel):
-    """Response for cross-story thematic connections."""
-    prophet: str
-    prophet_themes: List[str]
-    related_prophets: List[str]
-    source_verses_count: int
-    cross_story_connections: List[CrossStoryConnectionResponse]
-    available_themes: List[Dict[str, str]]
-
-
-class NarrativeSectionResponse(BaseModel):
-    """Response for a narrative arc section."""
-    title_ar: str
-    title_en: str
-    description_ar: str
-    description_en: str
-    verses: List[Dict[str, Any]]
-
-
-class NarrativeArcResponse(BaseModel):
-    """Response for story mode narrative arc."""
-    introduction: NarrativeSectionResponse
-    development: NarrativeSectionResponse
-    climax: NarrativeSectionResponse
-    resolution: NarrativeSectionResponse
-
-
-class StoryModeResponse(BaseModel):
-    """Response for story mode."""
-    theme: str
-    theme_ar: str
-    theme_en: str
-    theme_color: str
-    total_verses: int
-    related_prophets: List[str]
-    narrative_arc: NarrativeArcResponse
-
-
 class StoryThemeResponse(BaseModel):
     """Response for an available story theme."""
     id: str
@@ -2689,6 +2638,15 @@ async def get_available_prophets():
 
 from app.services.search_history import search_history_service
 
+# Search-history / bookmark / feedback sessions are keyed only by this id, so
+# it must be unguessable: "sess_" + a UUID from crypto.randomUUID() in the
+# client (searchHistoryStore). Short or Math.random ids are rejected (422).
+SessionIdParam = Query(
+    ...,
+    pattern=r"^sess_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    description="Client session id: sess_<uuid4>",
+)
+
 
 class SearchHistoryEntryResponse(BaseModel):
     """Search history entry response."""
@@ -2738,7 +2696,7 @@ class RecordClickRequest(BaseModel):
 @router.post("/history/search")
 async def record_search(
     request: RecordSearchRequest,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Record a search query in the user's history.
@@ -2758,7 +2716,7 @@ async def record_search(
 @router.post("/history/click")
 async def record_verse_click(
     request: RecordClickRequest,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Record a verse click/view in the user's history.
@@ -2776,7 +2734,7 @@ async def record_verse_click(
 
 @router.get("/history", response_model=List[SearchHistoryEntryResponse])
 async def get_search_history(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
     limit: int = Query(20, ge=1, le=100),
     query_type: Optional[str] = Query(None),
 ):
@@ -2805,7 +2763,7 @@ async def get_search_history(
 
 @router.get("/history/suggestions", response_model=List[SearchSuggestionResponse])
 async def get_search_suggestions(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
     prefix: Optional[str] = Query(None, description="Search prefix for filtering"),
     limit: int = Query(10, ge=1, le=50),
 ):
@@ -2833,7 +2791,7 @@ async def get_search_suggestions(
 
 @router.get("/history/recommendations", response_model=List[VerseRecommendationResponse])
 async def get_personalized_recommendations(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
     limit: int = Query(10, ge=1, le=50),
     session: AsyncSession = Depends(get_async_session),
 ):
@@ -2866,7 +2824,7 @@ async def get_personalized_recommendations(
 
 @router.get("/history/interests")
 async def get_theme_interests(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Get user's theme interests based on search history.
@@ -2883,7 +2841,7 @@ async def get_theme_interests(
 
 @router.delete("/history")
 async def clear_search_history(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Clear user's search history.
@@ -2933,7 +2891,7 @@ class SimilarityFeedbackResponse(BaseModel):
 @router.post("/similarity/feedback")
 async def record_similarity_feedback(
     request: SimilarityFeedbackRequest,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Record user feedback on a similarity search result.
@@ -2996,7 +2954,7 @@ async def get_similarity_relevance_score(
 
 @router.get("/similarity/feedback/history", response_model=List[SimilarityFeedbackResponse])
 async def get_session_similarity_feedback(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
     limit: int = Query(50, ge=1, le=200),
 ):
     """
@@ -3221,18 +3179,10 @@ class BookmarkRequest(BaseModel):
     tags: Optional[List[str]] = None
 
 
-class StudyGoalRequest(BaseModel):
-    """Request to set a study goal."""
-    goal_type: str = Field(..., description="memorization, comprehension, research, or reflection")
-    themes: Optional[List[str]] = None
-    prophets: Optional[List[str]] = None
-    suras: Optional[List[int]] = None
-
-
 @router.post("/bookmarks")
 async def add_bookmark(
     request: BookmarkRequest,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Add a verse bookmark.
@@ -3257,7 +3207,7 @@ async def add_bookmark(
 async def remove_bookmark(
     sura_no: int,
     aya_no: int,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """Remove a verse bookmark."""
     result = await search_history_service.remove_bookmark(
@@ -3270,7 +3220,7 @@ async def remove_bookmark(
 
 @router.get("/bookmarks")
 async def get_bookmarks(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
     collection: Optional[str] = Query(None, description="Filter by collection"),
     tags: Optional[List[str]] = Query(None, description="Filter by tags"),
 ):
@@ -3289,74 +3239,11 @@ async def get_bookmarks(
 
 @router.get("/bookmarks/collections")
 async def get_bookmark_collections(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """Get user's bookmark collections with counts."""
     collections = await search_history_service.get_bookmark_collections(session_id)
     return {"collections": collections}
-
-
-@router.post("/personalization/study-goal")
-async def set_study_goal(
-    request: StudyGoalRequest,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-):
-    """
-    Set user's study goal for personalized results.
-
-    Study goals affect how similarity results are ranked:
-    - memorization: Emphasizes lexical and root-based connections
-    - comprehension: Emphasizes thematic and conceptual connections
-    - research: Emphasizes prophetic and narrative connections
-    - reflection: Emphasizes thematic and semantic connections
-
-    Arabic: تحديد هدف الدراسة للحصول على نتائج مخصصة
-    """
-    result = await search_history_service.set_study_goal(
-        session_id=session_id,
-        goal_type=request.goal_type,
-        themes=request.themes,
-        prophets=request.prophets,
-        suras=request.suras,
-    )
-    return result
-
-
-@router.get("/personalization/study-goal")
-async def get_study_goal(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-):
-    """Get user's current study goal."""
-    goal = await search_history_service.get_study_goal(session_id)
-    return {"goal": goal}
-
-
-@router.get("/personalization/filters")
-async def get_personalized_filters(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-):
-    """
-    Get personalized search filters based on user's history and goals.
-
-    Returns suggested themes, prophets, and weight adjustments.
-
-    Arabic: الحصول على الفلاتر المخصصة بناءً على سجل المستخدم
-    """
-    filters = await search_history_service.get_personalized_filters(session_id)
-    return filters
-
-
-@router.get("/personalization/topic-clusters")
-async def get_topic_clusters(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-):
-    """
-    Get topic clusters based on user's search history.
-
-    Arabic: الحصول على مجموعات المواضيع بناءً على سجل البحث
-    """
-    clusters = await search_history_service.get_topic_clusters_summary(session_id)
-    return {"clusters": clusters}
 
 
 @router.get("/similarity/feedback/learning")
@@ -3543,6 +3430,7 @@ async def get_semantic_similarity(
         aya_no=aya_no,
         limit=limit,
         min_score=min_similarity,
+        session=session,
     )
     if indexed:
         coverage = "full"
@@ -4470,22 +4358,6 @@ async def compare_tafsir_detailed(
 # =============================================================================
 
 
-@router.get("/cross-story/themes")
-async def get_all_cross_story_themes():
-    """
-    Get all cross-story themes for exploring connections across prophet narratives.
-
-    Arabic: الحصول على جميع المواضيع المشتركة عبر قصص الأنبياء
-    """
-    from app.services.cross_story_themes import cross_story_service
-
-    themes = cross_story_service.get_all_themes()
-    return {
-        "themes": themes,
-        "count": len(themes),
-    }
-
-
 @router.get("/cross-story/themes/{theme_id}")
 async def get_cross_story_theme_details(theme_id: str):
     """
@@ -5007,171 +4879,6 @@ async def get_all_tafsir_scholars():
         "classical_count": len(by_era["classical"]),
         "modern_count": len(by_era["modern"]),
         "contemporary_count": len(by_era["contemporary"]),
-    }
-
-
-# =============================================================================
-# AI-BASED PERSONALIZATION
-# =============================================================================
-
-
-@router.get("/personalization/adaptive-recommendations")
-async def get_adaptive_recommendations(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-    context: str = Query("general", description="Context: general, memorization, research, reflection"),
-    limit: int = Query(10, ge=1, le=30),
-):
-    """
-    Get AI-powered adaptive recommendations based on user behavior.
-
-    Analyzes search history, feedback, and study patterns to provide
-    personalized suggestions.
-
-    Arabic: الحصول على توصيات متكيفة بناءً على سلوك المستخدم
-    """
-    from app.services.search_history import search_history_service
-    from app.services.recommendation_engine import recommendation_engine
-
-    # Get user's history and interests
-    theme_interests = await search_history_service.get_theme_interests(session_id)
-    study_goal = await search_history_service.get_study_goal(session_id)
-    weight_adjustments = await search_history_service.get_personalized_weight_adjustments(session_id)
-
-    # Get recommendations based on context
-    if context == "memorization":
-        # Recommend verses due for review
-        from app.services.study_progress import study_progress_service
-        due_verses = await study_progress_service.get_verses_due_for_review(session_id, limit)
-        recommendations = {
-            "type": "memorization_review",
-            "items": [
-                {
-                    "verse_reference": v.verse_reference,
-                    "confidence_level": v.confidence_level,
-                    "priority": "high" if v.confidence_level < 3 else "normal",
-                }
-                for v in due_verses
-            ],
-        }
-    else:
-        # Theme-based recommendations
-        themes_explored = list(theme_interests.keys())
-        theme_recs = await recommendation_engine.get_theme_recommendations(
-            user_themes_explored=themes_explored,
-            user_prophets_studied=[],
-            study_goal=study_goal.get("goal_type", "comprehension") if study_goal else "comprehension",
-            limit=limit,
-        )
-        recommendations = {
-            "type": "thematic_exploration",
-            "items": [
-                {
-                    "theme_id": r.theme_id,
-                    "theme_name_ar": r.theme_name_ar,
-                    "theme_name_en": r.theme_name_en,
-                    "relevance_score": round(r.relevance_score, 3),
-                    "reason": r.reason,
-                }
-                for r in theme_recs
-            ],
-        }
-
-    return {
-        "session_id": session_id,
-        "context": context,
-        "user_profile": {
-            "themes_explored": len(theme_interests),
-            "top_themes": list(theme_interests.keys())[:5],
-            "study_goal": study_goal.get("goal_type") if study_goal else None,
-            "personalization_level": "high" if len(theme_interests) > 5 else "medium" if theme_interests else "low",
-        },
-        "weight_adjustments": weight_adjustments,
-        "recommendations": recommendations,
-    }
-
-
-@router.post("/personalization/learn-from-interaction")
-async def learn_from_user_interaction(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-    interaction_type: str = Query(..., description="view, search, bookmark, feedback"),
-    target_type: str = Query(..., description="verse, theme, prophet, tafsir"),
-    target_id: str = Query(..., description="ID of the target item"),
-    value: Optional[float] = Query(None, description="Interaction value (e.g., rating)"),
-):
-    """
-    Record user interaction for AI learning.
-
-    Used to improve future recommendations based on user behavior.
-
-    Arabic: تسجيل تفاعل المستخدم للتعلم الذكي
-    """
-    from app.services.search_history import search_history_service
-
-    # Record the interaction
-    interaction = {
-        "session_id": session_id,
-        "interaction_type": interaction_type,
-        "target_type": target_type,
-        "target_id": target_id,
-        "value": value,
-    }
-
-    # Update theme interests if relevant
-    if target_type == "theme":
-        await search_history_service.update_theme_interest(
-            session_id=session_id,
-            theme=target_id,
-            weight=value or 1.0,
-        )
-
-    return {
-        "status": "recorded",
-        "interaction": interaction,
-        "message": "Interaction recorded for personalization",
-    }
-
-
-@router.get("/personalization/learning-insights")
-async def get_learning_insights(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-):
-    """
-    Get insights about user's learning patterns.
-
-    Arabic: الحصول على رؤى حول أنماط تعلم المستخدم
-    """
-    from app.services.search_history import search_history_service
-    from app.services.study_progress import study_progress_service
-
-    # Get various user data
-    theme_interests = await search_history_service.get_theme_interests(session_id)
-    study_goal = await search_history_service.get_study_goal(session_id)
-    feedback_learning = await search_history_service.learn_from_feedback()
-
-    # Get study progress
-    overall_progress = await study_progress_service.get_overall_progress(session_id)
-    daily_stats = await study_progress_service.get_daily_stats(session_id, days=7)
-
-    # Analyze patterns
-    theme_focus = sorted(theme_interests.items(), key=lambda x: x[1], reverse=True)[:5]
-
-    return {
-        "session_id": session_id,
-        "learning_profile": {
-            "primary_study_goal": study_goal.get("goal_type") if study_goal else "exploration",
-            "focus_themes": [t[0] for t in theme_focus],
-            "engagement_level": "high" if len(theme_interests) > 10 else "medium" if len(theme_interests) > 3 else "developing",
-        },
-        "progress_summary": overall_progress,
-        "weekly_activity": daily_stats,
-        "ai_insights": {
-            "recommendation_quality": feedback_learning.get("relevance_rate", 0),
-            "suggested_adjustment": feedback_learning.get("recommendation", "continue_current"),
-        },
-        "suggestions": {
-            "ar": "استمر في استكشاف المواضيع ذات الصلة بأهدافك",
-            "en": "Continue exploring themes related to your goals",
-        },
     }
 
 
@@ -6136,173 +5843,6 @@ async def get_daily_limits():
 
 
 # =============================================================================
-# MULTI-SCHOOL TAFSIR COMPARISON (PHASE 5)
-# =============================================================================
-
-
-@router.get("/tafsir-schools")
-async def get_all_tafsir_schools():
-    """
-    Get all Tafsir schools with descriptions.
-
-    Returns schools like: Sunni Traditional, Linguistic, Rational, Sufi, Shia, Contemporary, etc.
-
-    Arabic: جميع مذاهب التفسير مع وصفها
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    schools = tafsir_schools_service.get_all_schools()
-
-    return {
-        "schools": schools,
-        "count": len(schools),
-        "guidance_ar": "كل مذهب له منهجه الخاص في فهم القرآن",
-        "guidance_en": "Each school has its own methodology for understanding the Quran",
-    }
-
-
-@router.get("/tafsir-schools/{school_id}/scholars")
-async def get_scholars_by_school(
-    school_id: str,
-):
-    """
-    Get scholars belonging to a specific Tafsir school.
-
-    Arabic: العلماء المنتمون لمذهب تفسيري معين
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    scholars = tafsir_schools_service.get_scholars_by_school(school_id)
-
-    if not scholars:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"School '{school_id}' not found"},
-        )
-
-    return {
-        "school_id": school_id,
-        "scholars": scholars,
-        "count": len(scholars),
-    }
-
-
-@router.get("/tafsir-schools/scholar/{scholar_id}")
-async def get_scholar_details(
-    scholar_id: str,
-):
-    """
-    Get detailed information about a Tafsir scholar.
-
-    Arabic: معلومات تفصيلية عن عالم تفسير
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    scholar = tafsir_schools_service.get_scholar_details(scholar_id)
-
-    if not scholar:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Scholar '{scholar_id}' not found"},
-        )
-
-    return scholar
-
-
-@router.get("/tafsir-schools/compare/{sura_no}/{aya_no}")
-async def compare_schools_on_verse(
-    sura_no: int,
-    aya_no: int,
-    schools: Optional[str] = Query(None, description="Comma-separated school IDs"),
-):
-    """
-    Compare interpretations from different schools on a specific verse.
-
-    Arabic: مقارنة تفاسير المذاهب المختلفة لآية معينة
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    school_list = schools.split(",") if schools else None
-
-    return tafsir_schools_service.compare_schools_on_verse(
-        sura_no=sura_no,
-        aya_no=aya_no,
-        schools=school_list,
-    )
-
-
-@router.get("/tafsir-schools/theological-topics")
-async def get_theological_topics():
-    """
-    Get all comparative theological topics where schools differ.
-
-    Examples: Divine Attributes, Free Will, Seeing Allah, Intercession
-
-    Arabic: المواضيع العقدية التي تختلف فيها المذاهب
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    topics = tafsir_schools_service.get_theological_topics()
-
-    return {
-        "topics": topics,
-        "count": len(topics),
-        "note_ar": "هذه خلافات فكرية تاريخية ضمن إطار الإسلام",
-        "note_en": "These are historical intellectual differences within Islam",
-    }
-
-
-@router.get("/tafsir-schools/theological-topics/{topic_id}")
-async def get_topic_comparison(
-    topic_id: str,
-):
-    """
-    Get detailed comparison of schools on a theological topic.
-
-    Arabic: مقارنة تفصيلية للمذاهب في موضوع عقدي
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    comparison = tafsir_schools_service.get_topic_comparison(topic_id)
-
-    if not comparison:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Topic '{topic_id}' not found"},
-        )
-
-    return comparison
-
-
-@router.get("/tafsir-schools/methodologies")
-async def get_tafsir_methodologies():
-    """
-    Get all Tafsir methodologies with descriptions.
-
-    Arabic: منهجيات التفسير مع وصفها
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    return {
-        "methodologies": tafsir_schools_service.get_methodologies(),
-    }
-
-
-@router.get("/tafsir-schools/recommend")
-async def recommend_tafsir_for_goal(
-    goal: str = Query(..., description="Study goal: beginner, linguistic, hadith, philosophical, spiritual, contemporary"),
-):
-    """
-    Recommend Tafsir sources based on study goal.
-
-    Arabic: توصية بمصادر التفسير حسب هدف الدراسة
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    return tafsir_schools_service.recommend_tafsir_for_goal(goal)
-
-
-# =============================================================================
 # INTERACTIVE THEMATIC EXPLORATION (PHASE 5)
 # =============================================================================
 
@@ -7062,7 +6602,9 @@ async def get_cache_stats():
 
 
 @router.post("/cache/cleanup")
-async def cleanup_expired_cache():
+async def cleanup_expired_cache(
+    _admin: None = Depends(require_admin_api_key),
+):
     """
     Cleanup expired cache entries.
 
@@ -7096,6 +6638,7 @@ async def warm_cache(
 @router.delete("/cache/user/{user_id}")
 async def invalidate_user_cache(
     user_id: str,
+    _admin: None = Depends(require_admin_api_key),
 ):
     """
     Invalidate all caches for a user.
@@ -7109,410 +6652,6 @@ async def invalidate_user_cache(
     return {
         "status": "invalidated",
         "user_id": user_id,
-    }
-
-
-# =============================================================================
-# NAMED ENTITY RECOGNITION (NER) - PHASE 7
-# =============================================================================
-
-
-class EntityResponse(BaseModel):
-    """Named entity response."""
-    text: str
-    entity_type: str
-    start_pos: int
-    end_pos: int
-    english_name: str
-    confidence: float
-    metadata: Dict[str, Any] = {}
-
-
-class EntityAnalysisResponse(BaseModel):
-    """Entity analysis response."""
-    original_text: str
-    entities: List[EntityResponse]
-    entity_counts: Dict[str, int]
-    primary_entities: List[EntityResponse]
-    context_summary: Dict[str, str]
-
-
-@router.post("/ner/analyze")
-async def analyze_text_for_entities(
-    text: str = Query(..., min_length=2, description="Arabic or English text to analyze"),
-    min_confidence: float = Query(0.5, ge=0.0, le=1.0),
-):
-    """
-    Analyze text for named entities (prophets, angels, places, events, etc.)
-
-    Features:
-    - Identifies 25+ prophets with metadata
-    - Recognizes 7 angels mentioned in Quran
-    - Detects 11+ significant places
-    - Identifies historical events
-    - Recognizes divine names
-    - Detects nations mentioned in Quran
-
-    Arabic: تحليل النص لاستخراج الكيانات المسماة (أنبياء، ملائكة، أماكن، أحداث)
-    """
-    from app.services.ner_service import ner_service
-
-    result = ner_service.extract_entities(
-        text=text,
-        min_confidence=min_confidence,
-    )
-
-    return EntityAnalysisResponse(
-        original_text=result.original_text,
-        entities=[
-            EntityResponse(
-                text=e.text,
-                entity_type=e.entity_type.value,
-                start_pos=e.start_pos,
-                end_pos=e.end_pos,
-                english_name=e.english_name,
-                confidence=e.confidence,
-                metadata=e.metadata,
-            )
-            for e in result.entities
-        ],
-        entity_counts=result.entity_counts,
-        primary_entities=[
-            EntityResponse(
-                text=e.text,
-                entity_type=e.entity_type.value,
-                start_pos=e.start_pos,
-                end_pos=e.end_pos,
-                english_name=e.english_name,
-                confidence=e.confidence,
-                metadata=e.metadata,
-            )
-            for e in result.primary_entities
-        ],
-        context_summary=result.context_summary,
-    )
-
-
-@router.get("/ner/entity/{entity_name}")
-async def get_entity_details(
-    entity_name: str,
-    entity_type: Optional[str] = Query(None, description="Type: prophet, place, nation, angel"),
-):
-    """
-    Get detailed information about a specific entity.
-
-    Arabic: الحصول على معلومات تفصيلية عن كيان محدد
-    """
-    from app.services.ner_service import ner_service
-
-    details = ner_service.get_entity_details(
-        entity_name=entity_name,
-        entity_type=entity_type,
-    )
-
-    if not details:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Entity '{entity_name}' not found"},
-        )
-
-    return details
-
-
-@router.get("/ner/prophets")
-async def get_all_prophets():
-    """
-    Get list of all prophets mentioned in the Quran.
-
-    Returns 25 prophets with:
-    - Arabic and English names
-    - Number of mentions in Quran
-    - Key suras where they appear
-    - Descriptions
-
-    Arabic: قائمة جميع الأنبياء المذكورين في القرآن
-    """
-    from app.services.ner_service import ner_service
-
-    prophets = ner_service.get_all_prophets()
-
-    # Sort by mentions (most mentioned first)
-    prophets_sorted = sorted(prophets, key=lambda p: p["mentions"], reverse=True)
-
-    return {
-        "prophets": prophets_sorted,
-        "count": len(prophets_sorted),
-        "most_mentioned": prophets_sorted[0] if prophets_sorted else None,
-        "guidance_ar": "الأنبياء قدوة للبشرية",
-        "guidance_en": "The prophets are exemplars for humanity",
-    }
-
-
-@router.get("/ner/places")
-async def get_all_places():
-    """
-    Get list of all places mentioned in the Quran.
-
-    Returns places with:
-    - Arabic and English names
-    - Type (city, mountain, region, etc.)
-    - Significance
-    - Key suras
-
-    Arabic: قائمة جميع الأماكن المذكورة في القرآن
-    """
-    from app.services.ner_service import ner_service
-
-    places = ner_service.get_all_places()
-
-    return {
-        "places": places,
-        "count": len(places),
-        "note_ar": "الأماكن القرآنية لها دلالات تاريخية ودينية",
-        "note_en": "Quranic places have historical and religious significance",
-    }
-
-
-@router.get("/ner/events")
-async def get_all_events():
-    """
-    Get list of all historical events mentioned in the Quran.
-
-    Returns events with:
-    - Arabic and English names
-    - Associated prophet
-    - Type (miracle, battle, divine punishment, etc.)
-    - Key suras
-
-    Arabic: قائمة جميع الأحداث التاريخية المذكورة في القرآن
-    """
-    from app.services.ner_service import ner_service
-
-    events = ner_service.get_all_events()
-
-    return {
-        "events": events,
-        "count": len(events),
-        "note_ar": "القصص القرآني عبرة للعالمين",
-        "note_en": "Quranic stories are lessons for all of humanity",
-    }
-
-
-@router.get("/ner/stats")
-async def get_ner_statistics():
-    """
-    Get statistics about all named entities in the database.
-
-    Arabic: إحصائيات الكيانات المسماة في قاعدة البيانات
-    """
-    from app.services.ner_service import ner_service
-
-    return ner_service.get_entity_stats()
-
-
-@router.get("/ner/types")
-async def get_entity_types():
-    """
-    Get all available entity types for NER.
-
-    Arabic: أنواع الكيانات المتاحة للتعرف
-    """
-    from app.services.ner_service import EntityType
-
-    return {
-        "entity_types": [
-            {"id": e.value, "description_ar": desc_ar, "description_en": desc_en}
-            for e, desc_ar, desc_en in [
-                (EntityType.PROPHET, "نبي أو رسول", "Prophet or messenger"),
-                (EntityType.ANGEL, "ملاك", "Angel"),
-                (EntityType.HISTORICAL_FIGURE, "شخصية تاريخية", "Historical figure"),
-                (EntityType.PLACE, "مكان", "Place"),
-                (EntityType.EVENT, "حدث تاريخي", "Historical event"),
-                (EntityType.DIVINE_NAME, "اسم من أسماء الله", "Divine name"),
-                (EntityType.DIVINE_ATTRIBUTE, "صفة إلهية", "Divine attribute"),
-                (EntityType.RELIGIOUS_CONCEPT, "مفهوم ديني", "Religious concept"),
-                (EntityType.NATION, "أمة أو قوم", "Nation or people"),
-                (EntityType.BOOK, "كتاب سماوي", "Divine book"),
-                (EntityType.TIME_PERIOD, "فترة زمنية", "Time period"),
-            ]
-        ],
-        "count": 11,
-    }
-
-
-@router.get("/ner/analyze-verse/{sura_no}/{aya_no}")
-async def analyze_verse_entities(
-    sura_no: int,
-    aya_no: int,
-    session: AsyncSession = Depends(get_async_session),
-):
-    """
-    Analyze a specific verse for named entities.
-
-    Arabic: تحليل آية معينة لاستخراج الكيانات المسماة
-    """
-    from app.services.ner_service import ner_service
-    from app.models.quran import QuranVerse
-
-    # Get verse
-    result = await session.execute(
-        select(QuranVerse).where(
-            QuranVerse.sura_no == sura_no,
-            QuranVerse.aya_no == aya_no,
-        )
-    )
-    verse = result.scalar_one_or_none()
-
-    if not verse:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Verse {sura_no}:{aya_no} not found"},
-        )
-
-    # Analyze verse text
-    analysis = ner_service.extract_entities(verse.text_uthmani)
-
-    return {
-        "verse_reference": f"{sura_no}:{aya_no}",
-        "verse_text": verse.text_uthmani,
-        "entities": [
-            {
-                "text": e.text,
-                "type": e.entity_type.value,
-                "english_name": e.english_name,
-                "confidence": e.confidence,
-            }
-            for e in analysis.entities
-        ],
-        "entity_counts": analysis.entity_counts,
-        "context_summary": analysis.context_summary,
-    }
-
-
-@router.get("/ner/search-by-entity")
-async def search_by_entity(
-    entity_name: str = Query(..., description="Entity name in Arabic or English"),
-    entity_type: Optional[str] = Query(None, description="Type: prophet, place, event, nation"),
-    session: AsyncSession = Depends(get_async_session),
-):
-    """
-    Search verses containing a specific entity.
-
-    Arabic: البحث عن الآيات التي تحتوي على كيان معين
-    """
-    from app.services.ner_service import ner_service
-    from app.models.quran import QuranVerse
-
-    # Get entity details to find aliases
-    entity_details = ner_service.get_entity_details(entity_name, entity_type)
-
-    if not entity_details:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Entity '{entity_name}' not found"},
-        )
-
-    # Build search terms
-    search_terms = [entity_details.get("name_ar", entity_name)]
-    if "aliases" in entity_details:
-        search_terms.extend(entity_details["aliases"])
-
-    # Search in key suras first
-    key_suras = entity_details.get("key_suras", [])
-
-    matching_verses = []
-
-    if key_suras:
-        # Batch all suras in one query instead of one query per sura
-        batch_result = await session.execute(
-            select(QuranVerse).where(QuranVerse.sura_no.in_(key_suras[:5]))
-        )
-        for verse in batch_result.scalars().all():
-            for term in search_terms:
-                if term in verse.text_uthmani:
-                    matching_verses.append({
-                        "sura_no": verse.sura_no,
-                        "aya_no": verse.aya_no,
-                        "reference": f"{verse.sura_no}:{verse.aya_no}",
-                        "text_uthmani": verse.text_uthmani,
-                        "matched_term": term,
-                    })
-                    break
-
-    return {
-        "entity": entity_details,
-        "search_terms": search_terms,
-        "verses": matching_verses[:30],  # Limit results
-        "count": len(matching_verses),
-    }
-
-
-@router.get("/ner/entity-connections/{entity_name}")
-async def get_entity_connections(
-    entity_name: str,
-    entity_type: Optional[str] = Query(None),
-):
-    """
-    Get connections between an entity and other entities.
-
-    Arabic: الحصول على روابط بين كيان وكيانات أخرى
-    """
-    from app.services.ner_service import ner_service, PROPHETS, NATIONS, EVENTS
-
-    # Get entity details
-    entity = ner_service.get_entity_details(entity_name, entity_type)
-
-    if not entity:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Entity '{entity_name}' not found"},
-        )
-
-    connections = {
-        "related_prophets": [],
-        "related_places": [],
-        "related_events": [],
-        "related_nations": [],
-    }
-
-    entity_ar = entity.get("name_ar", entity_name)
-
-    # Find related events
-    for event_ar, event_data in EVENTS.items():
-        if event_data.get("prophet") == entity_ar:
-            connections["related_events"].append({
-                "name_ar": event_ar,
-                "name_en": event_data["en"],
-                "type": event_data["type"],
-            })
-
-    # Find related nations
-    for nation_ar, nation_data in NATIONS.items():
-        if nation_data.get("prophet") == entity_ar:
-            connections["related_nations"].append({
-                "name_ar": nation_ar,
-                "name_en": nation_data["en"],
-                "fate_en": nation_data["fate_en"],
-            })
-
-    # Find prophets with shared suras
-    if entity.get("type") == "prophet" and "key_suras" in entity:
-        entity_suras = set(entity["key_suras"])
-        for prophet_ar, prophet_data in PROPHETS.items():
-            if prophet_ar != entity_ar:
-                prophet_suras = set(prophet_data.get("key_suras", []))
-                shared = entity_suras.intersection(prophet_suras)
-                if len(shared) >= 2:
-                    connections["related_prophets"].append({
-                        "name_ar": prophet_ar,
-                        "name_en": prophet_data["en"],
-                        "shared_suras": list(shared)[:5],
-                    })
-
-    return {
-        "entity": entity,
-        "connections": connections,
-        "total_connections": sum(len(v) for v in connections.values()),
     }
 
 
@@ -7777,874 +6916,6 @@ async def get_narrative_statistics():
 
 
 # =============================================================================
-# CROSS-DISCIPLINARY KNOWLEDGE INTEGRATION (PHASE 7)
-# =============================================================================
-
-
-@router.get("/cross-discipline/verse/{sura_no}/{aya_no}")
-async def get_verse_cross_references(
-    sura_no: int,
-    aya_no: int,
-):
-    """
-    Get cross-disciplinary references for a verse (Fiqh, Hadith, Sira).
-
-    Arabic: المراجع متعددة التخصصات لآية
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    verse_ref = f"{sura_no}:{aya_no}"
-    return cross_disciplinary_service.get_verse_cross_references(verse_ref)
-
-
-@router.get("/cross-discipline/fiqh")
-async def get_all_fiqh_rulings(
-    category: Optional[str] = Query(None, description="Filter by category: worship, dress, transactions, family"),
-):
-    """
-    Get all Fiqh rulings.
-
-    Categories: worship, dress, transactions, family
-
-    Arabic: جميع الأحكام الفقهية
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    rulings = cross_disciplinary_service.get_all_fiqh_rulings(category=category)
-
-    return {
-        "fiqh_rulings": rulings,
-        "count": len(rulings),
-        "filter": category,
-    }
-
-
-@router.get("/cross-discipline/fiqh/{ruling_id}")
-async def get_fiqh_ruling_details(
-    ruling_id: str,
-):
-    """
-    Get detailed Fiqh ruling with evidence and school positions.
-
-    Arabic: تفاصيل الحكم الفقهي مع الأدلة ومواقف المذاهب
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    ruling = cross_disciplinary_service.get_fiqh_ruling(ruling_id)
-
-    if not ruling:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Fiqh ruling '{ruling_id}' not found"},
-        )
-
-    return ruling
-
-
-@router.get("/cross-discipline/fiqh/categories")
-async def get_fiqh_categories():
-    """
-    Get all Fiqh categories.
-
-    Arabic: فئات الفقه
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    categories = cross_disciplinary_service.get_fiqh_categories()
-
-    return {
-        "categories": categories,
-        "count": len(categories),
-    }
-
-
-@router.get("/cross-discipline/hadith")
-async def get_all_hadith(
-    grade: Optional[str] = Query(None, description="Filter by grade: sahih, hasan, daif, mutawatir"),
-    theme: Optional[str] = Query(None, description="Filter by theme"),
-):
-    """
-    Get all Hadith references.
-
-    Arabic: جميع الأحاديث
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    hadith = cross_disciplinary_service.get_all_hadith(grade=grade, theme=theme)
-
-    return {
-        "hadith": hadith,
-        "count": len(hadith),
-        "filters": {"grade": grade, "theme": theme},
-    }
-
-
-@router.get("/cross-discipline/hadith/{hadith_id}")
-async def get_hadith_details(
-    hadith_id: str,
-):
-    """
-    Get detailed Hadith information.
-
-    Arabic: تفاصيل الحديث
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    hadith = cross_disciplinary_service.get_hadith_details(hadith_id)
-
-    if not hadith:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Hadith '{hadith_id}' not found"},
-        )
-
-    return hadith
-
-
-@router.get("/cross-discipline/hadith/themes")
-async def get_hadith_themes():
-    """
-    Get all Hadith themes.
-
-    Arabic: مواضيع الأحاديث
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    themes = cross_disciplinary_service.get_hadith_themes()
-
-    return {
-        "themes": themes,
-        "count": len(themes),
-    }
-
-
-@router.get("/cross-discipline/sira")
-async def get_all_sira_events(
-    era: Optional[str] = Query(None, description="Filter by era: pre_prophethood, meccan, medinan, final_years"),
-):
-    """
-    Get all Sira (Prophetic Biography) events.
-
-    Arabic: جميع أحداث السيرة النبوية
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    events = cross_disciplinary_service.get_all_sira_events(era=era)
-
-    return {
-        "sira_events": events,
-        "count": len(events),
-        "filter": era,
-    }
-
-
-@router.get("/cross-discipline/sira/timeline")
-async def get_sira_timeline():
-    """
-    Get Sira events as a chronological timeline.
-
-    Arabic: السيرة النبوية كجدول زمني
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    timeline = cross_disciplinary_service.get_sira_timeline()
-
-    return {
-        "timeline": timeline,
-        "count": len(timeline),
-        "guidance_ar": "السيرة النبوية منهج حياة",
-        "guidance_en": "The Prophetic biography is a way of life",
-    }
-
-
-@router.get("/cross-discipline/sira/{event_id}")
-async def get_sira_event_details(
-    event_id: str,
-):
-    """
-    Get detailed Sira event information.
-
-    Arabic: تفاصيل حدث من السيرة
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    event = cross_disciplinary_service.get_sira_event(event_id)
-
-    if not event:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Sira event '{event_id}' not found"},
-        )
-
-    return event
-
-
-@router.get("/cross-discipline/sira/eras")
-async def get_sira_eras():
-    """
-    Get all Sira eras with descriptions.
-
-    Arabic: حقب السيرة النبوية
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    return {
-        "eras": cross_disciplinary_service.get_sira_eras(),
-    }
-
-
-@router.get("/cross-discipline/search")
-async def search_cross_discipline(
-    topic: str = Query(..., description="Topic to search across all disciplines"),
-):
-    """
-    Search across Fiqh, Hadith, and Sira by topic.
-
-    Arabic: البحث عبر الفقه والحديث والسيرة
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    return cross_disciplinary_service.search_by_topic(topic)
-
-
-@router.get("/cross-discipline/stats")
-async def get_cross_discipline_statistics():
-    """
-    Get statistics about cross-disciplinary data.
-
-    Arabic: إحصائيات البيانات متعددة التخصصات
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    return cross_disciplinary_service.get_statistics()
-
-
-# =============================================================================
-# CROWDSOURCED ANNOTATION SYSTEM (PHASE 7)
-# =============================================================================
-
-
-class AnnotationSubmitRequest(BaseModel):
-    """Request to submit an annotation."""
-    verse_reference: str = Field(..., description="Verse reference (e.g., '2:255')")
-    annotation_type: str = Field(..., description="Type: reflection, explanation, linguistic, thematic, life_lesson, historical, connection, question")
-    content_ar: str = Field(default="", description="Arabic content")
-    content_en: str = Field(default="", description="English content")
-    tags: Optional[List[str]] = Field(default=None, description="Optional tags")
-
-
-class AnnotationVoteRequest(BaseModel):
-    """Request to vote on an annotation."""
-    vote_type: str = Field(..., description="Vote type: helpful, insightful, accurate, well_written")
-
-
-class AnnotationReviewRequest(BaseModel):
-    """Request to review an annotation."""
-    decision: str = Field(..., description="Decision: approve, reject, feature")
-    feedback: Optional[str] = Field(default=None, description="Review feedback")
-
-
-@router.post("/annotations/submit")
-async def submit_annotation(
-    request: AnnotationSubmitRequest,
-    user_id: str = Query(..., description="User ID"),
-):
-    """
-    Submit a new annotation for a verse.
-
-    Features:
-    - NLP-based quality analysis
-    - Automatic theme detection
-    - Sentiment analysis
-    - Auto-approval for high-quality contributions
-
-    Arabic: تقديم تعليق توضيحي جديد لآية
-    """
-    from app.services.annotation_service import annotation_service
-
-    if not request.content_ar and not request.content_en:
-        raise HTTPException(
-            status_code=400,
-            detail={"error": "Content in at least one language is required"},
-        )
-
-    return annotation_service.submit_annotation(
-        user_id=user_id,
-        verse_reference=request.verse_reference,
-        annotation_type=request.annotation_type,
-        content_ar=request.content_ar,
-        content_en=request.content_en,
-        tags=request.tags,
-    )
-
-
-@router.get("/annotations/verse/{sura_no}/{aya_no}")
-async def get_verse_annotations(
-    sura_no: int,
-    aya_no: int,
-    annotation_type: Optional[str] = Query(None, description="Filter by type"),
-    status: str = Query("approved", description="Status: approved, featured, pending"),
-    limit: int = Query(20, ge=1, le=100),
-):
-    """
-    Get annotations for a specific verse.
-
-    Arabic: الحصول على التعليقات التوضيحية لآية
-    """
-    from app.services.annotation_service import annotation_service
-
-    verse_ref = f"{sura_no}:{aya_no}"
-    annotations = annotation_service.get_verse_annotations(
-        verse_reference=verse_ref,
-        annotation_type=annotation_type,
-        status=status,
-        limit=limit,
-    )
-
-    return {
-        "verse_reference": verse_ref,
-        "annotations": annotations,
-        "count": len(annotations),
-    }
-
-
-@router.post("/annotations/{annotation_id}/vote")
-async def vote_on_annotation(
-    annotation_id: str,
-    request: AnnotationVoteRequest,
-    user_id: str = Query(..., description="User ID"),
-):
-    """
-    Vote on an annotation.
-
-    Vote types: helpful, insightful, accurate, well_written
-
-    Arabic: التصويت على تعليق توضيحي
-    """
-    from app.services.annotation_service import annotation_service
-
-    result = annotation_service.vote_on_annotation(
-        annotation_id=annotation_id,
-        user_id=user_id,
-        vote_type=request.vote_type,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/annotations/user/{user_id}")
-async def get_user_annotations(
-    user_id: str,
-    limit: int = Query(50, ge=1, le=200),
-):
-    """
-    Get all annotations by a user.
-
-    Arabic: الحصول على تعليقات المستخدم
-    """
-    from app.services.annotation_service import annotation_service
-
-    return {
-        "user_id": user_id,
-        "annotations": annotation_service.get_user_annotations(user_id, limit),
-    }
-
-
-@router.get("/annotations/user/{user_id}/profile")
-async def get_contributor_profile(
-    user_id: str,
-):
-    """
-    Get contributor profile with reputation and statistics.
-
-    Arabic: ملف المساهم مع السمعة والإحصائيات
-    """
-    from app.services.annotation_service import annotation_service
-
-    return annotation_service.get_user_contributor_profile(user_id)
-
-
-@router.get("/annotations/featured")
-async def get_featured_annotations(
-    limit: int = Query(20, ge=1, le=100),
-):
-    """
-    Get featured (highest quality) annotations.
-
-    Arabic: التعليقات المميزة (الأعلى جودة)
-    """
-    from app.services.annotation_service import annotation_service
-
-    annotations = annotation_service.get_featured_annotations(limit)
-
-    return {
-        "featured_annotations": annotations,
-        "count": len(annotations),
-    }
-
-
-@router.get("/annotations/by-theme/{theme}")
-async def get_annotations_by_theme(
-    theme: str,
-    limit: int = Query(20, ge=1, le=100),
-):
-    """
-    Get annotations containing a specific theme.
-
-    Arabic: التعليقات التي تحتوي على موضوع معين
-    """
-    from app.services.annotation_service import annotation_service
-
-    annotations = annotation_service.get_annotations_by_theme(theme, limit)
-
-    return {
-        "theme": theme,
-        "annotations": annotations,
-        "count": len(annotations),
-    }
-
-
-@router.get("/annotations/pending-reviews")
-async def get_pending_reviews(
-    limit: int = Query(50, ge=1, le=200),
-):
-    """
-    Get annotations pending review (moderator endpoint).
-
-    Arabic: التعليقات في انتظار المراجعة
-    """
-    from app.services.annotation_service import annotation_service
-
-    return {
-        "pending_reviews": annotation_service.get_pending_reviews(limit),
-    }
-
-
-@router.post("/annotations/{annotation_id}/review")
-async def review_annotation(
-    annotation_id: str,
-    request: AnnotationReviewRequest,
-    reviewer_id: str = Query(..., description="Reviewer/Moderator ID"),
-):
-    """
-    Review and approve/reject an annotation (moderator action).
-
-    Arabic: مراجعة تعليق والموافقة عليه أو رفضه
-    """
-    from app.services.annotation_service import annotation_service
-
-    result = annotation_service.review_annotation(
-        annotation_id=annotation_id,
-        reviewer_id=reviewer_id,
-        decision=request.decision,
-        feedback=request.feedback,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/annotations/types")
-async def get_annotation_types():
-    """
-    Get all available annotation types.
-
-    Arabic: أنواع التعليقات المتاحة
-    """
-    from app.services.annotation_service import annotation_service
-
-    return {
-        "annotation_types": annotation_service.get_annotation_types(),
-    }
-
-
-@router.get("/annotations/top-contributors")
-async def get_top_contributors(
-    limit: int = Query(10, ge=1, le=50),
-):
-    """
-    Get top contributors by reputation.
-
-    Arabic: أفضل المساهمين حسب السمعة
-    """
-    from app.services.annotation_service import annotation_service
-
-    return {
-        "top_contributors": annotation_service.get_top_contributors(limit),
-    }
-
-
-@router.get("/annotations/stats")
-async def get_annotation_statistics():
-    """
-    Get statistics about the annotation system.
-
-    Arabic: إحصائيات نظام التعليقات
-    """
-    from app.services.annotation_service import annotation_service
-
-    return annotation_service.get_annotation_statistics()
-
-
-# =============================================================================
-# ENTITY RELATIONSHIPS (PHASE 8)
-# =============================================================================
-
-
-@router.get("/ner/relationships/{entity_name}")
-async def get_entity_relationships(
-    entity_name: str,
-):
-    """
-    Get all relationships for an entity (family, parallels, place connections).
-
-    Arabic: جميع العلاقات لكيان (أسرة، تجارب متوازية، روابط مكانية)
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    return entity_relationship_service.get_entity_relationships(entity_name)
-
-
-@router.get("/ner/parallel-experiences/{prophet_name}")
-async def get_parallel_experiences(
-    prophet_name: str,
-):
-    """
-    Get prophets with parallel experiences to the given prophet.
-
-    Arabic: الأنبياء ذوو التجارب المتوازية مع النبي المحدد
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    parallels = entity_relationship_service.get_parallel_experiences(prophet_name)
-
-    return {
-        "prophet": prophet_name,
-        "parallel_experiences": parallels,
-        "count": len(parallels),
-    }
-
-
-@router.get("/ner/thematic-parallels")
-async def get_thematic_parallels(
-    theme: Optional[str] = Query(None, description="Filter by theme"),
-):
-    """
-    Get thematic parallels between prophets.
-
-    Arabic: التوازيات الموضوعية بين الأنبياء
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    parallels = entity_relationship_service.get_thematic_parallels(theme)
-
-    return {
-        "thematic_parallels": parallels,
-        "count": len(parallels),
-        "filter": theme,
-    }
-
-
-@router.get("/ner/prophets-by-theme/{theme_id}")
-async def get_prophets_by_thematic_parallel(
-    theme_id: str,
-):
-    """
-    Get prophets associated with a thematic parallel (e.g., patience_under_trial).
-
-    Arabic: الأنبياء المرتبطون بموضوع معين
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    result = entity_relationship_service.get_prophets_by_theme(theme_id)
-
-    if not result:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Theme '{theme_id}' not found"},
-        )
-
-    return result
-
-
-@router.get("/ner/relationship-graph")
-async def get_entity_relationship_graph():
-    """
-    Get data for visualizing entity relationships as an interactive graph.
-
-    Arabic: بيانات لتصور علاقات الكيانات كرسم بياني تفاعلي
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    return entity_relationship_service.get_relationship_graph()
-
-
-@router.get("/ner/connection-path")
-async def find_entity_connection_path(
-    entity1: str = Query(..., description="First entity name (Arabic)"),
-    entity2: str = Query(..., description="Second entity name (Arabic)"),
-    max_depth: int = Query(3, ge=1, le=5),
-):
-    """
-    Find connection path between two entities using graph traversal.
-
-    Arabic: إيجاد مسار الاتصال بين كيانين
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    return entity_relationship_service.find_connection_path(
-        entity1=entity1,
-        entity2=entity2,
-        max_depth=max_depth,
-    )
-
-
-@router.get("/ner/relationship-stats")
-async def get_entity_relationship_statistics():
-    """
-    Get statistics about entity relationships.
-
-    Arabic: إحصائيات علاقات الكيانات
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    return entity_relationship_service.get_relationship_statistics()
-
-
-# =============================================================================
-# MULTI-DISCIPLINARY LEARNING PATHS (PHASE 8)
-# =============================================================================
-
-
-@router.get("/learning-paths")
-async def get_all_learning_paths(
-    category: Optional[str] = Query(None, description="Filter by category: foundational, thematic, prophet_study, jurisprudence, spirituality, research"),
-    difficulty: Optional[str] = Query(None, description="Filter by difficulty: beginner, intermediate, advanced, scholar"),
-):
-    """
-    Get all available multi-disciplinary learning paths.
-
-    These paths guide users through cross-disciplinary exploration
-    integrating Fiqh, Hadith, Tafsir, Sira, and thematic studies.
-
-    Arabic: الحصول على جميع مسارات التعلم متعددة التخصصات
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    paths = learning_path_service.get_all_paths(
-        category=category,
-        difficulty=difficulty,
-    )
-
-    return {
-        "paths": paths,
-        "count": len(paths),
-        "filter": {
-            "category": category,
-            "difficulty": difficulty,
-        },
-    }
-
-
-@router.get("/learning-paths/categories")
-async def get_learning_path_categories():
-    """
-    Get all available learning path categories.
-
-    Arabic: أقسام مسارات التعلم المتاحة
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    return {
-        "categories": learning_path_service.get_path_categories(),
-    }
-
-
-@router.get("/learning-paths/difficulties")
-async def get_learning_path_difficulties():
-    """
-    Get all difficulty levels with descriptions.
-
-    Arabic: مستويات الصعوبة مع الوصف
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    return {
-        "difficulty_levels": learning_path_service.get_difficulty_levels(),
-    }
-
-
-@router.get("/learning-paths/stats")
-async def get_learning_paths_statistics():
-    """
-    Get statistics about the learning path system.
-
-    Arabic: إحصائيات نظام مسارات التعلم
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    return learning_path_service.get_statistics()
-
-
-@router.get("/learning-paths/{path_id}")
-async def get_learning_path_details(
-    path_id: str,
-):
-    """
-    Get detailed information about a specific learning path.
-
-    Returns modules, lessons, duration, and learning outcomes.
-
-    Arabic: معلومات تفصيلية عن مسار تعلم محدد
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    path = learning_path_service.get_path_details(path_id)
-
-    if not path:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Learning path '{path_id}' not found"},
-        )
-
-    return path
-
-
-@router.get("/learning-paths/{path_id}/modules/{module_id}/lessons/{lesson_id}")
-async def get_lesson_content(
-    path_id: str,
-    module_id: str,
-    lesson_id: str,
-):
-    """
-    Get detailed content for a specific lesson.
-
-    Returns lesson content, objectives, and resources.
-
-    Arabic: محتوى الدرس التفصيلي
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    lesson = learning_path_service.get_lesson_content(
-        path_id=path_id,
-        module_id=module_id,
-        lesson_id=lesson_id,
-    )
-
-    if not lesson:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": "Lesson not found"},
-        )
-
-    return lesson
-
-
-@router.post("/learning-paths/{path_id}/enroll")
-async def enroll_in_learning_path(
-    path_id: str,
-    user_id: str = Query(..., description="User ID"),
-):
-    """
-    Enroll a user in a learning path.
-
-    Arabic: تسجيل المستخدم في مسار تعلم
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    result = learning_path_service.enroll_in_path(
-        user_id=user_id,
-        path_id=path_id,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.post("/learning-paths/{path_id}/lessons/{lesson_id}/complete")
-async def complete_lesson(
-    path_id: str,
-    lesson_id: str,
-    user_id: str = Query(..., description="User ID"),
-):
-    """
-    Mark a lesson as complete.
-
-    Arabic: تحديد الدرس كمكتمل
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    result = learning_path_service.complete_lesson(
-        user_id=user_id,
-        path_id=path_id,
-        lesson_id=lesson_id,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/learning-paths/user/{user_id}/progress")
-async def get_user_learning_progress(
-    user_id: str,
-    path_id: Optional[str] = Query(None, description="Filter by specific path"),
-):
-    """
-    Get user's progress in learning paths.
-
-    Arabic: تقدم المستخدم في مسارات التعلم
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    progress = learning_path_service.get_user_progress(
-        user_id=user_id,
-        path_id=path_id,
-    )
-
-    if "error" in progress:
-        raise HTTPException(status_code=404, detail=progress)
-
-    return progress
-
-
-@router.get("/learning-paths/user/{user_id}/recommendations")
-async def get_recommended_learning_paths(
-    user_id: str,
-    interests: Optional[List[str]] = Query(None, description="User interests (e.g., patience, prophets, fiqh)"),
-    difficulty: Optional[str] = Query(None, description="Preferred difficulty level"),
-):
-    """
-    Get personalized learning path recommendations.
-
-    Arabic: توصيات مسارات التعلم المخصصة
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    recommendations = learning_path_service.get_recommended_paths(
-        user_id=user_id,
-        interests=interests,
-        difficulty=difficulty,
-    )
-
-    return {
-        "user_id": user_id,
-        "recommendations": recommendations,
-        "count": len(recommendations),
-        "message_ar": "مسارات موصى بها بناءً على اهتماماتك",
-        "message_en": "Recommended paths based on your interests",
-    }
-
-
-# =============================================================================
 # CROSS-STORY SEARCH (PHASE 8)
 # =============================================================================
 
@@ -8807,330 +7078,6 @@ async def get_multi_story_journey_status(
     from app.services.narrative_arc_service import cross_story_search_service
 
     return cross_story_search_service.get_user_journey_status(user_id)
-
-
-# =============================================================================
-# EXPERT ANNOTATION SYSTEM (PHASE 8)
-# =============================================================================
-
-
-@router.get("/expert/scholars")
-async def get_verified_scholars():
-    """
-    Get all verified scholars.
-
-    Arabic: جميع العلماء المعتمدين
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return {
-        "scholars": expert_annotation_service.get_all_verified_scholars(),
-    }
-
-
-@router.get("/expert/scholars/{scholar_id}")
-async def get_scholar_profile(
-    scholar_id: str,
-):
-    """
-    Get detailed scholar profile.
-
-    Arabic: الملف الشخصي المفصل للعالم
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    profile = expert_annotation_service.get_scholar_profile(scholar_id)
-
-    if not profile:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": "Scholar not found"},
-        )
-
-    return profile
-
-
-class ScholarRegistrationRequest(BaseModel):
-    name_ar: str
-    name_en: str
-    credentials: List[str]
-    institution: str
-    specializations: List[str]
-    bio_ar: str = ""
-    bio_en: str = ""
-
-
-@router.post("/expert/scholars/register")
-async def register_scholar(
-    scholar_id: str = Query(..., description="Unique scholar ID"),
-    request: ScholarRegistrationRequest = None,
-):
-    """
-    Register a new scholar (pending verification).
-
-    Arabic: تسجيل عالم جديد (في انتظار التحقق)
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.register_scholar(
-        scholar_id=scholar_id,
-        name_ar=request.name_ar,
-        name_en=request.name_en,
-        credentials=request.credentials,
-        institution=request.institution,
-        specializations=request.specializations,
-        bio_ar=request.bio_ar,
-        bio_en=request.bio_en,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.post("/expert/scholars/{scholar_id}/verify")
-async def verify_scholar(
-    scholar_id: str,
-    verifier_id: str = Query(..., description="Admin/verifier ID"),
-):
-    """
-    Verify a scholar's credentials (admin action).
-
-    Arabic: التحقق من أوراق اعتماد العالم
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.verify_scholar(
-        scholar_id=scholar_id,
-        verifier_id=verifier_id,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-class ExpertAnnotationRequest(BaseModel):
-    verse_reference: str
-    annotation_type: str
-    content_ar: str
-    content_en: str
-    tags: Optional[List[str]] = None
-    requires_peer_review: bool = True
-
-
-@router.post("/expert/annotations/submit")
-async def submit_expert_annotation(
-    scholar_id: str = Query(..., description="Scholar ID"),
-    request: ExpertAnnotationRequest = None,
-):
-    """
-    Submit an expert annotation from a verified scholar.
-
-    Arabic: تقديم تعليق خبير من عالم معتمد
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.submit_expert_annotation(
-        scholar_id=scholar_id,
-        verse_reference=request.verse_reference,
-        annotation_type=request.annotation_type,
-        content_ar=request.content_ar,
-        content_en=request.content_en,
-        tags=request.tags,
-        requires_peer_review=request.requires_peer_review,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/expert/annotations")
-async def get_expert_annotations(
-    verse_reference: Optional[str] = Query(None, description="Filter by verse"),
-    limit: int = Query(20, ge=1, le=100),
-):
-    """
-    Get expert-contributed annotations.
-
-    Arabic: التعليقات المقدمة من الخبراء
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    annotations = expert_annotation_service.get_expert_annotations(
-        verse_reference=verse_reference,
-        limit=limit,
-    )
-
-    return {
-        "annotations": annotations,
-        "count": len(annotations),
-    }
-
-
-class PeerReviewRequest(BaseModel):
-    accuracy_score: float
-    depth_score: float
-    relevance_score: float
-    suggestions_ar: str = ""
-    suggestions_en: str = ""
-    verdict: str = "approve"
-
-
-@router.post("/expert/peer-review/{annotation_id}")
-async def submit_peer_review(
-    annotation_id: str,
-    reviewer_id: str = Query(..., description="Reviewer (scholar) ID"),
-    request: PeerReviewRequest = None,
-):
-    """
-    Submit a peer review for an annotation.
-
-    Arabic: تقديم مراجعة من الأقران لتعليق
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.submit_peer_review(
-        annotation_id=annotation_id,
-        reviewer_id=reviewer_id,
-        accuracy_score=request.accuracy_score,
-        depth_score=request.depth_score,
-        relevance_score=request.relevance_score,
-        suggestions_ar=request.suggestions_ar,
-        suggestions_en=request.suggestions_en,
-        verdict=request.verdict,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/expert/peer-reviews/{annotation_id}")
-async def get_annotation_peer_reviews(
-    annotation_id: str,
-):
-    """
-    Get all peer reviews for an annotation.
-
-    Arabic: جميع مراجعات الأقران لتعليق
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return expert_annotation_service.get_annotation_peer_reviews(annotation_id)
-
-
-@router.get("/expert/peer-reviews/pending")
-async def get_pending_peer_reviews(
-    limit: int = Query(20, ge=1, le=100),
-):
-    """
-    Get annotations pending peer review.
-
-    Arabic: التعليقات في انتظار مراجعة الأقران
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return {
-        "pending_reviews": expert_annotation_service.get_pending_peer_reviews(limit),
-    }
-
-
-class EndorsementRequest(BaseModel):
-    endorsement_type: str
-    comment_ar: str = ""
-    comment_en: str = ""
-
-
-@router.post("/expert/endorse/{annotation_id}")
-async def endorse_annotation(
-    annotation_id: str,
-    scholar_id: str = Query(..., description="Scholar ID"),
-    request: EndorsementRequest = None,
-):
-    """
-    Scholar endorses an annotation.
-
-    Arabic: تأييد العالم لتعليق
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.endorse_annotation(
-        annotation_id=annotation_id,
-        scholar_id=scholar_id,
-        endorsement_type=request.endorsement_type,
-        comment_ar=request.comment_ar,
-        comment_en=request.comment_en,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/expert/endorsements/{annotation_id}")
-async def get_annotation_endorsements(
-    annotation_id: str,
-):
-    """
-    Get all endorsements for an annotation.
-
-    Arabic: جميع التأييدات لتعليق
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.get_annotation_endorsements(annotation_id)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result)
-
-    return result
-
-
-@router.get("/expert/endorsement-types")
-async def get_endorsement_types():
-    """
-    Get all endorsement types.
-
-    Arabic: أنواع التأييدات
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return {
-        "endorsement_types": expert_annotation_service.get_endorsement_types(),
-    }
-
-
-@router.get("/expert/credential-types")
-async def get_credential_types():
-    """
-    Get all scholar credential types.
-
-    Arabic: أنواع أوراق اعتماد العلماء
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return {
-        "credential_types": expert_annotation_service.get_credential_types(),
-    }
-
-
-@router.get("/expert/stats")
-async def get_expert_statistics():
-    """
-    Get statistics about the expert annotation system.
-
-    Arabic: إحصائيات نظام التعليقات الخبيرة
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return expert_annotation_service.get_expert_statistics()
 
 
 # =============================================================================
@@ -9502,174 +7449,6 @@ async def get_semantic_search_statistics():
 
 
 # =============================================================================
-# PERSONALIZATION (PHASE 9)
-# =============================================================================
-
-
-@router.post("/personalization/profile/create")
-async def create_user_profile(
-    user_id: str = Query(..., description="User ID"),
-    preferred_language: str = Query("en", description="Preferred language: en, ar"),
-    initial_level: str = Query("beginner", description="Level: beginner, intermediate, advanced"),
-    daily_goal_minutes: int = Query(15, ge=5, le=120),
-):
-    """
-    Create a new user profile for personalization.
-
-    Arabic: إنشاء ملف شخصي جديد للمستخدم للتخصيص
-    """
-    from app.services.personalization_service import personalization_service
-
-    result = personalization_service.create_user_profile(
-        user_id=user_id,
-        preferred_language=preferred_language,
-        initial_level=initial_level,
-        daily_goal_minutes=daily_goal_minutes,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/personalization/profile/{user_id}")
-async def get_personalization_profile(
-    user_id: str,
-):
-    """
-    Get user's personalization profile.
-
-    Arabic: الحصول على ملف التخصيص للمستخدم
-    """
-    from app.services.personalization_service import personalization_service
-
-    profile = personalization_service.get_user_profile(user_id)
-
-    if not profile:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": "User not found"},
-        )
-
-    return profile
-
-
-class InteractionRequest(BaseModel):
-    content_type: str
-    content_id: str
-    metadata: Optional[Dict[str, Any]] = None
-    duration_seconds: int = 0
-
-
-@router.post("/personalization/record-interaction")
-async def record_user_interaction(
-    user_id: str = Query(..., description="User ID"),
-    interaction_type: str = Query(..., description="Type: search, view, save, complete_lesson, annotation"),
-    request: InteractionRequest = None,
-):
-    """
-    Record a user interaction for learning preferences.
-
-    Arabic: تسجيل تفاعل المستخدم لتعلم التفضيلات
-    """
-    from app.services.personalization_service import personalization_service
-
-    result = personalization_service.record_interaction(
-        user_id=user_id,
-        interaction_type=interaction_type,
-        content_type=request.content_type,
-        content_id=request.content_id,
-        metadata=request.metadata,
-        duration_seconds=request.duration_seconds,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/personalization/recommendations/{user_id}")
-async def get_personalized_recommendations(
-    user_id: str,
-    content_types: Optional[List[str]] = Query(None, description="Filter by content types"),
-    limit: int = Query(10, ge=1, le=50),
-):
-    """
-    Get personalized content recommendations.
-
-    Arabic: الحصول على توصيات محتوى مخصصة
-    """
-    from app.services.personalization_service import personalization_service
-
-    return personalization_service.get_recommendations(
-        user_id=user_id,
-        content_types=content_types,
-        limit=limit,
-    )
-
-
-@router.get("/personalization/daily/{user_id}")
-async def get_daily_recommendations(
-    user_id: str,
-):
-    """
-    Get daily personalized recommendations.
-
-    Arabic: الحصول على التوصيات اليومية المخصصة
-    """
-    from app.services.personalization_service import personalization_service
-
-    return personalization_service.get_daily_recommendations(user_id)
-
-
-@router.get("/personalization/insights/{user_id}")
-async def get_study_insights(
-    user_id: str,
-):
-    """
-    Get study insights and analytics for user.
-
-    Arabic: الحصول على رؤى وتحليلات الدراسة للمستخدم
-    """
-    from app.services.personalization_service import personalization_service
-
-    result = personalization_service.get_study_insights(user_id)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result)
-
-    return result
-
-
-@router.get("/personalization/next-study/{user_id}")
-async def suggest_next_study(
-    user_id: str,
-):
-    """
-    Suggest what to study next based on user's journey.
-
-    Arabic: اقتراح ما يجب دراسته بعد ذلك بناءً على رحلة المستخدم
-    """
-    from app.services.personalization_service import personalization_service
-
-    return personalization_service.suggest_next_study(user_id)
-
-
-@router.get("/personalization/stats")
-async def get_personalization_statistics():
-    """
-    Get personalization service statistics.
-
-    Arabic: إحصائيات خدمة التخصيص
-    """
-    from app.services.personalization_service import personalization_service
-
-    return personalization_service.get_statistics()
-
-
-# =============================================================================
 # ADAPTIVE QUIZ SYSTEM (PHASE 9)
 # =============================================================================
 
@@ -9877,20 +7656,6 @@ async def get_scholars_by_school(school_id: str):
     }
 
 
-@router.get("/tafsir/methodologies")
-async def get_tafsir_methodologies():
-    """
-    Get all tafsir methodologies (bil-mathur, bil-ray, ishari, etc.).
-
-    Arabic: الحصول على جميع مناهج التفسير
-    """
-    from app.services.tafsir_service import tafsir_service
-
-    return {
-        "methodologies": tafsir_service.get_methodologies(),
-    }
-
-
 @router.get("/tafsir/methodologies/{methodology_id}/scholars")
 async def get_scholars_by_methodology(methodology_id: str):
     """
@@ -9905,20 +7670,6 @@ async def get_scholars_by_methodology(methodology_id: str):
         "methodology": methodology_id,
         "scholars": scholars,
         "total": len(scholars),
-    }
-
-
-@router.get("/tafsir/eras")
-async def get_tafsir_eras():
-    """
-    Get all historical eras of tafsir scholarship.
-
-    Arabic: الحصول على جميع العصور التاريخية لعلم التفسير
-    """
-    from app.services.tafsir_service import tafsir_service
-
-    return {
-        "eras": tafsir_service.get_eras(),
     }
 
 
@@ -10145,6 +7896,7 @@ async def advanced_semantic_search(
     expand_query: bool = Query(True, description="Expand query using theme synonyms"),
     limit: int = Query(10, ge=1, le=50),
     min_score: float = Query(0.1, ge=0.0, le=1.0),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """
     Perform advanced semantic search on Quranic verses.
@@ -10156,6 +7908,7 @@ async def advanced_semantic_search(
     """
     from app.services.advanced_semantic_search_service import (
         advanced_semantic_search_service,
+        hydrate_canonical_text,
         SearchMode,
         SimilarityMetric,
     )
@@ -10172,7 +7925,7 @@ async def advanced_semantic_search(
     search_mode = mode_map.get(mode.lower(), SearchMode.HYBRID)
     similarity_metric = metric_map.get(metric.lower(), SimilarityMetric.COMBINED)
 
-    return advanced_semantic_search_service.semantic_search(
+    result = advanced_semantic_search_service.semantic_search(
         query=query,
         mode=search_mode,
         metric=similarity_metric,
@@ -10180,6 +7933,7 @@ async def advanced_semantic_search(
         limit=limit,
         min_score=min_score,
     )
+    return await hydrate_canonical_text(result, session)
 
 
 @router.get("/advanced-search/expand-query")
@@ -10220,7 +7974,7 @@ async def get_all_quranic_themes():
 
 
 @router.get("/advanced-search/themes/{theme_id}")
-async def get_theme_details(theme_id: str):
+async def get_theme_details(theme_id: str, session: AsyncSession = Depends(get_async_session)):
     """
     Get detailed information about a specific Quranic theme.
 
@@ -10230,17 +7984,20 @@ async def get_theme_details(theme_id: str):
     """
     from app.services.advanced_semantic_search_service import advanced_semantic_search_service
 
+    from app.services.advanced_semantic_search_service import hydrate_canonical_text
+
     details = advanced_semantic_search_service.get_theme_details(theme_id)
     if not details:
         raise HTTPException(status_code=404, detail=f"Theme '{theme_id}' not found")
 
-    return details
+    return await hydrate_canonical_text(copy.deepcopy(details), session)
 
 
 @router.get("/advanced-search/themes/{theme_id}/verses")
 async def search_verses_by_theme(
     theme_id: str,
     limit: int = Query(20, ge=1, le=100),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """
     Search Quranic verses by a specific theme.
@@ -10249,11 +8006,13 @@ async def search_verses_by_theme(
     """
     from app.services.advanced_semantic_search_service import advanced_semantic_search_service
 
+    from app.services.advanced_semantic_search_service import hydrate_canonical_text
+
     result = advanced_semantic_search_service.search_by_theme(theme_id, limit)
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
 
-    return result
+    return await hydrate_canonical_text(copy.deepcopy(result), session)
 
 
 @router.get("/advanced-search/themes/{theme_id}/connections")
@@ -10279,6 +8038,7 @@ async def find_similar_verses(
     surah: int,
     ayah: int,
     limit: int = Query(5, ge=1, le=20),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """
     Find verses semantically similar to a given verse.
@@ -10289,16 +8049,20 @@ async def find_similar_verses(
     """
     from app.services.advanced_semantic_search_service import advanced_semantic_search_service
 
+    from app.services.advanced_semantic_search_service import hydrate_canonical_text
+
     verse_id = f"{surah}:{ayah}"
     result = advanced_semantic_search_service.find_similar_verses(verse_id, limit)
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
 
-    return result
+    return await hydrate_canonical_text(copy.deepcopy(result), session)
 
 
 @router.get("/advanced-search/analyze-verse/{surah}/{ayah}")
-async def analyze_verse_themes(surah: int, ayah: int):
+async def analyze_verse_themes(
+    surah: int, ayah: int, session: AsyncSession = Depends(get_async_session)
+):
     """
     Analyze themes present in a specific verse.
 
@@ -10306,12 +8070,14 @@ async def analyze_verse_themes(surah: int, ayah: int):
     """
     from app.services.advanced_semantic_search_service import advanced_semantic_search_service
 
+    from app.services.advanced_semantic_search_service import hydrate_canonical_text
+
     verse_id = f"{surah}:{ayah}"
     result = advanced_semantic_search_service.analyze_verse_themes(verse_id)
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
 
-    return result
+    return await hydrate_canonical_text(copy.deepcopy(result), session)
 
 
 @router.get("/advanced-search/arabic-roots")
@@ -10589,58 +8355,6 @@ async def get_user_goals(user_id: str):
     return personalized_learning_service.get_user_goals(user_id)
 
 
-@router.post("/learning/review/add")
-async def add_item_for_review(
-    user_id: str = Query(..., description="User ID"),
-    item_id: str = Query(..., description="Item ID (e.g., verse reference)"),
-    item_type: str = Query("verse", description="Item type: verse, surah, theme, tafsir"),
-):
-    """
-    Add an item to user's SM2 spaced repetition queue.
-
-    Arabic: إضافة عنصر لقائمة التكرار المتباعد
-    """
-    from app.services.personalized_learning_service import personalized_learning_service, ContentType
-
-    try:
-        content_type = ContentType(item_type)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid item type. Valid types: {[t.value for t in ContentType]}")
-
-    content = {"item_id": item_id, "type": item_type}
-
-    return personalized_learning_service.add_item_for_review(user_id, item_id, content_type, content)
-
-
-@router.post("/learning/review/submit")
-async def submit_review(
-    user_id: str = Query(..., description="User ID"),
-    item_id: str = Query(..., description="Item ID being reviewed"),
-    quality: int = Query(..., ge=0, le=5, description="Quality of recall: 0=blackout, 3=pass, 5=perfect"),
-):
-    """
-    Submit a review result and get next review date using SM2 algorithm.
-
-    Quality ratings:
-    - 5: Perfect response
-    - 4: Correct with hesitation
-    - 3: Correct with difficulty
-    - 2: Incorrect but remembered when shown
-    - 1: Incorrect with hint
-    - 0: Complete blackout
-
-    Arabic: تقديم نتيجة المراجعة والحصول على موعد المراجعة القادم
-    """
-    from app.services.personalized_learning_service import personalized_learning_service
-
-    result = personalized_learning_service.review_item(user_id, item_id, quality)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-
-    return result
-
-
 @router.get("/learning/review/due/{user_id}")
 async def get_due_reviews(
     user_id: str,
@@ -10757,255 +8471,6 @@ async def get_learning_statistics():
     from app.services.personalized_learning_service import personalized_learning_service
 
     return personalized_learning_service.get_statistics()
-
-
-# =============================================================================
-# Enhanced Knowledge Graph with Entity Relationships and BFS Pathfinding
-# الرسم البياني المعرفي المحسّن مع علاقات الكيانات والبحث بالعرض أولاً
-# =============================================================================
-
-
-@router.get("/enhanced-kg/entities")
-async def get_all_kg_entities(
-    entity_type: Optional[str] = Query(None, description="Filter by type: prophet, companion, place, divine_name, concept, event"),
-):
-    """
-    Get all entities in the enhanced knowledge graph.
-
-    Includes prophets, companions, places, divine names, concepts, and events.
-
-    Arabic: الحصول على جميع الكيانات في الرسم البياني المعرفي
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    if entity_type:
-        entities = enhanced_knowledge_graph_service.get_entities_by_type(entity_type)
-    else:
-        stats = enhanced_knowledge_graph_service.get_statistics()
-        entities = []
-        for etype in stats["entity_types"]:
-            entities.extend(enhanced_knowledge_graph_service.get_entities_by_type(etype))
-
-    return {
-        "entities": entities,
-        "total": len(entities),
-        "filter": entity_type,
-    }
-
-
-@router.get("/enhanced-kg/entities/{entity_id}")
-async def get_kg_entity(entity_id: str):
-    """
-    Get detailed information about a specific entity with all relationships.
-
-    Arabic: الحصول على معلومات تفصيلية عن كيان معين مع جميع العلاقات
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    entity = enhanced_knowledge_graph_service.get_entity(entity_id)
-    if not entity:
-        raise HTTPException(status_code=404, detail=f"Entity '{entity_id}' not found")
-
-    return entity
-
-
-@router.get("/enhanced-kg/entities/by-theme/{theme}")
-async def get_entities_by_theme(theme: str):
-    """
-    Get all entities related to a specific theme.
-
-    Themes include: mercy, patience, justice, guidance, sacrifice, monotheism, etc.
-
-    Arabic: الحصول على جميع الكيانات المتعلقة بموضوع معين
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    entities = enhanced_knowledge_graph_service.get_entities_by_theme(theme)
-
-    return {
-        "theme": theme,
-        "entities": entities,
-        "total": len(entities),
-    }
-
-
-@router.get("/enhanced-kg/explore/{entity_id}")
-async def explore_from_entity(
-    entity_id: str,
-    depth: int = Query(2, ge=1, le=4, description="Exploration depth"),
-):
-    """
-    Explore the knowledge graph from a starting entity.
-
-    Returns nodes and edges within the specified depth for visualization.
-
-    Arabic: استكشاف الرسم البياني المعرفي من كيان بداية
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    result = enhanced_knowledge_graph_service.explore_from_entity(entity_id, depth)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-
-    return result
-
-
-@router.get("/enhanced-kg/path")
-async def find_path_between_entities(
-    source: str = Query(..., description="Source entity ID (e.g., 'ibrahim')"),
-    target: str = Query(..., description="Target entity ID (e.g., 'muhammad')"),
-    max_depth: int = Query(10, ge=1, le=15, description="Maximum search depth"),
-):
-    """
-    Find the shortest path between two entities using BFS.
-
-    Useful for discovering connections between prophets, places, concepts, etc.
-
-    Arabic: إيجاد أقصر مسار بين كيانين باستخدام البحث بالعرض أولاً
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    result = enhanced_knowledge_graph_service.find_path_bfs(source, target, max_depth)
-
-    if not result:
-        return {
-            "path_found": False,
-            "source": source,
-            "target": target,
-            "message_ar": f"لم يتم العثور على مسار بين {source} و {target}",
-            "message_en": f"No path found between {source} and {target} within depth {max_depth}",
-        }
-
-    return {
-        "path_found": True,
-        **result,
-    }
-
-
-@router.get("/enhanced-kg/all-paths")
-async def find_all_paths_between_entities(
-    source: str = Query(..., description="Source entity ID"),
-    target: str = Query(..., description="Target entity ID"),
-    max_depth: int = Query(5, ge=1, le=7, description="Maximum search depth"),
-):
-    """
-    Find all possible paths between two entities (up to max_depth).
-
-    Returns multiple paths with different relationship chains.
-
-    Arabic: إيجاد جميع المسارات الممكنة بين كيانين
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    paths = enhanced_knowledge_graph_service.find_all_paths(source, target, max_depth)
-
-    return {
-        "source": source,
-        "target": target,
-        "paths": paths,
-        "total_paths": len(paths),
-        "message_ar": "جميع المسارات المتاحة" if paths else "لم يتم العثور على مسارات",
-        "message_en": "All available paths" if paths else "No paths found",
-    }
-
-
-@router.get("/enhanced-kg/prophet-lineage/{prophet_id}")
-async def get_prophet_lineage(prophet_id: str):
-    """
-    Get the lineage (ancestors and descendants) of a prophet.
-
-    Arabic: الحصول على نسب النبي (الأسلاف والأحفاد)
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    result = enhanced_knowledge_graph_service.get_prophet_lineage(prophet_id)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-
-    return result
-
-
-@router.get("/enhanced-kg/thematic-journey/{theme}")
-async def get_thematic_journey(theme: str):
-    """
-    Create a thematic journey through related entities.
-
-    Connects entities that share the specified theme (e.g., patience, mercy, trust).
-
-    Arabic: إنشاء رحلة موضوعية عبر الكيانات ذات الصلة
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    result = enhanced_knowledge_graph_service.get_thematic_journey(theme)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-
-    return result
-
-
-@router.get("/enhanced-kg/visualization")
-async def get_kg_visualization_data():
-    """
-    Get complete graph data formatted for visualization.
-
-    Returns all nodes and edges with labels and types for rendering an interactive graph.
-
-    Arabic: الحصول على بيانات الرسم البياني الكاملة للتصور
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    return enhanced_knowledge_graph_service.get_graph_visualization_data()
-
-
-@router.get("/enhanced-kg/entity-types")
-async def get_kg_entity_types():
-    """
-    Get all available entity types in the knowledge graph.
-
-    Arabic: الحصول على جميع أنواع الكيانات المتاحة
-    """
-    from app.services.enhanced_knowledge_graph_service import EntityType
-
-    return {
-        "entity_types": [
-            {"id": t.value, "name_en": t.name.replace("_", " ").title()}
-            for t in EntityType
-        ],
-        "total": len(EntityType),
-    }
-
-
-@router.get("/enhanced-kg/relationship-types")
-async def get_kg_relationship_types():
-    """
-    Get all available relationship types in the knowledge graph.
-
-    Arabic: الحصول على جميع أنواع العلاقات المتاحة
-    """
-    from app.services.enhanced_knowledge_graph_service import RelationshipType
-
-    return {
-        "relationship_types": [
-            {"id": t.value, "name_en": t.name.replace("_", " ").title()}
-            for t in RelationshipType
-        ],
-        "total": len(RelationshipType),
-    }
-
-
-@router.get("/enhanced-kg/stats")
-async def get_enhanced_kg_statistics():
-    """
-    Get enhanced knowledge graph statistics.
-
-    Arabic: إحصائيات الرسم البياني المعرفي المحسّن
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    return enhanced_knowledge_graph_service.get_statistics()
 
 
 # =============================================================================
@@ -11223,53 +8688,6 @@ async def get_available_ask_themes():
     return {
         "themes": grounded_ask_service.get_all_themes(),
         "total": len(grounded_ask_service.get_all_themes()),
-    }
-
-
-@router.get("/ask/madhabs")
-async def get_supported_madhabs():
-    """
-    Get information about the four supported Sunni madhabs.
-
-    Arabic: الحصول على معلومات عن المذاهب السنية الأربعة المدعومة
-    """
-    return {
-        "madhabs": [
-            {
-                "id": "hanafi",
-                "name_ar": "الحنفي",
-                "name_en": "Hanafi",
-                "founder_ar": "أبو حنيفة النعمان",
-                "founder_en": "Abu Hanifa",
-                "key_texts": ["Al-Hidaya", "Radd al-Muhtar"],
-            },
-            {
-                "id": "maliki",
-                "name_ar": "المالكي",
-                "name_en": "Maliki",
-                "founder_ar": "مالك بن أنس",
-                "founder_en": "Malik ibn Anas",
-                "key_texts": ["Al-Muwatta", "Al-Mudawwana"],
-            },
-            {
-                "id": "shafii",
-                "name_ar": "الشافعي",
-                "name_en": "Shafi'i",
-                "founder_ar": "محمد بن إدريس الشافعي",
-                "founder_en": "Muhammad ibn Idris al-Shafi'i",
-                "key_texts": ["Al-Umm", "Al-Risala"],
-            },
-            {
-                "id": "hanbali",
-                "name_ar": "الحنبلي",
-                "name_en": "Hanbali",
-                "founder_ar": "أحمد بن حنبل",
-                "founder_en": "Ahmad ibn Hanbal",
-                "key_texts": ["Al-Mughni", "Musnad Ahmad"],
-            },
-        ],
-        "note_ar": "المذاهب الأربعة كلها على الحق ومعتبرة",
-        "note_en": "All four madhabs are valid and respected",
     }
 
 
@@ -12004,33 +9422,6 @@ async def verify_story_completeness(story_id: str):
     return alatlas_service.verify_completeness(story_id)
 
 
-class StoryUpdateRequest(BaseModel):
-    """Request model for story updates."""
-    title_ar: Optional[str] = None
-    title_en: Optional[str] = None
-    summary_ar: Optional[str] = None
-    summary_en: Optional[str] = None
-    themes_ar: Optional[List[str]] = None
-    key_lessons_ar: Optional[List[str]] = None
-    key_lessons_en: Optional[List[str]] = None
-    related_stories: Optional[List[str]] = None
-    tafsir_references: Optional[List[Dict[str, str]]] = None
-
-
-@router.post("/atlas/stories/{story_id}/update")
-async def update_story(story_id: str, updates: StoryUpdateRequest):
-    """
-    Update a story with new or corrected information.
-
-    Returns updated story and new verification result.
-
-    Arabic: تحديث بيانات القصة
-    """
-    from app.services.alatlas_service import alatlas_service
-
-    return alatlas_service.update_story(story_id, updates.model_dump(exclude_none=True))
-
-
 # ============================================
 # USER FEEDBACK ENDPOINTS
 # ============================================
@@ -12295,6 +9686,7 @@ async def get_cache_stats():
 
 @router.delete("/atlas/cache")
 async def clear_cache(
+    _admin: None = Depends(require_admin_api_key),
     cache_key: Optional[str] = Query(None, description="Specific cache key to clear, or all if not specified")
 ):
     """
@@ -12312,84 +9704,6 @@ async def clear_cache(
 # ============================================
 
 # --- VERIFICATION PIPELINE (HUMAN IN THE LOOP) ---
-
-class VerificationTaskRequest(BaseModel):
-    """Request model for creating verification task."""
-    story_id: str
-    task_type: str  # "accuracy", "completeness", "categorization", "tafsir"
-    issues_found: List[str]
-    ai_confidence: float
-    priority: Optional[str] = None
-
-
-@router.post("/atlas/verification/create")
-async def create_verification_task(request: VerificationTaskRequest):
-    """
-    Create a verification task for human review.
-    AI flags issues, humans verify.
-
-    Arabic: إنشاء مهمة تحقق للمراجعة البشرية
-    """
-    from app.services.advanced_atlas_service import advanced_atlas_service
-
-    return advanced_atlas_service.create_verification_task(
-        story_id=request.story_id,
-        task_type=request.task_type,
-        issues_found=request.issues_found,
-        ai_confidence=request.ai_confidence,
-        priority=request.priority
-    )
-
-
-@router.get("/atlas/verification/queue")
-async def get_verification_queue(
-    admin_id: str = Query(..., description="Admin user ID"),
-    status: Optional[str] = Query(None, description="Filter by status"),
-    priority: Optional[str] = Query(None, description="Filter by priority"),
-    limit: int = Query(20, description="Maximum results")
-):
-    """
-    Get verification queue for admins.
-
-    Arabic: قائمة مهام التحقق للمسؤولين
-    """
-    from app.services.advanced_atlas_service import advanced_atlas_service
-
-    return advanced_atlas_service.get_verification_queue(
-        admin_id=admin_id,
-        status_filter=status,
-        priority_filter=priority,
-        limit=limit
-    )
-
-
-class VerificationResultRequest(BaseModel):
-    """Request model for submitting verification result."""
-    reviewer_id: str
-    decision: str  # "approve", "reject", "needs_revision"
-    madhab_verified: Dict[str, bool]
-    notes: Optional[str] = None
-    resolution: Optional[str] = None
-
-
-@router.post("/atlas/verification/{task_id}/submit")
-async def submit_verification_result(task_id: str, request: VerificationResultRequest):
-    """
-    Submit verification result from reviewer.
-
-    Arabic: تسجيل نتيجة التحقق
-    """
-    from app.services.advanced_atlas_service import advanced_atlas_service
-
-    return advanced_atlas_service.submit_verification_result(
-        task_id=task_id,
-        reviewer_id=request.reviewer_id,
-        decision=request.decision,
-        madhab_verified=request.madhab_verified,
-        notes=request.notes,
-        resolution=request.resolution
-    )
-
 
 class FlagStoryRequest(BaseModel):
     """Request model for flagging a story."""
@@ -12540,28 +9854,6 @@ async def track_user_interaction(request: TrackInteractionRequest):
         time_spent_seconds=request.time_spent_seconds,
         score=request.score,
         themes_explored=request.themes_explored
-    )
-
-
-@router.post("/learning/sm2-review")
-async def calculate_sm2_review(
-    user_id: str = Query(..., description="User ID"),
-    story_id: str = Query(..., description="Story ID"),
-    quality: int = Query(..., ge=0, le=5, description="Response quality 0-5")
-):
-    """
-    Calculate SM2 spaced repetition for story review.
-
-    Quality: 0=complete blackout, 5=perfect response
-
-    Arabic: حساب التكرار المتباعد للمراجعة
-    """
-    from app.services.advanced_atlas_service import advanced_atlas_service
-
-    return advanced_atlas_service.calculate_sm2_review(
-        user_id=user_id,
-        story_id=story_id,
-        quality=quality
     )
 
 
@@ -12883,7 +10175,7 @@ async def submit_miracle_feedback(
 
 @router.get("/miracles/admin/dashboard")
 async def get_miracles_admin_dashboard(
-    admin_id: str = Query(..., description="Admin user ID")
+    _admin: None = Depends(require_admin_api_key),
 ):
     """
     Get admin dashboard with statistics and pending reviews.
@@ -12893,15 +10185,15 @@ async def get_miracles_admin_dashboard(
     """
     from app.services.miracles_service import miracles_service
 
-    return miracles_service.get_admin_dashboard(admin_id)
+    return miracles_service.get_admin_dashboard()
 
 
 @router.post("/miracles/admin/review-feedback")
 async def review_miracle_feedback(
-    admin_id: str = Query(..., description="Admin user ID"),
+    _admin: None = Depends(require_admin_api_key),
     feedback_id: str = Query(..., description="Feedback ID to review"),
-    decision: str = Query(..., description="Decision: accepted or rejected"),
-    notes: Optional[str] = Query(None, description="Reviewer notes")
+    decision: str = Query(..., pattern="^(accepted|rejected)$", description="Decision: accepted or rejected"),
+    notes: Optional[str] = Query(None, max_length=2000, description="Reviewer notes")
 ):
     """
     Review and decide on user feedback.
@@ -12912,7 +10204,6 @@ async def review_miracle_feedback(
     from app.services.miracles_service import miracles_service
 
     return miracles_service.review_feedback(
-        admin_id=admin_id,
         feedback_id=feedback_id,
         decision=decision,
         notes=notes
@@ -12937,8 +10228,17 @@ async def get_miracles_by_prophet(
 # AUDIO RECITATION ENDPOINTS
 # =============================================================================
 
+# Unknown reciters are rejected (422) instead of silently swapped for Afasy
+# while the response still claimed the requested reciter.
+ReciterParam = Query(
+    default="mishary_afasy",
+    pattern="^(saud_shuraim|maher_muaiqly|mishary_afasy|abdul_basit|husary|minshawi)$",
+    description="Reciter ID (see /quran/audio/reciters)",
+)
+
+
 @router.get("/audio/reciters")
-async def get_reciters():
+async def get_reciters(http_response: Response):
     """
     Get list of available Quran reciters.
 
@@ -12947,43 +10247,10 @@ async def get_reciters():
     from app.services.audio_service import get_audio_service
 
     audio_service = get_audio_service()
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     return {
         "ok": True,
         "reciters": audio_service.get_reciters(),
-    }
-
-
-@router.get("/audio/surah/{sura_no}")
-async def get_surah_audio(
-    sura_no: int,
-    reciter: str = Query(default="mishary_afasy", description="Reciter ID"),
-):
-    """
-    Get audio URL for a complete Surah.
-
-    Args:
-        sura_no: Surah number (1-114)
-        reciter: Reciter ID (default: mishary_afasy)
-
-    Arabic: رابط صوت السورة كاملة
-    """
-    from app.services.audio_service import get_audio_service
-
-    if sura_no < 1 or sura_no > 114:
-        raise HTTPException(status_code=400, detail="Surah number must be between 1 and 114")
-
-    audio_service = get_audio_service()
-    url = audio_service.get_surah_audio_url(sura_no, reciter)
-
-    if not url:
-        raise HTTPException(status_code=404, detail="Audio not found")
-
-    return {
-        "ok": True,
-        "sura_no": sura_no,
-        "reciter": reciter,
-        "audio_url": url,
-        "type": "surah",
     }
 
 
@@ -12991,7 +10258,7 @@ async def get_surah_audio(
 async def get_verse_audio(
     sura_no: int,
     aya_no: int,
-    reciter: str = Query(default="mishary_afasy", description="Reciter ID"),
+    reciter: str = ReciterParam,
     include_fallback: bool = Query(default=True, description="Include fallback URLs"),
 ):
     """
@@ -13005,10 +10272,17 @@ async def get_verse_audio(
 
     Arabic: رابط صوت الآية مع البدائل
     """
-    from app.services.audio_service import get_audio_service
+    from app.services.audio_service import get_audio_service, SURAH_VERSE_COUNTS
 
     if sura_no < 1 or sura_no > 114:
         raise HTTPException(status_code=400, detail="Surah number must be between 1 and 114")
+    if not 1 <= aya_no <= SURAH_VERSE_COUNTS[sura_no - 1]:
+        # An out-of-range ayah would map to another surah's verse in the
+        # absolute-numbered fallback CDN.
+        raise HTTPException(
+            status_code=400,
+            detail=f"Surah {sura_no} has {SURAH_VERSE_COUNTS[sura_no - 1]} verses",
+        )
 
     audio_service = get_audio_service()
 
@@ -13055,7 +10329,7 @@ async def get_verse_range_audio(
     sura_no: int,
     aya_start: int,
     aya_end: int,
-    reciter: str = Query(default="mishary_afasy", description="Reciter ID"),
+    reciter: str = ReciterParam,
 ):
     """
     Get audio URLs for a range of verses.
@@ -13094,7 +10368,7 @@ async def get_verse_range_audio(
 @router.get("/audio/page/{page_no}")
 async def get_page_audio(
     page_no: int,
-    reciter: str = Query(default="mishary_afasy", description="Reciter ID"),
+    reciter: str = ReciterParam,
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -13532,6 +10806,7 @@ async def semantic_verse_search(
     sura_no: Optional[int] = Query(None, description="Filter by Surah number"),
     juz_no: Optional[int] = Query(None, description="Filter by Juz number"),
     include_cross_language: bool = Query(True, description="Include cross-language expansion"),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """
     Semantic search for Quran verses using vector embeddings.
@@ -13543,6 +10818,10 @@ async def semantic_verse_search(
     """
     from app.services.verse_embedding_service import get_verse_embedding_service
     from app.services.arabic_semantic_search import arabic_semantic_service
+    from app.ai.hf_client import HFInferenceError, hf_configured
+
+    if not hf_configured():
+        return await _semantic_keyword_fallback(session, query, limit, sura_no)
 
     verse_service = get_verse_embedding_service()
 
@@ -13564,14 +10843,22 @@ async def semantic_verse_search(
     if include_cross_language:
         expanded = arabic_semantic_service.expand_cross_language_query(query)
 
-    # Perform semantic search
-    results = await verse_service.semantic_search(
-        query=query,
-        limit=limit,
-        min_score=min_score,
-        sura_filter=sura_no,
-        juz_filter=juz_no,
-    )
+    # Perform semantic search; an AI-service failure degrades to keyword
+    # results instead of a 503.
+    try:
+        results = await asyncio.wait_for(
+            verse_service.semantic_search(
+                query=query,
+                limit=limit,
+                min_score=min_score,
+                sura_filter=sura_no,
+                juz_filter=juz_no,
+                session=session,
+            ),
+            timeout=15.0,
+        )
+    except (HFInferenceError, asyncio.TimeoutError):
+        return await _semantic_keyword_fallback(session, query, limit, sura_no)
 
     response = {
         "ok": True,
@@ -13605,22 +10892,89 @@ async def semantic_verse_search(
     return response
 
 
+async def _semantic_keyword_fallback(
+    session: AsyncSession, query: str, limit: int, sura_no: Optional[int]
+) -> dict:
+    """Keyword results for /search/semantic when the AI service is unavailable.
+
+    English queries are mapped to their Arabic concept terms
+    (BILINGUAL_CONCEPTS); Arabic queries are searched directly. The response
+    carries degraded='ai_unavailable' and a bilingual notice.
+    """
+    from app.services.quran_text_utils import expand_bilingual_query
+    from app.services.quran_search import QuranSearchService
+    from app.services.arabic_normalize import has_arabic
+
+    expansions, _ = expand_bilingual_query(query)
+    terms = [t for t in ([query] + sorted(expansions)) if t and has_arabic(t)]
+    items: List[dict] = []
+    total = 0
+    if terms:
+        res = await QuranSearchService(session).search(
+            query=terms[0],
+            limit=limit,
+            sura_filter=sura_no,
+            include_semantic=False,
+            terms_override=terms,
+        )
+        total = res.total_matches
+        items = [
+            {
+                "verse_id": m.verse_id,
+                "sura_no": m.sura_no,
+                "aya_no": m.aya_no,
+                "reference": f"{m.sura_no}:{m.aya_no}",
+                "text_uthmani": m.text_uthmani,
+                "text_imlaei": m.text_imlaei,
+                "similarity_score": round(m.relevance_score, 4),
+                "matched_themes": [],
+            }
+            for m in res.matches
+        ]
+    return {
+        "ok": True,
+        "query": query,
+        "results": items,
+        "total": total,
+        "index_status": "keyword_fallback",
+        "degraded": "ai_unavailable",
+        "message_ar": "البحث الدلالي غير متاح مؤقتاً — تُعرض نتائج البحث النصي.",
+        "message_en": "Semantic search is temporarily unavailable — showing keyword results.",
+    }
+
+
 @router.get("/search/similar/{sura_no}/{aya_no}")
 async def find_similar_verses(
     sura_no: int = Path(..., ge=1, le=114, description="Surah number"),
     aya_no: int = Path(..., ge=1, description="Ayah number"),
-    limit: int = Query(10, ge=1, le=30, description="Maximum results"),
+    limit: int = Query(10, ge=1, le=100, description="Maximum results"),
     min_score: float = Query(0.5, ge=0.0, le=1.0, description="Minimum similarity"),
     exclude_same_sura: bool = Query(False, description="Exclude verses from same Surah"),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """
     Find verses semantically similar to a specific verse.
 
-    Uses vector embeddings to find thematically related verses across the Quran.
+    Uses the stored verse vectors (no query embedding, so it works without the
+    AI service). Every text field comes from quran_verses.
 
     Arabic: البحث عن آيات مشابهة لآية معينة
     """
     from app.services.verse_embedding_service import get_verse_embedding_service
+
+    source = (await session.execute(
+        select(QuranVerse).where(QuranVerse.sura_no == sura_no, QuranVerse.aya_no == aya_no)
+    )).scalar_one_or_none()
+    if source is None:
+        raise HTTPException(status_code=404, detail=f"Verse {sura_no}:{aya_no} not found")
+    source_info = {
+        "reference": f"{sura_no}:{aya_no}",
+        "sura_no": sura_no,
+        "aya_no": aya_no,
+        "sura_name_ar": source.sura_name_ar,
+        "sura_name_en": source.sura_name_en,
+        "text_uthmani": source.text_uthmani,
+    }
 
     verse_service = get_verse_embedding_service()
 
@@ -13629,9 +10983,10 @@ async def find_similar_verses(
     if not stats.get("exists") or stats.get("vectors_count", 0) == 0:
         return {
             "ok": True,
-            "source_verse": f"{sura_no}:{aya_no}",
+            "source_verse": source_info,
             "similar_verses": [],
             "total": 0,
+            "total_found": 0,
             "index_status": "not_indexed",
         }
 
@@ -13641,24 +10996,33 @@ async def find_similar_verses(
         limit=limit,
         min_score=min_score,
         exclude_same_sura=exclude_same_sura,
+        session=session,
     )
 
     return {
         "ok": True,
-        "source_verse": f"{sura_no}:{aya_no}",
+        "source_verse": source_info,
         "similar_verses": [
             {
                 "verse_id": r.verse_id,
                 "sura_no": r.sura_no,
                 "aya_no": r.aya_no,
                 "reference": r.reference,
+                "sura_name_ar": r.sura_name_ar,
+                "sura_name_en": r.sura_name_en,
                 "text_uthmani": r.text_uthmani,
                 "text_imlaei": r.text_imlaei,
                 "similarity_score": round(r.similarity_score, 4),
+                "semantic_score": round(r.similarity_score, 4),
+                "shared_concepts": [],
+                "themes": [],
+                "connection_type": "semantic",
             }
             for r in results
         ],
         "total": len(results),
+        "total_found": len(results),
+        "search_method": "vector_index",
         "index_status": "indexed",
     }
 
@@ -13727,8 +11091,6 @@ async def index_verses_for_semantic_search(
             "page_no": v.page_no,
             "text_uthmani": v.text_uthmani,
             "text_imlaei": v.text_imlaei,
-            "sura_name_ar": "",  # Could be enriched
-            "sura_name_en": "",
         })
 
     # Index verses
@@ -13876,6 +11238,37 @@ async def list_available_concepts():
 
 
 # =============================================================================
+# SMART SEARCH (reference / surah / alias / text / translation / semantic)
+# =============================================================================
+
+@router.get("/search/smart")
+async def smart_search_endpoint(
+    http_response: Response,
+    q: str = Query(..., min_length=1, max_length=200, description="What the reader typed"),
+    lang: str = Query("ar", pattern="^(ar|en)$", description="UI language"),
+    limit: int = Query(20, ge=1, le=50),
+    offset: int = Query(0, ge=0, le=6236),
+    semantic: bool = Query(False, description="Also run vector search (only when AI is configured)"),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    One search box for the Qur'an: a verse reference (2:255, ٢:٢٥٥) jumps,
+    a surah name (البقرة, Baqarah) offers the surah, a known name (آية الكرسي)
+    resolves to its verse, Arabic words search the text with a real total and
+    paging, and Latin words search the default translation. Semantic matches
+    are added only when the AI service is configured.
+
+    Arabic: بحث ذكي موحد في القرآن الكريم
+    """
+    from app.services.smart_search import smart_search
+
+    result = await smart_search(session, q, lang=lang, limit=limit, offset=offset, include_semantic=semantic)
+    if not semantic:
+        http_response.headers["Cache-Control"] = "public, max-age=3600"
+    return result
+
+
+# =============================================================================
 # SEMANTIC SEARCH WITH VERSE GROUNDING
 # =============================================================================
 
@@ -13896,7 +11289,16 @@ class GroundedVerseResponse(BaseModel):
     grounding: str  # Explanation of why this verse is relevant
     matched_concepts: List[str]  # Which search concepts matched
     highlighted_terms: List[str]  # Terms that were matched
-    match_type: str = "normalized"  # "alias" | "normalized" | "concept_expansion"
+    match_type: str = "normalized"  # "alias" | "exact" | "normalized" | "concept_expansion"
+
+
+class SurahSuggestion(BaseModel):
+    """A whole surah the query names (offered as a jump, not as verse hits)."""
+    sura_no: int
+    name_ar: str
+    name_en: str
+    label_ar: Optional[str] = None
+    label_en: Optional[str] = None
 
 
 class SemanticSearchResponse(BaseModel):
@@ -13904,20 +11306,23 @@ class SemanticSearchResponse(BaseModel):
     query: str
     query_language: str  # 'ar', 'en', 'mixed'
     expanded_concepts: List[str]
-    total_matches: int
+    total_matches: int  # all matching verses, not just this page
+    offset: int = 0
     search_time_ms: float
     summary: str  # Brief summary of what was found
     verses: List[GroundedVerseResponse]
     concept_distribution: Dict[str, int]  # How many verses per concept
     related_searches: List[str]  # Suggested related searches
+    surahs: List[SurahSuggestion] = []  # whole-surah aliases (e.g. الرحمن -> 55)
 
 
 @router.get("/search/intelligent")
 async def intelligent_search_with_grounding(
     query: str = Query(..., min_length=1, description="Natural language search query (Arabic or English)"),
     limit: int = Query(30, ge=1, le=100, description="Maximum results"),
+    offset: int = Query(0, ge=0, le=6236, description="Pagination offset"),
     include_related: bool = Query(True, description="Include related concepts in search"),
-    lang: str = Query("ar", description="Response language: 'ar' for Arabic, 'en' for English"),
+    lang: str = Query("ar", pattern="^(ar|en)$", description="Response language: 'ar' for Arabic, 'en' for English"),
     session: AsyncSession = Depends(get_async_session),
 ) -> SemanticSearchResponse:
     """
@@ -13944,8 +11349,11 @@ async def intelligent_search_with_grounding(
         get_related_concepts,
         BILINGUAL_CONCEPTS,
     )
-    from app.services.quran_search import QuranSearchService, normalize_arabic
+    from app.services.quran_search import QuranSearchService
     from app.services.quran_aliases import resolve_alias
+    from app.services.arabic_normalize import (
+        normalize_for_search, escape_like, has_arabic, search_terms as minimal_terms,
+    )
     from sqlalchemy import select as _select
 
     start_time = time.time()
@@ -13955,7 +11363,24 @@ async def intelligent_search_with_grounding(
     # labels that do not appear as literal Quran text. Resolve them to their
     # canonical surah:ayah reference before running the full-text search.
     alias_verses: list[GroundedVerseResponse] = []
+    surah_suggestions: list[SurahSuggestion] = []
     alias_target = resolve_alias(query)
+    if alias_target and alias_target.kind == "surah":
+        # A whole-surah name (الرحمن, الملك, يس, الكهف ...) is offered as a
+        # surah jump; the query is still searched as text so a common word
+        # is not hijacked by the surah's first verse.
+        _names = (await session.execute(
+            _select(QuranVerse.sura_name_ar, QuranVerse.sura_name_en)
+            .where(QuranVerse.sura_no == alias_target.sura_no, QuranVerse.aya_no == 1)
+        )).first()
+        surah_suggestions.append(SurahSuggestion(
+            sura_no=alias_target.sura_no,
+            name_ar=_names[0] if _names else alias_target.label_ar,
+            name_en=_names[1] if _names else alias_target.label_en,
+            label_ar=alias_target.label_ar,
+            label_en=alias_target.label_en,
+        ))
+        alias_target = None
     if alias_target:
         from app.models.quran import QuranVerse as _QV
         if alias_target.aya_end is not None:
@@ -14039,146 +11464,113 @@ async def intelligent_search_with_grounding(
     # Search for verses using all expanded terms — single batched DB query
     search_service = QuranSearchService(session)
 
-    # Filter valid search terms
-    valid_terms = [t for t in all_expansions if t and len(t) >= 2]
+    # Arabic search terms only (English words cannot match verse text):
+    # normalized with the shared key; original spelling kept for display.
+    q_norm = normalize_for_search(query)
+    term_display: Dict[str, str] = {}
+    for t in [query, *sorted(all_expansions)]:
+        if t and has_arabic(t):
+            nt = normalize_for_search(t)
+            if len(nt) >= 2 and nt not in term_display:
+                term_display[nt] = t
+    short_query = has_arabic(query) and 0 < len(q_norm.replace(" ", "")) <= 2
+
+    # SQL terms: de-duplicated and minimal (a substring hit on 'صبر' covers
+    # 'الصبر'), capped at 12, with the query itself always first.
+    sql_terms: list[str] = []
+    if q_norm and q_norm in term_display:
+        sql_terms.append(q_norm)
+    for t in minimal_terms(term_display.keys(), cap=12):
+        if len(sql_terms) >= 12:
+            break
+        if not any(k in t for k in sql_terms):
+            sql_terms.append(t)
+    if short_query:
+        # Two-letter queries (يس) only match the whole word, not 'ليس'.
+        sql_terms = [q_norm]
+
+    def _whole_word(term: str, text: str) -> bool:
+        return re.search(r"(?<!\S)" + re.escape(term) + r"(?!\S)", text) is not None
 
     # Collect all matching verses with their matched concepts
     verse_matches: Dict[int, Dict] = {}  # verse_id -> match info
     concept_counts: Dict[str, int] = {}
 
-    if valid_terms:
-        # Build a single batched query with all terms OR'd together
-        from sqlalchemy import select, or_, func
-        from app.models.quran import QuranVerse
-
-        normalized_terms = [normalize_arabic(t) for t in valid_terms]
-
-        # text_normalized is derived from Uthmanic text (uses special orthography,
-        # e.g. "إبراهيم" → "ابرهۦم" with U+06E6 small yeh). To catch standard Arabic
-        # spellings typed by users (e.g. "ابراهيم"), we ALSO search text_imlaei with
-        # diacritics stripped at the DB level using regexp_replace.
-        # Precise diacritic ranges (excludes Arabic-Indic digits U+0660-U+0669):
-        # U+0610-U+061A, U+064B-U+065F, U+0670, U+06D6-U+06DC, U+06DF-U+06E4,
-        # U+06E7-U+06E8, U+06EA-U+06ED
-        _diacritic_chars = (
-            ''.join(chr(i) for i in range(0x0610, 0x061B))
-            + ''.join(chr(i) for i in range(0x064B, 0x0660))
-            + chr(0x0670)
-            + ''.join(chr(i) for i in range(0x06D6, 0x06DD))
-            + ''.join(chr(i) for i in range(0x06DF, 0x06E5))
-            + chr(0x06E7) + chr(0x06E8)
-            + ''.join(chr(i) for i in range(0x06EA, 0x06EE))
-        )
-        _DIACRITIC_RE = '[' + _diacritic_chars + ']'
-
-        def _pg_normalize_imlaei(col):
-            """Strip diacritics and normalize alef/ya in text_imlaei (PostgreSQL)."""
-            stripped = func.regexp_replace(col, _DIACRITIC_RE, '', 'g')
-            # Normalize alef variants: آأإٱ → ا
-            stripped = func.translate(
-                stripped,
-                'آأإٱ',
-                'اااا',
-            )
-            # Normalize alef maqsura: ى → ي
-            stripped = func.replace(stripped, 'ى', 'ي')
-            return stripped
-
+    if sql_terms:
         conditions = []
-        for nt in normalized_terms:
-            # Primary: Uthmanic-based text_normalized column
-            conditions.append(QuranVerse.text_normalized.ilike(f'%{nt}%'))
-            # Secondary: text_imlaei with diacritics stripped (standard Arabic spelling)
-            conditions.append(_pg_normalize_imlaei(QuranVerse.text_imlaei).ilike(f'%{nt}%'))
+        for nt in sql_terms:
+            pattern = f"%{escape_like(nt)}%"
+            conditions.append(QuranVerse.text_normalized.ilike(pattern, escape="\\"))
+            conditions.append(QuranVerse.text_imlaei_normalized.ilike(pattern, escape="\\"))
 
-        stmt = select(QuranVerse).where(
-            or_(*conditions)
-        ).order_by(QuranVerse.sura_no, QuranVerse.aya_no).limit(500)
+        stmt = select(QuranVerse).where(or_(*conditions)).order_by(QuranVerse.id)
+        verses = (await session.execute(stmt)).scalars().all()
 
-        result = await session.execute(stmt)
-        verses = result.scalars().all()
-
-        # For each verse, determine which terms matched and build highlights
         for verse in verses:
-            verse_normalized = normalize_arabic(verse.text_uthmani)
-            verse_normalized_imlaei = normalize_arabic(verse.text_imlaei)
-            matched_terms = []
-            for nt, orig_term in zip(normalized_terms, valid_terms):
-                if nt in verse_normalized or nt in verse_normalized_imlaei:
-                    matched_terms.append(orig_term)
-
+            v_u = verse.text_normalized or ""
+            v_i = verse.text_imlaei_normalized or ""
+            matched_terms = [
+                orig for nt, orig in term_display.items()
+                if (nt in v_u or nt in v_i)
+                and (not short_query or _whole_word(nt, v_u) or _whole_word(nt, v_i))
+            ]
             if not matched_terms:
                 continue
 
-            # Find positions and build highlighted text using the search service
-            all_term_set = set(matched_terms)
-            positions = search_service._find_match_positions(verse.text_uthmani, all_term_set)
-            highlighted = search_service._highlight_matches(verse.text_uthmani, positions)
+            exact_sub = bool(q_norm) and (q_norm in v_u or q_norm in v_i)
+            whole = exact_sub and (_whole_word(q_norm, v_u) or _whole_word(q_norm, v_i))
+            relevance_score = len(matched_terms) / max(len(term_display), 1)
 
-            # Compute a simple relevance score based on term coverage
-            relevance_score = len(matched_terms) / max(len(valid_terms), 1)
-
-            # Build a SearchMatch-like object
-            from app.services.quran_search import SearchMatch
-            match_obj = SearchMatch(
-                verse_id=verse.id,
-                sura_no=verse.sura_no,
-                sura_name_ar=verse.sura_name_ar,
-                sura_name_en=verse.sura_name_en,
-                aya_no=verse.aya_no,
-                text_uthmani=verse.text_uthmani,
-                text_imlaei=verse.text_imlaei,
-                page_no=verse.page_no,
-                juz_no=verse.juz_no,
-                match_positions=positions,
-                highlighted_text=highlighted,
-                context_before='',
-                context_after='',
-                relevance_score=relevance_score,
-                tfidf_score=relevance_score,
-                exact_match=normalize_arabic(query) in verse_normalized,
-            )
-
-            verse_matches[verse.id] = {
-                'match': match_obj,
-                'concepts': set(),
-                'terms': set(matched_terms),
-                'max_score': relevance_score,
-            }
-
-            # Track which concepts matched
+            concepts = set()
             for orig_concept, expansions in concept_map.items():
                 expansions_lower = {e.lower() for e in expansions}
                 for mt in matched_terms:
                     if mt in expansions or mt.lower() in expansions_lower:
-                        verse_matches[verse.id]['concepts'].add(orig_concept)
+                        concepts.add(orig_concept)
                         concept_counts[orig_concept] = concept_counts.get(orig_concept, 0) + 1
                         break
 
-    # Sort by relevance and concept coverage
+            verse_matches[verse.id] = {
+                'verse': verse,
+                'concepts': concepts,
+                'terms': matched_terms,
+                'max_score': relevance_score,
+                'exact': exact_sub,
+                'whole': whole,
+            }
+
+    # Rank: whole-word exact > exact substring > concept coverage > term
+    # coverage > Mushaf order.
     sorted_verses = sorted(
         verse_matches.values(),
-        key=lambda x: (len(x['concepts']), x['max_score']),
-        reverse=True
+        key=lambda x: (
+            -int(x['whole']), -int(x['exact']), -len(x['concepts']),
+            -x['max_score'], x['verse'].id,
+        ),
     )
 
-    # ── Merge alias results (top) + full-text results (deduped, up to limit) ─
-    # Alias verses rank first; full-text results fill remaining slots.
+    # ── Merge alias results (top) + full-text results (deduped) ─────────────
     alias_ids = {v.verse_id for v in alias_verses}
-    remaining_slots = max(0, limit - len(alias_verses))
+    ranked = [v for v in sorted_verses if v['verse'].id not in alias_ids]
+    total = len(alias_verses) + len(ranked)
 
-    full_text_verses: list[GroundedVerseResponse] = []
-    for v in sorted_verses:
-        if len(full_text_verses) >= remaining_slots:
-            break
-        match = v['match']
-        if match.verse_id in alias_ids:
-            continue  # already in alias results — skip to avoid duplicate
+    combined: list = list(alias_verses) + ranked
+    page = combined[offset:offset + limit]
 
-        concepts = list(v['concepts'])
-        terms = list(v['terms'])
+    grounded_verses: list[GroundedVerseResponse] = []
+    for item in page:
+        if isinstance(item, GroundedVerseResponse):
+            grounded_verses.append(item)
+            continue
+        verse = item['verse']
+        concepts = sorted(item['concepts'])
+        terms = item['terms']
 
-        if concepts:
+        if item['exact'] and lang == 'ar':
+            grounding = f"تحتوي على كلمة البحث: {query}."
+        elif item['exact']:
+            grounding = f"Contains the search word: {query}."
+        elif concepts:
             concept_names = ', '.join(concepts[:3])
             if lang == 'ar':
                 grounding = f"هذه الآية تتعلق بـ: {concept_names}. "
@@ -14198,29 +11590,27 @@ async def intelligent_search_with_grounding(
             else:
                 grounding = f"Contains search term(s): {', '.join(terms[:3])}."
 
-        full_text_verses.append(GroundedVerseResponse(
-            verse_id=match.verse_id,
-            sura_no=match.sura_no,
-            sura_name_ar=match.sura_name_ar,
-            sura_name_en=match.sura_name_en,
-            aya_no=match.aya_no,
-            reference=f"{match.sura_no}:{match.aya_no}",
-            text_uthmani=match.text_uthmani,
-            text_imlaei=match.text_imlaei,
-            highlighted_text=match.highlighted_text,
-            page_no=match.page_no,
-            juz_no=match.juz_no,
-            relevance_score=round(v['max_score'], 4),
+        positions = search_service._find_match_positions(verse.text_uthmani, set(terms))
+        grounded_verses.append(GroundedVerseResponse(
+            verse_id=verse.id,
+            sura_no=verse.sura_no,
+            sura_name_ar=verse.sura_name_ar,
+            sura_name_en=verse.sura_name_en,
+            aya_no=verse.aya_no,
+            reference=f"{verse.sura_no}:{verse.aya_no}",
+            text_uthmani=verse.text_uthmani,
+            text_imlaei=verse.text_imlaei,
+            highlighted_text=search_service._highlight_matches(verse.text_uthmani, positions),
+            page_no=verse.page_no,
+            juz_no=verse.juz_no,
+            relevance_score=round(item['max_score'], 4),
             grounding=grounding,
             matched_concepts=concepts,
             highlighted_terms=terms[:10],
-            match_type="concept_expansion" if concepts else "normalized",
+            match_type="exact" if item['exact'] else ("concept_expansion" if concepts else "normalized"),
         ))
 
-    grounded_verses = alias_verses + full_text_verses
-
-    # Generate summary
-    total = len(grounded_verses)
+    # Generate summary (based on the full total, not the page)
     _alias_prefix_ar = f"تطابق مباشر: {alias_target.label_ar}. " if alias_target else ""
     _alias_prefix_en = f"Direct alias: {alias_target.label_en}. " if alias_target else ""
     if lang == 'ar':
@@ -14264,13 +11654,15 @@ async def intelligent_search_with_grounding(
     return SemanticSearchResponse(
         query=query,
         query_language=parsed.language,
-        expanded_concepts=list(all_expansions)[:20],
-        total_matches=len(grounded_verses),
+        expanded_concepts=sorted(all_expansions)[:20],
+        total_matches=total,
+        offset=offset,
         search_time_ms=round(search_time, 2),
         summary=summary,
         verses=grounded_verses,
         concept_distribution=concept_counts,
         related_searches=related_searches[:10],
+        surahs=surah_suggestions,
     )
 
 
@@ -14286,6 +11678,8 @@ class NameVerseMatchResponse(BaseModel):
     text_uthmani: str
     highlighted_text: str
     tafseer_snippet: str = ""
+    # Attribution for the snippet (required wherever tafsir text is shown)
+    tafseer_source_id: Optional[str] = None
 
 
 class AllahNameResponse(BaseModel):
@@ -14336,6 +11730,14 @@ async def get_allah_names(
     from app.data.allah_names import ALLAH_NAMES_99, CATEGORY_LABELS
     from app.services.quran_search import QuranSearchService, normalize_arabic
 
+    # Names, verses and seeded tafsir are immutable per release: serve
+    # repeated requests from memory instead of rescanning 6,236 verses.
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    cache_key = (lang, name_number, category, include_verses, max_verses_per_name)
+    cached = _allah_names_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     search_service = QuranSearchService(session)
 
     # Filter names
@@ -14356,9 +11758,11 @@ async def get_allah_names(
     # Now: fetch verses ONCE, normalize ONCE, batch tafseer with IN(...).
     verses_all: List[QuranVerse] = []
     verse_normalized_index: Dict[int, str] = {}
-    tafseer_by_ref: Dict[Tuple[int, int], str] = {}
+    tafseer_by_ref: Dict[Tuple[int, int], Tuple[str, str]] = {}
     if include_verses:
-        verses_all = list((await session.execute(select(QuranVerse))).scalars().all())
+        verses_all = list((await session.execute(
+            select(QuranVerse).order_by(QuranVerse.id)
+        )).scalars().all())
         verse_normalized_index = {
             v.id: normalize_arabic(v.text_uthmani).lower() for v in verses_all
         }
@@ -14410,7 +11814,8 @@ async def get_allah_names(
                                 content = t.content_ar if lang == "ar" else (t.content_en or t.content_ar)
                                 if content:
                                     tafseer_by_ref[key] = (
-                                        content[:200] + "..." if len(content) > 200 else content
+                                        content[:200] + "..." if len(content) > 200 else content,
+                                        t.source_id,
                                     )
 
     for name_data in names_to_process:
@@ -14434,7 +11839,8 @@ async def get_allah_names(
                     reference=f"{verse.sura_no}:{verse.aya_no}",
                     text_uthmani=verse.text_uthmani,
                     highlighted_text=highlighted,
-                    tafseer_snippet=tafseer_by_ref.get((verse.sura_no, verse.aya_no), ""),
+                    tafseer_snippet=tafseer_by_ref.get((verse.sura_no, verse.aya_no), ("", None))[0],
+                    tafseer_source_id=tafseer_by_ref.get((verse.sura_no, verse.aya_no), ("", None))[1],
                 ))
 
         # Get category labels
@@ -14457,10 +11863,9 @@ async def get_allah_names(
             verses=verses_list,
         ))
 
-    # Names list is effectively immutable per release; cache aggressively at
-    # the browser. Lite mode (include_verses=False) becomes essentially free.
-    response.headers["Cache-Control"] = "public, max-age=3600"
-    return AllahNamesListResponse(
+    result = AllahNamesListResponse(
         names=result_names,
         total=len(result_names),
     )
+    _allah_names_cache.set(cache_key, result)
+    return result

@@ -21,8 +21,10 @@ To add a new alias:
 from __future__ import annotations
 
 import re
-from typing import Optional
+from typing import Literal, Optional
 from dataclasses import dataclass
+
+from app.services.arabic_normalize import normalize_for_search
 
 
 @dataclass(frozen=True)
@@ -32,20 +34,18 @@ class AliasTarget:
     aya_end: Optional[int]  # last ayah in range; None = single verse
     label_ar: str           # canonical Arabic label for display
     label_en: str           # canonical English label for display
-
-
-# ---------------------------------------------------------------------------
-# Arabic diacritics for alias-key normalisation (same ranges as quran_search)
-# ---------------------------------------------------------------------------
-_DIACRITIC_RE = re.compile(
-    r'[ؐ-ًؚ-ٰٟۖ-ۜ۟-۪ۤۧۨ-ۭ]'
-)
+    # "verse": a verse or passage (shown inline with verse results).
+    # "surah": a whole-surah name — offered as a surah jump, never as a
+    # single-verse hit, so a common word such as الرحمن or الملك is still
+    # searched as text.
+    kind: Literal["verse", "surah"] = "verse"
 
 
 def _norm_key(text: str) -> str:
-    """Lowercase + strip Arabic diacritics + collapse whitespace."""
-    stripped = _DIACRITIC_RE.sub('', text)
-    return re.sub(r'\s+', ' ', stripped).strip().lower()
+    """Alias lookup key: the shared search normalizer, lowercased, with
+    hyphens treated as spaces ("Ayat-ul-Kursi" == "Ayat ul Kursi")."""
+    key = normalize_for_search(text).lower().replace('-', ' ')
+    return re.sub(r'\s+', ' ', key).strip()
 
 
 # ---------------------------------------------------------------------------
@@ -100,6 +100,7 @@ _RAW: list[tuple[list[str], AliasTarget]] = [
             aya_end=7,
             label_ar='سورة الفاتحة',
             label_en='Al-Fatihah',
+            kind='surah',
         ),
     ),
 
@@ -120,6 +121,7 @@ _RAW: list[tuple[list[str], AliasTarget]] = [
             aya_end=None,
             label_ar='سورة الكهف',
             label_en='Surah Al-Kahf',
+            kind='surah',
         ),
     ),
 
@@ -181,6 +183,7 @@ _RAW: list[tuple[list[str], AliasTarget]] = [
             aya_end=None,
             label_ar='المعوذتان',
             label_en='Al-Mu\'awwidhatayn (Al-Falaq)',
+            kind='surah',
         ),
     ),
 
@@ -204,6 +207,7 @@ _RAW: list[tuple[list[str], AliasTarget]] = [
             aya_end=4,
             label_ar='سورة الإخلاص',
             label_en='Al-Ikhlas',
+            kind='surah',
         ),
     ),
 
@@ -224,6 +228,7 @@ _RAW: list[tuple[list[str], AliasTarget]] = [
             aya_end=None,
             label_ar='سورة يس',
             label_en='Surah Yasin',
+            kind='surah',
         ),
     ),
 
@@ -248,6 +253,7 @@ _RAW: list[tuple[list[str], AliasTarget]] = [
             aya_end=None,
             label_ar='سورة الملك',
             label_en='Al-Mulk',
+            kind='surah',
         ),
     ),
 
@@ -267,6 +273,7 @@ _RAW: list[tuple[list[str], AliasTarget]] = [
             aya_end=None,
             label_ar='سورة الرحمن',
             label_en='Ar-Rahman',
+            kind='surah',
         ),
     ),
 ]

@@ -10,7 +10,7 @@ Tracks user search history and provides personalized suggestions:
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Set, Any
-from collections import Counter, defaultdict
+from collections import OrderedDict, Counter, defaultdict
 import json
 import asyncio
 
@@ -66,6 +66,41 @@ class SimilarityFeedback:
     notes: Optional[str] = None  # Optional user comment
 
 
+# Per-process caps. State is keyed by client-supplied session ids and lives in
+# memory, so without a bound it grows for as long as the worker runs.
+MAX_SESSIONS = 10_000
+MAX_FEEDBACK_PAIRS = 50_000
+MAX_GLOBAL_QUERIES = 50_000
+
+
+class _LRUDict(OrderedDict):
+    """dict with optional default_factory that evicts the least recently used
+    key once it holds more than ``maxsize`` entries."""
+
+    def __init__(self, maxsize: int, default_factory=None):
+        super().__init__()
+        self.maxsize = maxsize
+        self.default_factory = default_factory
+
+    def __missing__(self, key):
+        if self.default_factory is None:
+            raise KeyError(key)
+        value = self.default_factory()
+        self[key] = value
+        return value
+
+    def __getitem__(self, key):
+        value = super().__getitem__(key)
+        self.move_to_end(key)
+        return value
+
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        self.move_to_end(key)
+        while len(self) > self.maxsize:
+            self.popitem(last=False)
+
+
 class SearchHistoryService:
     """
     Service for managing search history and personalization.
@@ -77,19 +112,21 @@ class SearchHistoryService:
     def __init__(self, max_history_per_session: int = 100):
         self.max_history_per_session = max_history_per_session
         # In-memory storage: session_id -> list of SearchEntry
-        self._session_history: Dict[str, List[SearchEntry]] = defaultdict(list)
+        self._session_history: Dict[str, List[SearchEntry]] = _LRUDict(MAX_SESSIONS, list)
         # Global search counts for popularity
         self._global_search_counts: Counter = Counter()
         # Verse click counts
         self._verse_clicks: Counter = Counter()
         # Theme/concept interest tracking
-        self._theme_interests: Dict[str, Counter] = defaultdict(Counter)
+        self._theme_interests: Dict[str, Counter] = _LRUDict(MAX_SESSIONS, Counter)
         # Similarity feedback storage: (source_ref, target_ref) -> list of feedback
-        self._similarity_feedback: Dict[tuple, List[SimilarityFeedback]] = defaultdict(list)
+        self._similarity_feedback: Dict[tuple, List[SimilarityFeedback]] = _LRUDict(MAX_FEEDBACK_PAIRS, list)
         # Session-based feedback: session_id -> list of feedback
-        self._session_feedback: Dict[str, List[SimilarityFeedback]] = defaultdict(list)
+        self._session_feedback: Dict[str, List[SimilarityFeedback]] = _LRUDict(MAX_SESSIONS, list)
         # Aggregated relevance scores: (source_ref, target_ref) -> (positive_count, total_count)
-        self._relevance_scores: Dict[tuple, tuple] = {}
+        self._relevance_scores: Dict[tuple, tuple] = _LRUDict(MAX_FEEDBACK_PAIRS)
+        # Bookmarks: session_id -> list of bookmarks (per instance, bounded)
+        self._bookmarks: Dict[str, List[Dict]] = _LRUDict(MAX_SESSIONS)
         # Lock for thread safety
         self._lock = asyncio.Lock()
 
@@ -119,8 +156,12 @@ class SearchHistoryService:
             if len(history) > self.max_history_per_session:
                 self._session_history[session_id] = history[-self.max_history_per_session:]
 
-            # Update global counts
+            # Update global counts (trimmed to the most common queries)
             self._global_search_counts[query.lower()] += 1
+            if len(self._global_search_counts) > MAX_GLOBAL_QUERIES:
+                self._global_search_counts = Counter(
+                    dict(self._global_search_counts.most_common(MAX_GLOBAL_QUERIES // 2))
+                )
 
             # Track theme interests
             if themes:
@@ -643,7 +684,6 @@ class SearchHistoryService:
     # BOOKMARK SYSTEM
     # =========================================================================
 
-    _bookmarks: Dict[str, List[Dict]] = {}  # session_id -> list of bookmarks
     _bookmark_collections: Dict[str, Dict[str, List[str]]] = {}  # session_id -> collection_name -> verse_refs
 
     async def add_bookmark(

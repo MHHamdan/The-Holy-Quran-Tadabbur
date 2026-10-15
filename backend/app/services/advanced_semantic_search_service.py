@@ -124,9 +124,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["punishment", "wrath", "severity"],
                 related_themes=["forgiveness", "love", "patience"],
                 sample_verses=[
-                    {"surah": 1, "ayah": 1, "text": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"},
-                    {"surah": 6, "ayah": 54, "text": "كَتَبَ رَبُّكُمْ عَلَىٰ نَفْسِهِ الرَّحْمَةَ"},
-                    {"surah": 21, "ayah": 107, "text": "وَمَا أَرْسَلْنَاكَ إِلَّا رَحْمَةً لِّلْعَالَمِينَ"}
+                    {"surah": 1, "ayah": 1},
+                    {"surah": 6, "ayah": 54},
+                    {"surah": 21, "ayah": 107}
                 ]
             ),
             # 2. Justice (العدل)
@@ -143,9 +143,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["oppression", "injustice", "tyranny"],
                 related_themes=["truth", "judgment", "rights"],
                 sample_verses=[
-                    {"surah": 4, "ayah": 135, "text": "كُونُوا قَوَّامِينَ بِالْقِسْطِ"},
-                    {"surah": 16, "ayah": 90, "text": "إِنَّ اللَّهَ يَأْمُرُ بِالْعَدْلِ وَالْإِحْسَانِ"},
-                    {"surah": 5, "ayah": 8, "text": "اعْدِلُوا هُوَ أَقْرَبُ لِلتَّقْوَىٰ"}
+                    {"surah": 4, "ayah": 135},
+                    {"surah": 16, "ayah": 90},
+                    {"surah": 5, "ayah": 8}
                 ]
             ),
             # 3. Patience (الصبر)
@@ -162,9 +162,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["impatience", "hastiness", "despair"],
                 related_themes=["trust", "trials", "reward"],
                 sample_verses=[
-                    {"surah": 2, "ayah": 153, "text": "يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ"},
-                    {"surah": 3, "ayah": 200, "text": "اصْبِرُوا وَصَابِرُوا وَرَابِطُوا"},
-                    {"surah": 39, "ayah": 10, "text": "إِنَّمَا يُوَفَّى الصَّابِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ"}
+                    {"surah": 2, "ayah": 153},
+                    {"surah": 3, "ayah": 200},
+                    {"surah": 39, "ayah": 10}
                 ]
             ),
             # 4. Gratitude (الشكر)
@@ -181,9 +181,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["ingratitude", "ungratefulness", "denial"],
                 related_themes=["blessings", "worship", "remembrance"],
                 sample_verses=[
-                    {"surah": 14, "ayah": 7, "text": "لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ"},
-                    {"surah": 31, "ayah": 12, "text": "أَنِ اشْكُرْ لِلَّهِ"},
-                    {"surah": 2, "ayah": 152, "text": "فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي"}
+                    {"surah": 14, "ayah": 7},
+                    {"surah": 31, "ayah": 12},
+                    {"surah": 2, "ayah": 152}
                 ]
             ),
             # 5. Forgiveness (المغفرة)
@@ -200,9 +200,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["punishment", "vengeance", "retribution"],
                 related_themes=["mercy", "repentance", "salvation"],
                 sample_verses=[
-                    {"surah": 39, "ayah": 53, "text": "إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا"},
-                    {"surah": 4, "ayah": 110, "text": "وَمَن يَعْمَلْ سُوءًا أَوْ يَظْلِمْ نَفْسَهُ ثُمَّ يَسْتَغْفِرِ اللَّهَ يَجِدِ اللَّهَ غَفُورًا رَّحِيمًا"},
-                    {"surah": 3, "ayah": 135, "text": "وَالَّذِينَ إِذَا فَعَلُوا فَاحِشَةً أَوْ ظَلَمُوا أَنفُسَهُمْ ذَكَرُوا اللَّهَ فَاسْتَغْفَرُوا لِذُنُوبِهِمْ"}
+                    {"surah": 39, "ayah": 53},
+                    {"surah": 4, "ayah": 110},
+                    {"surah": 3, "ayah": 135}
                 ]
             ),
             # 6. Trust in Allah (التوكل)
@@ -219,9 +219,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["doubt", "despair", "self-reliance"],
                 related_themes=["faith", "patience", "certainty"],
                 sample_verses=[
-                    {"surah": 3, "ayah": 159, "text": "فَإِذَا عَزَمْتَ فَتَوَكَّلْ عَلَى اللَّهِ"},
-                    {"surah": 65, "ayah": 3, "text": "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ"},
-                    {"surah": 8, "ayah": 2, "text": "وَعَلَىٰ رَبِّهِمْ يَتَوَكَّلُونَ"}
+                    {"surah": 3, "ayah": 159},
+                    {"surah": 65, "ayah": 3},
+                    {"surah": 8, "ayah": 2}
                 ]
             ),
             # 7. Guidance (الهداية)
@@ -238,9 +238,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["misguidance", "error", "deviation"],
                 related_themes=["truth", "light", "knowledge"],
                 sample_verses=[
-                    {"surah": 1, "ayah": 6, "text": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ"},
-                    {"surah": 2, "ayah": 2, "text": "ذَٰلِكَ الْكِتَابُ لَا رَيْبَ فِيهِ هُدًى لِّلْمُتَّقِينَ"},
-                    {"surah": 6, "ayah": 125, "text": "فَمَن يُرِدِ اللَّهُ أَن يَهْدِيَهُ يَشْرَحْ صَدْرَهُ لِلْإِسْلَامِ"}
+                    {"surah": 1, "ayah": 6},
+                    {"surah": 2, "ayah": 2},
+                    {"surah": 6, "ayah": 125}
                 ]
             ),
             # 8. Fear of Allah (التقوى)
@@ -257,9 +257,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["heedlessness", "disobedience", "sinfulness"],
                 related_themes=["faith", "obedience", "righteousness"],
                 sample_verses=[
-                    {"surah": 2, "ayah": 197, "text": "وَتَزَوَّدُوا فَإِنَّ خَيْرَ الزَّادِ التَّقْوَىٰ"},
-                    {"surah": 49, "ayah": 13, "text": "إِنَّ أَكْرَمَكُمْ عِندَ اللَّهِ أَتْقَاكُمْ"},
-                    {"surah": 3, "ayah": 102, "text": "اتَّقُوا اللَّهَ حَقَّ تُقَاتِهِ"}
+                    {"surah": 2, "ayah": 197},
+                    {"surah": 49, "ayah": 13},
+                    {"surah": 3, "ayah": 102}
                 ]
             ),
             # 9. Knowledge (العلم)
@@ -276,9 +276,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["ignorance", "foolishness", "unawareness"],
                 related_themes=["wisdom", "guidance", "truth"],
                 sample_verses=[
-                    {"surah": 96, "ayah": 1, "text": "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ"},
-                    {"surah": 58, "ayah": 11, "text": "يَرْفَعِ اللَّهُ الَّذِينَ آمَنُوا مِنكُمْ وَالَّذِينَ أُوتُوا الْعِلْمَ دَرَجَاتٍ"},
-                    {"surah": 20, "ayah": 114, "text": "وَقُل رَّبِّ زِدْنِي عِلْمًا"}
+                    {"surah": 96, "ayah": 1},
+                    {"surah": 58, "ayah": 11},
+                    {"surah": 20, "ayah": 114}
                 ]
             ),
             # 10. Unity (الوحدة)
@@ -295,9 +295,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["division", "discord", "separation"],
                 related_themes=["brotherhood", "community", "cooperation"],
                 sample_verses=[
-                    {"surah": 3, "ayah": 103, "text": "وَاعْتَصِمُوا بِحَبْلِ اللَّهِ جَمِيعًا وَلَا تَفَرَّقُوا"},
-                    {"surah": 49, "ayah": 10, "text": "إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ"},
-                    {"surah": 8, "ayah": 46, "text": "وَلَا تَنَازَعُوا فَتَفْشَلُوا وَتَذْهَبَ رِيحُكُمْ"}
+                    {"surah": 3, "ayah": 103},
+                    {"surah": 49, "ayah": 10},
+                    {"surah": 8, "ayah": 46}
                 ]
             ),
             # 11. Charity (الصدقة)
@@ -314,9 +314,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["greed", "miserliness", "hoarding"],
                 related_themes=["generosity", "purification", "social responsibility"],
                 sample_verses=[
-                    {"surah": 2, "ayah": 261, "text": "مَّثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ"},
-                    {"surah": 9, "ayah": 103, "text": "خُذْ مِنْ أَمْوَالِهِمْ صَدَقَةً تُطَهِّرُهُمْ"},
-                    {"surah": 2, "ayah": 274, "text": "الَّذِينَ يُنفِقُونَ أَمْوَالَهُم بِاللَّيْلِ وَالنَّهَارِ"}
+                    {"surah": 2, "ayah": 261},
+                    {"surah": 9, "ayah": 103},
+                    {"surah": 2, "ayah": 274}
                 ]
             ),
             # 12. Truth (الحق)
@@ -333,9 +333,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["falsehood", "lies", "deception"],
                 related_themes=["justice", "honesty", "guidance"],
                 sample_verses=[
-                    {"surah": 17, "ayah": 81, "text": "جَاءَ الْحَقُّ وَزَهَقَ الْبَاطِلُ"},
-                    {"surah": 2, "ayah": 147, "text": "الْحَقُّ مِن رَّبِّكَ فَلَا تَكُونَنَّ مِنَ الْمُمْتَرِينَ"},
-                    {"surah": 10, "ayah": 32, "text": "فَذَٰلِكُمُ اللَّهُ رَبُّكُمُ الْحَقُّ"}
+                    {"surah": 17, "ayah": 81},
+                    {"surah": 2, "ayah": 147},
+                    {"surah": 10, "ayah": 32}
                 ]
             ),
             # 13. Remembrance (الذكر)
@@ -352,9 +352,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["forgetfulness", "heedlessness", "negligence"],
                 related_themes=["worship", "prayer", "gratitude"],
                 sample_verses=[
-                    {"surah": 13, "ayah": 28, "text": "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ"},
-                    {"surah": 2, "ayah": 152, "text": "فَاذْكُرُونِي أَذْكُرْكُمْ"},
-                    {"surah": 33, "ayah": 41, "text": "يَا أَيُّهَا الَّذِينَ آمَنُوا اذْكُرُوا اللَّهَ ذِكْرًا كَثِيرًا"}
+                    {"surah": 13, "ayah": 28},
+                    {"surah": 2, "ayah": 152},
+                    {"surah": 33, "ayah": 41}
                 ]
             ),
             # 14. Trials (الابتلاء)
@@ -371,9 +371,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["ease", "comfort", "prosperity"],
                 related_themes=["patience", "trust", "reward"],
                 sample_verses=[
-                    {"surah": 2, "ayah": 155, "text": "وَلَنَبْلُوَنَّكُم بِشَيْءٍ مِّنَ الْخَوْفِ وَالْجُوعِ"},
-                    {"surah": 29, "ayah": 2, "text": "أَحَسِبَ النَّاسُ أَن يُتْرَكُوا أَن يَقُولُوا آمَنَّا وَهُمْ لَا يُفْتَنُونَ"},
-                    {"surah": 67, "ayah": 2, "text": "لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا"}
+                    {"surah": 2, "ayah": 155},
+                    {"surah": 29, "ayah": 2},
+                    {"surah": 67, "ayah": 2}
                 ]
             ),
             # 15. Tawhid (التوحيد)
@@ -390,9 +390,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["shirk", "polytheism", "idolatry"],
                 related_themes=["worship", "faith", "submission"],
                 sample_verses=[
-                    {"surah": 112, "ayah": 1, "text": "قُلْ هُوَ اللَّهُ أَحَدٌ"},
-                    {"surah": 2, "ayah": 163, "text": "وَإِلَٰهُكُمْ إِلَٰهٌ وَاحِدٌ"},
-                    {"surah": 21, "ayah": 25, "text": "وَمَا أَرْسَلْنَا مِن قَبْلِكَ مِن رَّسُولٍ إِلَّا نُوحِي إِلَيْهِ أَنَّهُ لَا إِلَٰهَ إِلَّا أَنَا فَاعْبُدُونِ"}
+                    {"surah": 112, "ayah": 1},
+                    {"surah": 2, "ayah": 163},
+                    {"surah": 21, "ayah": 25}
                 ]
             ),
             # 16. Prayer (الصلاة)
@@ -409,9 +409,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["negligence", "abandonment"],
                 related_themes=["worship", "remembrance", "taqwa"],
                 sample_verses=[
-                    {"surah": 2, "ayah": 43, "text": "وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ"},
-                    {"surah": 29, "ayah": 45, "text": "إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ وَالْمُنكَرِ"},
-                    {"surah": 20, "ayah": 14, "text": "وَأَقِمِ الصَّلَاةَ لِذِكْرِي"}
+                    {"surah": 2, "ayah": 43},
+                    {"surah": 29, "ayah": 45},
+                    {"surah": 20, "ayah": 14}
                 ]
             ),
             # 17. Repentance (التوبة)
@@ -428,9 +428,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["persistence in sin", "stubbornness"],
                 related_themes=["forgiveness", "mercy", "salvation"],
                 sample_verses=[
-                    {"surah": 66, "ayah": 8, "text": "تُوبُوا إِلَى اللَّهِ تَوْبَةً نَّصُوحًا"},
-                    {"surah": 4, "ayah": 17, "text": "إِنَّمَا التَّوْبَةُ عَلَى اللَّهِ لِلَّذِينَ يَعْمَلُونَ السُّوءَ بِجَهَالَةٍ"},
-                    {"surah": 25, "ayah": 70, "text": "إِلَّا مَن تَابَ وَآمَنَ وَعَمِلَ عَمَلًا صَالِحًا"}
+                    {"surah": 66, "ayah": 8},
+                    {"surah": 4, "ayah": 17},
+                    {"surah": 25, "ayah": 70}
                 ]
             ),
             # 18. Paradise (الجنة)
@@ -447,9 +447,9 @@ class AdvancedSemanticSearchService:
                 antonyms=["hellfire", "punishment"],
                 related_themes=["reward", "afterlife", "righteousness"],
                 sample_verses=[
-                    {"surah": 3, "ayah": 133, "text": "وَجَنَّةٍ عَرْضُهَا السَّمَاوَاتُ وَالْأَرْضُ"},
-                    {"surah": 55, "ayah": 46, "text": "وَلِمَنْ خَافَ مَقَامَ رَبِّهِ جَنَّتَانِ"},
-                    {"surah": 9, "ayah": 72, "text": "وَعَدَ اللَّهُ الْمُؤْمِنِينَ وَالْمُؤْمِنَاتِ جَنَّاتٍ تَجْرِي مِن تَحْتِهَا الْأَنْهَارُ"}
+                    {"surah": 3, "ayah": 133},
+                    {"surah": 55, "ayah": 46},
+                    {"surah": 9, "ayah": 72}
                 ]
             ),
         ]
@@ -482,102 +482,84 @@ class AdvancedSemanticSearchService:
         }
 
     def _initialize_sample_verses(self):
-        """Initialize sample verses for search demonstration"""
+        """Index a small set of verse references by theme.
+
+        Only references and theme tags live here. Verse text is never written
+        into code: routes hydrate ``text_arabic`` from ``quran_verses`` (and
+        ``text_english`` from the default English edition) with
+        :func:`hydrate_canonical_text`.
+        """
         sample_verses = [
             {
                 "id": "1:1",
                 "surah": 1,
                 "ayah": 1,
-                "text_arabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-                "text_english": "In the name of Allah, the Most Gracious, the Most Merciful",
                 "themes": ["mercy", "tawhid"]
             },
             {
                 "id": "1:6",
                 "surah": 1,
                 "ayah": 6,
-                "text_arabic": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
-                "text_english": "Guide us to the straight path",
                 "themes": ["guidance"]
             },
             {
                 "id": "2:153",
                 "surah": 2,
                 "ayah": 153,
-                "text_arabic": "يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
-                "text_english": "O you who have believed, seek help through patience and prayer. Indeed, Allah is with the patient",
                 "themes": ["patience", "prayer"]
             },
             {
                 "id": "2:155",
                 "surah": 2,
                 "ayah": 155,
-                "text_arabic": "وَلَنَبْلُوَنَّكُم بِشَيْءٍ مِّنَ الْخَوْفِ وَالْجُوعِ وَنَقْصٍ مِّنَ الْأَمْوَالِ وَالْأَنفُسِ وَالثَّمَرَاتِ وَبَشِّرِ الصَّابِرِينَ",
-                "text_english": "And We will surely test you with something of fear and hunger and a loss of wealth and lives and fruits, but give good tidings to the patient",
                 "themes": ["trials", "patience"]
             },
             {
                 "id": "3:103",
                 "surah": 3,
                 "ayah": 103,
-                "text_arabic": "وَاعْتَصِمُوا بِحَبْلِ اللَّهِ جَمِيعًا وَلَا تَفَرَّقُوا",
-                "text_english": "And hold firmly to the rope of Allah all together and do not become divided",
                 "themes": ["unity"]
             },
             {
                 "id": "4:135",
                 "surah": 4,
                 "ayah": 135,
-                "text_arabic": "يَا أَيُّهَا الَّذِينَ آمَنُوا كُونُوا قَوَّامِينَ بِالْقِسْطِ",
-                "text_english": "O you who have believed, be persistently standing firm in justice",
                 "themes": ["justice"]
             },
             {
                 "id": "13:28",
                 "surah": 13,
                 "ayah": 28,
-                "text_arabic": "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
-                "text_english": "Verily, in the remembrance of Allah do hearts find rest",
                 "themes": ["remembrance"]
             },
             {
                 "id": "14:7",
                 "surah": 14,
                 "ayah": 7,
-                "text_arabic": "لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ",
-                "text_english": "If you are grateful, I will surely increase you [in favor]",
                 "themes": ["gratitude"]
             },
             {
                 "id": "39:53",
                 "surah": 39,
                 "ayah": 53,
-                "text_arabic": "قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا",
-                "text_english": "Say, O My servants who have transgressed against themselves, do not despair of the mercy of Allah. Indeed, Allah forgives all sins",
                 "themes": ["mercy", "forgiveness", "repentance"]
             },
             {
                 "id": "65:3",
                 "surah": 65,
                 "ayah": 3,
-                "text_arabic": "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ",
-                "text_english": "And whoever relies upon Allah - then He is sufficient for him",
                 "themes": ["tawakkul"]
             },
             {
                 "id": "112:1",
                 "surah": 112,
                 "ayah": 1,
-                "text_arabic": "قُلْ هُوَ اللَّهُ أَحَدٌ",
-                "text_english": "Say: He is Allah, the One",
                 "themes": ["tawhid"]
             },
             {
                 "id": "96:1",
                 "surah": 96,
                 "ayah": 1,
-                "text_arabic": "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ",
-                "text_english": "Read in the name of your Lord who created",
                 "themes": ["knowledge"]
             },
         ]
@@ -877,8 +859,6 @@ class AdvancedSemanticSearchService:
                     "verse_id": verse_id,
                     "surah": verse["surah"],
                     "ayah": verse["ayah"],
-                    "text_arabic": verse["text_arabic"],
-                    "text_english": verse["text_english"],
                     "lexical_score": round(lexical_score, 4),
                     "semantic_score": round(semantic_score, 4),
                     "combined_score": round(combined_score, 4),
@@ -912,8 +892,6 @@ class AdvancedSemanticSearchService:
                     "verse_id": verse_id,
                     "surah": verse["surah"],
                     "ayah": verse["ayah"],
-                    "text_arabic": verse["text_arabic"],
-                    "text_english": verse["text_english"],
                     "themes": verse.get("themes", [])
                 })
 
@@ -1071,3 +1049,74 @@ class AdvancedSemanticSearchService:
 
 # Create singleton instance
 advanced_semantic_search_service = AdvancedSemanticSearchService()
+
+
+def _collect_refs(node: Any, out: set) -> None:
+    if isinstance(node, dict):
+        s, a = node.get("surah"), node.get("ayah")
+        if isinstance(s, int) and isinstance(a, int):
+            out.add((s, a))
+        for v in node.values():
+            _collect_refs(v, out)
+    elif isinstance(node, list):
+        for v in node:
+            _collect_refs(v, out)
+
+
+def _apply_texts(node: Any, texts: Dict[Tuple[int, int], Dict[str, Any]]) -> None:
+    if isinstance(node, dict):
+        s, a = node.get("surah"), node.get("ayah")
+        if isinstance(s, int) and isinstance(a, int):
+            row = texts.get((s, a))
+            node["text_arabic"] = row["text_uthmani"] if row else None
+            node["text_english"] = row["text_english"] if row else None
+            node["translation_edition"] = row["translation_edition"] if row else None
+        for v in node.values():
+            _apply_texts(v, texts)
+    elif isinstance(node, list):
+        for v in node:
+            _apply_texts(v, texts)
+
+
+async def hydrate_canonical_text(payload: Any, session) -> Any:
+    """Fill ``text_arabic`` / ``text_english`` for every {surah, ayah} dict in
+    ``payload`` from the database, in one query.
+
+    ``text_arabic`` is the canonical Tanzil ``text_uthmani``; ``text_english``
+    is the default English edition (``translation_edition`` names it so the UI
+    can attribute it). A reference that is not in the database gets None.
+    """
+    refs: set = set()
+    _collect_refs(payload, refs)
+    if not refs:
+        return payload
+
+    from sqlalchemy import select, tuple_, and_
+    from app.models.quran import QuranVerse, Translation, TranslationEdition
+
+    default_en = (await session.execute(
+        select(TranslationEdition.key).where(
+            TranslationEdition.language == "en", TranslationEdition.is_default.is_(True)
+        )
+    )).scalars().first()
+
+    stmt = select(QuranVerse.sura_no, QuranVerse.aya_no, QuranVerse.text_uthmani, Translation.text)
+    if default_en:
+        stmt = stmt.outerjoin(
+            Translation,
+            and_(Translation.verse_id == QuranVerse.id, Translation.translator == default_en),
+        )
+    else:
+        stmt = select(QuranVerse.sura_no, QuranVerse.aya_no, QuranVerse.text_uthmani)
+    stmt = stmt.where(tuple_(QuranVerse.sura_no, QuranVerse.aya_no).in_(sorted(refs)))
+
+    texts: Dict[Tuple[int, int], Dict[str, Any]] = {}
+    for row in (await session.execute(stmt)).all():
+        en = row[3] if default_en and len(row) > 3 else None
+        texts[(row[0], row[1])] = {
+            "text_uthmani": row[2],
+            "text_english": en,
+            "translation_edition": default_en if en else None,
+        }
+    _apply_texts(payload, texts)
+    return payload

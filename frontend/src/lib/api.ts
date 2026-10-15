@@ -134,18 +134,111 @@ export interface GroundedVerse {
   grounding: string;  // Explanation of why this verse is relevant
   matched_concepts: string[];
   highlighted_terms: string[];
+  /** "alias" | "exact" | "normalized" | "concept_expansion" */
+  match_type?: string;
+}
+
+export interface SurahSuggestion {
+  sura_no: number;
+  name_ar: string;
+  name_en: string;
+  label_ar?: string | null;
+  label_en?: string | null;
 }
 
 export interface IntelligentSearchResponse {
   query: string;
   query_language: 'ar' | 'en' | 'mixed';
   expanded_concepts: string[];
+  /** All matching verses (not just this page) */
   total_matches: number;
+  offset?: number;
   search_time_ms: number;
   summary: string;  // Brief summary of findings
   verses: GroundedVerse[];
   concept_distribution: Record<string, number>;
   related_searches: string[];
+  surahs?: SurahSuggestion[];
+}
+
+// Smart search (/quran/search/smart): reference, surah, alias, text, translation
+export interface SmartSearchVerse {
+  verse_id: number;
+  sura_no: number;
+  aya_no: number;
+  reference: string;
+  sura_name_ar: string;
+  sura_name_en: string;
+  text_uthmani: string;
+  text_imlaei: string;
+  highlighted_text: string;
+  page_no: number;
+  juz_no: number;
+  /** "reference" | "alias" | "exact" | "prefix" | "normalized" */
+  match_type: string;
+}
+
+export interface SmartSearchSurah {
+  number: number;
+  name_ar: string;
+  name_en: string;
+}
+
+export interface SmartSearchTranslationHit {
+  verse_id: number;
+  sura_no: number;
+  aya_no: number;
+  reference: string;
+  sura_name_ar: string;
+  sura_name_en: string;
+  text_uthmani: string;
+  translation: {
+    edition: string;
+    language: string;
+    text: string;
+    source_id?: string | null;
+    edition_version?: string | null;
+  };
+}
+
+export interface SmartSearchResponse {
+  query: string;
+  intent: 'empty' | 'reference' | 'surah' | 'alias' | 'text' | 'translation' | 'none';
+  jump: {
+    sura_no: number;
+    aya_no: number | null;
+    aya_end: number | null;
+    name_ar: string;
+    name_en: string;
+  } | null;
+  reference_error: { message_ar: string; message_en: string } | null;
+  surahs: SmartSearchSurah[];
+  alias: {
+    sura_no: number;
+    aya_start: number;
+    aya_end: number | null;
+    label_ar: string;
+    label_en: string;
+  } | null;
+  verses: { total: number; offset: number; items: SmartSearchVerse[] };
+  translations: {
+    total: number;
+    offset: number;
+    editions: Array<{
+      key: string;
+      title: string;
+      translator_name?: string | null;
+      license: string;
+      attribution: string;
+      source_url: string;
+    }>;
+    hits: SmartSearchTranslationHit[];
+  };
+  semantic: {
+    available: boolean;
+    reason?: string;
+    items: Array<{ verse_id: number; sura_no: number; aya_no: number; reference: string; text_uthmani: string; similarity_score: number }>;
+  };
 }
 
 export interface WordContextResponse {
@@ -226,12 +319,16 @@ export interface SemanticMatch {
 export interface SimilarVersesResponse {
   source_verse: {
     reference: string;
+    sura_no?: number;
+    aya_no?: number;
     sura_name_ar: string;
     sura_name_en: string;
     text_uthmani: string;
   };
   similar_verses: SemanticMatch[];
   total_found: number;
+  search_method?: string;
+  index_status?: 'indexed' | 'not_indexed';
 }
 
 export interface ThematicConnection {
@@ -697,9 +794,15 @@ export const quranApi = {
   }) =>
     api.get<EnhancedSearchResponse>(`/quran/search/enhanced/${encodeURIComponent(word)}`, { params }),
 
-  // Intelligent Semantic Search with Verse Grounding
+  // One search box: reference jump, surah names, aliases, Arabic text,
+  // translation (Latin input); Arabic text has a real total and offset paging.
+  smartSearch: (q: string, params?: { lang?: string; limit?: number; offset?: number; semantic?: boolean }) =>
+    api.get<SmartSearchResponse>('/quran/search/smart', { params: { q, ...params } }),
+
+  // Intelligent Semantic Search with Verse Grounding (related concepts)
   intelligentSearch: (query: string, params?: {
     limit?: number;
+    offset?: number;
     include_related?: boolean;
     lang?: string;
   }) =>
@@ -728,13 +831,20 @@ export const quranApi = {
   getSearchCategories: () =>
     api.get<SearchCategoriesResponse>('/quran/search/categories'),
 
-  // Semantic Search API
+  // Similar verses from the stored verse vectors (no AI call needed);
+  // every text field comes from the canonical verses table.
   findSimilarVerses: (suraNo: number, ayaNo: number, params?: {
     top_k?: number;
-    theme_filter?: string;
+    min_score?: number;
     exclude_same_sura?: boolean;
   }) =>
-    api.get<SimilarVersesResponse>(`/quran/semantic/similar/${suraNo}/${ayaNo}`, { params }),
+    api.get<SimilarVersesResponse>(`/quran/search/similar/${suraNo}/${ayaNo}`, {
+      params: {
+        limit: params?.top_k,
+        min_score: params?.min_score,
+        exclude_same_sura: params?.exclude_same_sura,
+      },
+    }),
 
   getThematicConnections: (suraNo: number, ayaNo: number, params?: {
     theme?: string;
@@ -1800,6 +1910,9 @@ export interface SemanticSearchResponse {
   intent: string;
   hits: GraphSearchHit[];
   total_found: number;
+  degraded?: string;
+  message_ar?: string;
+  message_en?: string;
   related_concepts: Array<{
     id: string;
     label_ar: string;
@@ -2011,14 +2124,6 @@ export interface ReciterInfo {
   style: string;
 }
 
-export interface SurahAudioResponse {
-  ok: boolean;
-  sura_no: number;
-  reciter: string;
-  audio_url: string;
-  type: 'surah';
-}
-
 export interface VerseAudioResponse {
   ok: boolean;
   sura_no: number;
@@ -2069,14 +2174,6 @@ export const audioApi = {
    */
   getReciters: () =>
     api.get<{ ok: boolean; reciters: ReciterInfo[] }>('/quran/audio/reciters'),
-
-  /**
-   * Get audio URL for a complete Surah.
-   */
-  getSurahAudio: (suraNo: number, reciter?: string) =>
-    api.get<SurahAudioResponse>(`/quran/audio/surah/${suraNo}`, {
-      params: reciter ? { reciter } : undefined
-    }),
 
   /**
    * Get audio URL for a single verse.
@@ -2399,9 +2496,13 @@ export interface SemanticSearchResponse {
   query: string;
   results: SemanticSearchResult[];
   total: number;
-  index_status: 'indexed' | 'not_indexed';
+  index_status: 'indexed' | 'not_indexed' | 'keyword_fallback';
   vectors_count?: number;
   message?: string;
+  /** "ai_unavailable" when keyword results stand in for vector search */
+  degraded?: string;
+  message_ar?: string;
+  message_en?: string;
   cross_language_expansion?: {
     source_language: string;
     arabic_terms: string[];
@@ -2412,9 +2513,10 @@ export interface SemanticSearchResponse {
 
 export interface SemanticSimilarVersesResponse {
   ok: boolean;
-  source_verse: string;
+  source_verse: SimilarVersesResponse['source_verse'];
   similar_verses: SemanticSearchResult[];
   total: number;
+  total_found: number;
   index_status: 'indexed' | 'not_indexed';
 }
 

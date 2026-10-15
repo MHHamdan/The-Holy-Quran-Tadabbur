@@ -153,9 +153,6 @@ class MiraclesService:
         # Verification queue
         self._verification_queue: List[str] = []
 
-        # Admin users
-        self._admin_users: Set[str] = {"admin", "scholar_1", "scholar_2"}
-
         # Search index
         self._search_index: Dict[str, Set[str]] = defaultdict(set)
 
@@ -2339,11 +2336,12 @@ class MiraclesService:
     # ADMIN & VERIFICATION
     # ============================================
 
-    def get_admin_dashboard(self, admin_id: str) -> Dict[str, Any]:
-        """Get admin dashboard with pending reviews"""
-        if admin_id not in self._admin_users:
-            return {"error": "Unauthorized - Admin access required"}
+    def get_admin_dashboard(self) -> Dict[str, Any]:
+        """Get admin dashboard with pending reviews.
 
+        Authorisation is enforced by the route (X-Admin-API-Key); the service
+        no longer trusts a caller-supplied admin id.
+        """
         # Count miracles by status
         status_counts = defaultdict(int)
         for miracle in self._miracles.values():
@@ -2363,7 +2361,6 @@ class MiraclesService:
         ]
 
         return {
-            "admin_id": admin_id,
             "statistics": {
                 "total_miracles": len(self._miracles),
                 "by_verification_status": dict(status_counts),
@@ -2376,28 +2373,31 @@ class MiraclesService:
 
     def review_feedback(
         self,
-        admin_id: str,
         feedback_id: str,
         decision: str,  # "accepted", "rejected"
-        notes: Optional[str] = None
+        notes: Optional[str] = None,
+        reviewer_id: str = "admin_api_key",
     ) -> Dict[str, Any]:
-        """Review and decide on user feedback"""
-        if admin_id not in self._admin_users:
-            return {"error": "Unauthorized - Admin access required"}
+        """Review and decide on user feedback.
+
+        Authorisation is enforced by the route (X-Admin-API-Key).
+        """
+        if decision not in ("accepted", "rejected"):
+            return {"error": f"Invalid decision '{decision}'"}
 
         if feedback_id not in self._feedback:
             return {"error": f"Feedback '{feedback_id}' not found"}
 
         feedback = self._feedback[feedback_id]
         feedback.status = decision
-        feedback.reviewer_id = admin_id
+        feedback.reviewer_id = reviewer_id
         feedback.reviewer_notes = notes
 
         return {
             "success": True,
             "feedback_id": feedback_id,
             "new_status": decision,
-            "reviewed_by": admin_id
+            "reviewed_by": reviewer_id
         }
 
     # ============================================

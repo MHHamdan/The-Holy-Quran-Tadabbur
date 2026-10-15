@@ -668,3 +668,75 @@ class TestMatchType:
             f"Exact match score ({score_exact:.3f}) should exceed "
             f"normalized score ({score_normalized:.3f})"
         )
+
+
+# =============================================================================
+# Shared search normalizer (app.services.arabic_normalize)
+# =============================================================================
+
+from app.services.arabic_normalize import (  # noqa: E402
+    escape_like,
+    find_spans,
+    fold_digits,
+    normalize_for_search,
+    search_terms as minimal_search_terms,
+)
+from app.services.quran_search import QuranSearchService  # noqa: E402
+
+
+class TestSharedNormalizer:
+    """One normalizer for the seeder, the columns and every query term."""
+
+    @pytest.mark.parametrize("raw, key", [
+        # tatweel + dagger alef + alef wasla
+        ("ٱلرَّحْمَـٰنِ", "الرحمن"),
+        # hamza-below alef, tatweel, small high yeh (U+06E7)
+        ("إِبْرَٰهِـۧمَ", "ابرهم"),
+        # small high meem (U+06E2)
+        ("مِنۢ", "من"),
+        # ta marbuta + tanwin
+        ("رَحْمَةً", "رحمه"),
+        # hamza carriers and alef maqsura
+        ("مؤمن", "مومن"),
+        ("بئر", "بير"),
+        ("هدى", "هدي"),
+        # zero-width characters and whitespace
+        ("  a​  b  ", "a b"),
+    ])
+    def test_keys(self, raw, key):
+        assert normalize_for_search(raw) == key
+
+    def test_matching_alias_is_shared_normalizer(self):
+        word = "الصَّـٰبِرِينَ"
+        assert normalize_for_matching(word) == normalize_for_search(word)
+
+    def test_normalize_arabic_strips_tatweel(self):
+        assert "ـ" not in normalize_arabic("الصـبر")
+
+    def test_fold_digits(self):
+        assert fold_digits("٢:٢٥٥") == "2:255"
+        assert fold_digits("۲:۲۵۵") == "2:255"
+
+    def test_escape_like(self):
+        assert escape_like("50%_x") == "50\\%\\_x"
+
+    def test_spans_map_back_through_marks(self):
+        # word with tatweel + dagger alef inside still maps back to the original
+        text = "وَٱلصَّـٰبِرِينَ و"
+        target = "الصبرين"
+        spans = find_spans(text, {target})
+        assert len(spans) == 1
+        s, e = spans[0]
+        assert normalize_for_search(text[s:e]) == target
+        assert text[e:].strip() == "و"
+
+    def test_minimal_terms_drop_supersets_and_latin(self):
+        terms = minimal_search_terms({"الصبر", "صبر", "patience"})
+        assert terms == ["صبر"]
+
+    def test_highlight_uses_original_spans(self):
+        svc = QuranSearchService.__new__(QuranSearchService)
+        text = "مِنۢ بَعْدِ"
+        out = svc._highlight_matches(text, svc._find_match_positions(text, {"من بعد"}))
+        assert out.startswith("【") and out.endswith("】")
+        assert out.replace("【", "").replace("】", "") == text
