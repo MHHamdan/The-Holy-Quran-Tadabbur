@@ -234,13 +234,14 @@ def test_surah_topics_endpoint_works() -> None:
 
 
 def test_app_routes_include_topic_routes() -> None:
-    # Topic pages were consolidated into /concepts in 221f552; a
-    # /topics/:topicId redirect is kept so old links keep working.
+    # Topic pages were consolidated into /concepts in 221f552. The old
+    # /topics/:topicId redirect was found dead (no in-app links) and removed
+    # in 7e1ea98.
     text = APP_PATH.read_text(encoding="utf-8")
     assert 'path="/concepts"' in text
     assert 'path="/concepts/:conceptId"' in text
-    assert 'path="/topics/:topicId"' in text  # backwards-compat redirect
-    assert "TopicsRedirect" in text
+    assert 'path="/topics/:topicId"' not in text
+    assert "TopicsRedirect" not in text
 
 
 # ---------------------------------------------------------------------------
