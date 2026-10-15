@@ -551,6 +551,9 @@ async def get_story_graph(
             for n in story_graph.nodes
         ]
 
+        # Cross-story edges flagged needs_review (scholar sign-off pending)
+        # are hidden here exactly as on /cross-connections.
+        hidden, _ = _manifest_connection_index()
         edges = [
             StoryGraphEdge(
                 source=e.source,
@@ -560,6 +563,10 @@ async def get_story_graph(
                 data=e.data,
             )
             for e in story_graph.edges
+            if not (
+                (e.data or {}).get("cross_story")
+                and (e.source, e.target, e.type) in hidden
+            )
         ]
 
         return StoryGraphResponse(
@@ -603,10 +610,6 @@ async def get_story_timeline(
 @router.get("/{story_id}/cross-connections", response_model=List[CrossStoryConnectionResponse])
 async def get_cross_story_connections(
     story_id: str,
-    include_needs_review: bool = Query(
-        False,
-        description="Include connections hidden pending scholar review (admin/review use only)",
-    ),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -614,8 +617,9 @@ async def get_cross_story_connections(
 
     Returns thematic links, shared figures, and narrative parallels
     for exploration across the Quranic story corpus. These are analytical
-    links (not tafsir); connections flagged needs_review in the manifest are
-    excluded by default.
+    links (not tafsir). Connections flagged needs_review in the manifest are
+    pending scholar sign-off and are never served publicly; reviewers work
+    from data/manifests/stories.json.
     """
     result = await session.execute(
         select(CrossStoryConnection).where(
@@ -629,7 +633,7 @@ async def get_cross_story_connections(
     out = []
     for c in connections:
         key = (c.source_story_id, c.target_story_id, c.connection_type)
-        if key in hidden and not include_needs_review:
+        if key in hidden:
             continue
         payload = CrossStoryConnectionResponse.model_validate(c)
         payload.evidence_chunk_ids = list(c.evidence_chunk_ids or [])

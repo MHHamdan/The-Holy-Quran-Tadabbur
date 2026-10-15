@@ -133,7 +133,34 @@ async def test_cross_connections_hide_needs_review(client: AsyncClient):
         assert "verse_refs" in c and "evidence_chunk_ids" in c
 
 
+_HIDDEN_PAIRS = (
+    ("story_nuh", "story_ibrahim"),
+    ("story_luqman", "story_ibrahim"),
+    ("story_ibrahim", "story_musa"),
+    ("story_musa", "story_sabbath_breakers"),
+    ("story_isa", "story_ibrahim"),
+)
+
+
+def _has_pair(rows, a: str, b: str) -> bool:
+    return any({r.get("source_story_id", r.get("source")), r.get("target_story_id", r.get("target"))} == {a, b} for r in rows)
+
+
 @pytestmark_api
-async def test_cross_connections_review_flag_can_include(client: AsyncClient):
-    r = await client.get("/api/v1/stories/story_luqman/cross-connections?include_needs_review=true")
-    assert r.status_code == 200
+async def test_cross_connections_review_flag_cannot_unhide(client: AsyncClient):
+    """include_needs_review used to re-enable owner-review links without auth."""
+    for a, b in _HIDDEN_PAIRS:
+        r = await client.get(f"/api/v1/stories/{a}/cross-connections?include_needs_review=true")
+        assert r.status_code == 200
+        assert not _has_pair(r.json(), a, b), f"{a}<->{b} served via include_needs_review"
+
+
+@pytestmark_api
+async def test_story_graph_hides_needs_review_cross_edges(client: AsyncClient):
+    for a, b in _HIDDEN_PAIRS:
+        r = await client.get(f"/api/v1/stories/{a}/graph?include_cross_story=true")
+        if r.status_code == 404:
+            continue
+        assert r.status_code == 200
+        cross = [e for e in r.json()["edges"] if (e.get("data") or {}).get("cross_story")]
+        assert not _has_pair(cross, a, b), f"{a}<->{b} served on /graph"
