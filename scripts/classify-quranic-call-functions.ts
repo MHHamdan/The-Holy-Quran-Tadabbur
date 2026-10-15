@@ -16,6 +16,7 @@ import { resolve, join } from 'path';
 const ROOT = resolve(__dirname, '..');
 const IN_JSON = join(ROOT, 'frontend/src/data/generated/quranicCallsAtlas.json');
 const OUT_JSON = join(ROOT, 'frontend/src/data/generated/quranicCallsClassified.json');
+const TANZIL_COPYRIGHT = JSON.parse(readFileSync(join(ROOT, 'data/raw/quran_tanzil.json'), 'utf-8')).copyright as { uthmani: string; attribution: string };
 
 interface QuranicCall {
   callId: string;
@@ -336,6 +337,9 @@ const output = {
   totalClassified: classifiedCalls.length,
   calls: classifiedCalls,
   classificationSummary: { byFunction, byTone, byCallerType, unclassified, highConfidence: highConf, lowConfidence: lowConf },
+  // Tanzil's licence: the notice must travel with files containing its text.
+  quranTextCopyright: TANZIL_COPYRIGHT.uthmani,
+  quranTextAttribution: TANZIL_COPYRIGHT.attribution,
 };
 
 writeFileSync(OUT_JSON, JSON.stringify(output, null, 2), 'utf-8');

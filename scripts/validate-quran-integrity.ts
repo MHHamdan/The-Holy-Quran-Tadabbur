@@ -4,6 +4,9 @@
  * Validates local Quran data files and the source registry for structural
  * and content integrity. Run this after any change to content-related files.
  *
+ * With DATABASE_URL set, enabled rows of tafseer_sources are cross-checked
+ * against the manifest too (needs python3 + asyncpg).
+ *
  * Usage:
  *   npx tsx scripts/validate-quran-integrity.ts
  *   npx tsx scripts/validate-quran-integrity.ts --verbose
@@ -14,7 +17,10 @@
  *   1 = one or more checks failed
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
+import { spawnSync } from 'child_process';
+import { QURANIC_DUAS } from '../frontend/src/data/quranicDuas';
+import { CONFUSION_PAIRS, REPEATED_PHRASES } from '../frontend/src/data/quranMemorizationLinks';
 import { resolve, join } from 'path';
 
 // ---------------------------------------------------------------------------
@@ -440,6 +446,304 @@ function checkNoExperimentalSourcesInCanonical(): CheckResult {
 }
 
 // ---------------------------------------------------------------------------
+// Tafsir licence cross-check: manifest x registry (x database when reachable)
+// ---------------------------------------------------------------------------
+
+interface ManifestLicence {
+  type?: string;
+  verified_date?: string | null;
+  [key: string]: unknown;
+}
+
+interface RegistryEntryInfo {
+  id: string;
+  licenseStatus?: string;
+  blocked: boolean;
+}
+
+/** sourceId -> licence facts parsed from the SOURCE_REGISTRY array literal. */
+function readRegistryEntries(): Map<string, RegistryEntryInfo> {
+  const out = new Map<string, RegistryEntryInfo>();
+  if (!existsSync(SOURCE_REGISTRY_PATH)) return out;
+  const blocks = extractSourceBlocks(extractRegistryArrayText(readFileSync(SOURCE_REGISTRY_PATH, 'utf-8')));
+  for (const block of blocks) {
+    const id = block.match(/sourceId:\s*['"]([^'"]+)['"]/)?.[1];
+    if (!id) continue;
+    const licenseStatus = block.match(/licenseStatus:\s*['"]([^'"]+)['"]/)?.[1];
+    const notesBlocked = /notes:\s*['"`]\s*DO NOT DISPLAY/.test(block);
+    out.set(id, { id, licenseStatus, blocked: licenseStatus === 'blocked' || notesBlocked });
+  }
+  return out;
+}
+
+const NOT_SHIPPABLE_STATUSES = new Set(['blocked', 'unverified', 'pending']);
+const AVAILABLE_STATUSES = new Set(['available', 'available_via_api']);
+
+/**
+ * Every tafsir source the product may serve must be registered with a licence
+ * that is neither blocked nor unverified, and the manifest must record when
+ * that licence was verified. "May serve" means: listed in the manifest's
+ * enabled_ids, or carrying an available status.
+ */
+function checkTafsirLicenceCrossCheck(manifest: TafsirManifest): CheckResult {
+  return check('Tafsir sources: enabled ids are registered with verified licences', () => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const registry = readRegistryEntries();
+    const sources = (manifest.sources ?? []) as TafsirSourceEntry[];
+    const placeholders = ((manifest as Record<string, unknown>).placeholder_sources ?? []) as TafsirSourceEntry[];
+    const byId = new Map(sources.map((s) => [s.id, s]));
+    const enabledIds = (manifest as Record<string, unknown>).enabled_ids as string[] | undefined;
+
+    if (!Array.isArray(enabledIds) || enabledIds.length === 0) {
+      errors.push('tafseer_sources.json has no "enabled_ids" list (ids allowed to be enabled in tafseer_sources)');
+    }
+
+    const mustBeShippable = new Set<string>(enabledIds ?? []);
+    for (const s of [...sources, ...placeholders]) {
+      if (AVAILABLE_STATUSES.has(String(s.status ?? ''))) mustBeShippable.add(s.id);
+    }
+
+    for (const id of mustBeShippable) {
+      const entry = byId.get(id);
+      if (!entry) {
+        errors.push(`"${id}" may be served but is not in manifest.sources (placeholder entries carry no licence record)`);
+      } else {
+        const licence = entry.license as ManifestLicence | string | undefined;
+        if (typeof licence !== 'object' || !licence) {
+          errors.push(`"${id}": manifest license is not a structured record`);
+        } else {
+          if (!licence.verified_date) errors.push(`"${id}": manifest license.verified_date is null`);
+          if (String(licence.type ?? '').startsWith('pending')) {
+            errors.push(`"${id}": manifest licence type is "${licence.type}"`);
+          }
+        }
+      }
+      const reg = registry.get(id);
+      if (!reg) {
+        errors.push(`"${id}" may be served but has no sourceRegistry.ts entry`);
+      } else if (reg.blocked || NOT_SHIPPABLE_STATUSES.has(reg.licenseStatus ?? '')) {
+        errors.push(`"${id}": sourceRegistry licenseStatus is "${reg.licenseStatus ?? 'blocked'}"`);
+      }
+    }
+
+    // Database: enabled rows must be in enabled_ids. Optional, needs DATABASE_URL.
+    const db = readEnabledDbSources();
+    if (db.error) {
+      warnings.push(`database cross-check skipped: ${db.error}`);
+    } else {
+      for (const row of db.rows) {
+        if (!mustBeShippable.has(row.id)) {
+          errors.push(`DB tafseer_sources "${row.id}" is enabled but not in manifest enabled_ids`);
+        }
+        if (row.license_verified !== 1) {
+          errors.push(`DB tafseer_sources "${row.id}" is enabled with license_verified=${row.license_verified}`);
+        }
+      }
+    }
+    return { errors, warnings };
+  });
+}
+
+interface DbSourceRow { id: string; license_verified: number }
+
+function readEnabledDbSources(): { rows: DbSourceRow[]; error?: string } {
+  const url = process.env.DATABASE_URL;
+  if (!url) return { rows: [], error: 'DATABASE_URL not set' };
+  const py = [
+    'import asyncio, json, os, asyncpg',
+    'async def main():',
+    "    c = await asyncpg.connect(os.environ['DATABASE_URL'].replace('+asyncpg', ''))",
+    "    rows = await c.fetch('SELECT id, license_verified FROM tafseer_sources WHERE is_enabled = 1')",
+    '    print(json.dumps([dict(r) for r in rows]))',
+    '    await c.close()',
+    'asyncio.run(main())',
+  ].join('\n');
+  const r = spawnSync('python3', ['-c', py], { encoding: 'utf-8', env: process.env, timeout: 20000 });
+  if (r.status !== 0) return { rows: [], error: (r.stderr || r.error?.message || 'query failed').trim().split('\n').pop() };
+  try {
+    return { rows: JSON.parse(r.stdout) as DbSourceRow[] };
+  } catch {
+    return { rows: [], error: 'could not parse query output' };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Duʿā excerpts: verbatim Tanzil Uthmani, one segment per verse of the range
+// ---------------------------------------------------------------------------
+
+const DUA_SEGMENT_SEPARATOR = ' ۝ ';
+
+function checkDuasVerbatim(ayahs: QuranAyah[]): CheckResult {
+  return check('Duʿā Arabic (quranicDuas.ts) is verbatim Tanzil text for its range', () => {
+    const errors: string[] = [];
+    const byKey = new Map(ayahs.map((a) => [`${a.sura_no}:${a.aya_no}`, String(a.aya_text ?? '')]));
+    for (const dua of QURANIC_DUAS) {
+      const last = dua.ayahEnd ?? dua.ayah;
+      const segments = dua.ayatUthmani.split(DUA_SEGMENT_SEPARATOR);
+      const expected = last - dua.ayah + 1;
+      if (segments.length !== expected) {
+        errors.push(`${dua.id}: ${segments.length} segment(s) for ${expected} verse(s) ${dua.surah}:${dua.ayah}-${last}`);
+        continue;
+      }
+      segments.forEach((seg, i) => {
+        const ref = `${dua.surah}:${dua.ayah + i}`;
+        const verse = byKey.get(ref);
+        if (!verse) {
+          errors.push(`${dua.id}: no verse ${ref}`);
+          return;
+        }
+        const at = verse.indexOf(seg);
+        if (!seg.trim() || at === -1) {
+          errors.push(`${dua.id}: segment ${i + 1} is not verbatim text of ${ref}`);
+          return;
+        }
+        const before = at === 0 ? ' ' : verse[at - 1];
+        const after = at + seg.length === verse.length ? ' ' : verse[at + seg.length];
+        if (before !== ' ' || after !== ' ') {
+          errors.push(`${dua.id}: segment ${i + 1} of ${ref} does not start and end on word boundaries`);
+        }
+      });
+    }
+    return { errors, warnings: [] };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Memorisation data: phrases occur where the data says they do
+// ---------------------------------------------------------------------------
+
+/** Letters only (no marks, tatweel, pause signs; alif/ya/ta-marbuta unified). */
+function skeleton(text: string): string {
+  return text
+    .replace(/\uFEFF/g, '')
+    .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640\u06DE\u06E9]/g, '')
+    .replace(/ءا/g, 'ا')
+    .replace(/[ٱأإآ]/g, 'ا')
+    .replace(/[ىئ]/g, 'ي')
+    .replace(/ؤ/g, 'و')
+    .replace(/ة/g, 'ه')
+    .replace(/ء/g, '')
+    .replace(/\s+/g, '');
+}
+
+function checkMemorizationPhrases(ayahs: QuranAyah[]): CheckResult {
+  return check('Memorisation phrases occur in the verses and surahs they cite', () => {
+    const errors: string[] = [];
+    const verseSk = new Map<string, string>();
+    const surahSk = new Map<number, string>();
+    for (const a of ayahs) {
+      const sk = skeleton(String(a.aya_text ?? '')) + '|' + skeleton(String(a.aya_text_emlaey ?? ''));
+      verseSk.set(`${a.sura_no}:${a.aya_no}`, sk);
+      surahSk.set(a.sura_no, (surahSk.get(a.sura_no) ?? '') + '|' + sk);
+    }
+    for (const phrase of REPEATED_PHRASES) {
+      const sk = skeleton(phrase.phraseArabic);
+      if (!sk) {
+        errors.push(`${phrase.id}: empty phrase (missing excerpt key?)`);
+        continue;
+      }
+      for (const occ of phrase.occurrences) {
+        if (!(verseSk.get(`${occ.surah}:${occ.ayah}`) ?? '').includes(sk)) {
+          errors.push(`${phrase.id}: phrase not in ${occ.surah}:${occ.ayah}`);
+        }
+      }
+    }
+    // Quoted vowelled Arabic in the pair notes must come from the surahs compared.
+    const quoted = /"([^"]*[\u064B-\u0652][^"]*[\u064B-\u0652][^"]*)"/g;
+    for (const pair of CONFUSION_PAIRS) {
+      const hay = (surahSk.get(pair.ayahA.surah) ?? '') + (surahSk.get(pair.ayahB.surah) ?? '');
+      const notes = [pair.keyDifference?.ar, pair.memorizerTip?.ar, pair.confusionReason?.ar].join(' ');
+      for (const m of notes.matchAll(quoted)) {
+        if (!hay.includes(skeleton(m[1]))) {
+          errors.push(`${pair.id}: quoted text not found in surah ${pair.ayahA.surah} or ${pair.ayahB.surah}: ${m[1]}`);
+        }
+      }
+    }
+    return { errors, warnings: [] };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Attribution: every view that renders Qur'an text credits Tanzil
+// ---------------------------------------------------------------------------
+
+/** Signs that a component renders Qur'an text. */
+const VERSE_TEXT_PATTERN = /\b(text_uthmani|ayahTextUthmani|firstAyahPreview|lastAyahPreview|ayatUthmani|verseTextFor)\b|quranExcerpt\(/;
+/** Ways a component satisfies the Tanzil attribution requirement. */
+const ATTRIBUTION_PATTERN = /<QuranTextAttribution\b|<LiveVerse\b/;
+
+/**
+ * Views fixed so far: a regression here is an error. Other views are reported
+ * as warnings until their owners add the attribution; move them here then.
+ */
+const ATTRIBUTION_ENFORCED = new Set([
+  'frontend/src/components/home/VerseOfDayCard.tsx',
+  'frontend/src/components/home/WordOfDayCard.tsx',
+  'frontend/src/components/therapy/IslamicPillarsPanel.tsx',
+  'frontend/src/components/therapy/SpiritualGuidanceCard.tsx',
+  'frontend/src/components/therapy/RuqyahGuide.tsx',
+  'frontend/src/pages/DuasPage.tsx',
+  'frontend/src/pages/DhikrPage.tsx',
+  'frontend/src/pages/EmotionalGuidancePage.tsx',
+  'frontend/src/pages/MemorizationLinksPage.tsx',
+  'frontend/src/pages/QuranWondersPage.tsx',
+  'frontend/src/pages/TherapyPage.tsx',
+  'frontend/src/pages/tools/SurahMemoryAtlasPage.tsx',
+  'frontend/src/pages/tools/HajjUmrahGuidePage.tsx',
+  'frontend/src/components/quran/LiveVerse.tsx',
+  'frontend/src/components/quran/QuranTextAttribution.tsx',
+]);
+
+function listTsx(dir: string, out: string[] = []): string[] {
+  for (const name of readdirSync(dir)) {
+    if (name === 'node_modules') continue;
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) listTsx(p, out);
+    else if (p.endsWith('.tsx')) out.push(p);
+  }
+  return out;
+}
+
+function checkQuranAttribution(): CheckResult {
+  return check('Views that render Qur\'an text show the Tanzil attribution', () => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const missing: string[] = [];
+    for (const file of listTsx(join(ROOT, 'frontend/src'))) {
+      const rel = file.slice(ROOT.length + 1);
+      const src = readFileSync(file, 'utf-8');
+      if (!VERSE_TEXT_PATTERN.test(src) || ATTRIBUTION_PATTERN.test(src)) continue;
+      if (ATTRIBUTION_ENFORCED.has(rel)) errors.push(`${rel}: renders Qur'an text without QuranTextAttribution`);
+      else missing.push(rel);
+    }
+    if (missing.length > 0) {
+      warnings.push(`${missing.length} view(s) render Qur'an text without attribution (owned by other workstreams): ${missing.join(', ')}`);
+    }
+    return { errors, warnings };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Qur'an excerpts: generated file matches the canonical text
+// ---------------------------------------------------------------------------
+
+function checkQuranExcerptsCurrent(): CheckResult {
+  return check("Qur'an excerpts (quranExcerpts.json) rebuilt from the canonical text", () => {
+    const errors: string[] = [];
+    const r = spawnSync(process.execPath, [
+      ...process.execArgv,
+      join(ROOT, 'scripts/build-quran-excerpts.ts'),
+      '--check',
+    ], { encoding: 'utf-8', timeout: 60000 });
+    if (r.status !== 0) {
+      errors.push((r.stderr || r.stdout || 'build-quran-excerpts --check failed').trim().split('\n').slice(-3).join(' | '));
+    }
+    return { errors, warnings: [] };
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Run all checks
 // ---------------------------------------------------------------------------
 
@@ -488,6 +792,8 @@ async function main() {
     results.push(checkNoEmptyArabicText(ayahs));
     results.push(checkArabicTextNotEnglish(ayahs));
     results.push(checkAyahCountPerSurah(ayahs));
+    results.push(checkDuasVerbatim(ayahs));
+    results.push(checkMemorizationPhrases(ayahs));
   } else if (existsSync(QURAN_JSON_PATH)) {
     results.push({
       name: 'Quran data loaded',
@@ -502,6 +808,7 @@ async function main() {
   if (tafsirManifest) {
     results.push(checkTafsirSourcesHaveIds(tafsirManifest));
     results.push(checkTafsirSourceRequiredFields(tafsirManifest));
+    results.push(checkTafsirLicenceCrossCheck(tafsirManifest));
   } else {
     results.push({
       name: 'Tafsir sources manifest',
@@ -510,6 +817,10 @@ async function main() {
       warnings: [],
     });
   }
+
+  // --- Generated Qur'an excerpts and their attribution ---
+  results.push(checkQuranExcerptsCurrent());
+  results.push(checkQuranAttribution());
 
   // --- Source registry checks ---
   results.push(checkSourceRegistryRequiredFields());

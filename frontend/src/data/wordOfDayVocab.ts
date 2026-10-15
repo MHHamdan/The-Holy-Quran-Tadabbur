@@ -8,6 +8,7 @@
  * definitions. Each entry must have a sourceId from the trusted source list.
  */
 
+import { quranExcerpt } from '../utils/quranExcerpt';
 export interface VocabEntry {
   id: string;
   arabic: string;
@@ -134,7 +135,7 @@ export const WORD_OF_DAY_VOCAB: readonly VocabEntry[] = [
     simpleMeaningEn: 'remembrance, mention',
     simpleMeaningAr: 'الذكر والتذكّر',
     contextualNoteEn: 'Dhikr is also one of the Quran\'s own names ("We sent down the Dhikr, and We will guard it" — 15:9).',
-    contextualNoteAr: 'الذكر أيضاً من أسماء القرآن الكريم (إنا نحن نزّلنا الذكر وإنا له لحافظون — 15:9).',
+    contextualNoteAr: `الذكر أيضاً من أسماء القرآن الكريم (${quranExcerpt('15:9')} — 15:9).`,
     exampleSurah: 13,
     exampleAyah: 28,
     exampleSurahNameEn: 'Ar-Ra\'d',
@@ -172,7 +173,7 @@ export const WORD_OF_DAY_VOCAB: readonly VocabEntry[] = [
     simpleMeaningEn: 'guidance',
     simpleMeaningAr: 'الهداية والإرشاد',
     contextualNoteEn: 'The Quran opens by describing itself as "hudā lil-muttaqīn" (guidance for the God-conscious). Hudā implies being led to the right path.',
-    contextualNoteAr: 'القرآن يصف نفسه "هُدىً لِّلْمُتَّقِينَ" — الهداية توصيل إلى الصراط المستقيم.',
+    contextualNoteAr: `القرآن يصف نفسه "${quranExcerpt('2:2#8-9')}" — الهداية توصيل إلى الصراط المستقيم.`,
     exampleSurah: 2,
     exampleAyah: 2,
     exampleSurahNameEn: 'Al-Baqarah',
@@ -248,7 +249,7 @@ export const WORD_OF_DAY_VOCAB: readonly VocabEntry[] = [
     simpleMeaningEn: 'gratitude, thankfulness',
     simpleMeaningAr: 'الشكر والامتنان',
     contextualNoteEn: '"If you are grateful, I will increase you" (14:7) — shukr in the Quran is both verbal praise and active acknowledgement.',
-    contextualNoteAr: '"لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ" (14:7) — الشكر ثناء بالقلب واللسان والعمل.',
+    contextualNoteAr: `"${quranExcerpt('14:7#4-6')}" (14:7) — الشكر ثناء بالقلب واللسان والعمل.`,
     exampleSurah: 14,
     exampleAyah: 7,
     exampleSurahNameEn: 'Ibrahim',
@@ -286,7 +287,7 @@ export const WORD_OF_DAY_VOCAB: readonly VocabEntry[] = [
     simpleMeaningEn: 'trust, moral responsibility',
     simpleMeaningAr: 'الأمانة والمسؤولية',
     contextualNoteEn: '"We offered the Trust to the heavens and earth… man undertook it" (33:72). Amānah is the moral responsibility of conscious choice.',
-    contextualNoteAr: '"إِنَّا عَرَضْنَا الْأَمَانَةَ عَلَى السَّمَاوَاتِ وَالْأَرْضِ... وَحَمَلَهَا الْإِنسَانُ" (33:72).',
+    contextualNoteAr: `"${quranExcerpt('33:72#1-6')} ... ${quranExcerpt('33:72#13-14')}" (33:72).`,
     exampleSurah: 33,
     exampleAyah: 72,
     exampleSurahNameEn: 'Al-Aḥzab',
@@ -305,7 +306,7 @@ export const WORD_OF_DAY_VOCAB: readonly VocabEntry[] = [
     simpleMeaningEn: 'reverential awe, fear born of knowledge',
     simpleMeaningAr: 'الخشية والهيبة المصحوبة بالمعرفة',
     contextualNoteEn: '"Only those with knowledge (al-ʿulamāʾ) truly fear (yakhshā) Allah" (35:28). Khashyah is awe rooted in knowing who Allah is.',
-    contextualNoteAr: '"إِنَّمَا يَخْشَى اللَّهَ مِنْ عِبَادِهِ الْعُلَمَاءُ" (35:28). الخشية خوف مصحوب بالمعرفة.',
+    contextualNoteAr: `"${quranExcerpt('35:28#9-14')}" (35:28). الخشية خوف مصحوب بالمعرفة.`,
     exampleSurah: 35,
     exampleAyah: 28,
     exampleSurahNameEn: 'Fatir',
@@ -400,7 +401,7 @@ export const WORD_OF_DAY_VOCAB: readonly VocabEntry[] = [
     simpleMeaningEn: 'decree, divine measure',
     simpleMeaningAr: 'القدر والتقدير الإلهي',
     contextualNoteEn: 'Qadar is not fatalism — it is divine precision. "We created everything in measure (bi-qadar)" (54:49).',
-    contextualNoteAr: '"إِنَّا كُلَّ شَيْءٍ خَلَقْنَاهُ بِقَدَرٍ" (54:49) — الكون لا يجري بالصدفة.',
+    contextualNoteAr: `"${quranExcerpt('54:49')}" (54:49) — الكون لا يجري بالصدفة.`,
     exampleSurah: 97,
     exampleAyah: 1,
     exampleSurahNameEn: 'Al-Qadr',
@@ -457,7 +458,7 @@ export const WORD_OF_DAY_VOCAB: readonly VocabEntry[] = [
     simpleMeaningEn: 'heedlessness, spiritual negligence',
     simpleMeaningAr: 'الغفلة والسهو عن الحق',
     contextualNoteEn: 'Ghaflah is the opposite of dhikr — turning away from remembrance. "Do not be among the heedless (ghāfilīn)" (7:205).',
-    contextualNoteAr: '"وَلَا تَكُن مِّنَ الْغَافِلِينَ" (7:205). الغفلة نقيض الذكر.',
+    contextualNoteAr: `"${quranExcerpt('7:205#13-16')}" (7:205). الغفلة نقيض الذكر.`,
     exampleSurah: 7,
     exampleAyah: 205,
     exampleSurahNameEn: 'Al-Aʿrāf',
@@ -552,7 +553,7 @@ export const WORD_OF_DAY_VOCAB: readonly VocabEntry[] = [
     simpleMeaningEn: 'justice, equity',
     simpleMeaningAr: 'العدل والإنصاف',
     contextualNoteEn: '"Allah commands justice (al-ʿadl), kindness, and giving to relatives" (16:90). ʿAdl is placing everything in its rightful position.',
-    contextualNoteAr: '"إِنَّ اللَّهَ يَأْمُرُ بِالْعَدْلِ وَالْإِحْسَانِ" (16:90). العدل إعطاء كل ذي حق حقه.',
+    contextualNoteAr: `"${quranExcerpt('16:90#2-6')}" (16:90). العدل إعطاء كل ذي حق حقه.`,
     exampleSurah: 16,
     exampleAyah: 90,
     exampleSurahNameEn: 'An-Naḥl',

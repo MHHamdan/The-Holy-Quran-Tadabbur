@@ -427,11 +427,17 @@ class TestTafsirLLMEndpoints:
         async def boom(**_):
             raise RuntimeError("internal detail hf_secret_value")
 
+        async def grounding(session, sura, aya, source_id):
+            return "verse", "tafsir"
+
         monkeypatch.setattr(tafseer.tafsir_llm_service, "explain_word", boom)
+        monkeypatch.setattr(tafseer, "_load_grounding", grounding)
         monkeypatch.setattr(tafseer, "get_hybrid_cache", lambda: SimpleNamespace(
             get=AsyncMock(return_value=None), set=AsyncMock()))
-        req = tafseer.LLMExplainWordRequest(word="الصمد", verse_text="الله الصمد", language="en")
-        r = await tafseer.explain_word(req)
+        # Requests carry identifiers only; the server loads verse and tafsir text.
+        req = tafseer.LLMExplainWordRequest(
+            sura=112, aya=2, source_id="muyassar_ar", word="الصمد", language="en")
+        r = await tafseer.explain_word(req, session=None)
         assert r.ok is False and "internal detail" not in (r.error or "")
 
 

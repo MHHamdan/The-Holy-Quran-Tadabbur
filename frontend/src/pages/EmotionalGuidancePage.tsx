@@ -15,6 +15,8 @@ import { Heart, ChevronRight, ArrowLeft, BookOpen } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { SURAH_NAMES } from '../data/surahNames';
+import { quranExcerpt } from '../utils/quranExcerpt';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 
 interface EmotionalState {
   id: string;
@@ -52,10 +54,10 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     quranResponseEn: 'The Quran addresses anxiety through three therapeutic lenses: divine knowledge (Allah knows every fear — 2:255 Ayat al-Kursi), divine control (nothing happens without His permission — 64:11), and the promise of relief (ease is inherent in hardship, simultaneously — 94:5-6). The prescription is explicit in 13:28: remembrance (dhikr) is the Quranic antidote for a restless heart — not a metaphor, but a theological and practical prescription with 14 centuries of Islamic spiritual psychology behind it.',
     quranResponseAr: 'يعالج القرآن القلق من ثلاثة محاور علاجية: المعرفة الإلهية (الله يعلم كل خوف — 2:255 آية الكرسي)، والسيطرة الإلهية (لا شيء يقع إلا بإذنه — 64:11)، ووعد الفرج (اليسر ملازم للعسر في آنٍ معاً — 94:5-6). والوصفة صريحة في 13:28: ذكر الله هو ترياق القرآن للقلب المضطرب — ليس مجازاً، بل منهج روحي وعلمي موثَّق في علم النفس الإسلامي على مدى أربعة عشر قرناً.',
     surahs: [
-      { surah: 13, reasonEn: 'Ar-Ra\'d: "Verily, in the remembrance of Allah do hearts find rest" (13:28)', reasonAr: 'الرعد: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ" (13:28)' },
-      { surah: 94, reasonEn: 'Ash-Sharh: "With hardship comes ease" (94:5-6)', reasonAr: 'الشرح: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا" (94:5-6)' },
-      { surah: 65, reasonEn: 'At-Talaq: "Allah will bring ease after hardship" (65:7)', reasonAr: 'الطلاق: "سَيَجْعَلُ اللَّهُ بَعْدَ عُسْرٍ يُسْرًا" (65:7)' },
-      { surah: 2, reasonEn: 'Al-Baqarah: "Allah does not burden a soul beyond its capacity" (2:286)', reasonAr: 'البقرة: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا" (2:286)' },
+      { surah: 13, reasonEn: 'Ar-Ra\'d: "Verily, in the remembrance of Allah do hearts find rest" (13:28)', reasonAr: `الرعد: "${quranExcerpt('13:28#8-12')}" (13:28)` },
+      { surah: 94, reasonEn: 'Ash-Sharh: "With hardship comes ease" (94:5-6)', reasonAr: `الشرح: "${quranExcerpt('94:5')}" (94:5-6)` },
+      { surah: 65, reasonEn: 'At-Talaq: "Allah will bring ease after hardship" (65:7)', reasonAr: `الطلاق: "${quranExcerpt('65:7#24-28')}" (65:7)` },
+      { surah: 2, reasonEn: 'Al-Baqarah: "Allah does not burden a soul beyond its capacity" (2:286)', reasonAr: `البقرة: "${quranExcerpt('2:286#1-6')}" (2:286)` },
     ],
     duaRoute: '/duas',
     duaLabelEn: 'Prayer Against Unbearable Burden (2:286)',
@@ -65,7 +67,7 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     themeLabelAr: 'استكشف: موضوع التوكل على الله',
     affirmatioVerseRef: '13:28',
     affirmationEn: 'Indeed, in the remembrance of Allah do hearts find rest.',
-    affirmationAr: 'أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ',
+    affirmationAr: quranExcerpt('13:28#8-12'),
     keyRefEn: '13:28 — Surah Ar-Ra\'d',
     keyRefAr: '13:28 — سورة الرعد',
     hadithEn: '"Make things easy, do not make them difficult. Give glad tidings, do not repel people." — Bukhari 69. And: "There is no disease that Allah has created except that He has also created its treatment." — Bukhari 5678',
@@ -84,7 +86,7 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     surahs: [
       { surah: 93, reasonEn: 'Ad-Duha: Revelation of divine care in the Prophet\'s ﷺ period of grief (93:1-11)', reasonAr: 'الضحى: وحي الرعاية الإلهية في فترة حزن النبي ﷺ (93:1-11)' },
       { surah: 12, reasonEn: 'Yusuf: Beautiful patience in the face of profound loss', reasonAr: 'يوسف: الصبر الجميل أمام الخسارة العميقة' },
-      { surah: 39, reasonEn: 'Az-Zumar: "Do not despair of Allah\'s mercy" (39:53)', reasonAr: 'الزمر: "لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ" (39:53)' },
+      { surah: 39, reasonEn: 'Az-Zumar: "Do not despair of Allah\'s mercy" (39:53)', reasonAr: `الزمر: "${quranExcerpt('39:53#9-13')}" (39:53)` },
       { surah: 21, reasonEn: "Al-Anbiya: Ayyub's patience in loss and illness", reasonAr: 'الأنبياء: صبر أيوب في الخسارة والمرض' },
     ],
     duaRoute: '/duas',
@@ -95,11 +97,11 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     themeLabelAr: 'استكشف: موضوع الصبر',
     affirmatioVerseRef: '93:5',
     affirmationEn: 'And your Lord is going to give you, and you will be satisfied.',
-    affirmationAr: 'وَلَسَوْفَ يُعْطِيكَ رَبُّكَ فَتَرْضَىٰ',
+    affirmationAr: quranExcerpt('93:5'),
     keyRefEn: '93:5 — Surah Ad-Duha',
     keyRefAr: '93:5 — سورة الضحى',
     hadithEn: '"When a person says Inna lillahi wa inna ilayhi raji\'un at the time of a calamity, Allah blesses him with something better than what he lost." — Sahih Muslim 918',
-    hadithAr: '"ما من عبد تصيبه مصيبة فيقول: إنا لله وإنا إليه راجعون، إلا أثابه الله خيراً منها." — صحيح مسلم 918',
+    hadithAr: `"ما من عبد تصيبه مصيبة فيقول: ${quranExcerpt('2:156#6-10')}، إلا أثابه الله خيراً منها." — صحيح مسلم 918`,
     scholarlySrcEn: 'Ibn Kathir Tafsir (93); Ibn al-Jawzi, Sayd al-Khatir (on grief and consolation); Al-Ghazali, Ihya (Book of Patience and Gratitude)',
     scholarlySrcAr: 'تفسير ابن كثير (93)؛ ابن الجوزي، صيد الخاطر (في الحزن والعزاء)؛ الغزالي، إحياء علوم الدين (كتاب الصبر والشكر)',
   },
@@ -110,12 +112,12 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     emoji: '😔',
     color: 'emerald',
     quranResponseEn: 'The Quran issues a direct divine prohibition against despair. In 39:53 Allah addresses "My servants who have transgressed against themselves" — those who feel most unworthy — with the command never to despair. In 12:87 Prophet Yaqub tells his sons: "Do not despair of Allah\'s relief — only the disbelieving people despair." Despair (ya\'s) is framed as a theological error. The story of Yusuf demonstrates hope across decades of trial: thrown in a well, enslaved, imprisoned — then exalted as a ruler. The timeline of divine plans stretches far beyond any human moment of despair.',
-    quranResponseAr: 'يُصدر القرآن نهياً إلهياً صريحاً عن القنوط. تُخاطب الآية 39:53 "يا عبادي الذين أسرفوا على أنفسهم" — أي من يشعرون بأنهم الأقل استحقاقاً — بالأمر الصريح بألا يقنطوا. وفي 12:87 يقول يعقوب لأبنائه: "لا تيأسوا من روح الله — إنه لا ييأس من روح الله إلا القوم الكافرون." القنوط في هذا الإطار خطأ عقدي. تُثبت قصة يوسف صمود الأمل عبر عقود من الابتلاء: ألقي في البئر، واسترقّ، وسُجن — ثم نُصِّب حاكماً. أفق المشيئة الإلهية يمتد أبعد بكثير من أي لحظة قنوط إنسانية.',
+    quranResponseAr: `يُصدر القرآن نهياً إلهياً صريحاً عن القنوط. تُخاطب الآية 39:53 "${quranExcerpt('39:53#3-8')}" — أي من يشعرون بأنهم الأقل استحقاقاً — بالأمر الصريح بألا يقنطوا. وفي 12:87 يقول يعقوب لأبنائه: "${quranExcerpt('12:87#8-12')} — ${quranExcerpt('12:87#14-22')}." القنوط في هذا الإطار خطأ عقدي. تُثبت قصة يوسف صمود الأمل عبر عقود من الابتلاء: ألقي في البئر، واسترقّ، وسُجن — ثم نُصِّب حاكماً. أفق المشيئة الإلهية يمتد أبعد بكثير من أي لحظة قنوط إنسانية.`,
     surahs: [
-      { surah: 39, reasonEn: "Az-Zumar: 'Do not despair of Allah's mercy; He forgives all sins' (39:53)", reasonAr: "الزمر: 'لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا' (39:53)" },
-      { surah: 94, reasonEn: 'Ash-Sharh: After every hardship comes ease — twice (94:5-6)', reasonAr: 'الشرح: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا" مرتين (94:5-6)' },
+      { surah: 39, reasonEn: "Az-Zumar: 'Do not despair of Allah's mercy; He forgives all sins' (39:53)", reasonAr: `الزمر: '${quranExcerpt('39:53#9-19')}' (39:53)` },
+      { surah: 94, reasonEn: 'Ash-Sharh: After every hardship comes ease — twice (94:5-6)', reasonAr: `الشرح: "${quranExcerpt('94:5')}" مرتين (94:5-6)` },
       { surah: 12, reasonEn: 'Yusuf: The revelation that hope persists through decades of trial', reasonAr: 'يوسف: البيان بأن الأمل يدوم رغم عقود من الابتلاء' },
-      { surah: 65, reasonEn: 'At-Talaq: "Whoever trusts in Allah — He is sufficient for him" (65:3)', reasonAr: 'الطلاق: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ" (65:3)' },
+      { surah: 65, reasonEn: 'At-Talaq: "Whoever trusts in Allah — He is sufficient for him" (65:3)', reasonAr: `الطلاق: "${quranExcerpt('65:3#7-12')}" (65:3)` },
     ],
     duaRoute: '/duas',
     duaLabelEn: "Yunus's Prayer in Darkness (21:87)",
@@ -125,7 +127,7 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     themeLabelAr: 'استكشف: موضوع الرجاء',
     affirmatioVerseRef: '39:53',
     affirmationEn: "Do not despair of the mercy of Allah. Indeed, Allah forgives all sins.",
-    affirmationAr: 'لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا',
+    affirmationAr: quranExcerpt('39:53#9-19'),
     keyRefEn: '39:53 — Surah Az-Zumar',
     keyRefAr: '39:53 — سورة الزمر',
     hadithEn: 'Allah says: "I am with My servant\'s expectation of Me, so let him think of Me as he wishes." — Bukhari 7405 (Hadith Qudsi). The divine promise: your hope in Allah is always justified.',
@@ -140,12 +142,12 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     emoji: '😞',
     color: 'rose',
     quranResponseEn: 'The Quran frames repentance as "tawbah" — returning, not punishment-seeking. Allah calls Himself "al-Tawwab" (2:37, 2:128) — the Ever-Returning — meaning He turns toward you as you turn toward Him. The story of Adam and Eve (7:23) models the Quranic path: honest acknowledgment, direct appeal for mercy, and trust in divine forgiveness — and they received both mercy and purpose. No sin exceeds divine mercy (39:53). The only closing of the door is persistent rejection of faith itself, which is why 39:53 is addressed specifically to those who "have transgressed against themselves" — the most burdened of hearts.',
-    quranResponseAr: 'يُصوِّر القرآن التوبة بوصفها رجوعاً، لا طلب عقاب. يُسمّي الله نفسه "التواب" (2:37، 2:128) — الكثير العفو — أي أنه يتوب عليك كما تتوب إليه. تُجسّد قصة آدم وحواء (7:23) مسار التوبة القرآني: إقرار صادق بالتقصير، ولجوء مباشر لطلب الرحمة، وثقة بالعفو الإلهي — فنالا المغفرة والرسالة معاً. لا ذنب يتجاوز رحمة الله (39:53). الباب لا يُغلق إلا بالإصرار على رد الإيمان ذاته، وهذا يفسّر لماذا تُخاطب الآية 39:53 بالذات "الذين أسرفوا على أنفسهم" — أشد القلوب ثقلاً.',
+    quranResponseAr: `يُصوِّر القرآن التوبة بوصفها رجوعاً، لا طلب عقاب. يُسمّي الله نفسه "التواب" (2:37، 2:128) — الكثير العفو — أي أنه يتوب عليك كما تتوب إليه. تُجسّد قصة آدم وحواء (7:23) مسار التوبة القرآني: إقرار صادق بالتقصير، ولجوء مباشر لطلب الرحمة، وثقة بالعفو الإلهي — فنالا المغفرة والرسالة معاً. لا ذنب يتجاوز رحمة الله (39:53). الباب لا يُغلق إلا بالإصرار على رد الإيمان ذاته، وهذا يفسّر لماذا تُخاطب الآية 39:53 بالذات "${quranExcerpt('39:53#5-8')}" — أشد القلوب ثقلاً.`,
     surahs: [
       { surah: 9, reasonEn: 'At-Tawbah: The entire chapter is about turning back to Allah', reasonAr: 'التوبة: السورة كلها عن الرجوع إلى الله' },
-      { surah: 4, reasonEn: 'An-Nisa: "Whoever does wrong and seeks forgiveness will find Allah Forgiving" (4:110)', reasonAr: 'النساء: "وَمَن يَعْمَلْ سُوءًا أَوْ يَظْلِمْ نَفْسَهُ ثُمَّ يَسْتَغْفِرِ اللَّهَ يَجِدِ اللَّهَ غَفُورًا رَّحِيمًا" (4:110)' },
+      { surah: 4, reasonEn: 'An-Nisa: "Whoever does wrong and seeks forgiveness will find Allah Forgiving" (4:110)', reasonAr: `النساء: "${quranExcerpt('4:110')}" (4:110)` },
       { surah: 7, reasonEn: "Al-A'raf: Adam & Eve's first repentance — the model for all human remorse", reasonAr: "الأعراف: توبة آدم وحواء — النموذج الأول للندم الإنساني" },
-      { surah: 42, reasonEn: 'Ash-Shura: "He accepts repentance from His servants" (42:25)', reasonAr: 'الشورى: "وَهُوَ الَّذِي يَقْبَلُ التَّوْبَةَ عَنْ عِبَادِهِ" (42:25)' },
+      { surah: 42, reasonEn: 'Ash-Shura: "He accepts repentance from His servants" (42:25)', reasonAr: `الشورى: "${quranExcerpt('42:25#1-6')}" (42:25)` },
     ],
     duaRoute: '/duas',
     duaLabelEn: "Adam & Eve's Repentance (7:23)",
@@ -155,7 +157,7 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     themeLabelAr: 'استكشف: موضوع التوبة',
     affirmatioVerseRef: '39:53',
     affirmationEn: "Say, 'O My servants who have transgressed against themselves — do not despair of Allah's mercy.'",
-    affirmationAr: 'قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ',
+    affirmationAr: quranExcerpt('39:53#2-13'),
     keyRefEn: "7:23 — Surah Al-A'raf (Adam's repentance model)",
     keyRefAr: 'سورة الأعراف (نموذج توبة آدم) — 7:23',
     hadithEn: 'Allah says: "O son of Adam, so long as you call upon Me and hope in Me, I will forgive you no matter what you have done. O son of Adam, if your sins reached the clouds of the sky and you sought My forgiveness, I would forgive you." — Tirmidhi 3540 (Hadith Qudsi)',
@@ -170,12 +172,12 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     emoji: '😊',
     color: 'amber',
     quranResponseEn: 'Gratitude in the Quran carries cosmic weight: "If you are grateful, I will surely increase you" (14:7) is a direct divine economic principle, not merely a suggestion. Surah Al-Rahman (55) repeats "Which of your Lord\'s favors will you deny?" 31 times — a structured meditation on gratitude spanning creation, provision, knowledge, mercy, and paradise. The word "hamd" (praise-gratitude) opens the Quran itself (1:2), making every recitation of Al-Fatihah an act of gratitude. Classical Islamic scholars define shukr as three-part: recognizing the blessing, attributing it to the giver, and expressing it with heart, tongue, and action.',
-    quranResponseAr: 'الشكر في القرآن ذو ثقل كوني: "لئن شكرتم لأزيدنكم" (14:7) مبدأ إلهي مباشر، لا مجرد توصية. وتُكرّر سورة الرحمن (55) "فبأي آلاء ربكما تكذبان" 31 مرة — تأملاً منهجياً في الشكر يشمل الخلق والرزق والعلم والرحمة والجنة. وتفتتح الحمد القرآن ذاته (1:2)، فكل قراءة للفاتحة عبادة شكر. يُعرِّف العلماء الكلاسيكيون الشكر بثلاثة أجزاء: الاعتراف بالنعمة، وردّها إلى المنعم، والتعبير عنها بالقلب واللسان والجوارح.',
+    quranResponseAr: `الشكر في القرآن ذو ثقل كوني: "${quranExcerpt('14:7#4-6')}" (14:7) مبدأ إلهي مباشر، لا مجرد توصية. وتُكرّر سورة الرحمن (55) "${quranExcerpt('55:13')}" 31 مرة — تأملاً منهجياً في الشكر يشمل الخلق والرزق والعلم والرحمة والجنة. وتفتتح الحمد القرآن ذاته (1:2)، فكل قراءة للفاتحة عبادة شكر. يُعرِّف العلماء الكلاسيكيون الشكر بثلاثة أجزاء: الاعتراف بالنعمة، وردّها إلى المنعم، والتعبير عنها بالقلب واللسان والجوارح.`,
     surahs: [
-      { surah: 55, reasonEn: 'Ar-Rahman: A chapter of pure gratitude — "Which of your Lord\'s favors do you deny?"', reasonAr: 'الرحمن: سورة الامتنان الخالص — "فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ"' },
-      { surah: 14, reasonEn: "Ibrahim: 'If you are grateful, I will surely increase you' (14:7)", reasonAr: "إبراهيم: 'لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ' (14:7)" },
+      { surah: 55, reasonEn: 'Ar-Rahman: A chapter of pure gratitude — "Which of your Lord\'s favors do you deny?"', reasonAr: `الرحمن: سورة الامتنان الخالص — "${quranExcerpt('55:77')}"` },
+      { surah: 14, reasonEn: "Ibrahim: 'If you are grateful, I will surely increase you' (14:7)", reasonAr: `إبراهيم: '${quranExcerpt('14:7#4-6')}' (14:7)` },
       { surah: 1, reasonEn: 'Al-Fatihah: The opening of gratitude — al-Ḥamd lillāh', reasonAr: 'الفاتحة: بداية الحمد — الحمد لله' },
-      { surah: 93, reasonEn: "Ad-Duha: 'As for the favor of your Lord, proclaim it' (93:11)", reasonAr: "الضحى: 'وَأَمَّا بِنِعْمَةِ رَبِّكَ فَحَدِّثْ' (93:11)" },
+      { surah: 93, reasonEn: "Ad-Duha: 'As for the favor of your Lord, proclaim it' (93:11)", reasonAr: `الضحى: '${quranExcerpt('93:11')}' (93:11)` },
     ],
     duaRoute: '/duas',
     duaLabelEn: 'Prayer to Be Grateful (Sulayman, 27:19)',
@@ -185,7 +187,7 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     themeLabelAr: 'استكشف: موضوع الشكر والحمد',
     affirmatioVerseRef: '14:7',
     affirmationEn: 'If you are grateful, I will surely increase you in favor.',
-    affirmationAr: 'لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ',
+    affirmationAr: quranExcerpt('14:7#4-6'),
     keyRefEn: '14:7 — Surah Ibrahim (the promise of increase)',
     keyRefAr: '14:7 — سورة إبراهيم (وعد الزيادة)',
     hadithEn: '"Alhamdulillah (All praise is due to Allah) fills the scale." — Sahih Muslim 223. And: "He who does not thank people has not thanked Allah." — Abu Dawud 4811, Tirmidhi 1954',
@@ -200,10 +202,10 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     emoji: '😤',
     color: 'orange',
     quranResponseEn: 'The Quran elevates anger management as a mark of taqwa: "al-kadhimin al-ghayth" (those who contain their rage, 3:134) are among the muttaqin (God-conscious). The Arabic "kadhim" means to contain or swallow — the anger may exist, but its expression is governed. The Quran documents Musa\'s anger (7:150-154) not to condemn it, but to show a prophet processing and channelling intense emotion authentically. The spiritual prescription offered is seeking refuge from Shaytan (7:200-201) — acknowledging that anger is often externally triggered and can be addressed at its spiritual root.',
-    quranResponseAr: 'يرفع القرآن إدارة الغضب إلى مرتبة التقوى: "والكاظمين الغيظ" (3:134) من المتقين. "الكاظم" يعني من يحبس ويُمسك — الغضب قد يكون، لكن ضبطه هو العبادة. يُوثّق القرآن غضب موسى (7:150-154) لا لإدانته، بل ليُريك نبياً يعالج مشاعر حادة ويُوجّهها بصدق. والعلاج الروحي المقدَّم هو الاستعاذة من الشيطان (7:200-201) — إدراكاً لأن الغضب كثيراً ما يُغذّيه مُحرّك خارجي يمكن معالجته من جذره الروحي.',
+    quranResponseAr: `يرفع القرآن إدارة الغضب إلى مرتبة التقوى: "${quranExcerpt('3:134#6-7')}" (3:134) من المتقين. "الكاظم" يعني من يحبس ويُمسك — الغضب قد يكون، لكن ضبطه هو العبادة. يُوثّق القرآن غضب موسى (7:150-154) لا لإدانته، بل ليُريك نبياً يعالج مشاعر حادة ويُوجّهها بصدق. والعلاج الروحي المقدَّم هو الاستعاذة من الشيطان (7:200-201) — إدراكاً لأن الغضب كثيراً ما يُغذّيه مُحرّك خارجي يمكن معالجته من جذره الروحي.`,
     surahs: [
-      { surah: 3, reasonEn: "Ali 'Imran: 'Those who suppress their anger and pardon people — Allah loves the doers of good' (3:134)", reasonAr: "آل عمران: 'وَالْكَاظِمِينَ الْغَيْظَ وَالْعَافِينَ عَنِ النَّاسِ ۗ وَاللَّهُ يُحِبُّ الْمُحْسِنِينَ' (3:134)" },
-      { surah: 42, reasonEn: "Ash-Shura: 'And those who avoid major sins... and when they are angry, they forgive' (42:37)", reasonAr: "الشورى: 'وَالَّذِينَ يَجْتَنِبُونَ كَبَائِرَ الْإِثْمِ... وَإِذَا مَا غَضِبُوا هُمْ يَغْفِرُونَ' (42:37)" },
+      { surah: 3, reasonEn: "Ali 'Imran: 'Those who suppress their anger and pardon people — Allah loves the doers of good' (3:134)", reasonAr: `آل عمران: '${quranExcerpt('3:134#6-14')}' (3:134)` },
+      { surah: 42, reasonEn: "Ash-Shura: 'And those who avoid major sins... and when they are angry, they forgive' (42:37)", reasonAr: `الشورى: '${quranExcerpt('42:37#1-4')}... وَإِذَا مَا غَضِبُوا هُمْ يَغْفِرُونَ' (42:37)` },
       { surah: 7, reasonEn: "Al-A'raf: Musa's anger and how he channelled it (7:150-154)", reasonAr: "الأعراف: غضب موسى وكيف وجّهه (7:150-154)" },
       { surah: 16, reasonEn: 'An-Nahl: Patience is better than revenge (16:126)', reasonAr: 'النحل: والصبر خير لمن صبر (16:126)' },
     ],
@@ -215,7 +217,7 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     themeLabelAr: 'استكشف: موضوع الحلم',
     affirmatioVerseRef: '3:134',
     affirmationEn: 'Those who suppress their anger and pardon people — Allah loves the doers of good.',
-    affirmationAr: 'وَالْكَاظِمِينَ الْغَيْظَ وَالْعَافِينَ عَنِ النَّاسِ ۗ وَاللَّهُ يُحِبُّ الْمُحْسِنِينَ',
+    affirmationAr: quranExcerpt('3:134#6-14'),
     keyRefEn: '3:134 — Surah Ali \'Imran (those who contain anger)',
     keyRefAr: '3:134 — سورة آل عمران (كاظمو الغيظ)',
     hadithEn: '"The strong person is not the one who defeats others in wrestling, but the one who controls himself when angry." — Bukhari 6114. And: "If one of you becomes angry while standing, let him sit; if the anger does not leave, let him lie down." — Abu Dawud 4782',
@@ -230,7 +232,7 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     emoji: '😶',
     color: 'teal',
     quranResponseEn: 'Three Quranic verses establish divine presence at escalating levels of intimacy: 57:4 ("He is with you wherever you are"), 58:7 ("He is with them wherever they are"), and 50:16 ("closer to him than his jugular vein"). The last verse refers to Allah\'s awareness even of your thoughts before you articulate them. A Hadith Qudsi (Bukhari 7405) makes this intimate: "I am with My servant when he thinks of Me." The Quran also offers human community as a spiritual anchor: "Hold fast to the rope of Allah together" (3:103) — isolation is the exception, not the default Islamic state.',
-    quranResponseAr: 'تُرسي ثلاث آيات قرآنية الحضور الإلهي بمستويات متصاعدة من القرب: 57:4 ("وهو معكم أين ما كنتم")، 58:7 ("هو معهم أين ما كانوا")، 50:16 ("أقرب إليه من حبل الوريد"). تُشير الآية الأخيرة إلى أن الله يُدرك أفكارك قبل أن تُعبّر عنها. ويُجسّد الحديث القدسي (البخاري 7405) هذا القرب: "أنا مع عبدي حين يذكرني." ويُقدّم القرآن الجماعة ملاذاً روحياً: "واعتصموا بحبل الله جميعاً" (3:103) — العزلة استثناء، لا قاعدة في الإسلام.',
+    quranResponseAr: `تُرسي ثلاث آيات قرآنية الحضور الإلهي بمستويات متصاعدة من القرب: 57:4 ("${quranExcerpt('57:4#30-34')}")، 58:7 ("${quranExcerpt('58:7#33-37')}")، 50:16 ("${quranExcerpt('50:16#11-15')}"). تُشير الآية الأخيرة إلى أن الله يُدرك أفكارك قبل أن تُعبّر عنها. ويُجسّد الحديث القدسي (البخاري 7405) هذا القرب: "أنا مع عبدي حين يذكرني." ويُقدّم القرآن الجماعة ملاذاً روحياً: "${quranExcerpt('3:103#1-4')}" (3:103) — العزلة استثناء، لا قاعدة في الإسلام.`,
     surahs: [
       { surah: 50, reasonEn: 'Qaf: "We are closer to him than his jugular vein" (50:16)', reasonAr: 'ق: "وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ" (50:16)' },
       { surah: 58, reasonEn: 'Al-Mujadila: "He is with them wherever they are" (58:7)', reasonAr: 'المجادلة: "هُوَ مَعَهُمْ أَيْنَ مَا كَانُوا" (58:7)' },
@@ -260,12 +262,12 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     emoji: '😩',
     color: 'purple',
     quranResponseEn: 'The Quran\'s guarantee in 2:286 ("Allah does not burden a soul beyond its capacity") is a divine constitutional principle, not merely consolation. Whatever you carry, the Quran declares by divine authority that your capacity matches your burden — even when you cannot feel it. Surah Ash-Sharh (94) uses the Arabic "ma\'" (WITH, not "ba\'d" = AFTER): ease is simultaneous with hardship, inherent within it, not deferred. Verse 20:2 establishes that the Quran was not revealed to cause you distress — difficulty in practice signals something is misapplied, not that the path is wrong.',
-    quranResponseAr: 'الضمانة في 2:286 ("لا يُكلّف الله نفساً إلا وسعها") مبدأ إلهي دستوري، لا مجرد عزاء. مهما حملت، يُقرّ القرآن بسلطة إلهية أن طاقتك تُوازي حملك — حتى حين لا تحسّ ذلك. وتستخدم سورة الشرح (94) حرف "مع" لا "بعد": اليسر مصاحب للعسر في آنٍ معاً، كامن فيه، لا مُؤجَّل إلى ما بعده. وتؤسّس الآية 20:2 أن القرآن لم يُنزَل لتشقى — صعوبة الممارسة إشارة إلى خلل في التطبيق، لا في المنهج.',
+    quranResponseAr: `الضمانة في 2:286 ("${quranExcerpt('2:286#1-6')}") مبدأ إلهي دستوري، لا مجرد عزاء. مهما حملت، يُقرّ القرآن بسلطة إلهية أن طاقتك تُوازي حملك — حتى حين لا تحسّ ذلك. وتستخدم سورة الشرح (94) حرف "مع" لا "بعد": اليسر مصاحب للعسر في آنٍ معاً، كامن فيه، لا مُؤجَّل إلى ما بعده. وتؤسّس الآية 20:2 أن القرآن لم يُنزَل لتشقى — صعوبة الممارسة إشارة إلى خلل في التطبيق، لا في المنهج.`,
     surahs: [
-      { surah: 2, reasonEn: 'Al-Baqarah: "Allah does not burden a soul beyond its capacity" (2:286)', reasonAr: 'البقرة: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا" (2:286)' },
-      { surah: 94, reasonEn: 'Ash-Sharh: "With hardship comes ease" (94:5) — ease is inherent in every hardship', reasonAr: 'الشرح: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا" — اليسر ملازم للعسر' },
+      { surah: 2, reasonEn: 'Al-Baqarah: "Allah does not burden a soul beyond its capacity" (2:286)', reasonAr: `البقرة: "${quranExcerpt('2:286#1-6')}" (2:286)` },
+      { surah: 94, reasonEn: 'Ash-Sharh: "With hardship comes ease" (94:5) — ease is inherent in every hardship', reasonAr: `الشرح: "${quranExcerpt('94:5')}" — اليسر ملازم للعسر` },
       { surah: 20, reasonEn: 'Ta-Ha: "We have not sent down the Quran to cause you distress" (20:2)', reasonAr: 'طه: "مَا أَنزَلْنَا عَلَيْكَ الْقُرْآنَ لِتَشْقَىٰ" (20:2)' },
-      { surah: 65, reasonEn: 'At-Talaq: "After hardship, Allah will bring ease" (65:7)', reasonAr: 'الطلاق: "سَيَجْعَلُ اللَّهُ بَعْدَ عُسْرٍ يُسْرًا" (65:7)' },
+      { surah: 65, reasonEn: 'At-Talaq: "After hardship, Allah will bring ease" (65:7)', reasonAr: `الطلاق: "${quranExcerpt('65:7#24-28')}" (65:7)` },
     ],
     duaRoute: '/duas',
     duaLabelEn: "Prayer Against Unbearable Burden (Baqarah's Closing)",
@@ -275,7 +277,7 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     themeLabelAr: 'مركز التوجيه الروحي',
     affirmatioVerseRef: '94:5',
     affirmationEn: 'For indeed, with hardship will be ease.',
-    affirmationAr: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
+    affirmationAr: quranExcerpt('94:5'),
     keyRefEn: '94:5-6 — Surah Ash-Sharh (ease WITH hardship, twice)',
     keyRefAr: '94:5-6 — سورة الشرح (اليسر مع العسر مرتين)',
     hadithEn: '"No fatigue, illness, worry, sadness, harm or distress befalls a Muslim — even a thorn that pricks him — except that Allah removes some of his sins thereby." — Bukhari 5641, 5642',
@@ -290,11 +292,11 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     emoji: '🔍',
     color: 'indigo',
     quranResponseEn: 'The Quran opens with a seeker\'s dua: "Guide us to the straight path" (1:6) — recited 17 times daily in obligatory prayers, making every Muslim a perpetual seeker. The Quran describes itself as "hudhan lil-muttaqin" (guidance for those with taqwa, 2:2) — for those who bring an open, seeking heart. Surah Al-Kahf contains the Quran\'s most detailed story of knowledge-seeking: Musa (a prophet) travels to the limits of the known world to reach al-Khidr (18:66-82), modeling intellectual humility. Allah commands the Prophet ﷺ directly: "Say: My Lord, increase me in knowledge" (20:114).',
-    quranResponseAr: 'يفتتح القرآن بدعاء الباحث: "اهدنا الصراط المستقيم" (1:6) — يُتلى 17 مرة يومياً في الفرائض، فكل مسلم باحث دائم. ويصف القرآن نفسه "هدى للمتقين" (2:2) — مخصوصاً لمن يحمل قلباً منفتحاً يبحث. وتتضمن سورة الكهف أكثر قصص طلب العلم تفصيلاً: يسافر موسى (نبي) إلى أطراف العالم المعروف ليبلغ الخضر (18:66-82) نموذجاً للتواضع العلمي. ويأمر الله نبيّه ﷺ مباشرةً: "قل ربّ زدني علماً" (20:114).',
+    quranResponseAr: `يفتتح القرآن بدعاء الباحث: "${quranExcerpt('1:6')}" (1:6) — يُتلى 17 مرة يومياً في الفرائض، فكل مسلم باحث دائم. ويصف القرآن نفسه "${quranExcerpt('2:2#8-9')}" (2:2) — مخصوصاً لمن يحمل قلباً منفتحاً يبحث. وتتضمن سورة الكهف أكثر قصص طلب العلم تفصيلاً: يسافر موسى (نبي) إلى أطراف العالم المعروف ليبلغ الخضر (18:66-82) نموذجاً للتواضع العلمي. ويأمر الله نبيّه ﷺ مباشرةً: "${quranExcerpt('20:114#16-19')}" (20:114).`,
     surahs: [
       { surah: 1, reasonEn: 'Al-Fatihah: The prayer for guidance — the foundation of every seeker', reasonAr: 'الفاتحة: دعاء الهداية — أساس كل باحث' },
-      { surah: 2, reasonEn: 'Al-Baqarah: "This is the Book about which there is no doubt, a guidance for the God-conscious" (2:2)', reasonAr: 'البقرة: "ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ" (2:2)' },
-      { surah: 10, reasonEn: 'Yunus: "O mankind, there has come to you instruction from your Lord" (10:57)', reasonAr: 'يونس: "يَا أَيُّهَا النَّاسُ قَدْ جَاءَتْكُم مَّوْعِظَةٌ مِّن رَّبِّكُمْ" (10:57)' },
+      { surah: 2, reasonEn: 'Al-Baqarah: "This is the Book about which there is no doubt, a guidance for the God-conscious" (2:2)', reasonAr: `البقرة: "${quranExcerpt('2:2')}" (2:2)` },
+      { surah: 10, reasonEn: 'Yunus: "O mankind, there has come to you instruction from your Lord" (10:57)', reasonAr: `يونس: "${quranExcerpt('10:57#1-8')}" (10:57)` },
       { surah: 18, reasonEn: "Al-Kahf: The story of Khidr — the seeker's journey to hidden wisdom", reasonAr: 'الكهف: قصة الخضر — رحلة الباحث نحو الحكمة الخفية' },
     ],
     duaRoute: '/duas',
@@ -305,7 +307,7 @@ const EMOTIONAL_STATES: readonly EmotionalState[] = [
     themeLabelAr: 'اسأل مساعد التفسير',
     affirmatioVerseRef: '2:2',
     affirmationEn: 'This is the Book about which there is no doubt, a guidance for the conscious of Allah.',
-    affirmationAr: 'ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ',
+    affirmationAr: quranExcerpt('2:2'),
     keyRefEn: "1:6 — Surah Al-Fatihah (the seeker's daily prayer)",
     keyRefAr: '1:6 — سورة الفاتحة (دعاء الباحث اليومي)',
     hadithEn: '"Whoever takes a path seeking knowledge, Allah will make easy for him a path to Paradise." — Sahih Muslim 2699. And: "The angels lower their wings in approval for the seeker of knowledge." — Abu Dawud 3641, Tirmidhi 2682',
@@ -385,13 +387,14 @@ export function EmotionalGuidancePage() {
 
         {/* Affirmation verse */}
         <div className={clsx('rounded-2xl border p-5 mb-5 text-center', affirmColors)}>
-          <p className="font-arabic text-xl leading-loose mb-2" dir="rtl">
+          <p className="font-arabic text-xl leading-loose mb-2" dir="rtl" lang="ar">
             {selected.affirmationAr}
           </p>
           {!isRtl && (
             <p className="text-sm italic text-gray-600 mb-1">{selected.affirmationEn}</p>
           )}
-          <p className={clsx('text-xs text-gray-400', isRtl && 'font-arabic')}>{selected.affirmatioVerseRef}</p>
+          <p className={clsx('text-xs text-gray-400', isRtl && 'font-arabic')}><bdi dir="ltr">{selected.affirmatioVerseRef}</bdi></p>
+          <QuranTextAttribution language={language} className="mt-2" />
         </div>
 
         {/* Relevant Surahs */}

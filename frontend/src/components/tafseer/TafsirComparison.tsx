@@ -4,8 +4,8 @@
  * Reads the local corpus via /tafseer/compare, so each passage carries a
  * chunk_id and real provenance rather than coming from a third-party API.
  *
- * Layout is a stacked list, not parallel columns. Median length across the six
- * seeded sources spans 33 words (al-Muyassar) to 761 (Ibn Kathir EN) and peaks
+ * Layout is a stacked list, not parallel columns. Median length across the
+ * seeded sources spans 33 words (al-Muyassar) to several hundred and peaks
  * above 11,000, so columns would be mostly whitespace and unusable at phone
  * width. Each entry instead gets a full-width card with a scholarly header,
  * and long prose collapses behind a toggle.
@@ -35,12 +35,32 @@ import {
 } from '../../lib/api';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
+import { getSourceById } from '../../data/sourceRegistry';
 
 interface Props {
   surah: number;
   ayah: number;
   className?: string;
+  /** Hide the section heading when the host page already titles it. */
+  showHeading?: boolean;
 }
+
+/**
+ * Attribution fields the API adds to each entry (tafsir_comparison.to_dict).
+ * Declared here until lib/api.ts TafsirComparisonEntry carries them.
+ */
+type AttributedEntry = TafsirComparisonEntry & {
+  license?: string | null;
+  source_url?: string | null;
+  translator?: string | null;
+};
+
+/**
+ * Library sources the comparison can return. When one has no passage for the
+ * verse (upstream often comments on several verses in one passage), the page
+ * says so instead of leaving the reader to wonder.
+ */
+const LIBRARY_SOURCE_IDS = ['tabari_ar', 'qurtubi_ar', 'ibn_kathir_ar', 'baghawi_ar', 'muyassar_ar'];
 
 type LanguageFilter = 'all' | 'ar' | 'en';
 
@@ -109,7 +129,7 @@ function SourceHeader({
         {author && (
           <div
             className={clsx(
-              'mt-0.5 text-sm text-stone-600 truncate',
+              'mt-0.5 text-sm text-stone-600 break-words',
               uiLanguage === 'ar' && 'font-arabic',
             )}
             dir={uiLanguage === 'ar' ? 'rtl' : 'ltr'}
@@ -132,7 +152,7 @@ function SourceHeader({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
         {methodLabel && (
           <span
             className={clsx(
@@ -154,6 +174,63 @@ function SourceHeader({
         </span>
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Attribution footer: source link · licence · translator
+// ---------------------------------------------------------------------------
+
+function EntryAttribution({
+  entry,
+  uiLanguage,
+}: {
+  entry: AttributedEntry;
+  uiLanguage: 'ar' | 'en';
+}) {
+  const ar = uiLanguage === 'ar';
+  const licence = entry.license || entry.license_type;
+  return (
+    <p
+      className={clsx(
+        'mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-stone-100 pt-2 text-[11px] text-stone-500',
+        ar && 'font-arabic',
+      )}
+      dir={ar ? 'rtl' : 'ltr'}
+    >
+      <span>
+        {ar ? 'المصدر: ' : 'Source: '}
+        {entry.source_url ? (
+          <a
+            href={entry.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-stone-700"
+            dir="ltr"
+          >
+            {entry.source_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+          </a>
+        ) : (
+          <bdi dir="ltr">{entry.source_id}</bdi>
+        )}
+      </span>
+      {licence && (
+        <span>
+          {'· '}
+          {ar ? 'الترخيص: ' : 'Licence: '}
+          {/* Licence strings are stored in English. */}
+          <span dir="ltr" lang="en">{licence}</span>
+          {!entry.license_verified && (ar ? ' (قيد التحقق)' : ' (under review)')}
+        </span>
+      )}
+      {entry.translator && (
+        <span>
+          {'· '}
+          {ar ? 'ترجمة: ' : 'tr. '}
+          <span dir="ltr" lang="en">{entry.translator}</span>
+        </span>
+      )}
+    </p>
   );
 }
 
@@ -207,6 +284,8 @@ function TafsirEntryCard({
         {shown}
         {isLong && !expanded && <span className="text-stone-400">…</span>}
       </div>
+
+      <EntryAttribution entry={entry as AttributedEntry} uiLanguage={uiLanguage} />
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         {isLong ? (
@@ -343,7 +422,7 @@ function ComparisonStats({
 // Main component
 // ---------------------------------------------------------------------------
 
-export function TafsirComparison({ surah, ayah, className }: Props) {
+export function TafsirComparison({ surah, ayah, className, showHeading = true }: Props) {
   const { language } = useLanguageStore();
   const [languageFilter, setLanguageFilter] = useState<LanguageFilter>('all');
   const [activeSource, setActiveSource] = useState<string | null>(null);
@@ -408,8 +487,14 @@ export function TafsirComparison({ surah, ayah, className }: Props) {
     );
   }
 
+  const returned = new Set(data.entries.map((e) => e.source_id));
+  const missing = LIBRARY_SOURCE_IDS.filter((id) => !returned.has(id))
+    .map((id) => getSourceById(id))
+    .filter((src): src is NonNullable<typeof src> => !!src);
+
   return (
     <div className={clsx('space-y-4', className)}>
+      {showHeading && (
       <header>
         <h2 className="flex items-center gap-2 text-base font-semibold text-stone-900">
           <BookOpen className="h-4.5 w-4.5 text-primary-600" aria-hidden="true" />
@@ -422,6 +507,7 @@ export function TafsirComparison({ surah, ayah, className }: Props) {
           {t('tafsir_compare_subtitle', language)}
         </p>
       </header>
+      )}
 
       {/* Filters. Sources are listed in the same chronological order as the
           entries so the control and the list stay legible against each other. */}
@@ -492,6 +578,21 @@ export function TafsirComparison({ surah, ayah, className }: Props) {
           <TafsirEntryCard key={entry.chunk_id} entry={entry} uiLanguage={language} />
         ))}
       </div>
+
+      {missing.length > 0 && !activeSource && languageFilter !== 'en' && (
+        <p
+          className={clsx('text-xs text-stone-500', language === 'ar' && 'font-arabic')}
+          dir={language === 'ar' ? 'rtl' : 'ltr'}
+        >
+          {language === 'ar'
+            ? 'لا يوجد مقطع مستقل لهذه الآية في: '
+            : 'No separate passage for this verse in: '}
+          {missing.map((src) => (language === 'ar' ? src.titleArabic : src.titleEnglish)).join(language === 'ar' ? '، ' : ', ')}
+          {language === 'ar'
+            ? '. قد يتناولها المفسّر مع آية مجاورة.'
+            : '. The author may discuss it together with a neighbouring verse.'}
+        </p>
+      )}
 
       {visible.length > 1 && <ComparisonStats data={data} uiLanguage={language} />}
     </div>

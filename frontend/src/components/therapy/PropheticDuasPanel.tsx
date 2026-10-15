@@ -3,10 +3,21 @@ import { ChevronDown, ChevronUp, Copy, Check, ExternalLink } from 'lucide-react'
 import { Link } from 'react-router-dom';
 import { useLanguageStore } from '../../stores/languageStore';
 import clsx from 'clsx';
+import { LiveVerse } from '../quran/LiveVerse';
+import { isDisplayableNote, type SupportingNote } from '../../data/quranicDuas';
+import { quranExcerpt } from '../../utils/quranExcerpt';
 
-// Authentic du'as from Quran and Sunnah, organised by emotional state.
-// Note: All Arabic text here is du'a text from hadith (non-Quranic sources),
-// or references to Quranic du'as shown by reference only (per CLAUDE.md).
+// Du'as from the Qur'an and Sunnah, organised by emotional state.
+//
+// Display rules (content policy):
+// - Qur'anic du'as are shown from the canonical text by reference (LiveVerse);
+//   the hand-typed transliteration, Arabic "translation" and source notes are
+//   not shown for them.
+// - Hadith du'as are shown only once a reviewer has recorded a structured
+//   `hadith` source with collection and number (isDisplayableNote). None of the
+//   entries below has one yet: their free-text sources name no hadith number,
+//   some give grades without a grader, and some attributions need checking, so
+//   they stay hidden until a scholar verifies them. Never fill these from memory.
 const PROPHETIC_DUAS: Record<string, Array<{
   name_en: string;
   name_ar: string;
@@ -18,6 +29,7 @@ const PROPHETIC_DUAS: Record<string, Array<{
   source_ar: string;
   is_quranic?: boolean;
   quran_ref?: string;        // e.g. "21:87" — used to link to /quran/:surah
+  hadith?: SupportingNote;   // verified hadith source; required before a hadith du'a is shown
 }>> = {
   anxiety: [
     {
@@ -39,7 +51,7 @@ const PROPHETIC_DUAS: Record<string, Array<{
       name_ar: "حسبي الله — الله يكفيني",
       transliteration: "Ḥasbiyallāhu lā ilāha illā huwa 'alayhi tawakkaltu wa huwa rabbul-'arshil-'aẓīm",
       translation_en: "Allah is sufficient for me. There is no deity except Him. Upon Him I have relied, and He is the Lord of the Mighty Throne.",
-      translation_ar: "حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم.",
+      translation_ar: `${quranExcerpt('9:129#4-17')}.`,
       source_en: "Quran 9:129 and Abu Dawud. The Prophet ﷺ said whoever recites this seven times morning and evening, Allah will be sufficient for whatever concerns them.",
       source_ar: "القرآن 9:129 وأبو داود. قال النبي ﷺ: من قالها سبع مرات صباحاً ومساءً كفاه الله ما أهمّه.",
       is_quranic: true,
@@ -68,7 +80,7 @@ const PROPHETIC_DUAS: Record<string, Array<{
       name_ar: "دعاء النبي يونس — من ظلمات الضيق",
       transliteration: "Lā ilāha illā anta subḥānaka innī kuntu minaẓ-ẓālimīn",
       translation_en: "There is no deity except You. Exalted are You. Indeed, I have been among the wrongdoers.",
-      translation_ar: "لا إله إلا أنت سبحانك إني كنت من الظالمين.",
+      translation_ar: `${quranExcerpt('21:87#15-23')}.`,
       source_en:
         "Quran 21:87. The Prophet ﷺ said: 'No Muslim ever calls upon Allah with these words in distress, except that Allah answers his call.' (Tirmidhi, graded sahih)",
       source_ar:
@@ -83,7 +95,7 @@ const PROPHETIC_DUAS: Record<string, Array<{
       name_ar: "دعاء النبي يونس — من ظلمات الضيق",
       transliteration: "Lā ilāha illā anta subḥānaka innī kuntu minaẓ-ẓālimīn",
       translation_en: "There is no deity except You. Exalted are You. Indeed, I have been among the wrongdoers.",
-      translation_ar: "لا إله إلا أنت سبحانك إني كنت من الظالمين.",
+      translation_ar: `${quranExcerpt('21:87#15-23')}.`,
       source_en:
         "Quran 21:87. Recommended especially for grief, loss, and extreme distress — the du'a that was answered when all seemed hopeless.",
       source_ar: "القرآن 21:87. يُستحب في الحزن والفقد والضيق الشديد — الدعاء الذي استُجيب حين بدا كل شيء يائساً.",
@@ -112,7 +124,7 @@ const PROPHETIC_DUAS: Record<string, Array<{
       name_ar: "حسبنا الله — دعاء الصحابة في مواجهة الخوف",
       transliteration: "Ḥasbunallāhu wa ni'mal-wakīl",
       translation_en: "Allah is sufficient for us, and He is the Best Disposer of affairs.",
-      translation_ar: "حسبنا الله ونعم الوكيل.",
+      translation_ar: `${quranExcerpt('3:173#14-17')}.`,
       source_en:
         "Quran 3:173. Said by the companions when warned of an overwhelming enemy army approaching — and they were blessed in response. The Prophet ﷺ also said it when about to be overtaken by a great flood (Bukhari).",
       source_ar:
@@ -173,7 +185,7 @@ const PROPHETIC_DUAS: Record<string, Array<{
       name_ar: "دعاء من أعماق اليأس",
       transliteration: "Lā ilāha illā anta subḥānaka innī kuntu minaẓ-ẓālimīn",
       translation_en: "There is no deity except You. Exalted are You. Indeed, I have been among the wrongdoers.",
-      translation_ar: "لا إله إلا أنت سبحانك إني كنت من الظالمين.",
+      translation_ar: `${quranExcerpt('21:87#15-23')}.`,
       source_en:
         "Quran 21:87. Prophet Yunus called to Allah from the belly of the whale — from complete darkness and hopelessness. Allah answered. The Prophet ﷺ said no Muslim calls with this du'a in distress except that Allah responds. (Tirmidhi, sahih)",
       source_ar:
@@ -347,6 +359,33 @@ function DuaCard({ dua }: { dua: (typeof PROPHETIC_DUAS)['anxiety'][0] }) {
   // Parse quran_ref "surah:ayah" → "/quran/surah" link
   const quranLink = dua.quran_ref ? `/quran/${dua.quran_ref.split(':')[0]}` : null;
 
+  if (dua.is_quranic && dua.quran_ref) {
+    return (
+      <div className="bg-white rounded-2xl border border-teal-100 shadow-sm overflow-hidden">
+        <div className={clsx('px-4 py-3 bg-teal-50', isRtl && 'text-right')}>
+          <h4 className={clsx('text-xs font-semibold text-teal-800', isRtl && 'font-arabic')}>
+            {isRtl ? dua.name_ar : dua.name_en}
+          </h4>
+        </div>
+        <div className="px-4 py-4 space-y-3">
+          <LiveVerse reference={dua.quran_ref} language={language} />
+          {quranLink && (
+            <Link
+              to={quranLink}
+              className={clsx(
+                'inline-flex items-center gap-1.5 text-xs font-medium text-teal-700 hover:text-teal-900',
+                isRtl && 'font-arabic',
+              )}
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              {isRtl ? 'اقرأ الآية في المصحف' : 'Read the verse in the Qur’an'} (<bdi dir="ltr">{dua.quran_ref}</bdi>)
+            </Link>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-2xl border border-teal-100 shadow-sm overflow-hidden">
       <div className={clsx('px-4 py-3 bg-teal-50 flex items-center justify-between', isRtl && 'flex-row-reverse')}>
@@ -367,7 +406,7 @@ function DuaCard({ dua }: { dua: (typeof PROPHETIC_DUAS)['anxiety'][0] }) {
       </div>
 
       <div className="px-4 py-4 space-y-3">
-        {/* Arabic text — only for hadith du'as; Quranic text loaded from DB via the Quran page */}
+        {/* Arabic text of a verified hadith du'a */}
         {dua.arabic && (
           <p dir="rtl" className="font-arabic text-right text-base leading-loose text-gray-900">
             {dua.arabic}
@@ -411,9 +450,10 @@ function DuaCard({ dua }: { dua: (typeof PROPHETIC_DUAS)['anxiety'][0] }) {
           </span>
           {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
-        {expanded && (
-          <p className={clsx('text-xs text-gray-500 leading-relaxed', isRtl && 'font-arabic text-right')}>
-            {isRtl ? dua.source_ar : dua.source_en}
+        {expanded && dua.hadith && (
+          <p className="text-xs text-gray-500 leading-relaxed font-arabic text-right" dir="rtl" lang="ar">
+            {dua.hadith.collection} <bdi dir="ltr">{dua.hadith.number}</bdi>
+            {dua.hadith.grade && dua.hadith.grader ? ` · ${dua.hadith.grade} — ${dua.hadith.grader}` : ''}
           </p>
         )}
       </div>
@@ -424,9 +464,11 @@ function DuaCard({ dua }: { dua: (typeof PROPHETIC_DUAS)['anxiety'][0] }) {
 export function PropheticDuasPanel({ emotion }: PropheticDuasPanelProps) {
   const { language } = useLanguageStore();
   const isRtl = language === 'ar';
-  const duas = PROPHETIC_DUAS[emotion] ?? PROPHETIC_DUAS['general'];
+  const duas = (PROPHETIC_DUAS[emotion] ?? PROPHETIC_DUAS['general'] ?? []).filter(
+    d => (d.is_quranic && !!d.quran_ref) || isDisplayableNote(d.hadith),
+  );
 
-  if (!duas || duas.length === 0) return null;
+  if (duas.length === 0) return null;
 
   return (
     <div className="space-y-3">

@@ -62,7 +62,6 @@ interface TafsirEdition {
   id: string;
   translationKey: string;
   has_audio: boolean;
-  quran_com_id?: number;
 }
 
 interface TafsirData {
@@ -99,11 +98,10 @@ const ARABIC_TAFSIR_EDITIONS: TafsirEdition[] = [
   { id: 'baghawi', translationKey: 'tafseer_baghawi', has_audio: false },
 ];
 
-const ENGLISH_TAFSIR_EDITIONS: TafsirEdition[] = [
-  { id: 'en_ibn_kathir', translationKey: 'tafseer_ibn_kathir_en', has_audio: false, quran_com_id: 169 },
-  { id: 'en_maarif', translationKey: 'tafseer_maarif', has_audio: false, quran_com_id: 168 },
-  { id: 'en_tazkirul', translationKey: 'tafseer_tazkirul', has_audio: false, quran_com_id: 817 },
-];
+// No English tafsir is licensed yet: the Ibn Kathir (Darussalam), Ma'arif and
+// Tazkirul Quran translations are copyrighted and the backend no longer
+// proxies them. The verse panel says so instead of showing a failed request.
+const ENGLISH_TAFSIR_EDITIONS: TafsirEdition[] = [];
 
 const RECITERS: ReciterOption[] = [
   { id: 'mishary_afasy', translationKey: 'reciter_mishary' },
@@ -213,20 +211,10 @@ function useTafsir(
   ayaNo: number,
   edition: string,
   enabled: boolean,
-  quranComId?: number
 ) {
   return useQuery({
     queryKey: queryKeys.tafsir.verse(suraNo, ayaNo, edition),
     queryFn: async (): Promise<TafsirData> => {
-      if (quranComId) {
-        const response = await api.get(`/tafseer/quran-com/verse/${suraNo}/${ayaNo}`, {
-          params: { tafsir_id: quranComId }
-        });
-        return {
-          text: response.data.text || '',
-          source: response.data.source || '',
-        };
-      }
       const response = await api.get(`/tafseer/external/verse/${suraNo}/${ayaNo}`, {
         params: { edition }
       });
@@ -237,7 +225,7 @@ function useTafsir(
       };
     },
     staleTime: staleTimes.tafsir,
-    enabled: enabled && suraNo > 0 && ayaNo > 0,
+    enabled: enabled && !!edition && suraNo > 0 && ayaNo > 0,
   });
 }
 
@@ -280,7 +268,7 @@ const SurahHeader = memo(function SurahHeader({
 
 interface VersePanelProps {
   verse: Verse;
-  edition: TafsirEdition;
+  edition: TafsirEdition | undefined;
   language: 'ar' | 'en';
   isPlaying: boolean;
   onPlayAudio: () => void;
@@ -338,9 +326,8 @@ const VersePanel = memo(function VersePanel({
   const { data: tafsirData, isLoading: tafsirLoading } = useTafsir(
     verse.sura_no,
     verse.aya_no,
-    edition.id,
+    edition?.id ?? '',
     showTafsir,
-    edition.quran_com_id
   );
 
   return (
@@ -417,6 +404,18 @@ const VersePanel = memo(function VersePanel({
       </div>
 
       {/* Tafsir Section */}
+      {!edition ? (
+        <div className="px-6 py-4">
+          <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-600 space-y-2">
+            <p dir="ltr" className="text-left">
+              No licensed English tafsir is available yet. Switch the app language to Arabic to read the Arabic tafsir.
+            </p>
+            <p dir="rtl" className="text-right font-arabic">
+              لا يتوفر حالياً تفسير مرخّص باللغة الإنجليزية. بدّل لغة التطبيق إلى العربية لقراءة التفاسير العربية.
+            </p>
+          </div>
+        </div>
+      ) : (
       <div className="px-6 py-4">
         <button
           onClick={() => setShowTafsir(!showTafsir)}
@@ -450,6 +449,7 @@ const VersePanel = memo(function VersePanel({
           </div>
         )}
       </div>
+      )}
     </div>
   );
 });
@@ -971,7 +971,7 @@ export function MushafPage() {
   useEffect(() => applyReaderThemeToDocument(theme), [theme]);
   const fontSize = Math.round(28 * fontScale);
   const [selectedTafsir, setSelectedTafsir] = useState(() =>
-    language === 'ar' ? 'muyassar' : 'en_ibn_kathir'
+    language === 'ar' ? 'muyassar' : ''
   );
   const [showSettings, setShowSettings] = useState(false);
   const [showAI, setShowAI] = useState(false);
@@ -985,7 +985,7 @@ export function MushafPage() {
 
   // Reset tafsir when language changes
   useEffect(() => {
-    setSelectedTafsir(language === 'ar' ? 'muyassar' : 'en_ibn_kathir');
+    setSelectedTafsir(language === 'ar' ? 'muyassar' : '');
     setSelectedVerse(null);
     setCurrentTafsirText('');
   }, [language]);
@@ -1220,6 +1220,7 @@ export function MushafPage() {
         {/* Settings Panel */}
         {showSettings && (
           <div className="bg-emerald-700/50 px-4 py-3 flex flex-wrap gap-4">
+            {tafsirEditions.length > 0 && (
             <div className="flex items-center gap-2">
               <label className={clsx('text-sm text-white/80', language === 'ar' && 'font-arabic')}>{t('mushaf_tafsir')}:</label>
               <select
@@ -1234,6 +1235,7 @@ export function MushafPage() {
                 ))}
               </select>
             </div>
+            )}
 
             <div className="flex items-center gap-2">
               <label className={clsx('text-sm text-white/80', language === 'ar' && 'font-arabic')}>{t('mushaf_reciter')}:</label>

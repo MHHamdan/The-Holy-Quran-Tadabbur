@@ -5,6 +5,7 @@ import { useLanguageStore } from '../../stores/languageStore';
 import { therapyApi } from '../../lib/api';
 import type { GuidanceCard } from '../../types/therapy';
 import { QuranAudioPlayer } from '../quran/QuranAudioPlayer';
+import { QuranTextAttribution } from '../quran/QuranTextAttribution';
 import clsx from 'clsx';
 
 // Ruqyah Shariah informational data (no Quranic text hardcoded — fetched from API)
@@ -299,9 +300,10 @@ export function RuqyahGuide() {
                     </Link>
                   </div>
                   <div className="px-5 py-4 space-y-3">
-                    <p dir="rtl" className="font-arabic text-right text-xl leading-loose text-gray-900">
+                    <p dir="rtl" lang="ar" className="font-arabic text-right text-xl leading-loose text-gray-900">
                       {card.text_uthmani}
                     </p>
+                    <QuranTextAttribution language={language} />
                     <QuranAudioPlayer
                       mode="verse"
                       suraNo={card.surah}

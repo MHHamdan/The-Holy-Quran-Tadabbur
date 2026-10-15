@@ -2,8 +2,11 @@
  * Quranic Duʿā Explorer — enhanced with occasion & prophet filters,
  * bookmarks (localStorage), daily duʿā, and share.
  *
- * Safety: all content referenced from exact surah:ayah.
- * No AI-generated meanings. Sources: Saheeh International / Hafs ʿan ʿĀṣim.
+ * Safety: all content referenced from exact surah:ayah. The Arabic is verbatim
+ * Tanzil text (an excerpt is labelled and the full verse is one tap away); the
+ * English is the QuranEnc Saheeh International translation and the Arabic
+ * explanation is al-Tafsir al-Muyassar, both fetched from the API with their
+ * attribution. No AI-generated meanings.
  */
 
 import { useState, useMemo, useCallback, useRef } from 'react';
@@ -16,9 +19,12 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
-import { quranApi } from '../lib/api';
+import { quranApi, tafsirComparisonApi, type TafsirComparisonEntry } from '../lib/api';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { useTranslationEditions } from '../components/quran/VerseTranslations';
+import { localDateStr } from '../utils/localDate';
 import {
-  QURANIC_DUAS, CATEGORY_META, OCCASION_META,
+  QURANIC_DUAS, CATEGORY_META, OCCASION_META, isDisplayableNote,
   type DuaCategory, type DuaOccasion, type QuranicDua,
 } from '../data/quranicDuas';
 import { shareContent } from '../lib/native';
@@ -69,63 +75,110 @@ function saveFavorites(ids: Set<string>) {
 }
 
 function getDailyDuaId(): string {
-  const dayIndex = Math.floor(Date.now() / 86_400_000) % QURANIC_DUAS.length;
+  // Local calendar day (not UTC), so the duʿā changes at the reader's midnight.
+  const [y, m, d] = localDateStr().split('-').map(Number);
+  const dayIndex = Math.floor(Date.UTC(y, m - 1, d) / 86_400_000) % QURANIC_DUAS.length;
   return QURANIC_DUAS[dayIndex].id;
 }
 
+// ─── Reference helpers ────────────────────────────────────────────────────────
+
+/** "1:6–7" — always rendered inside <bdi dir="ltr"> so Arabic text cannot reorder it. */
+function formatAyahRef(surah: number, ayah: number, ayahEnd?: number): string {
+  return `${surah}:${ayah}${ayahEnd ? `–${ayahEnd}` : ''}`;
+}
+
+/** LRI…PDI: keeps a reference left-to-right inside shared or copied plain text. */
+const isolateLtr = (s: string) => `⁦${s}⁩`;
+
+const ENGLISH_EDITION = 'english_saheeh';
+
 // ─── Copy Button ───────────────────────────────────────────────────────────────
 
-function CopyButton({ text }: { text: string }) {
+function CopyButton({ text, isRtl }: { text: string; isRtl: boolean }) {
   const [copied, setCopied] = useState(false);
-  const handle = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handle = useCallback(async () => {
     await navigator.clipboard.writeText(text).catch(() => null);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
   }, [text]);
   return (
     <button
+      type="button"
       onClick={handle}
-      title="Copy Arabic text"
+      aria-label={isRtl ? 'نسخ النص' : 'Copy text'}
       className="flex items-center gap-1 text-xs text-gray-400 hover:text-teal-600 transition-colors px-2 py-1 rounded-lg hover:bg-teal-50"
     >
       {copied
-        ? <><Check className="w-3.5 h-3.5 text-teal-500" /><span className="text-teal-500">Copied</span></>
-        : <><Copy className="w-3.5 h-3.5" /><span>Copy</span></>}
+        ? <><Check className="w-3.5 h-3.5 text-teal-500" /><span className="text-teal-500">{isRtl ? 'تم النسخ' : 'Copied'}</span></>
+        : <><Copy className="w-3.5 h-3.5" /><span>{isRtl ? 'نسخ' : 'Copy'}</span></>}
     </button>
   );
 }
 
 // ─── Share Button ─────────────────────────────────────────────────────────────
 
-function ShareButton({ dua, isRtl }: { dua: QuranicDua; isRtl: boolean }) {
+function ShareButton({ title, text, isRtl }: { title: string; text: string; isRtl: boolean }) {
   const [shared, setShared] = useState(false);
-  const ayahRef = `${dua.surah}:${dua.ayah}${dua.ayahEnd ? `–${dua.ayahEnd}` : ''}`;
-  const handle = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const text = [
-      isRtl ? dua.titleAr : dua.titleEn,
-      '',
-      dua.ayatUthmani,
-      '',
-      isRtl ? dua.meaningAr : `"${dua.meaningEn}"`,
-      '',
-      `— ${isRtl ? dua.surahNameAr : dua.surahNameEn} ${ayahRef}`,
-    ].join('\n');
-    await shareContent({ title: isRtl ? dua.titleAr : dua.titleEn, text });
+  const handle = useCallback(async () => {
+    await shareContent({ title, text });
     setShared(true);
     setTimeout(() => setShared(false), 1800);
-  }, [dua, isRtl, ayahRef]);
+  }, [title, text]);
   return (
     <button
+      type="button"
       onClick={handle}
-      title={isRtl ? 'مشاركة' : 'Share'}
+      aria-label={isRtl ? 'مشاركة' : 'Share'}
       className="flex items-center gap-1 text-xs text-gray-400 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-violet-50"
     >
       {shared
         ? <><Check className="w-3.5 h-3.5 text-violet-500" /><span className="text-violet-500">{isRtl ? 'تمت' : 'Shared'}</span></>
         : <><Share2 className="w-3.5 h-3.5" /><span>{isRtl ? 'شارك' : 'Share'}</span></>}
     </button>
+  );
+}
+
+// ─── Explanation: al-Tafsir al-Muyassar from the app's library ────────────────
+
+function MuyassarExplanation({ dua }: { dua: QuranicDua }) {
+  const last = dua.ayahEnd ?? dua.ayah;
+  const ayat = Array.from({ length: last - dua.ayah + 1 }, (_, i) => dua.ayah + i);
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['dua-muyassar', dua.surah, dua.ayah, last],
+    queryFn: async () => Promise.all(
+      ayat.map(async (a) => {
+        try {
+          const res = await tafsirComparisonApi.compare(dua.surah, a, { sources: ['muyassar_ar'] });
+          return res.data.entries[0] ?? null;
+        } catch {
+          return null;
+        }
+      }),
+    ),
+    staleTime: Infinity,
+  });
+  if (isLoading) return <div className="h-10 rounded-lg bg-gray-100 animate-pulse" />;
+  const entries = (data ?? []).filter((e): e is TafsirComparisonEntry => !!e);
+  if (isError || entries.length === 0) {
+    return (
+      <p className="font-arabic text-xs text-gray-500 text-right" dir="rtl">
+        لا يتوفر شرح من التفسير الميسر لهذه الآية حالياً.
+      </p>
+    );
+  }
+  const first = entries[0];
+  return (
+    <div className="space-y-1">
+      {entries.map((e) => (
+        <p key={e.chunk_id} className="font-arabic text-sm text-gray-700 leading-relaxed text-right" dir="rtl" lang="ar">
+          {e.text}
+        </p>
+      ))}
+      <p className="font-arabic text-[11px] text-gray-400 text-right" dir="rtl">
+        {first.name_ar} — {first.author_ar} · <bdi dir="ltr" className="font-mono">{first.source_id}</bdi>
+      </p>
+    </div>
   );
 }
 
@@ -143,32 +196,46 @@ function DuaCard({
   isDaily?: boolean;
 }) {
   const [expanded, setExpanded] = useState(autoExpand);
+  const [showFull, setShowFull] = useState(false);
   const [hideTranslit, setHideTranslit] = useState(false);
   const [hideMeaning, setHideMeaning] = useState(false);
+  const { data: editions } = useTranslationEditions();
   const meta = CATEGORY_META[dua.category];
   const accentClass = ACCENT[meta.color] ?? ACCENT.teal;
   const badgeClass  = BADGE[meta.color]  ?? BADGE.teal;
+  const bodyId = `dua-body-${dua.id}`;
 
-  const ref = isRtl ? dua.surahNameAr : dua.surahNameEn;
-  const ayahRef = `${dua.surah}:${dua.ayah}${dua.ayahEnd ? `–${dua.ayahEnd}` : ''}`;
+  const surahName = isRtl ? dua.surahNameAr : dua.surahNameEn;
+  const ayahRef = formatAyahRef(dua.surah, dua.ayah, dua.ayahEnd);
 
   const { data: liveVerses } = useQuery({
-    queryKey: ['dua-verses', dua.surah, dua.ayah, dua.ayahEnd ?? null],
+    queryKey: ['dua-verses', dua.surah, dua.ayah, dua.ayahEnd ?? null, isRtl ? 'ar' : 'en'],
     queryFn: async () => {
+      const translations = isRtl ? [] : [ENGLISH_EDITION];
       if (dua.ayahEnd) {
-        const res = await quranApi.getVerseRange(dua.surah, dua.ayah, dua.ayahEnd);
+        const res = await quranApi.getVerseRange(dua.surah, dua.ayah, dua.ayahEnd, translations);
         return res.data;
       }
-      const res = await quranApi.getVerse(dua.surah, dua.ayah);
+      const res = await quranApi.getVerse(dua.surah, dua.ayah, translations);
       return [res.data];
     },
     enabled: expanded,
     staleTime: Infinity,
   });
 
-  const displayedAyat = liveVerses
-    ? liveVerses.map(v => v.text_imlaei).join(' ۝ ')
-    : dua.ayatUthmani;
+  // The curated text is an excerpt whenever it is shorter than the verses.
+  const fullText = liveVerses?.map(v => v.text_uthmani).join(' ۝ ');
+  const isExcerpt = fullText !== undefined && fullText !== dua.ayatUthmani;
+  const displayedAyat = showFull && fullText ? fullText : dua.ayatUthmani;
+  const shownLabel = isExcerpt && !showFull
+    ? (isRtl ? `مقتطف من ${surahName} ${isolateLtr(ayahRef)}` : `Excerpt of ${surahName} ${isolateLtr(ayahRef)}`)
+    : `${surahName} ${isolateLtr(ayahRef)}`;
+  // Copy and share carry exactly what is on screen, with its reference.
+  const shareText = `${displayedAyat}\n— ${shownLabel}\n${isRtl ? 'نص القرآن: مشروع تنزيل tanzil.net' : "Qur'an text: Tanzil Project, tanzil.net"}`;
+
+  const translations = (liveVerses ?? []).flatMap(v => (v.translations ?? []).filter(t => t.translator === ENGLISH_EDITION));
+  const edition = editions?.find(e => e.key === ENGLISH_EDITION);
+  const editionVersion = translations[0]?.edition_version ?? edition?.version;
 
   return (
     <article className={clsx(
@@ -185,76 +252,89 @@ function DuaCard({
         </div>
       )}
 
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div
-        role="button"
-        tabIndex={0}
-        className={clsx(
-          'px-4 pt-4 pb-3 cursor-pointer select-none flex gap-3',
-          isRtl ? 'flex-row-reverse' : 'flex-row',
-        )}
-        onClick={() => setExpanded(v => !v)}
-        onKeyDown={e => e.key === 'Enter' && setExpanded(v => !v)}
-      >
-        <span className="text-xl flex-shrink-0 mt-0.5">{meta.emoji}</span>
-
-        <div className="flex-1 min-w-0">
-          <div className={clsx('flex flex-wrap items-center gap-1.5 mb-1.5', isRtl && 'flex-row-reverse')}>
-            <span className={clsx('text-[11px] font-medium px-2 py-0.5 rounded-full', badgeClass)}>
-              {isRtl ? meta.labelAr : meta.labelEn}
-            </span>
-            {dua.prophet && (
-              <span className="text-[11px] bg-amber-50 text-amber-700 ring-1 ring-amber-200 px-2 py-0.5 rounded-full">
-                {dua.prophet}
+      {/* ── Header: the expand control and the bookmark are sibling buttons ── */}
+      <div className="px-4 pt-4 pb-3 flex gap-3 items-start">
+        <button
+          type="button"
+          onClick={() => setExpanded(v => !v)}
+          aria-expanded={expanded}
+          aria-controls={bodyId}
+          className="flex-1 min-w-0 flex gap-3 text-start select-none"
+        >
+          <span className="text-xl flex-shrink-0 mt-0.5" aria-hidden="true">{meta.emoji}</span>
+          <span className="flex-1 min-w-0 block">
+            <span className="flex flex-wrap items-center gap-1.5 mb-1.5">
+              <span className={clsx('text-[11px] font-medium px-2 py-0.5 rounded-full', badgeClass)}>
+                {isRtl ? meta.labelAr : meta.labelEn}
               </span>
-            )}
-          </div>
-          <h3 className={clsx(
-            'font-semibold text-gray-800 text-sm leading-snug',
-            isRtl && 'font-arabic text-right',
-          )}>
-            {isRtl ? dua.titleAr : dua.titleEn}
-          </h3>
-          <p className={clsx('text-[11px] text-gray-400 mt-0.5', isRtl && 'font-arabic text-right')}>
-            {ref} · {ayahRef}
-          </p>
-        </div>
-
-        {/* Favorite + Chevron */}
-        <div className="flex-shrink-0 flex items-center gap-1 mt-1">
-          <button
-            onClick={e => { e.stopPropagation(); onToggleFavorite(dua.id); }}
-            title={isFavorite ? 'Remove bookmark' : 'Bookmark'}
-            className="p-1 rounded-lg hover:bg-rose-50 transition-colors"
-          >
-            <Heart className={clsx(
-              'w-3.5 h-3.5 transition-colors',
-              isFavorite ? 'fill-rose-400 text-rose-400' : 'text-gray-300 hover:text-rose-300',
-            )} />
-          </button>
-          <span className="text-gray-300">
+              {dua.prophet && (
+                <span className="text-[11px] bg-amber-50 text-amber-700 ring-1 ring-amber-200 px-2 py-0.5 rounded-full">
+                  {dua.prophet}
+                </span>
+              )}
+            </span>
+            <span className={clsx('block font-semibold text-gray-800 text-sm leading-snug', isRtl && 'font-arabic')}>
+              {isRtl ? dua.titleAr : dua.titleEn}
+            </span>
+            <span className={clsx('block text-[11px] text-gray-400 mt-0.5', isRtl && 'font-arabic')}>
+              {surahName} · <bdi dir="ltr">{ayahRef}</bdi>
+            </span>
+          </span>
+          <span className="text-gray-300 flex-shrink-0 mt-1" aria-hidden="true">
             {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </span>
-        </div>
+        </button>
+        <button
+          type="button"
+          onClick={() => onToggleFavorite(dua.id)}
+          aria-pressed={isFavorite}
+          aria-label={isRtl
+            ? (isFavorite ? 'إزالة من المحفوظات' : 'حفظ الدعاء')
+            : (isFavorite ? 'Remove bookmark' : 'Bookmark')}
+          className="p-1 mt-1 rounded-lg hover:bg-rose-50 transition-colors flex-shrink-0"
+        >
+          <Heart className={clsx(
+            'w-3.5 h-3.5 transition-colors',
+            isFavorite ? 'fill-rose-400 text-rose-400' : 'text-gray-300 hover:text-rose-300',
+          )} />
+        </button>
       </div>
 
       {/* ── Body ─────────────────────────────────────────────────────────────── */}
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
+        <div id={bodyId} className="px-4 pb-4 space-y-3 border-t border-gray-100">
 
-          {/* Arabic Ayat */}
+          {/* Arabic Ayat: the curated excerpt, or the full verses on request */}
           <div className="bg-white rounded-xl p-4 mt-3 border border-gray-100 shadow-inner">
-            <div className={clsx('flex justify-end gap-2 mb-2', isRtl && 'flex-row-reverse justify-start')}>
-              <CopyButton text={displayedAyat} />
-              <ShareButton dua={dua} isRtl={isRtl} />
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              {isExcerpt ? (
+                <span className={clsx('text-[10px] px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 ring-1 ring-sky-100', isRtl && 'font-arabic')}>
+                  {showFull
+                    ? (isRtl ? 'الآية كاملة' : 'Full verse')
+                    : (isRtl ? 'مقتطف من الآية' : 'Excerpt of')}{' '}
+                  <bdi dir="ltr">{ayahRef}</bdi>
+                </span>
+              ) : <span />}
+              <div className="flex items-center gap-1">
+                {isExcerpt && (
+                  <button
+                    type="button"
+                    onClick={() => setShowFull(v => !v)}
+                    className={clsx('text-xs text-sky-700 hover:underline px-2 py-1', isRtl && 'font-arabic')}
+                  >
+                    {showFull
+                      ? (isRtl ? 'عرض المقتطف' : 'Show excerpt')
+                      : (isRtl ? 'عرض الآية كاملة' : 'Show full verse')}
+                  </button>
+                )}
+                <CopyButton text={shareText} isRtl={isRtl} />
+                <ShareButton title={isRtl ? dua.titleAr : dua.titleEn} text={shareText} isRtl={isRtl} />
+              </div>
             </div>
-            <p
-              className="font-arabic text-xl leading-[2.2] text-gray-900 text-right"
-              dir="rtl"
-              lang="ar"
-            >
+            <p className="font-arabic text-xl leading-[2.2] text-gray-900 text-right" dir="rtl" lang="ar">
               {displayedAyat}
             </p>
+            <QuranTextAttribution language={isRtl ? 'ar' : 'en'} className="mt-2" />
           </div>
 
           {/* Transliteration */}
@@ -266,6 +346,7 @@ function DuaCard({
                 </span>
                 {memorizeMode && (
                   <button
+                    type="button"
                     onClick={() => setHideTranslit(v => !v)}
                     className="text-[10px] text-gray-400 hover:text-teal-600 flex items-center gap-1"
                   >
@@ -275,21 +356,22 @@ function DuaCard({
                 )}
               </div>
               {!hideTranslit && (
-                <p className="text-sm text-gray-600 italic leading-relaxed font-light tracking-wide">
+                <p className="text-sm text-gray-600 italic leading-relaxed font-light tracking-wide" dir="ltr">
                   {dua.transliterationArabic}
                 </p>
               )}
             </div>
           )}
 
-          {/* Meaning */}
+          {/* Meaning: QuranEnc translation (EN) or al-Muyassar (AR), each credited */}
           <div className="space-y-1">
-            <div className={clsx('flex items-center justify-between', isRtl && 'flex-row-reverse')}>
+            <div className="flex items-center justify-between">
               <span className={clsx('text-[10px] font-semibold uppercase tracking-wider text-gray-400', isRtl && 'font-arabic normal-case')}>
-                {isRtl ? 'الشرح' : 'Meaning'}
+                {isRtl ? 'المعنى من التفسير الميسر' : 'Translation of the meanings'}
               </span>
               {memorizeMode && (
                 <button
+                  type="button"
                   onClick={() => setHideMeaning(v => !v)}
                   className="text-[10px] text-gray-400 hover:text-teal-600 flex items-center gap-1"
                 >
@@ -300,33 +382,38 @@ function DuaCard({
             </div>
             {!hideMeaning && (
               isRtl ? (
-                <p className="font-arabic text-sm text-gray-700 leading-relaxed text-right" dir="rtl">
-                  {dua.meaningAr}
-                </p>
+                <MuyassarExplanation dua={dua} />
+              ) : translations.length > 0 ? (
+                <div className="space-y-1" dir="ltr">
+                  {translations.map((t, i) => (
+                    <p key={i} lang="en" className="text-sm text-gray-700 leading-relaxed">{t.text}</p>
+                  ))}
+                  <p className="text-[11px] text-gray-400">
+                    {isExcerpt ? 'Full verse. ' : ''}
+                    {edition?.title ?? 'Saheeh International'}{editionVersion ? ` v${editionVersion}` : ''},{' '}
+                    <a href="https://quranenc.com" target="_blank" rel="noopener noreferrer" className="underline">QuranEnc.com</a>
+                  </p>
+                </div>
               ) : (
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  <span className="text-gray-400">"</span>
-                  {dua.meaningEn}
-                  <span className="text-gray-400">"</span>
-                </p>
+                <div className="h-8 rounded-lg bg-gray-100 animate-pulse" />
               )
             )}
           </div>
 
-          {/* Hadith */}
-          {isRtl && dua.hadithAr && (
+          {/* Hadith: shown only with collection + number; grade only with its grader */}
+          {isDisplayableNote(dua.supportingNote) && (
             <div className="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5">
-              <p className="text-[10px] font-semibold text-amber-600 mb-1 text-right font-arabic">شاهد من السنة</p>
-              <p className="font-arabic text-xs text-amber-900 leading-relaxed text-right" dir="rtl">
-                {dua.hadithAr}
+              <p className={clsx('text-[10px] font-semibold text-amber-600 mb-1', isRtl && 'font-arabic text-right')}>
+                {isRtl ? 'حديث ذو صلة' : 'Related hadith'}
               </p>
-            </div>
-          )}
-          {!isRtl && dua.hadithAr && (
-            <div className="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5">
-              <p className="text-[10px] font-semibold text-amber-600 mb-1">Prophetic Note</p>
-              <p className="font-arabic text-xs text-amber-900 leading-relaxed text-right" dir="rtl">
-                {dua.hadithAr}
+              <p className="font-arabic text-xs text-amber-900 leading-relaxed text-right" dir="rtl" lang="ar">
+                {dua.supportingNote.textAr}
+              </p>
+              <p className="font-arabic text-[11px] text-amber-700 mt-1 text-right" dir="rtl" lang="ar">
+                {dua.supportingNote.collection} <bdi dir="ltr">{dua.supportingNote.number}</bdi>
+                {dua.supportingNote.grade && dua.supportingNote.grader
+                  ? ` · ${dua.supportingNote.grade} — ${dua.supportingNote.grader}`
+                  : ''}
               </p>
             </div>
           )}
@@ -340,8 +427,8 @@ function DuaCard({
 
           {/* Occasions */}
           {dua.occasions.length > 0 && (
-            <div className={clsx('flex flex-wrap gap-1', isRtl && 'flex-row-reverse')}>
-              <span className="text-[10px] text-gray-400 self-center mr-1">
+            <div className="flex flex-wrap gap-1">
+              <span className={clsx('text-[10px] text-gray-400 self-center me-1', isRtl && 'font-arabic')}>
                 {isRtl ? 'متى يُقال:' : 'When to recite:'}
               </span>
               {dua.occasions.map(occ => (
@@ -353,9 +440,9 @@ function DuaCard({
           )}
 
           {/* Tags */}
-          <div className={clsx('flex flex-wrap gap-1', isRtl && 'flex-row-reverse')}>
+          <div className="flex flex-wrap gap-1">
             {dua.tags.map(tag => (
-              <span key={tag} className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">
+              <span key={tag} className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full" dir="ltr">
                 #{tag}
               </span>
             ))}
@@ -366,13 +453,12 @@ function DuaCard({
             to={`/quran/${dua.surah}?aya=${dua.ayah}`}
             className={clsx(
               'inline-flex items-center gap-1.5 text-xs font-medium text-teal-700 hover:text-teal-900 transition-colors',
-              isRtl && 'flex-row-reverse',
+              isRtl && 'font-arabic',
             )}
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            {isRtl
-              ? `اقرأ في المصحف — ${dua.surahNameAr} ${ayahRef}`
-              : `Read in Muṣḥaf — ${dua.surahNameEn} ${ayahRef}`}
+            {isRtl ? 'اقرأ في المصحف — ' : 'Read in Muṣḥaf — '}
+            {surahName} <bdi dir="ltr">{ayahRef}</bdi>
           </Link>
         </div>
       )}
@@ -756,8 +842,8 @@ export function DuasPage() {
         <p className="text-xs text-gray-300 flex items-center justify-center gap-1.5">
           <Heart className="w-3.5 h-3.5 text-rose-300" />
           {isRtl
-            ? 'النص القرآني: حفص عن عاصم · الترجمة: صحيح إنترناشيونال · لا محتوى مُولَّد بالذكاء الاصطناعي'
-            : "Arabic: Ḥafṣ ʿan ʿĀṣim · English: Saheeh International · No AI-generated content"}
+            ? 'النص القرآني: مشروع تنزيل (رواية حفص) · الشرح: التفسير الميسر · لا محتوى مُولَّد بالذكاء الاصطناعي'
+            : "Arabic: Tanzil Project (Ḥafṣ ʿan ʿĀṣim) · English: Saheeh International via QuranEnc.com · No AI-generated content"}
         </p>
         <p className="text-[10px] text-gray-300 mt-1">
           {isRtl ? 'كل دعاء مرتبط بمرجعه القرآني الدقيق' : 'Every duʿā linked to its exact Quranic reference'}

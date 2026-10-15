@@ -13,6 +13,10 @@
  *
  * Safety rules:
  * - No content is authored here; fields are copied verbatim from the dataset
+ * - The Qur'an excerpt is verbatim Tanzil text (checked by
+ *   validate-quran-integrity.ts) and ships with the Tanzil attribution
+ * - No Arabic explanation is exported: clients show al-Tafsir al-Muyassar
+ *   from /tafseer/compare with its attribution
  * - Only the fields the API actually serves are exported
  * - Entries are emitted in Quran order (surah, then ayah)
  *
@@ -20,7 +24,7 @@
  *   npx tsx scripts/export-duas-to-backend.ts
  */
 
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
 import { resolve, join, dirname } from 'path';
 
 import { QURANIC_DUAS } from '../frontend/src/data/quranicDuas';
@@ -40,8 +44,10 @@ interface ExportedDua {
   titleAr: string;
   surahNameEn: string;
   surahNameAr: string;
+  /** Verbatim Tanzil Uthmani excerpt, one segment per verse joined by ' ۝ '. */
+  excerptUthmani: string;
+  /** Short English summary for search; not a translation. */
   meaningEn: string;
-  meaningAr: string;
   occasions: string[];
   tags: string[];
 }
@@ -75,8 +81,8 @@ function main(): void {
       titleAr: dua.titleAr,
       surahNameEn: dua.surahNameEn,
       surahNameAr: dua.surahNameAr,
+      excerptUthmani: dua.ayatUthmani,
       meaningEn: dua.meaningEn,
-      meaningAr: dua.meaningAr,
       occasions: [...dua.occasions],
       tags: [...dua.tags],
     };
@@ -90,8 +96,11 @@ function main(): void {
 
   exported.sort((a, b) => a.surah - b.surah || a.ayah - b.ayah);
 
+  const tanzil = JSON.parse(readFileSync(join(ROOT, 'data/raw/quran_tanzil.json'), 'utf8'));
   const payload = {
     name: 'Quranic Duʿā catalogue',
+    quranTextAttribution: tanzil.copyright.attribution,
+    quranTextCopyright: tanzil.copyright.uthmani,
     description:
       'Generated from frontend/src/data/quranicDuas.ts by ' +
       'scripts/export-duas-to-backend.ts. Do not edit by hand.',

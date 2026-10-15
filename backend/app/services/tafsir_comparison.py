@@ -19,8 +19,12 @@ response carries that disclaimer inline so it cannot be dropped downstream.
 """
 from __future__ import annotations
 
+import json
+import os
 import re
 from dataclasses import dataclass, field
+from functools import lru_cache
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from sqlalchemy import select
@@ -114,6 +118,44 @@ def _jaccard(a: set[str], b: set[str]) -> float:
     return round(len(a & b) / union, 4) if union else 0.0
 
 
+# Sources that stay hidden until their flag is set, even once their row is
+# enabled: the QuranEnc English Mukhtasar waits for the owner's confirmation
+# that QuranEnc's terms cover it.
+FLAGGED_SOURCES: Dict[str, str] = {"mukhtasar_en": "FEATURE_MUKHTASAR_EN"}
+
+
+def _flag_on(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+_MANIFEST = Path(__file__).resolve().parents[3] / "data" / "manifests" / "tafseer_sources.json"
+
+
+@lru_cache(maxsize=1)
+def _manifest_urls() -> Dict[str, str]:
+    """source id -> where its text came from, per the sources manifest."""
+    try:
+        manifest = json.loads(_MANIFEST.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    urls: Dict[str, str] = {}
+    for entry in manifest.get("sources", []):
+        prov = entry.get("provenance") or {}
+        lic = entry.get("license") if isinstance(entry.get("license"), dict) else {}
+        url = prov.get("dataset_url") or lic.get("tos_url")
+        if url and str(url).startswith("http"):
+            urls[entry["id"]] = url
+    return urls
+
+
+def _source_url(source_id: str, source: Optional[TafseerSource]) -> Optional[str]:
+    """The row's own source_url, else the manifest's record. Never cdn_url:
+    rows seeded from the HF dataset still carry the CDN they never used."""
+    if source is not None and source.source_url:
+        return source.source_url
+    return _manifest_urls().get(source_id)
+
+
 def _catalog_entry(source_id: str) -> Dict[str, Any]:
     """Look up catalogue metadata for a DB source id.
 
@@ -156,6 +198,9 @@ class ComparisonEntry:
     reliability_score: Optional[float]
     license_type: Optional[str]
     license_verified: bool
+    license: Optional[str]
+    source_url: Optional[str]
+    translator: Optional[str]
     chunk_id: str
     text: str
     word_count: int
@@ -185,6 +230,11 @@ class ComparisonEntry:
             "reliability_score": self.reliability_score,
             "license_type": self.license_type,
             "license_verified": self.license_verified,
+            # Attribution shown under every passage: licence text, where the
+            # text came from, and who translated it (translations only).
+            "license": self.license,
+            "source_url": self.source_url,
+            "translator": self.translator,
             "chunk_id": self.chunk_id,
             "text": self.text,
             "word_count": self.word_count,
@@ -239,7 +289,10 @@ class TafsirComparisonService:
         entries: List[ComparisonEntry] = []
         for chunk in chunks:
             source = sources.get(chunk.source_id)
-            if source is not None and source.is_enabled == 0:
+            # Disabled or licence-unverified sources are never shown.
+            if source is not None and (source.is_enabled == 0 or not source.license_verified):
+                continue
+            if chunk.source_id in FLAGGED_SOURCES and not _flag_on(FLAGGED_SOURCES[chunk.source_id]):
                 continue
 
             lang = (source.language if source else None) or (
@@ -290,6 +343,9 @@ class TafsirComparisonService:
                     reliability_score=source.reliability_score if source else None,
                     license_type=source.license_type if source else None,
                     license_verified=bool(source.license_verified) if source else False,
+                    license=source.license if source else None,
+                    source_url=_source_url(chunk.source_id, source),
+                    translator=getattr(source, "translator", None) if source else None,
                     chunk_id=chunk.chunk_id,
                     text=text,
                     word_count=chunk.word_count or len(text.split()),

@@ -3,6 +3,9 @@ Quranic Duʿā API — serves the static dua catalogue with server-side filterin
 
 All data is derived from exact Quranic references (Hafs ʿan ʿĀṣim).
 No AI-generated content. Source: frontend/src/data/quranicDuas.ts (same dataset).
+``excerptUthmani`` is verbatim Tanzil text (Tanzil Project, CC BY 3.0, see
+``quran_text_attribution`` in the response). No Arabic explanation is served:
+clients show al-Tafsir al-Muyassar from /tafseer/compare with its source.
 
 Rate-limited to 30 requests/min per IP.
 """
@@ -60,6 +63,7 @@ def _load_duas() -> list[dict]:
 
 
 _DUAS: list[dict] = _load_duas()
+_ATTRIBUTION: str = json.loads(_DUAS_PATH.read_text(encoding="utf-8")).get("quranTextAttribution", "")
 
 
 # ── Pydantic schema ───────────────────────────────────────────────────────────
@@ -75,8 +79,8 @@ class DuaOut(BaseModel):
     titleAr: str
     surahNameEn: str
     surahNameAr: str
-    meaningEn: str
-    meaningAr: str
+    excerptUthmani: str
+    meaningEn: str = Field(..., description="Short English summary for search; not a translation")
     occasions: list[str]
     tags: list[str]
 
@@ -84,6 +88,7 @@ class DuaOut(BaseModel):
 class DuaListOut(BaseModel):
     count: int
     duas: list[DuaOut]
+    quran_text_attribution: str = ""
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -118,11 +123,14 @@ async def list_duas(
             if (needle in d['titleEn'].lower()
                 or needle in d['titleAr']
                 or needle in d['meaningEn'].lower()
-                or needle in d['meaningAr']
                 or any(needle in t for t in d.get('tags', []))
                 or needle in d['surahNameEn'].lower()
                 or needle in (d.get('prophet') or '').lower())
         ]
 
     response.headers["Cache-Control"] = "public, max-age=86400"
-    return DuaListOut(count=len(results), duas=[DuaOut(**d) for d in results])
+    return DuaListOut(
+        count=len(results),
+        duas=[DuaOut(**d) for d in results],
+        quran_text_attribution=_ATTRIBUTION,
+    )

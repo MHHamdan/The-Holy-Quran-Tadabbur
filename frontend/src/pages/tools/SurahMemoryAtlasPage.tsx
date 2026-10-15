@@ -5,7 +5,9 @@
  * intelligent factual memory clues from verified data only.
  *
  * Content policy:
- * - All ayah text comes from surahMemoryAtlas.json (built from quran_uthmani.json)
+ * - All ayah text comes from surahMemoryAtlas.json (built from
+ *   data/raw/quran_tanzil.json) and is rendered verbatim. Tanzil verse text
+ *   never contains the Bismillah (a separate field), so nothing is stripped.
  * - No ayah text is hardcoded here
  * - Makki/Madani is curated metadata; always shown with needs_review badge
  * - Memory clues are generated from verified numeric data only (no AI-generated Islamic content)
@@ -22,6 +24,7 @@ import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import clsx from 'clsx';
 import atlasData from '../../data/generated/surahMemoryAtlas.json';
+import { QuranTextAttribution } from '../../components/quran/QuranTextAttribution';
 import type {
   SurahMemoryItem, RevelationType, LengthCategory, QuranPosition, StoryName,
 } from '../../types/surahMemoryAtlas';
@@ -52,53 +55,8 @@ const ATLAS = atlasData as {
 const SURAHS: SurahMemoryItem[] = ATLAS.surahs;
 const STORY_NAMES: Record<string, StoryName> = ATLAS.storyNames ?? {};
 const MAX_AYAHS = 286; // Al-Baqara — used for relative length bar
-
-/**
- * Strips the Bismillah prefix from ayah text for display.
- * The quran_uthmani.json stores Bismillah as a prefix in ayah 1 of surahs 2-114.
- * For Al-Fatiha (surah 1), Bismillah IS ayah 1:1 — never strip it (only strip BOM).
- * For At-Tawba (surah 9), no Bismillah prefix exists — returns text unchanged.
- *
- * Uses the 3-Alef-Wasla (ٱ U+0671) scan to locate the end of the Bismillah,
- * which is robust against different SHADDA/FATHAH ordering in Uthmani Unicode.
- *
- * This is a display-only transformation; the stored data is never modified.
- */
-function stripBasmala(text: string, surahNumber: number): string {
-  // Strip BOM that may appear on the very first verse in the data file
-  const clean = text.replace(/^\uFEFF/, '');
-  if (surahNumber === 1) return clean; // Bismillah IS Al-Fatiha verse 1
-  if (surahNumber === 9) return clean; // At-Tawba has no Bismillah prefix
-  const ALEF_WASLA = 'ٱ'; // ٱ — distinctive in Uthmani script
-  const MIM = 'م';        // م — last base letter of ٱلرَّحِيمِ
-  // Find the 3rd Alef Wasla: ٱللَّهِ, ٱلرَّحْمَٰنِ, ٱلرَّحِيمِ
-  // Guard: if the first ٱ appears too far in (>15 chars), text has no Bismillah prefix
-  let count = 0;
-  let pos = 0;
-  for (let i = 0; i < clean.length; i++) {
-    if (clean[i] === ALEF_WASLA) {
-      if (count === 0 && i > 15) return clean; // first ٱ too far in — no prefix
-      count++;
-      if (count === 3) { pos = i; break; }
-    }
-  }
-  if (count < 3) return clean; // fewer than 3 Alef Wasla — no full Bismillah
-  // Scan forward past ٱلرَّحِيمِ to the م, then consume trailing diacritics
-  pos++; // skip ٱ itself
-  while (pos < clean.length) {
-    if (clean[pos] === MIM) {
-      pos++;
-      while (pos < clean.length) {
-        const cp = clean.codePointAt(pos)!;
-        if (cp >= 0x064B && cp <= 0x065F) pos++; // diacritics range
-        else break;
-      }
-      break;
-    }
-    pos++;
-  }
-  return clean.slice(pos).trimStart() || clean;
-}
+const LONGEST_AYAHS = Math.max(...SURAHS.map(s => s.ayahCount));
+const SHORTEST_AYAHS = Math.min(...SURAHS.map(s => s.ayahCount));
 
 // ---------------------------------------------------------------------------
 // Theme & figure bilingual lookup maps
@@ -354,66 +312,26 @@ function positionBarColor(pos: QuranPosition): string {
 function generateIntelligentClue(s: SurahMemoryItem, lang: 'ar' | 'en'): string | null {
   const n = s.surahNumber;
 
-  // Structurally notable surahs — only factual, widely-agreed scholarly notes
-  const specials: Record<number, { ar: string; en: string }> = {
-    1:   { ar: 'أم الكتاب — أول سورة في المصحف الشريف', en: 'Umm Al-Kitab — the very first surah of the Quran' },
-    2:   { ar: `أطول سورة في القرآن الكريم بـ${toArabicIndic(286)} آية`, en: 'Longest surah in the Quran with 286 ayahs' },
-    3:   { ar: 'الزهراوان: البقرة وآل عمران — تأتيان معاً في الجزء الأول', en: 'Al-Zahrawaan: paired with Al-Baqara — both in Juz 1–3' },
-    4:   { ar: 'من أطول السور المدنية — نزلت في الجزء الرابع والخامس', en: 'One of the longest Madani surahs — spans Juz 4–5' },
-    5:   { ar: 'آخر سورة كبيرة نزلت في حياة النبي ﷺ', en: 'Among the last major surahs revealed in the Prophet\'s ﷺ lifetime' },
-    9:   { ar: 'السورة الوحيدة التي لم تُفتتح بالبسملة', en: 'The only surah not prefaced by Bismillah' },
-    12:  { ar: 'أحسن القصص — قصة يوسف عليه السلام كاملة في سورة واحدة', en: 'Ahsan Al-Qasas — the complete story of Prophet Yusuf in one surah' },
-    13:  { ar: 'ختمها بذكر التسبيح: وَإِن مِّن شَيْءٍ إِلَّا يُسَبِّحُ بِحَمْدِهِ', en: 'Named after Thunder (Ra\'d) — opens Juz 13' },
-    17:  { ar: 'افتتحت بقصة الإسراء والمعراج — السورة الأولى في الجزء ١٥', en: 'Opens with the night journey — first surah of Juz 15' },
-    18:  { ar: 'يُستحب قراءتها كل جمعة — تقع في منتصف المصحف', en: 'Recommended every Friday — located near the midpoint of the Quran' },
-    24:  { ar: 'سورة النور — نزلت في حادثة الإفك وأحكام الستر', en: 'Revealed following the incident of the Ifk — legislation on modesty' },
-    29:  { ar: 'مطلعها بحروف مقطعة: الم — تبدأ الجزء العشرين', en: 'Opens with Alif-Lam-Mim — begins Juz 20' },
-    32:  { ar: 'تُقرأ في صلاة فجر يوم الجمعة — سورة مكية موجزة', en: 'Read in Fajr on Fridays — a concise Makki surah' },
-    36:  { ar: 'يس — قلب القرآن، في منتصف المصحف الورقي تقريباً', en: 'Ya-Sin — heart of the Quran, near the midpoint of the Mushaf' },
-    42:  { ar: 'الشورى — من الحواميم السبع في المصحف', en: 'Al-Shura — one of the seven Ha-Mim surahs in the Quran' },
-    45:  { ar: 'الجاثية — تبدأ بالحواميم، في الجزء الخامس والعشرين', en: 'Al-Jathiyah — Ha-Mim series, in Juz 25' },
-    49:  { ar: 'الحجرات — آداب الإسلام وأخلاق المجتمع المؤمن', en: 'Al-Hujurat — Islamic etiquette and community ethics' },
-    52:  { ar: 'الطور — أقسام ربانية بالطور والكتاب والبيت المعمور', en: 'Al-Tur — divine oaths by the Mount, the Book, and the Inhabited House' },
-    55:  { ar: 'الرحمن — تتكرر فيها: فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ ١٣ مرة', en: 'Al-Rahman — refrain "Which of your Lord\'s favors will you deny?" repeated 31 times' },
-    58:  { ar: 'المجادلة — نزلت في قضية الظهار والمرأة التي شكت إلى الله', en: 'Al-Mujadila — revealed about the woman who disputed to Allah' },
-    59:  { ar: 'الحشر — تُختم بأسماء الله الحسنى: هو الله الذي لا إله إلا هو', en: 'Al-Hashr — concludes with the beautiful names of Allah' },
-    63:  { ar: 'المنافقون — كُشف فيها نفاق بعض المنافقين في عهد النبي ﷺ', en: 'Al-Munafiqun — exposed hypocrites in the Prophet\'s ﷺ time' },
-    64:  { ar: 'التغابن — من سور الجزء الثامن والعشرين', en: 'Al-Taghabun — in Juz 28, paired with Al-Hashr and Al-Munafiqun' },
-    65:  { ar: 'الطلاق — أحكام فقهية دقيقة في الطلاق والعدة', en: 'Al-Talaq — precise rulings on divorce and waiting periods' },
-    67:  { ar: 'تبارك — يُستحب قراءتها كل ليلة، تشفع لصاحبها', en: 'Tabarak — recommended nightly; said to intercede for its reader' },
-    70:  { ar: 'المعارج — تصف صعود الملائكة في يوم كان مقداره خمسين ألف سنة', en: 'Al-Ma\'arij — describes ascent of angels in a day of fifty thousand years' },
-    73:  { ar: 'المزمل — نزلت في بداية الوحي وأمرت بقيام الليل', en: 'Al-Muzzammil — early revelation; commanded night prayer (Tahajjud)' },
-    74:  { ar: 'المدثر — أول ما نزل بعد فترة الوحي: قُمْ فَأَنذِرْ', en: 'Al-Muddathir — among the earliest revelations after the pause' },
-    75:  { ar: 'القيامة — تبدأ بالقسم بيوم القيامة والنفس اللوامة', en: 'Al-Qiyamah — opens with oaths by the Day of Judgment and the self-reproaching soul' },
-    77:  { ar: 'المرسلات — تتكرر فيها: وَيْلٌ يَوْمَئِذٍ لِّلْمُكَذِّبِينَ عشر مرات', en: 'Al-Mursalat — "Woe that Day to the deniers!" repeated 10 times' },
-    81:  { ar: 'التكوير — تصوير مذهل ليوم القيامة في صورة كونية', en: 'Al-Takwir — vivid cosmic imagery of the Day of Judgment' },
-    82:  { ar: 'الانفطار — يوم تنشق السماء وتتناثر الكواكب', en: 'Al-Infitar — the sky cracks and planets scatter on Judgment Day' },
-    83:  { ar: 'المطففين — وعيد شديد للمطففين في الكيل والميزان', en: 'Al-Mutaffifin — stern warning for those who cheat in weight and measure' },
-    84:  { ar: 'الانشقاق — السماء تنشق والأرض تمد', en: 'Al-Inshiqaq — the sky splits and earth stretches out' },
-    86:  { ar: 'الطارق — القسم بالنجم الثاقب', en: 'Al-Tariq — oath by the piercing star' },
-    87:  { ar: 'الأعلى — أول سورة جاء فيها: سَبِّحِ ٱسْمَ رَبِّكَ ٱلْأَعْلَى', en: 'Al-A\'la — "Exalt the name of your Lord, the Most High" — first of three surahs with this opening' },
-    88:  { ar: 'الغاشية — هل أتاك حديث الغاشية؟ — تصف أهوال يوم القيامة', en: 'Al-Ghashiyah — "Has there come to you the account of the Overwhelming?" — vivid Day of Judgment' },
-    90:  { ar: 'البلد — القسم بهذا البلد (مكة المكرمة)', en: 'Al-Balad — oath by this city (Makkah)' },
-    92:  { ar: 'الليل — والنهار إذا تجلى — تصف طريقين متعاكسين', en: 'Al-Layl — contrasts two opposing paths: generosity and miserliness' },
-    95:  { ar: 'التين — والتين والزيتون وطور سينين — قسم بأربعة شواهد', en: 'Al-Tin — oaths by the fig, the olive, Mount Sinai, and Makkah' },
-    96:  { ar: 'العلق — أول ما نزل من القرآن الكريم: اقرأ بسم ربك', en: 'Al-Alaq — the very first Quranic revelation: "Read in the name of your Lord"' },
-    97:  { ar: 'القدر — ليلة القدر خير من ألف شهر', en: 'Al-Qadr — the Night of Power is better than a thousand months' },
-    99:  { ar: 'الزلزلة — إذا زلزلت الأرض زلزالها — تصف يوم الحساب', en: 'Al-Zalzalah — the earth shakes its final earthquake; every atom of deeds is shown' },
-    100: { ar: 'العاديات — القسم بالخيل العادية والموريات قدحاً', en: 'Al-Adiyat — oaths by war horses charging and sparking fire' },
-    101: { ar: 'القارعة — يوم الناس كالفراش المبثوث', en: 'Al-Qari\'ah — "The Calamity!" — people are like scattered moths' },
-    102: { ar: 'التكاثر — ألهاكم التكاثر حتى زرتم المقابر', en: 'Al-Takathur — rivalry for worldly gain until you visit the graves' },
-    103: { ar: 'العصر — إن الإنسان لفي خسر — استثناء أربعة صفات', en: 'Al-Asr — mankind is in loss, except those with four qualities' },
-    106: { ar: 'قريش — لإيلاف قريش رحلتي الشتاء والصيف', en: 'Quraysh — the two trading journeys of winter and summer' },
-    107: { ar: 'الماعون — وصف المكذب بالدين بسبع صفات', en: 'Al-Ma\'un — describes the denier of the faith with seven traits' },
-    108: { ar: 'الكوثر — أقصر سورة في القرآن: ثلاث آيات', en: 'Al-Kawthar — shortest surah in the Quran: only 3 ayahs' },
-    109: { ar: 'الكافرون — براءة من الشرك والمشركين', en: 'Al-Kafirun — a clear declaration of disavowal from polytheism' },
-    110: { ar: 'النصر — من آخر ما نزل — آذنت بوفاة النبي ﷺ', en: 'Al-Nasr — among the last revelations; heralded the Prophet\'s ﷺ passing' },
-    111: { ar: 'المسد — نزلت في أبي لهب وامرأته حمالة الحطب', en: 'Al-Masad — revealed specifically about Abu Lahab and his wife' },
-    112: { ar: `${toArabicIndic(4)} آيات — تعدل ثلث القرآن في الثواب`, en: '4 ayahs — said to equal one-third of the Quran in reward' },
-    113: { ar: 'الأولى من المعوذتين — التعوذ من شرور الخلق والحسد', en: 'First of the two refuge surahs — seeking refuge from created evils' },
-    114: { ar: 'خاتمة المصحف الشريف — آخر سورة في القرآن', en: 'Final surah — the seal of the Holy Quran' },
-  };
-  if (specials[n]) return lang === 'ar' ? specials[n].ar : specials[n].en;
+  // Only structural facts computed from the bundled Tanzil-derived data.
+  // Hand-written notes about individual surahs were removed: several were
+  // wrong (juz ranges, refrain counts, misattributed verses) and none had a
+  // reviewed source.
+  if (n === 1) {
+    return lang === 'ar' ? 'أول سورة في ترتيب المصحف' : 'First surah in the order of the Mushaf';
+  }
+  if (n === SURAHS.length) {
+    return lang === 'ar' ? 'آخر سورة في ترتيب المصحف' : 'Last surah in the order of the Mushaf';
+  }
+  if (s.ayahCount === LONGEST_AYAHS) {
+    return lang === 'ar'
+      ? `أطول سورة بعدد الآيات: ${toArabicIndic(s.ayahCount)} آية`
+      : `Longest surah by ayah count: ${s.ayahCount} ayahs`;
+  }
+  if (s.ayahCount === SHORTEST_AYAHS) {
+    return lang === 'ar'
+      ? `من أقصر السور بعدد الآيات: ${toArabicIndic(s.ayahCount)} آيات`
+      : `Among the shortest surahs by ayah count: ${s.ayahCount} ayahs`;
+  }
 
   // Single-page surah (fits entirely on one Mushaf page)
   if (s.pageStart === s.pageEnd) {
@@ -437,7 +355,9 @@ function generateIntelligentClue(s: SurahMemoryItem, lang: 'ar' | 'en'): string 
       : `Falls entirely within Juz ${s.juzStart}`;
   }
 
-  return null;
+  return lang === 'ar'
+    ? `تمتد من الجزء ${toArabicIndic(s.juzStart)} إلى الجزء ${toArabicIndic(s.juzEnd)} (الصفحات ${toArabicIndic(s.pageStart)}–${toArabicIndic(s.pageEnd)})`
+    : `Spans Juz ${s.juzStart}–${s.juzEnd} (pages ${s.pageStart}–${s.pageEnd})`;
 }
 
 function generateQuestion(surahs: SurahMemoryItem[]): QuizQuestion {
@@ -541,7 +461,7 @@ function SurahCard({
           aria-hidden="true"
         >
           <p className="font-mushaf text-white text-xs leading-relaxed text-center line-clamp-4" dir="rtl">
-            {stripBasmala(surah.firstAyahPreview, surah.surahNumber)}
+            {surah.firstAyahPreview}
           </p>
           <Link
             to={`/quran/${surah.surahNumber}`}
@@ -738,7 +658,7 @@ function SurahDetailPanel({
                 {t('sma_opening_verses', language)}
               </div>
               <AyahBlock
-                text={stripBasmala(surah.firstAyahPreview ?? '', surah.surahNumber)}
+                text={surah.firstAyahPreview ?? ''}
                 ref_={surah.firstAyahRef}
                 aya={1}
                 surahNumber={surah.surahNumber}
@@ -807,6 +727,9 @@ function SurahDetailPanel({
                 surahNumber={surah.surahNumber}
               />
             </div>
+          )}
+          {(surah.firstAyahPreview || surah.lastAyahPreview) && (
+            <QuranTextAttribution language={language} />
           )}
 
           {/* ── Memory aid ────────────────────────────────────────── */}
@@ -1266,6 +1189,9 @@ export function SurahMemoryAtlasPage() {
             </button>
           ))}
         </div>
+
+        {/* Grid cards show opening ayahs on hover: the licence asks for attribution. */}
+        <QuranTextAttribution language={lang} className="mb-3" />
 
         {/* ── Quiz view ───────────────────────────────────────────────── */}
         {viewMode === 'quiz' && <QuizPanel surahs={SURAHS} language={lang} />}

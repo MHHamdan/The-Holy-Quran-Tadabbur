@@ -37,7 +37,7 @@ from app.models.therapy import EmotionCategory, EMOTION_LABELS, TherapySession
 from app.services.spiritual_guidance_service import (
     HEALING_THEMES,
     build_guidance_cards,
-    classify_emotion,
+    _keyword_classify,
     get_recommended_themes,
     get_theme_cards,
 )
@@ -78,8 +78,9 @@ def _classify_with_confidence(message: str) -> tuple[str, float]:
         if emotion:
             return emotion, confidence
 
-    # Keyword path — classify_emotion handles Arabic routing internally too
-    return classify_emotion(message), 0.0
+    # Keyword path. Not classify_emotion(): it would call the HF zero-shot
+    # model a second time for English text the NLI step above already tried.
+    return _keyword_classify(message), 0.0
 
 router = APIRouter()
 
@@ -373,6 +374,11 @@ class TopicHadithItem(BaseModel):
     translation_ar: str
     source_en: str
     source_ar: str
+    # Only items with collection + number are served (is_verified_hadith).
+    collection: Optional[str] = None
+    number: Optional[str] = None
+    grade: Optional[str] = None
+    grader: Optional[str] = None
 
 
 class TopicWisePhraseItem(BaseModel):
@@ -1723,11 +1729,20 @@ class SituationHadithRefOut(BaseModel):
 
 
 class SituationDuaOut(BaseModel):
+    """A du'a for a situation.
+
+    Hadith du'as carry their Arabic text. Qur'anic du'as carry only
+    ``quran_ref``: clients render the verse from the canonical text, so no
+    Qur'an text or paraphrase is duplicated here.
+    """
     key: str
-    arabic: str
-    transliteration: str
-    translation_en: str
-    translation_ar: str
+    arabic: Optional[str] = None
+    transliteration: Optional[str] = None
+    translation_en: Optional[str] = None
+    translation_ar: Optional[str] = None
+    quran_ref: Optional[str] = None
+    label_en: Optional[str] = None
+    label_ar: Optional[str] = None
 
 
 class SituationSummary(BaseModel):
@@ -1743,7 +1758,9 @@ class SituationSummary(BaseModel):
 
 class SituationDetail(SituationSummary):
     duas: List[SituationDuaOut] = []
-    hadith_refs: List[SituationHadithRefOut] = []
+    # Omitted (None) rather than padded when no situation-specific hadith has
+    # been verified for this entry.
+    hadith_refs: Optional[List[SituationHadithRefOut]] = None
     review_status: str = "needs_review"
     human_review_required: bool = True
     disclaimer_en: str = _DISCLAIMER_EN
@@ -1789,7 +1806,7 @@ def _serialize_situation(entry, *, with_details: bool):
     ]
     return SituationDetail(
         duas=duas,
-        hadith_refs=hadith_refs,
+        hadith_refs=hadith_refs or None,
         review_status=entry.review_status,
         human_review_required=entry.human_review_required,
         **base,

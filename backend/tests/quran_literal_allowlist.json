@@ -1,0 +1,110 @@
+{
+  "description": "Vowelled Arabic in frontend sources whose letters also occur in the Qur'an but which is not a Qur'an quotation. Each entry needs a reason. Read by tests/quran_literal_scan.py.",
+  "entries": [
+    {
+      "file": "frontend/src/components/therapy/DailyPracticesPanel.tsx",
+      "text": "وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
+      "reason": "Closing words of the tahlil dhikr (لا إله إلا الله وحده لا شريك له ...), a hadith dhikr, not a verse quotation."
+    },
+    {
+      "file": "frontend/src/components/therapy/PropheticDuasPanel.tsx",
+      "text": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+      "reason": "Closing words of a hadith du'a (dua al-karb), not a quotation of 1:2. The entry is hidden until its hadith source is verified."
+    },
+    {
+      "file": "frontend/src/data/asmaAllahSeeds.ts",
+      "text": "ذُو الجَلَالِ وَالإِكْرَامِ",
+      "reason": "A Divine Name (Dhul-Jalali wal-Ikram) used as a name label, not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/generated/asmaAllahAtlas.json",
+      "text": "ذُو الجَلَالِ وَالإِكْرَامِ",
+      "reason": "The same Divine Name label, generated from asmaAllahSeeds.ts."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
+      "reason": "Closing words of the tahlil dhikr (لا إله إلا الله وحده لا شريك له ...), a hadith dhikr, not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "لَا إِلَهَ إِلَّا اللَّهُ",
+      "reason": "The tahlil (la ilaha illa Allah) as a dhikr formula, not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "فَالِقَ الْحَبِّ وَالنَّوَى",
+      "reason": "Words of a hadith sleep supplication (Allahumma rabba al-samawat ...), not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "له الملك وله الحمد وهو على كل شيء قدير",
+      "reason": "Arabic meaning line of the tahlil dhikr (hadith), not a verse quotation."
+    },
+    {
+      "file": "frontend/src/pages/tools/HajjUmrahGuidePage.tsx",
+      "text": "له الملك وله الحمد وهو على كل شيء قدير",
+      "reason": "The tahlil dhikr of the Day of Arafah (hadith), not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "وَالْحَمْدُ لِلَّهِ",
+      "reason": "Part of a hadith morning/evening dhikr (أصبحنا وأصبح الملك لله والحمد لله ...), not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "الْحَمْدُ لِلَّهِ",
+      "reason": "The tahmid as a counted dhikr formula (hadith), not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "سُبْحَانَ اللَّهِ",
+      "reason": "The tasbih as a counted dhikr formula (hadith), not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "اللَّهُ أَكْبَرُ",
+      "reason": "The takbir as a counted dhikr formula (hadith), not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "أَسْتَغْفِرُ اللَّهَ",
+      "reason": "The istighfar as a dhikr formula (hadith), not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/adhkar.ts",
+      "text": "لَا إِلَهَ إِلَّا أَنْتَ",
+      "reason": "Closing words of hadith supplications (e.g. اللهم عافني في بدني ... لا إله إلا أنت), not a verse quotation."
+    },
+    {
+      "file": "frontend/src/components/therapy/DailyPracticesPanel.tsx",
+      "text": "وَالْحَمْدُ لِلَّهِ",
+      "reason": "Part of hadith adhkar (أصبحنا وأصبح الملك لله والحمد لله ...; سبحان الله والحمد لله ...), not a verse quotation."
+    },
+    {
+      "file": "frontend/src/components/therapy/DailyPracticesPanel.tsx",
+      "text": "سُبْحَانَ اللَّهِ",
+      "reason": "The tasbih within the hadith dhikr سبحان الله والحمد لله ولا إله إلا الله والله أكبر, not a verse quotation."
+    },
+    {
+      "file": "frontend/src/components/therapy/PropheticDuasPanel.tsx",
+      "text": "الحمد لله رب العالمين",
+      "reason": "Closing words of the hadith du'a al-karb (Arabic meaning line), not a quotation of 1:2."
+    },
+    {
+      "file": "frontend/src/data/asmaAllahSeeds.ts",
+      "text": "مَالِكُ المُلْكِ",
+      "reason": "A Divine Name (Malik al-Mulk) used as a name label, not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/generated/asmaAllahAtlas.json",
+      "text": "مَالِكُ المُلْكِ",
+      "reason": "The same Divine Name label, generated from asmaAllahSeeds.ts."
+    },
+    {
+      "file": "frontend/src/data/quranStories.ts",
+      "text": "إِن شَاءَ اللَّهُ",
+      "reason": "The saying in sha' Allah as the lesson of 18:23-24 (which reads إلا أن يشاء الله), not a verse quotation."
+    }
+  ]
+}

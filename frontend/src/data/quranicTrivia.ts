@@ -6,6 +6,7 @@
  * Safety: no religious rulings or contested interpretations.
  */
 
+import { quranExcerpt } from '../utils/quranExcerpt';
 export interface TriviaQuestion {
   id: string;
   questionEn: string;
@@ -124,7 +125,7 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
   {
     id: 'q_bismillah_count',
     questionEn: 'How many times does "Bismillah ir-Rahman ir-Rahim" appear in the entire Quran?',
-    questionAr: 'كم مرة ورد "بسم الله الرحمن الرحيم" في القرآن كله؟',
+    questionAr: `كم مرة ورد "${quranExcerpt('1:1')}" في القرآن كله؟`,
     options: [
       { en: '112', ar: '112' },
       { en: '113', ar: '113' },
@@ -319,7 +320,7 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
     ],
     correctIndex: 2,
     explanationEn: 'An-Nasr (110) — "When the help of Allah comes and the victory" — is widely considered the last complete surah revealed. The Prophet ﷺ died shortly after.',
-    explanationAr: 'النصر (110) — "إِذَا جَاءَ نَصْرُ اللَّهِ وَالْفَتْحُ" — تُعدّ على نطاق واسع آخر سورة كاملة نزلت. وتوفي النبي ﷺ بعدها بقليل.',
+    explanationAr: `النصر (110) — "${quranExcerpt('110:1')}" — تُعدّ على نطاق واسع آخر سورة كاملة نزلت. وتوفي النبي ﷺ بعدها بقليل.`,
     surahRef: 110,
     difficulty: 'medium',
     category: 'revelation',
@@ -352,7 +353,7 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
     ],
     correctIndex: 2,
     explanationEn: 'Laylat al-Qadr is in Ramadan — "We revealed it on the Night of Power" (97:1). It is better than a thousand months (97:3) and sought in the last ten nights.',
-    explanationAr: 'ليلة القدر في رمضان — "إِنَّا أَنزَلْنَاهُ فِي لَيْلَةِ الْقَدْرِ" (97:1). خير من ألف شهر (97:3) وتُلتمس في العشر الأواخر.',
+    explanationAr: `ليلة القدر في رمضان — "${quranExcerpt('97:1')}" (97:1). خير من ألف شهر (97:3) وتُلتمس في العشر الأواخر.`,
     surahRef: 97,
     difficulty: 'easy',
     category: 'revelation',
@@ -386,7 +387,7 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
     ],
     correctIndex: 2,
     explanationEn: 'In the Quran, "Aqimoo as-Salata wa atoo az-Zakat" (Establish prayer and give Zakat) appears together 30+ times — emphasizing that worship and social responsibility go hand in hand.',
-    explanationAr: '"أَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ" وردت معاً 30+ مرة — تأكيداً أن العبادة والمسؤولية الاجتماعية متلازمتان.',
+    explanationAr: `"${quranExcerpt('2:43#1-4')}" وردت معاً 30+ مرة — تأكيداً أن العبادة والمسؤولية الاجتماعية متلازمتان.`,
     difficulty: 'medium',
     category: 'worship',
   },
@@ -405,23 +406,6 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
     explanationEn: 'Ayat al-Kursi is 2:255 in Surah Al-Baqarah. The Prophet ﷺ called it the greatest verse of the Quran.',
     explanationAr: 'آية الكرسي هي 2:255 في سورة البقرة. وصفها النبي ﷺ بأنها أعظم آية في القرآن.',
     surahRef: 2,
-    difficulty: 'medium',
-    category: 'facts',
-  },
-  {
-    id: 'q_heart_quran',
-    questionEn: 'Which surah is often called "the heart of the Quran"?',
-    questionAr: 'أي سورة تُسمى "قلب القرآن"؟',
-    options: [
-      { en: 'Al-Fatihah (1)', ar: 'الفاتحة (1)' },
-      { en: 'Al-Ikhlas (112)', ar: 'الإخلاص (112)' },
-      { en: 'Ya-Sin (36)',     ar: 'يس (36)' },
-      { en: 'Al-Kahf (18)',   ar: 'الكهف (18)' },
-    ],
-    correctIndex: 2,
-    explanationEn: 'Ya-Sin (surah 36) is called "the heart of the Quran" in a hadith. It is often recited for the dying and at gravesides.',
-    explanationAr: 'يس (السورة 36) سُميت "قلب القرآن" في الحديث. تُقرأ عادةً للمحتضرين وعند القبور.',
-    surahRef: 36,
     difficulty: 'medium',
     category: 'facts',
   },
@@ -502,7 +486,7 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
     ],
     correctIndex: 1,
     explanationEn: 'Yunus is Jonah in the Bible — the prophet swallowed by a large fish who made the supplication "La ilaha illa anta subhanaka inni kuntu min az-zalimin" (21:87).',
-    explanationAr: 'يونس هو "يونه" في الإنجيل — النبي الذي ابتلعه الحوت ودعا "لا إله إلا أنت سبحانك إني كنت من الظالمين" (21:87).',
+    explanationAr: `يونس هو "يونه" في الإنجيل — النبي الذي ابتلعه الحوت ودعا "${quranExcerpt('21:87#15-23')}" (21:87).`,
     surahRef: 10,
     difficulty: 'easy',
     category: 'prophets',
@@ -592,14 +576,14 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
   {
     id: 'q_verse_of_light',
     questionEn: 'The "Verse of Light" — "Allah is the Light of the heavens and earth" — is in which surah?',
-    questionAr: '"اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ" في أي سورة؟',
+    questionAr: `"${quranExcerpt('24:35#2-5')}" في أي سورة؟`,
     options: [
       { en: 'Al-Baqarah (2)', ar: 'البقرة (2)' }, { en: 'Al-Isra (17)', ar: 'الإسراء (17)' },
       { en: 'An-Nur (24)', ar: 'النور (24)' }, { en: 'Az-Zumar (39)', ar: 'الزمر (39)' },
     ],
     correctIndex: 2,
     explanationEn: 'An-Nur 24:35 — "Allah is the Light of the heavens and earth" — is one of the most celebrated verses in the Quran, inspiring centuries of Islamic thought.',
-    explanationAr: 'النور 24:35 — "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ" — من أبهى آيات القرآن، وأثّرت في الفكر الإسلامي لقرون.',
+    explanationAr: `النور 24:35 — "${quranExcerpt('24:35#2-5')}" — من أبهى آيات القرآن، وأثّرت في الفكر الإسلامي لقرون.`,
     surahRef: 24,
     difficulty: 'medium',
     category: 'facts',
@@ -631,7 +615,7 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
     ],
     correctIndex: 2,
     explanationEn: 'Al-Hujurat 49:6: "If a fasiq brings you news, verify it" — an early Quranic principle of fact-checking before acting on information.',
-    explanationAr: 'الحجرات 49:6: "إِن جَاءَكُمْ فَاسِقٌ بِنَبَإٍ فَتَبَيَّنُوا" — مبدأ قرآني مبكّر للتحقق قبل الحكم.',
+    explanationAr: `الحجرات 49:6: "${quranExcerpt('49:6#5-9')}" — مبدأ قرآني مبكّر للتحقق قبل الحكم.`,
     surahRef: 49,
     difficulty: 'medium',
     category: 'facts',
@@ -639,14 +623,14 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
   {
     id: 'q_rahman_refrain',
     questionEn: 'How many times is "So which of your Lord\'s favours will you deny?" repeated in Surah Ar-Rahman (55)?',
-    questionAr: 'كم مرة تكررت "فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ" في سورة الرحمن (55)؟',
+    questionAr: `كم مرة تكررت "${quranExcerpt('55:77')}" في سورة الرحمن (55)؟`,
     options: [
       { en: '21 times', ar: '21 مرة' }, { en: '25 times', ar: '25 مرة' },
       { en: '31 times', ar: '31 مرة' }, { en: '40 times', ar: '40 مرة' },
     ],
     correctIndex: 2,
     explanationEn: '"Fabiayyi ala\'i rabbikuma tukaththiban" is repeated exactly 31 times in Ar-Rahman — the Quran\'s most rhythmically repeated refrain.',
-    explanationAr: '"فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ" تكررت 31 مرة في الرحمن — أكثر لازمة قرآنية تكراراً.',
+    explanationAr: `"${quranExcerpt('55:77')}" تكررت 31 مرة في الرحمن — أكثر لازمة قرآنية تكراراً.`,
     surahRef: 55,
     difficulty: 'hard',
     category: 'structure',
@@ -687,14 +671,14 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
   {
     id: 'q_zalzalah_atom',
     questionEn: '"Whoever does an atom\'s weight of good will see it" is in which surah?',
-    questionAr: '"فَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ خَيْرًا يَرَهُ" في أي سورة؟',
+    questionAr: `"${quranExcerpt('99:7')}" في أي سورة؟`,
     options: [
       { en: 'Al-Baqarah (2)', ar: 'البقرة (2)' }, { en: 'Al-Asr (103)', ar: 'العصر (103)' },
       { en: 'Al-Zalzalah (99)', ar: 'الزلزلة (99)' }, { en: 'Al-Qadr (97)', ar: 'القدر (97)' },
     ],
     correctIndex: 2,
     explanationEn: 'Al-Zalzalah 99:7-8: "Whoever does an atom\'s weight of good will see it, and whoever does an atom\'s weight of evil will see it."',
-    explanationAr: 'الزلزلة 99:7-8: "فَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ خَيْرًا يَرَهُ ۝ وَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ شَرًّا يَرَهُ".',
+    explanationAr: `الزلزلة 99:7-8: "${quranExcerpt('99:7')} ۝ ${quranExcerpt('99:8')}".`,
     surahRef: 99,
     difficulty: 'medium',
     category: 'facts',
@@ -749,17 +733,19 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
   // ========== FACTS (continued) ==========
   {
     id: 'q_sajdah_count',
-    questionEn: 'How many verses of prostration (Sajdah tilawa) are there in the Quran?',
-    questionAr: 'كم آية سجدة تلاوة في القرآن؟',
+    // Count from data/manifests/quran_structure_markers.json (sajdahs); the
+    // note on scholarly difference awaits a scholar's wording (owner review).
+    questionEn: 'How many places of prostration (sajdah) are marked in the Madinah Mushaf (Hafs)?',
+    questionAr: 'كم موضعَ سجدةِ تلاوةٍ عُلِّم في مصحف المدينة (رواية حفص)؟',
     options: [
-      { en: '7',  ar: '7'  },
       { en: '11', ar: '11' },
       { en: '14', ar: '14' },
+      { en: '15', ar: '15' },
       { en: '30', ar: '30' },
     ],
     correctIndex: 2,
-    explanationEn: 'There are 14 verses of prostration (sajdah tilawah) in the Quran, where a Muslim should perform a brief prostration upon reciting them.',
-    explanationAr: 'في القرآن 14 آية سجدة تلاوة، يُستحب عند تلاوتها أو سماعها أداء سجدة قصيرة.',
+    explanationEn: 'The Madinah Mushaf marks 15 places of prostration (sajdat al-tilawah). Scholars differ over some of them.',
+    explanationAr: 'عُلِّم في مصحف المدينة خمسة عشر موضعاً لسجود التلاوة، ولأهل العلم خلاف في بعضها.',
     difficulty: 'hard',
     category: 'facts',
   },

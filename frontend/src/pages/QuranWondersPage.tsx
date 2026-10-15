@@ -11,13 +11,18 @@ import { useState } from 'react';
 import { Sparkles, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
+import { LiveVerse } from '../components/quran/LiveVerse';
+import { quranExcerpt } from '../utils/quranExcerpt';
 
+/**
+ * A verse related to the fact. Only the reference is stored: the verse is
+ * rendered live from the canonical text (LiveVerse) with its attributed
+ * translation, never paraphrased here.
+ */
 interface QuranicRef {
   ref: string;       // e.g. "15:9"
   nameEn: string;    // e.g. "Surah Al-Hijr"
   nameAr: string;    // e.g. "سورة الحجر"
-  textEn: string;    // faithful English rendering of the verse meaning
-  textAr: string;    // Arabic paraphrase of the verse meaning (NOT Quran text — CLAUDE.md rule)
 }
 
 interface WonderFact {
@@ -67,8 +72,6 @@ const WONDERS: readonly WonderFact[] = [
       ref: '15:9',
       nameEn: 'Surah Al-Hijr',
       nameAr: 'سورة الحجر',
-      textEn: '"Indeed, it is We who sent down the Quran, and indeed, We will be its guardian."',
-      textAr: 'تعهّد الله بحفظ القرآن من أي تحريف — مما يشمل حفظ كل كلمة وحرف فيه على مرّ الأجيال.',
     },
     sourceEn: 'Al-Itqan fi Ulum al-Quran (Suyuti, d. 911 AH), ch. on word count; Quranic Arabic Corpus (quranic-research.net)',
     sourceAr: 'الإتقان في علوم القرآن (السيوطي، ت. 911هـ)، باب في عدد الكلمات؛ مجموعة بيانات المتن القرآني العربي',
@@ -85,8 +88,6 @@ const WONDERS: readonly WonderFact[] = [
       ref: '15:9',
       nameEn: 'Surah Al-Hijr',
       nameAr: 'سورة الحجر',
-      textEn: '"Indeed, it is We who sent down the Quran, and indeed, We will be its guardian."',
-      textAr: 'تعهّد الله بحفظ القرآن — ومن تجليات هذا الحفظ أن العلماء أحصوا كل حرف فيه وتتبّعوه عبر أربعة عشر قرناً.',
     },
     sourceEn: 'Al-Itqan fi Ulum al-Quran (Suyuti), ch. on letter counting; Fada\'il al-Quran (Ibn Kathir, d. 774 AH)',
     sourceAr: 'الإتقان في علوم القرآن (السيوطي)، باب في عدد الحروف؛ فضائل القرآن (ابن كثير، ت. 774هـ)',
@@ -114,8 +115,6 @@ const WONDERS: readonly WonderFact[] = [
       ref: '12:2',
       nameEn: 'Surah Yusuf',
       nameAr: 'سورة يوسف',
-      textEn: '"Indeed, We have sent it down as an Arabic Quran that you might understand."',
-      textAr: 'أنزل الله القرآن باللسان العربي المبين لتتسع به مدارك الفهم والتدبر، مما أفرز ثراءً معجمياً لا مثيل له.',
     },
     sourceEn: 'Quranic Arabic Corpus (University of Leeds); Corpus Quranicum (Berlin-Brandenburg Academy); Abdul-Raof, H., Quranic Stylistics (2010)',
     sourceAr: 'مجموعة بيانات المتن القرآني العربي (جامعة ليدز)؛ Corpus Quranicum (أكاديمية برلين)؛ عبد الرؤوف، أسلوبية القرآن (2010)',
@@ -132,8 +131,6 @@ const WONDERS: readonly WonderFact[] = [
       ref: '15:87',
       nameEn: 'Surah Al-Hijr',
       nameAr: 'سورة الحجر',
-      textEn: '"And We have given you the seven oft-repeated [verses] and the great Quran."',
-      textAr: 'أطلق الله على الفاتحة اسم السبع المثاني — وهو من أسمائها القرآنية الموثقة — دليلاً على تعدد أسماء سور القرآن.',
     },
     sourceEn: 'Al-Itqan fi Ulum al-Quran (Suyuti), ch. on surah names; Sahih Bukhari 4703; Al-Burhan (Zarkashi), vol. 1, ch. 3',
     sourceAr: 'الإتقان (السيوطي)، باب في أسماء السور؛ صحيح البخاري 4703؛ البرهان (الزركشي)، ج. 1، النوع الثالث',
@@ -151,8 +148,6 @@ const WONDERS: readonly WonderFact[] = [
       ref: '3:7',
       nameEn: 'Surah Al-Imran',
       nameAr: 'سورة آل عمران',
-      textEn: '"It is He who has sent down to you the Book; in it are precise verses — they are the foundation of the Book — and others unspecific. Those with deviation in their hearts follow the unspecific seeking discord and seeking an interpretation... but none knows its [true] interpretation except Allah."',
-      textAr: 'أشار الله إلى وجود آيات محكمات وأخرى متشابهات في القرآن؛ ومن المتشابهات الحروف المقطعة التي لا يعلم معناها الحقيقي إلا الله.',
     },
     sourceEn: 'Tafsir Ibn Kathir (introduction to each surah); Tafsir Al-Tabari; Al-Itqan (Suyuti), ch. on muqattaat; Bayan al-Quran (Suyuti)',
     sourceAr: 'تفسير ابن كثير (مقدمة كل سورة)؛ تفسير الطبري؛ الإتقان (السيوطي)، باب في الحروف المقطعة',
@@ -180,8 +175,6 @@ const WONDERS: readonly WonderFact[] = [
       ref: '2:282',
       nameEn: 'Surah Al-Baqarah',
       nameAr: 'سورة البقرة',
-      textEn: '"O you who have believed, when you contract a debt for a specified term, write it down. And let a scribe write [it] between you in justice..." [the longest verse in the Quran]',
-      textAr: 'أمر الله المؤمنين بتوثيق عقود الدين كتابةً مع شروط تفصيلية للكاتب والشهود والإملاء — وهذه أطول آية في القرآن الكريم.',
     },
     sourceEn: 'Tafsir Al-Qurtubi, Ahkam al-Quran; Al-Jassas, Ahkam al-Quran (d. 370 AH); Ibn al-Arabi, Ahkam al-Quran (d. 543 AH)',
     sourceAr: 'تفسير القرطبي، أحكام القرآن؛ الجصاص، أحكام القرآن (ت. 370هـ)؛ ابن العربي، أحكام القرآن (ت. 543هـ)',
@@ -201,32 +194,19 @@ const WONDERS: readonly WonderFact[] = [
   },
   // === LANGUAGE ===
   {
-    id: 'w_hapax_legomena',
-    category: 'language',
-    titleEn: 'Words Used Only Once',
-    titleAr: 'كلمات وردت مرة واحدة فقط',
-    highlight: '1,500+',
-    factEn: 'Over 1,500 words in the Quran appear only once (hapax legomena in classical Arabic scholarship: "gharib al-Quran"). Each demanded centuries of scholarly inquiry to establish its precise meaning. Documented examples: "Sijjil" (15:74) — baked clay, possibly from Persian/Syriac; "Zanjabil" (76:17) — ginger-flavoured water of paradise; "Istabraq" (76:21) — thick brocade, possibly Arabicised Persian; "Qistas" (17:35) — balance scale, possibly from Greek; "Mishkat" (24:35) — a wall niche for a lamp, possibly Ethiopic. Imam Ar-Raghib al-Asfahani (d. c. 502 AH) wrote the definitive lexicon of rare Quranic vocabulary, and Ibn Qutaybah (d. 276 AH) wrote an earlier treatise on this topic.',
-    factAr: 'أكثر من 1,500 كلمة في القرآن لم ترد إلا مرة واحدة (غريب القرآن). أمثلة موثقة: "سجيل" (15:74) من طين مشوّي؛ "زنجبيل" (76:17) ماء الجنة المُنكَّه؛ "إستبرق" (76:21) الديباج الغليظ؛ "قسطاس" (17:35) ميزان عدل؛ "مشكاة" (24:35) كوّة في الجدار. ألّف الراغب الأصفهاني (ت. نحو 502هـ) المعجم المرجعي لهذه الكلمات "المفردات في غريب القرآن".',
-    sourceEn: 'Al-Mufradat fi Gharib al-Quran (Ar-Raghib al-Asfahani, d. c. 502 AH); Gharib al-Quran (Ibn Qutaybah, d. 276 AH); Arthur Jeffery, The Foreign Vocabulary of the Quran (1938)',
-    sourceAr: 'المفردات في غريب القرآن (الراغب الأصفهاني، ت. نحو 502هـ)؛ غريب القرآن (ابن قتيبة، ت. 276هـ)؛ آرثر جيفري، المفردات الأجنبية في القرآن (1938)',
-  },
-  {
     id: 'w_quran_arabic',
     category: 'language',
     titleEn: 'The Quran Preserved Classical Arabic',
     titleAr: 'القرآن حافظ على اللغة العربية الكلاسيكية',
     highlight: '1,400 Years',
-    factEn: 'The Quran explicitly describes itself as an "Arabic Quran" in five separate verses (12:2, 20:113, 39:28, 41:3, 43:3), and as a "clear Arabic tongue" (16:103). No other ancient language is so continuously studied and spoken through a single text. Linguist Johann Fück (1955) noted the Quran "arrested the natural evolution of the Arabic language." Classical Arabic used in the Quran is today fully teachable from its own text — university courses worldwide use it as the primary teaching corpus. Lane\'s Arabic-English Lexicon (1863), still the most comprehensive English reference for classical Arabic, is essentially a lexicon of Quranic and Hadith Arabic.',
-    factAr: 'وصف القرآن نفسه بأنه "قرآن عربي" في خمس آيات (12:2، 20:113، 39:28، 41:3، 43:3)، و"لسان عربي مبين" (16:103). لا توجد لغة قديمة أخرى محفوظة حية بنص واحد بهذه الدرجة. رأى المستشرق يوهان فُوك (1955) أن القرآن "أوقف التطور الطبيعي للغة العربية". وقاموس لين العربي الإنجليزي (1863) — أشمل مراجع العربية الكلاسيكية بالإنجليزية — هو في جوهره معجم لغة القرآن والحديث.',
+    factEn: 'The Quran explicitly describes itself as an "Arabic Quran" in six verses (12:2, 20:113, 39:28, 41:3, 42:7, 43:3), and as a "clear Arabic tongue" (16:103). No other ancient language is so continuously studied and spoken through a single text. Linguist Johann Fück (1955) noted the Quran "arrested the natural evolution of the Arabic language." Classical Arabic used in the Quran is today fully teachable from its own text — university courses worldwide use it as the primary teaching corpus. Lane\'s Arabic-English Lexicon (1863), still the most comprehensive English reference for classical Arabic, is essentially a lexicon of Quranic and Hadith Arabic.',
+    factAr: 'وصف القرآن نفسه بأنه "قرآن عربي" في ست آيات (12:2، 20:113، 39:28، 41:3، 42:7، 43:3)، و"لسان عربي مبين" (16:103). لا توجد لغة قديمة أخرى محفوظة حية بنص واحد بهذه الدرجة. رأى المستشرق يوهان فُوك (1955) أن القرآن "أوقف التطور الطبيعي للغة العربية". وقاموس لين العربي الإنجليزي (1863) — أشمل مراجع العربية الكلاسيكية بالإنجليزية — هو في جوهره معجم لغة القرآن والحديث.',
     quranicRef: {
       ref: '41:3',
       nameEn: 'Surah Fussilat',
       nameAr: 'سورة فصّلت',
-      textEn: '"A Book whose verses have been detailed, an Arabic Quran for a people who know."',
-      textAr: 'وصف الله القرآن بأن آياته مفصّلة قرآناً عربياً لقوم يعلمون — مما يؤكد أن عروبته ركيزة في بنائه.',
     },
-    sourceEn: 'Quran 12:2, 20:113, 39:28, 41:3, 43:3, 16:103; Fück, J., Arabiyya (1955); Lane, E.W., Arabic-English Lexicon (1863), Introduction',
+    sourceEn: 'Quran 12:2, 20:113, 39:28, 41:3, 42:7, 43:3, 16:103; Fück, J., Arabiyya (1955); Lane, E.W., Arabic-English Lexicon (1863), Introduction',
     sourceAr: 'القرآن 12:2، 41:3، 43:3، 16:103؛ فُوك، يوهان، Arabiyya (1955م)؛ لين، قاموس عربي إنجليزي (1863م)',
   },
   {
@@ -241,8 +221,6 @@ const WONDERS: readonly WonderFact[] = [
       ref: '16:103',
       nameEn: 'Surah An-Nahl',
       nameAr: 'سورة النحل',
-      textEn: '"And We know well that they say: \'It is only a human who teaches him.\' The tongue of the one they point to is foreign, while this [Quran] is [in] a clear Arabic language."',
-      textAr: 'ردّ الله على من زعم أن النبي ﷺ تعلّم من إنسان أعجمي، مؤكداً أن القرآن لسان عربي مبين — مما يؤصّل عروبته حتى في مواجهة الكلمات المعرَّبة.',
     },
     sourceEn: 'Al-Muhadhdhab fi ma waqa\'a fi al-Quran min al-Mu\'arrab (Suyuti); Risala (Imam Shafi\'i, d. 204 AH); Arthur Jeffery, The Foreign Vocabulary of the Quran (1938)',
     sourceAr: 'المهذب فيما وقع في القرآن من المعرّب (السيوطي)؛ الرسالة (الإمام الشافعي، ت. 204هـ)؛ جيفري، المفردات الأجنبية في القرآن (1938)',
@@ -259,8 +237,6 @@ const WONDERS: readonly WonderFact[] = [
       ref: '17:88',
       nameEn: "Surah Al-Isra'",
       nameAr: 'سورة الإسراء',
-      textEn: '"Say: If all mankind and jinn were to gather together to produce the like of this Quran, they could not produce the like of it, even if they were helpers of one another."',
-      textAr: 'أعجز الله الإنس والجن مجتمعين عن الإتيان بمثل هذا القرآن ولو أعان بعضهم بعضاً — وهذا أشمل وأعظم التحديات.',
     },
     sourceEn: 'Quran 2:23, 10:38, 11:13, 17:88, 52:34; I\'jaz al-Quran (Al-Baqillani, d. 403 AH); Dala\'il al-I\'jaz (Abd al-Qahir al-Jurjani, d. 471 AH)',
     sourceAr: 'القرآن 2:23، 10:38، 11:13، 17:88، 52:34؛ إعجاز القرآن (الباقلاني، ت. 403هـ)؛ دلائل الإعجاز (عبد القاهر الجرجاني، ت. 471هـ)',
@@ -273,13 +249,11 @@ const WONDERS: readonly WonderFact[] = [
     titleAr: 'الحُفَّاظ — حافظو القرآن',
     highlight: '10+ Million',
     factEn: 'Over 10 million Muslims worldwide have memorized the entire Quran (huffaz), making it the most memorized book in human history. The Quran explicitly promises its own memorability in Surah Al-Qamar, repeating the same verse four times: "And We have certainly made the Quran easy for remembrance, so is there any who will remember?" (54:17, 22, 32, 40). The tradition began with the Prophet ﷺ himself and his companions: Zaid ibn Thabit, Ibn Abbas, Ibn Masud, Ubayy ibn Ka\'b, and Hafsa bint Umar were among the earliest huffaz. Today, international Quran memorization competitions (musabaqa) draw hundreds of millions of viewers. Importantly, even if every printed copy of the Quran were destroyed, the text would be fully recoverable from living memory.',
-    factAr: 'يزيد على 10 ملايين مسلم حول العالم حفظوا القرآن الكريم كاملاً، مما يجعله أكثر كتاب يُحفظ في التاريخ البشري. وعد الله بتيسير حفظه في سورة القمر بتكرار الآية أربع مرات: "وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ" (54:17، 22، 32، 40). بدأت الرحلة مع النبي ﷺ وصحابته: زيد بن ثابت وابن عباس وابن مسعود وأُبي بن كعب وحفصة بنت عمر من أوائل الحفاظ. ولو أُتلفت كل نسخ القرآن المطبوعة لأمكن إعادة بناء النص كاملاً من الحفظ.',
+    factAr: `يزيد على 10 ملايين مسلم حول العالم حفظوا القرآن الكريم كاملاً، مما يجعله أكثر كتاب يُحفظ في التاريخ البشري. وعد الله بتيسير حفظه في سورة القمر بتكرار الآية أربع مرات: "${quranExcerpt('54:17')}" (54:17، 22، 32، 40). بدأت الرحلة مع النبي ﷺ وصحابته: زيد بن ثابت وابن عباس وابن مسعود وأُبي بن كعب وحفصة بنت عمر من أوائل الحفاظ. ولو أُتلفت كل نسخ القرآن المطبوعة لأمكن إعادة بناء النص كاملاً من الحفظ.`,
     quranicRef: {
       ref: '54:17',
       nameEn: 'Surah Al-Qamar',
       nameAr: 'سورة القمر',
-      textEn: '"And We have certainly made the Quran easy for remembrance, so is there any who will remember?" [repeated at 54:17, 22, 32, and 40]',
-      textAr: 'يسّر الله القرآن للحفظ والتذكر — وكرّر هذه الآية أربع مرات في سورة القمر تأكيداً لهذا الوعد الإلهي.',
     },
     sourceEn: 'Quran 54:17, 22, 32, 40; Sahih Bukhari 5004 (virtues of Quran reciters); Islamic scholarly and institutional estimates (Quran Foundation reports)',
     sourceAr: 'القرآن 54:17، 22، 32، 40؛ صحيح البخاري 5004؛ تقديرات العلماء والمؤسسات الإسلامية',
@@ -309,31 +283,11 @@ const WONDERS: readonly WonderFact[] = [
       ref: '15:9',
       nameEn: 'Surah Al-Hijr',
       nameAr: 'سورة الحجر',
-      textEn: '"Indeed, it is We who sent down the Quran, and indeed, We will be its guardian." [The divine promise fulfilled through Uthman\'s standardization]',
-      textAr: 'تعهّد الله بحفظ القرآن — وجهود الخليفة عثمان رضي الله عنه في توحيد المصاحف تجسيد بشري لهذا الوعد الإلهي.',
     },
     hadithRef: '"Hudhayfah ibn al-Yaman came to Uthman while the people of Sham and Iraq were fighting... He said: \'O Commander of the Faithful, save this nation before they differ about the Book as the Jews and Christians differed.\'" — Sahih Bukhari 4987',
     hadithRefAr: 'قال حذيفة بن اليمان لعثمان: يا أمير المؤمنين، أدرك هذه الأمة قبل أن تختلف في الكتاب اختلاف اليهود والنصارى. — صحيح البخاري 4987',
     sourceEn: 'Sahih Bukhari 4987; Al-Masahif (Ibn Abi Dawud al-Sijistani, d. 316 AH); Fath al-Bari (Ibn Hajar), vol. 9',
     sourceAr: 'صحيح البخاري 4987؛ المصاحف (ابن أبي داود السجستاني، ت. 316هـ)؛ فتح الباري (ابن حجر)، ج. 9',
-  },
-  {
-    id: 'w_revelations_locations',
-    category: 'history',
-    titleEn: 'Revealed in Three Locations',
-    titleAr: 'نزل في ثلاثة أماكن',
-    highlight: 'Makkah · Madinah · Jerusalem',
-    factEn: 'The Quran was revealed across three holy locations over 23 years. (1) Makkah (~610–622 CE): the majority of the Quran, beginning with the first revelation (96:1–5) in Cave Hira. (2) Madinah (~622–632 CE): the second major phase following the Hijra, covering legislation and community rulings. (3) Jerusalem: specific verses revealed during the Night Journey (Isra\') — Surah Al-Isra\' (17:1) describes the journey itself. Additionally, scholars document ~17 non-Makkah/non-Madinah revelation occasions (asbab al-nuzul): e.g., verses of Al-Ma\'idah during the Farewell Pilgrimage, and a verse during the journey to Ta\'if. The three holy cities of Islam are thus all linked to the revelation.',
-    factAr: 'نزل القرآن في ثلاثة أماكن مقدسة على مدى 23 عاماً: (1) مكة المكرمة (~610-622م): الجزء الأكبر، بدءاً بأول وحي (96:1-5) في غار حراء. (2) المدينة المنورة (~622-632م): مرحلة التشريع والتنظيم. (3) القدس/بيت المقدس: آيات نزلت خلال رحلة الإسراء والمعراج التي وصفتها الآية (17:1). يوثق العلماء نحو 17 مناسبة نزول خارج مكة والمدينة.',
-    quranicRef: {
-      ref: '17:1',
-      nameEn: "Surah Al-Isra'",
-      nameAr: 'سورة الإسراء',
-      textEn: '"Exalted is He who took His Servant by night from al-Masjid al-Haram to al-Masjid al-Aqsa, whose surroundings We have blessed, to show him of Our signs."',
-      textAr: 'سرى الله بنبيّه ﷺ ليلاً من المسجد الحرام إلى المسجد الأقصى — ليكون بيت المقدس ثالث مواضع الوحي إلى جانب مكة والمدينة.',
-    },
-    sourceEn: 'Seerah of Ibn Hisham (d. 218 AH); Asbab al-Nuzul (Al-Wahidi, d. 468 AH); Al-Itqan (Suyuti), ch. on places of revelation',
-    sourceAr: 'سيرة ابن هشام (ت. 218هـ)؛ أسباب النزول (الواحدي، ت. 468هـ)؛ الإتقان (السيوطي)، باب في مواضع النزول',
   },
   // === PRESERVATION ===
   {
@@ -348,8 +302,6 @@ const WONDERS: readonly WonderFact[] = [
       ref: '75:17-18',
       nameEn: 'Surah Al-Qiyamah',
       nameAr: 'سورة القيامة',
-      textEn: '"Indeed, upon Us is its collection [in your heart] and its recitation. So when We have recited it [through Gabriel], follow its recitation."',
-      textAr: 'تكفّل الله بجمع القرآن في صدر النبي ﷺ وإقرائه إياه — وهو الأساس الإلهي الذي قامت عليه سلسلة الإسناد المتصلة.',
     },
     sourceEn: 'Al-Nashr fi al-Qira\'at al-Ashr (Ibn al-Jazari, d. 833 AH); Hujjat al-Qira\'at (Ibn Zanjala, d. 403 AH); Tajweed transmission scholarship',
     sourceAr: 'النشر في القراءات العشر (ابن الجزري، ت. 833هـ)؛ حجة القراءات (ابن زنجلة، ت. 403هـ)؛ علم أسانيد التجويد والقراءات',
@@ -366,8 +318,6 @@ const WONDERS: readonly WonderFact[] = [
       ref: '14:4',
       nameEn: 'Surah Ibrahim',
       nameAr: 'سورة إبراهيم',
-      textEn: '"And We did not send any messenger except [speaking] in the language of his people to state clearly for them..."',
-      textAr: 'أرسل الله كل رسول بلسان قومه ليبيّن لهم — وهو المبدأ الذي يؤسّس لترجمة معاني القرآن إلى لغات العالم.',
     },
     sourceEn: 'Library of Congress records; Jones, J., "The Quran in English: A Biography" (Princeton UP); Sherif, F., A Guide to the Contents of the Quran (1985)',
     sourceAr: 'سجلات مكتبة الكونغرس؛ جوينز، القرآن بالإنجليزية: سيرة (مطبعة برينستون)؛ شريف، دليل محتويات القرآن (1985)',
@@ -384,8 +334,6 @@ const WONDERS: readonly WonderFact[] = [
       ref: '15:9',
       nameEn: 'Surah Al-Hijr',
       nameAr: 'سورة الحجر',
-      textEn: '"Indeed, it is We who sent down the Quran, and indeed, We will be its guardian." [confirmed empirically by surviving manuscripts]',
-      textAr: 'وعد الله بحفظ القرآن — وتشهد المخطوطات القديمة كمخطوطة برمنغهام بتطابق النص مع المصحف المعاصر، تحقيقاً فعلياً لهذا الوعد.',
     },
     sourceEn: 'University of Birmingham radiocarbon study (David Thomas & Alba Fedeli, 2015); Sana\'a palimpsest analysis (Gerd-Rüdiger Puin, 1985); Tübingen manuscript dating (2014)',
     sourceAr: 'دراسة التأريخ بالكربون المشع لجامعة برمنغهام (توماس وفيديلي، 2015م)؛ تحليل مخطوطة صنعاء (بوين، 1985م)؛ تأريخ مخطوطة توبنغن (2014م)',
@@ -523,13 +471,12 @@ export function QuranWondersPage() {
                       isRtl && 'flex-row-reverse'
                     )}>
                       <BookOpen className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <div className="min-w-0">
-                        <p className={clsx('text-[10px] font-semibold text-amber-600 mb-0.5', isRtl && 'font-arabic')}>
-                          {isRtl ? 'المصدر القرآني' : 'Quranic Source'} — {isRtl ? w.quranicRef.nameAr : w.quranicRef.nameEn} ({w.quranicRef.ref})
+                      <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()}>
+                        <p className={clsx('text-[10px] font-semibold text-amber-600 mb-1', isRtl && 'font-arabic')}>
+                          {isRtl ? 'الآية ذات الصلة' : 'Related verse'} — {isRtl ? w.quranicRef.nameAr : w.quranicRef.nameEn}{' '}
+                          (<bdi dir="ltr">{w.quranicRef.ref}</bdi>)
                         </p>
-                        <p className={clsx('text-xs text-amber-800 leading-relaxed', isRtl ? 'font-arabic' : 'italic')}>
-                          {isRtl ? w.quranicRef.textAr : w.quranicRef.textEn}
-                        </p>
+                        <LiveVerse reference={w.quranicRef.ref} language={language} />
                       </div>
                     </div>
                   )}

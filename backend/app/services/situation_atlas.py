@@ -10,7 +10,10 @@ Situation Atlas — curated mapping of common life situations to:
 
 Every entry:
   - has `review_status = "needs_review"` until scholarly review
-  - cites real sunnah.com URLs (no invented hadith)
+  - cites a hadith only when it bears on that situation (real sunnah.com URLs,
+    no invented hadith). Entries used to share one unrelated filler reference
+    (Bukhari 5017, reciting the Mu'awwidhat before sleep); those now carry no
+    hadith until a scholar supplies a situation-specific one.
   - paired with the mandatory bilingual disclaimer at response time
 
 Citations are documented in docs/therapy-source-research.md.
@@ -38,9 +41,10 @@ class HadithRef:
 
 
 # ---------------------------------------------------------------------------
-# Authenticated prophetic du'as (each cites a sunnah.com URL).
-# Arabic du'a text appears in well-known canonical form; no Quranic ayah text
-# is duplicated here.
+# Du'as for situations.
+# Hadith du'as hold their Arabic text. Qur'anic du'as hold only `quran_ref`
+# (plus a label): clients render the verse from the canonical text, so no
+# Qur'an text, and no paraphrase of it, is duplicated here.
 # ---------------------------------------------------------------------------
 
 DUA_BANK: Dict[str, Dict[str, str]] = {
@@ -50,17 +54,17 @@ DUA_BANK: Dict[str, Dict[str, str]] = {
         "translation_en": "O Allah, Lord of mankind, Remover of harm. Cure — You are the Healer. There is no cure except Yours, a healing that leaves no illness behind.",
         "translation_ar": "اللهم رب الناس، أذهب الألم، واشفِ — فأنت الشافي، لا شفاء إلا شفاؤك، شفاءً لا يترك بعده مرضاً.",
     },
+    # Du'a of Yunus, from 21:87.
     "la_ilaha_distress": {
-        "arabic": "لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ",
-        "transliteration": "La ilaha illa anta, subhanaka, inni kuntu min adh-dhalimeen.",
-        "translation_en": "There is no deity except You; glory be to You. Indeed, I have been among the wrongdoers.",
-        "translation_ar": "لا إله إلا أنت سبحانك إني كنت من الظالمين — دعاء يونس عليه السلام عند الكرب.",
+        "quran_ref": "21:87",
+        "label_en": "The du'a of Yunus (Qur'an 21:87)",
+        "label_ar": "دعاء يونس عليه السلام (الأنبياء ٨٧)",
     },
+    # From 9:129.
     "hasbi_allah": {
-        "arabic": "حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ",
-        "transliteration": "Hasbiyallahu la ilaha illa Huwa, alayhi tawakkaltu wa Huwa Rabbul-Arshil-Adheem.",
-        "translation_en": "Allah is sufficient for me. There is no deity except Him. Upon Him I rely, and He is the Lord of the Mighty Throne.",
-        "translation_ar": "الله حسبي، لا إله إلا هو عليه توكلت وهو رب العرش العظيم.",
+        "quran_ref": "9:129",
+        "label_en": "Reliance on Allah (Qur'an 9:129)",
+        "label_ar": "التوكل على الله (التوبة ١٢٩)",
     },
 }
 
@@ -108,14 +112,6 @@ _BUKHARI_MUAWWIDHAT = HadithRef(
     note_en="The Prophet ﷺ would recite the Mu'awwidhat (al-Falaq + an-Nas) during illness and blow on himself.",
     note_ar="كان النبي ﷺ يقرأ المعوذتين عند المرض وينفث على جسده.",
 )
-_BUKHARI_NIGHT_RECITATION = HadithRef(
-    collection="bukhari",
-    number="5017",
-    narrator_en="ʿĀʾisha",
-    narrator_ar="عائشة رضي الله عنها",
-    note_en="The Prophet ﷺ recited al-Ikhlas + al-Falaq + an-Nas before sleep and wiped his body.",
-    note_ar="كان النبي ﷺ يقرأ الإخلاص والمعوذتين قبل النوم ويمسح بدنه.",
-)
 _BUKHARI_SHIFA_DUA = HadithRef(
     collection="bukhari",
     number="5743",
@@ -159,7 +155,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="حزن فقد من ربّاك.",
         primary_emotion=EmotionCategory.GRIEF,
         healing_themes=["patience", "mercy", "trust"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
     ),
     SituationEntry(
         key="loss_of_child",
@@ -170,7 +166,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         primary_emotion=EmotionCategory.GRIEF,
         healing_themes=["patience", "mercy", "hope"],
         dua_keys=["hasbi_allah"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -181,7 +177,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="حزن يعيد تشكيل الحياة اليومية.",
         primary_emotion=EmotionCategory.GRIEF,
         healing_themes=["patience", "mercy", "trust"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -193,7 +189,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         primary_emotion=EmotionCategory.GRIEF,
         healing_themes=["mercy", "patience", "hope"],
         dua_keys=["hasbi_allah"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -205,7 +201,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         primary_emotion=EmotionCategory.HOPELESSNESS,
         healing_themes=["hope", "trust", "patience"],
         dua_keys=["hasbi_allah"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -216,7 +212,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="حمل التوتر في البيت وسؤال الله الرفق.",
         primary_emotion=EmotionCategory.ANXIETY,
         healing_themes=["mercy", "patience", "dhikr"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -227,7 +223,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="فصلٌ في الحياة كثيراً ما يحمل حزناً وخجلاً.",
         primary_emotion=EmotionCategory.GRIEF,
         healing_themes=["mercy", "forgiveness", "hope"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -239,7 +235,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         primary_emotion=EmotionCategory.FEAR,
         healing_themes=["trust", "hope", "dhikr"],
         dua_keys=["hasbi_allah"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
     ),
     SituationEntry(
         key="unemployment",
@@ -250,7 +246,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         primary_emotion=EmotionCategory.FEAR,
         healing_themes=["trust", "patience", "hope"],
         dua_keys=["hasbi_allah"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
     ),
     SituationEntry(
         key="exam_anxiety",
@@ -261,7 +257,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         primary_emotion=EmotionCategory.ANXIETY,
         healing_themes=["trust", "patience", "strength"],
         dua_keys=["hasbi_allah"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
     ),
     SituationEntry(
         key="insomnia",
@@ -271,7 +267,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="حين لا يهدأ القلب في الليل.",
         primary_emotion=EmotionCategory.ANXIETY,
         healing_themes=["dhikr", "ruqyah", "trust"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=False,
     ),
     SituationEntry(
@@ -283,7 +279,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         primary_emotion=EmotionCategory.ANXIETY,
         healing_themes=["trust", "dhikr", "hope"],
         dua_keys=["hasbi_allah", "la_ilaha_distress"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -295,7 +291,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         primary_emotion=EmotionCategory.SADNESS,
         healing_themes=["mercy", "hope", "ruqyah"],
         dua_keys=["la_ilaha_distress", "hasbi_allah"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -306,7 +302,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="شعور بألا أحد يراك وقد رآك الله.",
         primary_emotion=EmotionCategory.SADNESS,
         healing_themes=["mercy", "dhikr", "trust"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
     ),
     SituationEntry(
         key="anger_management",
@@ -316,7 +312,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="حين يشتد الغضب وتسأل الله أن يلطّفه.",
         primary_emotion=EmotionCategory.ANGER,
         healing_themes=["patience", "forgiveness", "dhikr"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -328,7 +324,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         primary_emotion=EmotionCategory.GUILT,
         healing_themes=["forgiveness", "tawbah", "mercy"],
         dua_keys=["la_ilaha_distress"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
     ),
     SituationEntry(
         key="religious_doubt",
@@ -338,7 +334,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="الأسئلة جزء من الطريق — والله يعين السائل.",
         primary_emotion=EmotionCategory.DOUBT,
         healing_themes=["trust", "dhikr", "healing"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -349,7 +345,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="أنت تستحق الأمان — يرجى التواصل مع جهة مختصة.",
         primary_emotion=EmotionCategory.FEAR,
         healing_themes=["mercy", "trust", "strength"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -361,7 +357,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         primary_emotion=EmotionCategory.GUILT,
         healing_themes=["forgiveness", "tawbah", "strength"],
         dua_keys=["la_ilaha_distress"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -372,7 +368,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="مسؤولية يومية ثقيلة وعدها الله بالأجر.",
         primary_emotion=EmotionCategory.ANXIETY,
         healing_themes=["patience", "mercy", "dhikr"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
     ),
     SituationEntry(
         key="estranged_family",
@@ -382,7 +378,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="ألم الروابط التي وهنت.",
         primary_emotion=EmotionCategory.SADNESS,
         healing_themes=["mercy", "forgiveness", "patience"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
     ),
     SituationEntry(
         key="immigration_displacement",
@@ -393,7 +389,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         primary_emotion=EmotionCategory.GRIEF,
         healing_themes=["mercy", "patience", "trust"],
         dua_keys=["hasbi_allah"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
         refer_to_professional=True,
     ),
     SituationEntry(
@@ -404,7 +400,7 @@ SITUATION_ATLAS: List[SituationEntry] = [
         description_ar="ذكر النعمة لتزداد حلاوتها.",
         primary_emotion=EmotionCategory.GRATITUDE,
         healing_themes=["gratitude", "dhikr", "mercy"],
-        hadith_refs=[_BUKHARI_NIGHT_RECITATION],
+        hadith_refs=[],  # no situation-specific reference verified yet
     ),
 ]
 

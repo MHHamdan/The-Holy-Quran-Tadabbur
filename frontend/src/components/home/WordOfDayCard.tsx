@@ -14,6 +14,7 @@ import { BookOpen, Lightbulb, ChevronRight, RotateCcw, ExternalLink } from 'luci
 import clsx from 'clsx';
 import { useLanguageStore } from '../../stores/languageStore';
 import { getTodayWord, WORD_OF_DAY_VOCAB } from '../../data/wordOfDayVocab';
+import { QuranTextAttribution } from '../quran/QuranTextAttribution';
 
 function getWordForDate(dateStr: string) {
   return getTodayWord(dateStr);
@@ -82,6 +83,8 @@ export function WordOfDayCard() {
         <p className={clsx('text-xs text-gray-600 mt-1 leading-relaxed', isRtl && 'font-arabic text-right')}>
           {isRtl ? word.contextualNoteAr : word.contextualNoteEn}
         </p>
+        {/* Arabic notes quote Qur'an excerpts (generated from the Tanzil text). */}
+        {isRtl && <QuranTextAttribution language={language} className="mt-1" />}
       </div>
 
       {/* Memory hint (collapsible) */}

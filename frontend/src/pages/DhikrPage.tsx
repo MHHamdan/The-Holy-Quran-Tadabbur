@@ -23,12 +23,16 @@ import {
   type DhikrCategory, type DhikrEntry,
 } from '../data/adhkar';
 import { hapticTap } from '../lib/native';
+import { Link } from 'react-router-dom';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { localDateStr, localYesterdayStr } from '../utils/localDate';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY    = 'tadabbur_dhikr_v1';
 const REWARDS_KEY    = 'tadabbur_dhikr_rewards_v1'; // gitleaks:allow (storage key name)
-const TODAY          = new Date().toISOString().slice(0, 10);
+/** Today's local date; computed on each use so an app left open past midnight rolls over. */
+const todayStr = () => localDateStr();
 const API_BASE       = apiUrl('/api/v1/dhikr');
 
 type CountRecord = Record<string, { count: number; date: string }>;
@@ -107,7 +111,7 @@ function saveCounts(r: CountRecord) {
 
 function getCount(r: CountRecord, id: string): number {
   const e = r[id];
-  return e?.date === TODAY ? e.count : 0;
+  return e?.date === todayStr() ? e.count : 0;
 }
 
 function loadRewards(): RewardsData {
@@ -116,11 +120,11 @@ function loadRewards(): RewardsData {
     if (raw) {
       const r = JSON.parse(raw) as RewardsData;
       // Reset today XP if it's a new day
-      if (r.todayDate !== TODAY) return { ...r, todayXP: 0, todayDate: TODAY };
+      if (r.todayDate !== todayStr()) return { ...r, todayXP: 0, todayDate: todayStr() };
       return r;
     }
   } catch { /**/ }
-  return { streak: 0, lastActiveDate: '', totalXP: 0, todayXP: 0, todayDate: TODAY, achievements: [], totalSessions: 0 };
+  return { streak: 0, lastActiveDate: '', totalXP: 0, todayXP: 0, todayDate: todayStr(), achievements: [], totalSessions: 0 };
 }
 
 function saveRewards(r: RewardsData) {
@@ -134,6 +138,16 @@ function vibrate() {
 // ── TTS via Web Speech API ────────────────────────────────────────────────────
 
 let ttsSupported: boolean | null = null;
+
+/**
+ * Pronunciation aid for hadith adhkar only. Qur'anic entries (quranRefs) are
+ * never read by a synthetic voice: it cannot render tajwid and mispronounces
+ * the marks.
+ */
+function speakDhikr(entry: DhikrEntry | undefined) {
+  if (!entry || entry.quranRefs) return;
+  speakArabic(entry.arabicPhrase);
+}
 
 function speakArabic(text: string) {
   if (ttsSupported === null) ttsSupported = 'speechSynthesis' in window;
@@ -326,6 +340,36 @@ function MisbahaView({ dhikr, isRtl, onClose }: {
 
 // ── Browse card ───────────────────────────────────────────────────────────────
 
+/**
+ * "Qur'an 2:255" under a recited passage; for entries that show only the
+ * opening verses, says so and links to the full text in the reader.
+ */
+function QuranRefLabel({ dhikr, isRtl, className }: { dhikr: DhikrEntry; isRtl: boolean; className?: string }) {
+  if (!dhikr.quranRefs) return null;
+  const refs = dhikr.quranRefs.map(r => `${r.surah}:${r.from}${r.to > r.from ? `–${r.to}` : ''}`);
+  return (
+    <p className={clsx('text-[11px]', isRtl && 'font-arabic', className)} dir={isRtl ? 'rtl' : 'ltr'}>
+      {isRtl ? 'القرآن الكريم ' : 'Qur’an '}
+      {refs.map((r, i) => (
+        <span key={r}>{i > 0 && ' · '}<bdi dir="ltr">{r}</bdi></span>
+      ))}
+      {dhikr.showsOpeningOnly && (
+        <>
+          {' — '}
+          {isRtl ? 'مطلع السورة فقط، ' : 'opening verse only, '}
+          <Link
+            to={`/quran/${dhikr.quranRefs[0].surah}`}
+            onClick={e => e.stopPropagation()}
+            className="underline"
+          >
+            {isRtl ? 'اقرأها كاملة' : 'read it in full'}
+          </Link>
+        </>
+      )}
+    </p>
+  );
+}
+
 function DhikrBrowseCard({ dhikr, count, isRtl, onIncrement, onReset, onMisbaha }: {
   dhikr: DhikrEntry; count: number; isRtl: boolean;
   onIncrement: () => void; onReset: () => void; onMisbaha: () => void;
@@ -374,9 +418,10 @@ function DhikrBrowseCard({ dhikr, count, isRtl, onIncrement, onReset, onMisbaha 
           </div>
         </div>
 
-        <p className="font-arabic text-2xl text-gray-900 leading-loose text-center mb-1" dir="rtl">
+        <p className="font-arabic text-2xl text-gray-900 leading-loose text-center mb-1" dir="rtl" lang="ar">
           {dhikr.arabicPhrase}
         </p>
+        <QuranRefLabel dhikr={dhikr} isRtl={isRtl} className="text-center mb-1 text-gray-500" />
         <p className="text-xs text-gray-500 text-center mb-3">{dhikr.transliteration}</p>
 
         <div className="w-full h-1.5 bg-white/60 rounded-full overflow-hidden mb-2">
@@ -415,6 +460,7 @@ function DhikrBrowseCard({ dhikr, count, isRtl, onIncrement, onReset, onMisbaha 
           <p className="text-[10px] text-gray-400 italic">
             {isRtl ? dhikr.sourceRefAr : dhikr.sourceRef}
           </p>
+          {dhikr.quranRefs && <QuranTextAttribution language={isRtl ? 'ar' : 'en'} className="mt-1" />}
         </div>
       )}
     </div>
@@ -521,7 +567,7 @@ function FocusView({
     )}>
       {/* Top bar */}
       <div className={clsx(
-        'flex items-center justify-between px-5 pt-safe pt-5 pb-3 flex-shrink-0',
+        'flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0 safe-area-top',
         theme.dark ? 'border-b border-white/10' : 'border-b border-black/5',
       )}>
         <button onClick={onClose} className={clsx('p-2 rounded-xl transition-colors', theme.dark ? 'hover:bg-white/10' : 'hover:bg-black/5')}>
@@ -618,9 +664,11 @@ function FocusView({
             className={clsx('font-arabic leading-relaxed text-center', theme.text)}
             style={{ fontSize: dhikr.arabicPhrase.length > 100 ? '1.3rem' : dhikr.arabicPhrase.length > 50 ? '1.6rem' : '2rem' }}
             dir="rtl"
+            lang="ar"
           >
             {dhikr.arabicPhrase}
           </p>
+          <QuranRefLabel dhikr={dhikr} isRtl={isRtl} className={clsx('mt-1', theme.subText)} />
           <p className={clsx('text-sm mt-2', theme.subText)}>
             {dhikr.transliteration}
           </p>
@@ -696,7 +744,7 @@ function FocusView({
 
       {/* Bottom controls */}
       <div className={clsx(
-        'flex items-center justify-between px-6 py-5 pb-safe flex-shrink-0',
+        'flex items-center justify-between px-6 py-5 flex-shrink-0 safe-area-bottom',
         theme.dark ? 'border-t border-white/10' : 'border-t border-black/5',
       )}>
         <button
@@ -829,7 +877,7 @@ export function DhikrPage() {
       if (focusIndex < focusItems.length - 1) {
         const next = focusIndex + 1;
         setFocusIndex(next);
-        if (audioEnabled) speakArabic(focusItems[next]?.arabicPhrase ?? '');
+        if (audioEnabled) speakDhikr(focusItems[next]);
       } else {
         // Session finished — record it
         recordSession();
@@ -855,10 +903,10 @@ export function DhikrPage() {
   }
 
   function refreshStreak(r: RewardsData): RewardsData {
-    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
-    if (r.lastActiveDate === TODAY) return r;
+    const yesterday = localYesterdayStr();
+    if (r.lastActiveDate === todayStr()) return r;
     const newStreak = r.lastActiveDate === yesterday ? r.streak + 1 : 1;
-    let next: RewardsData = { ...r, streak: newStreak, lastActiveDate: TODAY };
+    let next: RewardsData = { ...r, streak: newStreak, lastActiveDate: todayStr() };
     if (newStreak >= 7)  next = unlockAchievement('streak_7',  next);
     if (newStreak >= 30) next = unlockAchievement('streak_30', next);
     return next;
@@ -870,7 +918,7 @@ export function DhikrPage() {
       const current = getCount(prev, id);
       const dhikr   = ADHKAR.find(d => d.id === id);
       if (!dhikr || current >= dhikr.targetCount) return prev;
-      const next = { ...prev, [id]: { count: current + 1, date: TODAY } };
+      const next = { ...prev, [id]: { count: current + 1, date: todayStr() } };
       saveCounts(next);
       return next;
     });
@@ -929,7 +977,7 @@ export function DhikrPage() {
 
   const reset = useCallback((id: string) => {
     setCounts(prev => {
-      const next = { ...prev, [id]: { count: 0, date: TODAY } };
+      const next = { ...prev, [id]: { count: 0, date: todayStr() } };
       saveCounts(next);
       return next;
     });
@@ -945,7 +993,7 @@ export function DhikrPage() {
 
   const resetAll = () => {
     const next: CountRecord = {};
-    ADHKAR.forEach(d => { next[d.id] = { count: 0, date: TODAY }; });
+    ADHKAR.forEach(d => { next[d.id] = { count: 0, date: todayStr() }; });
     saveCounts(next);
     setCounts(next);
   };
@@ -964,7 +1012,7 @@ export function DhikrPage() {
     setFocusMode(true);
     if (audioEnabled) {
       const first = cat === 'all' ? ADHKAR[0] : ADHKAR.find(d => d.category === cat);
-      if (first) speakArabic(first.arabicPhrase);
+      if (first) speakDhikr(first);
     }
   }
 
@@ -983,7 +1031,7 @@ export function DhikrPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        session_date: TODAY,
+        session_date: todayStr(),
         category: cat ?? null,
         total_dhikr_completed: done,
         total_count: total,
@@ -1048,7 +1096,7 @@ export function DhikrPage() {
           onNext={() => {
             const next = Math.min(focusItems.length - 1, focusIndex + 1);
             setFocusIndex(next);
-            if (audioEnabled) speakArabic(focusItems[next]?.arabicPhrase ?? '');
+            if (audioEnabled) speakDhikr(focusItems[next]);
           }}
           onClose={() => { setFocusMode(false); recordSession(); }}
           onToggleAudio={() => setAudioEnabled(v => !v)}
@@ -1293,26 +1341,31 @@ export function DhikrPage() {
               const catDone   = items.filter(d => getCount(counts, d.id) >= d.targetCount).length;
               return (
                 <div key={cat}>
-                  <button
-                    onClick={() => toggleCat(cat)}
-                    className={clsx('flex items-center gap-2 mb-3 w-full text-start', isRtl && 'flex-row-reverse')}
-                  >
-                    <span className="text-sm font-semibold text-gray-700">
-                      {meta.emoji} {isRtl ? meta.labelAr : meta.labelEn}
-                    </span>
-                    <span className="text-xs text-gray-400">({catDone}/{items.length})</span>
-                    <span className={clsx('text-gray-400', isRtl ? 'me-auto' : 'ms-auto')}>
-                      {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-                    </span>
-                    {/* Focus session for this category */}
+                  <div className="flex items-center gap-2 mb-3">
                     <button
-                      onClick={e => { e.stopPropagation(); startFocusSession(cat); }}
+                      type="button"
+                      onClick={() => toggleCat(cat)}
+                      aria-expanded={!collapsed}
+                      className="flex flex-1 items-center gap-2 text-start"
+                    >
+                      <span className="text-sm font-semibold text-gray-700">
+                        {meta.emoji} {isRtl ? meta.labelAr : meta.labelEn}
+                      </span>
+                      <span className="text-xs text-gray-400">({catDone}/{items.length})</span>
+                      <span className="text-gray-400 ms-auto">
+                        {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                      </span>
+                    </button>
+                    {/* Focus session for this category (sibling, not nested) */}
+                    <button
+                      type="button"
+                      onClick={() => startFocusSession(cat)}
                       className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors"
                     >
                       <Play className="w-2.5 h-2.5" />
                       {isRtl ? 'تركيز' : 'Focus'}
                     </button>
-                  </button>
+                  </div>
                   {!collapsed && (
                     <div className="space-y-3">
                       {items.map(d => (
@@ -1353,6 +1406,8 @@ export function DhikrPage() {
             ? 'يُعاد التعيين تلقائياً كل يوم · لا يُرفع أي بيانات شخصية'
             : 'Auto-resets daily · No personal data uploaded'}
         </p>
+        {/* Qur'anic adhkar quote the Tanzil text */}
+        <QuranTextAttribution language={isRtl ? 'ar' : 'en'} className="text-center mt-2" />
       </div>
     </>
   );

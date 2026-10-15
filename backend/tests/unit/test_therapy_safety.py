@@ -132,10 +132,12 @@ def test_every_situation_has_bilingual_labels_and_descriptions():
         assert s.description_en and s.description_ar, s.key
 
 
-def test_every_situation_has_at_least_one_hadith_citation():
+def test_every_hadith_citation_is_numbered_on_sunnah_com():
+    # Entries may carry no hadith: 23 of them used to share one unrelated
+    # filler (Bukhari 5017) just to satisfy a "at least one" rule.
     for s in SITUATION_ATLAS:
-        assert s.hadith_refs, f"{s.key}: no hadith citation"
         for h in s.hadith_refs:
+            assert h.collection and h.number, s.key
             assert h.url.startswith("https://sunnah.com/"), (
                 f"{s.key}: hadith {h.number} must cite sunnah.com"
             )
@@ -149,6 +151,10 @@ def test_situations_default_to_needs_review():
 
 def test_dua_bank_entries_are_well_formed():
     for key, d in DUA_BANK.items():
+        if d.get("quran_ref"):
+            # Qur'anic du'as are served by reference only, never as text.
+            assert "arabic" not in d and d.get("label_en") and d.get("label_ar"), key
+            continue
         for required in ("arabic", "transliteration", "translation_en", "translation_ar"):
             assert d.get(required), f"DUA_BANK[{key}] missing {required}"
 

@@ -112,7 +112,7 @@ def test_dua_ids_are_unique():
 @pytest.mark.parametrize("field", [
     "id", "surah", "ayah", "category",
     "titleEn", "titleAr", "surahNameEn", "surahNameAr",
-    "meaningEn", "meaningAr", "occasions", "tags",
+    "meaningEn", "excerptUthmani", "occasions", "tags",
 ])
 def test_every_dua_exposes_the_served_fields(field):
     missing = [dua.get("id", "<no id>") for dua in _DUAS if field not in dua]
