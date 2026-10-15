@@ -12,6 +12,7 @@ import { Sparkles, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { LiveVerse } from '../components/quran/LiveVerse';
+import { quranExcerpt } from '../utils/quranExcerpt';
 
 /**
  * A verse related to the fact. Only the reference is stored: the verse is
@@ -248,7 +249,7 @@ const WONDERS: readonly WonderFact[] = [
     titleAr: 'الحُفَّاظ — حافظو القرآن',
     highlight: '10+ Million',
     factEn: 'Over 10 million Muslims worldwide have memorized the entire Quran (huffaz), making it the most memorized book in human history. The Quran explicitly promises its own memorability in Surah Al-Qamar, repeating the same verse four times: "And We have certainly made the Quran easy for remembrance, so is there any who will remember?" (54:17, 22, 32, 40). The tradition began with the Prophet ﷺ himself and his companions: Zaid ibn Thabit, Ibn Abbas, Ibn Masud, Ubayy ibn Ka\'b, and Hafsa bint Umar were among the earliest huffaz. Today, international Quran memorization competitions (musabaqa) draw hundreds of millions of viewers. Importantly, even if every printed copy of the Quran were destroyed, the text would be fully recoverable from living memory.',
-    factAr: 'يزيد على 10 ملايين مسلم حول العالم حفظوا القرآن الكريم كاملاً، مما يجعله أكثر كتاب يُحفظ في التاريخ البشري. وعد الله بتيسير حفظه في سورة القمر بتكرار الآية أربع مرات: "وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ" (54:17، 22، 32، 40). بدأت الرحلة مع النبي ﷺ وصحابته: زيد بن ثابت وابن عباس وابن مسعود وأُبي بن كعب وحفصة بنت عمر من أوائل الحفاظ. ولو أُتلفت كل نسخ القرآن المطبوعة لأمكن إعادة بناء النص كاملاً من الحفظ.',
+    factAr: `يزيد على 10 ملايين مسلم حول العالم حفظوا القرآن الكريم كاملاً، مما يجعله أكثر كتاب يُحفظ في التاريخ البشري. وعد الله بتيسير حفظه في سورة القمر بتكرار الآية أربع مرات: "${quranExcerpt('54:17')}" (54:17، 22، 32، 40). بدأت الرحلة مع النبي ﷺ وصحابته: زيد بن ثابت وابن عباس وابن مسعود وأُبي بن كعب وحفصة بنت عمر من أوائل الحفاظ. ولو أُتلفت كل نسخ القرآن المطبوعة لأمكن إعادة بناء النص كاملاً من الحفظ.`,
     quranicRef: {
       ref: '54:17',
       nameEn: 'Surah Al-Qamar',

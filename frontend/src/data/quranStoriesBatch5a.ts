@@ -5,6 +5,7 @@
  */
 
 import type { QuranStory } from '../types/quranStory';
+import { quranExcerpt } from '../utils/quranExcerpt';
 
 const IBN_KATHIR = 'ibn_kathir';
 const TABARI = 'tabari';
@@ -87,7 +88,7 @@ export const STORY_SULAYMAN: QuranStory = {
       sectionType: 'key_event' as const,
       summaryKidsArabic: 'علّم الله سليمان لغة الطيور والحيوانات. ومرّ يوماً بواد فيه نملة تحذّر قومها فسمعها وابتسم شاكراً لله، وقال: ربِّ أوزعني أن أشكر نعمتك.',
       summaryKidsEnglish: 'Allah taught Sulayman the language of birds and animals. One day he passed a valley where an ant warned her people. Sulayman heard her and smiled, thanking Allah, and prayed: "My Lord, enable me to be grateful for Your blessing."',
-      summaryAdultsArabic: 'قوله "عُلِّمنا مَنطِقَ الطَّير" (27:16) دليل على تعلّم لغة الكائنات كآية نبوية خاصة. واحتجاجه بالنملة (27:18-19) يُبيّن الوعي بالمسؤولية تجاه أضعف المخلوقات. [المصدر: تفسير القرطبي — 27:15-19، يحتاج تحقق]',
+      summaryAdultsArabic: `قوله "${quranExcerpt('27:16#9-11')}" (27:16) دليل على تعلّم لغة الكائنات كآية نبوية خاصة. واحتجاجه بالنملة (27:18-19) يُبيّن الوعي بالمسؤولية تجاه أضعف المخلوقات. [المصدر: تفسير القرطبي — 27:15-19، يحتاج تحقق]`,
       summaryAdultsEnglish: 'His statement "We have been taught the speech of birds" (27:16) points to understanding creature languages as a special prophetic sign. His response to the ant (27:18-19) demonstrates awareness of responsibility toward the weakest creatures. [Reference: Tafsir al-Qurtubi — 27:15-19, needs verification]',
       lessonsArabic: ['الشكر على النعم هو أول رد فعل النبي', 'كل مخلوق في حضرة الله يُسبّح بحمده', 'القيادة الصالحة ترى الصغير قبل الكبير'],
       lessonsEnglish: ['Gratitude to Allah is the first reaction of the prophet', 'Every creature glorifies Allah', 'Righteous leadership sees the small before the great'],
@@ -137,7 +138,7 @@ export const STORY_SULAYMAN: QuranStory = {
       optionsArabic: ['ملكاً لا ينبغي لأحد من بعده', 'عمراً طويلاً', 'كنوزاً من ذهب', 'جيشاً من الملائكة'],
       optionsEnglish: ['A kingdom not given to anyone after him', 'A long life', 'Treasures of gold', 'An army of angels'],
       correctOptionIndex: 0,
-      explanationArabic: 'قال سليمان: "رَبِّ اغْفِرْ لِي وَهَبْ لِي مُلْكًا لَّا يَنبَغِي لِأَحَدٍ مِّن بَعْدِي" — سورة ص 38:35.',
+      explanationArabic: `قال سليمان: "${quranExcerpt('38:35#2-12')}" — سورة ص 38:35.`,
       explanationEnglish: 'Sulayman said: "My Lord, forgive me and grant me a kingdom such as will not belong to anyone after me" — Surah Sad 38:35.',
     },
     {
@@ -147,7 +148,7 @@ export const STORY_SULAYMAN: QuranStory = {
       optionsArabic: ['استمرّوا يعملون وهو ميت حتى سقط من عصاه', 'فرّوا عند وفاته', 'بكوا عليه', 'علموا فوراً بوفاته'],
       optionsEnglish: ['They kept working after his death until he fell from his staff', 'They fled at his death', 'They wept for him', 'They immediately knew of his death'],
       correctOptionIndex: 0,
-      explanationArabic: '"فَلَمَّا خَرَّ تَبَيَّنَتِ الْجِنُّ أَن لَّوْ كَانُوا يَعْلَمُونَ الْغَيْبَ مَا لَبِثُوا فِي الْعَذَابِ الْمُهِينِ" — سبأ 34:14.',
+      explanationArabic: `"${quranExcerpt('34:14#15-28')}" — سبأ 34:14.`,
       explanationEnglish: '"When he fell, the jinn realized that if they had known the unseen, they would not have remained in humiliating punishment" — Saba 34:14.',
     },
     {
@@ -157,7 +158,7 @@ export const STORY_SULAYMAN: QuranStory = {
       optionsArabic: ['ابتسم وشكر الله وطلب منه التوفيق للشكر', 'أمر الجيش بالتوقف', 'أمر بإنقاذ النمل فقط', 'لم يهتم بها'],
       optionsEnglish: ['He smiled, thanked Allah, and asked Him for help in being grateful', 'He ordered the army to stop', 'He only ordered to save the ants', 'He ignored her'],
       correctOptionIndex: 0,
-      explanationArabic: '"فَتَبَسَّمَ ضَاحِكًا مِّن قَوْلِهَا وَقَالَ رَبِّ أَوْزِعْنِي أَنْ أَشْكُرَ نِعْمَتَكَ" — النمل 27:19.',
+      explanationArabic: `"${quranExcerpt('27:19#1-10')}" — النمل 27:19.`,
       explanationEnglish: '"So he smiled, amused at her speech, and said: My Lord, enable me to be grateful for Your favor" — Al-Naml 27:19.',
     },
   ],
@@ -323,7 +324,7 @@ export const STORY_ALYASA: QuranStory = {
       sectionType: 'introduction' as const,
       summaryKidsArabic: 'اليسع عليه السلام نبيٌّ ذكره الله في القرآن مع أفضل الأنبياء. قال الله عنه وعن إلياس وذي الكفل إنهم من الأخيار.',
       summaryKidsEnglish: 'Al-Yasa is a prophet whom Allah mentioned in the Quran alongside the best of prophets. Allah said he and Ilyas and Dhul-Kifl are among the best.',
-      summaryAdultsArabic: '"وَاذْكُرْ إِسْمَاعِيلَ وَالْيَسَعَ وَذَا الْكِفْلِ ۖ وَكُلٌّ مِّنَ الْأَخْيَارِ" (38:48) يُضمّ اليسع إلى قائمة الأنبياء الأخيار. إيجاز القصص القرآني هنا تعليمٌ بالمجاورة — الذكر ضمن أفضل المقامات. [المصدر: تفسير ابن كثير — 38:48، يحتاج تحقق]',
+      summaryAdultsArabic: `"${quranExcerpt('38:48')}" (38:48) يُضمّ اليسع إلى قائمة الأنبياء الأخيار. إيجاز القصص القرآني هنا تعليمٌ بالمجاورة — الذكر ضمن أفضل المقامات. [المصدر: تفسير ابن كثير — 38:48، يحتاج تحقق]`,
       summaryAdultsEnglish: '"And remember Ismail, Al-Yasa, and Dhul-Kifl — all are among the best" (38:48) places Al-Yasa in the list of the best prophets. The Quranic brevity here teaches by association — mention among the highest stations is itself a statement of status. [Reference: Tafsir Ibn Kathir — 38:48, needs verification]',
       lessonsArabic: ['الإشارة الموجزة دليل الاعتراف الإلهي', 'الصلاح يُورث الذكر في كل عصر', 'الأنبياء درجات والله أعلم بمنازلهم'],
       lessonsEnglish: ['The brief mention is evidence of divine recognition', 'Righteousness earns remembrance in every age', 'Prophets have ranks and Allah knows their stations best'],
@@ -354,7 +355,7 @@ export const STORY_ALYASA: QuranStory = {
       optionsArabic: ['إسماعيل وذو الكفل', 'موسى وعيسى', 'يوسف وإبراهيم', 'نوح وهود'],
       optionsEnglish: ['Ismail and Dhul-Kifl', 'Musa and Isa', 'Yusuf and Ibrahim', 'Nuh and Hud'],
       correctOptionIndex: 0,
-      explanationArabic: '"وَاذْكُرْ إِسْمَاعِيلَ وَالْيَسَعَ وَذَا الْكِفْلِ ۖ وَكُلٌّ مِّنَ الْأَخْيَارِ" — ص 38:48.',
+      explanationArabic: `"${quranExcerpt('38:48')}" — ص 38:48.`,
       explanationEnglish: '"And remember Ismail, Al-Yasa, and Dhul-Kifl — all are among the best" — Sad 38:48.',
     },
   ],
@@ -409,7 +410,7 @@ export const STORY_DHULKIFL: QuranStory = {
       sectionType: 'introduction' as const,
       summaryKidsArabic: 'ذو الكفل عليه السلام نبيٌّ صبور رحيم اختاره الله وأدخله في رحمته. ذُكر مع إسماعيل وإدريس في القرآن الكريم.',
       summaryKidsEnglish: 'Dhul-Kifl was a patient and merciful prophet chosen by Allah who entered him into His mercy. He is mentioned alongside Ismail and Idris in the Quran.',
-      summaryAdultsArabic: '"وَإِسْمَاعِيلَ وَإِدْرِيسَ وَذَا الْكِفْلِ ۖ كُلٌّ مِّنَ الصَّابِرِينَ ۝ وَأَدْخَلْنَاهُمْ فِي رَحْمَتِنَا" (21:85-86). تسمية ذي الكفل مقرونة بالصبر تُشير إلى أن محوره الأساسي في القرآن هو ثبوته في مقام الصبر. [المصدر: تفسير الطبري — 21:85-86، يحتاج تحقق]',
+      summaryAdultsArabic: `"${quranExcerpt('21:85')} ۝ وَأَدْخَلْنَاهُمْ فِي رَحْمَتِنَا" (21:85-86). تسمية ذي الكفل مقرونة بالصبر تُشير إلى أن محوره الأساسي في القرآن هو ثبوته في مقام الصبر. [المصدر: تفسير الطبري — 21:85-86، يحتاج تحقق]`,
       summaryAdultsEnglish: '"And Ismail, Idris, and Dhul-Kifl — all were of the patient ones. And We admitted them into Our mercy" (21:85-86). His naming paired with patience indicates that his Quranic central axis is steadfastness in patience. [Reference: Tafsir al-Tabari — 21:85-86, needs verification]',
       lessonsArabic: ['الصبر بوابة رحمة الله', 'الاصطفاء الإلهي جزاء على الصبر والاستقامة', 'ذكر القرآن لعبد بالصبر شرف عظيم'],
       lessonsEnglish: ['Patience is the gate to Allah\'s mercy', 'Divine selection is a reward for patience and uprightness', 'The Quran\'s mention of a servant with patience is a great honor'],
@@ -440,7 +441,7 @@ export const STORY_DHULKIFL: QuranStory = {
       optionsArabic: ['من الصابرين', 'من الشاكرين', 'من الصادقين', 'من الذاكرين'],
       optionsEnglish: ['Among the patient ones', 'Among the grateful', 'Among the truthful', 'Among those who remember Allah'],
       correctOptionIndex: 0,
-      explanationArabic: '"وَإِسْمَاعِيلَ وَإِدْرِيسَ وَذَا الْكِفْلِ ۖ كُلٌّ مِّنَ الصَّابِرِينَ" — الأنبياء 21:85.',
+      explanationArabic: `"${quranExcerpt('21:85')}" — الأنبياء 21:85.`,
       explanationEnglish: '"And Ismail, Idris, and Dhul-Kifl — all were of the patient ones" — Al-Anbiya 21:85.',
     },
   ],

@@ -5,6 +5,7 @@
  */
 
 import type { QuranStory } from '../types/quranStory';
+import { quranExcerpt } from '../utils/quranExcerpt';
 
 const IBN_KATHIR = 'ibn_kathir';
 const TABARI = 'tabari';
@@ -49,7 +50,7 @@ export const STORY_HARUN: QuranStory = {
       sectionType: 'introduction' as const,
       summaryKidsArabic: 'حين أرسله الله لفرعون، طلب موسى عليه السلام من ربّه أن يجعل أخاه هارون معه وزيراً يشاركه في المهمة الكبيرة. فاستجاب الله دعاءه.',
       summaryKidsEnglish: 'When Allah sent Musa to Pharaoh, he asked his Lord to make his brother Harun his helper in the great mission. Allah answered his prayer.',
-      summaryAdultsArabic: 'دعاء موسى (20:29-36) "وَاجْعَل لِّي وَزِيرًا مِّنْ أَهْلِي هَارُونَ أَخِي" يُبيّن أن النبوة قد تستدعي رفقة مُعزِّزة. الاستجابة الإلهية الفورية "قَدْ أُوتِيتَ سُؤْلَكَ يَا مُوسَى" تُشير إلى أن الدعاء بالمعاونة على الحق مستجاب. [المصدر: تفسير ابن كثير — 20:29-36، يحتاج تحقق]',
+      summaryAdultsArabic: `دعاء موسى (20:29-36) "${quranExcerpt('20:29-30')}" يُبيّن أن النبوة قد تستدعي رفقة مُعزِّزة. الاستجابة الإلهية الفورية "قَدْ أُوتِيتَ سُؤْلَكَ يَا مُوسَى" تُشير إلى أن الدعاء بالمعاونة على الحق مستجاب. [المصدر: تفسير ابن كثير — 20:29-36، يحتاج تحقق]`,
       summaryAdultsEnglish: 'Musa\'s supplication (20:29-36) "Make for me a minister from my family — Harun, my brother" shows that prophethood may require strengthening companionship. The immediate divine response "You have been given your request, O Musa" indicates that prayer for help in righteousness is answered. [Reference: Tafsir Ibn Kathir — 20:29-36, needs verification]',
       lessonsArabic: ['طلب المعاونة على الحق ليس ضعفاً بل حكمة', 'الأخوة في المهمة الإلهية تضاعف الأثر', 'الله يستجيب للداعي الصادق فوراً'],
       lessonsEnglish: ['Seeking help in truth is wisdom, not weakness', 'Brotherhood in the divine mission multiplies impact', 'Allah answers the sincere caller immediately'],
@@ -68,7 +69,7 @@ export const STORY_HARUN: QuranStory = {
       sectionType: 'key_event' as const,
       summaryKidsArabic: 'حين ذهب موسى للجبل، عبد بنو إسرائيل عجلاً ذهبياً صنعه السامري. نصحهم هارون وأنذرهم لكنهم رفضوا. حين رجع موسى غاضباً أمسك بشعر هارون، فأخبره هارون أنه خاف أن يُفرّق بين المؤمنين.',
       summaryKidsEnglish: 'When Musa went to the mountain, the Children of Israel worshipped a golden calf made by Samiri. Harun advised and warned them but they refused. When Musa returned angry, he grabbed Harun\'s hair. Harun told him he feared causing division among the believers.',
-      summaryAdultsArabic: 'دفاع هارون (20:94) "إِنِّي خَشِيتُ أَن تَقُولَ فَرَّقْتَ بَيْنَ بَنِي إِسْرَائِيلَ" يُبيّن تحكيم القاعدة الفقهية: درء الفتنة الكبرى يُقدَّم على مواجهة المنكر بالقوة. هارون لم يُداهن بل حاسب (20:90) ثم استمسك بالوحدة خشية الانشقاق. [المصدر: تفسير القرطبي — 20:85-97، يحتاج تحقق]',
+      summaryAdultsArabic: `دفاع هارون (20:94) "${quranExcerpt('20:94#11-18')}" يُبيّن تحكيم القاعدة الفقهية: درء الفتنة الكبرى يُقدَّم على مواجهة المنكر بالقوة. هارون لم يُداهن بل حاسب (20:90) ثم استمسك بالوحدة خشية الانشقاق. [المصدر: تفسير القرطبي — 20:85-97، يحتاج تحقق]`,
       summaryAdultsEnglish: 'Harun\'s defense (20:94) "I feared you would say: you caused division among the Children of Israel" demonstrates the jurisprudential principle: preventing the greater sedition takes precedence over forceful confrontation of wrong. Harun did not flatter but did rebuke (20:90) then held to unity fearing schism. [Reference: Tafsir al-Qurtubi — 20:85-97, needs verification]',
       lessonsArabic: ['المصلح يوازن بين النهي عن المنكر ومنع الفتنة', 'النية الصادقة تُبرَّر أمام الله حتى في الأزمات', 'الأخوة الحقيقية تتحمل غضب المحبوب ولا تبرّر الخطأ'],
       lessonsEnglish: ['The reformer balances forbidding wrong with preventing sedition', 'A sincere intention is justified before Allah even in crises', 'True brotherhood endures the beloved\'s anger without justifying wrong'],
@@ -210,7 +211,7 @@ export const STORY_ISHAQ: QuranStory = {
       sectionType: 'endnote' as const,
       summaryKidsArabic: 'وهب الله لإبراهيم إسحاق نبياً من الصالحين، وبارك عليهما وعلى ذريتهما. ومن ذرية إسحاق خرج كثير من الأنبياء.',
       summaryKidsEnglish: 'Allah gave Ibrahim the gift of Ishaq as a prophet from the righteous, and blessed them both and their offspring. From Ishaq\'s lineage came many prophets.',
-      summaryAdultsArabic: '"وَبَشَّرْنَاهُ بِإِسْحَاقَ نَبِيًّا مِّنَ الصَّالِحِينَ" (37:112) يُحدّد أن البشارة شملت النبوة منذ البداية، لا الميلاد فحسب. "وَبَارَكْنَا عَلَيْهِ وَعَلَىٰ إِسْحَاقَ" (37:113) تضمّ الوالد والمولود في بركة واحدة. [المصدر: تفسير ابن كثير — 37:112-113، يحتاج تحقق]',
+      summaryAdultsArabic: `"${quranExcerpt('37:112')}" (37:112) يُحدّد أن البشارة شملت النبوة منذ البداية، لا الميلاد فحسب. "وَبَارَكْنَا عَلَيْهِ وَعَلَىٰ إِسْحَاقَ" (37:113) تضمّ الوالد والمولود في بركة واحدة. [المصدر: تفسير ابن كثير — 37:112-113، يحتاج تحقق]`,
       summaryAdultsEnglish: '"We gave him good news of Ishaq, a prophet from the righteous" (37:112) indicates that the annunciation included prophethood from the start, not merely birth. "We blessed him and Ishaq" (37:113) unites father and son in one blessing. [Reference: Tafsir Ibn Kathir — 37:112-113, needs verification]',
       lessonsArabic: ['البركة الإلهية وراثية في أسر الأنبياء', 'النبوة هبة لا تُكتسب', 'إبراهيم حلقة الوصل بين إسماعيل وإسحاق وسلالتيهما'],
       lessonsEnglish: ['Divine blessing is hereditary in prophetic families', 'Prophethood is a gift, not an acquisition', 'Ibrahim is the link between Ismail, Ishaq, and their two lineages'],
@@ -317,7 +318,7 @@ export const STORY_YAQUB: QuranStory = {
       sectionType: 'key_event' as const,
       summaryKidsArabic: 'حين فقد يعقوب يوسف بكى كثيراً حتى ابيضّت عيناه من الحزن. لكنه لم ييأس من رحمة الله وقال: إنما أشكو بثّي وحزني إلى الله.',
       summaryKidsEnglish: 'When Yaqub lost Yusuf he wept so much that his eyes turned white from grief. But he never lost hope in Allah\'s mercy and said: I only complain of my anguish and grief to Allah.',
-      summaryAdultsArabic: '"وَابْيَضَّتْ عَيْنَاهُ مِنَ الْحُزْنِ فَهُوَ كَظِيمٌ" (12:84) يُصوّر الحزن الجسدي البشري الشديد دون أن ينتقد يعقوب. قوله "إِنَّمَا أَشْكُو بَثِّي وَحُزْنِي إِلَى اللَّهِ" (12:86) هو نموذج الشكوى المشروعة — الشكوى إلى الله لا على الله. [المصدر: تفسير ابن كثير — 12:84-87، يحتاج تحقق]',
+      summaryAdultsArabic: `"${quranExcerpt('12:84#8-13')}" (12:84) يُصوّر الحزن الجسدي البشري الشديد دون أن ينتقد يعقوب. قوله "${quranExcerpt('12:86#2-7')}" (12:86) هو نموذج الشكوى المشروعة — الشكوى إلى الله لا على الله. [المصدر: تفسير ابن كثير — 12:84-87، يحتاج تحقق]`,
       summaryAdultsEnglish: '"His eyes turned white from grief, and he was suppressing inner pain" (12:84) depicts intense human physical grief without criticizing Yaqub. His statement "I only complain of my anguish to Allah" (12:86) is the model of permissible complaint — complaining TO Allah, not AGAINST Allah. [Reference: Tafsir Ibn Kathir — 12:84-87, needs verification]',
       lessonsArabic: ['الحزن الإنساني لا يُناقض الإيمان', 'الشكوى إلى الله لا على الله هي الصبر الحقيقي', 'لا تيأس من روح الله — مهما طال الانتظار'],
       lessonsEnglish: ['Human grief does not contradict faith', 'Complaining TO Allah, not AGAINST Him, is true patience', 'Never despair of Allah\'s mercy — no matter how long the wait'],
@@ -367,7 +368,7 @@ export const STORY_YAQUB: QuranStory = {
       optionsArabic: ['ابيضّتا من كثرة البكاء والحزن', 'عميتا تماماً', 'لم يحدث لهما شيء', 'أصابتهما الحمرة'],
       optionsEnglish: ['They turned white from so much crying and grief', 'He went completely blind', 'Nothing happened to them', 'They became red'],
       correctOptionIndex: 0,
-      explanationArabic: '"وَابْيَضَّتْ عَيْنَاهُ مِنَ الْحُزْنِ فَهُوَ كَظِيمٌ" — يوسف 12:84.',
+      explanationArabic: `"${quranExcerpt('12:84#8-13')}" — يوسف 12:84.`,
       explanationEnglish: '"His eyes turned white from grief as he suppressed his pain" — Yusuf 12:84.',
     },
     {
@@ -377,7 +378,7 @@ export const STORY_YAQUB: QuranStory = {
       optionsArabic: ['إنما أشكو بثي وحزني إلى الله', 'توقفت عن الأمل', 'لا فائدة من الدعاء', 'ربما ذهب إلى مكان بعيد'],
       optionsEnglish: ['I only complain of my anguish to Allah', 'I have lost hope', 'Prayer is no use', 'Maybe he went far away'],
       correctOptionIndex: 0,
-      explanationArabic: '"قَالَ إِنَّمَا أَشْكُو بَثِّي وَحُزْنِي إِلَى اللَّهِ وَأَعْلَمُ مِنَ اللَّهِ مَا لَا تَعْلَمُونَ" — يوسف 12:86.',
+      explanationArabic: `"${quranExcerpt('12:86')}" — يوسف 12:86.`,
       explanationEnglish: '"He said: I only complain of my anguish and grief to Allah and I know from Allah what you do not know" — Yusuf 12:86.',
     },
   ],
@@ -385,7 +386,7 @@ export const STORY_YAQUB: QuranStory = {
     prompts: [
       {
         promptId: 'yaqub_r1',
-        promptArabic: '"وَلَا تَيْأَسُوا مِن رَّوْحِ اللَّهِ" — أمر يعقوب لأبنائه. كيف يختلف "الرجاء" النبوي عن التفاؤل العادي؟',
+        promptArabic: `"${quranExcerpt('12:87#8-12')}" — أمر يعقوب لأبنائه. كيف يختلف "الرجاء" النبوي عن التفاؤل العادي؟`,
         promptEnglish: '"Do not despair of Allah\'s mercy" — Yaqub\'s command to his sons. How does prophetic "hope" differ from ordinary optimism?',
         themeArabic: 'الرجاء النبوي ومنابعه',
         themeEnglish: 'Prophetic Hope and Its Sources',
@@ -441,7 +442,7 @@ export const STORY_MIRAJ: QuranStory = {
       sectionType: 'introduction' as const,
       summaryKidsArabic: 'في ليلة واحدة أسرى الله بنبيّه محمد ﷺ من مكة إلى المسجد الأقصى في القدس. ثم عُرج به إلى السماوات. وكان ذلك من أعظم الكرامات التي أكرم الله بها نبيّه.',
       summaryKidsEnglish: 'In one night Allah took His Prophet Muhammad ﷺ from Makkah to Al-Masjid Al-Aqsa in Jerusalem. Then he was taken up to the heavens. This was one of the greatest honors Allah bestowed upon His Prophet.',
-      summaryAdultsArabic: '"سُبْحَانَ الَّذِي أَسْرَىٰ بِعَبْدِهِ لَيْلًا مِّنَ الْمَسْجِدِ الْحَرَامِ إِلَى الْمَسْجِدِ الْأَقْصَى" (17:1) الآية تبدأ بالتسبيح دلالةً على أن ما يلي أمرٌ خارق للعادة. لفظ "عَبْدِه" تشريف بالعبودية لا توصيف بالضعف. [المصدر: تفسير ابن كثير — 17:1، يحتاج تحقق]',
+      summaryAdultsArabic: `"${quranExcerpt('17:1#1-11')}" (17:1) الآية تبدأ بالتسبيح دلالةً على أن ما يلي أمرٌ خارق للعادة. لفظ "عَبْدِه" تشريف بالعبودية لا توصيف بالضعف. [المصدر: تفسير ابن كثير — 17:1، يحتاج تحقق]`,
       summaryAdultsEnglish: '"Glory to He who took His servant by night from Al-Masjid Al-Haram to Al-Masjid Al-Aqsa" (17:1) — the verse begins with glorification indicating what follows is extraordinary. The word "His servant" is an honor through servitude, not a description of weakness. [Reference: Tafsir Ibn Kathir — 17:1, needs verification]',
       lessonsArabic: ['العبودية الكاملة تُؤهّل لأعلى الكرامات', 'المسجد الأقصى مرتبط بالنبوة المحمدية من أول ليلة', 'الإعجاز لا تحده المسافة ولا الزمن'],
       lessonsEnglish: ['Complete servitude qualifies for the highest honors', 'Al-Masjid Al-Aqsa is connected to Muhammadan prophethood from its very first night', 'Miracles are not limited by distance or time'],
@@ -460,7 +461,7 @@ export const STORY_MIRAJ: QuranStory = {
       sectionType: 'key_event' as const,
       summaryKidsArabic: 'صعد النبي ﷺ مع جبريل إلى السماوات حتى وصل إلى سدرة المنتهى. رأى آيات ربه الكبرى. ثم فُرضت عليه الصلوات الخمس هدية للأمة.',
       summaryKidsEnglish: 'The Prophet ﷺ ascended with Jibril to the heavens until he reached Sidrat al-Muntaha. He saw the greatest signs of his Lord. Then the five daily prayers were prescribed for him as a gift for the nation.',
-      summaryAdultsArabic: 'وصف المعراج في النجم (53:7-18) يُركّز على ما رآه النبي ﷺ: "لَقَدْ رَأَىٰ مِنْ آيَاتِ رَبِّهِ الْكُبْرَى" (53:18). الرؤية المباشرة لآيات الله الكبرى بالبصر وبالبصيرة هي محور الرحلة. الصلوات الخمس فُرضت في هذا المقام مباشرة دون واسطة الوحي المعتاد. [المصدر: تفسير ابن كثير — 53:1-18، يحتاج تحقق]',
+      summaryAdultsArabic: `وصف المعراج في النجم (53:7-18) يُركّز على ما رآه النبي ﷺ: "${quranExcerpt('53:18')}" (53:18). الرؤية المباشرة لآيات الله الكبرى بالبصر وبالبصيرة هي محور الرحلة. الصلوات الخمس فُرضت في هذا المقام مباشرة دون واسطة الوحي المعتاد. [المصدر: تفسير ابن كثير — 53:1-18، يحتاج تحقق]`,
       summaryAdultsEnglish: 'The description of the Miraj in Al-Najm (53:7-18) focuses on what the Prophet ﷺ saw: "He certainly saw some of the greatest signs of his Lord" (53:18). The direct vision of Allah\'s greatest signs — with sight and insight — is the journey\'s axis. The five prayers were prescribed in this station directly, without the usual mediation of revelation. [Reference: Tafsir Ibn Kathir — 53:1-18, needs verification]',
       lessonsArabic: ['الصلاة هدية من رحلة الإسراء لا مجرد فريضة', 'أعلى المقامات يُدرَك بالعبودية الصادقة', 'رؤية آيات الله تُقوّي اليقين'],
       lessonsEnglish: ['Prayer is a gift from the Night Journey, not merely an obligation', 'The highest stations are reached through sincere servitude', 'Seeing Allah\'s signs strengthens certainty'],
@@ -479,7 +480,7 @@ export const STORY_MIRAJ: QuranStory = {
       sectionType: 'endnote' as const,
       summaryKidsArabic: 'حين أخبر النبي ﷺ المشركين بالإسراء، كذّب كثيرٌ منهم. لكن المؤمنين صدّقوا وازداد إيمانهم. كان الإسراء اختباراً: من آمن ازداد إيماناً، ومن كفر ازداد ضلالاً.',
       summaryKidsEnglish: 'When the Prophet ﷺ told the polytheists about the Night Journey, many disbelieved. But the believers believed and their faith increased. The Night Journey was a test: those who believed increased in faith, and those who disbelieved increased in misguidance.',
-      summaryAdultsArabic: '"وَمَا جَعَلْنَا الرُّؤْيَا الَّتِي أَرَيْنَاكَ إِلَّا فِتْنَةً لِّلنَّاسِ" (17:60). الرؤية هنا رؤية يقظة لا منام بدليل "أَسْرَىٰ بِعَبْدِهِ" (17:1). وصف الإسراء بالفتنة يعني أنه اختبار للإيمان: هل يُذعن العقل لما جاوز المألوف ثقةً بالله والرسول؟ [المصدر: تفسير القرطبي — 17:60، يحتاج تحقق]',
+      summaryAdultsArabic: `"${quranExcerpt('17:60#9-16')}" (17:60). الرؤية هنا رؤية يقظة لا منام بدليل "أَسْرَىٰ بِعَبْدِهِ" (17:1). وصف الإسراء بالفتنة يعني أنه اختبار للإيمان: هل يُذعن العقل لما جاوز المألوف ثقةً بالله والرسول؟ [المصدر: تفسير القرطبي — 17:60، يحتاج تحقق]`,
       summaryAdultsEnglish: '"We did not make the vision We showed you except as a trial for people" (17:60). The vision here is a waking vision not a dream, as evidenced by "took His servant" (17:1). Describing the Night Journey as a fitnah (trial) means it tests faith: does the mind submit to what exceeds the familiar, trusting Allah and His Messenger? [Reference: Tafsir al-Qurtubi — 17:60, needs verification]',
       lessonsArabic: ['الإيمان بالغيب ركيزة التصديق', 'اختبار العقل بالخوارق يُميّز المؤمن الحق', 'الإسراء ليس حدثاً تاريخياً فحسب بل درس إيماني دائم'],
       lessonsEnglish: ['Faith in the unseen is the foundation of belief', 'Testing the mind with miracles distinguishes the true believer', 'The Night Journey is not merely a historical event but a permanent lesson in faith'],
@@ -510,7 +511,7 @@ export const STORY_MIRAJ: QuranStory = {
       optionsArabic: ['من المسجد الحرام في مكة إلى المسجد الأقصى في القدس', 'من المدينة إلى مكة', 'من مصر إلى الشام', 'من القدس إلى السماء مباشرة'],
       optionsEnglish: ['From Al-Masjid Al-Haram in Makkah to Al-Masjid Al-Aqsa in Jerusalem', 'From Madinah to Makkah', 'From Egypt to the Levant', 'From Jerusalem directly to the heavens'],
       correctOptionIndex: 0,
-      explanationArabic: '"مِّنَ الْمَسْجِدِ الْحَرَامِ إِلَى الْمَسْجِدِ الْأَقْصَى الَّذِي بَارَكْنَا حَوْلَهُ" — الإسراء 17:1.',
+      explanationArabic: `"${quranExcerpt('17:1#6-14')}" — الإسراء 17:1.`,
       explanationEnglish: '"From Al-Masjid Al-Haram to Al-Masjid Al-Aqsa, the surroundings of which We have blessed" — Al-Isra 17:1.',
     },
     {
@@ -530,7 +531,7 @@ export const STORY_MIRAJ: QuranStory = {
       optionsArabic: ['آيات ربه الكبرى', 'الجنة فارغة', 'الملائكة في صلاة', 'المؤمنين الأولين'],
       optionsEnglish: ['The greatest signs of his Lord', 'An empty paradise', 'Angels in prayer', 'The first believers'],
       correctOptionIndex: 0,
-      explanationArabic: '"لَقَدْ رَأَىٰ مِنْ آيَاتِ رَبِّهِ الْكُبْرَى" — النجم 53:18.',
+      explanationArabic: `"${quranExcerpt('53:18')}" — النجم 53:18.`,
       explanationEnglish: '"He certainly saw some of the greatest signs of his Lord" — Al-Najm 53:18.',
     },
   ],

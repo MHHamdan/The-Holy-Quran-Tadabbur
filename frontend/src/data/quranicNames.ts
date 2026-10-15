@@ -9,6 +9,7 @@
  * No AI-generated meanings.
  */
 
+import { quranExcerpt } from '../utils/quranExcerpt';
 export type Gender = 'male' | 'female' | 'unisex';
 export type NameCategory = 'prophet' | 'divine_attribute' | 'nature' | 'virtue' | 'other';
 
@@ -341,7 +342,7 @@ export const QURANIC_NAMES: readonly QuranicName[] = [
     surahRef: 24, ayahRef: 35, surahNameEn: 'An-Nur', surahNameAr: 'النور',
     root: 'ن و ر',
     notesEn: '"Allah is the light of the heavens and the earth" (24:35)',
-    notesAr: '"اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ" (24:35)',
+    notesAr: `"${quranExcerpt('24:35#2-5')}" (24:35)`,
     quranicCiteEn: "(24:35) A parable of His light: a niche containing a lamp — the lamp is within glass like a glittering star",
     quranicCiteAr: "(24:35) مثل نوره كمشكاة فيها مصباح والمصباح في زجاجة كأنها كوكب دري",
     hadithEn: '"Allah is Light — there is no darkness in Him" — Sahih Muslim 179',
@@ -371,7 +372,7 @@ export const QURANIC_NAMES: readonly QuranicName[] = [
     surahRef: 89, ayahRef: 28, surahNameEn: 'Al-Fajr', surahNameAr: 'الفجر',
     root: 'ر ض ي',
     notesEn: '"O tranquil soul, return to your Lord, well-pleased and pleasing" (89:27-28)',
-    notesAr: '"يَا أَيَّتُهَا النَّفْسُ الْمُطْمَئِنَّةُ ارْجِعِي إِلَىٰ رَبِّكِ رَاضِيَةً مَّرْضِيَّةً" (89:27-28)',
+    notesAr: `"${quranExcerpt('89:27-28')}" (89:27-28)`,
     quranicCiteEn: "(89:27-28) O tranquil soul, return to your Lord — well-pleased with Him and He well-pleased with you",
     quranicCiteAr: "(89:27-28) يا أيتها النفس المطمئنة ارجعي إلى ربك راضية مرضية",
     scholarlySrcEn: "Ibn Kathir; Al-Qushayri, Risala; Al-Ghazali, Ihya Ulum al-Din",
@@ -457,7 +458,7 @@ export const QURANIC_NAMES: readonly QuranicName[] = [
     surahRef: 18, ayahRef: 46, surahNameEn: 'Al-Kahf', surahNameAr: 'الكهف',
     root: 'ز ي ن',
     notesEn: '"Wealth and children are the adornment (zina) of worldly life" (18:46)',
-    notesAr: '"الْمَالُ وَالْبَنُونَ زِينَةُ الْحَيَاةِ الدُّنْيَا" (18:46)',
+    notesAr: `"${quranExcerpt('18:46#1-5')}" (18:46)`,
     quranicCiteEn: "(18:46) Wealth and children are the adornment (zinat) of worldly life, but the enduring good deeds are better in reward and better in hope",
     quranicCiteAr: "(18:46) المال والبنون زينة الحياة الدنيا والباقيات الصالحات خير عند ربك ثواباً وخير أملاً",
     scholarlySrcEn: "Ibn Kathir; Lane's Lexicon; Hans Wehr",
@@ -724,7 +725,7 @@ export const QURANIC_NAMES: readonly QuranicName[] = [
     surahRef: 11, ayahRef: 88, surahNameEn: 'Hud', surahNameAr: 'هود',
     root: 'و ف ق',
     notesEn: '"My success is only by Allah" — the prayer of Shu\'ayb (11:88)',
-    notesAr: '"وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ" — شعيب (11:88)',
+    notesAr: `"${quranExcerpt('11:88#32-35')}" — شعيب (11:88)`,
     quranicCiteEn: '(11:88) "My success is only through Allah — in Him I trust and to Him I turn in repentance"',
     quranicCiteAr: '(11:88) "وما توفيقي إلا بالله عليه توكلت وإليه أنيب"',
     scholarlySrcEn: "Ibn Kathir; Al-Qurtubi; Lane's Lexicon",
@@ -826,7 +827,7 @@ export const QURANIC_NAMES: readonly QuranicName[] = [
     surahRef: 17, ayahRef: 1, surahNameEn: 'Al-Isra', surahNameAr: 'الإسراء',
     root: 'س ب ح',
     notesEn: 'Quranic opening: "Exalted is He who took His servant by night" (17:1)',
-    notesAr: 'افتتاحية قرآنية: "سُبْحَانَ الَّذِي أَسْرَىٰ بِعَبْدِهِ لَيْلًا" (17:1)',
+    notesAr: `افتتاحية قرآنية: "${quranExcerpt('17:1#1-5')}" (17:1)`,
     quranicCiteEn: "(17:1) Exalted (subhana) is He who took His servant by night from the Sacred Mosque to the Farthest Mosque",
     quranicCiteAr: "(17:1) سبحان الذي أسرى بعبده ليلاً من المسجد الحرام إلى المسجد الأقصى",
     hadithEn: '"Whoever says Subhanallah 100 times, his sins are forgiven even if they are like the foam of the sea" — Sahih Muslim 2691',
@@ -872,7 +873,7 @@ export const QURANIC_NAMES: readonly QuranicName[] = [
     surahRef: 2, ayahRef: 197, surahNameEn: 'Al-Baqarah', surahNameAr: 'البقرة',
     root: 'و ق ي',
     notesEn: '"Take provisions — the best provision is taqwa" (2:197)',
-    notesAr: '"وَتَزَوَّدُوا فَإِنَّ خَيْرَ الزَّادِ التَّقْوَىٰ" (2:197)',
+    notesAr: `"${quranExcerpt('2:197#25-29')}" (2:197)`,
     quranicCiteEn: "(2:197) Take provisions — the best provision is taqwa — and be conscious of Me, O people of understanding",
     quranicCiteAr: "(2:197) وتزودوا فإن خير الزاد التقوى واتقون يا أولي الألباب",
     hadithEn: '"Taqwa is here" — the Prophet pointed to his chest three times (Sahih Muslim 2564)',

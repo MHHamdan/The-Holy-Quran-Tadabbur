@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Plane, MapPin, CheckCircle2, Circle, Info, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
 import clsx from 'clsx';
+import { quranExcerpt } from '../../utils/quranExcerpt';
 
 interface Ritual {
   id: string;
@@ -67,7 +68,7 @@ const UMRAH_RITUALS: Ritual[] = [
     description_ar: 'الطواف حول الكعبة سبعة أشواط عكس عقارب الساعة، بدءاً من الحجر الأسود.',
     location_en: 'Masjid al-Haram, around the Kaaba',
     location_ar: 'المسجد الحرام، حول الكعبة',
-    dua_ar: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ',
+    dua_ar: quranExcerpt('2:201#4-14'),
     dua_en: 'Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan waqina adhaban-nar',
     tips_en: ['Point or kiss the Black Stone at each round', 'Pray two rakaat at Maqam Ibrahim after Tawaf', 'Drink Zamzam water'],
     tips_ar: ['الإشارة أو تقبيل الحجر الأسود في كل شوط', 'صلاة ركعتين خلف مقام إبراهيم بعد الطواف', 'شرب ماء زمزم'],
@@ -81,7 +82,7 @@ const UMRAH_RITUALS: Ritual[] = [
     description_ar: 'السعي سبعة أشواط بين الصفا والمروة، تخليداً لسعي هاجر بحثاً عن الماء.',
     location_en: 'Between Safa and Marwa hills',
     location_ar: 'بين الصفا والمروة',
-    dua_ar: 'إِنَّ الصَّفَا وَالْمَرْوَةَ مِن شَعَائِرِ اللَّهِ',
+    dua_ar: quranExcerpt('2:158#2-7'),
     dua_en: 'Innas-Safa wal-Marwata min sha\'a\'irillah (Indeed, Safa and Marwa are among the symbols of Allah)',
     tips_en: ['Start from Safa and end at Marwa', 'Men jog lightly between the green lights', 'Make dua throughout'],
     tips_ar: ['البدء من الصفا والانتهاء بالمروة', 'يهرول الرجال بين العلامات الخضراء', 'الدعاء طوال السعي'],

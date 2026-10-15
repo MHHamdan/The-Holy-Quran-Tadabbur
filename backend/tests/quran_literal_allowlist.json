@@ -1,0 +1,25 @@
+{
+  "description": "Vowelled Arabic in frontend sources whose letters also occur in the Qur'an but which is not a Qur'an quotation. Each entry needs a reason. Read by tests/quran_literal_scan.py.",
+  "entries": [
+    {
+      "file": "frontend/src/components/therapy/DailyPracticesPanel.tsx",
+      "text": "وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
+      "reason": "Closing words of the tahlil dhikr (لا إله إلا الله وحده لا شريك له ...), a hadith dhikr, not a verse quotation."
+    },
+    {
+      "file": "frontend/src/components/therapy/PropheticDuasPanel.tsx",
+      "text": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+      "reason": "Closing words of a hadith du'a (dua al-karb), not a quotation of 1:2. The entry is hidden until its hadith source is verified."
+    },
+    {
+      "file": "frontend/src/data/asmaAllahSeeds.ts",
+      "text": "ذُو الجَلَالِ وَالإِكْرَامِ",
+      "reason": "A Divine Name (Dhul-Jalali wal-Ikram) used as a name label, not a verse quotation."
+    },
+    {
+      "file": "frontend/src/data/generated/asmaAllahAtlas.json",
+      "text": "ذُو الجَلَالِ وَالإِكْرَامِ",
+      "reason": "The same Divine Name label, generated from asmaAllahSeeds.ts."
+    }
+  ]
+}

@@ -567,6 +567,25 @@ function readEnabledDbSources(): { rows: DbSourceRow[]; error?: string } {
 }
 
 // ---------------------------------------------------------------------------
+// Qur'an excerpts: generated file matches the canonical text
+// ---------------------------------------------------------------------------
+
+function checkQuranExcerptsCurrent(): CheckResult {
+  return check("Qur'an excerpts (quranExcerpts.json) rebuilt from the canonical text", () => {
+    const errors: string[] = [];
+    const r = spawnSync(process.execPath, [
+      ...process.execArgv,
+      join(ROOT, 'scripts/build-quran-excerpts.ts'),
+      '--check',
+    ], { encoding: 'utf-8', timeout: 60000 });
+    if (r.status !== 0) {
+      errors.push((r.stderr || r.stdout || 'build-quran-excerpts --check failed').trim().split('\n').slice(-3).join(' | '));
+    }
+    return { errors, warnings: [] };
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Run all checks
 // ---------------------------------------------------------------------------
 
@@ -638,6 +657,9 @@ async function main() {
       warnings: [],
     });
   }
+
+  // --- Generated Qur'an excerpts ---
+  results.push(checkQuranExcerptsCurrent());
 
   // --- Source registry checks ---
   results.push(checkSourceRegistryRequiredFields());
