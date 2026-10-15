@@ -67,8 +67,9 @@ COPY scripts ./scripts
 USER app
 EXPOSE 8000
 
+# /ready checks the database (503 when unreachable), unlike the static /health.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD ["python", "-c", "import os,urllib.request,sys; sys.exit(0 if urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"8000\")}/health', timeout=4).status == 200 else 1)"]
+    CMD ["python", "-c", "import os,urllib.request,sys; sys.exit(0 if urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"8000\")}/ready', timeout=4).status == 200 else 1)"]
 
 # No --reload. Proxy headers are trusted only from FORWARDED_ALLOW_IPS
 # (the reverse proxy); WORKERS sizes the process pool. No access log: the

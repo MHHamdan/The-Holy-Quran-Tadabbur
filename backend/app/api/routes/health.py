@@ -9,11 +9,13 @@ SECURITY NOTES:
 - /health/rag requires authentication in production
 - /metrics, /metrics/summary and /metrics/app require authentication in production
 """
+import asyncio
 from datetime import datetime
 from functools import wraps
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import text, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 import httpx
@@ -136,6 +138,9 @@ async def health_check():
     return {"status": "healthy", "service": settings.app_name}
 
 
+READY_DB_TIMEOUT_SECONDS = 2.0
+
+
 @router.get("/ready")
 async def readiness_check(
     session: AsyncSession = Depends(get_async_session),
@@ -143,13 +148,24 @@ async def readiness_check(
     """
     Readiness check - verifies the service is ready to accept traffic.
 
-    PUBLIC: Used by Kubernetes readiness probes.
+    PUBLIC: Used by readiness probes and the compose healthcheck. Answers 503
+    (not 200) when the database is unreachable or slower than 2 s, so a
+    proxy or orchestrator stops routing traffic here.
     """
     try:
-        await session.execute(text("SELECT 1"))
+        await asyncio.wait_for(session.execute(text("SELECT 1")), READY_DB_TIMEOUT_SECONDS)
         return {"status": "ready"}
     except Exception:
-        return {"status": "not_ready"}
+        return JSONResponse(status_code=503, content={"status": "not_ready"})
+
+
+async def _qdrant_ready(client: httpx.AsyncClient) -> tuple[bool, Optional[int]]:
+    """Probe Qdrant's readiness endpoint (/readyz, Qdrant >= 1.5), falling back to /healthz."""
+    base = f"http://{settings.qdrant_host}:{settings.qdrant_port}"
+    response = await client.get(f"{base}/readyz", timeout=5.0)
+    if response.status_code == 404:
+        response = await client.get(f"{base}/healthz", timeout=5.0)
+    return response.status_code == 200, response.status_code
 
 
 @router.get("/metrics")
@@ -257,19 +273,16 @@ async def detailed_health_check(
         health_status["services"]["postgres"] = {"status": "unhealthy", "error": str(e)}
         health_status["status"] = "unhealthy"
 
-    # Check Qdrant
+    # Check Qdrant (/readiness does not exist: it always answered 404)
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"http://{settings.qdrant_host}:{settings.qdrant_port}/readiness",
-                timeout=5.0
-            )
-            if response.status_code == 200:
+            ok, code = await _qdrant_ready(client)
+            if ok:
                 health_status["services"]["qdrant"] = {"status": "healthy"}
             else:
                 health_status["services"]["qdrant"] = {
                     "status": "unhealthy",
-                    "error": f"Status code: {response.status_code}"
+                    "error": f"Status code: {code}"
                 }
                 health_status["status"] = "unhealthy"
     except Exception as e:
