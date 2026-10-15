@@ -24,15 +24,108 @@ import {
 } from '../data/quranMemorizationLinks';
 import { ConfusionPairCard, SimilarAyatCard } from '../components/quran/SimilarAyatCard';
 import { RepeatedPhraseCard, StoryRecurrenceCard } from '../components/quran/MemorizerHintCard';
+import { useLiveVerses } from '../components/quran/LiveVerse';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import type { ConfusionPair } from '../types/quranMemorization';
 
 type Tab = 'confusion' | 'similar' | 'phrases' | 'stories';
 
 const TABS: { id: Tab; labelEn: string; labelAr: string; icon: LucideIcon }[] = [
-  { id: 'confusion', labelEn: 'Confusion Pairs', labelAr: 'أزواج الخلط', icon: AlertTriangle },
+  { id: 'confusion', labelEn: 'Confusion Pairs', labelAr: 'مواضع الالتباس', icon: AlertTriangle },
   { id: 'similar', labelEn: 'Similar Ayat', labelAr: 'آيات مشابهة', icon: Layers },
   { id: 'phrases', labelEn: 'Repeated Phrases', labelAr: 'العبارات المتكررة', icon: RefreshCw },
   { id: 'stories', labelEn: 'Story Recurrences', labelAr: 'تكرار القصص', icon: BookOpen },
 ];
+
+// ─── Unreviewed confusion pairs: references + a diff computed from the text ──
+
+const RISK_LABELS: Record<'high' | 'medium' | 'low', { ar: string; en: string }> = {
+  high: { ar: 'خطر عالٍ', en: 'High risk' },
+  medium: { ar: 'متوسط', en: 'Medium' },
+  low: { ar: 'منخفض', en: 'Low' },
+};
+
+/** Letters only, for comparing words across the two passages. */
+function wordKey(word: string): string {
+  return word
+    .replace(/[ؐ-ًؚ-ٰٟۖ-ۭـ]/g, '')
+    .replace(/[ٱأإآ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه');
+}
+
+function PassageWithDiff({ words, otherKeys }: { words: string[]; otherKeys: Set<string> }) {
+  return (
+    <p dir="rtl" lang="ar" className="font-mushaf text-lg leading-loose text-gray-900">
+      {words.map((w, i) => {
+        const k = wordKey(w);
+        const differs = k.length > 0 && !otherKeys.has(k);
+        return (
+          <span key={i}>
+            {differs ? <mark className="bg-amber-100 text-gray-900 rounded px-0.5">{w}</mark> : w}{' '}
+          </span>
+        );
+      })}
+    </p>
+  );
+}
+
+function UnreviewedPairCard({ pair, language }: { pair: ConfusionPair; language: 'ar' | 'en' }) {
+  const isAr = language === 'ar';
+  // Fetched on request: the tab lists ~130 pairs.
+  const [open, setOpen] = useState(false);
+  const a = useLiveVerses(pair.ayahA.surah, pair.ayahA.ayah, pair.ayahA.rangeEnd ?? pair.ayahA.ayah, 'ar', open);
+  const b = useLiveVerses(pair.ayahB.surah, pair.ayahB.ayah, pair.ayahB.rangeEnd ?? pair.ayahB.ayah, 'ar', open);
+  const wordsA = (a.data ?? []).flatMap(v => v.text_uthmani.split(/\s+/));
+  const wordsB = (b.data ?? []).flatMap(v => v.text_uthmani.split(/\s+/));
+  const keysA = new Set(wordsA.map(wordKey));
+  const keysB = new Set(wordsB.map(wordKey));
+  const risk = RISK_LABELS[pair.riskLevel];
+
+  return (
+    <article className="rounded-xl border border-gray-200 bg-white p-4 space-y-3" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={clsx('text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700', isAr && 'font-arabic')}>
+          {isAr ? risk.ar : risk.en}
+        </span>
+        <span className={clsx('text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700', isAr && 'font-arabic')}>
+          {isAr ? 'غير مُراجَع' : 'Unreviewed'}
+        </span>
+        <span className="text-sm text-gray-700">
+          <bdi dir="ltr">{pair.ayahA.display}</bdi> · <bdi dir="ltr">{pair.ayahB.display}</bdi>
+        </span>
+      </div>
+      {!open ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={clsx('text-xs text-primary-700 hover:underline', isAr && 'font-arabic')}
+        >
+          {isAr ? 'قارن النصين' : 'Compare the two texts'}
+        </button>
+      ) : a.isLoading || b.isLoading ? (
+        <div className="h-16 rounded-lg bg-gray-100 animate-pulse" />
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {[{ ref: pair.ayahA, words: wordsA, other: keysB }, { ref: pair.ayahB, words: wordsB, other: keysA }].map(p => (
+            <div key={p.ref.display} className="rounded-lg bg-gray-50 p-3">
+              <Link to={`/quran/${p.ref.surah}?aya=${p.ref.ayah}`} className="text-xs text-primary-700 hover:underline">
+                <bdi dir="ltr">{p.ref.display}</bdi>
+              </Link>
+              <PassageWithDiff words={p.words} otherKeys={p.other} />
+            </div>
+          ))}
+        </div>
+      )}
+      {open && <p className={clsx('text-[11px] text-gray-500', isAr && 'font-arabic')}>
+        {isAr
+          ? 'الكلمات المظللة لا ترد في المقطع الآخر (مقارنة آلية للنص). شرح الفرق ونصيحة الحفظ يظهران بعد المراجعة العلمية.'
+          : 'Highlighted words do not occur in the other passage (an automatic text comparison). The explanation and memorisation tip appear after scholarly review.'}
+      </p>}
+      {open && <QuranTextAttribution language={language} />}
+    </article>
+  );
+}
 
 export default function MemorizationLinksPage() {
   const { language } = useLanguageStore();
@@ -51,10 +144,13 @@ export default function MemorizationLinksPage() {
         (p) =>
           p.ayahA.display.includes(search) ||
           p.ayahB.display.includes(search) ||
-          p.confusionReason.en.toLowerCase().includes(q) ||
-          p.confusionReason.ar.includes(search) ||
-          p.keyDifference.en.toLowerCase().includes(q) ||
-          p.keyDifference.ar.includes(search),
+          p.ayahA.display.includes(q) ||
+          p.ayahB.display.includes(q) ||
+          (p.reviewStatus !== 'needs_review' && (
+            p.confusionReason.en.toLowerCase().includes(q) ||
+            p.confusionReason.ar.includes(search) ||
+            p.keyDifference.en.toLowerCase().includes(q) ||
+            p.keyDifference.ar.includes(search))),
       );
     }
     const riskOrder = { high: 0, medium: 1, low: 2 };
@@ -117,10 +213,10 @@ export default function MemorizationLinksPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">
-                {isAr ? 'ذكاء الحفظ' : 'Memorization Intelligence'}
+                {isAr ? 'مساعد الحفظ' : 'Memorization Helper'}
               </h1>
               <p className="text-xs text-gray-500">
-                {isAr ? 'روابط الحفظ · أزواج الخلط · العبارات المتكررة' : 'Links · Confusion Pairs · Repeated Phrases'}
+                {isAr ? 'روابط الحفظ · مواضع الالتباس · العبارات المتكررة' : 'Links · Confusion Pairs · Repeated Phrases'}
               </p>
             </div>
           </div>
@@ -213,14 +309,14 @@ export default function MemorizationLinksPage() {
                       : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300',
                   )}
                 >
-                  {r === 'all' ? (isAr ? 'الكل' : 'All') : r}
+                  {r === 'all' ? (isAr ? 'الكل' : 'All') : (isAr ? RISK_LABELS[r].ar : RISK_LABELS[r].en)}
                 </button>
               ))}
             </div>
 
             <p className="text-sm text-gray-500 mb-4">
               {isAr
-                ? `${filteredConfusionPairs.length} زوج من الخلط`
+                ? `${filteredConfusionPairs.length} موضع التباس`
                 : `${filteredConfusionPairs.length} confusion ${filteredConfusionPairs.length === 1 ? 'pair' : 'pairs'}`}
             </p>
 
@@ -232,7 +328,9 @@ export default function MemorizationLinksPage() {
             ) : (
               <div className="space-y-4">
                 {filteredConfusionPairs.map((pair) => (
-                  <ConfusionPairCard key={pair.id} pair={pair} currentSurah={pair.ayahA.surah} />
+                  pair.reviewStatus === 'needs_review'
+                    ? <UnreviewedPairCard key={pair.id} pair={pair} language={language} />
+                    : <ConfusionPairCard key={pair.id} pair={pair} currentSurah={pair.ayahA.surah} />
                 ))}
               </div>
             )}

@@ -102,3 +102,18 @@ def test_removed_hapax_claim_stays_removed(verses, word, expected):
     wonders = _source("pages/QuranWondersPage.tsx")
     assert "w_hapax_legomena" not in wonders
     assert "only once" not in wonders.lower() and "إلا مرة واحدة" not in wonders
+
+
+def test_sajdah_count_matches_mushaf_markers():
+    """The daily-challenge answer is the number of sajdah marks in the markers file."""
+    markers = json.loads((ROOT / "data" / "manifests" / "quran_structure_markers.json").read_text(encoding="utf-8"))
+    src = _source("data/quranicTrivia.ts")
+    block = src[src.index("id: 'q_sajdah_count'"):]
+    block = block[: block.index("\n  },")]
+    options = re.findall(r"\{ en: '(\d+)'", block)
+    correct = int(re.search(r"correctIndex: (\d)", block).group(1))
+    assert int(options[correct]) == len(markers["sajdahs"]) == 15
+
+
+def test_heart_of_quran_item_removed():
+    assert "q_heart_quran" not in _source("data/quranicTrivia.ts")

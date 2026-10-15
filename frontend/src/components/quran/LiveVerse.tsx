@@ -28,7 +28,7 @@ export function parseAyahRef(ref: string): { sura: number; start: number; end: n
 }
 
 /** Fetch verses for a reference; translations only in the English UI. */
-export function useLiveVerses(sura: number, start: number, end: number, language: Language) {
+export function useLiveVerses(sura: number, start: number, end: number, language: Language, enabled = true) {
   const translations = language === 'en' ? ['english_saheeh'] : [];
   return useQuery({
     queryKey: ['live-verse', sura, start, end, translations.join(',')],
@@ -41,6 +41,7 @@ export function useLiveVerses(sura: number, start: number, end: number, language
     staleTime: Infinity,
     gcTime: 24 * 60 * 60 * 1000,
     retry: 1,
+    enabled: enabled && sura > 0,
   });
 }
 

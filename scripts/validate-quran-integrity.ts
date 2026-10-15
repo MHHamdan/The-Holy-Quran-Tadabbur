@@ -20,6 +20,7 @@
 import { readFileSync, existsSync } from 'fs';
 import { spawnSync } from 'child_process';
 import { QURANIC_DUAS } from '../frontend/src/data/quranicDuas';
+import { CONFUSION_PAIRS, REPEATED_PHRASES } from '../frontend/src/data/quranMemorizationLinks';
 import { resolve, join } from 'path';
 
 // ---------------------------------------------------------------------------
@@ -609,6 +610,61 @@ function checkDuasVerbatim(ayahs: QuranAyah[]): CheckResult {
 }
 
 // ---------------------------------------------------------------------------
+// Memorisation data: phrases occur where the data says they do
+// ---------------------------------------------------------------------------
+
+/** Letters only (no marks, tatweel, pause signs; alif/ya/ta-marbuta unified). */
+function skeleton(text: string): string {
+  return text
+    .replace(/\uFEFF/g, '')
+    .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640\u06DE\u06E9]/g, '')
+    .replace(/ءا/g, 'ا')
+    .replace(/[ٱأإآ]/g, 'ا')
+    .replace(/[ىئ]/g, 'ي')
+    .replace(/ؤ/g, 'و')
+    .replace(/ة/g, 'ه')
+    .replace(/ء/g, '')
+    .replace(/\s+/g, '');
+}
+
+function checkMemorizationPhrases(ayahs: QuranAyah[]): CheckResult {
+  return check('Memorisation phrases occur in the verses and surahs they cite', () => {
+    const errors: string[] = [];
+    const verseSk = new Map<string, string>();
+    const surahSk = new Map<number, string>();
+    for (const a of ayahs) {
+      const sk = skeleton(String(a.aya_text ?? '')) + '|' + skeleton(String(a.aya_text_emlaey ?? ''));
+      verseSk.set(`${a.sura_no}:${a.aya_no}`, sk);
+      surahSk.set(a.sura_no, (surahSk.get(a.sura_no) ?? '') + '|' + sk);
+    }
+    for (const phrase of REPEATED_PHRASES) {
+      const sk = skeleton(phrase.phraseArabic);
+      if (!sk) {
+        errors.push(`${phrase.id}: empty phrase (missing excerpt key?)`);
+        continue;
+      }
+      for (const occ of phrase.occurrences) {
+        if (!(verseSk.get(`${occ.surah}:${occ.ayah}`) ?? '').includes(sk)) {
+          errors.push(`${phrase.id}: phrase not in ${occ.surah}:${occ.ayah}`);
+        }
+      }
+    }
+    // Quoted vowelled Arabic in the pair notes must come from the surahs compared.
+    const quoted = /"([^"]*[\u064B-\u0652][^"]*[\u064B-\u0652][^"]*)"/g;
+    for (const pair of CONFUSION_PAIRS) {
+      const hay = (surahSk.get(pair.ayahA.surah) ?? '') + (surahSk.get(pair.ayahB.surah) ?? '');
+      const notes = [pair.keyDifference?.ar, pair.memorizerTip?.ar, pair.confusionReason?.ar].join(' ');
+      for (const m of notes.matchAll(quoted)) {
+        if (!hay.includes(skeleton(m[1]))) {
+          errors.push(`${pair.id}: quoted text not found in surah ${pair.ayahA.surah} or ${pair.ayahB.surah}: ${m[1]}`);
+        }
+      }
+    }
+    return { errors, warnings: [] };
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Qur'an excerpts: generated file matches the canonical text
 // ---------------------------------------------------------------------------
 
@@ -677,6 +733,7 @@ async function main() {
     results.push(checkArabicTextNotEnglish(ayahs));
     results.push(checkAyahCountPerSurah(ayahs));
     results.push(checkDuasVerbatim(ayahs));
+    results.push(checkMemorizationPhrases(ayahs));
   } else if (existsSync(QURAN_JSON_PATH)) {
     results.push({
       name: 'Quran data loaded',
