@@ -84,6 +84,18 @@ def test_metrics_gated_in_production(client, monkeypatch, path):
 
 
 @pytest.mark.parametrize("path", ["/metrics", "/metrics/summary", "/metrics/app"])
+def test_metrics_accepts_bearer_in_production(client, monkeypatch, path):
+    # Prometheus 2.x scrapes with `authorization: {type: Bearer}`, not custom headers.
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("METRICS_SECRET", "s3cret-metrics")
+    ok = {"Authorization": "Bearer s3cret-metrics"}
+    assert client.get(path, headers=ok).status_code == 200
+    assert client.get(path, headers={"Authorization": "Bearer wrong"}).status_code == 403
+    assert client.get(path, headers={"Authorization": "Basic s3cret-metrics"}).status_code == 403
+    assert client.get(path, headers={"Authorization": "Bearer "}).status_code == 403
+
+
+@pytest.mark.parametrize("path", ["/metrics", "/metrics/summary", "/metrics/app"])
 def test_metrics_open_in_development(client, monkeypatch, path):
     monkeypatch.setenv("ENVIRONMENT", "development")
     assert client.get(path).status_code == 200

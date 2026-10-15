@@ -59,6 +59,23 @@ def _safe_secret_check(provided: Optional[str], expected: Optional[str]) -> bool
     return hmac.compare_digest(provided.encode(), expected.encode())
 
 
+def _presented_secret(request: Optional[Request]) -> Optional[str]:
+    """
+    Secret sent by the caller: the X-Metrics-Secret header, or
+    `Authorization: Bearer <secret>` (what Prometheus' `authorization`
+    scrape option sends; Prometheus 2.x cannot set custom headers).
+    """
+    if request is None:
+        return None
+    header = request.headers.get("X-Metrics-Secret")
+    if header:
+        return header
+    scheme, _, token = request.headers.get("Authorization", "").partition(" ")
+    if scheme.lower() == "bearer" and token.strip():
+        return token.strip()
+    return None
+
+
 def _check_production_auth(request: Request) -> None:
     """
     Check production authentication for protected endpoints.
@@ -82,8 +99,7 @@ def _check_production_auth(request: Request) -> None:
             detail="Endpoint not available"
         )
 
-    header_secret = request.headers.get("X-Metrics-Secret")
-    if not _safe_secret_check(header_secret, secret):
+    if not _safe_secret_check(_presented_secret(request), secret):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied"
@@ -95,7 +111,8 @@ def require_metrics_auth(func):
     Decorator to require authentication for sensitive endpoints in production.
 
     In development: No authentication required
-    In production: Requires X-Metrics-Secret header or METRICS_SECRET env var
+    In production: requires METRICS_SECRET, sent as the X-Metrics-Secret
+    header or as `Authorization: Bearer <secret>`
     """
     @wraps(func)
     async def wrapper(*args, request: Request = None, **kwargs):
@@ -111,8 +128,7 @@ def require_metrics_auth(func):
                 detail="Endpoint not available"  # Don't reveal why
             )
 
-        header_secret = request.headers.get("X-Metrics-Secret") if request else None
-        if not _safe_secret_check(header_secret, secret):
+        if not _safe_secret_check(_presented_secret(request), secret):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied"  # Don't reveal if secret exists or is wrong

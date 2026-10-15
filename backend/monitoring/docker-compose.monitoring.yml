@@ -2,6 +2,7 @@
 # Arabic: تكوين Docker لمجموعة المراقبة
 #
 # Usage:
+#   mkdir -p secrets && printf %s "$METRICS_SECRET" > secrets/metrics_secret
 #   docker-compose -f docker-compose.monitoring.yml up -d
 #
 # Access:
@@ -24,6 +25,8 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./alerting_rules.yml:/etc/prometheus/alerting_rules.yml:ro
+      # Holds the backend's METRICS_SECRET (bearer token for /metrics).
+      - ./secrets/metrics_secret:/etc/prometheus/secrets/metrics_secret:ro
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'

@@ -22,8 +22,16 @@ rule_files:
 # Scrape configurations
 scrape_configs:
   # Tadabbur Backend API
+  # In production (ENVIRONMENT=production) /metrics answers 503 until
+  # METRICS_SECRET is set and 403 without it. Prometheus sends it as a bearer
+  # token read from a file: put the same value as the backend's METRICS_SECRET
+  # in ./secrets/metrics_secret (mounted by docker-compose.monitoring.yml,
+  # never committed).
   - job_name: 'tadabbur-backend'
     metrics_path: '/metrics'
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/secrets/metrics_secret
     static_configs:
       - targets: ['backend:8000']
         labels:
