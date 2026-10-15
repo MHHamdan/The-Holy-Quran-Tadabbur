@@ -23,6 +23,7 @@ Example:
 """
 import sys
 import os
+import re
 import json
 import hashlib
 import socket
@@ -193,6 +194,69 @@ SOURCE_METADATA = {
 
 
 MANIFEST_PATH = MANIFESTS_DIR / "tafseer_sources.json"
+
+# Upstream rows that say "there is no tafsir for this verse". They are not the
+# scholar's words: storing them showed the placeholder as al-Qurtubi's or Ibn
+# Kathir's commentary and let RAG cite it. The upstream groups commentary across
+# verses, so such a verse simply has no separate passage in that source.
+PLACEHOLDER_TEXTS = frozenset({"لا يوجد تفسير لهذه الأية", "لا يوجد تفسير لهذه الآية"})
+
+
+def is_placeholder(text: str) -> bool:
+    return " ".join(text.split()).strip(" .") in PLACEHOLDER_TEXTS
+
+
+# Upstream lost the separator between a quoted Qur'an span (fully vowelled)
+# and the commentary that follows ("بِكَلِمَاتٍقال أبو جعفر"), so the Qur'anic
+# word looks altered. A single U+0020 is restored at that boundary only; no
+# letter or mark is added, removed or changed.
+_MARKS = "\u064B-\u0652\u0670"
+_CONNECTORS = "أي|يعني|قال|وقيل|وهو|وهي"
+_GLUED = re.compile(rf"(\S*?[{_MARKS}])({_CONNECTORS})(?=[\s.,،:؛»\"\)]|$)")
+_LONG_ALIF = "اآى"
+
+
+def _is_vowelled_quote(token: str) -> bool:
+    """True when a token reads as fully vowelled Qur'an text.
+
+    At least two letters; ignoring a leading definite article and long alifs,
+    a two-letter token must be fully marked and a longer one at least half
+    marked. Commentary words such as يُقال, فَقال or رَأي (one letter before
+    the connector) never qualify.
+    """
+    letters: list = []
+    for ch in token:
+        if "\u0621" <= ch <= "\u064A":
+            letters.append([ch, False])
+        elif letters and re.match(f"[{_MARKS}]", ch):
+            letters[-1][1] = True
+    if len(letters) < 2:
+        return False
+    if letters[0][0] == "ا" and letters[1][0] == "ل":
+        letters = letters[2:]
+    letters = [l for l in letters if l[0] not in _LONG_ALIF]
+    if not letters:
+        return False
+    if len(letters) <= 2:
+        return all(marked for _, marked in letters)
+    return sum(1 for _, marked in letters if marked) * 2 >= len(letters)
+
+
+def restore_quote_boundaries(text: str) -> tuple:
+    """(text, n): insert one space between a glued Qur'an quote and commentary.
+
+    Deterministic and idempotent; removing all spaces from the result gives
+    back the input byte for byte.
+    """
+    out, pos, n = [], 0, 0
+    for m in _GLUED.finditer(text):
+        if _is_vowelled_quote(m.group(1)):
+            out.append(text[pos:m.end(1)])
+            out.append(" ")
+            pos = m.end(1)
+            n += 1
+    out.append(text[pos:])
+    return "".join(out), n
 
 
 def load_licence_state(source_id: str, manifest_path: Path = MANIFEST_PATH) -> dict:
@@ -424,6 +488,8 @@ def seed_source(session: Session, source_id: str, allow_unverified: bool = False
     inserted = 0
     skipped = 0
     failed = 0
+    placeholders = 0
+    boundaries_restored = 0
     batch_size = 500
 
     for i, entry in enumerate(data):
@@ -434,6 +500,13 @@ def seed_source(session: Session, source_id: str, allow_unverified: bool = False
         if not sura or not ayah or not text:
             skipped += 1
             continue
+        if is_placeholder(text):
+            placeholders += 1
+            skipped += 1
+            continue
+        if language == "ar":
+            text, restored = restore_quote_boundaries(text)
+            boundaries_restored += restored
 
         chunk_id = generate_chunk_id(source_id, sura, ayah)
 
@@ -474,6 +547,9 @@ def seed_source(session: Session, source_id: str, allow_unverified: bool = False
         if inserted % batch_size == 0:
             session.commit()
             print(f"    Inserted {inserted} chunks...")
+
+    print(f"  Placeholder rows skipped: {placeholders}")
+    print(f"  Quote/commentary boundaries restored (whitespace_restored): {boundaries_restored}")
 
     # Create audit log
     status = "success" if failed == 0 else ("partial" if inserted > 0 else "failed")
