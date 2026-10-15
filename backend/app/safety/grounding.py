@@ -526,6 +526,103 @@ def _mentioned_in(names: Sequence[str], content: str) -> bool:
     return False
 
 
+# Hadith and Prophetic-speech attributions. A sentence that reports what the
+# Prophet ﷺ said, or cites a hadith collection/number, survives only if the
+# cited chunk itself carries that report.
+_HADITH_COLLECTIONS: Tuple[Tuple[str, ...], ...] = (
+    ("Bukhari", "البخاري"),
+    ("Sahih Muslim", "Imam Muslim", "صحيح مسلم", "الإمام مسلم"),
+    ("Tirmidhi", "الترمذي"),
+    ("Abu Dawud", "Abu Dawood", "Abu Daud", "أبو داود", "أبي داود"),
+    ("Nasa'i", "Nasai", "النسائي"),
+    ("Ibn Majah", "Ibn Maja", "ابن ماجه", "ابن ماجة"),
+    ("Musnad Ahmad", "Imam Ahmad", "مسند أحمد", "الإمام أحمد"),
+    ("Muwatta", "الموطأ"),
+)
+# "narrated by Muslim" / "رواه مسلم" — "Muslim"/"مسلم" alone is an ordinary word.
+_MUSLIM_AS_COLLECTOR = re.compile(
+    r"\b(narrated|reported|recorded|related|collected)\s+(by|in)\s+muslim\b|\bmuslim\s+(narrated|reported|recorded)\b"
+    r"|(رواه|أخرجه|اخرجه|خرجه)\s+مسلم(?![ء-ي])",
+    re.IGNORECASE,
+)
+_AHMAD_AS_COLLECTOR = re.compile(
+    r"\b(narrated|reported|recorded)\s+(by|in)\s+ahmad\b|(رواه|أخرجه|اخرجه)\s+(الإمام\s+)?أحمد(?![ء-ي])",
+    re.IGNORECASE,
+)
+_HADITH_CUE = re.compile(
+    r"\bthe\s+(holy\s+)?prophet\b(?!\s+(of|musa|moses|ibrahim|abraham|yusuf|joseph|nuh|noah|isa|jesus|"
+    r"yunus|jonah|sulayman|solomon|dawud|david|ayyub|job|zakariyya|yahya|hud|salih|shu'?ayb|lut|lot|"
+    r"idris|adam|ismail|ishmael|ishaq|isaac|yaqub|jacob|harun|aaron|ilyas|elijah|zakariya))"
+    r"\s*(\(\s*(pbuh|saw|saws|s\.a\.w\.?)\s*\)|ﷺ)?\s*(said|says|stated|taught|told|declared|instructed|"
+    r"commanded|forbade|prohibited|is reported|was reported|reportedly)\b"
+    r"|\b(messenger of (allah|god)|allah'?s messenger|rasul ?allah|rasulullah)\b"
+    r"|\bpeace be upon him\b|\(\s*(pbuh|saws?)\s*\)|ﷺ"
+    r"|\bhadiths?\b|\bnarrated\s+(by|in|that|from)\b|\b(sunan|sahih|musnad|jami')\b"
+    # Arabic: "حديث" alone also means "discourse" (حديث القرآن عن الصبر), and
+    # "النبي" precedes prophets' names in stories, so only clear hadith cues.
+    r"|رسول\s+الله|(قال|عن|وقال|يقول)\s+النبي(?![ء-ي])|النبي\s*(ﷺ|صلى)|صلى\s+الله\s+عليه\s+وسلم"
+    r"|(?<![ء-ي])(رواه|أخرجه|اخرجه|روى)(?![ء-ي])"
+    r"|(في|وفي)\s+(ال)?حديث(?![ء-ي])|الحديث\s+(الشريف|الصحيح|النبوي)|حديث\s+(صحيح|حسن|ضعيف|نبوي|شريف)"
+    r"|(?<![ء-ي])أحاديث(?![ء-ي])",
+    re.IGNORECASE,
+)
+_PROPHET_IN_SOURCE = re.compile(
+    r"\bprophet\b|\bmessenger\b|ﷺ|رسول\s+الله|النبي|صلى\s+الله\s+عليه\s+وسلم|حديث|رواه|أخرجه|hadith",
+    re.IGNORECASE,
+)
+_ARABIC_INDIC = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "01234567890123456789")
+_VERSE_REF = re.compile(r"\d{1,3}\s*:\s*\d{1,3}(\s*-\s*\d{1,3})?")
+_EN_STOP = frozenset(
+    "the a an and or of to in on for with that this is was are were be been his her him he she it its "
+    "who whom which what will would shall should never ever not no from by as at said says prophet "
+    "messenger allah god peace upon narrated hadith reported sahih also than then there their they "
+    "them any all one times verse".split()
+)
+
+
+def _chunk_text(chunks: Sequence[object]) -> str:
+    return " ".join(
+        filter(None, (getattr(c, f, None) for c in chunks for f in ("content", "content_ar", "content_en")))
+    )
+
+
+def _content_tokens(text: str) -> List[str]:
+    out = [t for t in _norm_en(text).split() if len(t) > 2 and t not in _EN_STOP and not t.isdigit()]
+    out += [t for t in normalize_arabic(text).split() if len(t) > 2]
+    return out
+
+
+def _hadith_supported(sentence: str, chunks: Sequence[object], cite_re: re.Pattern) -> bool:
+    """True when the cited evidence carries the hadith report the sentence makes."""
+    if not chunks:
+        return False
+    source = _chunk_text(chunks)
+    if not _PROPHET_IN_SOURCE.search(source):
+        return False
+    body = cite_re.sub(" ", sentence).translate(_ARABIC_INDIC)
+    body = _VERSE_REF.sub(" ", body)
+    # Every collection named must be named by the evidence.
+    for names in _HADITH_COLLECTIONS:
+        if any(_name_pattern(n).search(body) for n in names) and not _mentioned_in(names, source):
+            return False
+    if _MUSLIM_AS_COLLECTOR.search(body) and not _mentioned_in(("Muslim", "مسلم"), source):
+        return False
+    if _AHMAD_AS_COLLECTOR.search(body) and not _mentioned_in(("Ahmad", "أحمد"), source):
+        return False
+    # Every number given (hadith numbers, counts like "one hundred times" aside)
+    # must appear in the evidence.
+    source_digits = set(re.findall(r"\d+", source.translate(_ARABIC_INDIC)))
+    if any(n not in source_digits for n in re.findall(r"\d+", body)):
+        return False
+    # The reported content itself must come from the evidence.
+    tokens = _content_tokens(body)
+    if len(tokens) >= 3:
+        src = set(_content_tokens(source))
+        if sum(t in src for t in tokens) / len(tokens) < 0.6:
+            return False
+    return True
+
+
 def check_named_attributions(
     answer: str,
     cited: Mapping[str, object],
@@ -559,12 +656,16 @@ def check_named_attributions(
                 continue
             named = [(key, names) for key, names, pats in _SCHOLAR_PATTERNS
                      if any(p.search(part) for p in pats)]
-            if not named:
+            hadith = bool(_HADITH_CUE.search(cite_re.sub(" ", part)))
+            if not named and not hadith:
                 kept.append(part)
                 continue
             chunks = [cited[m.group(0)] for m in cite_re.finditer(part) if m.group(0) in cited]
             chunks = chunks or para_chunks
             ok = True
+            if hadith and not _hadith_supported(part, chunks, cite_re):
+                ok = False
+                removed.append("hadith attribution")
             for key, names in named:
                 own_work = key is not None and any(
                     source_base_id(getattr(c, "source_id", "")) == key for c in chunks

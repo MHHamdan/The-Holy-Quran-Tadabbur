@@ -90,6 +90,18 @@ ANSWER_CASES = [
      M + " Al-Qurtubi says it is about angels [Al-Qurtubi, 2:255].",
      QueryIntent.VERSE_MEANING, _gone("Al-Qurtubi")),
     ("ruling-missing-disclaimer", M, QueryIntent.RULING, lambda r: "fatwa" in r.answer.lower()),
+    # Unquoted hadith attributions with a valid tafsir citation whose chunk
+    # carries no such report (review finding).
+    ("unquoted-prophetic-speech-en",
+     M + " The Prophet said that whoever recites this verse one hundred times will never be poor "
+     "[Al-Muyassar, 2:255].",
+     QueryIntent.VERSE_MEANING, _gone("never be poor")),
+    ("unquoted-prophetic-speech-ar",
+     "قال رسول الله صلى الله عليه وسلم من قرأها مائة مرة لم يفتقر أبدا [الميسر، ٢:٢٥٥].",
+     QueryIntent.VERSE_MEANING, _gone("يفتقر")),
+    ("fabricated-hadith-number",
+     M + " This is narrated in Sahih al-Bukhari hadith 5010 [Al-Muyassar, 2:255].",
+     QueryIntent.VERSE_MEANING, _gone("5010")),
 ]
 
 # Probes that are not neutralised yet. Each fix removes its entries so the
@@ -297,3 +309,58 @@ async def test_adversarial_answers_all_neutralised():
         r = await _validate(answer, intent=intent)
         safe += bool(ok(r))
     assert safe == len(ANSWER_CASES), f"{safe}/{len(ANSWER_CASES)} adversarial answers neutralised"
+
+
+# ------------------------------------- (e) hadith attributions: no false drops
+
+_CITE = r"\[[^\]]+\]"
+
+
+class TestHadithAttributionControls:
+    """Hadith claims survive only when the cited chunk carries them; ordinary
+    story and tafsir sentences are untouched."""
+
+    # Placeholder evidence (not a real hadith text): the check is lexical.
+    _EVIDENCE = "TEST-EVIDENCE: hadith placeholder alpha bravo charlie, recorded by al-Bukhari, number 1234."
+
+    def _check(self, sentence, content):
+        from app.safety.grounding import check_named_attributions
+        chunk = _chunk(content=content)
+        return check_named_attributions(sentence, {"[Al-Muyassar, 2:255]": chunk,
+                                                   "[الميسر، ٢:٢٥٥]": chunk}, _CITE)
+
+    # In English mode the Arabic probe is also caught by the quote checker; in
+    # Arabic mode only the hadith check removes these (verified by disabling it).
+    @pytest.mark.parametrize(
+        "case_id,answer,intent,safe",
+        [c for c in ANSWER_CASES if "hadith" in c[0] or "prophetic" in c[0]],
+    )
+    async def test_hadith_probes_neutralised_in_arabic_mode(self, case_id, answer, intent, safe):
+        r = await _validate(answer, intent=intent, language="ar")
+        assert safe(r), f"{case_id}: {r.status} {r.answer!r}"
+        assert r.status != "answered" or "unsupported_statements_removed" in r.warnings
+
+    def test_supported_hadith_reference_is_kept(self):
+        s = "This hadith (alpha bravo charlie) is recorded by al-Bukhari, number 1234 [Al-Muyassar, 2:255]."
+        text, removed = self._check(s, self._EVIDENCE)
+        assert text == s and removed == []
+
+    def test_wrong_hadith_number_is_dropped(self):
+        s = "This hadith (alpha bravo charlie) is recorded by al-Bukhari, number 9999 [Al-Muyassar, 2:255]."
+        text, removed = self._check(s, self._EVIDENCE)
+        assert "9999" not in text and removed == ["hadith attribution"]
+
+    def test_wrong_collection_is_dropped(self):
+        s = "This hadith (alpha bravo charlie) is in Sunan al-Tirmidhi [Al-Muyassar, 2:255]."
+        text, _ = self._check(s, self._EVIDENCE)
+        assert "Tirmidhi" not in text
+
+    @pytest.mark.parametrize("sentence", [
+        "The Prophet Yusuf said to his brothers that no blame is upon them [Al-Muyassar, 2:255].",
+        "Allah alone is worshipped and He is the Ever-Living [Al-Muyassar, 2:255].",
+        "حديث القرآن عن التوحيد واضح في هذه الآية [الميسر، ٢:٢٥٥].",
+        "قصة النبي يوسف مع إخوته [الميسر، ٢:٢٥٥].",
+    ])
+    def test_non_hadith_sentences_are_kept(self, sentence):
+        text, removed = self._check(sentence, EVIDENCE_MUYASSAR)
+        assert text == sentence and removed == []
