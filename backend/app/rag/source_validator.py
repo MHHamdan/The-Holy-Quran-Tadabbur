@@ -35,12 +35,11 @@ _DB_VARIANTS: frozenset = frozenset(
 )
 
 # External AlQuran.cloud API fallback uses ids of the form "alquran_cloud_<edition>".
-# These are legitimate scholarly sources served when the local DB is empty.
+# Only tafsir editions are trusted: translations of meanings (en.sahih,
+# en.hilali, ...) must never be validated as tafsir citations.
 _ALQURAN_CLOUD_EDITIONS = frozenset({
     "ar.muyassar", "ar.jalalayn", "ar.baghawi", "ar.qurtubi",
     "ar.tabari", "ar.ibnkathir",
-    # English ids are answered from the licensed QuranEnc copies (tafseer_api.LICENSED_DB_EDITIONS)
-    "en.sahih", "en.hilali",
 })
 _ALQURAN_CLOUD_IDS: frozenset = frozenset(
     {f"alquran_cloud_{e}" for e in _ALQURAN_CLOUD_EDITIONS}

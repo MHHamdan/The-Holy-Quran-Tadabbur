@@ -20,12 +20,14 @@ RETRIEVAL STRATEGY:
 4. Keyword search as additional signal
 5. External API fallback if local results insufficient
 """
+import asyncio
+import hashlib
 import re
 import logging
 from typing import Dict, List, Optional, Tuple
 
 import httpx
-from sqlalchemy import select, or_, func, and_
+from sqlalchemy import select, or_, func, and_, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -463,6 +465,61 @@ def extract_verse_reference(query: str) -> Optional[Tuple[int, int, Optional[int
     return None
 
 
+# Words that carry no topic in a question (EN / AR).
+KEYWORD_STOP_WORDS = frozenset({
+    # English
+    "the", "a", "an", "is", "are", "was", "were", "be", "been", "what", "how", "why", "who",
+    "whom", "which", "when", "where", "tell", "me", "about", "explain", "story", "of", "did",
+    "does", "do", "his", "her", "him", "their", "them", "they", "give", "gave", "say", "says",
+    "said", "scholars", "scholar", "quran", "qur'an", "koran", "according", "to", "in", "and",
+    "or", "on", "for", "with", "from", "this", "that", "these", "those", "it", "its", "into",
+    "verse", "verses", "surah", "allah", "god", "mean", "means", "meaning", "teach", "teaches",
+    "lesson", "lessons", "learn", "happened", "happen", "there", "any", "some", "can", "could",
+    "would", "should", "will", "we", "our", "us", "you", "your", "i", "my", "please", "describe",
+    "described", "mention", "mentioned", "according", "tafsir", "tafseer", "interpretation",
+    # Arabic
+    "عن", "في", "من", "إلى", "الى", "على", "ما", "هل", "كيف", "ماذا", "لماذا", "أخبرني",
+    "حدثني", "اشرح", "وضح", "قصة", "قصص", "قال", "قالوا", "الذي", "التي", "الذين", "المفسرون",
+    "المفسرين", "العلماء", "هو", "هي", "هذا", "هذه", "ذلك", "تلك", "كان", "كانت", "مع", "ثم",
+    "أن", "إن", "لم", "لن", "قد", "كل", "بعد", "قبل", "عند", "الله", "القرآن", "الآية", "آية",
+    "سورة", "تفسير", "معنى", "يقول", "ذكر", "وما", "فما",
+})
+MAX_CHUNKS_PER_SOURCE = 2
+
+
+def query_keywords(query: str) -> List[str]:
+    """Topic words of a question: stop words, possessives and short tokens removed."""
+    words = re.sub(r"[؟?!.,،:;()\[\]\"“”«»]", " ", query or "").split()
+    out: List[str] = []
+    for w in words:
+        w = re.sub(r"['’]s$", "", w)
+        w = w.strip("'’")
+        if len(w) <= 2 or w.lower() in KEYWORD_STOP_WORDS:
+            continue
+        if w.lower() not in (k.lower() for k in out):
+            out.append(w)
+    return out
+
+
+def diversify(chunks: List[RetrievedChunk], top_k: int, per_source: int = MAX_CHUNKS_PER_SOURCE) -> List[RetrievedChunk]:
+    """Keep ranking order but allow at most ``per_source`` chunks per source; fill
+    from the overflow only when too few sources exist."""
+    picked, overflow, counts = [], [], {}
+    for c in chunks:
+        if counts.get(c.source_id, 0) < per_source:
+            counts[c.source_id] = counts.get(c.source_id, 0) + 1
+            picked.append(c)
+        else:
+            overflow.append(c)
+    return (picked + overflow)[:top_k]
+
+
+def query_fingerprint(query: str) -> str:
+    """Log-safe description of a user question (length + short hash, never the text)."""
+    digest = hashlib.sha256((query or "").encode("utf-8")).hexdigest()[:12]
+    return f"len={len(query or '')} sha={digest}"
+
+
 class HybridRetriever:
     """
     Hybrid retrieval combining:
@@ -486,6 +543,9 @@ class HybridRetriever:
         self.embedding_model = None  # Lazy-loaded
         self._enabled_sources_cache: set = None  # Cache enabled source IDs
         self._tafseer_client = None  # Lazy-loaded external API client
+        # Set when semantic search could not run (e.g. HF embeddings down);
+        # the pipeline then tells the user retrieval was keyword-only.
+        self.vector_search_failed = False
 
     async def _get_enabled_source_ids(self) -> set:
         """
@@ -578,6 +638,18 @@ class HybridRetriever:
             )
             print(f"[RETRIEVAL] Thematic lookup returned: {len(thematic_results)} results")
 
+        # 0c. Story questions: rank tafsir inside the story's verse ranges
+        story_results = []
+        if not verse_ref and not thematic_results:
+            story_results = await self._story_lookup(
+                query=query,
+                language=language,
+                preferred_sources=preferred_sources,
+                top_k=top_k,
+            )
+            if story_results:
+                thematic_results = story_results
+
         # 1. Expand query with Islamic terminology
         expanded_terms = self._expand_query(query)
         expanded_query = query + " " + " ".join(expanded_terms)
@@ -603,6 +675,7 @@ class HybridRetriever:
             language=language,
             preferred_sources=preferred_sources,
             top_k=top_k,
+            ranked=not vector_results,
         )
         print(f"[RETRIEVAL] Keyword search returned: {len(keyword_results)} results")
 
@@ -626,7 +699,12 @@ class HybridRetriever:
 
         # 5. Rerank with cross-encoder for better relevance
         max_results = min(top_k, self.MAX_CHUNKS_IN_RESPONSE)
-        reranked_results, rerank_info = self._rerank_results(query, merged, max_results)
+        # The cross-encoder is a blocking HTTP call: run it off the event loop.
+        # All candidates are scored, then at most 2 per source are kept.
+        reranked_results, rerank_info = await asyncio.to_thread(
+            self._rerank_results, query, merged, len(merged)
+        )
+        reranked_results = diversify(reranked_results, max_results)
         print(f"[RETRIEVAL] Reranked with method: {rerank_info.method}")
 
         # 6. If results are insufficient, try external API fallback (only when we have a verse ref)
@@ -710,8 +788,12 @@ class HybridRetriever:
                 if valid_sources:
                     stmt = stmt.where(TafseerChunk.source_id.in_(valid_sources))
 
-            # Order by reliability and whether content matches language
-            stmt = stmt.order_by(TafseerSource.reliability_score.desc())
+            # Order by reliability; for a range, walk the verses in order so
+            # every source is represented instead of one source's whole range.
+            if aya_end:
+                stmt = stmt.order_by(TafseerChunk.aya_start, TafseerSource.reliability_score.desc())
+            else:
+                stmt = stmt.order_by(TafseerSource.reliability_score.desc())
             stmt = stmt.limit(10)
 
             result = await self.session.execute(stmt)
@@ -837,7 +919,9 @@ class HybridRetriever:
                 self._tafseer_client = get_tafseer_client()
 
             # Get tafseer from external API
-            editions = ["ar.muyassar", "en.sahih"] if language == "en" else ["ar.muyassar"]
+            # Tafsir editions only: a translation of meanings (e.g. en.sahih)
+            # must never be cited as tafsir evidence.
+            editions = ["ar.muyassar"]
             response = await self._tafseer_client.get_tafseer(sura_no, aya_no, editions)
 
             if not response.success:
@@ -1024,6 +1108,7 @@ class HybridRetriever:
             return chunks
 
         except Exception as e:
+            self.vector_search_failed = True
             logger.error(f"Vector search error: {e}")
             return []
 
@@ -1034,40 +1119,28 @@ class HybridRetriever:
         language: str,
         preferred_sources: List[str],
         top_k: int,
+        ranked: bool = True,
     ) -> List[RetrievedChunk]:
         """
         Search using PostgreSQL keyword matching.
 
+        With ``ranked`` (always when semantic search returned nothing) chunks
+        are ordered by how many distinct keywords they contain — trigram GIN
+        indexes (migration ws2a1b2c3d4e5) keep that fast — and at most
+        MAX_CHUNKS_PER_SOURCE chunks per source are returned.
+
         SAFETY: Only searches ENABLED sources.
         """
-        # Extract meaningful keywords from query (filter out common words)
-        stop_words = {
-            'عن', 'في', 'من', 'إلى', 'على', 'ما', 'هل', 'كيف', 'ماذا', 'لماذا',
-            'أخبرني', 'حدثني', 'اشرح', 'وضح', 'قصة', 'قصص',
-            'the', 'a', 'an', 'is', 'are', 'was', 'were', 'what', 'how', 'why',
-            'tell', 'me', 'about', 'explain', 'story', 'of'
-        }
-
-        # Split query into words and filter
-        words = query.replace('؟', '').replace('?', '').split()
-        keywords = [w for w in words if w.lower() not in stop_words and len(w) > 2]
-
-        # Add expanded terms
-        all_keywords = keywords + expanded_terms
-
+        keywords = query_keywords(query)
+        all_keywords = list(dict.fromkeys(keywords + [t for t in expanded_terms if len(t) > 2]))[:12]
         if not all_keywords:
-            logger.warning(f"No keywords extracted from query: {query}")
+            logger.warning(f"No keywords extracted from query ({query_fingerprint(query)})")
             return []
 
-        logger.info(f"Keyword search with terms: {all_keywords}")
+        logger.info(f"Keyword search with {len(all_keywords)} terms ({query_fingerprint(query)})")
 
-        # Build query - search for each keyword with OR
         content_column = TafseerChunk.content_en if language == "en" else TafseerChunk.content_ar
-
-        # Build OR conditions for each keyword
-        conditions = []
-        for keyword in all_keywords:
-            conditions.append(content_column.ilike(f"%{keyword}%"))
+        conditions = [content_column.ilike(f"%{kw}%") for kw in all_keywords]
 
         stmt = (
             select(TafseerChunk, TafseerSource)
@@ -1076,17 +1149,27 @@ class HybridRetriever:
             # SAFETY: Only include enabled sources (is_enabled is INTEGER: 1=enabled, 0=disabled)
             .where(TafseerSource.is_enabled == 1)
         )
-
         if preferred_sources:
             stmt = stmt.where(TafseerChunk.source_id.in_(preferred_sources))
 
-        stmt = stmt.limit(top_k)
+        if ranked:
+            from sqlalchemy import case
+
+            # Query words weigh more than glossary expansions.
+            score = sum(
+                case((cond, 2 if i < len(keywords) else 1), else_=0)
+                for i, cond in enumerate(conditions)
+            )
+            stmt = stmt.order_by(score.desc(), TafseerChunk.sura_no, TafseerChunk.aya_start)
+            stmt = stmt.limit(top_k * 4)
+        else:
+            stmt = stmt.limit(top_k)
 
         result = await self.session.execute(stmt)
         rows = result.all()
 
         chunks = []
-        for chunk, source in rows:
+        for rank, (chunk, source) in enumerate(rows):
             content = chunk.content_en if language == "en" else chunk.content_ar
             chunks.append(
                 RetrievedChunk(
@@ -1101,12 +1184,139 @@ class HybridRetriever:
                     content=content or "",
                     content_ar=chunk.content_ar,
                     content_en=chunk.content_en,
-                    relevance_score=0.5,  # Base score for keyword matches
+                    relevance_score=0.5,  # base score for keyword matches
                     scholarly_consensus=chunk.scholarly_consensus,
                 )
             )
 
+        if not ranked:
+            return chunks
+        chunks = diversify(chunks, top_k)
+        for rank, c in enumerate(chunks):  # decaying with the diversified rank
+            c.relevance_score = max(0.3, 0.6 - rank * 0.01)
         return chunks
+
+    # Story names -> verse ranges, loaded once per process from stories/story_segments
+    _story_index: Optional[List[Tuple[str, set, List[Tuple[int, int, int]]]]] = None
+
+    async def _load_story_index(self):
+        if HybridRetriever._story_index is not None:
+            return HybridRetriever._story_index
+        index = []
+        try:
+            stories = (await self.session.execute(text(
+                "SELECT id, name_en, name_ar, main_figures FROM stories"
+            ))).all()
+            segments = (await self.session.execute(text(
+                "SELECT story_id, sura_no, aya_start, aya_end FROM story_segments "
+                "WHERE sura_no IS NOT NULL AND aya_start IS NOT NULL"
+            ))).all()
+        except Exception as e:  # noqa: BLE001 - story routing is an optimisation
+            logger.warning(f"Story index unavailable: {e}")
+            return []
+        ranges: Dict[str, List[Tuple[int, int, int]]] = {}
+        for story_id, sura, a0, a1 in segments:
+            ranges.setdefault(story_id, []).append((int(sura), int(a0), int(a1 or a0)))
+        generic = {"story", "prophet", "the", "of", "and", "his", "her", "people", "قصة", "عليه",
+                   "عليها", "عليهما", "السلام", "في", "القرآن", "قوم", "the"}
+        for story_id, name_en, name_ar, figures in stories:
+            if story_id not in ranges:
+                continue
+            names = set()
+            for raw in [name_en or "", name_ar or ""] + list(figures or []):
+                for tok in re.findall(r"[A-Za-z\u0600-\u06FF']+", raw):
+                    tok = tok.strip("'").lower()
+                    if len(tok) > 2 and tok not in generic:
+                        names.add(normalize_arabic(tok))
+            if names:
+                index.append((story_id, names, ranges[story_id]))
+        HybridRetriever._story_index = index
+        return index
+
+    async def _story_lookup(
+        self,
+        query: str,
+        language: str,
+        preferred_sources: List[str] = None,
+        top_k: int = 8,
+    ) -> List[RetrievedChunk]:
+        """
+        Questions about a Qur'anic story ("Why did Yusuf's brothers throw him in
+        the well?") are answered from tafsir of that story's verses: the story
+        is matched by name (stories/story_segments), then chunks inside its
+        verse ranges are ranked by the remaining question keywords.
+        """
+        index = await self._load_story_index()
+        if not index:
+            return []
+        q_tokens = {normalize_arabic(re.sub(r"['’]s$", "", t.lower()))
+                    for t in re.findall(r"[A-Za-z\u0600-\u06FF'’]+", query)}
+        # Arabic proclitics: "وإخوته" / "بيوسف"
+        q_tokens |= {t[1:] for t in q_tokens if len(t) > 3 and t[0] in "وفبل"}
+        q_tokens |= {t[2:] for t in q_tokens if t.startswith("ال") and len(t) > 4}
+        scored = [(len(names & q_tokens), story_id, ranges) for story_id, names, ranges in index]
+        best = max((s for s, _, _ in scored), default=0)
+        if best == 0:
+            return []
+        verse_ranges = sorted({r for s, _, ranges in scored if s == best for r in ranges})[:40]
+
+        enabled = await self._get_enabled_source_ids()
+        if not enabled:
+            return []
+        range_conds = [
+            and_(TafseerChunk.sura_no == sura, TafseerChunk.aya_start <= a1, TafseerChunk.aya_end >= a0)
+            for sura, a0, a1 in verse_ranges
+        ]
+        stmt = (
+            select(TafseerChunk, TafseerSource)
+            .join(TafseerSource, TafseerChunk.source_id == TafseerSource.id)
+            .where(or_(*range_conds))
+            .where(TafseerSource.is_enabled == 1)
+            .limit(600)
+        )
+        if preferred_sources:
+            valid = [s for s in preferred_sources if s in enabled]
+            if valid:
+                stmt = stmt.where(TafseerChunk.source_id.in_(valid))
+        try:
+            rows = (await self.session.execute(stmt)).all()
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Story lookup failed: {e}")
+            return []
+
+        keywords = [normalize_arabic(k.lower()) for k in query_keywords(query)]
+        ranked = []
+        for chunk, source in rows:
+            content = chunk.content_en if language == "en" else chunk.content_ar
+            if not content or len(content.strip()) < 20:
+                continue
+            body = normalize_arabic(content.lower())
+            score = sum(1 for k in keywords if k and k in body)
+            ranked.append((score, chunk, source, content))
+        ranked.sort(key=lambda x: (-x[0], x[1].sura_no, x[1].aya_start))
+
+        out = []
+        for i, (score, chunk, source, content) in enumerate(ranked):
+            out.append(RetrievedChunk(
+                chunk_id=chunk.chunk_id,
+                source_id=chunk.source_id,
+                source_name=source.name_en,
+                source_name_ar=source.name_ar,
+                verse_reference=chunk.verse_reference,
+                sura_no=chunk.sura_no,
+                aya_start=chunk.aya_start,
+                aya_end=chunk.aya_end,
+                content=content,
+                content_ar=chunk.content_ar,
+                content_en=chunk.content_en,
+                relevance_score=0.0,
+                scholarly_consensus=chunk.scholarly_consensus,
+            ))
+        out = diversify(out, top_k)
+        for i, c in enumerate(out):  # scores follow the diversified order
+            c.relevance_score = max(0.5, 0.85 - i * 0.01)
+        logger.info(f"[STORY] {len(out)} chunks in {len(verse_ranges)} story ranges")
+        return out
 
     def _reciprocal_rank_fusion(
         self,

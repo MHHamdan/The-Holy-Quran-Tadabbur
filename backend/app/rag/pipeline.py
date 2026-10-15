@@ -95,7 +95,7 @@ from app.rag.types import (
     AI_QUOTA_EN,
     AI_QUOTA_AR,
 )
-from app.rag.retrieval import HybridRetriever, extract_verse_reference, FAMOUS_VERSES
+from app.rag.retrieval import HybridRetriever, extract_verse_reference, FAMOUS_VERSES, diversify
 from app.rag.prompts import GROUNDED_SYSTEM_PROMPT, build_user_prompt
 from app.rag.query_expander import expand_query, ExpandedQuery
 from app.rag.confidence import confidence_scorer, get_confidence_message, ConfidenceBreakdown
@@ -575,9 +575,9 @@ class RAGPipeline:
         except HFInferenceError as err:
             # The AI summary is withheld, but the retrieved sources are still
             # returned verbatim so the user is never shown invented content.
-            return await self._ai_unavailable_response(
+            return self._mark_degraded(await self._ai_unavailable_response(
                 err, chunks, intent, language, session_id, expanded, start_time,
-            )
+            ))
 
         # 8. Parse and validate response with enhanced confidence scoring
         chunk_ids = [c.chunk_id for c in chunks]
@@ -643,7 +643,16 @@ class RAGPipeline:
         # Add LLM latency to processing time
         validated.processing_time_ms = llm_latency_ms
 
-        return validated
+        return self._mark_degraded(validated)
+
+    def _mark_degraded(self, response: GroundedResponse) -> GroundedResponse:
+        """Tell the client when semantic search could not run (keyword-only retrieval)."""
+        if getattr(self.retriever, "vector_search_failed", False) is True:
+            if "vector_search_unavailable" not in response.degradation_reasons:
+                response.degradation_reasons.append("vector_search_unavailable")
+            if "retrieval_degraded" not in response.warnings:
+                response.warnings.append("retrieval_degraded")
+        return response
 
     def _rerank_chunks(
         self,
@@ -688,11 +697,10 @@ class RAGPipeline:
 
             scored_chunks.append((score, chunk))
 
-        # Sort by score descending
+        # Sort by score descending; at most 2 chunks per source so the answer
+        # draws on several tafsir works when they were retrieved.
         scored_chunks.sort(key=lambda x: x[0], reverse=True)
-
-        # Return top results
-        return [chunk for score, chunk in scored_chunks[:max_results]]
+        return diversify([chunk for score, chunk in scored_chunks], max_results)
 
     def _pre_classify(
         self,
