@@ -166,6 +166,11 @@ class SemanticSearchResponse(BaseModel):
     related_concepts: List[Dict[str, Any]] = []
     suggested_queries: List[str] = []
     search_time_ms: int = 0
+    # Set when the AI embedding service is not configured, so results come
+    # from keyword/graph matching only ("ai_unavailable").
+    degraded: Optional[str] = None
+    message_ar: Optional[str] = None
+    message_en: Optional[str] = None
 
 
 class ThemeGraphResponse(BaseModel):
@@ -731,7 +736,20 @@ async def semantic_search(
         related_concepts=result.related_concepts,
         suggested_queries=result.suggested_queries,
         search_time_ms=result.search_time_ms,
+        **_degraded_fields(),
     )
+
+
+def _degraded_fields() -> Dict[str, Optional[str]]:
+    from app.ai.hf_client import hf_configured
+
+    if hf_configured():
+        return {}
+    return {
+        "degraded": "ai_unavailable",
+        "message_ar": "البحث الدلالي غير متاح مؤقتاً — تُعرض نتائج البحث النصي.",
+        "message_en": "Semantic search is temporarily unavailable — showing keyword results.",
+    }
 
 
 @router.get("/search/intents")

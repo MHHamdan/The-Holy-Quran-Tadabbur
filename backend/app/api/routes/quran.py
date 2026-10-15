@@ -981,13 +981,6 @@ class GrammaticalFilterRequest(BaseModel):
     sentence_type: Optional[str] = Field(None, description="Sentence type filter (verbal, nominal, etc.)")
 
 
-# Transliteration marks used by the English editions ("Allāh", "Mūsā", "ʿĀd"):
-# folded away on both sides so plain-ASCII queries match.
-_FOLD_FROM = "āīūĀĪŪḥḤṣṢḍḌṭṬẓẒġĠʿʾ’‘"
-_FOLD_TO = "aiuAIUhHsSdDtTzZgG"  # shorter: the trailing marks are deleted
-_FOLD_TABLE = str.maketrans(_FOLD_FROM[: len(_FOLD_TO)], _FOLD_TO, _FOLD_FROM[len(_FOLD_TO):])
-
-
 class TranslationSearchHit(BaseModel):
     verse_id: int
     sura_no: int
@@ -1023,40 +1016,22 @@ async def search_translations(
 
     Searches the given editions, or the default edition of `lang`.
     """
-    from sqlalchemy import func as _func
+    from app.services.smart_search import (
+        default_edition_keys, search_translation_text, translation_terms,
+    )
 
     keys = _parse_translation_keys(translations)
     if not keys:
-        default = await session.execute(
-            select(TranslationEdition.key).where(
-                TranslationEdition.language == lang, TranslationEdition.is_default.is_(True)
-            )
-        )
-        keys = [k for k in default.scalars().all()]
+        keys = await default_edition_keys(session, lang)
     if not keys:
         raise HTTPException(status_code=404, detail=f"No translation available for language '{lang}'")
 
-    terms = [t for t in q.translate(_FOLD_TABLE).lower().split() if len(t) >= 2][:6]
-    if not terms:
+    if not translation_terms(q):
         raise HTTPException(status_code=400, detail="Query needs at least one word of 2+ characters")
 
-    folded = _func.lower(_func.translate(Translation.text, _FOLD_FROM, _FOLD_TO))
-    # Word-start match (\m): "ad" finds "ʿĀd", not "made". Terms are regex-escaped.
-    conditions = [Translation.translator.in_(keys)] + [
-        folded.op("~")("\\m" + re.sub(r"([^\w\s])", r"\\\1", t)) for t in terms
-    ]
-
-    total = (await session.execute(
-        select(_func.count()).select_from(Translation).where(*conditions)
-    )).scalar_one()
-    rows = (await session.execute(
-        select(Translation, QuranVerse)
-        .join(QuranVerse, QuranVerse.id == Translation.verse_id)
-        .where(*conditions)
-        .order_by(QuranVerse.id, Translation.translator)
-        .offset(offset)
-        .limit(limit)
-    )).all()
+    # Word-start match (\m): "ad" finds "ʿĀd", not "made". One scan: the
+    # total comes from count() over the same filtered rows.
+    total, rows, terms = await search_translation_text(session, q, keys, limit, offset)
 
     http_response.headers["Cache-Control"] = "public, max-age=3600"
     return TranslationSearchResponse(
@@ -1648,9 +1623,9 @@ class ConceptEvolutionResponse(BaseModel):
 async def find_similar_verses(
     sura_no: int,
     aya_no: int,
-    top_k: int = Query(10, ge=1, le=50),
+    top_k: int = Query(10, ge=1, le=100),
     theme: Optional[str] = Query(None, description="Filter by theme (tawheed, prophets, afterlife, etc.)"),
-    cross_sura: bool = Query(True, description="Only return verses from other suras"),
+    exclude_same_sura: bool = Query(False, description="Only return verses from other suras"),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -1666,7 +1641,7 @@ async def find_similar_verses(
         aya_no: Aya number
         top_k: Maximum number of results
         theme: Filter by thematic category
-        cross_sura: If True, exclude verses from the same sura
+        exclude_same_sura: If True, exclude verses from the same sura
 
     Returns:
         List of semantically similar verses with scores
@@ -1699,7 +1674,7 @@ async def find_similar_verses(
         verse_text=source_verse.text_imlaei,
         top_k=top_k,
         theme_filter=theme_filter,
-        exclude_sura=sura_no if cross_sura else None,
+        exclude_sura=sura_no if exclude_same_sura else None,
     )
     # The service returns plain dicts; surah names come from the canonical table.
     similar = result.verses
@@ -1728,7 +1703,8 @@ async def find_similar_verses(
                 connection_type=str(m.get("connection_type", "")),
             )
             for m in similar
-            if not (cross_sura and m["sura_no"] == sura_no)
+            if not (exclude_same_sura and m["sura_no"] == sura_no)
+            and not (m["sura_no"] == sura_no and m["aya_no"] == aya_no)
         ],
         "source_themes": result.source_themes,
         "search_method": result.search_method,
@@ -12793,6 +12769,10 @@ async def semantic_verse_search(
     """
     from app.services.verse_embedding_service import get_verse_embedding_service
     from app.services.arabic_semantic_search import arabic_semantic_service
+    from app.ai.hf_client import HFInferenceError, hf_configured
+
+    if not hf_configured():
+        return await _semantic_keyword_fallback(session, query, limit, sura_no)
 
     verse_service = get_verse_embedding_service()
 
@@ -12814,15 +12794,22 @@ async def semantic_verse_search(
     if include_cross_language:
         expanded = arabic_semantic_service.expand_cross_language_query(query)
 
-    # Perform semantic search
-    results = await verse_service.semantic_search(
-        query=query,
-        limit=limit,
-        min_score=min_score,
-        sura_filter=sura_no,
-        juz_filter=juz_no,
-        session=session,
-    )
+    # Perform semantic search; an AI-service failure degrades to keyword
+    # results instead of a 503.
+    try:
+        results = await asyncio.wait_for(
+            verse_service.semantic_search(
+                query=query,
+                limit=limit,
+                min_score=min_score,
+                sura_filter=sura_no,
+                juz_filter=juz_no,
+                session=session,
+            ),
+            timeout=15.0,
+        )
+    except (HFInferenceError, asyncio.TimeoutError):
+        return await _semantic_keyword_fallback(session, query, limit, sura_no)
 
     response = {
         "ok": True,
@@ -12856,11 +12843,62 @@ async def semantic_verse_search(
     return response
 
 
+async def _semantic_keyword_fallback(
+    session: AsyncSession, query: str, limit: int, sura_no: Optional[int]
+) -> dict:
+    """Keyword results for /search/semantic when the AI service is unavailable.
+
+    English queries are mapped to their Arabic concept terms
+    (BILINGUAL_CONCEPTS); Arabic queries are searched directly. The response
+    carries degraded='ai_unavailable' and a bilingual notice.
+    """
+    from app.services.quran_text_utils import expand_bilingual_query
+    from app.services.quran_search import QuranSearchService
+    from app.services.arabic_normalize import has_arabic
+
+    expansions, _ = expand_bilingual_query(query)
+    terms = [t for t in ([query] + sorted(expansions)) if t and has_arabic(t)]
+    items: List[dict] = []
+    total = 0
+    if terms:
+        res = await QuranSearchService(session).search(
+            query=terms[0],
+            limit=limit,
+            sura_filter=sura_no,
+            include_semantic=False,
+            terms_override=terms,
+        )
+        total = res.total_matches
+        items = [
+            {
+                "verse_id": m.verse_id,
+                "sura_no": m.sura_no,
+                "aya_no": m.aya_no,
+                "reference": f"{m.sura_no}:{m.aya_no}",
+                "text_uthmani": m.text_uthmani,
+                "text_imlaei": m.text_imlaei,
+                "similarity_score": round(m.relevance_score, 4),
+                "matched_themes": [],
+            }
+            for m in res.matches
+        ]
+    return {
+        "ok": True,
+        "query": query,
+        "results": items,
+        "total": total,
+        "index_status": "keyword_fallback",
+        "degraded": "ai_unavailable",
+        "message_ar": "البحث الدلالي غير متاح مؤقتاً — تُعرض نتائج البحث النصي.",
+        "message_en": "Semantic search is temporarily unavailable — showing keyword results.",
+    }
+
+
 @router.get("/search/similar/{sura_no}/{aya_no}")
 async def find_similar_verses(
     sura_no: int = Path(..., ge=1, le=114, description="Surah number"),
     aya_no: int = Path(..., ge=1, description="Ayah number"),
-    limit: int = Query(10, ge=1, le=30, description="Maximum results"),
+    limit: int = Query(10, ge=1, le=100, description="Maximum results"),
     min_score: float = Query(0.5, ge=0.0, le=1.0, description="Minimum similarity"),
     exclude_same_sura: bool = Query(False, description="Exclude verses from same Surah"),
     session: AsyncSession = Depends(get_async_session),
@@ -12868,11 +12906,26 @@ async def find_similar_verses(
     """
     Find verses semantically similar to a specific verse.
 
-    Uses vector embeddings to find thematically related verses across the Quran.
+    Uses the stored verse vectors (no query embedding, so it works without the
+    AI service). Every text field comes from quran_verses.
 
     Arabic: البحث عن آيات مشابهة لآية معينة
     """
     from app.services.verse_embedding_service import get_verse_embedding_service
+
+    source = (await session.execute(
+        select(QuranVerse).where(QuranVerse.sura_no == sura_no, QuranVerse.aya_no == aya_no)
+    )).scalar_one_or_none()
+    if source is None:
+        raise HTTPException(status_code=404, detail=f"Verse {sura_no}:{aya_no} not found")
+    source_info = {
+        "reference": f"{sura_no}:{aya_no}",
+        "sura_no": sura_no,
+        "aya_no": aya_no,
+        "sura_name_ar": source.sura_name_ar,
+        "sura_name_en": source.sura_name_en,
+        "text_uthmani": source.text_uthmani,
+    }
 
     verse_service = get_verse_embedding_service()
 
@@ -12881,9 +12934,10 @@ async def find_similar_verses(
     if not stats.get("exists") or stats.get("vectors_count", 0) == 0:
         return {
             "ok": True,
-            "source_verse": f"{sura_no}:{aya_no}",
+            "source_verse": source_info,
             "similar_verses": [],
             "total": 0,
+            "total_found": 0,
             "index_status": "not_indexed",
         }
 
@@ -12898,20 +12952,28 @@ async def find_similar_verses(
 
     return {
         "ok": True,
-        "source_verse": f"{sura_no}:{aya_no}",
+        "source_verse": source_info,
         "similar_verses": [
             {
                 "verse_id": r.verse_id,
                 "sura_no": r.sura_no,
                 "aya_no": r.aya_no,
                 "reference": r.reference,
+                "sura_name_ar": r.sura_name_ar,
+                "sura_name_en": r.sura_name_en,
                 "text_uthmani": r.text_uthmani,
                 "text_imlaei": r.text_imlaei,
                 "similarity_score": round(r.similarity_score, 4),
+                "semantic_score": round(r.similarity_score, 4),
+                "shared_concepts": [],
+                "themes": [],
+                "connection_type": "semantic",
             }
             for r in results
         ],
         "total": len(results),
+        "total_found": len(results),
+        "search_method": "vector_index",
         "index_status": "indexed",
     }
 
@@ -13124,6 +13186,37 @@ async def list_available_concepts():
         "total_concepts": len(BILINGUAL_CONCEPTS),
         "categories": categories,
     }
+
+
+# =============================================================================
+# SMART SEARCH (reference / surah / alias / text / translation / semantic)
+# =============================================================================
+
+@router.get("/search/smart")
+async def smart_search_endpoint(
+    http_response: Response,
+    q: str = Query(..., min_length=1, max_length=200, description="What the reader typed"),
+    lang: str = Query("ar", pattern="^(ar|en)$", description="UI language"),
+    limit: int = Query(20, ge=1, le=50),
+    offset: int = Query(0, ge=0, le=6236),
+    semantic: bool = Query(False, description="Also run vector search (only when AI is configured)"),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    One search box for the Qur'an: a verse reference (2:255, ٢:٢٥٥) jumps,
+    a surah name (البقرة, Baqarah) offers the surah, a known name (آية الكرسي)
+    resolves to its verse, Arabic words search the text with a real total and
+    paging, and Latin words search the default translation. Semantic matches
+    are added only when the AI service is configured.
+
+    Arabic: بحث ذكي موحد في القرآن الكريم
+    """
+    from app.services.smart_search import smart_search
+
+    result = await smart_search(session, q, lang=lang, limit=limit, offset=offset, include_semantic=semantic)
+    if not semantic:
+        http_response.headers["Cache-Control"] = "public, max-age=3600"
+    return result
 
 
 # =============================================================================

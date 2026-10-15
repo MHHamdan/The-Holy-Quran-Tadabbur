@@ -64,6 +64,8 @@ async def hydrate_vector_hits(
         QuranVerse.aya_no,
         QuranVerse.text_uthmani,
         QuranVerse.text_imlaei,
+        QuranVerse.sura_name_ar,
+        QuranVerse.sura_name_en,
     ).where(tuple_(QuranVerse.sura_no, QuranVerse.aya_no).in_(refs))
 
     if session is not None:
@@ -77,6 +79,8 @@ async def hydrate_vector_hits(
             "id": r.id,
             "text_uthmani": r.text_uthmani,
             "text_imlaei": r.text_imlaei,
+            "sura_name_ar": r.sura_name_ar,
+            "sura_name_en": r.sura_name_en,
         }
         for r in rows
     }
@@ -107,6 +111,8 @@ def _build_results(
             text_imlaei=row["text_imlaei"],
             similarity_score=h.score,
             matched_themes=[],
+            sura_name_ar=row["sura_name_ar"],
+            sura_name_en=row["sura_name_en"],
         ))
         if len(results) >= limit:
             break
@@ -124,6 +130,8 @@ class VerseSimilarityResult:
     text_imlaei: str
     similarity_score: float
     matched_themes: List[str]
+    sura_name_ar: str = ""
+    sura_name_en: str = ""
 
 
 class VerseEmbeddingService:
