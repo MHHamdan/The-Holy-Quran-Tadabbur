@@ -292,24 +292,6 @@ export function AsmaAllahDetailPage() {
               );
             })}
           </ul>
-          {detail.relatedTopics.length > 0 && (
-            <div className="mt-4">
-              <h3 className="text-sm font-medium mb-1">
-                {language === 'ar' ? 'مواضيع مرتبطة' : 'Related topics'}
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {detail.relatedTopics.map((tid) => (
-                  <Link
-                    key={tid}
-                    to={`/topics/${encodeURIComponent(tid)}`}
-                    className="text-xs px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200"
-                  >
-                    {tid}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </aside>
       </div>
 

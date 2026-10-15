@@ -55,7 +55,6 @@ const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ default:
 const StoryAtlasPage = lazy(() => import('./pages/StoryAtlasPage').then(m => ({ default: m.StoryAtlasPage })));
 const StoryDetailPage = lazy(() => import('./pages/StoryDetailPage').then(m => ({ default: m.StoryDetailPage })));
 const StoryAtlasDetailPage = lazy(() => import('./pages/StoryAtlasDetailPage').then(m => ({ default: m.StoryAtlasDetailPage })));
-const StoryAtlasConnectionsPage = lazy(() => import('./pages/StoryAtlasConnectionsPage').then(m => ({ default: m.StoryAtlasConnectionsPage })));
 
 // Concepts feature
 const ConceptsPage = lazy(() => import('./pages/ConceptsPage').then(m => ({ default: m.ConceptsPage })));
@@ -112,7 +111,7 @@ const DuasPage = lazy(() => import('./pages/DuasPage').then(m => ({ default: m.D
 const QuranicCallsAtlasPage = lazy(() => import('./pages/QuranicCallsAtlasPage'));
 
 // Juz Navigator
-const JuzNavigatorPage = lazy(() => import('./pages/JuzNavigatorPage').then(m => ({ default: m.JuzNavigatorPage })));
+const SurahIndexPage = lazy(() => import('./pages/SurahIndexPage').then(m => ({ default: m.SurahIndexPage })));
 
 // Learning Paths
 const LearnPage = lazy(() => import('./pages/LearnPage').then(m => ({ default: m.LearnPage })));
@@ -134,6 +133,11 @@ const ReviewDashboardPage = ADMIN_ENABLED
   : null;
 const AdminFeedbackPage = ADMIN_ENABLED
   ? lazy(() => import('./pages/admin/AdminFeedbackPage').then(m => ({ default: m.AdminFeedbackPage })))
+  : null;
+// Story connection explorer: a developer view of the raw entity graph
+// (auto-detected links, raw ids). Linked from /status, not from user navigation.
+const StoryAtlasConnectionsPage = ADMIN_ENABLED
+  ? lazy(() => import('./pages/StoryAtlasConnectionsPage').then(m => ({ default: m.StoryAtlasConnectionsPage })))
   : null;
 const ThemeAdminPage = ADMIN_ENABLED
   ? lazy(() => import('./pages/ThemeAdminPage').then(m => ({ default: m.ThemeAdminPage })))
@@ -174,9 +178,6 @@ const RevelationTimelinePage = lazy(() => import('./pages/RevelationTimelinePage
 // Quranic Trivia Quiz
 const QuizPage = lazy(() => import('./pages/QuizPage').then(m => ({ default: m.QuizPage })));
 
-// Quran Wonders & Statistics
-const QuranWondersPage = lazy(() => import('./pages/QuranWondersPage').then(m => ({ default: m.QuranWondersPage })));
-
 // Surah Comparison Tool
 const SurahComparePage = lazy(() => import('./pages/SurahComparePage').then(m => ({ default: m.SurahComparePage })));
 
@@ -198,11 +199,6 @@ const ProphetJourneyPage = lazy(() => import('./pages/ProphetJourneyPage').then(
 function AsmaThemeRedirect() {
   const { nameId } = useParams<{ nameId: string }>();
   return <Navigate to={`/asma-allah/${nameId ?? ''}`} replace />;
-}
-
-function TopicsRedirect() {
-  const { topicId } = useParams<{ topicId: string }>();
-  return <Navigate to={`/concepts/${topicId ?? ''}`} replace />;
 }
 
 /** /story-atlas?person=… → /stories?person=… (keeps the filters). */
@@ -301,7 +297,7 @@ function App() {
           <Route path="/mushaf" element={<MushafPage />} />
           {/* Surah / juz index. Interim: the juz navigator, until the
               SurahIndexPage (Surah | Juz | Page tabs) replaces it here. */}
-          <Route path="/quran" element={<JuzNavigatorPage />} />
+          <Route path="/quran" element={<SurahIndexPage />} />
           <Route path="/quran/:suraNo" element={<QuranPage />} />
 
           {/* Hubs (five-tab navigation) */}
@@ -320,7 +316,9 @@ function App() {
           <Route path="/stories/:storyId" element={<StoryDetailPage />} />
 
           {/* Story Atlas cluster detail + connections (deep-linked, not in nav) */}
-          <Route path="/story-atlas/connections" element={<StoryAtlasConnectionsPage />} />
+          {StoryAtlasConnectionsPage
+            ? <Route path="/story-atlas/connections" element={<StoryAtlasConnectionsPage />} />
+            : <Route path="/story-atlas/connections" element={<Navigate to="/stories" replace />} />}
           <Route path="/story-atlas/:clusterId" element={<StoryAtlasDetailPage />} />
 
           {/* Concepts */}
@@ -391,8 +389,10 @@ function App() {
           {/* Quranic Trivia Quiz */}
           <Route path="/quiz" element={<QuizPage />} />
 
-          {/* Quran Wonders & Statistics */}
-          <Route path="/wonders" element={<QuranWondersPage />} />
+          {/* /wonders duplicated /miracles; its cards are withheld until an
+              editor approves them (owner review), so the old URL lands on the
+              single Signs and Miracles page. */}
+          <Route path="/wonders" element={<Navigate to="/miracles" replace />} />
 
           {/* Surah Comparison Tool */}
           <Route path="/compare" element={<SurahComparePage />} />
@@ -444,7 +444,6 @@ function App() {
           <Route path="/tools/news" element={<Navigate to="/tools" replace />} />
           <Route path="/themes/asma" element={<Navigate to="/asma-allah" replace />} />
           <Route path="/themes/asma/:nameId" element={<AsmaThemeRedirect />} />
-          <Route path="/topics/:topicId" element={<TopicsRedirect />} />
 
           {/* Anything else */}
           <Route path="*" element={<NotFoundPage />} />

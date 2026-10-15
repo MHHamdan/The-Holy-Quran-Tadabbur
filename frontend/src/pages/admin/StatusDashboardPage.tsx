@@ -4,6 +4,8 @@ import { t } from '../../i18n/translations';
 import { api } from '../../lib/api';
 import clsx from 'clsx';
 import { API_ORIGIN } from '../../lib/config';
+import { Link } from 'react-router-dom';
+import { getRegistry } from '../../utils/storyRegistryAdapter';
 import {
   Monitor,
   Server,
@@ -23,6 +25,9 @@ import {
   Wifi,
   WifiOff,
   RefreshCw,
+  BookOpen,
+  Users,
+  Network,
 } from 'lucide-react';
 
 type StatusTab = 'frontend' | 'backend' | 'database';
@@ -271,6 +276,8 @@ function FrontendScreen({ language }: { language: 'ar' | 'en' }) {
         </div>
       </SectionCard>
 
+      <StoryCoverageCard language={language} />
+
       {/* Features */}
       <SectionCard
         title={language === 'ar' ? 'الميزات' : 'Features'}
@@ -313,6 +320,48 @@ function FrontendScreen({ language }: { language: 'ar' | 'en' }) {
         </div>
       </SectionCard>
     </div>
+  );
+}
+
+// ============================================================================
+// Story atlas coverage (internal; moved here from the public /stories page)
+// ============================================================================
+
+function StoryCoverageCard({ language }: { language: 'ar' | 'en' }) {
+  const c = getRegistry().coverage;
+  const ar = language === 'ar';
+  const stats = [
+    { labelAr: 'إجمالي القصص', labelEn: 'Total stories', value: c.totalStories, icon: BookOpen },
+    { labelAr: 'قصص محرّرة', labelEn: 'Curated stories', value: c.authoredStories, icon: Layers },
+    { labelAr: 'صفحات الأنبياء', labelEn: 'Prophet profiles', value: c.prophetProfiles, icon: Users },
+    { labelAr: 'مرشّحة آليًا', labelEn: 'Auto-detected candidates', value: c.generatedCandidates, icon: Layers },
+    { labelAr: 'ناقصة البيانات', labelEn: 'Missing metadata', value: c.missingMetadataCount, icon: AlertTriangle },
+    { labelAr: 'سور مغطاة', labelEn: 'Surahs covered', value: c.surahsCovered, icon: BookOpen },
+    { labelAr: 'أنبياء مغطَّون', labelEn: 'Prophets covered', value: c.prophetsCovered, icon: Users },
+    { labelAr: 'نطاقات آيات مرتبطة', labelEn: 'Ayah ranges linked', value: c.ayahRangesLinked, icon: BookOpen },
+    { labelAr: 'بانتظار المراجعة', labelEn: 'Review pending', value: c.reviewPendingCount, icon: AlertTriangle },
+  ];
+  return (
+    <SectionCard title={ar ? 'تغطية أطلس القصص' : 'Story atlas coverage'} icon={BookOpen} count={c.totalStories}>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        {stats.map((st) => (
+          <div key={st.labelEn} className="rounded-lg border border-gray-200 bg-white p-3 text-center">
+            <st.icon className="w-4 h-4 mx-auto mb-1 text-primary-600" aria-hidden="true" />
+            <div className="text-lg font-semibold text-gray-900" dir="ltr">{st.value}</div>
+            <div className={clsx('text-xs text-gray-600 leading-tight', ar && 'font-arabic')}>
+              {ar ? st.labelAr : st.labelEn}
+            </div>
+          </div>
+        ))}
+      </div>
+      <Link
+        to="/story-atlas/connections"
+        className={clsx('mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary-700 hover:underline', ar && 'font-arabic')}
+      >
+        <Network className="w-4 h-4" aria-hidden="true" />
+        {ar ? 'مستكشف روابط القصص (أداة مطوّرين)' : 'Story connection explorer (developer tool)'}
+      </Link>
+    </SectionCard>
   );
 }
 
