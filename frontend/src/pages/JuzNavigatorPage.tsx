@@ -62,10 +62,6 @@ function JuzCard({ juz, isRtl, visited }: { juz: JuzEntry; isRtl: boolean; visit
               {isRtl ? juz.mainThemeAr : juz.mainThemeEn}
             </h3>
 
-            {/* Opening word */}
-            <p className={clsx('text-[11px] text-gray-400 mt-0.5', isRtl && 'font-arabic text-right')} dir="rtl">
-              {juz.openingWordAr}
-            </p>
           </div>
 
           {/* Progress */}
@@ -170,7 +166,11 @@ function JuzCard({ juz, isRtl, visited }: { juz: JuzEntry; isRtl: boolean; visit
   );
 }
 
-export function JuzNavigatorPage() {
+/**
+ * Searchable list of the 30 juz (also the "Juz" tab of the surah index).
+ * Progress counts surahs read to the end (useReadingProgress().visited).
+ */
+export function JuzNavigatorContent() {
   const { language } = useLanguageStore();
   const isRtl = language === 'ar';
   const { progress } = useReadingProgress();
@@ -188,6 +188,49 @@ export function JuzNavigatorPage() {
       String(j.juz) === q
     );
   }, [search]);
+
+  return (
+    <>
+      {/* Search */}
+      <div className="relative mb-5">
+        <Search className={clsx('absolute top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400', isRtl ? 'right-3' : 'left-3')} aria-hidden="true" />
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          aria-label={isRtl ? 'ابحث في الأجزاء' : 'Search juz'}
+          placeholder={isRtl ? 'ابحث بالموضوع أو رقم الجزء...' : 'Search by theme or juz number...'}
+          className={clsx(
+            'w-full border border-gray-200 rounded-xl py-2.5 text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-400 outline-none bg-white',
+            isRtl ? 'pr-9 pl-3 text-right font-arabic' : 'pl-9 pr-3'
+          )}
+        />
+      </div>
+
+      {/* Juz list */}
+      <div className="space-y-3">
+        {filtered.map(juz => (
+          <JuzCard key={juz.juz} juz={juz} isRtl={isRtl} visited={visited} />
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="text-center py-12 text-gray-400">
+          <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-40" aria-hidden="true" />
+          <p className={clsx('text-sm', isRtl && 'font-arabic')}>
+            {isRtl ? 'لا توجد نتائج' : 'No results found'}
+          </p>
+        </div>
+      )}
+    </>
+  );
+}
+
+export function JuzNavigatorPage() {
+  const { language } = useLanguageStore();
+  const isRtl = language === 'ar';
+  const { progress } = useReadingProgress();
+  const visited = progress.visited;
 
   const totalComplete = JUZ_OVERVIEW.filter(j => {
     const { done, total } = juzProgress(j, visited);
@@ -229,36 +272,7 @@ export function JuzNavigatorPage() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-5">
-        <Search className={clsx('absolute top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400', isRtl ? 'right-3' : 'left-3')} />
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={isRtl ? 'ابحث بالموضوع أو رقم الجزء...' : 'Search by theme or juz number...'}
-          className={clsx(
-            'w-full border border-gray-200 rounded-xl py-2.5 text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-400 outline-none bg-white',
-            isRtl ? 'pr-9 pl-3 text-right font-arabic' : 'pl-9 pr-3'
-          )}
-        />
-      </div>
-
-      {/* Juz list */}
-      <div className="space-y-3">
-        {filtered.map(juz => (
-          <JuzCard key={juz.juz} juz={juz} isRtl={isRtl} visited={visited} />
-        ))}
-      </div>
-
-      {filtered.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
-          <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-40" />
-          <p className={clsx('text-sm', isRtl && 'font-arabic')}>
-            {isRtl ? 'لا توجد نتائج' : 'No results found'}
-          </p>
-        </div>
-      )}
+      <JuzNavigatorContent />
     </div>
   );
 }
