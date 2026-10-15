@@ -121,5 +121,5 @@ The hook previously had no handling for interruptions. A WebSocket drop also lef
 
 1. Decide the production API origin. Put it in `frontend/.env.mobile` (git-ignored), or export `VITE_API_URL` in the build environment, and add `https://localhost,capacitor://localhost` to the backend `CORS_ORIGINS`.
 2. Android release: create an upload keystore (kept outside the repo), configure signing, run `npm run android:release`, then upload to Play.
-3. iOS: on macOS with Xcode 16+, run `npm run ios:sync`, then `npx cap open ios`. Set the signing team, archive and upload. Test the microphone prompt on a real device.
+3. iOS: on macOS with Xcode 26+ (App Store Connect has required Xcode 26 and the iOS 26 SDK since 2026-04-28), run `npm run ios:sync`, then `npx cap open ios`. Set the signing team, archive and upload, or let the `ios-upload` job in `mobile-release.yml` do it on a `v*` tag once the Apple secrets exist. When Xcode 26 first offers "Update to recommended settings", review and commit the resulting `project.pbxproj` change (`LastUpgradeCheck`). Test the microphone prompt on a real device.
 4. Replace the placeholder icon and splash in `frontend/assets/` with brand artwork, then run `npx capacitor-assets generate`.

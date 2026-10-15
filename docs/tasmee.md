@@ -2,10 +2,10 @@
 
 ## Overview
 
-Tasmeeʿ (تسميع) is a Quran memorization practice feature that provides real-time feedback on recitation accuracy. The feature uses local, offline Speech-to-Text (STT) to transcribe audio, then aligns the transcription with expected Quranic text to detect mistakes.
+Tasmeeʿ (تسميع) is a Quran memorization practice feature that provides real-time feedback on recitation accuracy. The backend transcribes the recitation with a hosted Hugging Face speech-to-text model, then aligns the transcription with the expected Qur'anic text to detect mistakes.
 
 **Key Design Principles:**
-- **Speech recognition on Hugging Face**: audio is streamed to the backend and transcribed by the configured Hugging Face model (`HF_STT_MODEL`, default whisper-large-v3-turbo). This uses HF credit; there is no local model since the HF migration.
+- **Speech recognition on Hugging Face**: audio is streamed to the backend and transcribed by the configured Hugging Face model (`HF_STT_MODEL`, default whisper-large-v3-turbo). This uses HF credit and needs no GPU or model files on the server. A local faster-whisper provider remains available as an optional self-hosting path (see [Hardware](#hardware)).
 - **Arabic-First**: Optimized for Arabic text normalization and Quranic recitation
 - **Real-Time Feedback**: Word-by-word highlighting as the user recites
 - **Privacy**: audio is never written to disk (the old upload-and-store endpoint was removed); only the session's recognised words and accuracy are kept, without user identity
@@ -14,8 +14,8 @@ Tasmeeʿ (تسميع) is a Quran memorization practice feature that provides rea
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│    Frontend     │     │     Backend     │     │  faster-whisper │
-│   TasmeePage    │ ──▶ │  /tasmee/*      │ ──▶ │    (Local STT)  │
+│    Frontend     │     │     Backend     │     │  Hugging Face   │
+│   TasmeePage    │ ──▶ │  /tasmee/*      │ ──▶ │  STT (hosted)   │
 └─────────────────┘     └────────┬────────┘     └─────────────────┘
                                  │
         ┌────────────────────────┼────────────────────────┐
@@ -31,7 +31,7 @@ Tasmeeʿ (تسميع) is a Quran memorization practice feature that provides rea
 
 1. **Frontend (`TasmeePage.tsx`)**: React component with audio recording, word highlighting, and mistake alerts
 2. **Backend API (`/api/v1/tasmee/*`)**: FastAPI endpoints for session management and transcription
-3. **STT Provider (`stt/providers/`)**: Pluggable STT backend with faster-whisper as default
+3. **STT Provider (`stt/providers/`)**: Pluggable STT backend: `huggingface` (default, hosted) or `faster-whisper` (optional, self-hosted)
 4. **Arabic Normalizer (`stt/arabic_normalizer.py`)**: Text normalization for matching
 5. **Alignment Engine (`stt/alignment.py`)**: Word-level alignment and mistake detection
 6. **Database Models (`models/tasmee.py`)**: Session and mistake storage
@@ -40,51 +40,22 @@ Tasmeeʿ (تسميع) is a Quran memorization practice feature that provides rea
 
 ### Prerequisites
 
-- Python 3.10+
-- 4GB+ RAM (8GB recommended for medium model)
-- CUDA-capable GPU (optional but recommended for speed)
-
-### Install faster-whisper
-
-```bash
-# Install with pip
-pip install faster-whisper
-
-# Or with poetry
-poetry add faster-whisper
-```
-
-### Model Download
-
-Models are downloaded automatically on first use. Available models:
-
-| Model | Size | RAM Required | Speed (CPU) | Speed (GPU) | Accuracy |
-|-------|------|--------------|-------------|-------------|----------|
-| tiny | 39 MB | ~1 GB | ~10x realtime | ~30x realtime | Low |
-| base | 74 MB | ~1 GB | ~5x realtime | ~20x realtime | Medium |
-| small | 244 MB | ~2 GB | ~2x realtime | ~10x realtime | Good |
-| medium | 769 MB | ~5 GB | ~1x realtime | ~5x realtime | Better |
-| large-v2 | 1.5 GB | ~10 GB | ~0.5x realtime | ~3x realtime | Best |
-| large-v3 | 1.5 GB | ~10 GB | ~0.5x realtime | ~3x realtime | Best |
-
-**Recommended for Tasmeeʿ:**
-- **Development/Testing**: `base` or `small`
-- **Production (CPU)**: `small` (best balance)
-- **Production (GPU)**: `medium` or `large-v2`
+- Python 3.11+ and the backend's default dependencies (`pip install -e backend`)
+- `HF_TOKEN` in the backend environment (server-side only; never in the app bundle)
+- No GPU, CUDA or model download: transcription runs on Hugging Face Inference Providers
 
 ### Environment Variables
 
 ```bash
-# STT Configuration
-STT_MODEL_SIZE=small          # Model size (tiny|base|small|medium|large-v2|large-v3)
-STT_DEVICE=auto               # Device (auto|cpu|cuda)
-STT_COMPUTE_TYPE=default      # Compute type (default|int8|float16|float32)
-
-# Alignment Configuration
-TASMEE_MATCH_THRESHOLD=0.75   # Minimum similarity for word match (0.0-1.0)
-TASMEE_MISMATCH_PATIENCE=2    # Consecutive mismatches before flagging
-TASMEE_LOOKAHEAD_WINDOW=5     # Words to look ahead for deletion detection
+# Speech-to-text
+STT_PROVIDER=huggingface                    # default; "faster-whisper" for the optional local path
+HF_STT_MODEL=openai/whisper-large-v3-turbo  # default hosted model
+HF_TOKEN=...                                # backend only
 ```
+
+The alignment parameters (match threshold 0.75, mismatch patience 2,
+look-ahead window 5) are the defaults of `AlignmentEngine` in
+`backend/app/stt/alignment.py`; they are not read from the environment.
 
 ## API Endpoints
 
@@ -103,17 +74,11 @@ TASMEE_LOOKAHEAD_WINDOW=5     # Words to look ahead for deletion detection
 ### 1. Start the Backend
 
 ```bash
-cd backend
-
-# Install dependencies
-poetry install
-
-# Run with default settings
-python -m uvicorn app.main:app --reload
-
-# Or with specific STT model
-STT_MODEL_SIZE=small python -m uvicorn app.main:app --reload
+make dev-backend        # or: cd backend && python -m uvicorn app.main:app --reload
 ```
+
+With `HF_TOKEN` unset, transcription is unavailable; `/api/v1/tasmee/health`
+shows the speech-service status.
 
 ### 2. Start the Frontend
 
@@ -129,7 +94,7 @@ npm run dev
 
 ### 3. Access Tasmeeʿ
 
-Navigate to `http://localhost:5173/tasmee` in your browser.
+Navigate to `http://localhost:19300/tasmee` in your browser (`make dev-frontend`).
 
 ## Usage Guide
 
@@ -199,23 +164,12 @@ assert normalize_for_matching(text1) == normalize_for_matching(text2)
 
 **Symptoms:**
 - Long delay between speaking and text appearing
-- Audio buffer overflows
 
 **Solutions:**
 
-1. **Use smaller model:**
-   ```bash
-   STT_MODEL_SIZE=base python -m uvicorn app.main:app
-   ```
-
-2. **Enable GPU (if available):**
-   ```bash
-   STT_DEVICE=cuda python -m uvicorn app.main:app
-   ```
-
-3. **Reduce audio quality:**
-   - Use 16kHz sample rate (default)
-   - Use mono audio (single channel)
+1. Check `/api/v1/tasmee/health` and the backend log for Hugging Face
+   latency, 429 (rate limit) or 402 (credit exhausted) responses.
+2. Keep audio at 16 kHz mono (the frontend default); larger chunks add latency.
 
 ### Issue: Poor Accuracy
 
@@ -225,51 +179,23 @@ assert normalize_for_matching(text1) == normalize_for_matching(text2)
 
 **Solutions:**
 
-1. **Use larger model:**
-   ```bash
-   STT_MODEL_SIZE=medium python -m uvicorn app.main:app
-   ```
+1. Check microphone quality: a headset mic, less background noise, and a
+   moderate pace help most.
+2. Try another hosted model with `HF_STT_MODEL` (it must support Arabic).
+3. Tune `match_threshold` / `mismatch_patience` in `AlignmentEngine`
+   (`backend/app/stt/alignment.py`) and re-run `tests/unit/tasmee/`.
 
-2. **Adjust match threshold:**
-   ```bash
-   TASMEE_MATCH_THRESHOLD=0.7 python -m uvicorn app.main:app
-   ```
-
-3. **Increase mismatch patience:**
-   ```bash
-   TASMEE_MISMATCH_PATIENCE=3 python -m uvicorn app.main:app
-   ```
-
-4. **Check microphone quality:**
-   - Use headset mic for clearer audio
-   - Reduce background noise
-   - Speak clearly at moderate pace
-
-### Issue: Model Not Loading
+### Issue: Speech Service Unavailable
 
 **Symptoms:**
-- Error: "Could not load model"
-- Startup timeout
+- Recording starts but no words are recognised; `/api/v1/tasmee/health` shows the provider is not ready
 
 **Debug Steps:**
 
-1. Check disk space (models need up to 1.5 GB):
-   ```bash
-   df -h
-   ```
-
-2. Check model download:
-   ```bash
-   # Models are cached in ~/.cache/huggingface/hub/
-   ls -la ~/.cache/huggingface/hub/models--*whisper*
-   ```
-
-3. Test model directly:
-   ```python
-   from faster_whisper import WhisperModel
-   model = WhisperModel("small", device="cpu")
-   print("Model loaded successfully")
-   ```
+1. Confirm `HF_TOKEN` is set in the backend environment (not in the frontend).
+2. Confirm the account has Inference Providers credit (402 means exhausted).
+3. Run the live smoke test: `cd backend && HF_TOKEN=... pytest -m live_hf tests/live -v`
+   (spends a little credit).
 
 ### Issue: WebSocket Connection Failed
 
@@ -289,50 +215,31 @@ assert normalize_for_matching(text1) == normalize_for_matching(text2)
 
 3. Verify CORS settings in backend
 
-### Issue: High Memory Usage
+## Hardware
 
-**Symptoms:**
-- Backend consuming too much RAM
-- Out of memory errors
+**Default deployment (hosted, recommended):** no GPU and no model files. The
+backend image deliberately contains no torch, CTranslate2 or weights (CI
+checks this). Transcription cost is Hugging Face credit, not server hardware.
 
-**Solutions:**
+### Optional: self-hosted faster-whisper
 
-1. Use INT8 quantization:
-   ```bash
-   STT_COMPUTE_TYPE=int8 python -m uvicorn app.main:app
-   ```
+For self-hosters who want transcription on their own hardware:
 
-2. Use smaller model:
-   ```bash
-   STT_MODEL_SIZE=tiny python -m uvicorn app.main:app
-   ```
+```bash
+pip install -e "backend[stt-local]"     # installs faster-whisper
+STT_PROVIDER=faster-whisper make dev-backend
+```
 
-3. Unload model when not in use (automatic after timeout)
+Models download on first use to `~/.cache/huggingface/hub/` (up to 1.5 GB for
+`large-v3`). Rough guidance for this optional path only:
 
-## CPU vs GPU Performance
+- **CPU (Intel i5/i7 8th gen+, AMD Ryzen 5/7, Apple M1/M2):** `small` model
+  with `int8` compute.
+- **NVIDIA GPU with CUDA (GTX 1060+ / RTX 2060+):** `medium` or `large-v3`.
+- **AMD GPUs:** CPU only (CUDA not supported).
 
-### CPU Recommendations
-
-- **Intel Core i5/i7 (8th gen+)**: Use `small` model
-- **AMD Ryzen 5/7**: Use `small` model
-- **Apple M1/M2**: Use `medium` model (optimized)
-
-### GPU Recommendations
-
-- **NVIDIA GTX 1060+**: Use `medium` model with CUDA
-- **NVIDIA RTX 2060+**: Use `large-v2` model with CUDA
-- **AMD GPUs**: CPU-only (CUDA not supported)
-
-### Performance Comparison
-
-| Model | CPU (i7-10th) | GPU (RTX 3060) |
-|-------|---------------|----------------|
-| tiny | 10x realtime | 30x realtime |
-| small | 2x realtime | 10x realtime |
-| medium | 0.5x realtime | 5x realtime |
-| large-v2 | 0.2x realtime | 3x realtime |
-
-*"Nx realtime" means N seconds of audio processed per second*
+The production image does not include this extra; add it to a custom image if
+you use it.
 
 ## Testing
 
@@ -352,7 +259,7 @@ PYTHONPATH=. pytest tests/integration/test_tasmee.py -v
 
 ### Run Real Integration Tests (Real STT + Audio)
 
-These tests use real Quran recitation audio and the real faster-whisper model.
+These tests use real Qur'an recitation audio and the optional local faster-whisper model (`pip install -e "backend[stt-local]"`). The hosted provider is covered by `pytest -m live_hf tests/live`.
 
 **Step 1: Download Audio Fixtures**
 

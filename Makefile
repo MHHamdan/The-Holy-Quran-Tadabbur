@@ -5,7 +5,8 @@
         ps logs logs-container \
         check-podman check-ports ensure-services \
         migrate migrate-down migrate-create \
-        seed seed-quran seed-stories \
+        seed seed-quran seed-tafseer seed-stories seed-concepts seed-themes \
+        seed-rhetorical seed-story-atlas seed-mushaf seed-vocab seed-translations \
         download-tafseer download-tafseer-source \
         ingest-tafseer ingest-tafseer-source tafseer-pipeline \
         index index-tafseer \
@@ -224,16 +225,27 @@ migrate-create: ## Create a new migration (MSG="description")
 # Data seeding
 # =============================================================================
 
-seed: seed-quran seed-tafseer seed-stories seed-concepts seed-themes seed-rhetorical seed-story-atlas ## Seed ALL data (run after migrate)
+# Arabic tafsir seeded by default (classical works, licence verified). The
+# Muyassar (King Fahd Complex) licence is still pending owner confirmation, so
+# it is only added with MUYASSAR_APPROVED=1. English tafsir is never seeded here.
+TAFSEER_AR_SOURCES := ibn_kathir_ar tabari_ar qurtubi_ar baghawi_ar
+ifeq ($(MUYASSAR_APPROVED),1)
+TAFSEER_AR_SOURCES += muyassar_ar
+endif
+
+# Mushaf words are seeded before the vocabulary: the QAC backfill
+# (seed_vocabulary_qac.py) joins mushaf_words for the Uthmani word forms.
+seed: seed-quran seed-tafseer seed-stories seed-concepts seed-themes seed-rhetorical seed-story-atlas \
+      seed-mushaf seed-vocab seed-translations ## Seed ALL data (run after migrate)
 	@echo "$(GREEN)All data seeded successfully$(NC)"
 
 seed-quran: ensure-services ## Seed Quran verses (also fills text_normalized)
 	@echo "$(GREEN)Seeding Quran verses...$(NC)"
 	PYTHONPATH=backend python backend/scripts/ingest/seed_quran.py
 
-seed-tafseer: ensure-services ## Seed all 6 tafseer sources
-	@echo "$(GREEN)Seeding tafseer (6 sources × 6236 verses)...$(NC)"
-	PYTHONPATH=backend python backend/scripts/ingest/seed_tafseer.py
+seed-tafseer: ensure-services ## Seed the licensed Arabic tafsir (MUYASSAR_APPROVED=1 adds Muyassar)
+	@echo "$(GREEN)Seeding tafseer: $(TAFSEER_AR_SOURCES)$(NC)"
+	PYTHONPATH=backend python backend/scripts/ingest/seed_tafseer.py $(TAFSEER_AR_SOURCES)
 
 seed-stories: ensure-services ## Seed stories, story atlas, and story graphs
 	@echo "$(GREEN)Seeding stories...$(NC)"
@@ -258,6 +270,18 @@ seed-story-atlas: ensure-services ## Seed story atlas clusters and graphs
 	PYTHONPATH=backend python backend/scripts/ingest/seed_story_atlas.py
 	PYTHONPATH=backend python backend/scripts/ingest/seed_story_graphs.py
 
+seed-mushaf: ensure-services ## Seed the mushaf word layout (needs api.qurancdn.com)
+	@echo "$(GREEN)Seeding mushaf words...$(NC)"
+	PYTHONPATH=backend python backend/scripts/ingest/seed_mushaf_words.py
+
+seed-vocab: ensure-services ## Seed the word vocabulary (run after seed-mushaf)
+	@echo "$(GREEN)Seeding Quranic vocabulary...$(NC)"
+	PYTHONPATH=backend python backend/scripts/seed_vocabulary_complete.py
+
+seed-translations: ensure-services ## Seed QuranEnc translations of the meanings (needs quranenc.com or the cache)
+	@echo "$(GREEN)Seeding translations of the meanings...$(NC)"
+	PYTHONPATH=backend python backend/scripts/ingest/seed_translations_quranenc.py
+
 # =============================================================================
 # Tafseer
 # =============================================================================
@@ -270,7 +294,7 @@ download-tafseer-source: ## Download specific tafseer (SRC=ibn_kathir_en)
 	@echo "$(GREEN)Downloading tafseer: $(SRC)...$(NC)"
 	cd backend && python scripts/datasets/download_tafseer.py $(SRC)
 
-ingest-tafseer: ensure-services ## Ingest downloaded tafseer into DB and Qdrant
+ingest-tafseer: ensure-services ## Ingest downloaded tafseer into the database
 	@echo "$(GREEN)Ingesting tafseer...$(NC)"
 	cd backend && python scripts/ingest/ingest_tafseer.py
 
@@ -278,7 +302,9 @@ ingest-tafseer-source: ensure-services ## Ingest specific tafseer (SRC=ibn_kathi
 	@echo "$(GREEN)Ingesting tafseer: $(SRC)...$(NC)"
 	cd backend && python scripts/ingest/ingest_tafseer.py $(SRC)
 
-tafseer-pipeline: download-tafseer ingest-tafseer ## Full tafseer pipeline
+# Vectors come only from index-tafseer (Hugging Face embeddings, 1024-d), run
+# after ingestion so new chunks are embedded.
+tafseer-pipeline: download-tafseer ingest-tafseer index-tafseer ## Full tafseer pipeline (download, ingest, embed)
 	@echo "$(GREEN)Tafseer pipeline complete$(NC)"
 
 # =============================================================================

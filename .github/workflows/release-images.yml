@@ -1,0 +1,94 @@
+# Release images: build the production backend and web images for a v* tag and
+# push them to GitHub Container Registry, so a server deploys (and rolls back)
+# by tag instead of building on the host:
+#
+#   ghcr.io/<owner>/tadabbur-backend:vX.Y.Z   and  :sha-<short>
+#   ghcr.io/<owner>/tadabbur-frontend:vX.Y.Z  and  :sha-<short>
+#
+# docker-compose.prod.yml selects them with TAG=vX.Y.Z (README: "Release images
+# and rollback"). Only GITHUB_TOKEN is used; no other secret is read, and the
+# images contain no credentials (HF_TOKEN stays in the server environment).
+
+name: Release images
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Existing v* tag to (re)build"
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: release-images-${{ github.event.inputs.ref || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  images:
+    name: Build and push ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: tadabbur-backend
+            context: backend
+          - image: tadabbur-frontend
+            context: frontend
+    steps:
+      - name: Only release tags
+        env:
+          REF: ${{ github.event.inputs.ref || github.ref_name }}
+        run: |
+          REF="${REF#refs/tags/}"
+          if ! [[ "$REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$REF' is not a vMAJOR.MINOR.PATCH[-prerelease] tag"; exit 1
+          fi
+          echo "RELEASE_TAG=$REF" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v5
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+      - name: Commit of the tag
+        run: echo "SHORT_SHA=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Image tags
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          # metadata-action lower-cases the owner, as GHCR requires.
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+          tags: |
+            type=raw,value=${{ env.RELEASE_TAG }}
+            type=raw,value=sha-${{ env.SHORT_SHA }}
+          labels: |
+            org.opencontainers.image.version=${{ env.RELEASE_TAG }}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          target: production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.image }}-release
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}-release
+      - name: Pushed image runs as non-root
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ env.RELEASE_TAG }}
+        run: |
+          IMAGE="${IMAGE,,}"
+          docker pull "$IMAGE"
+          user="$(docker image inspect "$IMAGE" -f '{{.Config.User}}')"
+          echo "$IMAGE runs as '$user'"
+          test -n "$user" && test "$user" != "root" && test "$user" != "0"
