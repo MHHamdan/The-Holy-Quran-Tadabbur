@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.admin_auth import require_admin_api_key
+from app.core.rate_limit import _get_client_ip
 from app.core.config import settings
 from app.db.database import get_async_session
 from app.models.quran import QuranVerse, Translation, TranslationEdition
@@ -296,14 +297,9 @@ async def resolve_verse_text(
 
     logger = logging.getLogger(__name__)
 
-    # Rate limiting check
-    client_ip = "unknown"
-    if request:
-        client_ip = request.client.host if request.client else "unknown"
-        # Check forwarded headers for proxied requests
-        forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            client_ip = forwarded.split(",")[0].strip()
+    # Rate limiting check — client IP comes from the shared helper so every
+    # limiter in the app resolves the caller the same way.
+    client_ip = _get_client_ip(request)
 
     is_allowed, remaining = _resolve_rate_limiter.is_allowed(client_ip)
     if not is_allowed:
@@ -312,7 +308,7 @@ async def resolve_verse_text(
             code=ErrorCode.RATE_LIMITED,
             message_en="Too many requests. Please wait a moment before trying again.",
             message_ar="طلبات كثيرة جداً. يرجى الانتظار قليلاً قبل المحاولة مجدداً.",
-            request_id=f"resolve-ratelimit-{client_ip[:8]}",
+            request_id="resolve-ratelimit",
             status_code=429
         )
 
@@ -7062,7 +7058,9 @@ async def get_cache_stats():
 
 
 @router.post("/cache/cleanup")
-async def cleanup_expired_cache():
+async def cleanup_expired_cache(
+    _admin: None = Depends(require_admin_api_key),
+):
     """
     Cleanup expired cache entries.
 
@@ -7096,6 +7094,7 @@ async def warm_cache(
 @router.delete("/cache/user/{user_id}")
 async def invalidate_user_cache(
     user_id: str,
+    _admin: None = Depends(require_admin_api_key),
 ):
     """
     Invalidate all caches for a user.
@@ -8024,273 +8023,6 @@ async def get_cross_discipline_statistics():
 # =============================================================================
 
 
-class AnnotationSubmitRequest(BaseModel):
-    """Request to submit an annotation."""
-    verse_reference: str = Field(..., description="Verse reference (e.g., '2:255')")
-    annotation_type: str = Field(..., description="Type: reflection, explanation, linguistic, thematic, life_lesson, historical, connection, question")
-    content_ar: str = Field(default="", description="Arabic content")
-    content_en: str = Field(default="", description="English content")
-    tags: Optional[List[str]] = Field(default=None, description="Optional tags")
-
-
-class AnnotationVoteRequest(BaseModel):
-    """Request to vote on an annotation."""
-    vote_type: str = Field(..., description="Vote type: helpful, insightful, accurate, well_written")
-
-
-class AnnotationReviewRequest(BaseModel):
-    """Request to review an annotation."""
-    decision: str = Field(..., description="Decision: approve, reject, feature")
-    feedback: Optional[str] = Field(default=None, description="Review feedback")
-
-
-@router.post("/annotations/submit")
-async def submit_annotation(
-    request: AnnotationSubmitRequest,
-    user_id: str = Query(..., description="User ID"),
-):
-    """
-    Submit a new annotation for a verse.
-
-    Features:
-    - NLP-based quality analysis
-    - Automatic theme detection
-    - Sentiment analysis
-    - Auto-approval for high-quality contributions
-
-    Arabic: تقديم تعليق توضيحي جديد لآية
-    """
-    from app.services.annotation_service import annotation_service
-
-    if not request.content_ar and not request.content_en:
-        raise HTTPException(
-            status_code=400,
-            detail={"error": "Content in at least one language is required"},
-        )
-
-    return annotation_service.submit_annotation(
-        user_id=user_id,
-        verse_reference=request.verse_reference,
-        annotation_type=request.annotation_type,
-        content_ar=request.content_ar,
-        content_en=request.content_en,
-        tags=request.tags,
-    )
-
-
-@router.get("/annotations/verse/{sura_no}/{aya_no}")
-async def get_verse_annotations(
-    sura_no: int,
-    aya_no: int,
-    annotation_type: Optional[str] = Query(None, description="Filter by type"),
-    status: str = Query("approved", description="Status: approved, featured, pending"),
-    limit: int = Query(20, ge=1, le=100),
-):
-    """
-    Get annotations for a specific verse.
-
-    Arabic: الحصول على التعليقات التوضيحية لآية
-    """
-    from app.services.annotation_service import annotation_service
-
-    verse_ref = f"{sura_no}:{aya_no}"
-    annotations = annotation_service.get_verse_annotations(
-        verse_reference=verse_ref,
-        annotation_type=annotation_type,
-        status=status,
-        limit=limit,
-    )
-
-    return {
-        "verse_reference": verse_ref,
-        "annotations": annotations,
-        "count": len(annotations),
-    }
-
-
-@router.post("/annotations/{annotation_id}/vote")
-async def vote_on_annotation(
-    annotation_id: str,
-    request: AnnotationVoteRequest,
-    user_id: str = Query(..., description="User ID"),
-):
-    """
-    Vote on an annotation.
-
-    Vote types: helpful, insightful, accurate, well_written
-
-    Arabic: التصويت على تعليق توضيحي
-    """
-    from app.services.annotation_service import annotation_service
-
-    result = annotation_service.vote_on_annotation(
-        annotation_id=annotation_id,
-        user_id=user_id,
-        vote_type=request.vote_type,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/annotations/user/{user_id}")
-async def get_user_annotations(
-    user_id: str,
-    limit: int = Query(50, ge=1, le=200),
-):
-    """
-    Get all annotations by a user.
-
-    Arabic: الحصول على تعليقات المستخدم
-    """
-    from app.services.annotation_service import annotation_service
-
-    return {
-        "user_id": user_id,
-        "annotations": annotation_service.get_user_annotations(user_id, limit),
-    }
-
-
-@router.get("/annotations/user/{user_id}/profile")
-async def get_contributor_profile(
-    user_id: str,
-):
-    """
-    Get contributor profile with reputation and statistics.
-
-    Arabic: ملف المساهم مع السمعة والإحصائيات
-    """
-    from app.services.annotation_service import annotation_service
-
-    return annotation_service.get_user_contributor_profile(user_id)
-
-
-@router.get("/annotations/featured")
-async def get_featured_annotations(
-    limit: int = Query(20, ge=1, le=100),
-):
-    """
-    Get featured (highest quality) annotations.
-
-    Arabic: التعليقات المميزة (الأعلى جودة)
-    """
-    from app.services.annotation_service import annotation_service
-
-    annotations = annotation_service.get_featured_annotations(limit)
-
-    return {
-        "featured_annotations": annotations,
-        "count": len(annotations),
-    }
-
-
-@router.get("/annotations/by-theme/{theme}")
-async def get_annotations_by_theme(
-    theme: str,
-    limit: int = Query(20, ge=1, le=100),
-):
-    """
-    Get annotations containing a specific theme.
-
-    Arabic: التعليقات التي تحتوي على موضوع معين
-    """
-    from app.services.annotation_service import annotation_service
-
-    annotations = annotation_service.get_annotations_by_theme(theme, limit)
-
-    return {
-        "theme": theme,
-        "annotations": annotations,
-        "count": len(annotations),
-    }
-
-
-@router.get("/annotations/pending-reviews")
-async def get_pending_reviews(
-    limit: int = Query(50, ge=1, le=200),
-):
-    """
-    Get annotations pending review (moderator endpoint).
-
-    Arabic: التعليقات في انتظار المراجعة
-    """
-    from app.services.annotation_service import annotation_service
-
-    return {
-        "pending_reviews": annotation_service.get_pending_reviews(limit),
-    }
-
-
-@router.post("/annotations/{annotation_id}/review")
-async def review_annotation(
-    annotation_id: str,
-    request: AnnotationReviewRequest,
-    reviewer_id: str = Query(..., description="Reviewer/Moderator ID"),
-):
-    """
-    Review and approve/reject an annotation (moderator action).
-
-    Arabic: مراجعة تعليق والموافقة عليه أو رفضه
-    """
-    from app.services.annotation_service import annotation_service
-
-    result = annotation_service.review_annotation(
-        annotation_id=annotation_id,
-        reviewer_id=reviewer_id,
-        decision=request.decision,
-        feedback=request.feedback,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/annotations/types")
-async def get_annotation_types():
-    """
-    Get all available annotation types.
-
-    Arabic: أنواع التعليقات المتاحة
-    """
-    from app.services.annotation_service import annotation_service
-
-    return {
-        "annotation_types": annotation_service.get_annotation_types(),
-    }
-
-
-@router.get("/annotations/top-contributors")
-async def get_top_contributors(
-    limit: int = Query(10, ge=1, le=50),
-):
-    """
-    Get top contributors by reputation.
-
-    Arabic: أفضل المساهمين حسب السمعة
-    """
-    from app.services.annotation_service import annotation_service
-
-    return {
-        "top_contributors": annotation_service.get_top_contributors(limit),
-    }
-
-
-@router.get("/annotations/stats")
-async def get_annotation_statistics():
-    """
-    Get statistics about the annotation system.
-
-    Arabic: إحصائيات نظام التعليقات
-    """
-    from app.services.annotation_service import annotation_service
-
-    return annotation_service.get_annotation_statistics()
-
-
 # =============================================================================
 # ENTITY RELATIONSHIPS (PHASE 8)
 # =============================================================================
@@ -8812,325 +8544,6 @@ async def get_multi_story_journey_status(
 # =============================================================================
 # EXPERT ANNOTATION SYSTEM (PHASE 8)
 # =============================================================================
-
-
-@router.get("/expert/scholars")
-async def get_verified_scholars():
-    """
-    Get all verified scholars.
-
-    Arabic: جميع العلماء المعتمدين
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return {
-        "scholars": expert_annotation_service.get_all_verified_scholars(),
-    }
-
-
-@router.get("/expert/scholars/{scholar_id}")
-async def get_scholar_profile(
-    scholar_id: str,
-):
-    """
-    Get detailed scholar profile.
-
-    Arabic: الملف الشخصي المفصل للعالم
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    profile = expert_annotation_service.get_scholar_profile(scholar_id)
-
-    if not profile:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": "Scholar not found"},
-        )
-
-    return profile
-
-
-class ScholarRegistrationRequest(BaseModel):
-    name_ar: str
-    name_en: str
-    credentials: List[str]
-    institution: str
-    specializations: List[str]
-    bio_ar: str = ""
-    bio_en: str = ""
-
-
-@router.post("/expert/scholars/register")
-async def register_scholar(
-    scholar_id: str = Query(..., description="Unique scholar ID"),
-    request: ScholarRegistrationRequest = None,
-):
-    """
-    Register a new scholar (pending verification).
-
-    Arabic: تسجيل عالم جديد (في انتظار التحقق)
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.register_scholar(
-        scholar_id=scholar_id,
-        name_ar=request.name_ar,
-        name_en=request.name_en,
-        credentials=request.credentials,
-        institution=request.institution,
-        specializations=request.specializations,
-        bio_ar=request.bio_ar,
-        bio_en=request.bio_en,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.post("/expert/scholars/{scholar_id}/verify")
-async def verify_scholar(
-    scholar_id: str,
-    verifier_id: str = Query(..., description="Admin/verifier ID"),
-):
-    """
-    Verify a scholar's credentials (admin action).
-
-    Arabic: التحقق من أوراق اعتماد العالم
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.verify_scholar(
-        scholar_id=scholar_id,
-        verifier_id=verifier_id,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-class ExpertAnnotationRequest(BaseModel):
-    verse_reference: str
-    annotation_type: str
-    content_ar: str
-    content_en: str
-    tags: Optional[List[str]] = None
-    requires_peer_review: bool = True
-
-
-@router.post("/expert/annotations/submit")
-async def submit_expert_annotation(
-    scholar_id: str = Query(..., description="Scholar ID"),
-    request: ExpertAnnotationRequest = None,
-):
-    """
-    Submit an expert annotation from a verified scholar.
-
-    Arabic: تقديم تعليق خبير من عالم معتمد
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.submit_expert_annotation(
-        scholar_id=scholar_id,
-        verse_reference=request.verse_reference,
-        annotation_type=request.annotation_type,
-        content_ar=request.content_ar,
-        content_en=request.content_en,
-        tags=request.tags,
-        requires_peer_review=request.requires_peer_review,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/expert/annotations")
-async def get_expert_annotations(
-    verse_reference: Optional[str] = Query(None, description="Filter by verse"),
-    limit: int = Query(20, ge=1, le=100),
-):
-    """
-    Get expert-contributed annotations.
-
-    Arabic: التعليقات المقدمة من الخبراء
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    annotations = expert_annotation_service.get_expert_annotations(
-        verse_reference=verse_reference,
-        limit=limit,
-    )
-
-    return {
-        "annotations": annotations,
-        "count": len(annotations),
-    }
-
-
-class PeerReviewRequest(BaseModel):
-    accuracy_score: float
-    depth_score: float
-    relevance_score: float
-    suggestions_ar: str = ""
-    suggestions_en: str = ""
-    verdict: str = "approve"
-
-
-@router.post("/expert/peer-review/{annotation_id}")
-async def submit_peer_review(
-    annotation_id: str,
-    reviewer_id: str = Query(..., description="Reviewer (scholar) ID"),
-    request: PeerReviewRequest = None,
-):
-    """
-    Submit a peer review for an annotation.
-
-    Arabic: تقديم مراجعة من الأقران لتعليق
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.submit_peer_review(
-        annotation_id=annotation_id,
-        reviewer_id=reviewer_id,
-        accuracy_score=request.accuracy_score,
-        depth_score=request.depth_score,
-        relevance_score=request.relevance_score,
-        suggestions_ar=request.suggestions_ar,
-        suggestions_en=request.suggestions_en,
-        verdict=request.verdict,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/expert/peer-reviews/{annotation_id}")
-async def get_annotation_peer_reviews(
-    annotation_id: str,
-):
-    """
-    Get all peer reviews for an annotation.
-
-    Arabic: جميع مراجعات الأقران لتعليق
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return expert_annotation_service.get_annotation_peer_reviews(annotation_id)
-
-
-@router.get("/expert/peer-reviews/pending")
-async def get_pending_peer_reviews(
-    limit: int = Query(20, ge=1, le=100),
-):
-    """
-    Get annotations pending peer review.
-
-    Arabic: التعليقات في انتظار مراجعة الأقران
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return {
-        "pending_reviews": expert_annotation_service.get_pending_peer_reviews(limit),
-    }
-
-
-class EndorsementRequest(BaseModel):
-    endorsement_type: str
-    comment_ar: str = ""
-    comment_en: str = ""
-
-
-@router.post("/expert/endorse/{annotation_id}")
-async def endorse_annotation(
-    annotation_id: str,
-    scholar_id: str = Query(..., description="Scholar ID"),
-    request: EndorsementRequest = None,
-):
-    """
-    Scholar endorses an annotation.
-
-    Arabic: تأييد العالم لتعليق
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.endorse_annotation(
-        annotation_id=annotation_id,
-        scholar_id=scholar_id,
-        endorsement_type=request.endorsement_type,
-        comment_ar=request.comment_ar,
-        comment_en=request.comment_en,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/expert/endorsements/{annotation_id}")
-async def get_annotation_endorsements(
-    annotation_id: str,
-):
-    """
-    Get all endorsements for an annotation.
-
-    Arabic: جميع التأييدات لتعليق
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    result = expert_annotation_service.get_annotation_endorsements(annotation_id)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result)
-
-    return result
-
-
-@router.get("/expert/endorsement-types")
-async def get_endorsement_types():
-    """
-    Get all endorsement types.
-
-    Arabic: أنواع التأييدات
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return {
-        "endorsement_types": expert_annotation_service.get_endorsement_types(),
-    }
-
-
-@router.get("/expert/credential-types")
-async def get_credential_types():
-    """
-    Get all scholar credential types.
-
-    Arabic: أنواع أوراق اعتماد العلماء
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return {
-        "credential_types": expert_annotation_service.get_credential_types(),
-    }
-
-
-@router.get("/expert/stats")
-async def get_expert_statistics():
-    """
-    Get statistics about the expert annotation system.
-
-    Arabic: إحصائيات نظام التعليقات الخبيرة
-    """
-    from app.services.annotation_service import expert_annotation_service
-
-    return expert_annotation_service.get_expert_statistics()
 
 
 # =============================================================================
@@ -10589,58 +10002,6 @@ async def get_user_goals(user_id: str):
     return personalized_learning_service.get_user_goals(user_id)
 
 
-@router.post("/learning/review/add")
-async def add_item_for_review(
-    user_id: str = Query(..., description="User ID"),
-    item_id: str = Query(..., description="Item ID (e.g., verse reference)"),
-    item_type: str = Query("verse", description="Item type: verse, surah, theme, tafsir"),
-):
-    """
-    Add an item to user's SM2 spaced repetition queue.
-
-    Arabic: إضافة عنصر لقائمة التكرار المتباعد
-    """
-    from app.services.personalized_learning_service import personalized_learning_service, ContentType
-
-    try:
-        content_type = ContentType(item_type)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid item type. Valid types: {[t.value for t in ContentType]}")
-
-    content = {"item_id": item_id, "type": item_type}
-
-    return personalized_learning_service.add_item_for_review(user_id, item_id, content_type, content)
-
-
-@router.post("/learning/review/submit")
-async def submit_review(
-    user_id: str = Query(..., description="User ID"),
-    item_id: str = Query(..., description="Item ID being reviewed"),
-    quality: int = Query(..., ge=0, le=5, description="Quality of recall: 0=blackout, 3=pass, 5=perfect"),
-):
-    """
-    Submit a review result and get next review date using SM2 algorithm.
-
-    Quality ratings:
-    - 5: Perfect response
-    - 4: Correct with hesitation
-    - 3: Correct with difficulty
-    - 2: Incorrect but remembered when shown
-    - 1: Incorrect with hint
-    - 0: Complete blackout
-
-    Arabic: تقديم نتيجة المراجعة والحصول على موعد المراجعة القادم
-    """
-    from app.services.personalized_learning_service import personalized_learning_service
-
-    result = personalized_learning_service.review_item(user_id, item_id, quality)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-
-    return result
-
-
 @router.get("/learning/review/due/{user_id}")
 async def get_due_reviews(
     user_id: str,
@@ -12004,33 +11365,6 @@ async def verify_story_completeness(story_id: str):
     return alatlas_service.verify_completeness(story_id)
 
 
-class StoryUpdateRequest(BaseModel):
-    """Request model for story updates."""
-    title_ar: Optional[str] = None
-    title_en: Optional[str] = None
-    summary_ar: Optional[str] = None
-    summary_en: Optional[str] = None
-    themes_ar: Optional[List[str]] = None
-    key_lessons_ar: Optional[List[str]] = None
-    key_lessons_en: Optional[List[str]] = None
-    related_stories: Optional[List[str]] = None
-    tafsir_references: Optional[List[Dict[str, str]]] = None
-
-
-@router.post("/atlas/stories/{story_id}/update")
-async def update_story(story_id: str, updates: StoryUpdateRequest):
-    """
-    Update a story with new or corrected information.
-
-    Returns updated story and new verification result.
-
-    Arabic: تحديث بيانات القصة
-    """
-    from app.services.alatlas_service import alatlas_service
-
-    return alatlas_service.update_story(story_id, updates.model_dump(exclude_none=True))
-
-
 # ============================================
 # USER FEEDBACK ENDPOINTS
 # ============================================
@@ -12295,6 +11629,7 @@ async def get_cache_stats():
 
 @router.delete("/atlas/cache")
 async def clear_cache(
+    _admin: None = Depends(require_admin_api_key),
     cache_key: Optional[str] = Query(None, description="Specific cache key to clear, or all if not specified")
 ):
     """
@@ -12312,84 +11647,6 @@ async def clear_cache(
 # ============================================
 
 # --- VERIFICATION PIPELINE (HUMAN IN THE LOOP) ---
-
-class VerificationTaskRequest(BaseModel):
-    """Request model for creating verification task."""
-    story_id: str
-    task_type: str  # "accuracy", "completeness", "categorization", "tafsir"
-    issues_found: List[str]
-    ai_confidence: float
-    priority: Optional[str] = None
-
-
-@router.post("/atlas/verification/create")
-async def create_verification_task(request: VerificationTaskRequest):
-    """
-    Create a verification task for human review.
-    AI flags issues, humans verify.
-
-    Arabic: إنشاء مهمة تحقق للمراجعة البشرية
-    """
-    from app.services.advanced_atlas_service import advanced_atlas_service
-
-    return advanced_atlas_service.create_verification_task(
-        story_id=request.story_id,
-        task_type=request.task_type,
-        issues_found=request.issues_found,
-        ai_confidence=request.ai_confidence,
-        priority=request.priority
-    )
-
-
-@router.get("/atlas/verification/queue")
-async def get_verification_queue(
-    admin_id: str = Query(..., description="Admin user ID"),
-    status: Optional[str] = Query(None, description="Filter by status"),
-    priority: Optional[str] = Query(None, description="Filter by priority"),
-    limit: int = Query(20, description="Maximum results")
-):
-    """
-    Get verification queue for admins.
-
-    Arabic: قائمة مهام التحقق للمسؤولين
-    """
-    from app.services.advanced_atlas_service import advanced_atlas_service
-
-    return advanced_atlas_service.get_verification_queue(
-        admin_id=admin_id,
-        status_filter=status,
-        priority_filter=priority,
-        limit=limit
-    )
-
-
-class VerificationResultRequest(BaseModel):
-    """Request model for submitting verification result."""
-    reviewer_id: str
-    decision: str  # "approve", "reject", "needs_revision"
-    madhab_verified: Dict[str, bool]
-    notes: Optional[str] = None
-    resolution: Optional[str] = None
-
-
-@router.post("/atlas/verification/{task_id}/submit")
-async def submit_verification_result(task_id: str, request: VerificationResultRequest):
-    """
-    Submit verification result from reviewer.
-
-    Arabic: تسجيل نتيجة التحقق
-    """
-    from app.services.advanced_atlas_service import advanced_atlas_service
-
-    return advanced_atlas_service.submit_verification_result(
-        task_id=task_id,
-        reviewer_id=request.reviewer_id,
-        decision=request.decision,
-        madhab_verified=request.madhab_verified,
-        notes=request.notes,
-        resolution=request.resolution
-    )
-
 
 class FlagStoryRequest(BaseModel):
     """Request model for flagging a story."""
@@ -12540,28 +11797,6 @@ async def track_user_interaction(request: TrackInteractionRequest):
         time_spent_seconds=request.time_spent_seconds,
         score=request.score,
         themes_explored=request.themes_explored
-    )
-
-
-@router.post("/learning/sm2-review")
-async def calculate_sm2_review(
-    user_id: str = Query(..., description="User ID"),
-    story_id: str = Query(..., description="Story ID"),
-    quality: int = Query(..., ge=0, le=5, description="Response quality 0-5")
-):
-    """
-    Calculate SM2 spaced repetition for story review.
-
-    Quality: 0=complete blackout, 5=perfect response
-
-    Arabic: حساب التكرار المتباعد للمراجعة
-    """
-    from app.services.advanced_atlas_service import advanced_atlas_service
-
-    return advanced_atlas_service.calculate_sm2_review(
-        user_id=user_id,
-        story_id=story_id,
-        quality=quality
     )
 
 
@@ -12883,7 +12118,7 @@ async def submit_miracle_feedback(
 
 @router.get("/miracles/admin/dashboard")
 async def get_miracles_admin_dashboard(
-    admin_id: str = Query(..., description="Admin user ID")
+    _admin: None = Depends(require_admin_api_key),
 ):
     """
     Get admin dashboard with statistics and pending reviews.
@@ -12893,15 +12128,15 @@ async def get_miracles_admin_dashboard(
     """
     from app.services.miracles_service import miracles_service
 
-    return miracles_service.get_admin_dashboard(admin_id)
+    return miracles_service.get_admin_dashboard()
 
 
 @router.post("/miracles/admin/review-feedback")
 async def review_miracle_feedback(
-    admin_id: str = Query(..., description="Admin user ID"),
+    _admin: None = Depends(require_admin_api_key),
     feedback_id: str = Query(..., description="Feedback ID to review"),
-    decision: str = Query(..., description="Decision: accepted or rejected"),
-    notes: Optional[str] = Query(None, description="Reviewer notes")
+    decision: str = Query(..., pattern="^(accepted|rejected)$", description="Decision: accepted or rejected"),
+    notes: Optional[str] = Query(None, max_length=2000, description="Reviewer notes")
 ):
     """
     Review and decide on user feedback.
@@ -12912,7 +12147,6 @@ async def review_miracle_feedback(
     from app.services.miracles_service import miracles_service
 
     return miracles_service.review_feedback(
-        admin_id=admin_id,
         feedback_id=feedback_id,
         decision=decision,
         notes=notes

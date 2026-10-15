@@ -122,14 +122,6 @@ class TestEnhancedAltlasService:
         assert "events" in sections
         print(f"✓ Completeness verification passed - score: {result['overall_score']}")
 
-    def test_update_story(self, service):
-        """Test story update functionality"""
-        result = service.update_story("adam", {
-            "key_lessons_ar": ["الصبر على البلاء", "التوبة من الذنب"]
-        })
-        assert result.get("success") is True or "updated_fields" in result
-        print("✓ Story update passed")
-
     # ===== User Feedback Tests =====
 
     def test_submit_feedback(self, service):
@@ -304,7 +296,6 @@ def run_all_tests():
         ("Expanded Graph", lambda: test.test_expanded_graph(service)),
         ("Thematic Path Finding", lambda: test.test_thematic_path_finding(service)),
         ("Completeness Verification", lambda: test.test_verify_completeness(service)),
-        ("Story Update", lambda: test.test_update_story(service)),
         ("Submit Feedback", lambda: test.test_submit_feedback(service)),
         ("Get Feedback", lambda: test.test_get_feedback(service)),
         ("Prophet Details", lambda: test.test_prophet_details(service)),

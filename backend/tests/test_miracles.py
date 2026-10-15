@@ -269,7 +269,7 @@ class TestMiraclesService:
 
     def test_admin_dashboard(self, service):
         """Test admin dashboard access"""
-        result = service.get_admin_dashboard("admin")
+        result = service.get_admin_dashboard()
         assert "statistics" in result
         assert "pending_feedback" in result
 
@@ -278,11 +278,24 @@ class TestMiraclesService:
         assert "by_verification_status" in stats
         print(f"✓ Admin dashboard passed - {stats['total_miracles']} miracles")
 
-    def test_admin_dashboard_unauthorized(self, service):
-        """Test admin dashboard with unauthorized user"""
-        result = service.get_admin_dashboard("regular_user")
+    def test_admin_dashboard_has_no_caller_supplied_admin_id(self, service):
+        """Admin access is enforced by X-Admin-API-Key at the route
+        (tests/unit/test_quran_moderation_auth.py), never by a hardcoded
+        admin-id list in the service."""
+        assert not hasattr(service, "_admin_users")
+        assert "admin_id" not in service.get_admin_dashboard()
+
+    def test_review_feedback_rejects_unknown_decision(self, service):
+        submit_result = service.submit_feedback(
+            miracle_id="musa_white_hand",
+            user_id="test_user",
+            feedback_type="correction",
+            content_ar="تصحيح مقترح"
+        )
+        result = service.review_feedback(
+            feedback_id=submit_result["feedback_id"], decision="approved_by_me"
+        )
         assert "error" in result
-        print("✓ Unauthorized admin access blocked")
 
     def test_review_feedback(self, service):
         """Test admin reviewing feedback"""
@@ -297,7 +310,6 @@ class TestMiraclesService:
 
         # Admin reviews it
         result = service.review_feedback(
-            admin_id="admin",
             feedback_id=feedback_id,
             decision="accepted",
             notes="Good suggestion"
@@ -378,7 +390,7 @@ def run_all_tests():
         ("Invalid Miracle Feedback", lambda: test.test_submit_feedback_invalid_miracle(service)),
         ("Get Feedback", lambda: test.test_get_miracle_feedback(service)),
         ("Admin Dashboard", lambda: test.test_admin_dashboard(service)),
-        ("Unauthorized Admin", lambda: test.test_admin_dashboard_unauthorized(service)),
+        ("Admin id not trusted", lambda: test.test_admin_dashboard_has_no_caller_supplied_admin_id(service)),
         ("Review Feedback", lambda: test.test_review_feedback(service)),
         ("All Required Fields", lambda: test.test_miracle_has_all_fields(service)),
         ("Bilingual Lessons", lambda: test.test_lessons_in_both_languages(service)),
