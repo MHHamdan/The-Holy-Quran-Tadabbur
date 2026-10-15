@@ -11,7 +11,7 @@ from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
-from app.core.rate_limit import _feedback_limiter
+from app.core.rate_limit import _feedback_limiter, feedback_rate_limit
 from app.main import app
 
 KEY = "ws1-maintenance-test-key"
@@ -107,7 +107,17 @@ def test_flag_reason_and_snapshot_are_capped(client):
     _feedback_limiter.reset()
 
 
-def test_flag_is_rate_limited(client):
+@pytest.fixture
+def real_feedback_limit():
+    # test_feedback_phase_g installs a module-level no-op override of
+    # feedback_rate_limit that outlives that module; use the real limiter here.
+    saved = app.dependency_overrides.pop(feedback_rate_limit, None)
+    yield
+    if saved is not None:
+        app.dependency_overrides[feedback_rate_limit] = saved
+
+
+def test_flag_is_rate_limited(client, real_feedback_limit):
     _feedback_limiter.reset()
     codes = [_flag(client).status_code for _ in range(11)]
     assert codes[:10] == [400] * 10
