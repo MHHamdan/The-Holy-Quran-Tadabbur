@@ -35,7 +35,6 @@ from app.services.quran_text_utils import (
     parse_multi_concept_query,
     expand_bilingual_query,
     get_concept_expansions,
-    find_concept_matches,
     preprocess_for_similarity,
     ParsedQuery,
     HighlightedConcept,
@@ -1354,10 +1353,17 @@ class QuranSearchService:
             concept_expansions_map[concept] = expansions
             all_search_terms.update(expansions)
 
-        # Build search conditions for each term
-        conditions = []
-        for term in all_search_terms:
-            conditions.append(QuranVerse.text_normalized.ilike(f'%{normalize_arabic(term)}%'))
+        # Fold every Arabic expansion to the shared search key (English
+        # expansions cannot match verse text) and match on both the Uthmani
+        # and the imlaei normalized columns, wildcards escaped.
+        concept_keys = {
+            c: minimal_search_terms(exps, cap=64)
+            for c, exps in concept_expansions_map.items()
+        }
+        conditions = [
+            _ilike_any(term)
+            for term in minimal_search_terms(all_search_terms, cap=64)
+        ]
 
         if not conditions:
             return {
@@ -1385,12 +1391,18 @@ class QuranSearchService:
         concept_dist = {c: 0 for c in parsed.concepts}
 
         for verse in verses:
-            # Find which concepts match in this verse
-            concept_highlights = find_concept_matches(
-                verse.text_uthmani,
-                parsed.concepts,
-                include_expansions=True
-            )
+            # Find which concepts match in this verse (on the normalized
+            # columns; highlight spans are mapped onto the Uthmani text and
+            # may be empty where the rasm spells the word differently).
+            concept_highlights = []
+            for concept in parsed.concepts:
+                hit_terms = [t for t in concept_keys.get(concept, []) if _verse_has(verse, t)]
+                if hit_terms:
+                    concept_highlights.append(HighlightedConcept(
+                        concept=concept,
+                        matched_terms=hit_terms,
+                        positions=find_spans(verse.text_uthmani, hit_terms),
+                    ))
 
             if not concept_highlights:
                 continue

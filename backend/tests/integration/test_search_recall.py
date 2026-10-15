@@ -147,3 +147,19 @@ async def test_reference_jump(client):
     body = (await client.get(f"{Q}/search/smart", params={"q": "2:255"})).json()
     assert body["jump"]["sura_no"] == 2 and body["jump"]["aya_no"] == 255
     await _assert_canonical(body["verses"]["items"])
+
+
+@pytest.mark.parametrize("word, floor", [
+    ("الصلاة", 50),
+    ("الصلاه", 50),
+    ("الزكاة", 25),
+    ("prayer", 50),   # English concept expands to its Arabic terms
+])
+async def test_multi_concept_recall(client, word, floor):
+    # Was 0 for all of these: raw-term ILIKE on one column, then a filter
+    # that searched the vowelled Uthmani text for unvowelled terms.
+    r = await client.get(f"{Q}/search/multi-concept", params={"query": word, "limit": 100})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["total_matches"] >= floor, (word, body["total_matches"])
+    await _assert_canonical(body["matches"])
