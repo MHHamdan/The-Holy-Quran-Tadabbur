@@ -3,6 +3,7 @@ Tadabbur-AI FastAPI Application
 
 RAG-grounded Quranic knowledge platform with story connections.
 """
+import re
 import time
 import uuid
 import logging
@@ -19,9 +20,10 @@ from pydantic import ValidationError
 import os
 
 from app.core.config import settings
-from app.ai.hf_client import HFErrorKind, HFInferenceError
+from app.ai.hf_client import HFInferenceError
 from app.kg.client import SurrealDBError, KGInvalidIdentifier
 from app.core.production_checks import production_config_problems, safe_cors_origins
+from app.core.ai_errors import hf_failure_response
 
 
 def _cors_origins() -> list[str]:
@@ -134,6 +136,8 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs" if settings.debug else None,
     redoc_url="/redoc" if settings.debug else None,
+    # The schema lists every route (admin ones included): development only.
+    openapi_url="/openapi.json" if settings.debug else None,
 )
 
 # Compress JSON responses >= 1KB (verse lists, tafseer chunks, search results)
@@ -166,6 +170,20 @@ async def enforce_body_size(request: Request, call_next):
     return await call_next(request)
 
 
+# Paths under any /search segment can carry the reader's search text as a path
+# parameter (e.g. /quran/search/analytics/{word}); the privacy policy says
+# searches are not stored, so those are logged by route template only.
+_SEARCH_PATH = re.compile(r"(^|/)search(/|$)")
+
+
+def _loggable_path(request: Request) -> str:
+    path = request.url.path
+    if _SEARCH_PATH.search(path):
+        route = request.scope.get("route")
+        return getattr(route, "path", None) or "/[search]"
+    return path
+
+
 @app.middleware("http")
 async def add_request_headers(request: Request, call_next):
     """Add request-id and processing time to response headers."""
@@ -191,7 +209,7 @@ async def add_request_headers(request: Request, call_next):
 
         # Log request completion
         logger.info(
-            f"[{request_id}] {request.method} {request.url.path} "
+            f"[{request_id}] {request.method} {_loggable_path(request)} "
             f"-> {response.status_code} ({process_time:.3f}s)"
         )
 
@@ -199,8 +217,8 @@ async def add_request_headers(request: Request, call_next):
     except Exception as e:
         process_time = time.time() - start_time
         logger.error(
-            f"[{request_id}] {request.method} {request.url.path} "
-            f"-> ERROR ({process_time:.3f}s): {str(e)}"
+            f"[{request_id}] {request.method} {_loggable_path(request)} "
+            f"-> ERROR ({process_time:.3f}s): {type(e).__name__}"
         )
         raise
 
@@ -271,19 +289,10 @@ async def knowledge_graph_error_handler(request: Request, exc: SurrealDBError):
 
 @app.exception_handler(HFInferenceError)
 async def hf_inference_error_handler(request: Request, exc: HFInferenceError):
-    """An uncaught Hugging Face failure: 429 for quota, otherwise 503."""
+    """An uncaught Hugging Face failure: 429 ai_quota_exceeded, otherwise 503."""
     request_id = getattr(request.state, 'request_id', str(uuid.uuid4()))
     logger.error(f"[{request_id}] {exc}")
-    quota = exc.kind == HFErrorKind.QUOTA
-    return error_response(
-        code=ErrorCode.SERVICE_UNAVAILABLE,
-        message_en=("The AI service has reached its usage limit. Please try again later."
-                    if quota else "The AI service is temporarily unavailable."),
-        message_ar=("بلغت خدمة الذكاء الاصطناعي حد الاستخدام. حاول لاحقاً."
-                    if quota else "خدمة الذكاء الاصطناعي غير متاحة مؤقتاً."),
-        request_id=request_id,
-        status_code=429 if quota else 503,
-    )
+    return hf_failure_response(exc, request_id)
 
 
 @app.exception_handler(Exception)
@@ -320,7 +329,9 @@ app.include_router(search.router, prefix="/api/v1/search", tags=["Search"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["Graph & Semantic"])
 app.include_router(streaming.router, prefix="/api/v1", tags=["Streaming"])
-app.include_router(performance.router, prefix="/api/v1", tags=["Performance"])
+# Operator diagnostics (admin key required); not mounted in production.
+if settings.environment.lower() not in ("production", "prod"):
+    app.include_router(performance.router, prefix="/api/v1", tags=["Performance"])
 app.include_router(rhetoric.router, prefix="/api/v1/rhetoric", tags=["Rhetoric"])
 app.include_router(themes.router, prefix="/api/v1/themes", tags=["Quranic Themes"])
 app.include_router(tasmee.router, prefix="/api/v1/tasmee", tags=["Tasmee (Memorization)"])

@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 # Origins used by the Capacitor WebViews of the Android/iOS apps.
 MOBILE_APP_ORIGINS = ("capacitor://localhost", "https://localhost", "http://localhost")
+# The ones a production API must allow: iOS (capacitor://) and Android
+# (https:// with androidScheme "https"). WebView fetches are CORS-checked.
+REQUIRED_MOBILE_ORIGINS = ("capacitor://localhost", "https://localhost")
 
 
 def safe_cors_origins(origins: Sequence[str], environment: str) -> List[str]:
@@ -42,6 +45,12 @@ def production_config_problems(settings, cors_origins: Sequence[str], cors_env_s
         problems.append("ADMIN_API_KEY is not set: admin endpoints will answer 503")
     if not cors_env_set:
         problems.append("CORS_ORIGINS is not set: only localhost development origins are allowed")
+    missing_mobile = [o for o in REQUIRED_MOBILE_ORIGINS if o not in cors_origins]
+    if missing_mobile:
+        problems.append(
+            f"CORS_ORIGINS lacks mobile app origins {missing_mobile}: "
+            "the Android/iOS apps cannot call the API"
+        )
     if any(o.startswith("http://") and "localhost" not in o and "127.0.0.1" not in o for o in cors_origins):
         problems.append("CORS_ORIGINS contains a non-HTTPS public origin")
     if "localhost" in settings.database_url or "127.0.0.1" in settings.database_url:

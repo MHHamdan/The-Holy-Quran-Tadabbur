@@ -7,8 +7,15 @@
 # defaults, so the stack refuses to start without them. HF_TOKEN reaches only
 # the backend and migrate containers, never the web image.
 #
-# Only the web container publishes a port. Put a TLS-terminating proxy or load
-# balancer in front of it (WEB_PORT, default 8080).
+# Only the web container publishes a port (WEB_PORT, default 8080). TLS: either
+# enable the bundled Caddy terminator with `--profile tls` and PUBLIC_DOMAIN
+# (then set WEB_BIND=127.0.0.1 so 8080 is not reachable from outside), or put
+# your own TLS proxy / load balancer in front of the web port. With your own
+# proxy, set TRUSTED_PROXY_CIDRS to the address(es) nginx sees it connect from
+# (an LB's private range, or the docker gateway for a proxy on the host), and
+# make it put the client address last in X-Forwarded-For (overwrite or append)
+# and set X-Forwarded-Proto. Without that every client shares the proxy's
+# address and therefore one set of rate limits.
 
 x-restart: &restart
   restart: unless-stopped
@@ -33,7 +40,8 @@ x-backend-env: &backend-env
   SURREAL_HOST: surrealdb
   SURREAL_PORT: "8000"
   SURREAL_USER: ${SURREAL_USER:-tadabbur}
-  SURREAL_PASS: ${SURREAL_PASS:?SURREAL_PASS must be set}
+  # Only needed with the optional `kg` profile (knowledge-graph explorer).
+  SURREAL_PASS: ${SURREAL_PASS:-}
   SURREAL_NAMESPACE: tadabbur
   SURREAL_DATABASE: quran_kg
   # Hugging Face Inference Providers: the only AI platform. Server-side secret.
@@ -50,6 +58,11 @@ x-backend-env: &backend-env
   # Optional: enables /metrics and /health/detailed (X-Metrics-Secret); unset = 503.
   METRICS_SECRET: ${METRICS_SECRET:-}
   FEATURE_REDIS_CACHE: "true"
+  # Per-worker Postgres pool: BACKEND_WORKERS * (size + overflow) must stay
+  # below max_connections (100) minus headroom for migrate/backups.
+  DB_POOL_SIZE: ${DB_POOL_SIZE:-10}
+  DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+  DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-10}
 
 services:
   postgres:
@@ -99,13 +112,23 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 384M }
 
+  # Optional knowledge graph (only the opt-in KG view of the story atlas uses
+  # it; /api/v1/kg and /api/v1/graph answer 503 without it). Enable with
+  # `--profile kg` and a strong SURREAL_PASS.
   surrealdb:
     image: surrealdb/surrealdb:v1.5.0
+    profiles: [kg]
     <<: [*restart, *logging, *hardening]
     # Persistent RocksDB storage (the knowledge graph survives restarts). The
     # image's non-root user cannot write a fresh named volume, hence root.
     user: root
-    command: ["start", "--log", "info", "--user", "${SURREAL_USER:-tadabbur}", "--pass", "${SURREAL_PASS:?SURREAL_PASS must be set}", "file:/data/surreal.db"]
+    # Root credentials come from the environment (`surreal start` reads
+    # SURREAL_USER / SURREAL_PASS), never from argv, where `docker inspect`
+    # and the process list would show the password.
+    environment:
+      SURREAL_USER: ${SURREAL_USER:-tadabbur}
+      SURREAL_PASS: ${SURREAL_PASS:-}
+    command: ["start", "--log", "info", "file:/data/surreal.db"]
     volumes:
       - surreal_data:/data
     healthcheck:
@@ -143,8 +166,13 @@ services:
     environment:
       <<: *backend-env
       WORKERS: ${BACKEND_WORKERS:-2}
-      # Trust X-Forwarded-* from the web container on the internal network.
-      FORWARDED_ALLOW_IPS: "*"
+      # Trust X-Forwarded-* only from containers on the compose network (the
+      # web/nginx proxy overwrites X-Forwarded-For with the real peer). Never
+      # "*": that lets any caller choose its own rate-limit bucket.
+      FORWARDED_ALLOW_IPS: "172.28.0.0/16"
+      # Rate-limit counters shared by every uvicorn worker (Redis INCR/EXPIRE);
+      # falls back to per-process limits if Redis is unreachable.
+      RATE_LIMIT_BACKEND: redis
     read_only: true
     tmpfs: [/tmp]
     volumes:
@@ -163,8 +191,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      surrealdb:
-        condition: service_healthy
+    # Healthy only when the API can reach Postgres (/ready answers 503
+    # otherwise), so `web` (depends_on: service_healthy) waits for a usable API.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=4).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
     deploy:
       resources:
         limits: { cpus: "2", memory: 2G }
@@ -179,7 +213,11 @@ services:
     image: tadabbur-frontend:${TAG:-latest}
     <<: [*restart, *logging, *hardening]
     ports:
-      - "${WEB_PORT:-8080}:8080"
+      - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8080}:8080"
+    environment:
+      # Upstream proxies trusted for X-Forwarded-For/-Proto (comma-separated
+      # addresses or CIDRs). Default: the bundled caddy service.
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-172.28.0.10}
     read_only: true
     tmpfs: [/tmp]
     depends_on:
@@ -189,9 +227,47 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 256M }
 
+  # Optional TLS terminator (Let's Encrypt), enabled with the "tls" profile.
+  caddy:
+    image: caddy:2-alpine
+    profiles: [tls]
+    <<: [*restart, *logging, *hardening]
+    environment:
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:-}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      default:
+        # nginx (web) trusts X-Forwarded-For only from TRUSTED_PROXY_CIDRS,
+        # which defaults to this address.
+        ipv4_address: 172.28.0.10
+    depends_on:
+      web:
+        condition: service_started
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 128M }
+
+# Fixed subnet: FORWARDED_ALLOW_IPS (backend) and the default
+# TRUSTED_PROXY_CIDRS of the web service (the caddy address 172.28.0.10)
+# depend on it.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
 volumes:
   postgres_data:
   qdrant_data:
   redis_data:
   surreal_data:
   backend_state:
+  caddy_data:
+  caddy_config:

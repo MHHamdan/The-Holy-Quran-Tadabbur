@@ -7,10 +7,14 @@ dependencies = [
     # Web Framework
     # <0.137: 0.137 nests included routers (_IncludedRouter), hiding route paths
     # from app.routes, which the route-registration tests and contract checks read.
-    "fastapi>=0.109.0,<0.137",
-    "uvicorn[standard]>=0.27.0",
+    "fastapi>=0.136.0,<0.137",
+    # Security floors (pip-audit, 2026-10): starlette PYSEC-2026-161/248/249/
+    # 2280/2281 fixed in 1.3.1; fastapi 0.136 accepts starlette>=0.46.
+    "starlette>=1.3.1",
+    # >=0.30: --forwarded-allow-ips accepts a CIDR (compose network).
+    "uvicorn[standard]>=0.30.0",
     "pydantic>=2.5.0",
-    "pydantic-settings>=2.1.0",
+    "pydantic-settings>=2.14.2",
 
     # Database
     # [asyncio] pulls greenlet, required by the async engine. <2.1: 2.1 switches the
@@ -35,7 +39,7 @@ dependencies = [
 
     # Data Processing
     "httpx>=0.26.0",
-    "aiohttp>=3.13.4",
+    "aiohttp>=3.14.3",
     "aiofiles>=23.2.0",
     "python-multipart>=0.0.27",
     "pyyaml>=6.0.1",
@@ -43,6 +47,14 @@ dependencies = [
     # Utilities
     "python-dotenv>=1.2.2",
     "tenacity>=8.2.0",
+
+    # Transitive dependencies pinned above versions with known advisories
+    # (pip-audit 2026-10). The image installs the hashed requirements.lock.
+    "urllib3>=2.8.0",
+    "anyio>=4.14.2",
+    "requests>=2.33.0",
+    "idna>=3.15",
+    "cryptography>=50.0.0",
 ]
 
 [project.optional-dependencies]

@@ -27,13 +27,20 @@ from app.services.quran_search import (
 logger = logging.getLogger(__name__)
 
 
-def _safe_error(exc: Exception) -> str:
-    """User-visible error label that never carries upstream response text."""
-    from app.ai.hf_client import HFInferenceError
+_UNAVAILABLE_AR = "خدمة التحليل بالذكاء الاصطناعي غير متاحة مؤقتاً."
+_UNAVAILABLE_EN = "AI analysis is temporarily unavailable."
+_UNPARSEABLE_AR = "تعذّر الحصول على تحليل نحوي صالح لهذه الكلمة. حاول مرة أخرى."
+_UNPARSEABLE_EN = "A valid grammatical analysis could not be produced. Please try again."
 
-    if isinstance(exc, HFInferenceError):
-        return f"AI service {exc.kind.value}"
-    return "AI analysis unavailable"
+
+def _safe_error(exc: Exception) -> tuple[str, str]:
+    """
+    User-visible (Arabic, English) notes for a failed analysis.
+
+    Never carries upstream response text, exception text or internal error
+    kinds such as ``not_configured``; logs keep the technical detail.
+    """
+    return _UNAVAILABLE_AR, _UNAVAILABLE_EN
 
 
 # =============================================================================
@@ -79,6 +86,10 @@ class GrammaticalAnalysis:
     # Raw LLM response
     raw_response: str = ""
 
+    # "llm" when the model answered, "unavailable" when the analysis failed
+    # (clients branch on this instead of parsing the notes).
+    source: str = "llm"
+
 
 @dataclass
 class WordInContext:
@@ -100,6 +111,8 @@ class VerseAnalysis:
     sentence_type_ar: str
     words: List[WordInContext]
     parsing_notes: str = ""
+    parsing_notes_en: str = ""
+    source: str = "llm"
 
 
 # =============================================================================
@@ -231,7 +244,9 @@ class GrammaticalAnalyzer:
             parsed = self._parse_json_response(response)
 
             if not parsed:
-                return self._default_analysis(word, verse_text, verse_reference, response)
+                return self._default_analysis(
+                    word, verse_text, verse_reference, (_UNPARSEABLE_AR, _UNPARSEABLE_EN)
+                )
 
             return GrammaticalAnalysis(
                 word=word,
@@ -255,7 +270,7 @@ class GrammaticalAnalyzer:
             )
 
         except Exception as e:
-            logger.error(f"Error analyzing word '{word}': {e}")
+            logger.error("Error analyzing word at %s: %s", verse_reference, type(e).__name__)
             return self._default_analysis(word, verse_text, verse_reference, _safe_error(e))
 
     async def analyze_verse(
@@ -281,7 +296,7 @@ class GrammaticalAnalyzer:
 
             if not parsed:
                 return self._default_verse_analysis(
-                    sura_no, aya_no, verse_text, response
+                    sura_no, aya_no, verse_text, (_UNPARSEABLE_AR, _UNPARSEABLE_EN)
                 )
 
             words = []
@@ -304,7 +319,7 @@ class GrammaticalAnalyzer:
             )
 
         except Exception as e:
-            logger.error(f"Error analyzing verse {verse_reference}: {e}")
+            logger.error("Error analyzing verse %s: %s", verse_reference, type(e).__name__)
             return self._default_verse_analysis(sura_no, aya_no, verse_text, _safe_error(e))
 
     async def categorize_search_results(
@@ -450,9 +465,10 @@ class GrammaticalAnalyzer:
         word: str,
         verse_text: str,
         verse_reference: str,
-        error_msg: str,
+        notes: tuple[str, str],
     ) -> GrammaticalAnalysis:
-        """Return default analysis when LLM fails."""
+        """Return an 'unavailable' analysis when the LLM fails (localized notes only)."""
+        notes_ar, notes_en = notes
         return GrammaticalAnalysis(
             word=word,
             verse_text=verse_text,
@@ -462,9 +478,10 @@ class GrammaticalAnalyzer:
             role_explanation="",
             sentence_type=SentenceType.UNKNOWN,
             sentence_type_ar="غير محددة",
-            notes_ar=f"خطأ في التحليل: {error_msg[:100]}",
-            notes_en=f"Analysis error: {error_msg[:100]}",
-            raw_response=error_msg,
+            notes_ar=notes_ar,
+            notes_en=notes_en,
+            raw_response="",
+            source="unavailable",
         )
 
     def _default_verse_analysis(
@@ -472,9 +489,10 @@ class GrammaticalAnalyzer:
         sura_no: int,
         aya_no: int,
         verse_text: str,
-        error_msg: str,
+        notes: tuple[str, str],
     ) -> VerseAnalysis:
-        """Return default verse analysis when LLM fails."""
+        """Return an 'unavailable' verse analysis when the LLM fails."""
+        notes_ar, notes_en = notes
         return VerseAnalysis(
             sura_no=sura_no,
             aya_no=aya_no,
@@ -482,7 +500,9 @@ class GrammaticalAnalyzer:
             sentence_type=SentenceType.UNKNOWN,
             sentence_type_ar="غير محددة",
             words=[],
-            parsing_notes=f"خطأ في التحليل: {error_msg[:100]}",
+            parsing_notes=notes_ar,
+            parsing_notes_en=notes_en,
+            source="unavailable",
         )
 
     async def close(self):

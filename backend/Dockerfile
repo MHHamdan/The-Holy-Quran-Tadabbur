@@ -15,27 +15,30 @@ ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 RUN python -m venv /opt/venv
 ENV PATH=/opt/venv/bin:$PATH
 WORKDIR /src
-# Resolve and install the declared dependencies (non-editable). The app
-# package itself is then removed from the venv: the runtime image runs the
-# code from /app so there is exactly one copy of it.
-COPY pyproject.toml ./
-COPY app ./app
+# Install the exact, hash-verified dependency set from requirements.lock
+# (regenerate with: uv pip compile pyproject.toml --universal
+#  --python-version 3.11 --generate-hashes -o requirements.lock).
+# The app package itself is not installed: the runtime image runs the code
+# from /app so there is exactly one copy of it.
+COPY requirements.lock ./
 # Optional build secret "extra_ca": a CA bundle for builds behind a TLS-
 # intercepting proxy. It is mounted only for this step and never stored in a layer.
 RUN --mount=type=secret,id=extra_ca \
     if [ -s /run/secrets/extra_ca ]; then export PIP_CERT=/run/secrets/extra_ca; fi; \
-    pip install --upgrade pip setuptools && pip install . && pip uninstall -y tadabbur-ai
+    pip install --upgrade pip \
+ && pip install --require-hashes --no-deps -r requirements.lock \
+ && pip check
 
 # ------------------------------------------------------------ development
 # Local development only (auto-reload); never used by docker-compose.prod.yml.
 FROM ${PYTHON_IMAGE} AS development
 ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app
-COPY pyproject.toml ./
+COPY pyproject.toml requirements.lock ./
 COPY app ./app
 RUN --mount=type=secret,id=extra_ca \
     if [ -s /run/secrets/extra_ca ]; then export PIP_CERT=/run/secrets/extra_ca; fi; \
-    pip install -e ".[dev]"
+    pip install --require-hashes --no-deps -r requirements.lock && pip install -e ".[dev]"
 COPY . .
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
@@ -67,8 +70,9 @@ COPY scripts ./scripts
 USER app
 EXPOSE 8000
 
+# /ready checks the database (503 when unreachable), unlike the static /health.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD ["python", "-c", "import os,urllib.request,sys; sys.exit(0 if urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"8000\")}/health', timeout=4).status == 200 else 1)"]
+    CMD ["python", "-c", "import os,urllib.request,sys; sys.exit(0 if urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"8000\")}/ready', timeout=4).status == 200 else 1)"]
 
 # No --reload. Proxy headers are trusted only from FORWARDED_ALLOW_IPS
 # (the reverse proxy); WORKERS sizes the process pool. No access log: the

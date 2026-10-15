@@ -12,7 +12,7 @@ import re
 import time
 from typing import Any  # used in _parse_llm_output return type
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +20,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.database import get_async_session
 from app.models.tafseer import TafseerChunk
-from app.ai.hf_client import HFErrorKind, HFInferenceError
+from app.ai.hf_client import HFInferenceError
+from app.core.ai_errors import AI_BAD_OUTPUT, SERVICE_UNAVAILABLE, ai_error_response, hf_failure_response
+from app.core.rate_limit import rag_rate_limit
 from app.rag.llm_provider import get_llm
 from app.services.tafseer_api import get_tafseer_client
 
@@ -245,19 +247,26 @@ def _parse_llm_output(raw: str, surah: int, count: int) -> list[dict[str, Any]]:
     "/generate-questions",
     response_model=GenerateQuestionsResponse,
     summary="Generate AI quiz questions grounded in tafsir for a given surah",
+    # Each call spends LLM credit: same per-IP budget as the RAG routes.
+    dependencies=[Depends(rag_rate_limit)],
 )
 async def generate_questions(
     req: GenerateQuestionsRequest,
+    request: Request,
     session: AsyncSession = Depends(get_async_session),
-) -> GenerateQuestionsResponse:
+):
     t0 = time.monotonic()
+    request_id = getattr(request.state, "request_id", "")
 
     # 1. Fetch tafsir context
     context, num_chunks = await _fetch_surah_context(session, req.surah, req.lang)
     if not context:
-        raise HTTPException(
+        return ai_error_response(
+            code=SERVICE_UNAVAILABLE,
+            message_en="Tafsir text for this surah is not available right now.",
+            message_ar="نص التفسير لهذه السورة غير متاح حالياً.",
             status_code=503,
-            detail=f"Could not retrieve tafsir text for surah {req.surah}. Check external API availability.",
+            request_id=request_id,
         )
 
     # 2. Build prompt
@@ -275,20 +284,25 @@ async def generate_questions(
             json_mode=True,
         )
     except HFInferenceError as exc:
-        logger.error("LLM generation failed for surah %d: %s", req.surah, exc)
-        if exc.kind == HFErrorKind.QUOTA:
-            raise HTTPException(status_code=429, detail="AI usage limit reached. Please try again later.")
-        raise HTTPException(status_code=503, detail="AI generation temporarily unavailable")
+        logger.error("LLM generation failed for surah %d: %s", req.surah, exc.kind.value)
+        return hf_failure_response(exc, request_id)
 
     # 4. Parse output
+    bad_output = ai_error_response(
+        code=AI_BAD_OUTPUT,
+        message_en="The AI could not produce questions for this surah. Please try again.",
+        message_ar="تعذّر على الذكاء الاصطناعي إنشاء أسئلة لهذه السورة. حاول مرة أخرى.",
+        status_code=502,
+        request_id=request_id,
+    )
     try:
         questions = _parse_llm_output(llm_resp.content, req.surah, req.count)
     except Exception as exc:
-        logger.error("Failed to parse LLM output for surah %d: %s", req.surah, exc)
-        raise HTTPException(status_code=502, detail="AI returned an unexpected format. Please try again.")
+        logger.error("Failed to parse LLM output for surah %d: %s", req.surah, type(exc).__name__)
+        return bad_output
 
     if not questions:
-        raise HTTPException(status_code=502, detail="AI could not generate questions for this surah. Please try again.")
+        return bad_output
 
     latency = int((time.monotonic() - t0) * 1000)
     logger.info("Generated %d AI questions for surah %d in %dms", len(questions), req.surah, latency)

@@ -27,6 +27,10 @@ trap 'rm -rf "$STAGE"' EXIT
 # shellcheck disable=SC1091
 [ -f "$PROJECT_DIR/.env" ] && { set -a; . "$PROJECT_DIR/.env"; set +a; }
 
+# How to run a command inside the Postgres container. Default: the podman dev
+# stack. For docker-compose.prod.yml use
+#   CONTAINER_CMD="docker compose -f docker-compose.prod.yml exec -T" PG_CONTAINER=postgres
+CONTAINER_CMD="${CONTAINER_CMD:-podman exec -i}"
 PG_CONTAINER="${PG_CONTAINER:-tadabbur-postgres}"
 PG_USER="${POSTGRES_USER:-tadabbur}"
 PG_DB="${POSTGRES_DB:-tadabbur}"
@@ -34,7 +38,11 @@ QDRANT_URL="${QDRANT_URL:-http://localhost:19633}"
 SURREAL_URL="${SURREAL_URL:-http://localhost:19529}"
 SURREAL_NS="${SURREAL_NAMESPACE:-tadabbur}"
 SURREAL_DB="${SURREAL_DATABASE:-quran_kg}"
-SURREAL_AUTH="${SURREAL_AUTH:-root:root}"
+# From SURREAL_USER/SURREAL_PASS (.env); root:root only matches the dev stack.
+SURREAL_AUTH="${SURREAL_AUTH:-${SURREAL_USER:-root}:${SURREAL_PASS:-root}}"
+
+# shellcheck disable=SC2086
+in_pg() { $CONTAINER_CMD "$PG_CONTAINER" "$@"; }
 
 GREEN='\033[0;32m'; RED='\033[0;31m'; YEL='\033[0;33m'; NC='\033[0m'
 say()  { printf '%b==>%b %s\n' "$GREEN" "$NC" "$*"; }
@@ -47,11 +55,11 @@ mkdir -p "$STAGE/qdrant" "$STAGE/corpora"
 
 # --- 1. Postgres -------------------------------------------------------------
 say "Postgres: dumping $PG_DB"
-podman exec "$PG_CONTAINER" pg_dump -U "$PG_USER" -d "$PG_DB" -Fc --no-owner --no-acl \
+in_pg pg_dump -U "$PG_USER" -d "$PG_DB" -Fc --no-owner --no-acl \
   > "$STAGE/postgres.dump" || die "pg_dump failed"
-PG_ROWS="$(podman exec "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -tAc \
+PG_ROWS="$(in_pg psql -U "$PG_USER" -d "$PG_DB" -tAc \
   "SELECT COALESCE(SUM(n_live_tup),0) FROM pg_stat_user_tables" | tr -d '[:space:]')"
-ALEMBIC_REV="$(podman exec "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -tAc \
+ALEMBIC_REV="$(in_pg psql -U "$PG_USER" -d "$PG_DB" -tAc \
   "SELECT version_num FROM alembic_version" | tr -d '[:space:]')"
 say "  $(du -h "$STAGE/postgres.dump" | cut -f1), ${PG_ROWS} rows, alembic @ ${ALEMBIC_REV}"
 

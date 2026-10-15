@@ -16,11 +16,14 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
-from pydantic import BaseModel, Field
+import json
+
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_async_session
 from app.core.auth import require_admin, AdminUser
+from app.core.rate_limit import feedback_rate_limit
 from app.core.responses import APIError, ErrorCode, get_request_id
 from app.verify.workflow import VerificationWorkflow
 from app.verify.ai_assistant import get_ai_assistant, AIAnalysisResult
@@ -41,15 +44,26 @@ router = APIRouter()
 # REQUEST/RESPONSE SCHEMAS
 # =============================================================================
 
+_MAX_SNAPSHOT_BYTES = 8 * 1024
+
+
 class FlagContentRequest(BaseModel):
     """Request to flag content for verification."""
-    entity_type: str = Field(..., description="Type of entity (concept, story, etc.)")
-    entity_id: str = Field(..., description="ID of the entity")
-    flag_type: str = Field(..., description="Type of flag (accuracy, source, etc.)")
-    flag_reason: Optional[str] = Field(None, description="Reason for flagging (English)")
-    flag_reason_ar: Optional[str] = Field(None, description="Reason for flagging (Arabic)")
-    context_snapshot: Optional[Dict[str, Any]] = Field(None, description="Current state")
+    entity_type: str = Field(..., max_length=50, description="Type of entity (concept, story, etc.)")
+    entity_id: str = Field(..., max_length=200, description="ID of the entity")
+    flag_type: str = Field(..., max_length=50, description="Type of flag (accuracy, source, etc.)")
+    flag_reason: Optional[str] = Field(None, max_length=1000, description="Reason for flagging (English)")
+    flag_reason_ar: Optional[str] = Field(None, max_length=1000, description="Reason for flagging (Arabic)")
+    context_snapshot: Optional[Dict[str, Any]] = Field(None, description="Current state (max 8 KB as JSON)")
     priority: int = Field(default=5, ge=1, le=10, description="Priority (1=highest)")
+
+    @field_validator("context_snapshot")
+    @classmethod
+    def _cap_snapshot(cls, v: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        # Public endpoint writing to Postgres: bound what one request can store.
+        if v is not None and len(json.dumps(v, ensure_ascii=False).encode("utf-8")) > _MAX_SNAPSHOT_BYTES:
+            raise ValueError(f"context_snapshot exceeds {_MAX_SNAPSHOT_BYTES} bytes")
+        return v
 
 
 class AssignReviewerRequest(BaseModel):
@@ -183,7 +197,7 @@ def _format_queue_item(item, include_details: bool = False) -> dict:
 # PUBLIC ENDPOINTS (No auth required for flagging)
 # =============================================================================
 
-@router.post("/flag", response_model=QueueItemResponse)
+@router.post("/flag", response_model=QueueItemResponse, dependencies=[Depends(feedback_rate_limit)])
 async def flag_content(
     request: Request,
     body: FlagContentRequest,

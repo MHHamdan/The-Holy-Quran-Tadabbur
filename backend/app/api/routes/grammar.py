@@ -26,6 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import httpx
 
 from app.core.config import settings
+from app.core.rate_limit import feedback_rate_limit, rag_rate_limit
 from app.db.database import get_async_session
 from app.models.quran import QuranVerse
 from app.services.grammar_llm import get_grammar_service
@@ -49,7 +50,7 @@ router = APIRouter()
 class AnalyzeRequest(BaseModel):
     """Request for grammar analysis."""
     text: str = Field(..., min_length=1, max_length=500, description="Arabic text to analyze")
-    verse_reference: Optional[str] = Field(None, description="Optional verse reference (e.g., 2:255)")
+    verse_reference: Optional[str] = Field(None, max_length=20, description="Optional verse reference (e.g., 2:255)")
 
 
 class TokenResponse(BaseModel):
@@ -97,7 +98,8 @@ class ErrorResponse(BaseModel):
 # ENDPOINTS
 # =============================================================================
 
-@router.post("/analyze", response_model=GrammarResponse)
+# LLM-backed: each call spends Hugging Face credit, so the RAG per-IP budget applies.
+@router.post("/analyze", response_model=GrammarResponse, dependencies=[Depends(rag_rate_limit)])
 async def analyze_text(
     request: AnalyzeRequest,
     req: Request,
@@ -272,7 +274,7 @@ async def analyze_text(
         )
 
 
-@router.get("/ayah/{sura_ayah}", response_model=GrammarResponse)
+@router.get("/ayah/{sura_ayah}", response_model=GrammarResponse, dependencies=[Depends(rag_rate_limit)])
 async def analyze_ayah(
     sura_ayah: str,
     req: Request,
@@ -708,14 +710,14 @@ from app.core.responses import APIError, ErrorCode, get_request_id
 
 class GrammarVerificationCreate(BaseModel):
     """Request to submit grammar correction for verification."""
-    verse_reference: str = Field(..., description="Verse reference (e.g., 1:1)")
-    word_index: int = Field(..., ge=0, description="Index of word being corrected")
-    word: str = Field(..., min_length=1, description="The word being corrected")
-    proposed_pos: Optional[str] = Field(None, description="Proposed POS tag")
-    proposed_role: Optional[str] = Field(None, description="Proposed grammatical role")
-    proposed_i3rab: Optional[str] = Field(None, description="Proposed إعراب")
-    proposed_root: Optional[str] = Field(None, description="Proposed root")
-    notes: Optional[str] = Field(None, description="Explanation/justification")
+    verse_reference: str = Field(..., max_length=20, description="Verse reference (e.g., 1:1)")
+    word_index: int = Field(..., ge=0, le=1000, description="Index of word being corrected")
+    word: str = Field(..., min_length=1, max_length=64, description="The word being corrected")
+    proposed_pos: Optional[str] = Field(None, max_length=100, description="Proposed POS tag")
+    proposed_role: Optional[str] = Field(None, max_length=100, description="Proposed grammatical role")
+    proposed_i3rab: Optional[str] = Field(None, max_length=2000, description="Proposed إعراب")
+    proposed_root: Optional[str] = Field(None, max_length=20, description="Proposed root")
+    notes: Optional[str] = Field(None, max_length=2000, description="Explanation/justification")
     evidence_refs: Optional[dict] = Field(default={}, description="Evidence references")
     priority: int = Field(default=0, ge=0, le=10)
 
@@ -761,7 +763,8 @@ class GrammarVerificationStats(BaseModel):
     by_verse: dict
 
 
-@router.post("/verification/submit", response_model=GrammarVerificationResponse, status_code=201)
+@router.post("/verification/submit", response_model=GrammarVerificationResponse, status_code=201,
+             dependencies=[Depends(feedback_rate_limit)])
 async def submit_grammar_correction(
     task: GrammarVerificationCreate,
     user_id: str = Query("anonymous", description="User submitting the correction"),

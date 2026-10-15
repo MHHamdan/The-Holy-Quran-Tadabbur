@@ -7,13 +7,15 @@ SECURITY NOTES:
 - /health/detailed requires authentication in production
 - /health/data requires authentication in production
 - /health/rag requires authentication in production
-- /metrics requires authentication in production
+- /metrics, /metrics/summary and /metrics/app require authentication in production
 """
+import asyncio
 from datetime import datetime
 from functools import wraps
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import text, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 import httpx
@@ -57,6 +59,23 @@ def _safe_secret_check(provided: Optional[str], expected: Optional[str]) -> bool
     return hmac.compare_digest(provided.encode(), expected.encode())
 
 
+def _presented_secret(request: Optional[Request]) -> Optional[str]:
+    """
+    Secret sent by the caller: the X-Metrics-Secret header, or
+    `Authorization: Bearer <secret>` (what Prometheus' `authorization`
+    scrape option sends; Prometheus 2.x cannot set custom headers).
+    """
+    if request is None:
+        return None
+    header = request.headers.get("X-Metrics-Secret")
+    if header:
+        return header
+    scheme, _, token = request.headers.get("Authorization", "").partition(" ")
+    if scheme.lower() == "bearer" and token.strip():
+        return token.strip()
+    return None
+
+
 def _check_production_auth(request: Request) -> None:
     """
     Check production authentication for protected endpoints.
@@ -80,8 +99,7 @@ def _check_production_auth(request: Request) -> None:
             detail="Endpoint not available"
         )
 
-    header_secret = request.headers.get("X-Metrics-Secret")
-    if not _safe_secret_check(header_secret, secret):
+    if not _safe_secret_check(_presented_secret(request), secret):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied"
@@ -93,7 +111,8 @@ def require_metrics_auth(func):
     Decorator to require authentication for sensitive endpoints in production.
 
     In development: No authentication required
-    In production: Requires X-Metrics-Secret header or METRICS_SECRET env var
+    In production: requires METRICS_SECRET, sent as the X-Metrics-Secret
+    header or as `Authorization: Bearer <secret>`
     """
     @wraps(func)
     async def wrapper(*args, request: Request = None, **kwargs):
@@ -109,8 +128,7 @@ def require_metrics_auth(func):
                 detail="Endpoint not available"  # Don't reveal why
             )
 
-        header_secret = request.headers.get("X-Metrics-Secret") if request else None
-        if not _safe_secret_check(header_secret, secret):
+        if not _safe_secret_check(_presented_secret(request), secret):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied"  # Don't reveal if secret exists or is wrong
@@ -136,6 +154,9 @@ async def health_check():
     return {"status": "healthy", "service": settings.app_name}
 
 
+READY_DB_TIMEOUT_SECONDS = 2.0
+
+
 @router.get("/ready")
 async def readiness_check(
     session: AsyncSession = Depends(get_async_session),
@@ -143,27 +164,41 @@ async def readiness_check(
     """
     Readiness check - verifies the service is ready to accept traffic.
 
-    PUBLIC: Used by Kubernetes readiness probes.
+    PUBLIC: Used by readiness probes and the compose healthcheck. Answers 503
+    (not 200) when the database is unreachable or slower than 2 s, so a
+    proxy or orchestrator stops routing traffic here.
     """
     try:
-        await session.execute(text("SELECT 1"))
+        await asyncio.wait_for(session.execute(text("SELECT 1")), READY_DB_TIMEOUT_SECONDS)
         return {"status": "ready"}
     except Exception:
-        return {"status": "not_ready"}
+        return JSONResponse(status_code=503, content={"status": "not_ready"})
+
+
+async def _qdrant_ready(client: httpx.AsyncClient) -> tuple[bool, Optional[int]]:
+    """Probe Qdrant's readiness endpoint (/readyz, Qdrant >= 1.5), falling back to /healthz."""
+    base = f"http://{settings.qdrant_host}:{settings.qdrant_port}"
+    response = await client.get(f"{base}/readyz", timeout=5.0)
+    if response.status_code == 404:
+        response = await client.get(f"{base}/healthz", timeout=5.0)
+    return response.status_code == 200, response.status_code
 
 
 @router.get("/metrics")
-async def prometheus_metrics():
+async def prometheus_metrics(request: Request):
     """
     Prometheus metrics endpoint.
 
-    PUBLIC: Exposes metrics in Prometheus format for scraping.
+    PROTECTED IN PRODUCTION: requires the X-Metrics-Secret header (503 when
+    METRICS_SECRET is unset). Prometheus format for scraping.
     Includes:
     - RAG query metrics (latency, cache hits, confidence)
     - Search metrics (vector, keyword, hybrid)
     - Cache metrics (hit rate, size)
     - Reranker metrics (method, latency)
     """
+    _check_production_auth(request)
+
     from fastapi.responses import Response
     from app.services.metrics import metrics_endpoint_handler
 
@@ -172,12 +207,15 @@ async def prometheus_metrics():
 
 
 @router.get("/metrics/summary")
-async def metrics_summary():
+async def metrics_summary(request: Request):
     """
     Human-readable metrics summary.
 
+    PROTECTED IN PRODUCTION (X-Metrics-Secret).
     Returns a JSON summary of key metrics for dashboard display.
     """
+    _check_production_auth(request)
+
     from app.services.metrics import get_metrics, PROMETHEUS_AVAILABLE
 
     if not PROMETHEUS_AVAILABLE:
@@ -200,14 +238,14 @@ async def metrics_summary():
             "errors": cache_stats.errors,
         }
     except Exception as e:
-        cache_info = {"error": str(e)}
+        cache_info = {"error": type(e).__name__}
 
     # Get reranker status
     try:
         from app.rag.reranker import is_reranker_available
         reranker_info = is_reranker_available()
     except Exception as e:
-        reranker_info = {"error": str(e)}
+        reranker_info = {"error": type(e).__name__}
 
     return {
         "ok": True,
@@ -251,19 +289,16 @@ async def detailed_health_check(
         health_status["services"]["postgres"] = {"status": "unhealthy", "error": str(e)}
         health_status["status"] = "unhealthy"
 
-    # Check Qdrant
+    # Check Qdrant (/readiness does not exist: it always answered 404)
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"http://{settings.qdrant_host}:{settings.qdrant_port}/readiness",
-                timeout=5.0
-            )
-            if response.status_code == 200:
+            ok, code = await _qdrant_ready(client)
+            if ok:
                 health_status["services"]["qdrant"] = {"status": "healthy"}
             else:
                 health_status["services"]["qdrant"] = {
                     "status": "unhealthy",
-                    "error": f"Status code: {response.status_code}"
+                    "error": f"Status code: {code}"
                 }
                 health_status["status"] = "unhealthy"
     except Exception as e:
@@ -284,10 +319,13 @@ async def detailed_health_check(
     return health_status
 
 
-@router.get("/metrics")
+@router.get("/metrics/app")
 async def get_metrics(request: Request):
     """
-    Get application metrics.
+    Get application metrics (JSON).
+
+    Was a second GET /metrics registration, shadowed by the Prometheus one
+    above, so it never ran.
 
     PROTECTED IN PRODUCTION: Reveals operational data.
     Requires X-Metrics-Secret header in production.
@@ -477,6 +515,9 @@ async def security_check(request: Request):
             "/health/data",
             "/health/rag",
             "/metrics",
+            "/metrics/summary",
+            "/metrics/app",
+            "/health/cache",
         ],
         "public_endpoints": [
             "/health",
