@@ -251,6 +251,12 @@ export const translations: Translations = {
     en: 'Try specific questions such as "What does Ayat al-Kursi mean?" to get answers with cited sources.',
   },
 
+  // Heart Care (TherapyPage) fallbacks
+  therapy_ruqyah_unavailable: { ar: 'تعذّر عرض دليل الرقية الآن. أعد تحميل الصفحة.', en: 'The ruqyah guide could not load. Please reload the page.' },
+  therapy_chat_unavailable: { ar: 'تعذّر تشغيل المحادثة. أعد تحميل الصفحة.', en: 'The chat could not load. Please reload the page.' },
+  therapy_insights_unavailable: { ar: 'تعذّر عرض رحلتك الآن. أعد تحميل الصفحة.', en: 'Your journey could not load. Please reload the page.' },
+  therapy_remove_entry: { ar: 'حذف هذا التأمل', en: 'Remove this entry' },
+
   // Tafsir methodology labels (SourcesPage; tokens from /rag/sources)
   tafsir_method_bil_mathur: { ar: 'تفسير بالمأثور', en: 'Narration-based (bil-maʾthūr)' },
   tafsir_method_narration_based: { ar: 'تفسير بالمأثور', en: 'Narration-based (bil-maʾthūr)' },

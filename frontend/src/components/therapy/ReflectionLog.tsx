@@ -259,7 +259,8 @@ export function ReflectionLog({
                         <button
                           onClick={() => onDeleteEntry(entry.session_id)}
                           className="text-gray-300 hover:text-red-400 transition-colors"
-                          title="Remove entry"
+                          title={t('therapy_remove_entry', language)}
+                          aria-label={t('therapy_remove_entry', language)}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

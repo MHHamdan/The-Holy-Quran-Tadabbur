@@ -222,13 +222,13 @@ function FrontendScreen({ language }: { language: 'ar' | 'en' }) {
         </div>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <p className="text-sm text-gray-500 mb-1">App URL</p>
+            <p className="text-sm text-gray-500 mb-1">{language === 'ar' ? 'عنوان التطبيق' : 'App URL'}</p>
             <code className="text-blue-700 font-mono text-sm break-all">{window.location.origin}</code>
           </div>
           <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <p className="text-sm text-gray-500 mb-1">API</p>
+            <p className="text-sm text-gray-500 mb-1">{language === 'ar' ? 'واجهة البرمجة (API)' : 'API'}</p>
             <code className="text-blue-700 font-mono text-sm break-all">
-              {API_ORIGIN ? `${API_ORIGIN}/api/v1` : `${window.location.origin}/api/v1 (same origin)`}
+              {API_ORIGIN ? `${API_ORIGIN}/api/v1` : `${window.location.origin}/api/v1 (${language === 'ar' ? 'المصدر نفسه' : 'same origin'})`}
             </code>
           </div>
         </div>
@@ -505,17 +505,19 @@ function BackendScreen({ language }: { language: 'ar' | 'en' }) {
 
         <div className="grid md:grid-cols-3 gap-4">
           <div className="bg-white rounded-lg p-4 border">
-            <p className="text-sm text-gray-500 mb-1">Status</p>
+            <p className="text-sm text-gray-500 mb-1">{language === 'ar' ? 'الحالة' : 'Status'}</p>
             <p className="font-semibold text-lg">
-              {health?.status === 'healthy' || health?.status === 'ok' ? 'Healthy' : health?.status || 'Checking...'}
+              {health?.status === 'healthy' || health?.status === 'ok'
+                ? (language === 'ar' ? 'سليم' : 'Healthy')
+                : health?.status || t('status_checking', language)}
             </p>
           </div>
           <div className="bg-white rounded-lg p-4 border">
-            <p className="text-sm text-gray-500 mb-1">Backend Port</p>
-            <p className="font-semibold text-lg font-mono">8002</p>
+            <p className="text-sm text-gray-500 mb-1">{language === 'ar' ? 'خادم الواجهة البرمجية' : 'API host'}</p>
+            <p className="font-semibold text-lg font-mono break-all" dir="ltr">{API_ORIGIN || window.location.origin}</p>
           </div>
           <div className="bg-white rounded-lg p-4 border">
-            <p className="text-sm text-gray-500 mb-1">Framework</p>
+            <p className="text-sm text-gray-500 mb-1">{language === 'ar' ? 'إطار العمل' : 'Framework'}</p>
             <p className="font-semibold text-lg">FastAPI (Python)</p>
           </div>
         </div>

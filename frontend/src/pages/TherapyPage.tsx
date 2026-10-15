@@ -554,7 +554,7 @@ export function TherapyPage() {
       {/* ================================================================ */}
       {activeTab === 'ruqyah' && (
         <div className="space-y-4">
-          <ErrorBoundary fallback={<div className="h-48 flex items-center justify-center text-sm text-amber-600 bg-amber-50 rounded-xl border border-amber-200">Ruqyah guide unavailable</div>}>
+          <ErrorBoundary fallback={<div className="h-48 flex items-center justify-center text-sm text-amber-600 bg-amber-50 rounded-xl border border-amber-200">{t('therapy_ruqyah_unavailable', language)}</div>}>
             <Suspense fallback={<div className="h-48 animate-pulse bg-gray-100 rounded-xl" />}>
               <RuqyahGuide />
             </Suspense>
@@ -567,7 +567,7 @@ export function TherapyPage() {
       {/* ================================================================ */}
       {activeTab === 'chat' && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 min-h-[560px] flex flex-col">
-          <ErrorBoundary fallback={<div className="flex-1 flex items-center justify-center text-sm text-amber-600">Chat unavailable. Please refresh.</div>}>
+          <ErrorBoundary fallback={<div className="flex-1 flex items-center justify-center text-sm text-amber-600">{t('therapy_chat_unavailable', language)}</div>}>
             <Suspense fallback={<div className="h-full animate-pulse bg-gray-100 rounded-xl" />}>
               <TherapyChat onSessionCreated={handleChatSessionCreated} />
             </Suspense>
@@ -579,7 +579,7 @@ export function TherapyPage() {
       {/* TAB: My Journey (Insights)                                        */}
       {/* ================================================================ */}
       {activeTab === 'insights' && (
-        <ErrorBoundary fallback={<div className="h-64 flex items-center justify-center text-sm text-amber-600 bg-amber-50 rounded-xl border border-amber-200">Insights unavailable</div>}>
+        <ErrorBoundary fallback={<div className="h-64 flex items-center justify-center text-sm text-amber-600 bg-amber-50 rounded-xl border border-amber-200">{t('therapy_insights_unavailable', language)}</div>}>
           <Suspense fallback={<div className="h-64 animate-pulse bg-gray-100 rounded-xl" />}>
             <InsightsDashboard sessionIds={allSessionIds} />
           </Suspense>
