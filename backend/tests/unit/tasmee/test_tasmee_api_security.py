@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from app.api.routes import tasmee as tasmee_routes
+from app.core import rate_limit
 from app.stt.providers.base import STTResult, TranscriptionSegment, WordInfo
 
 BASE = "/api/v1/tasmee"
@@ -50,10 +51,10 @@ class StubSTT:
 def client():
     from app.main import app
 
-    tasmee_routes._tasmee_limiter.reset()
+    rate_limit._stt_limiter.reset()
     with TestClient(app) as c:
         yield c
-    tasmee_routes._tasmee_limiter.reset()
+    rate_limit._stt_limiter.reset()
 
 
 @pytest.fixture

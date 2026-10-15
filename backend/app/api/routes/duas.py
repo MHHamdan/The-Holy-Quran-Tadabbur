@@ -18,21 +18,17 @@ from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from app.core.rate_limit import InMemoryRateLimiter, _get_client_ip, _make_429_response
+from app.core.rate_limit import InMemoryRateLimiter, enforce
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_duas_limiter = InMemoryRateLimiter(max_requests=30, window_seconds=60)
+_duas_limiter = InMemoryRateLimiter(max_requests=30, window_seconds=60, name="duas")
 
 
 async def _rate_limit(request: Request) -> None:
-    ip = _get_client_ip(request)
-    allowed, retry_after = _duas_limiter.is_allowed(ip)
-    if not allowed:
-        logger.warning("Duas rate limit exceeded for IP %s", ip)
-        raise _make_429_response(request)
+    await enforce(_duas_limiter, request, "Duas")
 
 
 # ── Static catalogue ──────────────────────────────────────────────────────────
