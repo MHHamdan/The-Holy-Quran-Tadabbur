@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.admin_auth import require_admin_api_key
-from app.core.rate_limit import _get_client_ip
+from app.core.rate_limit import InMemoryRateLimiter, enforce, feedback_rate_limit, rag_rate_limit
 from app.core.config import settings
 from app.db.database import get_async_session
 from app.models.quran import QuranVerse, Translation, TranslationEdition
@@ -38,56 +38,9 @@ import time
 from collections import defaultdict
 from threading import Lock
 
-class ResolveRateLimiter:
-    """
-    Simple in-memory rate limiter for the resolve endpoint.
-    Limits requests per IP to prevent abuse of fuzzy search.
-    """
-
-    def __init__(self, max_requests: int = 30, window_seconds: int = 60):
-        self.max_requests = max_requests
-        self.window_seconds = window_seconds
-        self._requests: Dict[str, list] = defaultdict(list)
-        self._lock = Lock()
-
-    def is_allowed(self, client_ip: str) -> tuple[bool, int]:
-        """
-        Check if request is allowed for this IP.
-        Returns (allowed, requests_remaining).
-        """
-        now = time.time()
-        cutoff = now - self.window_seconds
-
-        with self._lock:
-            # Clean old requests
-            self._requests[client_ip] = [
-                ts for ts in self._requests[client_ip] if ts > cutoff
-            ]
-
-            # Check limit
-            current_count = len(self._requests[client_ip])
-            if current_count >= self.max_requests:
-                return False, 0
-
-            # Record this request
-            self._requests[client_ip].append(now)
-            return True, self.max_requests - current_count - 1
-
-    def cleanup(self):
-        """Remove stale entries."""
-        now = time.time()
-        cutoff = now - self.window_seconds
-        with self._lock:
-            stale_ips = [
-                ip for ip, timestamps in self._requests.items()
-                if not timestamps or all(ts <= cutoff for ts in timestamps)
-            ]
-            for ip in stale_ips:
-                del self._requests[ip]
-
-
-# Global rate limiter instance for resolve endpoint
-_resolve_rate_limiter = ResolveRateLimiter(max_requests=30, window_seconds=60)
+# Fuzzy resolve is CPU-heavy: 30 requests/min per client, shared with the
+# Redis backend when RATE_LIMIT_BACKEND=redis (see app.core.rate_limit).
+_resolve_rate_limiter = InMemoryRateLimiter(max_requests=30, window_seconds=60, name="resolve")
 
 
 class _TTLCache:
@@ -314,20 +267,9 @@ async def resolve_verse_text(
 
     logger = logging.getLogger(__name__)
 
-    # Rate limiting check — client IP comes from the shared helper so every
-    # limiter in the app resolves the caller the same way.
-    client_ip = _get_client_ip(request)
-
-    is_allowed, remaining = _resolve_rate_limiter.is_allowed(client_ip)
-    if not is_allowed:
-        logger.warning("[RESOLVE] Rate limited")  # no IP in logs (privacy policy)
-        return error_response(
-            code=ErrorCode.RATE_LIMITED,
-            message_en="Too many requests. Please wait a moment before trying again.",
-            message_ar="طلبات كثيرة جداً. يرجى الانتظار قليلاً قبل المحاولة مجدداً.",
-            request_id="resolve-ratelimit",
-            status_code=429
-        )
+    # Shared limiter helper: client IP from request.client only (never
+    # X-Forwarded-For), no IP in logs, 429 with bilingual detail.
+    await enforce(_resolve_rate_limiter, request, "Resolve")
 
     # Generate deterministic request_id for tracing
     query_hash = hashlib.sha256(text.encode()).hexdigest()[:8]
@@ -1504,9 +1446,9 @@ async def get_sura_word_frequency(
     }
 
 
-@router.post("/search/grammar/analyze")
+@router.post("/search/grammar/analyze", dependencies=[Depends(rag_rate_limit)])
 async def analyze_grammar(
-    word: str = Query(..., description="Word to analyze"),
+    word: str = Query(..., min_length=1, max_length=64, description="Word to analyze"),
     sura_no: int = Query(..., ge=1, le=114),
     aya_no: int = Query(..., ge=1),
     session: AsyncSession = Depends(get_async_session),
@@ -1566,13 +1508,15 @@ async def analyze_grammar(
                 "ar": analysis.notes_ar,
                 "en": analysis.notes_en,
             },
+            # "llm" when the model answered; "unavailable" when it failed and
+            # the fields above are placeholders (notes carry the reason).
+            "source": analysis.source,
+            "is_ai_generated": analysis.source == "llm",
         }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Grammar analysis failed: {str(e)}"
-        )
+        logger.error("Grammar analysis failed: %s", type(e).__name__)
+        raise HTTPException(status_code=500, detail="Grammar analysis failed")
 
 
 @router.get("/search/categories")
@@ -9426,42 +9370,6 @@ async def verify_story_completeness(story_id: str):
 # USER FEEDBACK ENDPOINTS
 # ============================================
 
-class StoryFeedbackRequest(BaseModel):
-    """Request model for story feedback."""
-    user_id: str
-    rating: int = Field(..., ge=1, le=5)
-    accuracy_rating: int = Field(..., ge=1, le=5)
-    completeness_rating: int = Field(..., ge=1, le=5)
-    comment: Optional[str] = None
-    suggested_improvements: Optional[List[str]] = None
-
-
-@router.post("/atlas/feedback/{story_id}")
-async def submit_story_feedback(story_id: str, feedback: StoryFeedbackRequest):
-    """
-    Submit user feedback for a story.
-
-    Includes:
-    - Overall rating
-    - Accuracy rating
-    - Completeness rating
-    - Comments and suggestions
-
-    Arabic: إرسال تقييم القصة
-    """
-    from app.services.alatlas_service import alatlas_service
-
-    return alatlas_service.submit_story_feedback(
-        story_id=story_id,
-        user_id=feedback.user_id,
-        rating=feedback.rating,
-        accuracy_rating=feedback.accuracy_rating,
-        completeness_rating=feedback.completeness_rating,
-        comment=feedback.comment,
-        suggested_improvements=feedback.suggested_improvements
-    )
-
-
 @router.get("/atlas/stories/{story_id}/feedback")
 async def get_story_feedback(story_id: str):
     """
@@ -9524,39 +9432,6 @@ async def get_all_events(
 # ============================================
 # USER JOURNEY & PROGRESS ENDPOINTS
 # ============================================
-
-class UserJourneyRequest(BaseModel):
-    """Request model for saving user journey."""
-    user_id: str
-    current_story_id: str
-    themes_explored: List[str]
-    time_spent_seconds: int = 0
-    notes: Optional[str] = None
-
-
-@router.post("/atlas/user/journey")
-async def save_user_journey(journey: UserJourneyRequest):
-    """
-    Save user's thematic journey through stories.
-
-    Tracks:
-    - Stories visited
-    - Themes explored
-    - Time spent
-    - Personal notes
-
-    Arabic: حفظ رحلة المستخدم في القصص
-    """
-    from app.services.alatlas_service import alatlas_service
-
-    return alatlas_service.save_user_journey(
-        user_id=journey.user_id,
-        current_story_id=journey.current_story_id,
-        themes_explored=journey.themes_explored,
-        time_spent_seconds=journey.time_spent_seconds,
-        notes=journey.notes
-    )
-
 
 @router.get("/atlas/user/progress/{user_id}")
 async def get_user_progress(user_id: str):
@@ -9704,30 +9579,6 @@ async def clear_cache(
 # ============================================
 
 # --- VERIFICATION PIPELINE (HUMAN IN THE LOOP) ---
-
-class FlagStoryRequest(BaseModel):
-    """Request model for flagging a story."""
-    user_id: str
-    reason: str
-    details: Optional[str] = None
-
-
-@router.post("/atlas/stories/{story_id}/flag")
-async def flag_story_for_review(story_id: str, request: FlagStoryRequest):
-    """
-    Flag a story for admin review.
-
-    Arabic: الإبلاغ عن قصة للمراجعة
-    """
-    from app.services.advanced_atlas_service import advanced_atlas_service
-
-    return advanced_atlas_service.flag_story_for_review(
-        story_id=story_id,
-        user_id=request.user_id,
-        reason=request.reason,
-        details=request.details
-    )
-
 
 @router.get("/atlas/stories/{story_id}/auto-verify")
 async def auto_verify_story(story_id: str):
@@ -10148,7 +9999,7 @@ async def get_miracle_feedback(
     )
 
 
-@router.post("/miracles/feedback")
+@router.post("/miracles/feedback", dependencies=[Depends(feedback_rate_limit)])
 async def submit_miracle_feedback(
     miracle_id: str = Query(..., description="Miracle ID"),
     user_id: str = Query(..., description="User ID"),
