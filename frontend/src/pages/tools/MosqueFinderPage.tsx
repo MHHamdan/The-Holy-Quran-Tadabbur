@@ -5,6 +5,7 @@ import { useLanguageStore } from '../../stores/languageStore';
 import { coarsen, safeHttpUrl } from '../../lib/islamicApis';
 import { Dialog } from '../../components/ui/Dialog';
 import clsx from 'clsx';
+import { LocationFallback, locationProblemOf, type ChosenLocation, type LocationProblem } from './LocationFallback';
 
 interface Place {
   id: string;
@@ -55,14 +56,18 @@ export function MosqueFinderPage() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [qiblaDirection, setQiblaDirection] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  // Set when the device location cannot be read; the page then offers a city search.
+  const [geoProblem, setGeoProblem] = useState<LocationProblem | null>(null);
+  const [placeName, setPlaceName] = useState<string | null>(null);
 
   // Get user's location
   const getUserLocation = useCallback(() => {
     setLocationLoading(true);
     setError(null);
+    setGeoProblem(null);
 
     if (!navigator.geolocation) {
-      setError(isArabic ? 'تحديد الموقع غير مدعوم في متصفحك' : 'Geolocation is not supported by your browser');
+      setGeoProblem('unsupported');
       setLocationLoading(false);
       return;
     }
@@ -74,21 +79,25 @@ export function MosqueFinderPage() {
           lon: position.coords.longitude,
         };
         setLocation(loc);
+        setPlaceName(null);
         calculateQibla(loc.lat, loc.lon);
         setLocationLoading(false);
       },
       (err) => {
-        let errorMsg = isArabic ? 'تعذر الحصول على موقعك' : 'Unable to get your location';
-        if (err.code === 1) {
-          errorMsg = isArabic ? 'يرجى السماح بالوصول إلى موقعك' : 'Please allow location access';
-        }
-        setError(errorMsg);
+        setGeoProblem(locationProblemOf(err));
         setLocationLoading(false);
       },
       // Coarse location is enough for nearby places and the Qibla bearing.
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 10 * 60 * 1000 }
     );
-  }, [isArabic]);
+  }, []);
+
+  const chooseCity = useCallback((loc: ChosenLocation) => {
+    setLocation({ lat: loc.lat, lon: loc.lng });
+    setPlaceName(loc.name);
+    setGeoProblem(null);
+    calculateQibla(loc.lat, loc.lng);
+  }, []);
 
   // Calculate Qibla direction
   function calculateQibla(lat: number, lon: number) {
@@ -315,8 +324,33 @@ export function MosqueFinderPage() {
         </div>
       )}
 
+      {/* Device location denied / unavailable: offer a city search instead. */}
+      {!location && geoProblem && (
+        <LocationFallback
+          isArabic={isArabic}
+          problem={geoProblem}
+          purpose={{
+            ar: 'نحتاج إلى مدينتك لإظهار الأماكن القريبة واتجاه القبلة.',
+            en: 'Nearby places and the Qibla direction need your city.',
+          }}
+          onChoose={chooseCity}
+          onRetry={getUserLocation}
+          className="mb-6"
+        />
+      )}
+
+      {location && placeName && (
+        <p className="mb-4 text-sm text-gray-700 flex items-center gap-1">
+          <MapPin className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <span>
+            {isArabic ? 'الأماكن القريبة من: ' : 'Places near: '}
+            {placeName}
+          </span>
+        </p>
+      )}
+
       {/* Location Status */}
-      {!location && (
+      {!location && !geoProblem && (
         <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl text-center">
           {locationLoading ? (
             <div className="flex items-center justify-center gap-2 text-gray-600">
@@ -332,7 +366,7 @@ export function MosqueFinderPage() {
               </p>
               <button
                 onClick={getUserLocation}
-                className="px-4 py-2 bg-teal-700 text-white rounded-lg hover:bg-teal-800 inline-flex items-center gap-2"
+                className="min-h-11 px-4 py-2 bg-teal-700 text-white rounded-lg hover:bg-teal-800 inline-flex items-center gap-2"
               >
                 <Navigation className="w-4 h-4" />
                 {isArabic ? 'تحديد موقعي' : 'Get My Location'}
