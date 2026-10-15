@@ -3,6 +3,7 @@ Tadabbur-AI FastAPI Application
 
 RAG-grounded Quranic knowledge platform with story connections.
 """
+import re
 import time
 import uuid
 import logging
@@ -169,6 +170,20 @@ async def enforce_body_size(request: Request, call_next):
     return await call_next(request)
 
 
+# Paths under any /search segment can carry the reader's search text as a path
+# parameter (e.g. /quran/search/analytics/{word}); the privacy policy says
+# searches are not stored, so those are logged by route template only.
+_SEARCH_PATH = re.compile(r"(^|/)search(/|$)")
+
+
+def _loggable_path(request: Request) -> str:
+    path = request.url.path
+    if _SEARCH_PATH.search(path):
+        route = request.scope.get("route")
+        return getattr(route, "path", None) or "/[search]"
+    return path
+
+
 @app.middleware("http")
 async def add_request_headers(request: Request, call_next):
     """Add request-id and processing time to response headers."""
@@ -194,7 +209,7 @@ async def add_request_headers(request: Request, call_next):
 
         # Log request completion
         logger.info(
-            f"[{request_id}] {request.method} {request.url.path} "
+            f"[{request_id}] {request.method} {_loggable_path(request)} "
             f"-> {response.status_code} ({process_time:.3f}s)"
         )
 
@@ -202,8 +217,8 @@ async def add_request_headers(request: Request, call_next):
     except Exception as e:
         process_time = time.time() - start_time
         logger.error(
-            f"[{request_id}] {request.method} {request.url.path} "
-            f"-> ERROR ({process_time:.3f}s): {str(e)}"
+            f"[{request_id}] {request.method} {_loggable_path(request)} "
+            f"-> ERROR ({process_time:.3f}s): {type(e).__name__}"
         )
         raise
 
