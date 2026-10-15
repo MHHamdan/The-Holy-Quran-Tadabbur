@@ -32,3 +32,24 @@ def test_problems_never_contain_secret_values():
                  admin_api_key="admin_secret_value", database_url="postgresql://u:pw@localhost/db")
     text = " ".join(production_config_problems(s, [], cors_env_set=False))
     assert "hf_secret_should_not_print" not in text and "admin_secret_value" not in text and "pw" not in text
+
+
+def test_missing_mobile_app_origins_are_reported():
+    s = Settings(_env_file=None, environment="production", hf_token=SecretStr("hf_x"),
+                 admin_api_key="k" * 32, database_url="postgresql://u:p@db:5432/db",
+                 qdrant_host="qdrant", redis_url="redis://redis:6379/0")
+    def mobile(origins):
+        return [p for p in production_config_problems(s, origins, cors_env_set=True) if "mobile app origins" in p]
+
+    (both,) = mobile(["https://app.example"])
+    assert "capacitor://localhost" in both and "https://localhost" in both
+
+    (android,) = mobile(["https://app.example", "capacitor://localhost"])
+    assert "https://localhost" in android and "capacitor://" not in android
+
+    assert mobile(["https://app.example", "capacitor://localhost", "https://localhost"]) == []
+
+
+def test_mobile_origin_check_is_production_only():
+    s = Settings(_env_file=None, environment="development")
+    assert production_config_problems(s, ["http://localhost:19300"], cors_env_set=False) == []

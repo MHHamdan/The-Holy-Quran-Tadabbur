@@ -35,7 +35,8 @@ x-backend-env: &backend-env
   SURREAL_HOST: surrealdb
   SURREAL_PORT: "8000"
   SURREAL_USER: ${SURREAL_USER:-tadabbur}
-  SURREAL_PASS: ${SURREAL_PASS:?SURREAL_PASS must be set}
+  # Only needed with the optional `kg` profile (knowledge-graph explorer).
+  SURREAL_PASS: ${SURREAL_PASS:-}
   SURREAL_NAMESPACE: tadabbur
   SURREAL_DATABASE: quran_kg
   # Hugging Face Inference Providers: the only AI platform. Server-side secret.
@@ -101,13 +102,23 @@ services:
       resources:
         limits: { cpus: "0.5", memory: 384M }
 
+  # Optional knowledge graph (only the opt-in KG view of the story atlas uses
+  # it; /api/v1/kg and /api/v1/graph answer 503 without it). Enable with
+  # `--profile kg` and a strong SURREAL_PASS.
   surrealdb:
     image: surrealdb/surrealdb:v1.5.0
+    profiles: [kg]
     <<: [*restart, *logging, *hardening]
     # Persistent RocksDB storage (the knowledge graph survives restarts). The
     # image's non-root user cannot write a fresh named volume, hence root.
     user: root
-    command: ["start", "--log", "info", "--user", "${SURREAL_USER:-tadabbur}", "--pass", "${SURREAL_PASS:?SURREAL_PASS must be set}", "file:/data/surreal.db"]
+    # Root credentials come from the environment (`surreal start` reads
+    # SURREAL_USER / SURREAL_PASS), never from argv, where `docker inspect`
+    # and the process list would show the password.
+    environment:
+      SURREAL_USER: ${SURREAL_USER:-tadabbur}
+      SURREAL_PASS: ${SURREAL_PASS:-}
+    command: ["start", "--log", "info", "file:/data/surreal.db"]
     volumes:
       - surreal_data:/data
     healthcheck:
@@ -169,8 +180,6 @@ services:
       qdrant:
         condition: service_healthy
       redis:
-        condition: service_healthy
-      surrealdb:
         condition: service_healthy
     deploy:
       resources:
