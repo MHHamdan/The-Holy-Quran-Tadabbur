@@ -4,6 +4,7 @@ import { ArrowLeft, Plane, MapPin, CheckCircle2, Circle, Info, ChevronDown, Chev
 import { useLanguageStore } from '../../stores/languageStore';
 import clsx from 'clsx';
 import { quranExcerpt } from '../../utils/quranExcerpt';
+import { QuranTextAttribution } from '../../components/quran/QuranTextAttribution';
 
 interface Ritual {
   id: string;
@@ -456,7 +457,7 @@ function RitualCard({
                 <Info className="w-4 h-4" />
                 {isArabic ? 'الدعاء' : 'Dua'}
               </h4>
-              <p className="text-lg text-gray-900 font-arabic leading-loose" dir="rtl">
+              <p className="text-lg text-gray-900 font-arabic leading-loose" dir="rtl" lang="ar">
                 {ritual.dua_ar}
               </p>
               {ritual.dua_en && (
@@ -464,6 +465,8 @@ function RitualCard({
                   {ritual.dua_en}
                 </p>
               )}
+              {/* Some rituals quote the Qur'an (generated Tanzil excerpts) */}
+              <QuranTextAttribution language={isArabic ? 'ar' : 'en'} className="mt-2" />
             </div>
           )}
 

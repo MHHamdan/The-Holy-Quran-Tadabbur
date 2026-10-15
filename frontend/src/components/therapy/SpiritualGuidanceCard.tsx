@@ -5,6 +5,7 @@ import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import type { GuidanceCard } from '../../types/therapy';
 import { QuranAudioPlayer } from '../quran/QuranAudioPlayer';
+import { QuranTextAttribution } from '../quran/QuranTextAttribution';
 import { getSurahName } from '../../data/surahNames';
 import clsx from 'clsx';
 
@@ -70,13 +71,15 @@ export function SpiritualGuidanceCard({ card, index }: SpiritualGuidanceCardProp
         </div>
         <p
           dir="rtl"
+          lang="ar"
           className="font-arabic text-right text-xl leading-loose text-gray-900 mb-2"
         >
           {card.text_uthmani}
         </p>
-        <p dir={isRtl ? 'rtl' : 'ltr'} className={clsx('text-sm text-gray-500 italic mb-3', isRtl && 'font-arabic')}>
-          {isRtl ? card.surah_name_ar : card.surah_name_en} ({card.reference})
+        <p dir={isRtl ? 'rtl' : 'ltr'} className={clsx('text-sm text-gray-500 mb-1', isRtl && 'font-arabic')}>
+          {isRtl ? card.surah_name_ar : card.surah_name_en} (<bdi dir="ltr">{card.reference}</bdi>)
         </p>
+        <QuranTextAttribution language={language} className="mb-3" />
         {/* Compact audio player for verse recitation */}
         <QuranAudioPlayer
           mode="verse"

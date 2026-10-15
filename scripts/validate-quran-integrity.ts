@@ -17,7 +17,7 @@
  *   1 = one or more checks failed
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
 import { spawnSync } from 'child_process';
 import { QURANIC_DUAS } from '../frontend/src/data/quranicDuas';
 import { CONFUSION_PAIRS, REPEATED_PHRASES } from '../frontend/src/data/quranMemorizationLinks';
@@ -665,6 +665,66 @@ function checkMemorizationPhrases(ayahs: QuranAyah[]): CheckResult {
 }
 
 // ---------------------------------------------------------------------------
+// Attribution: every view that renders Qur'an text credits Tanzil
+// ---------------------------------------------------------------------------
+
+/** Signs that a component renders Qur'an text. */
+const VERSE_TEXT_PATTERN = /\b(text_uthmani|ayahTextUthmani|firstAyahPreview|lastAyahPreview|ayatUthmani|verseTextFor)\b|quranExcerpt\(/;
+/** Ways a component satisfies the Tanzil attribution requirement. */
+const ATTRIBUTION_PATTERN = /<QuranTextAttribution\b|<LiveVerse\b/;
+
+/**
+ * Views fixed so far: a regression here is an error. Other views are reported
+ * as warnings until their owners add the attribution; move them here then.
+ */
+const ATTRIBUTION_ENFORCED = new Set([
+  'frontend/src/components/home/VerseOfDayCard.tsx',
+  'frontend/src/components/home/WordOfDayCard.tsx',
+  'frontend/src/components/therapy/IslamicPillarsPanel.tsx',
+  'frontend/src/components/therapy/SpiritualGuidanceCard.tsx',
+  'frontend/src/components/therapy/RuqyahGuide.tsx',
+  'frontend/src/pages/DuasPage.tsx',
+  'frontend/src/pages/DhikrPage.tsx',
+  'frontend/src/pages/EmotionalGuidancePage.tsx',
+  'frontend/src/pages/MemorizationLinksPage.tsx',
+  'frontend/src/pages/QuranWondersPage.tsx',
+  'frontend/src/pages/TherapyPage.tsx',
+  'frontend/src/pages/tools/SurahMemoryAtlasPage.tsx',
+  'frontend/src/pages/tools/HajjUmrahGuidePage.tsx',
+  'frontend/src/components/quran/LiveVerse.tsx',
+  'frontend/src/components/quran/QuranTextAttribution.tsx',
+]);
+
+function listTsx(dir: string, out: string[] = []): string[] {
+  for (const name of readdirSync(dir)) {
+    if (name === 'node_modules') continue;
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) listTsx(p, out);
+    else if (p.endsWith('.tsx')) out.push(p);
+  }
+  return out;
+}
+
+function checkQuranAttribution(): CheckResult {
+  return check('Views that render Qur\'an text show the Tanzil attribution', () => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const missing: string[] = [];
+    for (const file of listTsx(join(ROOT, 'frontend/src'))) {
+      const rel = file.slice(ROOT.length + 1);
+      const src = readFileSync(file, 'utf-8');
+      if (!VERSE_TEXT_PATTERN.test(src) || ATTRIBUTION_PATTERN.test(src)) continue;
+      if (ATTRIBUTION_ENFORCED.has(rel)) errors.push(`${rel}: renders Qur'an text without QuranTextAttribution`);
+      else missing.push(rel);
+    }
+    if (missing.length > 0) {
+      warnings.push(`${missing.length} view(s) render Qur'an text without attribution (owned by other workstreams): ${missing.join(', ')}`);
+    }
+    return { errors, warnings };
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Qur'an excerpts: generated file matches the canonical text
 // ---------------------------------------------------------------------------
 
@@ -758,8 +818,9 @@ async function main() {
     });
   }
 
-  // --- Generated Qur'an excerpts ---
+  // --- Generated Qur'an excerpts and their attribution ---
   results.push(checkQuranExcerptsCurrent());
+  results.push(checkQuranAttribution());
 
   // --- Source registry checks ---
   results.push(checkSourceRegistryRequiredFields());
