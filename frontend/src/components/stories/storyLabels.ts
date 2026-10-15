@@ -66,6 +66,8 @@ const LEGACY_TAFSIR_LABELS: Record<string, Bilingual> = {
   muyassar: { ar: 'التفسير الميسر', en: 'Al-Tafsir al-Muyassar' },
   muyassar_ar: { ar: 'التفسير الميسر', en: 'Al-Tafsir al-Muyassar' },
   jalalayn_en: { ar: 'تفسير الجلالين', en: 'Tafsir al-Jalalayn' },
+  qac_corpus: { ar: 'مدوّنة القرآن العربية', en: 'Quranic Arabic Corpus' },
+  lane_lexicon: { ar: 'معجم لين', en: "Lane's Lexicon" },
 };
 
 /**

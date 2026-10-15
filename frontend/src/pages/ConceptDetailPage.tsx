@@ -39,6 +39,7 @@ import { ErrorPanel, parseAPIError, DataIncompleteNotice, APIErrorData, ConceptD
 import clsx from 'clsx';
 import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import { ProvenanceLabel } from '../components/common/ProvenanceLabel';
+import { storyTitle } from '../components/stories/storyLabels';
 
 // Enhanced type configuration with gradients
 const TYPE_CONFIG: Record<string, {
@@ -822,7 +823,7 @@ function OccurrenceItem({
           "flex-shrink-0 text-sm font-bold px-3 py-1.5 rounded-lg min-w-[70px] text-center",
           "bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-100"
         )}>
-          {occurrence.verse_reference || occurrence.ref_id || '-'}
+          {occurrence.verse_reference || (occurrence.ref_type === 'story' && occurrence.ref_id ? storyTitle(occurrence.ref_id, language) : '-')}
         </div>
 
         {/* Content Area */}
