@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Loader2, ArrowLeft, AlertCircle, BookOpen, Layers } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
+import { toUserWarnings } from '../utils/userWarnings';
 import {
   asmaApi,
   type AsmaDetailResponse,
@@ -142,10 +143,10 @@ export function AsmaAllahDetailPage() {
         </div>
 
         {/* Warnings */}
-        {detail.warnings.length > 0 && (
-          <ul className="mt-3 text-xs text-amber-800 list-disc list-inside space-y-0.5">
-            {detail.warnings.map((w, i) => (
-              <li key={i}>{w}</li>
+        {toUserWarnings(detail.warnings, language === 'ar' ? 'ar' : 'en').length > 0 && (
+          <ul className={`mt-3 text-xs text-amber-800 list-disc list-inside space-y-0.5${language === 'ar' ? ' font-arabic' : ''}`} dir={dir}>
+            {toUserWarnings(detail.warnings, language === 'ar' ? 'ar' : 'en').map((w) => (
+              <li key={w.code + w.text}>{w.text}</li>
             ))}
           </ul>
         )}

@@ -188,7 +188,7 @@ export const LEARNING_PATHS: Record<Persona, LearningPath> = {
           { id: 'res_m2_1', labelEn: 'Explore the verse similarity engine (RRF hybrid)', labelAr: 'استكشف محرك تشابه الآيات (هجين RRF)', route: '/similarity', type: 'explore' },
           { id: 'res_m2_2', labelEn: 'Map concepts across multiple surahs', labelAr: 'خرّط مفاهيم عبر سور متعددة', route: '/concepts', type: 'explore' },
           { id: 'res_m2_3', labelEn: 'Search semantically for a theological term', labelAr: 'ابحث دلالياً عن مصطلح عقدي', route: '/search', type: 'practice' },
-          { id: 'res_m2_4', labelEn: 'Read the story atlas connections graph', labelAr: 'اقرأ مخطط روابط أطلس القصص', route: '/story-atlas/connections', type: 'explore' },
+          { id: 'res_m2_4', labelEn: 'Browse Quran stories by the people and places in them', labelAr: 'تصفّح قصص القرآن حسب الشخصيات والأماكن', route: '/stories', type: 'explore' },
         ],
       },
       {
@@ -311,7 +311,7 @@ export const LEARNING_PATHS: Record<Persona, LearningPath> = {
         estimatedDaysAr: '٣٠ يوماً',
         steps: [
           { id: 'ar_m3_1', labelEn: 'Complete Juz 30 reading in Mushaf', labelAr: 'أكمل قراءة الجزء الثلاثين في المصحف', route: '/mushaf', type: 'read' },
-          { id: 'ar_m3_2', labelEn: 'Practice Tasmeeʿ (oral recitation check)', labelAr: 'مارس التسميع (فحص التلاوة الشفهية)', route: '/tasmee', type: 'memorize' },
+          { id: 'ar_m3_2', labelEn: 'Practice Tasmeeʿ (automatic recitation check; it can make mistakes)', labelAr: 'مارس التسميع (فحص آلي للتلاوة وقد يخطئ)', route: '/tasmee', type: 'memorize' },
           { id: 'ar_m3_3', labelEn: 'Try the memorization tools', labelAr: 'جرّب أدوات التحفيظ', route: '/memorization', type: 'memorize' },
         ],
       },
@@ -338,7 +338,7 @@ export const LEARNING_PATHS: Record<Persona, LearningPath> = {
         steps: [
           { id: 'mem_m1_1', labelEn: 'Set a Khatmah or memorization target date', labelAr: 'حدد تاريخاً لختمة القرآن أو الحفظ', route: '/reading-plan', type: 'practice' },
           { id: 'mem_m1_2', labelEn: 'Explore the Memorization Intelligence tools', labelAr: 'استكشف أدوات ذكاء الحفظ', route: '/memorization', type: 'explore' },
-          { id: 'mem_m1_3', labelEn: 'Try Tasmeeʿ (recite & get corrected by AI)', labelAr: 'جرّب التسميع (تلاوة مع تصحيح الذكاء)', route: '/tasmee', type: 'memorize' },
+          { id: 'mem_m1_3', labelEn: 'Try Tasmeeʿ (recite and compare with the text automatically; it can make mistakes)', labelAr: 'جرّب التسميع (تلاوة ومقارنة آلية بالنص، وقد تخطئ)', route: '/tasmee', type: 'memorize' },
           { id: 'mem_m1_4', labelEn: 'Build your reading streak', labelAr: 'ابنِ سلسلتك اليومية', route: '/', type: 'practice' },
         ],
       },

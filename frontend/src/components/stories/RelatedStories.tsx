@@ -10,9 +10,13 @@
  */
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Network, ArrowRight, Users, Tag } from 'lucide-react';
+import { Network, ArrowRight, Users, Tag, BookOpen } from 'lucide-react';
 import { storiesApi, CrossStoryConnection, Story } from '../../lib/api';
 import { Language, translateTheme, translateFigure } from '../../i18n/translations';
+import { ProvenanceLabel } from '../common/ProvenanceLabel';
+
+/** API also returns the verse refs the connection cites ("S:A-B"). */
+type ConnectionWithRefs = CrossStoryConnection & { verse_refs?: string[] };
 
 interface RelatedStoriesProps {
   storyId: string;
@@ -34,8 +38,7 @@ function translateConnectionType(type: string, language: Language): string {
   const trans = CONNECTION_TYPE_TRANSLATIONS[type];
   if (trans) return trans[language];
   // Fallback: show type as-is, but mark as untranslated in Arabic mode
-  const formatted = type.replace(/_/g, ' ');
-  return language === 'ar' ? `[${formatted}]` : formatted;
+  return language === 'ar' ? 'صلة' : 'Related';
 }
 
 export function RelatedStories({ storyId, storyName, language }: RelatedStoriesProps) {
@@ -115,16 +118,13 @@ export function RelatedStories({ storyId, storyName, language }: RelatedStoriesP
     storyConnections.get(relatedId)!.push(conn);
   });
 
-  // Sort by strongest connection
-  const sortedStories = Array.from(storyConnections.entries()).sort((a, b) => {
-    const maxA = Math.max(...a[1].map(c => c.strength));
-    const maxB = Math.max(...b[1].map(c => c.strength));
-    return maxB - maxA;
-  });
+  // Keep the API order; strength is a seeded constant (0.6/0.8), not a
+  // measured score, so it is neither shown nor used for ranking.
+  const sortedStories = Array.from(storyConnections.entries());
 
   return (
     <div className="card">
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
         <Network className="w-5 h-5 text-primary-600" />
         <h3 className="text-lg font-semibold">
           {isArabic ? 'قصص متصلة' : 'Related Stories'}
@@ -132,12 +132,13 @@ export function RelatedStories({ storyId, storyName, language }: RelatedStoriesP
         <span className="text-sm text-gray-500">
           ({sortedStories.length})
         </span>
+        <ProvenanceLabel kind="analytical" status="needs_review" language={language} />
       </div>
 
       <p className="text-sm text-gray-500 mb-4">
         {isArabic
-          ? `قصص مرتبطة بـ "${storyName}" من خلال المواضيع أو الشخصيات المشتركة`
-          : `Stories connected to "${storyName}" through shared themes or figures`}
+          ? `قصص مرتبطة بـ "${storyName}" من خلال المواضيع أو الشخصيات المشتركة. هذه الروابط اقتراحات للتأمل وليست تفسيرًا.`
+          : `Stories connected to "${storyName}" through shared themes or figures. These links are suggestions for reflection, not tafsir.`}
       </p>
 
       <div className="space-y-3">
@@ -146,46 +147,70 @@ export function RelatedStories({ storyId, storyName, language }: RelatedStoriesP
           if (!story) return null;
 
           const storyLabel = isArabic ? story.name_ar : story.name_en;
-          const strongestConn = conns.reduce((a, b) =>
-            a.strength > b.strength ? a : b
-          );
+          const primary = conns[0];
 
-          // Gather all shared themes and figures
+          // Gather all shared themes, figures and cited verse references
           const allThemes = new Set<string>();
           const allFigures = new Set<string>();
+          const verseRefs = new Set<string>();
           conns.forEach(conn => {
             conn.shared_themes?.forEach(t => allThemes.add(t));
             conn.shared_figures?.forEach(f => allFigures.add(f));
+            (conn as ConnectionWithRefs).verse_refs?.forEach(r => verseRefs.add(r));
           });
+          const label = isArabic ? primary.label_ar : primary.label_en;
 
           return (
-            <Link
+            <div
               key={relatedStoryId}
-              to={`/stories/${relatedStoryId}`}
-              className="block p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50/50 transition-all group"
+              className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 transition-all"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-gray-900 group-hover:text-primary-700">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <Link
+                      to={`/stories/${relatedStoryId}`}
+                      className="font-semibold text-gray-900 hover:text-primary-700"
+                    >
                       {storyLabel}
-                    </span>
+                    </Link>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full ${
-                        strongestConn.connection_type === 'continuation'
+                        primary.connection_type === 'continuation'
                           ? 'bg-green-100 text-green-700'
                           : 'bg-purple-100 text-purple-700'
                       }`}
                     >
-                      {translateConnectionType(strongestConn.connection_type, language)}
+                      {translateConnectionType(primary.connection_type, language)}
                     </span>
                   </div>
 
                   {/* Connection explanation */}
-                  {(isArabic ? strongestConn.label_ar : strongestConn.label_en) && (
-                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                      {isArabic ? strongestConn.label_ar : strongestConn.label_en}
+                  {label && (
+                    <p className="text-sm text-gray-600 mb-2 line-clamp-2" dir={isArabic ? 'rtl' : 'ltr'}>
+                      {label}
                     </p>
+                  )}
+
+                  {/* Cited verses */}
+                  {verseRefs.size > 0 && (
+                    <div className="flex flex-wrap items-center gap-1 mb-1">
+                      <BookOpen className="w-3 h-3 text-gray-400" />
+                      {Array.from(verseRefs).map((ref) => {
+                        const [s, range] = ref.split(':');
+                        const a = (range || '').split('-')[0];
+                        return (
+                          <Link
+                            key={ref}
+                            to={`/quran/${s}?aya=${a}`}
+                            className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full hover:bg-primary-100"
+                            dir="ltr"
+                          >
+                            {ref}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   )}
 
                   {/* Shared themes */}
@@ -216,35 +241,15 @@ export function RelatedStories({ storyId, storyName, language }: RelatedStoriesP
                   )}
                 </div>
 
-                <ArrowRight className={`w-5 h-5 text-gray-400 group-hover:text-primary-600 flex-shrink-0 ${
-                  isArabic ? 'rotate-180' : ''
-                }`} />
+                <Link to={`/stories/${relatedStoryId}`} aria-label={storyLabel}>
+                  <ArrowRight className={`w-5 h-5 text-gray-400 hover:text-primary-600 flex-shrink-0 ${
+                    isArabic ? 'rotate-180' : ''
+                  }`} />
+                </Link>
               </div>
-
-              {/* Strength indicator */}
-              <div className="mt-2 flex items-center gap-2">
-                <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary-500 rounded-full transition-all"
-                    style={{ width: `${strongestConn.strength * 100}%` }}
-                  />
-                </div>
-                <span className="text-xs text-gray-400">
-                  {Math.round(strongestConn.strength * 100)}%
-                </span>
-              </div>
-            </Link>
+            </div>
           );
         })}
-      </div>
-
-      {/* View all connections link */}
-      <div className="mt-4 pt-4 border-t border-gray-100 text-center">
-        <span className="text-sm text-gray-500">
-          {isArabic
-            ? 'استكشف المزيد من الروابط في أطلس القصص'
-            : 'Explore more connections in Story Atlas'}
-        </span>
       </div>
     </div>
   );

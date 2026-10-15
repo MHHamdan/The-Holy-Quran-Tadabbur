@@ -302,6 +302,7 @@ export function StoryGraphView({
   const [selectedNode, setSelectedNode] = useState<StoryGraphNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<{ node: StoryGraphNode; x: number; y: number } | null>(null);
   const [memorizationStep, setMemorizationStep] = useState(0);
+  const [legendOpen, setLegendOpen] = useState(false);
   const [totalSteps, setTotalSteps] = useState(0);
   const [containerReady, setContainerReady] = useState(false);
 
@@ -894,14 +895,21 @@ export function StoryGraphView({
         </div>
       )}
 
-      {/* Legend */}
+      {/* Legend — collapsed by default so it never covers the nodes; it
+          opens as a small panel on demand. */}
       <div
-        className={`absolute bottom-4 ${isArabic ? 'right-4' : 'left-4'} bg-white rounded-lg shadow-md p-3 text-xs z-10`}
+        className={`absolute bottom-4 ${isArabic ? 'right-4' : 'left-4'} bg-white rounded-lg shadow-md text-xs z-10 ${legendOpen ? 'p-3' : 'p-0'}`}
         dir={isArabic ? 'rtl' : 'ltr'}
       >
-        <div className="font-medium mb-2 text-gray-700">
-          {isArabic ? 'مفتاح الألوان' : 'Legend'}
-        </div>
+        <button
+          type="button"
+          onClick={() => setLegendOpen((o) => !o)}
+          aria-expanded={legendOpen}
+          className={`font-medium text-gray-700 ${legendOpen ? 'mb-2' : 'px-3 py-2'}`}
+        >
+          {isArabic ? 'مفتاح الألوان' : 'Legend'} {legendOpen ? '▾' : '▸'}
+        </button>
+        {legendOpen && (<>
 
         {/* Edge Types */}
         <div className="space-y-1.5 mb-3">
@@ -944,6 +952,7 @@ export function StoryGraphView({
             <span>{isArabic ? 'تأمل' : 'Reflection'}</span>
           </div>
         </div>
+        </>)}
       </div>
 
       {/* Zoom controls */}

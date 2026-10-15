@@ -1,11 +1,13 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
+import { getRegistry } from '../utils/storyRegistryAdapter';
 import { ArrowLeft, Book, Users, MapPin, Clock, Network, List, Tag, ChevronDown, ChevronUp, Database, Lightbulb } from 'lucide-react';
 import { useLanguageStore } from '../stores/languageStore';
 import { storyAtlasApi, kgApi, StoryClusterDetail, StoryAtlasEvent, AtlasGraphResponse, RelatedCluster, KGClusterResponse, KGStoryGraphResponse, KGEventSummary } from '../lib/api';
 import { translateTag, translateFigure, Language } from '../i18n/translations';
 import clsx from 'clsx';
+import { sourceLabel } from '../components/stories/storyLabels';
 
 const StoryGraphView = lazy(() => import('../components/stories/StoryGraphView'));
 
@@ -208,11 +210,21 @@ export function StoryAtlasDetailPage() {
     );
   }
 
+  // Legacy clusters without events (29 of 37) are not served any more; send
+  // the reader to the matching registry story instead of an empty page.
+  const loadedEvents = useKG && kgCluster ? kgCluster.events : cluster?.events;
+  if (!loadedEvents || loadedEvents.length === 0) {
+    const storyId = clusterId ? `story_${clusterId.replace(/^cluster_/, '')}` : '';
+    if (storyId && getRegistry().stories.some((s) => s.storyId === storyId)) {
+      return <Navigate to={`/stories/${storyId}`} replace />;
+    }
+  }
+
   if (!cluster && !kgCluster) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 text-center">
         <p className="text-gray-500">{isArabic ? 'القصة غير موجودة' : 'Story not found'}</p>
-        <Link to="/story-atlas" className="text-primary-600 hover:underline mt-4 inline-block">
+        <Link to="/stories" className="text-primary-600 hover:underline mt-4 inline-block">
           {isArabic ? 'العودة للأطلس' : 'Back to Atlas'}
         </Link>
       </div>
@@ -365,7 +377,8 @@ export function StoryAtlasDetailPage() {
           <button
             onClick={() => setViewMode('graph')}
             className={clsx(
-              'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
+              // Graph is unreadable on phones: offered from 640px up only.
+              'hidden sm:flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
               viewMode === 'graph'
                 ? 'bg-white shadow text-primary-600'
                 : 'text-gray-600 hover:text-gray-900'
@@ -636,17 +649,32 @@ function EventCard({
           {event.evidence && event.evidence.length > 0 && (
             <div>
               <h4 className="text-sm font-medium text-gray-700 mb-1">
-                {isArabic ? 'المصادر' : 'Evidence'}
+                {isArabic ? 'في كتب التفسير' : 'In tafsir'}
               </h4>
-              <div className="space-y-2">
-                {event.evidence.slice(0, 2).map((ev: any, i: number) => (
-                  <div key={i} className="text-xs bg-gray-50 p-2 rounded">
-                    <span className="font-medium text-gray-700">{ev.source_id || (isArabic ? 'مصدر' : 'Source')}</span>
-                    {ev.snippet && (
-                      <p className="text-gray-600 mt-1 line-clamp-2">{ev.snippet}</p>
-                    )}
-                  </div>
-                ))}
+              {/* Source titles only, with a link to read the tafsir of the
+                  passage. The old "snippet" strings were paraphrased ayah
+                  translations misattributed to Ibn Kathir and are never shown. */}
+              <div className="flex flex-wrap gap-1.5">
+                {Array.from(
+                  new Set(
+                    (event.evidence as Array<{ source_id?: string }>)
+                      .map((ev) => ev.source_id)
+                      .filter((id): id is string => !!id),
+                  ),
+                )
+                  .map((id) => ({ id, label: sourceLabel(id, language) }))
+                  .filter((s): s is { id: string; label: string } => !!s.label)
+                  .map(({ id, label }) => (
+                    <span key={id} className="text-xs bg-gray-50 border border-gray-200 text-gray-700 px-2 py-0.5 rounded" dir={isArabic ? 'rtl' : 'ltr'}>
+                      {label}
+                    </span>
+                  ))}
+                <Link
+                  to={`/tafsir/compare/${event.sura_no}/${event.aya_start}`}
+                  className="text-xs text-primary-600 hover:text-primary-800 font-medium px-1 py-0.5"
+                >
+                  {isArabic ? 'اقرأ التفسير' : 'Read tafsir'} →
+                </Link>
               </div>
             </div>
           )}

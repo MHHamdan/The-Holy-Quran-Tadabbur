@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-10-15T00:04:42.613Z",
+  "generatedAt": "2026-10-15T00:37:28.729Z",
   "nodeCount": 967,
   "edgeCount": 1873,
   "nodes": [
@@ -3930,51 +3930,51 @@
       "metadata": {
         "chronologyType": "story_world",
         "orderIndex": 1,
-        "certainty": "high"
+        "certainty": "low"
       }
     },
     {
       "id": "chronology_group:chrono_antediluvian",
       "type": "chronology_group",
-      "labelArabic": "ما قبل الطوفان — إدريس ونوح عليهما السلام",
-      "labelEnglish": "Antediluvian — Idris and Nuh.",
+      "labelArabic": "ما قبل الطوفان — إدريس ونوح عليهما السلام. ترتيب إدريس بين الأنبياء محل خلاف بين العلماء؛ يحتاج مراجعة.",
+      "labelEnglish": "Antediluvian — Idris and Nuh. Idris's place in the order differs among scholars; needs review.",
       "metadata": {
         "chronologyType": "story_world",
         "orderIndex": 2,
-        "certainty": "high"
+        "certainty": "disputed"
       }
     },
     {
       "id": "chronology_group:chrono_ancient_arabia",
       "type": "chronology_group",
-      "labelArabic": "الأنبياء في جزيرة العرب القديمة — هود وصالح وشعيب",
-      "labelEnglish": "Ancient Arabian prophets — Hud, Salih, Shuayb.",
+      "labelArabic": "الأنبياء في جزيرة العرب القديمة — هود وصالح وشعيب. ترتيب هود وصالح وشعيب بالنسبة لإبراهيم ولوط محل خلاف. يحتاج مراجعة.",
+      "labelEnglish": "Ancient Arabian prophets — Hud, Salih, Shuayb. The order of Hud, Salih and Shuayb relative to Ibrahim and Lut differs among scholars; needs review.",
       "metadata": {
         "chronologyType": "story_world",
         "orderIndex": 3,
-        "certainty": "medium"
+        "certainty": "disputed"
       }
     },
     {
       "id": "chronology_group:chrono_patriarchs",
       "type": "chronology_group",
-      "labelArabic": "عصر الآباء — إبراهيم ولوط وإسماعيل وإسحاق ويعقوب ويوسف وأيوب وذو الكفل",
-      "labelEnglish": "Patriarchs — Ibrahim, Lut, Ismail, Ishaq, Yaqub, Yusuf, Ayyub, Dhul-Kifl.",
+      "labelArabic": "عصر الآباء — إبراهيم ولوط وإسماعيل وإسحاق ويعقوب ويوسف وأيوب وذو الكفل. موضع أيوب وذي الكفل في هذه المرحلة محل خلاف؛ يحتاج مراجعة.",
+      "labelEnglish": "Patriarchs — Ibrahim, Lut, Ismail, Ishaq, Yaqub, Yusuf, Ayyub, Dhul-Kifl. The placement of Ayyub and Dhul-Kifl in this band differs among scholars; needs review.",
       "metadata": {
         "chronologyType": "story_world",
         "orderIndex": 4,
-        "certainty": "high"
+        "certainty": "disputed"
       }
     },
     {
       "id": "chronology_group:chrono_israelite",
       "type": "chronology_group",
-      "labelArabic": "بنو إسرائيل — موسى وهارون ويونس",
-      "labelEnglish": "Israelite era — Musa, Harun, Yunus.",
+      "labelArabic": "بنو إسرائيل — موسى وهارون ويونس. موضع يونس في هذه المرحلة محل خلاف؛ يحتاج مراجعة.",
+      "labelEnglish": "Israelite era — Musa, Harun, Yunus. Yunus's placement in this band differs among scholars; needs review.",
       "metadata": {
         "chronologyType": "story_world",
         "orderIndex": 5,
-        "certainty": "high"
+        "certainty": "disputed"
       }
     },
     {
@@ -3985,7 +3985,7 @@
       "metadata": {
         "chronologyType": "story_world",
         "orderIndex": 6,
-        "certainty": "high"
+        "certainty": "low"
       }
     },
     {
@@ -3996,7 +3996,7 @@
       "metadata": {
         "chronologyType": "story_world",
         "orderIndex": 7,
-        "certainty": "high"
+        "certainty": "low"
       }
     },
     {
@@ -4007,7 +4007,7 @@
       "metadata": {
         "chronologyType": "story_world",
         "orderIndex": 8,
-        "certainty": "high"
+        "certainty": "low"
       }
     },
     {

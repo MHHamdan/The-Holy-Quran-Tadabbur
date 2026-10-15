@@ -4,6 +4,8 @@
  *
  * Checks:
  *   - Every story-world entry has sourceIds OR certainty == disputed.
+ *   - Story-world certainty above low/disputed requires an ayahRef or a
+ *     tafsir chunk id for the ordering itself.
  *   - Every revelation-order entry has at least one sourceId OR certainty
  *     == disputed.
  *   - No revelation-order entry is `reviewStatus: 'verified'` (those require
@@ -44,6 +46,17 @@ for (const c of STORY_WORLD_CHRONOLOGY) {
   }
   if (c.reviewStatus === 'verified') {
     err(`Story-world entry ${c.itemId}: verified status must come from reviewer workflow, not seed file`);
+  }
+  // A story-world band's ORDER is only as certain as its evidence. Generic
+  // sourceIds (a whole tafsir work) are not evidence for an ordering, so any
+  // certainty above 'low' / 'disputed' needs an ayah reference or a tafsir
+  // chunk id for that ordering.
+  const ext = c as typeof c & { ayahRefs?: string[]; evidenceChunkIds?: string[] };
+  const hasOrderEvidence = (ext.ayahRefs?.length ?? 0) > 0 || (ext.evidenceChunkIds?.length ?? 0) > 0;
+  if (c.certainty !== 'low' && c.certainty !== 'disputed' && !hasOrderEvidence) {
+    err(
+      `Story-world entry ${c.itemId}: certainty '${c.certainty}' without an ayahRef or tafsir chunk id — use 'low' or 'disputed'`,
+    );
   }
   // Arabic notes length
   if (c.notesArabic && c.notesArabic.length > 200) {

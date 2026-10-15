@@ -91,7 +91,7 @@ export function WhereElseMentionedPanel({ entityId, storyId, maxSurahs = 8 }: Pr
         {surahFirstAyah.size > maxSurahs && (
           <li>
             <Link
-              to="/story-atlas/connections"
+              to="/stories"
               className="text-xs text-emerald-700 underline px-2 py-1"
             >
               +{surahFirstAyah.size - maxSurahs} {isArabic ? 'سور أخرى' : 'more surahs'}
