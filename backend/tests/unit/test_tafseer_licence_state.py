@@ -78,6 +78,7 @@ def test_manifest_enabled_ids_have_verified_licences():
 
 
 @pytest.mark.asyncio
+@pytest.mark.requires_data("tafsir:2:255")
 async def test_migration_removes_english_from_compare_and_rag_sources():
     from app.db import database
     from app.services.tafsir_comparison import tafsir_comparison_service

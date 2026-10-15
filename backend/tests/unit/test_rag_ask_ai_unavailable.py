@@ -51,6 +51,7 @@ async def _ask(client, question, language="en"):
     return r.status_code, r.json()
 
 
+@pytest.mark.requires_data("tafsir:2:255")
 async def test_verse_lookup_needs_no_llm(client):
     status, body = await _ask(client, "ما تفسير آية الكرسي", "ar")
     if body.get("status") == "no_verified_source" and not body.get("evidence"):
