@@ -99,6 +99,16 @@ const MAKKAH_LOCATION: Location = {
   source: 'makkah',
 };
 
+/**
+ * Qibla bearing for the user's own position, or null when there is none.
+ * The Makkah stand-in is not the user's position (and sits on the Kaaba, where
+ * the bearing is numerical noise), so it never yields a Qibla direction.
+ */
+export function qiblaForLocation(location: Location | null): number | null {
+  if (!location || location.source === 'makkah') return null;
+  return qiblaBearing(location.lat, location.lng);
+}
+
 /** Minutes since local midnight at the prayer-times location (falls back to device time). */
 export function minutesInTimeZone(now: Date, timeZone: string | undefined): number {
   if (timeZone) {
@@ -133,7 +143,7 @@ function usePrayerTimes(
 
     const prayerResponse = await getPrayerTimes(location.lat, location.lng, method, date);
     // Computed locally: no network round trip, and it works offline.
-    return { prayerData: prayerResponse, qiblaDirection: qiblaBearing(location.lat, location.lng) };
+    return { prayerData: prayerResponse, qiblaDirection: qiblaForLocation(location) };
   }, [location, method, date]);
 
   const { execute, isPending, isError, data, error, reset } = useAsync(fetchPrayerData, {
@@ -861,8 +871,8 @@ function PrayerTimesPageContent() {
         >
           <p className="text-sm text-gray-800 flex-1 basis-48">
             {isArabic
-              ? 'تُعرض أوقات مكة المكرمة واتجاه القبلة منها إلى أن تختار موقعك.'
-              : 'Showing Makkah times until you choose your location.'}
+              ? 'تُعرض أوقات الصلاة في مكة المكرمة إلى أن تختار موقعك، ولا يُعرض اتجاه القبلة.'
+              : 'Showing Makkah prayer times until you choose your location; the Qibla direction is not shown.'}
           </p>
           <button
             type="button"
@@ -905,8 +915,20 @@ function PrayerTimesPageContent() {
           />
 
           {/* Qibla Direction */}
-          {qiblaDirection !== null && (
-            <QiblaCompass bearing={qiblaDirection} isArabic={isArabic} />
+          {location?.source === 'makkah' ? (
+            <p
+              data-testid="qibla-needs-location"
+              dir={isArabic ? 'rtl' : 'ltr'}
+              className="mb-6 p-3 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-xl"
+            >
+              {isArabic
+                ? 'اختر مدينتك أو استخدم موقعك لمعرفة اتجاه القبلة.'
+                : 'Choose your city or use your location to see the Qibla direction.'}
+            </p>
+          ) : (
+            qiblaDirection !== null && (
+              <QiblaCompass bearing={qiblaDirection} isArabic={isArabic} />
+            )
           )}
 
           {/* Prayer Times Grid */}
