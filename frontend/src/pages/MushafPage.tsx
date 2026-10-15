@@ -40,6 +40,7 @@ import {
   Bookmark,
   BookmarkCheck,
   Share2,
+  WifiOff,
 } from 'lucide-react';
 import { useBookmarksStore } from '../stores/bookmarksStore';
 import clsx from 'clsx';
@@ -59,7 +60,7 @@ import {
   firstPageOfJuz, firstPageOfSurah, surahOnPage, SURAH_REVELATION, TOTAL_MUSHAF_PAGES,
 } from '../components/reader/surahNavigation';
 import { playableUrl } from '../lib/offlineAudio';
-import { loadOfflinePage, offlineQuranKey } from '../lib/offlineQuran';
+import { juzOfPage, loadOfflinePage, offlineQuranKey } from '../lib/offlineQuran';
 import { AudioSourceAttribution, audioHost } from '../components/quran/AudioSourceAttribution';
 
 // =============================================================================
@@ -198,9 +199,15 @@ function usePageVerses(pageNo: number) {
     }
   }, [pageNo, queryClient]);
 
+  // No data from either source and no connection: the request is paused
+  // (offlineFirst) or failed while the device is offline.
+  const offline = !query.data && !fromBundle && !bundle.isFetching && (query.fetchStatus === 'paused' ||
+    ((query.isError || bundle.isError) && typeof navigator !== 'undefined' && navigator.onLine === false));
+
   return {
     data: query.data ?? bundle.data,
     fromBundle,
+    offline,
     isLoading: !query.data && !fromBundle && (query.isFetching || bundle.isFetching),
     // Nothing to show from either source: the API error, or (paused offline)
     // the bundle's own failure.
@@ -1028,7 +1035,10 @@ export function MushafPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Data Fetching
-  const { data: verses = [], isLoading, error, fromBundle, prefetchAdjacent } = usePageVerses(currentPage);
+  const { data: verses = [], isLoading, error, offline, fromBundle, prefetchAdjacent } = usePageVerses(currentPage);
+  // Juz shown in the header and the juz select: the loaded verses' own juz,
+  // else the juz markers for this page.
+  const pageJuz = verses[0]?.juz_no ?? juzOfPage(currentPage);
 
   // Reset the selection when the language changes
   useEffect(() => {
@@ -1272,7 +1282,7 @@ export function MushafPage() {
             <select
               id="mushaf-juz"
               aria-label={language === 'ar' ? 'انتقل إلى الجزء' : 'Jump to Juz'}
-              value={verses[0]?.juz_no ?? 1}
+              value={pageJuz}
               onChange={(e) => goToPage(firstPageOfJuz(parseInt(e.target.value, 10)))}
               className="px-2 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm border border-white/20 outline-none cursor-pointer"
               title={language === 'ar' ? 'انتقل إلى الجزء' : 'Jump to Juz'}
@@ -1397,7 +1407,7 @@ export function MushafPage() {
             <div className="bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 px-6 py-4 border-b-2 border-amber-400 flex justify-between items-center">
               <div className="text-center">
                 <span className="font-mushaf text-amber-800 text-lg font-semibold">
-                  {t('mushaf_juz')} {toArabicNumber(verses[0]?.juz_no || 1)}
+                  {t('mushaf_juz')} {toArabicNumber(pageJuz)}
                 </span>
               </div>
               <div className="text-center">
@@ -1429,6 +1439,24 @@ export function MushafPage() {
                 <div className="flex flex-col items-center justify-center h-96 text-amber-700">
                   <Loader2 className="w-10 h-10 animate-spin mb-4" />
                   <span className="text-lg">{t('tafseer_loading')}</span>
+                </div>
+              ) : offline ? (
+                <div className="flex flex-col items-center justify-center h-96 text-center text-gray-600" role="status" data-testid="mushaf-offline">
+                  <WifiOff className="w-10 h-10 text-gray-300 mb-3" aria-hidden="true" />
+                  <h2 className={clsx('text-lg font-semibold mb-1 text-gray-800', language === 'ar' && 'font-arabic')} dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                    {language === 'ar' ? 'لا يوجد اتصال' : 'You are offline'}
+                  </h2>
+                  <p className={clsx('text-sm text-gray-500 mb-4 max-w-sm', language === 'ar' && 'font-arabic')} dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                    {language === 'ar'
+                      ? 'هذه الصفحة غير محفوظة على الجهاز بعد. اتصل بالإنترنت ثم احفظ القرآن للقراءة دون اتصال من الإعدادات.'
+                      : 'This page is not saved on this device yet. Connect, then save the Qur’an for offline reading from Settings.'}
+                  </p>
+                  <button
+                    onClick={() => goToPage(currentPage)}
+                    className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    {t('mushaf_retry')}
+                  </button>
                 </div>
               ) : error ? (
                 <div className="flex flex-col items-center justify-center h-96 text-red-600">
