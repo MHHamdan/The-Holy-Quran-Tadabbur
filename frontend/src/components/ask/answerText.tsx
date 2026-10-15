@@ -4,20 +4,9 @@
  * piece of API text is rendered as a React text node.
  */
 import { Fragment, type ReactNode } from 'react';
-import type { RAGResponse, RelatedVerse } from '../../lib/api';
+import type { RAGResponse } from '../../lib/api';
 
 type Lang = 'ar' | 'en';
-
-/** Fields the backend returns that lib/api.ts does not type yet. */
-export type AttributedRelatedVerse = RelatedVerse & {
-  translation_edition?: string | null;
-  translation_source_id?: string | null;
-};
-
-export type AskResponse = RAGResponse & {
-  disagreement_warning_en?: string | null;
-  disagreement_warning_ar?: string | null;
-};
 
 // ---------------------------------------------------------------- answer text
 
@@ -174,6 +163,6 @@ export function translationLabel(edition: string | null | undefined, language: L
 }
 
 /** Single-language disagreement notice. */
-export function disagreementText(response: AskResponse, language: Lang): string | null {
+export function disagreementText(response: RAGResponse, language: Lang): string | null {
   return (language === 'ar' ? response.disagreement_warning_ar : response.disagreement_warning_en) || null;
 }

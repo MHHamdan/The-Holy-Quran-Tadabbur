@@ -4,6 +4,8 @@ import { t } from '../../i18n/translations';
 import { api } from '../../lib/api';
 import clsx from 'clsx';
 import { API_ORIGIN } from '../../lib/config';
+import { Link } from 'react-router-dom';
+import { getRegistry } from '../../utils/storyRegistryAdapter';
 import {
   Monitor,
   Server,
@@ -23,6 +25,9 @@ import {
   Wifi,
   WifiOff,
   RefreshCw,
+  BookOpen,
+  Users,
+  Network,
 } from 'lucide-react';
 
 type StatusTab = 'frontend' | 'backend' | 'database';
@@ -217,13 +222,13 @@ function FrontendScreen({ language }: { language: 'ar' | 'en' }) {
         </div>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <p className="text-sm text-gray-500 mb-1">App URL</p>
+            <p className="text-sm text-gray-500 mb-1">{language === 'ar' ? 'عنوان التطبيق' : 'App URL'}</p>
             <code className="text-blue-700 font-mono text-sm break-all">{window.location.origin}</code>
           </div>
           <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <p className="text-sm text-gray-500 mb-1">API</p>
+            <p className="text-sm text-gray-500 mb-1">{language === 'ar' ? 'واجهة البرمجة (API)' : 'API'}</p>
             <code className="text-blue-700 font-mono text-sm break-all">
-              {API_ORIGIN ? `${API_ORIGIN}/api/v1` : `${window.location.origin}/api/v1 (same origin)`}
+              {API_ORIGIN ? `${API_ORIGIN}/api/v1` : `${window.location.origin}/api/v1 (${language === 'ar' ? 'المصدر نفسه' : 'same origin'})`}
             </code>
           </div>
         </div>
@@ -271,6 +276,8 @@ function FrontendScreen({ language }: { language: 'ar' | 'en' }) {
         </div>
       </SectionCard>
 
+      <StoryCoverageCard language={language} />
+
       {/* Features */}
       <SectionCard
         title={language === 'ar' ? 'الميزات' : 'Features'}
@@ -313,6 +320,48 @@ function FrontendScreen({ language }: { language: 'ar' | 'en' }) {
         </div>
       </SectionCard>
     </div>
+  );
+}
+
+// ============================================================================
+// Story atlas coverage (internal; moved here from the public /stories page)
+// ============================================================================
+
+function StoryCoverageCard({ language }: { language: 'ar' | 'en' }) {
+  const c = getRegistry().coverage;
+  const ar = language === 'ar';
+  const stats = [
+    { labelAr: 'إجمالي القصص', labelEn: 'Total stories', value: c.totalStories, icon: BookOpen },
+    { labelAr: 'قصص محرّرة', labelEn: 'Curated stories', value: c.authoredStories, icon: Layers },
+    { labelAr: 'صفحات الأنبياء', labelEn: 'Prophet profiles', value: c.prophetProfiles, icon: Users },
+    { labelAr: 'مرشّحة آليًا', labelEn: 'Auto-detected candidates', value: c.generatedCandidates, icon: Layers },
+    { labelAr: 'ناقصة البيانات', labelEn: 'Missing metadata', value: c.missingMetadataCount, icon: AlertTriangle },
+    { labelAr: 'سور مغطاة', labelEn: 'Surahs covered', value: c.surahsCovered, icon: BookOpen },
+    { labelAr: 'أنبياء مغطَّون', labelEn: 'Prophets covered', value: c.prophetsCovered, icon: Users },
+    { labelAr: 'نطاقات آيات مرتبطة', labelEn: 'Ayah ranges linked', value: c.ayahRangesLinked, icon: BookOpen },
+    { labelAr: 'بانتظار المراجعة', labelEn: 'Review pending', value: c.reviewPendingCount, icon: AlertTriangle },
+  ];
+  return (
+    <SectionCard title={ar ? 'تغطية أطلس القصص' : 'Story atlas coverage'} icon={BookOpen} count={c.totalStories}>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        {stats.map((st) => (
+          <div key={st.labelEn} className="rounded-lg border border-gray-200 bg-white p-3 text-center">
+            <st.icon className="w-4 h-4 mx-auto mb-1 text-primary-600" aria-hidden="true" />
+            <div className="text-lg font-semibold text-gray-900" dir="ltr">{st.value}</div>
+            <div className={clsx('text-xs text-gray-600 leading-tight', ar && 'font-arabic')}>
+              {ar ? st.labelAr : st.labelEn}
+            </div>
+          </div>
+        ))}
+      </div>
+      <Link
+        to="/story-atlas/connections"
+        className={clsx('mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary-700 hover:underline', ar && 'font-arabic')}
+      >
+        <Network className="w-4 h-4" aria-hidden="true" />
+        {ar ? 'مستكشف روابط القصص (أداة مطوّرين)' : 'Story connection explorer (developer tool)'}
+      </Link>
+    </SectionCard>
   );
 }
 
@@ -456,17 +505,19 @@ function BackendScreen({ language }: { language: 'ar' | 'en' }) {
 
         <div className="grid md:grid-cols-3 gap-4">
           <div className="bg-white rounded-lg p-4 border">
-            <p className="text-sm text-gray-500 mb-1">Status</p>
+            <p className="text-sm text-gray-500 mb-1">{language === 'ar' ? 'الحالة' : 'Status'}</p>
             <p className="font-semibold text-lg">
-              {health?.status === 'healthy' || health?.status === 'ok' ? 'Healthy' : health?.status || 'Checking...'}
+              {health?.status === 'healthy' || health?.status === 'ok'
+                ? (language === 'ar' ? 'سليم' : 'Healthy')
+                : health?.status || t('status_checking', language)}
             </p>
           </div>
           <div className="bg-white rounded-lg p-4 border">
-            <p className="text-sm text-gray-500 mb-1">Backend Port</p>
-            <p className="font-semibold text-lg font-mono">8002</p>
+            <p className="text-sm text-gray-500 mb-1">{language === 'ar' ? 'خادم الواجهة البرمجية' : 'API host'}</p>
+            <p className="font-semibold text-lg font-mono break-all" dir="ltr">{API_ORIGIN || window.location.origin}</p>
           </div>
           <div className="bg-white rounded-lg p-4 border">
-            <p className="text-sm text-gray-500 mb-1">Framework</p>
+            <p className="text-sm text-gray-500 mb-1">{language === 'ar' ? 'إطار العمل' : 'Framework'}</p>
             <p className="font-semibold text-lg">FastAPI (Python)</p>
           </div>
         </div>

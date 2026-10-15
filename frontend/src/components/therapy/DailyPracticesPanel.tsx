@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Sun, Sunset, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
 import clsx from 'clsx';
+import { HadithPendingReviewNote, hadithSourceLine, hasVerifiableHadithSource, type HadithSource } from './hadithSource';
 
 interface Practice {
   arabic: string;
@@ -12,6 +13,10 @@ interface Practice {
   count_ar: string;
   benefit_en: string;
   benefit_ar: string;
+  /** The benefit text reports a hadith ("The Prophet ﷺ said…"). It stays
+   *  hidden until a reviewer records `hadithSource` (collection + number). */
+  benefitIsHadith?: boolean;
+  hadithSource?: HadithSource;
 }
 
 const MORNING_PRACTICES: Practice[] = [
@@ -34,6 +39,7 @@ const MORNING_PRACTICES: Practice[] = [
     count_ar: '١٠٠×',
     benefit_en: 'The Prophet ﷺ said: "Whoever says this 100 times in the morning, his sins are erased even if they were like the foam of the sea." (Bukhari & Muslim)',
     benefit_ar: 'قال النبي ﷺ: "من قالها مائة مرة حين يصبح حُطّت خطاياه وإن كانت مثل زبد البحر." (البخاري ومسلم)',
+    benefitIsHadith: true,
   },
   {
     arabic: 'اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ',
@@ -67,6 +73,7 @@ const EVENING_PRACTICES: Practice[] = [
     count_ar: '١٠٠×',
     benefit_en: 'The Prophet ﷺ used to say this 100 times per day. Evening is the time to release the day\'s accumulations and approach the night clean.',
     benefit_ar: 'كان النبي ﷺ يقولها مائة مرة يومياً. المساء هو وقت إطلاق تراكمات اليوم والاقتراب من الليل نقياً.',
+    benefitIsHadith: true,
   },
   {
     arabic: 'بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا',
@@ -90,6 +97,7 @@ const ANYTIME_DHIKR: Practice[] = [
     count_ar: '١٠× (بعد الفجر)',
     benefit_en: 'Said 10 times after Fajr before speaking — equivalent to freeing 4 slaves, 10 good deeds, 10 sins erased, protected from Satan until evening. (Bukhari)',
     benefit_ar: 'يُقال 10 مرات بعد الفجر قبل الكلام — يعادل عتق 4 رقاب، 10 حسنات، 10 سيئات محواة، حماية من الشيطان حتى المساء. (البخاري)',
+    benefitIsHadith: true,
   },
   {
     arabic: 'سُبْحَانَ اللَّهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا اللَّهُ، وَاللَّهُ أَكْبَرُ',
@@ -100,6 +108,7 @@ const ANYTIME_DHIKR: Practice[] = [
     count_ar: '٣٣× لكل منها (بعد الصلاة)',
     benefit_en: 'The Prophet ﷺ called these "the four most beloved phrases to Allah." Said 33 times each after every prayer — fills what remains to 100 with Lā ilāha illallāh.',
     benefit_ar: 'سمّاها النبي ﷺ "أحب الكلام إلى الله الأربع." تُقال 33 مرة لكل منها بعد كل صلاة — ويكمل المئة بـ"لا إله إلا الله".',
+    benefitIsHadith: true,
   },
   {
     arabic: 'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
@@ -110,6 +119,7 @@ const ANYTIME_DHIKR: Practice[] = [
     count_ar: 'باستمرار',
     benefit_en: 'Called "a treasure from the treasures of Paradise" by the Prophet ﷺ. Especially powerful when feeling overwhelmed, helpless, or burdened beyond your capacity.',
     benefit_ar: 'سمّاها النبي ﷺ "كنزاً من كنوز الجنة". قوية بشكل خاص حين تشعر بالإرهاق أو العجز أو الثقل فوق طاقتك.',
+    benefitIsHadith: true,
   },
 ];
 
@@ -136,9 +146,16 @@ export function DailyPracticesPanel() {
           <p className={clsx('text-sm text-gray-700', isRtl && 'font-arabic text-right')}>
             {isRtl ? p.translation_ar : p.translation_en}
           </p>
-          <p className={clsx('text-xs text-gray-500 leading-relaxed border-t border-gray-100 pt-2', isRtl && 'font-arabic text-right')}>
-            {isRtl ? p.benefit_ar : p.benefit_en}
-          </p>
+          {p.benefitIsHadith && !hasVerifiableHadithSource(p.hadithSource) ? (
+            <HadithPendingReviewNote isRtl={isRtl} className="border-t border-gray-100 pt-2" />
+          ) : (
+            <p className={clsx('text-xs text-gray-500 leading-relaxed border-t border-gray-100 pt-2', isRtl && 'font-arabic text-right')}>
+              {isRtl ? p.benefit_ar : p.benefit_en}
+              {hasVerifiableHadithSource(p.hadithSource) && (
+                <span className="block mt-1" dir="ltr"><bdi>{hadithSourceLine(p.hadithSource)}</bdi></span>
+              )}
+            </p>
+          )}
         </div>
       ))}
     </div>

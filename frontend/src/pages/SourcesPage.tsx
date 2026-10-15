@@ -14,6 +14,7 @@ import { BookOpen, Shield, CheckCircle, AlertCircle, ChevronDown, ChevronUp, Tog
 import { useLanguageStore } from '../stores/languageStore';
 import { ragApi, TafseerSource } from '../lib/api';
 import clsx from 'clsx';
+import { tafsirMethodLabel } from '../i18n/translations';
 import { SourceBadge } from '../components/common/SourceBadge';
 import {
   SOURCE_REGISTRY,
@@ -38,10 +39,21 @@ function isRetired(source: Source): boolean {
   return notes.startsWith('NOT SERVED') || notes.startsWith('Not used at runtime');
 }
 
+/**
+ * Recitation hosts the app actually streams from. Keep in step with
+ * backend/app/services/audio_service.py (EVERYAYAH_BASE primary,
+ * ALQURAN_CLOUD_BASE = cdn.islamic.network fallback), AsmaAudioPlayer and
+ * lib/offlineAudio (both everyayah.com). Whole-surah quranicaudio.com links
+ * and the verses.quran.com stream are no longer used, so their registry
+ * entries are not listed.
+ */
+const AUDIO_SOURCES_IN_USE = new Set(['everyayah_audio', 'islamic_network_audio']);
+
 /** Sources listed to readers: neither blocked nor retired. */
 function listedSources(types: SourceType[]): Source[] {
   return SOURCE_REGISTRY.filter(
-    (s) => types.includes(s.type) && !isSourceDisplayBlocked(s) && !isRetired(s),
+    (s) => types.includes(s.type) && !isSourceDisplayBlocked(s) && !isRetired(s)
+      && (s.type !== 'audio' || AUDIO_SOURCES_IN_USE.has(s.sourceId)),
   );
 }
 
@@ -470,6 +482,7 @@ function SourceCard({ source, language, isExpanded, onToggle, isAdminMode, isTog
   const hasProvenance = (source as any).has_valid_provenance;
   const licenseVerified = (source as any).license_verified;
   const isEnabled = source.is_enabled !== false;
+  const methodLabel = tafsirMethodLabel(source.methodology, language);
 
   return (
     <div
@@ -529,13 +542,9 @@ function SourceCard({ source, language, isExpanded, onToggle, isAdminMode, isTog
             <span className="text-xs text-gray-500">
               {source.language.toUpperCase()}
             </span>
-            {source.methodology && (
-              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                {source.methodology === 'bil_mathur'
-                  ? (language === 'ar' ? 'بالمأثور' : 'Traditional')
-                  : source.methodology === 'bil_rai'
-                  ? (language === 'ar' ? 'بالرأي' : 'Rational')
-                  : source.methodology}
+            {methodLabel && (
+              <span className={clsx('text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded', language === 'ar' && 'font-arabic')}>
+                {methodLabel}
               </span>
             )}
             {(source as any).death_year_hijri && (

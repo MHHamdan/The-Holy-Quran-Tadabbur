@@ -7,6 +7,7 @@ import type { GuidanceCard } from '../../types/therapy';
 import { QuranAudioPlayer } from '../quran/QuranAudioPlayer';
 import { QuranTextAttribution } from '../quran/QuranTextAttribution';
 import clsx from 'clsx';
+import { HadithPendingReviewNote, hadithSourceLine, hasVerifiableHadithSource, type HadithSource } from './hadithSource';
 
 // Ruqyah Shariah informational data (no Quranic text hardcoded — fetched from API)
 const RUQYAH_CHAPTERS: Array<{
@@ -15,9 +16,12 @@ const RUQYAH_CHAPTERS: Array<{
   ayah?: string;
   name_en: string;
   name_ar: string;
+  /** Free-text hadith kept for scholarly review; shown only once a reviewer
+   *  records `hadithSource` (collection + number). See ./hadithSource. */
   hadith_en: string;
   hadith_ar: string;
   source: string;
+  hadithSource?: HadithSource;
 }> = [
   {
     key: 'fatiha',
@@ -161,28 +165,37 @@ function RuqyahChapterCard({ chapter }: RuqyahChapterCardProps) {
       </div>
 
       <div className="px-5 pb-4">
-        <button
-          onClick={() => setHadithOpen(v => !v)}
-          className={clsx(
-            'flex items-center gap-2 text-xs font-medium text-emerald-700 hover:text-emerald-900',
-            isRtl && 'flex-row-reverse font-arabic w-full',
-          )}
-        >
-          <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
-          <span className={isRtl ? 'font-arabic' : ''}>
-            {isRtl ? 'الدليل من الحديث' : 'Prophetic Authority'}
-          </span>
-          <span className="text-[10px] text-emerald-500 ms-0.5">({chapter.source})</span>
-          {hadithOpen
-            ? <ChevronUp className="w-3 h-3 ms-auto" />
-            : <ChevronDown className="w-3 h-3 ms-auto" />}
-        </button>
-        {hadithOpen && (
-          <div className="mt-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-            <p className={clsx('text-xs text-emerald-800 leading-relaxed', isRtl ? 'font-arabic text-right' : '')}>
-              {isRtl ? chapter.hadith_ar : chapter.hadith_en}
-            </p>
-          </div>
+        {hasVerifiableHadithSource(chapter.hadithSource) ? (
+          <>
+            <button
+              onClick={() => setHadithOpen(v => !v)}
+              aria-expanded={hadithOpen}
+              className={clsx(
+                'flex items-center gap-2 text-xs font-medium text-emerald-700 hover:text-emerald-900',
+                isRtl && 'flex-row-reverse font-arabic w-full',
+              )}
+            >
+              <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className={isRtl ? 'font-arabic' : ''}>
+                {isRtl ? 'الدليل من الحديث' : 'Prophetic Authority'}
+              </span>
+              {hadithOpen
+                ? <ChevronUp className="w-3 h-3 ms-auto" />
+                : <ChevronDown className="w-3 h-3 ms-auto" />}
+            </button>
+            {hadithOpen && (
+              <div className="mt-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                <p className={clsx('text-xs text-emerald-800 leading-relaxed', isRtl ? 'font-arabic text-right' : '')}>
+                  {isRtl ? chapter.hadith_ar : chapter.hadith_en}
+                </p>
+                <p className="text-[11px] text-emerald-700 mt-1" dir="ltr">
+                  <bdi>{hadithSourceLine(chapter.hadithSource)}</bdi>
+                </p>
+              </div>
+            )}
+          </>
+        ) : (
+          <HadithPendingReviewNote isRtl={isRtl} />
         )}
       </div>
     </div>

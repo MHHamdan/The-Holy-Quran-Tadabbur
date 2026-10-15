@@ -6,10 +6,9 @@ import { translations } from '../i18n/translations';
 const SRC = join(__dirname, '..');
 
 /** Keys still referenced on this branch whose caller is removed by another
- *  workstream. therapy_intro_verse: the paraphrased "verse" was deleted from
- *  translations.ts; WS3 replaces its TherapyPage caller with the canonical
- *  17:82 (LiveVerse). Delete this entry once WS3's TherapyPage is merged. */
-const PENDING_REMOVAL = new Set(['therapy_intro_verse']);
+ *  workstream. Empty: therapy_intro_verse (the paraphrased "verse") is gone
+ *  and TherapyPage renders the canonical 17:82 through LiveVerse. */
+const PENDING_REMOVAL = new Set<string>();
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {

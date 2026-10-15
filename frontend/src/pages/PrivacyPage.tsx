@@ -28,7 +28,7 @@ const SECTIONS: Section[] = [
   {
     title: { en: 'Kept only on your device', ar: 'ما يُحفظ على جهازك فقط' },
     items: [
-      { en: 'Bookmarks and notes, your journal, reading progress and streaks, the reading plan, flashcard schedule, dhikr counts, reader settings, recent searches, saved offline recitations and your reminder time.', ar: 'الإشارات المرجعية والملاحظات، ويومياتك، وتقدّم القراءة والأيام المتتالية، وخطة الختمة، وجدول بطاقات الحفظ، وعدّاد الأذكار، وإعدادات القراءة، وعمليات البحث الأخيرة، والتلاوات المحفوظة دون اتصال، ووقت التذكير.' },
+      { en: 'Bookmarks and notes, your journal, reading progress and streaks, the reading plan, flashcard schedule, dhikr counts, reader settings, recent searches, the copy of the Qur\'an text saved for offline reading, saved offline recitations and your reminder time.', ar: 'الإشارات المرجعية والملاحظات، ويومياتك، وتقدّم القراءة والأيام المتتالية، وخطة الختمة، وجدول بطاقات الحفظ، وعدّاد الأذكار، وإعدادات القراءة، وعمليات البحث الأخيرة، ونسخة نص القرآن المحفوظة للقراءة دون اتصال، والتلاوات المحفوظة دون اتصال، ووقت التذكير.' },
       { en: 'Deleting the app, clearing its data, or the button at the end of this page removes them.', ar: 'تُحذف بحذف التطبيق أو مسح بياناته، أو بالزر في آخر هذه الصفحة.' },
       { en: 'This data never reaches our server. If you have turned on your phone\'s own backup (for example iCloud or Google backup), that backup may include it, under your account.', ar: 'لا تصل هذه البيانات إلى خادمنا. وإذا فعّلت النسخ الاحتياطي في هاتفك (مثل iCloud أو نسخ Google الاحتياطي) فقد يتضمّنها ذلك النسخ ضمن حسابك.' },
     ],
@@ -54,7 +54,7 @@ const SECTIONS: Section[] = [
     title: { en: 'Services your device contacts directly', ar: 'خدمات يتصل بها جهازك مباشرة' },
     items: [
       { en: 'Prayer times and the Hijri date: AlAdhan (api.aladhan.com) receives your approximate location (rounded to about 1 km) or the city you enter. Place names and the mosque finder: OpenStreetMap (Nominatim, Overpass) receives the same approximate location. The exact position stays on your device (it is used there for the Qibla direction) and your location is never sent to our server.', ar: 'مواقيت الصلاة والتاريخ الهجري: تستقبل AlAdhan ‏(api.aladhan.com) موقعك التقريبي (مقرَّبًا إلى نحو كيلومتر) أو المدينة التي تدخلها. أسماء الأماكن والبحث عن المساجد: تستقبل OpenStreetMap ‏(Nominatim وOverpass) الموقع التقريبي نفسه. ويبقى الموقع الدقيق على جهازك (يُستخدم فيه لحساب اتجاه القبلة)، ولا يُرسل موقعك إلى خادمنا أبدًا.' },
-      { en: 'Recitations stream from everyayah.com, cdn.islamic.network, quranicaudio.com and verses.quran.com. The external resource pages load from archive.org (books) and YouTube (video thumbnails). Fonts are part of the app and are not downloaded from anyone. These services see your IP address, as any website does.', ar: 'تُبثّ التلاوات من everyayah.com وcdn.islamic.network وquranicaudio.com وverses.quran.com. وتُحمَّل صفحات الروابط الخارجية من archive.org (الكتب) وYouTube (صور المقاطع). أما الخطوط فجزء من التطبيق ولا تُنزَّل من أي جهة. ترى هذه الخدمات عنوان IP الخاص بك كأي موقع.' },
+      { en: 'Recitations stream from everyayah.com, with cdn.islamic.network as a fallback. The external resource pages load from archive.org (books) and YouTube (video thumbnails). Fonts are part of the app and are not downloaded from anyone. These services see your IP address, as any website does.', ar: 'تُبثّ التلاوات من everyayah.com، ومن cdn.islamic.network احتياطًا. وتُحمَّل صفحات الروابط الخارجية من archive.org (الكتب) وYouTube (صور المقاطع). أما الخطوط فجزء من التطبيق ولا تُنزَّل من أي جهة. ترى هذه الخدمات عنوان IP الخاص بك كأي موقع.' },
     ],
   },
   {
@@ -125,8 +125,8 @@ export function PrivacyPage() {
         <h2 className="text-lg font-semibold text-red-900 mb-1">{ar ? 'حذف بياناتي' : 'Delete my data'}</h2>
         <p className="text-sm text-red-800 mb-3">
           {ar
-            ? 'يحذف من خادمنا جلسات الإرشاد والتأمّلات وجلسات التسميع التي أنشأها هذا الجهاز، ويحذف من جهازك كل بيانات التطبيق والتلاوات المحفوظة والتذكير.'
-            : 'Deletes the guidance sessions, reflections and Tasmeeʿ sessions this device created from our server, and all app data, saved recitations and the reminder from this device.'}
+            ? 'يحذف من خادمنا جلسات الإرشاد والتأمّلات وجلسات التسميع التي أنشأها هذا الجهاز، ثم يحذف من جهازك كل بيانات التطبيق، ونسخة نص القرآن المحفوظة للقراءة دون اتصال، والتلاوات المحفوظة، والتذكير.'
+            : 'First deletes the guidance sessions, reflections and Tasmeeʿ sessions this device created from our server, then deletes from this device all app data, the Qur\'an text saved for offline reading, saved recitations and the reminder.'}
         </p>
         <button
           type="button"
@@ -141,7 +141,9 @@ export function PrivacyPage() {
           <p role="status" className="mt-3 text-sm text-red-900">
             {state === 'done'
               ? (ar ? 'حُذفت بياناتك.' : 'Your data has been deleted.')
-              : (ar ? 'حُذفت بيانات الجهاز، لكن تعذّر الوصول إلى الخادم. حاول مجددًا لاحقًا.' : 'Device data was deleted, but the server could not be reached. Try again later.')}
+              : (ar
+                ? 'حُذفت بيانات الجهاز، لكن تعذّر الوصول إلى الخادم. احتفظنا بمفاتيح جلسات التسميع على جهازك لتتمكّن من إعادة المحاولة لاحقًا.'
+                : 'Device data was deleted, but the server could not be reached. The keys to this device\'s Tasmeeʿ sessions were kept so you can try again later.')}
           </p>
         )}
       </section>

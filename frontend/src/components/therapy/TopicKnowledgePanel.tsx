@@ -4,12 +4,18 @@ import { useLanguageStore } from '../../stores/languageStore';
 import { therapyApi } from '../../lib/api';
 import type { TopicResourcesResponse, TopicHadith, TopicWisePhrase } from '../../types/therapy';
 import clsx from 'clsx';
+import { hadithSourceLine, hasVerifiableHadithSource, type HadithSource } from './hadithSource';
+
+/** The server withholds hadith without a collection and number
+ *  (topic_knowledge_service.is_verified_hadith); the client applies the same
+ *  rule so an older or misconfigured server cannot surface unverified items. */
+type SourcedTopicHadith = TopicHadith & Partial<HadithSource>;
 
 interface Props {
   topicKey: string;
 }
 
-function HadithCard({ hadith, isRtl }: { hadith: TopicHadith; isRtl: boolean }) {
+function HadithCard({ hadith, isRtl }: { hadith: SourcedTopicHadith; isRtl: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="bg-white rounded-xl border border-teal-100 overflow-hidden">
@@ -31,6 +37,9 @@ function HadithCard({ hadith, isRtl }: { hadith: TopicHadith; isRtl: boolean }) 
         {open && (
           <p className={clsx('text-xs text-gray-500 leading-relaxed border-t border-gray-100 pt-2', isRtl && 'font-arabic text-right')}>
             {isRtl ? hadith.source_ar : hadith.source_en}
+            {hasVerifiableHadithSource(hadith) && (
+              <span className="block mt-1" dir="ltr"><bdi>{hadithSourceLine(hadith)}</bdi></span>
+            )}
           </p>
         )}
       </div>
@@ -81,6 +90,7 @@ export function TopicKnowledgePanel({ topicKey }: Props) {
   }
 
   if (!data) return null;
+  const hadith = (data.hadith as SourcedTopicHadith[]).filter((h) => hasVerifiableHadithSource(h));
 
   return (
     <div className="space-y-4">
@@ -98,7 +108,7 @@ export function TopicKnowledgePanel({ topicKey }: Props) {
       </p>
 
       {/* Hadith section */}
-      {data.hadith.length > 0 && (
+      {hadith.length > 0 && (
         <div>
           <button
             onClick={() => setShowHadith(o => !o)}
@@ -111,14 +121,14 @@ export function TopicKnowledgePanel({ topicKey }: Props) {
             <div className={clsx('flex items-center gap-2', isRtl && 'flex-row-reverse')}>
               <BookMarked className="w-4 h-4 text-teal-600" />
               <span className={clsx('text-sm font-semibold text-gray-800', isRtl && 'font-arabic')}>
-                {isRtl ? `الأحاديث النبوية (${data.hadith.length})` : `Prophetic Hadith (${data.hadith.length})`}
+                {isRtl ? `الأحاديث النبوية (${hadith.length})` : `Prophetic Hadith (${hadith.length})`}
               </span>
             </div>
             {showHadith ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
           </button>
           {showHadith && (
             <div className="mt-3 space-y-3">
-              {data.hadith.map((h, i) => (
+              {hadith.map((h, i) => (
                 <HadithCard key={i} hadith={h} isRtl={isRtl} />
               ))}
             </div>
