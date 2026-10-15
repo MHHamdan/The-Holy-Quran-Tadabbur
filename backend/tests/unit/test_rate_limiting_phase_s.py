@@ -3,7 +3,7 @@ Phase S — Rate Limiting Tests
 
 Verifies:
   1. InMemoryRateLimiter class: sliding window, thread safety, reset
-  2. _get_client_ip extracts real IP from X-Forwarded-For
+  2. _get_client_ip uses the ASGI peer address and ignores client-supplied X-Forwarded-For
   3. RAG /ask endpoint returns 429 after limit exceeded
   4. Vocabulary /lookup returns 429 after limit exceeded
   5. Admin decision endpoint returns 429 (after auth) when rate limited
@@ -127,13 +127,16 @@ class TestGetClientIp:
         req = self._make_request({}, "192.168.1.5")
         assert _get_client_ip(req) == "192.168.1.5"
 
-    def test_xff_single_ip(self):
+    # X-Forwarded-For is client-controlled; uvicorn --proxy-headers applies
+    # it to request.client only when the peer is a trusted proxy. Honouring it
+    # here let any caller choose its own rate-limit bucket.
+    def test_xff_single_ip_is_ignored(self):
         req = self._make_request({"X-Forwarded-For": "203.0.113.7"})
-        assert _get_client_ip(req) == "203.0.113.7"
+        assert _get_client_ip(req) == "127.0.0.1"
 
-    def test_xff_chain_takes_first(self):
+    def test_xff_chain_is_ignored(self):
         req = self._make_request({"X-Forwarded-For": "203.0.113.7, 10.0.0.1, 10.0.0.2"})
-        assert _get_client_ip(req) == "203.0.113.7"
+        assert _get_client_ip(req) == "127.0.0.1"
 
     def test_no_client_returns_unknown(self):
         req = MagicMock()

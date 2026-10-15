@@ -18,22 +18,18 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_async_session
-from app.core.rate_limit import InMemoryRateLimiter, _get_client_ip, _make_429_response
+from app.core.rate_limit import InMemoryRateLimiter, enforce
 from app.models.dhikr import DhikrSession
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_dhikr_limiter = InMemoryRateLimiter(max_requests=20, window_seconds=60)
+_dhikr_limiter = InMemoryRateLimiter(max_requests=20, window_seconds=60, name="dhikr")
 
 
 async def dhikr_rate_limit(request: Request) -> None:
-    ip = _get_client_ip(request)
-    allowed, retry_after = _dhikr_limiter.is_allowed(ip)
-    if not allowed:
-        logger.warning("Dhikr rate limit exceeded for IP %s", ip)
-        raise _make_429_response(request)
+    await enforce(_dhikr_limiter, request, "Dhikr")
 
 
 # ── Pydantic schemas ─────────────────────────────────────────────────────────
@@ -42,7 +38,9 @@ class DhikrSessionIn(BaseModel):
     session_date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
     category: Optional[str] = Field(None, max_length=50)
     total_dhikr_completed: int = Field(default=0, ge=0, le=500)
-    total_count: int = Field(default=0, ge=0, le=200_000)
+    # A realistic upper bound for one focus session; larger values are abuse of
+    # the community counter, not dhikr.
+    total_count: int = Field(default=0, ge=0, le=10_000)
     duration_seconds: Optional[int] = Field(default=None, ge=0, le=86_400)
 
 
