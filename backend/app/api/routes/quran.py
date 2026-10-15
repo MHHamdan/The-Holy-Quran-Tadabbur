@@ -850,51 +850,43 @@ async def get_tafseer_sources(
 
 @router.get("/search")
 async def search_quran(
-    q: str = Query(..., min_length=2, description="Search query"),
+    http_response: Response,
+    q: str = Query(..., min_length=2, max_length=200, description="Search query"),
     limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0, le=6236),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
-    Search Quran text (simplified search, not full-text).
+    Search Quran text (simple substring search on the normalized search keys),
+    in Mushaf order, with the full match count in `total`.
     """
-    # Normalize query for diacritic-free search
-    from app.services.quran_search import normalize_arabic
     from sqlalchemy import func as _func
-    q_normalized = normalize_arabic(q)
+    from app.services.arabic_normalize import normalize_for_search, escape_like
 
-    # Search both text_normalized (Uthmanic) and normalized text_imlaei (standard spelling)
-    _dc = (
-        ''.join(chr(i) for i in range(0x0610, 0x061B))
-        + ''.join(chr(i) for i in range(0x064B, 0x0660))
-        + chr(0x0670)
-        + ''.join(chr(i) for i in range(0x06D6, 0x06DD))
-        + ''.join(chr(i) for i in range(0x06DF, 0x06E5))
-        + chr(0x06E7) + chr(0x06E8)
-        + ''.join(chr(i) for i in range(0x06EA, 0x06EE))
+    q_normalized = normalize_for_search(q)
+    if not q_normalized:
+        return {"query": q, "total": 0, "count": 0, "results": []}
+
+    pattern = f"%{escape_like(q_normalized)}%"
+    condition = or_(
+        QuranVerse.text_normalized.ilike(pattern, escape="\\"),
+        QuranVerse.text_imlaei_normalized.ilike(pattern, escape="\\"),
     )
-    _norm_imlaei = _func.replace(
-        _func.translate(
-            _func.regexp_replace(QuranVerse.text_imlaei, '[' + _dc + ']', '', 'g'),
-            'آأإٱ', chr(0x0627) * 4
-        ),
-        'ى', 'ي'
-    )
-    query = (
+    total = (await session.execute(
+        select(_func.count()).select_from(QuranVerse).where(condition)
+    )).scalar_one()
+    verses = (await session.execute(
         select(QuranVerse)
-        .where(
-            or_(
-                QuranVerse.text_normalized.ilike(f"%{q_normalized}%"),
-                _norm_imlaei.ilike(f"%{q_normalized}%"),
-            )
-        )
+        .where(condition)
+        .order_by(QuranVerse.sura_no, QuranVerse.aya_no)
+        .offset(offset)
         .limit(limit)
-    )
+    )).scalars().all()
 
-    result = await session.execute(query)
-    verses = result.scalars().all()
-
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
     return {
         "query": q,
+        "total": total,
         "count": len(verses),
         "results": [
             {
@@ -1244,13 +1236,15 @@ async def search_by_root(
         # If no derived words found, use the root itself
         derived_words = [root]
 
-    # Search using the derived words
+    # Search the root and every derived word (OR over the normalized
+    # columns); no concept expansion, so results are root words only.
     search_service = QuranSearchService(session)
     result = await search_service.search(
         query=root,
         limit=limit,
         offset=offset,
-        include_semantic=True,  # This will expand using root
+        include_semantic=False,
+        terms_override=list(derived_words) + [root],
     )
 
     # Convert matches to response format
@@ -1316,9 +1310,13 @@ async def get_word_context(
     if not verse:
         raise HTTPException(status_code=404, detail="Verse not found")
 
-    # Check if word exists in verse
-    normalized_word = normalize_arabic(word)
-    if normalized_word not in normalize_arabic(verse.text_imlaei):
+    # Check if word exists in verse (shared search key on both normalized columns)
+    from app.services.arabic_normalize import normalize_for_search as _nfs
+    normalized_word = _nfs(word)
+    if not normalized_word or (
+        normalized_word not in (verse.text_imlaei_normalized or "")
+        and normalized_word not in (verse.text_normalized or "")
+    ):
         raise HTTPException(
             status_code=404,
             detail=f"Word '{word}' not found in verse {sura_no}:{aya_no}"
@@ -13149,7 +13147,16 @@ class GroundedVerseResponse(BaseModel):
     grounding: str  # Explanation of why this verse is relevant
     matched_concepts: List[str]  # Which search concepts matched
     highlighted_terms: List[str]  # Terms that were matched
-    match_type: str = "normalized"  # "alias" | "normalized" | "concept_expansion"
+    match_type: str = "normalized"  # "alias" | "exact" | "normalized" | "concept_expansion"
+
+
+class SurahSuggestion(BaseModel):
+    """A whole surah the query names (offered as a jump, not as verse hits)."""
+    sura_no: int
+    name_ar: str
+    name_en: str
+    label_ar: Optional[str] = None
+    label_en: Optional[str] = None
 
 
 class SemanticSearchResponse(BaseModel):
@@ -13157,20 +13164,23 @@ class SemanticSearchResponse(BaseModel):
     query: str
     query_language: str  # 'ar', 'en', 'mixed'
     expanded_concepts: List[str]
-    total_matches: int
+    total_matches: int  # all matching verses, not just this page
+    offset: int = 0
     search_time_ms: float
     summary: str  # Brief summary of what was found
     verses: List[GroundedVerseResponse]
     concept_distribution: Dict[str, int]  # How many verses per concept
     related_searches: List[str]  # Suggested related searches
+    surahs: List[SurahSuggestion] = []  # whole-surah aliases (e.g. الرحمن -> 55)
 
 
 @router.get("/search/intelligent")
 async def intelligent_search_with_grounding(
     query: str = Query(..., min_length=1, description="Natural language search query (Arabic or English)"),
     limit: int = Query(30, ge=1, le=100, description="Maximum results"),
+    offset: int = Query(0, ge=0, le=6236, description="Pagination offset"),
     include_related: bool = Query(True, description="Include related concepts in search"),
-    lang: str = Query("ar", description="Response language: 'ar' for Arabic, 'en' for English"),
+    lang: str = Query("ar", pattern="^(ar|en)$", description="Response language: 'ar' for Arabic, 'en' for English"),
     session: AsyncSession = Depends(get_async_session),
 ) -> SemanticSearchResponse:
     """
@@ -13197,8 +13207,11 @@ async def intelligent_search_with_grounding(
         get_related_concepts,
         BILINGUAL_CONCEPTS,
     )
-    from app.services.quran_search import QuranSearchService, normalize_arabic
+    from app.services.quran_search import QuranSearchService
     from app.services.quran_aliases import resolve_alias
+    from app.services.arabic_normalize import (
+        normalize_for_search, escape_like, has_arabic, search_terms as minimal_terms,
+    )
     from sqlalchemy import select as _select
 
     start_time = time.time()
@@ -13208,7 +13221,24 @@ async def intelligent_search_with_grounding(
     # labels that do not appear as literal Quran text. Resolve them to their
     # canonical surah:ayah reference before running the full-text search.
     alias_verses: list[GroundedVerseResponse] = []
+    surah_suggestions: list[SurahSuggestion] = []
     alias_target = resolve_alias(query)
+    if alias_target and alias_target.kind == "surah":
+        # A whole-surah name (الرحمن, الملك, يس, الكهف ...) is offered as a
+        # surah jump; the query is still searched as text so a common word
+        # is not hijacked by the surah's first verse.
+        _names = (await session.execute(
+            _select(QuranVerse.sura_name_ar, QuranVerse.sura_name_en)
+            .where(QuranVerse.sura_no == alias_target.sura_no, QuranVerse.aya_no == 1)
+        )).first()
+        surah_suggestions.append(SurahSuggestion(
+            sura_no=alias_target.sura_no,
+            name_ar=_names[0] if _names else alias_target.label_ar,
+            name_en=_names[1] if _names else alias_target.label_en,
+            label_ar=alias_target.label_ar,
+            label_en=alias_target.label_en,
+        ))
+        alias_target = None
     if alias_target:
         from app.models.quran import QuranVerse as _QV
         if alias_target.aya_end is not None:
@@ -13292,146 +13322,113 @@ async def intelligent_search_with_grounding(
     # Search for verses using all expanded terms — single batched DB query
     search_service = QuranSearchService(session)
 
-    # Filter valid search terms
-    valid_terms = [t for t in all_expansions if t and len(t) >= 2]
+    # Arabic search terms only (English words cannot match verse text):
+    # normalized with the shared key; original spelling kept for display.
+    q_norm = normalize_for_search(query)
+    term_display: Dict[str, str] = {}
+    for t in [query, *sorted(all_expansions)]:
+        if t and has_arabic(t):
+            nt = normalize_for_search(t)
+            if len(nt) >= 2 and nt not in term_display:
+                term_display[nt] = t
+    short_query = has_arabic(query) and 0 < len(q_norm.replace(" ", "")) <= 2
+
+    # SQL terms: de-duplicated and minimal (a substring hit on 'صبر' covers
+    # 'الصبر'), capped at 12, with the query itself always first.
+    sql_terms: list[str] = []
+    if q_norm and q_norm in term_display:
+        sql_terms.append(q_norm)
+    for t in minimal_terms(term_display.keys(), cap=12):
+        if len(sql_terms) >= 12:
+            break
+        if not any(k in t for k in sql_terms):
+            sql_terms.append(t)
+    if short_query:
+        # Two-letter queries (يس) only match the whole word, not 'ليس'.
+        sql_terms = [q_norm]
+
+    def _whole_word(term: str, text: str) -> bool:
+        return re.search(r"(?<!\S)" + re.escape(term) + r"(?!\S)", text) is not None
 
     # Collect all matching verses with their matched concepts
     verse_matches: Dict[int, Dict] = {}  # verse_id -> match info
     concept_counts: Dict[str, int] = {}
 
-    if valid_terms:
-        # Build a single batched query with all terms OR'd together
-        from sqlalchemy import select, or_, func
-        from app.models.quran import QuranVerse
-
-        normalized_terms = [normalize_arabic(t) for t in valid_terms]
-
-        # text_normalized is derived from Uthmanic text (uses special orthography,
-        # e.g. "إبراهيم" → "ابرهۦم" with U+06E6 small yeh). To catch standard Arabic
-        # spellings typed by users (e.g. "ابراهيم"), we ALSO search text_imlaei with
-        # diacritics stripped at the DB level using regexp_replace.
-        # Precise diacritic ranges (excludes Arabic-Indic digits U+0660-U+0669):
-        # U+0610-U+061A, U+064B-U+065F, U+0670, U+06D6-U+06DC, U+06DF-U+06E4,
-        # U+06E7-U+06E8, U+06EA-U+06ED
-        _diacritic_chars = (
-            ''.join(chr(i) for i in range(0x0610, 0x061B))
-            + ''.join(chr(i) for i in range(0x064B, 0x0660))
-            + chr(0x0670)
-            + ''.join(chr(i) for i in range(0x06D6, 0x06DD))
-            + ''.join(chr(i) for i in range(0x06DF, 0x06E5))
-            + chr(0x06E7) + chr(0x06E8)
-            + ''.join(chr(i) for i in range(0x06EA, 0x06EE))
-        )
-        _DIACRITIC_RE = '[' + _diacritic_chars + ']'
-
-        def _pg_normalize_imlaei(col):
-            """Strip diacritics and normalize alef/ya in text_imlaei (PostgreSQL)."""
-            stripped = func.regexp_replace(col, _DIACRITIC_RE, '', 'g')
-            # Normalize alef variants: آأإٱ → ا
-            stripped = func.translate(
-                stripped,
-                'آأإٱ',
-                'اااا',
-            )
-            # Normalize alef maqsura: ى → ي
-            stripped = func.replace(stripped, 'ى', 'ي')
-            return stripped
-
+    if sql_terms:
         conditions = []
-        for nt in normalized_terms:
-            # Primary: Uthmanic-based text_normalized column
-            conditions.append(QuranVerse.text_normalized.ilike(f'%{nt}%'))
-            # Secondary: text_imlaei with diacritics stripped (standard Arabic spelling)
-            conditions.append(_pg_normalize_imlaei(QuranVerse.text_imlaei).ilike(f'%{nt}%'))
+        for nt in sql_terms:
+            pattern = f"%{escape_like(nt)}%"
+            conditions.append(QuranVerse.text_normalized.ilike(pattern, escape="\\"))
+            conditions.append(QuranVerse.text_imlaei_normalized.ilike(pattern, escape="\\"))
 
-        stmt = select(QuranVerse).where(
-            or_(*conditions)
-        ).order_by(QuranVerse.sura_no, QuranVerse.aya_no).limit(500)
+        stmt = select(QuranVerse).where(or_(*conditions)).order_by(QuranVerse.id)
+        verses = (await session.execute(stmt)).scalars().all()
 
-        result = await session.execute(stmt)
-        verses = result.scalars().all()
-
-        # For each verse, determine which terms matched and build highlights
         for verse in verses:
-            verse_normalized = normalize_arabic(verse.text_uthmani)
-            verse_normalized_imlaei = normalize_arabic(verse.text_imlaei)
-            matched_terms = []
-            for nt, orig_term in zip(normalized_terms, valid_terms):
-                if nt in verse_normalized or nt in verse_normalized_imlaei:
-                    matched_terms.append(orig_term)
-
+            v_u = verse.text_normalized or ""
+            v_i = verse.text_imlaei_normalized or ""
+            matched_terms = [
+                orig for nt, orig in term_display.items()
+                if (nt in v_u or nt in v_i)
+                and (not short_query or _whole_word(nt, v_u) or _whole_word(nt, v_i))
+            ]
             if not matched_terms:
                 continue
 
-            # Find positions and build highlighted text using the search service
-            all_term_set = set(matched_terms)
-            positions = search_service._find_match_positions(verse.text_uthmani, all_term_set)
-            highlighted = search_service._highlight_matches(verse.text_uthmani, positions)
+            exact_sub = bool(q_norm) and (q_norm in v_u or q_norm in v_i)
+            whole = exact_sub and (_whole_word(q_norm, v_u) or _whole_word(q_norm, v_i))
+            relevance_score = len(matched_terms) / max(len(term_display), 1)
 
-            # Compute a simple relevance score based on term coverage
-            relevance_score = len(matched_terms) / max(len(valid_terms), 1)
-
-            # Build a SearchMatch-like object
-            from app.services.quran_search import SearchMatch
-            match_obj = SearchMatch(
-                verse_id=verse.id,
-                sura_no=verse.sura_no,
-                sura_name_ar=verse.sura_name_ar,
-                sura_name_en=verse.sura_name_en,
-                aya_no=verse.aya_no,
-                text_uthmani=verse.text_uthmani,
-                text_imlaei=verse.text_imlaei,
-                page_no=verse.page_no,
-                juz_no=verse.juz_no,
-                match_positions=positions,
-                highlighted_text=highlighted,
-                context_before='',
-                context_after='',
-                relevance_score=relevance_score,
-                tfidf_score=relevance_score,
-                exact_match=normalize_arabic(query) in verse_normalized,
-            )
-
-            verse_matches[verse.id] = {
-                'match': match_obj,
-                'concepts': set(),
-                'terms': set(matched_terms),
-                'max_score': relevance_score,
-            }
-
-            # Track which concepts matched
+            concepts = set()
             for orig_concept, expansions in concept_map.items():
                 expansions_lower = {e.lower() for e in expansions}
                 for mt in matched_terms:
                     if mt in expansions or mt.lower() in expansions_lower:
-                        verse_matches[verse.id]['concepts'].add(orig_concept)
+                        concepts.add(orig_concept)
                         concept_counts[orig_concept] = concept_counts.get(orig_concept, 0) + 1
                         break
 
-    # Sort by relevance and concept coverage
+            verse_matches[verse.id] = {
+                'verse': verse,
+                'concepts': concepts,
+                'terms': matched_terms,
+                'max_score': relevance_score,
+                'exact': exact_sub,
+                'whole': whole,
+            }
+
+    # Rank: whole-word exact > exact substring > concept coverage > term
+    # coverage > Mushaf order.
     sorted_verses = sorted(
         verse_matches.values(),
-        key=lambda x: (len(x['concepts']), x['max_score']),
-        reverse=True
+        key=lambda x: (
+            -int(x['whole']), -int(x['exact']), -len(x['concepts']),
+            -x['max_score'], x['verse'].id,
+        ),
     )
 
-    # ── Merge alias results (top) + full-text results (deduped, up to limit) ─
-    # Alias verses rank first; full-text results fill remaining slots.
+    # ── Merge alias results (top) + full-text results (deduped) ─────────────
     alias_ids = {v.verse_id for v in alias_verses}
-    remaining_slots = max(0, limit - len(alias_verses))
+    ranked = [v for v in sorted_verses if v['verse'].id not in alias_ids]
+    total = len(alias_verses) + len(ranked)
 
-    full_text_verses: list[GroundedVerseResponse] = []
-    for v in sorted_verses:
-        if len(full_text_verses) >= remaining_slots:
-            break
-        match = v['match']
-        if match.verse_id in alias_ids:
-            continue  # already in alias results — skip to avoid duplicate
+    combined: list = list(alias_verses) + ranked
+    page = combined[offset:offset + limit]
 
-        concepts = list(v['concepts'])
-        terms = list(v['terms'])
+    grounded_verses: list[GroundedVerseResponse] = []
+    for item in page:
+        if isinstance(item, GroundedVerseResponse):
+            grounded_verses.append(item)
+            continue
+        verse = item['verse']
+        concepts = sorted(item['concepts'])
+        terms = item['terms']
 
-        if concepts:
+        if item['exact'] and lang == 'ar':
+            grounding = f"تحتوي على كلمة البحث: {query}."
+        elif item['exact']:
+            grounding = f"Contains the search word: {query}."
+        elif concepts:
             concept_names = ', '.join(concepts[:3])
             if lang == 'ar':
                 grounding = f"هذه الآية تتعلق بـ: {concept_names}. "
@@ -13451,29 +13448,27 @@ async def intelligent_search_with_grounding(
             else:
                 grounding = f"Contains search term(s): {', '.join(terms[:3])}."
 
-        full_text_verses.append(GroundedVerseResponse(
-            verse_id=match.verse_id,
-            sura_no=match.sura_no,
-            sura_name_ar=match.sura_name_ar,
-            sura_name_en=match.sura_name_en,
-            aya_no=match.aya_no,
-            reference=f"{match.sura_no}:{match.aya_no}",
-            text_uthmani=match.text_uthmani,
-            text_imlaei=match.text_imlaei,
-            highlighted_text=match.highlighted_text,
-            page_no=match.page_no,
-            juz_no=match.juz_no,
-            relevance_score=round(v['max_score'], 4),
+        positions = search_service._find_match_positions(verse.text_uthmani, set(terms))
+        grounded_verses.append(GroundedVerseResponse(
+            verse_id=verse.id,
+            sura_no=verse.sura_no,
+            sura_name_ar=verse.sura_name_ar,
+            sura_name_en=verse.sura_name_en,
+            aya_no=verse.aya_no,
+            reference=f"{verse.sura_no}:{verse.aya_no}",
+            text_uthmani=verse.text_uthmani,
+            text_imlaei=verse.text_imlaei,
+            highlighted_text=search_service._highlight_matches(verse.text_uthmani, positions),
+            page_no=verse.page_no,
+            juz_no=verse.juz_no,
+            relevance_score=round(item['max_score'], 4),
             grounding=grounding,
             matched_concepts=concepts,
             highlighted_terms=terms[:10],
-            match_type="concept_expansion" if concepts else "normalized",
+            match_type="exact" if item['exact'] else ("concept_expansion" if concepts else "normalized"),
         ))
 
-    grounded_verses = alias_verses + full_text_verses
-
-    # Generate summary
-    total = len(grounded_verses)
+    # Generate summary (based on the full total, not the page)
     _alias_prefix_ar = f"تطابق مباشر: {alias_target.label_ar}. " if alias_target else ""
     _alias_prefix_en = f"Direct alias: {alias_target.label_en}. " if alias_target else ""
     if lang == 'ar':
@@ -13517,13 +13512,15 @@ async def intelligent_search_with_grounding(
     return SemanticSearchResponse(
         query=query,
         query_language=parsed.language,
-        expanded_concepts=list(all_expansions)[:20],
-        total_matches=len(grounded_verses),
+        expanded_concepts=sorted(all_expansions)[:20],
+        total_matches=total,
+        offset=offset,
         search_time_ms=round(search_time, 2),
         summary=summary,
         verses=grounded_verses,
         concept_distribution=concept_counts,
         related_searches=related_searches[:10],
+        surahs=surah_suggestions,
     )
 
 

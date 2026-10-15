@@ -16,7 +16,6 @@ Usage:
 import sys
 import os
 import json
-import re
 from pathlib import Path
 from datetime import datetime
 
@@ -27,6 +26,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
 from app.models.quran import QuranVerse
+from app.services.arabic_normalize import normalize_for_search
 from app.models.audit import AuditLog
 
 # Paths
@@ -130,20 +130,21 @@ def seed_verses(session: Session, verses: list) -> int:
     return count
 
 
-def normalize_for_search(t: str) -> str:
-    """Search key: no tatweel/diacritics, unified alef, ta marbuta -> ha, alef maqsura -> ya."""
-    t = t.replace("\ufeff", "").replace("\u0640", "")
-    t = re.sub(r"[\u064b-\u065f\u0670]", "", t)
-    t = re.sub(r"[\u0622\u0623\u0625\u0671]", "\u0627", t)
-    return t.replace("\u0629", "\u0647").replace("\u0649", "\u064a").strip()
-
-
 def populate_text_normalized(session: Session) -> int:
-    """Fill quran_verses.text_normalized (used by text search) for every verse."""
-    rows = session.execute(text("SELECT id, text_uthmani FROM quran_verses")).all()
+    """Fill the derived search keys for every verse.
+
+    text_normalized <- text_uthmani, text_imlaei_normalized <- text_imlaei,
+    both with the one shared normalizer used by the search services.
+    """
+    rows = session.execute(text("SELECT id, text_uthmani, text_imlaei FROM quran_verses")).all()
     session.execute(
-        text("UPDATE quran_verses SET text_normalized = :n WHERE id = :i"),
-        [{"i": i, "n": normalize_for_search(t or "")} for i, t in rows],
+        text(
+            "UPDATE quran_verses SET text_normalized = :n, text_imlaei_normalized = :m WHERE id = :i"
+        ),
+        [
+            {"i": i, "n": normalize_for_search(u or ""), "m": normalize_for_search(m or u or "")}
+            for i, u, m in rows
+        ],
     )
     session.commit()
     return len(rows)

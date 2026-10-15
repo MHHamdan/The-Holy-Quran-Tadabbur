@@ -289,3 +289,29 @@ class TestAliasMapIntegrity:
 
     def test_map_not_empty(self):
         assert len(ALIAS_MAP) >= 10, "ALIAS_MAP should have at least 10 entries"
+
+
+class TestAliasKind:
+    """Whole-surah names are surah jumps, never single-verse hits."""
+
+    @pytest.mark.parametrize("q, sura", [
+        ("الرحمن", 55),
+        ("الملك", 67),
+        ("تبارك", 67),
+        ("يس", 36),
+        ("الكهف", 18),
+        ("Al-Fatihah", 1),
+        ("Ikhlas", 112),
+    ])
+    def test_surah_aliases(self, q, sura):
+        t = resolve_alias(q)
+        assert t is not None and t.sura_no == sura
+        assert t.kind == "surah"
+
+    @pytest.mark.parametrize("q", ["Ayat al-Kursi", "People of the Cave", "Dhul-Qarnayn"])
+    def test_verse_aliases(self, q):
+        assert resolve_alias(q).kind == "verse"
+
+    def test_keys_use_shared_normalizer(self):
+        # tatweel and hyphen variants resolve to the same entry
+        assert resolve_alias("آية الكـرسي") == resolve_alias("Ayat-ul-Kursi")

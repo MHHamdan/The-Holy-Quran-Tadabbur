@@ -24,6 +24,13 @@ from sqlalchemy import select, func, or_, and_, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.quran import QuranVerse, Translation
+from app.services.arabic_normalize import (
+    MARKS_RE,
+    escape_like,
+    find_spans,
+    normalize_for_search,
+    search_terms as minimal_search_terms,
+)
 from app.services.quran_text_utils import (
     parse_multi_concept_query,
     expand_bilingual_query,
@@ -42,11 +49,9 @@ logger = logging.getLogger(__name__)
 # ARABIC TEXT UTILITIES
 # =============================================================================
 
-# Arabic diacritics (tashkeel) for normalization — covers all Quranic marks
-ARABIC_DIACRITICS = re.compile(
-    r'[\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED'
-    r'\u0610-\u061A\u08D3-\u08E1\u08E3-\u08FF\uFE70-\uFE7F]'
-)
+# Arabic diacritics, Quranic marks and tatweel — the single shared set from
+# app.services.arabic_normalize.
+ARABIC_DIACRITICS = MARKS_RE
 
 # Alef variants to normalize
 ALEF_VARIANTS = {
@@ -138,17 +143,29 @@ def normalize_arabic(
 
 def normalize_for_matching(text: str) -> str:
     """
-    Full normalization for search-query matching.
+    Full normalization for search-query matching (the shared search key).
 
-    Applies all normalizations including Ta Marbuta and hamza variants.
     MUST NOT be applied to stored Quran text or display output — for matching only.
     """
-    return normalize_arabic(
-        text,
-        remove_diacritics=True,
-        normalize_ta_marbuta=True,
-        normalize_hamza_variants=True,
+    return normalize_for_search(text)
+
+
+def _ilike_any(term: str):
+    """Condition: the normalized term occurs in either normalized column."""
+    pattern = f"%{escape_like(term)}%"
+    return or_(
+        QuranVerse.text_normalized.ilike(pattern, escape="\\"),
+        QuranVerse.text_imlaei_normalized.ilike(pattern, escape="\\"),
     )
+
+
+def _verse_has(verse, term: str) -> bool:
+    return term in (verse.text_normalized or "") or term in (verse.text_imlaei_normalized or "")
+
+
+# Document frequencies are a property of the (immutable) Quran text, so they
+# are cached for the life of the process rather than per scorer instance.
+_DF_CACHE: Dict[str, int] = {}
 
 
 
@@ -780,26 +797,24 @@ class TFIDFScorer:
         self._initialized = True
 
     async def compute_idf(self, word: str, session: AsyncSession) -> float:
-        """Compute IDF for a word."""
-        if word not in self.document_frequencies:
-            # Count verses containing this word
-            normalized = normalize_arabic(word)
-            result = await session.execute(
-                select(func.count(QuranVerse.id)).where(
-                    QuranVerse.text_imlaei.ilike(f'%{normalized}%')
+        """Compute IDF for a word (document frequency over the normalized columns)."""
+        normalized = normalize_for_search(word)
+        if normalized not in self.document_frequencies:
+            if normalized not in _DF_CACHE:
+                result = await session.execute(
+                    select(func.count(QuranVerse.id)).where(_ilike_any(normalized))
                 )
-            )
-            count = result.scalar() or 0
-            self.document_frequencies[word] = max(count, 1)
+                _DF_CACHE[normalized] = max(result.scalar() or 0, 1)
+            self.document_frequencies[normalized] = _DF_CACHE[normalized]
 
-        df = self.document_frequencies[word]
+        df = self.document_frequencies[normalized]
         # IDF = log(N / df) where N is total documents
         return math.log(self.document_count / df) if df > 0 else 0
 
     def compute_tf(self, word: str, verse_text: str) -> float:
         """Compute TF for a word in a verse."""
-        normalized_word = normalize_arabic(word)
-        normalized_text = normalize_arabic(verse_text)
+        normalized_word = normalize_for_search(word)
+        normalized_text = normalize_for_search(verse_text)
 
         # Count occurrences
         count = normalized_text.lower().count(normalized_word.lower())
@@ -845,6 +860,7 @@ class QuranSearchService:
         include_semantic: bool = True,
         include_grammar: bool = False,
         theme_filter: Optional[str] = None,
+        terms_override: Optional[List[str]] = None,
     ) -> SearchResult:
         """
         Search for a word or phrase across the entire Quran.
@@ -858,6 +874,8 @@ class QuranSearchService:
             include_semantic: Include semantically related terms
             include_grammar: Include grammatical analysis (slower)
             theme_filter: Filter by thematic category (e.g., 'tawheed', 'prophets')
+            terms_override: Search exactly these terms (e.g. root-derived words)
+                instead of the query and its expansions
 
         Returns:
             SearchResult with matches and statistics
@@ -865,22 +883,26 @@ class QuranSearchService:
         import time
         start_time = time.time()
 
-        # Normalize query
-        query_normalized = normalize_arabic(query)
+        # Normalize query with the shared search key
+        query_normalized = normalize_for_search(query)
 
-        # Build search terms
-        search_terms = {query_normalized}
-        if include_semantic:
-            search_terms = expand_query(query)
+        # Build search terms (normalized, de-duplicated, minimal, capped)
+        if terms_override:
+            raw_terms = set(terms_override) | {query}
+        elif include_semantic:
+            raw_terms = expand_query(query) | {query}
+        else:
+            raw_terms = {query}
+        search_terms = set(minimal_search_terms(raw_terms))
+        if query_normalized:
+            search_terms.add(query_normalized)
+        if not search_terms:
+            return SearchResult(
+                query=query, query_normalized=query_normalized, total_matches=0, matches=[],
+            )
 
-        # Build query conditions - use normalized column for diacritic-free search
-        conditions = []
-        for term in search_terms:
-            # Use text_normalized for search (no diacritics)
-            conditions.append(QuranVerse.text_normalized.ilike(f'%{term}%'))
-
-        # Build main query
-        stmt = select(QuranVerse).where(or_(*conditions))
+        # Match on the normalized columns (trigram-indexed)
+        stmt = select(QuranVerse).where(or_(*[_ilike_any(t) for t in search_terms]))
 
         # Apply filters
         if sura_filter:
@@ -902,10 +924,12 @@ class QuranSearchService:
         page_dist = defaultdict(int)
 
         for verse in verses:
-            # Find match positions
-            positions = self._find_match_positions(verse.text_uthmani, search_terms)
-            if not positions:
+            # The SQL already matched one of the normalized columns; re-check
+            # in Python against the same columns (never re-normalize the
+            # canonical text with a different function).
+            if not any(_verse_has(verse, t) for t in search_terms):
                 continue
+            positions = self._find_match_positions(verse.text_uthmani, search_terms)
 
             # Apply theme filter if specified
             if theme_filter:
@@ -927,13 +951,12 @@ class QuranSearchService:
             )
 
             # Check for exact match
-            verse_norm = normalize_arabic(verse.text_uthmani)
-            exact_match = query_normalized in verse_norm
+            exact_match = bool(query_normalized) and _verse_has(verse, query_normalized)
 
             # Determine match_type
             if exact_match:
                 match_type = "exact"
-            elif include_semantic and len(search_terms) > 1 and query_normalized not in verse_norm:
+            elif len(search_terms) > 1:
                 # Verse returned only via semantic expansion terms, not the core query
                 match_type = "root"
             else:
@@ -1003,13 +1026,17 @@ class QuranSearchService:
 
         Returns frequency, distribution, co-occurrence patterns.
         """
-        normalized = normalize_arabic(word)
+        normalized = normalize_for_search(word)
+        if not normalized:
+            return WordAnalytics(
+                word=word, word_normalized=normalized, total_occurrences=0,
+                by_sura={}, by_juz={}, top_verses=[], co_occurring_words=[],
+            )
 
-        # Get all verses containing the word
+        # Get all verses containing the word (either normalized column)
         result = await self.session.execute(
-            select(QuranVerse).where(
-                QuranVerse.text_imlaei.ilike(f'%{normalized}%')
-            ).order_by(QuranVerse.sura_no, QuranVerse.aya_no)
+            select(QuranVerse).where(_ilike_any(normalized))
+            .order_by(QuranVerse.sura_no, QuranVerse.aya_no)
         )
         verses = result.scalars().all()
 
@@ -1020,8 +1047,11 @@ class QuranSearchService:
         total = 0
 
         for verse in verses:
-            # Count occurrences in this verse
-            count = normalize_arabic(verse.text_imlaei).count(normalized)
+            # Count occurrences in this verse (imlaei spelling first; the
+            # Uthmani column covers rasm spellings the imlaei text lacks)
+            count = (verse.text_imlaei_normalized or "").count(normalized) or (
+                verse.text_normalized or ""
+            ).count(normalized)
             total += count
 
             # Sura distribution
@@ -1091,20 +1121,24 @@ class QuranSearchService:
             exact: If True, match exact phrase; otherwise fuzzy
             limit: Maximum results
         """
-        normalized = normalize_arabic(phrase)
+        normalized = normalize_for_search(phrase)
+        if not normalized:
+            return SearchResult(query=phrase, query_normalized="", total_matches=0, matches=[])
 
+        variants = {normalized}
         if exact:
-            # Exact phrase match
+            # A phrase starting with the article also occurs after the
+            # preposition lam, where the alef is elided in writing
+            # (ل + الحي -> للحي, 20:111): match the phrase without its alef too.
+            if normalized.startswith("ال") and len(normalized) > 3:
+                variants.add(normalized[1:])
             stmt = select(QuranVerse).where(
-                QuranVerse.text_imlaei.ilike(f'%{normalized}%')
+                or_(*[_ilike_any(v) for v in variants])
             ).order_by(QuranVerse.sura_no, QuranVerse.aya_no).limit(limit)
         else:
             # All words must appear (any order)
-            words = extract_words(phrase)
-            conditions = [
-                QuranVerse.text_imlaei.ilike(f'%{w}%')
-                for w in words
-            ]
+            words = [normalize_for_search(w) for w in phrase.split()]
+            conditions = [_ilike_any(w) for w in words if w]
             stmt = select(QuranVerse).where(
                 and_(*conditions)
             ).order_by(QuranVerse.sura_no, QuranVerse.aya_no).limit(limit)
@@ -1114,7 +1148,7 @@ class QuranSearchService:
 
         matches = []
         for verse in verses:
-            positions = self._find_match_positions(verse.text_uthmani, {normalized})
+            positions = self._find_match_positions(verse.text_uthmani, variants)
             highlighted = self._highlight_matches(verse.text_uthmani, positions)
 
             match = SearchMatch(
@@ -1182,23 +1216,12 @@ class QuranSearchService:
         text: str,
         search_terms: Set[str],
     ) -> List[Tuple[int, int]]:
-        """Find all positions where search terms match in text."""
-        positions = []
-        normalized_text = normalize_arabic(text).lower()
+        """Spans (start, end) in the ORIGINAL text where any search term occurs.
 
-        for term in search_terms:
-            normalized_term = normalize_arabic(term).lower()
-            start = 0
-            while True:
-                pos = normalized_text.find(normalized_term, start)
-                if pos == -1:
-                    break
-                positions.append((pos, pos + len(normalized_term)))
-                start = pos + 1
-
-        # Sort by position and merge overlapping
-        positions.sort()
-        return positions
+        Matching runs on the shared search key, so tatweel, small Quranic
+        letters and pause marks in the Uthmani text do not break a match.
+        """
+        return find_spans(text, search_terms)
 
     def _highlight_matches(
         self,
@@ -1210,28 +1233,14 @@ class QuranSearchService:
         """
         Highlight matches in text using markers.
 
-        Maps positions from normalized text back to original text
-        by building a character-by-character mapping.
+        ``positions`` are spans in the original text (from
+        _find_match_positions); every character the normalizer removes —
+        harakat, tatweel, small Quranic letters, pause marks — is zero width
+        in the key, so spans never split a letter from its marks.
         """
         if not positions:
             return text
 
-        # Build mapping from normalized positions to original positions
-        # This accounts for diacritics that exist in original but not normalized
-        norm_to_orig = []  # norm_to_orig[norm_idx] = orig_idx
-        orig_idx = 0
-
-        for char in text:
-            # Check if this character would be removed during normalization
-            is_diacritic = bool(ARABIC_DIACRITICS.match(char))
-            if not is_diacritic:
-                norm_to_orig.append(orig_idx)
-            orig_idx += 1
-
-        # Add end position
-        norm_to_orig.append(len(text))
-
-        # Merge overlapping positions
         merged = []
         for start, end in sorted(positions):
             if merged and start <= merged[-1][1]:
@@ -1239,37 +1248,18 @@ class QuranSearchService:
             else:
                 merged.append((start, end))
 
-        # Build highlighted text
         result = []
-        last_orig_end = 0
-
-        for norm_start, norm_end in merged:
-            # Map normalized positions to original positions
-            if norm_start >= len(norm_to_orig):
+        last = 0
+        for start, end in merged:
+            if start >= len(text) or start < last:
                 continue
-            orig_start = norm_to_orig[min(norm_start, len(norm_to_orig) - 1)]
-            orig_end = norm_to_orig[min(norm_end, len(norm_to_orig) - 1)]
-
-            # Extend to include trailing diacritics
-            while orig_end < len(text):
-                char = text[orig_end]
-                is_diacritic = bool(ARABIC_DIACRITICS.match(char))
-                if is_diacritic:
-                    orig_end += 1
-                else:
-                    break
-
-            # Skip if positions are invalid
-            if orig_start >= len(text) or orig_start < last_orig_end:
-                continue
-
-            result.append(text[last_orig_end:orig_start])
+            end = min(end, len(text))
+            result.append(text[last:start])
             result.append(highlight_start)
-            result.append(text[orig_start:orig_end])
+            result.append(text[start:end])
             result.append(highlight_end)
-            last_orig_end = orig_end
-
-        result.append(text[last_orig_end:])
+            last = end
+        result.append(text[last:])
         return ''.join(result)
 
     def _extract_context(
