@@ -728,16 +728,16 @@
       "ayah_end": 4,
       "title_ar": "سورة الإخلاص - خلاصة التوحيد",
       "title_en": "Surah Al-Ikhlas - The Essence of Tawheed",
-      "summary_ar": "سورة الإخلاص تعدل ثلث القرآن لأنها جمعت التوحيد كله: إثبات الوحدانية والصمدية ونفي الولد والوالد والند",
-      "summary_en": "Surah Al-Ikhlas equals one-third of the Quran as it encompasses all of Tawheed: affirming Oneness, Self-Sufficiency, and negating offspring, parent, and equal",
+      "summary_ar": "",
+      "summary_en": "",
+      "review_status": "withheld_owner_review",
       "semantic_tags": ["tawheed", "oneness", "attributes"],
       "revelation_context": "makki",
       "is_entry_point": true,
       "evidence_sources": [
         {
           "source_id": "ibn_kathir_ar",
-          "chunk_id": "ibn_kathir:112:1",
-          "snippet": "هذه السورة تعدل ثلث القرآن كما جاء في الأحاديث الصحيحة"
+          "chunk_id": "ibn_kathir:112:1"
         }
       ]
     },
@@ -748,18 +748,18 @@
       "sura_no": 2,
       "ayah_start": 255,
       "ayah_end": 255,
-      "title_ar": "آية الكرسي - أعظم آية في القرآن",
-      "title_en": "Ayat al-Kursi - The Greatest Verse",
-      "summary_ar": "آية الكرسي أعظم آية في القرآن لما اشتملت عليه من توحيد الله وأسمائه وصفاته",
-      "summary_en": "Ayat al-Kursi is the greatest verse due to its comprehensive declaration of Allah's Oneness, Names, and Attributes",
+      "title_ar": "آية الكرسي",
+      "title_en": "Ayat al-Kursi",
+      "summary_ar": "",
+      "summary_en": "",
+      "review_status": "withheld_owner_review",
       "semantic_tags": ["tawheed", "names", "attributes", "knowledge", "power"],
       "revelation_context": "madani",
       "is_entry_point": false,
       "evidence_sources": [
         {
           "source_id": "ibn_kathir_ar",
-          "chunk_id": "ibn_kathir:2:255",
-          "snippet": "هذه آية الكرسي ولها شأن عظيم وقد صح الحديث عن رسول الله صلى الله عليه وسلم بأنها أعظم آية في كتاب الله"
+          "chunk_id": "ibn_kathir:2:255"
         }
       ]
     },
