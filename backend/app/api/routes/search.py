@@ -72,7 +72,6 @@ class TrendingResponse(BaseModel):
     """Response for trending content."""
     ok: bool = True
     themes: List[TrendingTheme]
-    popular_searches: List[dict]
 
 
 class SearchFilter(BaseModel):
@@ -172,16 +171,14 @@ async def expand_search_query(
 @router.get("/trending", response_model=TrendingResponse)
 async def get_trending_content():
     """
-    Get trending themes and popular searches.
+    Get trending Quranic themes (a fixed, curated list).
 
-    Returns:
-    - Trending Quranic themes
-    - Most popular recent searches
+    Readers' search queries are never collected or shown to other readers, so
+    there is no "popular searches" or "recent searches" list.
     """
     service = get_suggestions_service()
 
     trending_themes = service.get_trending_themes()
-    popular_searches = service.get_popular_searches(limit=10)
 
     return TrendingResponse(
         ok=True,
@@ -193,45 +190,7 @@ async def get_trending_content():
             )
             for t in trending_themes
         ],
-        popular_searches=[
-            {"query": q, "count": c}
-            for q, c in popular_searches
-        ],
     )
-
-
-@router.get("/recent")
-async def get_recent_searches(
-    limit: int = Query(default=10, ge=1, le=50),
-):
-    """
-    Get recent search queries.
-
-    Returns the most recent searches performed by users.
-    """
-    service = get_suggestions_service()
-    recent = service.get_recent_searches(limit=limit)
-
-    return {
-        "ok": True,
-        "recent_searches": recent,
-        "total": len(recent),
-    }
-
-
-@router.post("/record")
-async def record_search(
-    q: str = Query(..., min_length=1, max_length=200),
-):
-    """
-    Record a search query for analytics.
-
-    Used to track popular and recent searches.
-    """
-    service = get_suggestions_service()
-    service.record_search(q)
-
-    return {"ok": True, "message": "Search recorded"}
 
 
 @router.get("/filters")

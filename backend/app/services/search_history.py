@@ -5,13 +5,19 @@ Tracks user search history and provides personalized suggestions:
 - Recent searches storage
 - Search frequency analysis
 - Related verse suggestions based on history
-- Popular searches aggregation
+
+Privacy: queries are personal. Each session's queries are only ever returned
+to that session (by its unguessable sess_<uuid4> id); nothing derived from one
+reader's query text is shown to another reader or exposed by the stats. Entries
+expire after SEARCH_HISTORY_TTL_DAYS and a session's state is fully removed by
+clear_session_history (DELETE /quran/history, called by "Delete my data").
 """
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Set, Any
 from collections import OrderedDict, Counter, defaultdict
 import json
+import os
 import asyncio
 
 from sqlalchemy import text
@@ -70,7 +76,8 @@ class SimilarityFeedback:
 # memory, so without a bound it grows for as long as the worker runs.
 MAX_SESSIONS = 10_000
 MAX_FEEDBACK_PAIRS = 50_000
-MAX_GLOBAL_QUERIES = 50_000
+# Recent searches older than this are dropped from a session's history.
+SEARCH_HISTORY_TTL_DAYS = int(os.getenv("SEARCH_HISTORY_TTL_DAYS", "30"))
 
 
 class _LRUDict(OrderedDict):
@@ -113,8 +120,9 @@ class SearchHistoryService:
         self.max_history_per_session = max_history_per_session
         # In-memory storage: session_id -> list of SearchEntry
         self._session_history: Dict[str, List[SearchEntry]] = _LRUDict(MAX_SESSIONS, list)
-        # Global search counts for popularity
-        self._global_search_counts: Counter = Counter()
+        # Total number of recorded searches (a count only: query text is
+        # never aggregated across sessions)
+        self._total_searches: int = 0
         # Verse click counts
         self._verse_clicks: Counter = Counter()
         # Theme/concept interest tracking
@@ -127,6 +135,10 @@ class SearchHistoryService:
         self._relevance_scores: Dict[tuple, tuple] = _LRUDict(MAX_FEEDBACK_PAIRS)
         # Bookmarks: session_id -> list of bookmarks (per instance, bounded)
         self._bookmarks: Dict[str, List[Dict]] = _LRUDict(MAX_SESSIONS)
+        # session_id -> collection_name -> verse_refs
+        self._bookmark_collections: Dict[str, Dict[str, List[str]]] = _LRUDict(MAX_SESSIONS)
+        # session_id -> study goal config
+        self._study_goals: Dict[str, Dict] = _LRUDict(MAX_SESSIONS)
         # Lock for thread safety
         self._lock = asyncio.Lock()
 
@@ -148,20 +160,16 @@ class SearchHistoryService:
                 session_id=session_id,
             )
 
-            # Add to session history
-            history = self._session_history[session_id]
+            # Add to session history (dropping expired entries first)
+            history = self._unexpired(self._session_history[session_id])
             history.append(entry)
+            self._session_history[session_id] = history
 
             # Trim if too long
             if len(history) > self.max_history_per_session:
                 self._session_history[session_id] = history[-self.max_history_per_session:]
 
-            # Update global counts (trimmed to the most common queries)
-            self._global_search_counts[query.lower()] += 1
-            if len(self._global_search_counts) > MAX_GLOBAL_QUERIES:
-                self._global_search_counts = Counter(
-                    dict(self._global_search_counts.most_common(MAX_GLOBAL_QUERIES // 2))
-                )
+            self._total_searches += 1
 
             # Track theme interests
             if themes:
@@ -187,6 +195,13 @@ class SearchHistoryService:
                 if verse_ref not in last_entry.clicked_verses:
                     last_entry.clicked_verses.append(verse_ref)
 
+    @staticmethod
+    def _unexpired(history: List[SearchEntry]) -> List[SearchEntry]:
+        cutoff = datetime.utcnow() - timedelta(days=SEARCH_HISTORY_TTL_DAYS)
+        if history and history[0].timestamp < cutoff:
+            return [e for e in history if e.timestamp >= cutoff]
+        return history
+
     async def get_session_history(
         self,
         session_id: str,
@@ -194,7 +209,7 @@ class SearchHistoryService:
         query_type: Optional[str] = None,
     ) -> List[SearchEntry]:
         """Get search history for a session."""
-        history = self._session_history.get(session_id, [])
+        history = self._unexpired(self._session_history.get(session_id, []))
 
         if query_type:
             history = [e for e in history if e.query_type == query_type]
@@ -209,15 +224,16 @@ class SearchHistoryService:
         limit: int = 10,
     ) -> List[SearchSuggestion]:
         """
-        Get search suggestions based on:
-        1. User's recent searches (highest priority)
-        2. Popular global searches
+        Search suggestions from this session's own recent searches only.
+
+        There is deliberately no "popular searches" fallback: that would show
+        one reader's raw query text to other readers.
         """
         suggestions: List[SearchSuggestion] = []
         seen_queries: Set[str] = set()
 
         # First, add from user's history
-        history = self._session_history.get(session_id, [])
+        history = self._unexpired(self._session_history.get(session_id, []))
         query_counts: Counter = Counter()
         query_times: Dict[str, datetime] = {}
         query_types: Dict[str, str] = {}
@@ -247,26 +263,6 @@ class SearchHistoryService:
                     relevance_score=min(1.0, count / 10 + 0.5),  # Personal history bonus
                 ))
                 seen_queries.add(query)
-
-        # Add popular global searches if we need more
-        if len(suggestions) < limit:
-            for query, count in self._global_search_counts.most_common(50):
-                if query in seen_queries:
-                    continue
-                if prefix and prefix.lower() not in query:
-                    continue
-
-                suggestions.append(SearchSuggestion(
-                    query=query,
-                    query_type="text",
-                    frequency=count,
-                    last_used=datetime.utcnow() - timedelta(hours=1),  # Approximate
-                    relevance_score=min(0.8, count / 20),  # Lower score for global
-                ))
-                seen_queries.add(query)
-
-                if len(suggestions) >= limit:
-                    break
 
         # Sort by relevance
         suggestions.sort(key=lambda s: s.relevance_score, reverse=True)
@@ -573,21 +569,35 @@ class SearchHistoryService:
         return results
 
     async def clear_session_history(self, session_id: str) -> None:
-        """Clear history for a session."""
+        """Remove everything held for a session: searches, theme interests,
+        bookmarks, study goal and the session's similarity feedback (including
+        any note text). Anonymous aggregate relevance counts are kept."""
         async with self._lock:
-            if session_id in self._session_history:
-                del self._session_history[session_id]
-            if session_id in self._theme_interests:
-                del self._theme_interests[session_id]
+            for store in (
+                self._session_history,
+                self._theme_interests,
+                self._bookmarks,
+                self._bookmark_collections,
+                self._study_goals,
+                self._session_feedback,
+            ):
+                store.pop(session_id, None)
+            for pair_key in list(self._similarity_feedback.keys()):
+                # OrderedDict.get/__setitem__ so the LRU order is not touched
+                feedback = OrderedDict.get(self._similarity_feedback, pair_key) or []
+                kept = [fb for fb in feedback if fb.session_id != session_id]
+                if len(kept) != len(feedback):
+                    if kept:
+                        OrderedDict.__setitem__(self._similarity_feedback, pair_key, kept)
+                    else:
+                        self._similarity_feedback.pop(pair_key, None)
 
     def get_stats(self) -> Dict:
-        """Get service statistics."""
+        """Aggregate counts only. No query text is ever returned here."""
         return {
             "active_sessions": len(self._session_history),
-            "total_searches": sum(self._global_search_counts.values()),
-            "unique_queries": len(self._global_search_counts),
+            "total_searches": self._total_searches,
             "total_verse_clicks": sum(self._verse_clicks.values()),
-            "top_searches": self._global_search_counts.most_common(10),
             "top_clicked_verses": self._verse_clicks.most_common(10),
         }
 
@@ -684,8 +694,6 @@ class SearchHistoryService:
     # BOOKMARK SYSTEM
     # =========================================================================
 
-    _bookmark_collections: Dict[str, Dict[str, List[str]]] = {}  # session_id -> collection_name -> verse_refs
-
     async def add_bookmark(
         self,
         session_id: str,
@@ -709,6 +717,7 @@ class SearchHistoryService:
         async with self._lock:
             if session_id not in self._bookmarks:
                 self._bookmarks[session_id] = []
+            if session_id not in self._bookmark_collections:
                 self._bookmark_collections[session_id] = {"default": []}
 
             verse_ref = f"{sura_no}:{aya_no}"
@@ -790,8 +799,6 @@ class SearchHistoryService:
     # =========================================================================
     # STUDY GOALS & PERSONALIZATION
     # =========================================================================
-
-    _study_goals: Dict[str, Dict] = {}  # session_id -> study goal config
 
     async def set_study_goal(
         self,
