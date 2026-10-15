@@ -100,6 +100,33 @@ class TestCooldown:
         monkeypatch.setattr(hf_client.time, "monotonic", lambda: now + 2)
         assert hf_client.require_hf_token("chat") == FAKE_TOKEN
 
+    @pytest.mark.parametrize("status", [403, 429])
+    def test_component_failure_does_not_block_chat(self, monkeypatch, status):
+        # A gated reranker (403) or a per-model rate limit (429) cools down
+        # only that task; chat keeps working.
+        classify_exception(_http_error(status), "rerank")
+        with pytest.raises(HFInferenceError):
+            hf_client.require_hf_token("rerank")
+        assert hf_client.require_hf_token("chat") == FAKE_TOKEN
+        assert hf_client.require_hf_token("embeddings") == FAKE_TOKEN
+        out = SimpleNamespace(
+            model="m", usage=None,
+            choices=[SimpleNamespace(message=SimpleNamespace(content="ok"), finish_reason="stop")],
+        )
+        calls = _router(monkeypatch, out)
+        asyncio.run(HuggingFaceLLM().generate("SYS", "USER"))
+        assert len(calls) == 1
+        assert hf_client.hf_cooldown_state()["scope"] == "rerank"
+
+    @pytest.mark.parametrize("status,kind", [(401, HFErrorKind.AUTH), (402, HFErrorKind.QUOTA)])
+    def test_account_failure_blocks_every_task(self, status, kind):
+        classify_exception(_http_error(status), "rerank")
+        for task in ("chat", "embeddings", "rerank", "zero-shot"):
+            with pytest.raises(HFInferenceError) as exc:
+                hf_client.require_hf_token(task)
+            assert exc.value.kind == kind
+        assert hf_client.hf_cooldown_state()["scope"] == "account"
+
     def test_missing_token_still_reports_not_configured(self, monkeypatch):
         classify_exception(_http_error(429), "chat")
         monkeypatch.setattr(settings, "hf_token", None)

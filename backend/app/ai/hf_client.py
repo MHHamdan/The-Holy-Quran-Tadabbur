@@ -18,7 +18,7 @@ import logging
 import threading
 import time
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 import httpx
 
@@ -85,10 +85,15 @@ def get_hf_token() -> Optional[str]:
 
 # ---------------------------------------------------------------- cooldown
 #
-# After quota exhaustion (402/429) or a rejected token (401/403) every further
-# call is bound to fail, yet each would still pay full latency and burn the
-# worker. Those failures open a short process-wide cooldown during which
-# require_hf_token() fails fast without any HTTP request.
+# After quota exhaustion or a rejected token every further call is bound to
+# fail, yet each would still pay full latency and burn the worker. Those
+# failures open a short cooldown during which require_hf_token() fails fast
+# without any HTTP request.
+#
+# Scope: a revoked token (401) or exhausted credits (402) affect the whole
+# account, so they block every task. A 403 (gated model, missing permission)
+# or a 429 (per-model rate limit) belongs to one component, so it blocks only
+# that task: a misconfigured reranker must not take chat down with it.
 
 COOLDOWN_SECONDS: Dict[HFErrorKind, float] = {
     HFErrorKind.QUOTA: 60.0,
@@ -96,8 +101,16 @@ COOLDOWN_SECONDS: Dict[HFErrorKind, float] = {
     HFErrorKind.FORBIDDEN: 300.0,
 }
 MAX_RETRY_AFTER_SECONDS = 3600.0
-_cooldown_until: Dict[HFErrorKind, float] = {}
+ACCOUNT = None  # scope key for account-wide cooldowns
+_KIND_ORDER = (HFErrorKind.AUTH, HFErrorKind.FORBIDDEN, HFErrorKind.QUOTA)
+_cooldown_until: Dict[Tuple[HFErrorKind, Optional[str]], float] = {}
 _cooldown_lock = threading.Lock()
+
+
+def _cooldown_scope(err: "HFInferenceError") -> Optional[str]:
+    if err.kind == HFErrorKind.AUTH or (err.kind == HFErrorKind.QUOTA and err.status_code == 402):
+        return ACCOUNT
+    return err.task
 
 
 def record_failure(err: "HFInferenceError", retry_after: Optional[float] = None) -> None:
@@ -107,31 +120,50 @@ def record_failure(err: "HFInferenceError", retry_after: Optional[float] = None)
         return
     if err.kind == HFErrorKind.QUOTA and retry_after and retry_after > 0:
         seconds = min(float(retry_after), MAX_RETRY_AFTER_SECONDS)
+    key = (err.kind, _cooldown_scope(err))
     until = time.monotonic() + seconds
     with _cooldown_lock:
-        if until > _cooldown_until.get(err.kind, 0.0):
-            _cooldown_until[err.kind] = until
-    logger.warning("Hugging Face %s cooldown for %.0fs", err.kind.value, seconds)
+        if until > _cooldown_until.get(key, 0.0):
+            _cooldown_until[key] = until
+    logger.warning(
+        "Hugging Face %s cooldown for %.0fs (%s)", err.kind.value, seconds, key[1] or "account-wide"
+    )
 
 
-def active_cooldown() -> Optional[HFErrorKind]:
-    """The failure kind currently cooling down, if any (auth before quota)."""
+def _active(task: Optional[str], any_task: bool) -> Optional[Tuple[HFErrorKind, Optional[str], float]]:
     now = time.monotonic()
     with _cooldown_lock:
-        for kind in (HFErrorKind.AUTH, HFErrorKind.FORBIDDEN, HFErrorKind.QUOTA):
-            if _cooldown_until.get(kind, 0.0) > now:
-                return kind
+        for kind in _KIND_ORDER:
+            for (k, scope), until in _cooldown_until.items():
+                if k != kind or until <= now:
+                    continue
+                if scope is ACCOUNT or any_task or scope == task:
+                    return kind, scope, until - now
     return None
 
 
+def active_cooldown(task: Optional[str] = None) -> Optional[HFErrorKind]:
+    """
+    The failure kind cooling down for ``task`` (auth before forbidden before
+    quota): an account-wide cooldown, or one opened by that task. With no
+    task, any active cooldown counts.
+    """
+    hit = _active(task, any_task=task is None)
+    return hit[0] if hit else None
+
+
 def hf_cooldown_state() -> dict:
-    """For health checks: {"active", "kind", "seconds_remaining"} (no secrets)."""
-    kind = active_cooldown()
-    if kind is None:
+    """For health checks: {"active", "kind", "scope", "seconds_remaining"} (no secrets)."""
+    hit = _active(None, any_task=True)
+    if hit is None:
         return {"active": False, "kind": None, "seconds_remaining": 0}
-    with _cooldown_lock:
-        remaining = _cooldown_until.get(kind, 0.0) - time.monotonic()
-    return {"active": True, "kind": kind.value, "seconds_remaining": max(0, int(remaining + 0.5))}
+    kind, scope, remaining = hit
+    return {
+        "active": True,
+        "kind": kind.value,
+        "scope": scope or "account",
+        "seconds_remaining": max(0, int(remaining + 0.5)),
+    }
 
 
 def reset_cooldown() -> None:
@@ -144,7 +176,7 @@ def require_hf_token(task: str) -> str:
     token = get_hf_token()
     if not token:
         raise HFInferenceError(HFErrorKind.NOT_CONFIGURED, task)
-    kind = active_cooldown()
+    kind = active_cooldown(task)
     if kind is not None:
         raise HFInferenceError(kind, task)
     return token
@@ -199,7 +231,7 @@ def classify_exception(exc: BaseException, task: str) -> HFInferenceError:
     """
     Map any exception raised by an HF call to an ``HFInferenceError``.
 
-    Quota and auth failures also open the process-wide cooldown.
+    Quota and auth failures also open a cooldown (account-wide or per task).
     """
     if isinstance(exc, HFInferenceError):
         return exc
