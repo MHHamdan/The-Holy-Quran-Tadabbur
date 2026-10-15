@@ -16,25 +16,29 @@ Endpoints:
 - GET /surah/{surah} - Get tafseer for entire surah
 - GET /health - Check tafseer service health
 """
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from fastapi import APIRouter, Depends, Query, HTTPException, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 import asyncio
 import hashlib
-from datetime import datetime
+import json
 
 from app.services.tafseer_api import (
     get_tafseer_client,
-    TafseerEdition,
+    ALLOWED_EDITIONS,
     EDITION_METADATA,
+    EDITION_NOT_LICENSED,
+    is_allowed_edition,
 )
 from app.services.tafsir_api import external_tafsir_service, tafsir_llm_service, TAFSIR_EDITIONS
 from app.services.redis_cache import get_hybrid_cache
 from app.services.tafsir_comparison import tafsir_comparison_service
 from app.db.database import get_async_session
 from app.core.config import settings
+from app.core.rate_limit import rag_rate_limit
+from app.rag.source_validator import TRUSTED_SOURCE_IDS
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/tafseer", tags=["tafseer"])
@@ -59,6 +63,17 @@ def set_cache_headers(response: Response, max_age: int = 3600, etag_data: str = 
         etag = hashlib.md5(etag_data.encode()).hexdigest()[:16]
         response.headers["ETag"] = f'"{etag}"'
     response.headers["Vary"] = "Accept-Encoding"
+
+
+def _edition_not_licensed() -> HTTPException:
+    return HTTPException(
+        status_code=403,
+        detail={
+            "code": "EDITION_NOT_LICENSED",
+            "message": "This edition is not available: its licence is not recorded.",
+            "message_ar": "هذه النسخة غير متاحة لعدم توثيق ترخيصها.",
+        },
+    )
 
 
 # =============================================================================
@@ -143,64 +158,28 @@ async def list_editions(
     language: Optional[str] = Query(None, description="Filter by language (ar, en)"),
 ) -> EditionsListResponse:
     """
-    List available tafseer and translation editions.
+    List the tafseer and translation editions this API will serve.
 
-    Returns all editions from alquran.cloud that are enabled for use.
-    Can be filtered by language.
+    Only the licensed allowlist (ALLOWED_EDITIONS) is listed, whatever
+    feature_external_tafseer says: the upstream catalogue holds editions with
+    no recorded licence or author. Can be filtered by language.
     """
-    client = get_tafseer_client()
-
-    # Check if feature is enabled
-    if not settings.feature_external_tafseer:
-        # Return only local/known editions
-        editions = []
-        for identifier, metadata in EDITION_METADATA.items():
-            if language and not identifier.startswith(language):
-                continue
-            editions.append(EditionResponse(
-                identifier=identifier,
-                name_ar=metadata["name_ar"],
-                name_en=metadata["name_en"],
-                author_ar=metadata.get("author_ar", ""),
-                author_en=metadata.get("author_en", ""),
-                language="ar" if identifier.startswith("ar") else "en",
-                type="tafsir" if "tafsir" in identifier or identifier.startswith("ar") else "translation",
-            ))
-        return EditionsListResponse(
-            ok=True,
-            editions=editions,
-            total=len(editions),
-        )
-
-    # Fetch from API
-    try:
-        api_editions = await client.get_editions()
-        editions = []
-
-        for ed in api_editions:
-            if language and ed.language != language:
-                continue
-
-            metadata = client.get_edition_metadata(ed.identifier)
-            editions.append(EditionResponse(
-                identifier=ed.identifier,
-                name_ar=metadata.get("name_ar", ed.name),
-                name_en=metadata.get("name_en", ed.english_name),
-                author_ar=metadata.get("author_ar", ""),
-                author_en=metadata.get("author_en", ""),
-                language=ed.language,
-                type=ed.type,
-            ))
-
-        return EditionsListResponse(
-            ok=True,
-            editions=editions,
-            total=len(editions),
-        )
-
-    except Exception as e:
-        logger.error(f"Failed to list editions: {e}")
-        raise HTTPException(status_code=503, detail="Tafseer service unavailable")
+    editions = []
+    for identifier in sorted(ALLOWED_EDITIONS):
+        metadata = EDITION_METADATA[identifier]
+        lang = "ar" if identifier.startswith("ar.") else "en"
+        if language and lang != language:
+            continue
+        editions.append(EditionResponse(
+            identifier=identifier,
+            name_ar=metadata["name_ar"],
+            name_en=metadata["name_en"],
+            author_ar=metadata.get("author_ar", ""),
+            author_en=metadata.get("author_en", ""),
+            language=lang,
+            type="tafsir" if lang == "ar" else "translation",
+        ))
+    return EditionsListResponse(ok=True, editions=editions, total=len(editions))
 
 
 @router.get("/surah/{surah}", response_model=SurahTafseerResponse)
@@ -227,6 +206,9 @@ async def get_surah_tafseer(
                 "message_ar": "رقم السورة يجب أن يكون بين 1 و 114",
             }
         )
+
+    if not is_allowed_edition(edition):
+        raise _edition_not_licensed()
 
     client = get_tafseer_client()
 
@@ -670,28 +652,55 @@ async def list_comparable_sources(
 # =============================================================================
 # LLM-Enhanced Tafsir Endpoints
 # =============================================================================
+#
+# The client sends only identifiers (sura, aya, source_id) plus the user's own
+# word or question. The verse text is read from quran_verses and the grounding
+# tafsir from tafseer_chunks on the server, so a request cannot inject text
+# that would then be cached and served to other readers. The cache key covers
+# every input that changes the answer, plus the model id.
 
-class LLMSummarizeRequest(BaseModel):
+_LLM_REFUSAL_EN = (
+    "No stored tafsir passage from this source covers this verse, so the AI "
+    "assistant cannot answer here."
+)
+_LLM_REFUSAL_AR = "لا يوجد في مكتبة التطبيق مقطع تفسير من هذا المصدر لهذه الآية، لذلك لا يستطيع المساعد الإجابة هنا."
+
+
+class _LLMVerseRequest(BaseModel):
+    """Identifiers only: verse and tafsir text are loaded on the server."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    sura: int = Field(..., ge=1, le=114, description="Surah number")
+    aya: int = Field(..., ge=1, le=286, description="Ayah number")
+    source_id: str = Field(
+        ..., pattern=r"^[a-z0-9_]{1,64}$",
+        description="Seeded tafsir source id (e.g. muyassar_ar)",
+    )
+    language: str = Field("ar", pattern="^(ar|en)$", description="Output language")
+
+    @field_validator("source_id")
+    @classmethod
+    def _trusted_source(cls, value: str) -> str:
+        if value not in TRUSTED_SOURCE_IDS:
+            raise ValueError("source_id is not a trusted tafsir source")
+        return value
+
+
+class LLMSummarizeRequest(_LLMVerseRequest):
     """Request model for tafsir summarization."""
-    tafsir_text: str = Field(..., description="The tafsir text to summarize")
-    verse_text: str = Field(..., description="The Quranic verse text")
-    language: str = Field("ar", description="Output language (ar/en)")
 
 
-class LLMExplainWordRequest(BaseModel):
+class LLMExplainWordRequest(_LLMVerseRequest):
     """Request model for word explanation."""
-    word: str = Field(..., description="The word to explain")
-    verse_text: str = Field(..., description="The Quranic verse containing the word")
-    context: str = Field("", description="Optional tafsir context")
-    language: str = Field("ar", description="Output language (ar/en)")
+
+    word: str = Field(..., min_length=1, max_length=64, description="The word to explain")
 
 
-class LLMQuestionRequest(BaseModel):
+class LLMQuestionRequest(_LLMVerseRequest):
     """Request model for Q&A about tafsir."""
-    question: str = Field(..., description="The question to answer")
-    verse_text: str = Field(..., description="The Quranic verse text")
-    tafsir_text: str = Field(..., description="The tafsir text for context")
-    language: str = Field("ar", description="Output language (ar/en)")
+
+    question: str = Field(..., min_length=1, max_length=500, description="The question to answer")
 
 
 class LLMResponse(BaseModel):
@@ -704,20 +713,89 @@ class LLMResponse(BaseModel):
     ok: bool = True
     result: Optional[str] = None
     error: Optional[str] = None
+    error_code: Optional[str] = None
+    source_id: Optional[str] = None
     ai_generated: bool = True
     disclaimer_en: str = (
-        "AI-generated summary of the text shown above. It is not tafsir and "
-        "not a religious ruling."
+        "AI-generated summary of the stored tafsir passage for this verse. It "
+        "is not tafsir and not a religious ruling."
     )
-    disclaimer_ar: str = "ملخص آلي للنص المعروض أعلاه، وليس تفسيراً ولا فتوى."
+    disclaimer_ar: str = "ملخص آلي لمقطع التفسير المخزّن لهذه الآية، وليس تفسيراً ولا فتوى."
     quotations_removed: int = 0
+
+
+def _normalise_user_text(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _llm_cache_key(kind: str, **parts: Any) -> str:
+    """Key over every input that changes the answer, plus the model id."""
+    parts["model"] = settings.hf_llm_model_id
+    digest = hashlib.sha256(
+        json.dumps(parts, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()
+    return f"llm:{kind}:v2:{digest}"
+
+
+async def _load_grounding(
+    session: AsyncSession, sura: int, aya: int, source_id: str
+) -> Optional[Tuple[str, str]]:
+    """(verse_text, tafsir_text) from the canonical tables, or None.
+
+    Only enabled, licence-verified sources count; a range chunk that covers
+    the ayah counts too.
+    """
+    from sqlalchemy import select
+    from app.models.quran import QuranVerse
+    from app.models.tafseer import TafseerChunk, TafseerSource
+
+    verse_text = (
+        await session.execute(
+            select(QuranVerse.text_uthmani).where(
+                QuranVerse.sura_no == sura, QuranVerse.aya_no == aya
+            )
+        )
+    ).scalar_one_or_none()
+    if not verse_text:
+        return None
+
+    rows = (
+        await session.execute(
+            select(TafseerChunk.content_ar, TafseerChunk.content_en)
+            .join(TafseerSource, TafseerSource.id == TafseerChunk.source_id)
+            .where(
+                TafseerChunk.source_id == source_id,
+                TafseerChunk.sura_no == sura,
+                TafseerChunk.aya_start <= aya,
+                TafseerChunk.aya_end >= aya,
+                TafseerSource.is_enabled == 1,
+                TafseerSource.license_verified == 1,
+            )
+            .order_by(TafseerChunk.chunk_order)
+        )
+    ).all()
+    tafsir_text = "\n\n".join(
+        (ar or en or "").strip() for ar, en in rows if (ar or en or "").strip()
+    )
+    if not tafsir_text:
+        return None
+    return verse_text, tafsir_text
+
+
+def _refusal(request: _LLMVerseRequest) -> LLMResponse:
+    return LLMResponse(
+        ok=False,
+        error=_LLM_REFUSAL_EN if request.language == "en" else _LLM_REFUSAL_AR,
+        error_code="NO_VERIFIED_SOURCE",
+        source_id=request.source_id,
+    )
 
 
 def _ground_llm_result(result: str, language: str, *evidence: str) -> tuple:
     """
     Quotations in the output must appear verbatim in the verse/tafsir text the
-    request supplied; anything else is removed (it could be invented Qur'an
-    text or a misattributed scholarly quote).
+    server loaded; anything else is removed (it could be invented Qur'an text
+    or a misattributed scholarly quote).
     """
     from app.safety.grounding import build_corpus_index, verify_quotations
 
@@ -726,175 +804,118 @@ def _ground_llm_result(result: str, language: str, *evidence: str) -> tuple:
     return cleaned, len(report.removed)
 
 
-@router.post("/llm/summarize", response_model=LLMResponse)
-async def summarize_tafsir(request: LLMSummarizeRequest) -> LLMResponse:
-    """
-    Generate a concise summary of tafsir text using LLM.
+async def _run_llm(
+    kind: str,
+    request: _LLMVerseRequest,
+    session: AsyncSession,
+    call,
+    **user_parts: str,
+) -> LLMResponse:
+    """Shared flow: load grounding, check cache, call, ground, cache."""
+    grounding = await _load_grounding(session, request.sura, request.aya, request.source_id)
+    if grounding is None:
+        return _refusal(request)
+    verse_text, tafsir_text = grounding
 
-    Provides a 2-3 sentence summary highlighting:
-    - Main meaning of the verse
-    - Key lessons and insights
-
-    Performance: 30-second timeout, Redis caching for repeated requests.
-    """
-    # Check cache first
-    cache_key = f"llm:summary:{hashlib.md5((request.tafsir_text[:100] + request.verse_text).encode()).hexdigest()}"
+    cache_key = _llm_cache_key(
+        kind,
+        sura=request.sura,
+        aya=request.aya,
+        source_id=request.source_id,
+        language=request.language,
+        tafsir_sha=hashlib.sha256(tafsir_text.encode("utf-8")).hexdigest(),
+        **user_parts,
+    )
     cache = get_hybrid_cache()
     cached = await cache.get(cache_key)
-
     if cached:
         logger.debug(f"LLM Cache HIT: {cache_key}")
         return LLMResponse(**cached)
 
+    en = request.language == "en"
     try:
-        # Execute with timeout
-        result = await asyncio.wait_for(
-            tafsir_llm_service.summarize_tafsir(
-                tafsir_text=request.tafsir_text,
-                verse_text=request.verse_text,
-                language=request.language,
-            ),
-            timeout=LLM_TIMEOUT
+        result = await asyncio.wait_for(call(verse_text, tafsir_text), timeout=LLM_TIMEOUT)
+    except asyncio.TimeoutError:
+        logger.error(f"LLM {kind} timeout after {LLM_TIMEOUT}s")
+        return LLMResponse(ok=False, error="Request timeout" if en else "انتهت مهلة الطلب")
+    except Exception as e:
+        logger.error(f"LLM {kind} error: {type(e).__name__}")
+        return LLMResponse(ok=False, error="AI service error" if en else "خطأ في خدمة الذكاء الاصطناعي")
+
+    if not result:
+        return LLMResponse(
+            ok=False,
+            error="LLM service unavailable" if en else "خدمة الذكاء الاصطناعي غير متاحة",
         )
 
-        if result:
-            result, removed = _ground_llm_result(result, request.language, request.verse_text, request.tafsir_text)
-            response_data = {"ok": True, "result": result, "error": None, "quotations_removed": removed}
-            # Cache successful results
-            await cache.set(cache_key, response_data, l1_ttl=300, l2_ttl=CACHE_TTL_LLM)
-            return LLMResponse(**response_data)
-        else:
-            return LLMResponse(
-                ok=False,
-                error="LLM service unavailable" if request.language == "en" else "خدمة الذكاء الاصطناعي غير متاحة"
-            )
-    except asyncio.TimeoutError:
-        logger.error(f"LLM summarize timeout after {LLM_TIMEOUT}s")
-        return LLMResponse(
-            ok=False,
-            error="Request timeout" if request.language == "en" else "انتهت مهلة الطلب"
-        )
-    except Exception as e:
-        logger.error(f"LLM summarize error: {e}")
-        return LLMResponse(
-            ok=False,
-            error="AI service error" if request.language == "en" else "خطأ في خدمة الذكاء الاصطناعي"
-        )
+    result, removed = _ground_llm_result(result, request.language, verse_text, tafsir_text)
+    response_data = {
+        "ok": True, "result": result, "error": None,
+        "quotations_removed": removed, "source_id": request.source_id,
+    }
+    await cache.set(cache_key, response_data, l1_ttl=300, l2_ttl=CACHE_TTL_LLM)
+    return LLMResponse(**response_data)
+
+
+@router.post("/llm/summarize", response_model=LLMResponse)
+async def summarize_tafsir(
+    request: LLMSummarizeRequest,
+    session: AsyncSession = Depends(get_async_session),
+    _rate: None = Depends(rag_rate_limit),
+) -> LLMResponse:
+    """
+    Summarise the stored tafsir passage of one source for one verse.
+
+    Refuses (ok=false, error_code NO_VERIFIED_SOURCE) when the source has no
+    enabled, licence-verified passage for the verse.
+    """
+    return await _run_llm(
+        "summary", request, session,
+        lambda verse, tafsir: tafsir_llm_service.summarize_tafsir(
+            tafsir_text=tafsir, verse_text=verse, language=request.language,
+        ),
+    )
 
 
 @router.post("/llm/explain-word", response_model=LLMResponse)
-async def explain_word(request: LLMExplainWordRequest) -> LLMResponse:
+async def explain_word(
+    request: LLMExplainWordRequest,
+    session: AsyncSession = Depends(get_async_session),
+    _rate: None = Depends(rag_rate_limit),
+) -> LLMResponse:
     """
-    Explain a specific word in the context of the verse using LLM.
-
-    Provides:
-    - Linguistic meaning
-    - Quranic context meaning
-    - Special connotations
-
-    Performance: 30-second timeout, Redis caching for repeated requests.
+    Explain a word of the verse, using the stored tafsir passage as context.
     """
-    # Check cache first
-    cache_key = f"llm:explain:{hashlib.md5((request.word + request.verse_text[:50]).encode()).hexdigest()}"
-    cache = get_hybrid_cache()
-    cached = await cache.get(cache_key)
-
-    if cached:
-        logger.debug(f"LLM Cache HIT: {cache_key}")
-        return LLMResponse(**cached)
-
-    try:
-        # Execute with timeout
-        result = await asyncio.wait_for(
-            tafsir_llm_service.explain_word(
-                word=request.word,
-                verse_text=request.verse_text,
-                context=request.context,
-                language=request.language,
-            ),
-            timeout=LLM_TIMEOUT
-        )
-
-        if result:
-            result, removed = _ground_llm_result(result, request.language, request.verse_text, request.context)
-            response_data = {"ok": True, "result": result, "error": None, "quotations_removed": removed}
-            # Cache successful results
-            await cache.set(cache_key, response_data, l1_ttl=300, l2_ttl=CACHE_TTL_LLM)
-            return LLMResponse(**response_data)
-        else:
-            return LLMResponse(
-                ok=False,
-                error="LLM service unavailable" if request.language == "en" else "خدمة الذكاء الاصطناعي غير متاحة"
-            )
-    except asyncio.TimeoutError:
-        logger.error(f"LLM explain word timeout after {LLM_TIMEOUT}s")
-        return LLMResponse(
-            ok=False,
-            error="Request timeout" if request.language == "en" else "انتهت مهلة الطلب"
-        )
-    except Exception as e:
-        logger.error(f"LLM explain word error: {e}")
-        return LLMResponse(
-            ok=False,
-            error="AI service error" if request.language == "en" else "خطأ في خدمة الذكاء الاصطناعي"
-        )
+    word = _normalise_user_text(request.word)
+    return await _run_llm(
+        "explain", request, session,
+        lambda verse, tafsir: tafsir_llm_service.explain_word(
+            word=word, verse_text=verse, context=tafsir, language=request.language,
+        ),
+        word=word,
+    )
 
 
 @router.post("/llm/answer", response_model=LLMResponse)
-async def answer_question(request: LLMQuestionRequest) -> LLMResponse:
+async def answer_question(
+    request: LLMQuestionRequest,
+    session: AsyncSession = Depends(get_async_session),
+    _rate: None = Depends(rag_rate_limit),
+) -> LLMResponse:
     """
-    Answer a question about the verse based on tafsir context using LLM.
-
-    Answers are grounded in the provided tafsir text only.
-
-    Performance: 30-second timeout, Redis caching for repeated requests.
+    Answer a question about the verse from the stored tafsir passage only.
     """
-    # Check cache first
-    cache_key = f"llm:answer:{hashlib.md5((request.question + request.verse_text[:50]).encode()).hexdigest()}"
-    cache = get_hybrid_cache()
-    cached = await cache.get(cache_key)
-
-    if cached:
-        logger.debug(f"LLM Cache HIT: {cache_key}")
-        return LLMResponse(**cached)
-
-    try:
-        # Execute with timeout
-        result = await asyncio.wait_for(
-            tafsir_llm_service.answer_question(
-                question=request.question,
-                verse_text=request.verse_text,
-                tafsir_text=request.tafsir_text,
-                language=request.language,
-            ),
-            timeout=LLM_TIMEOUT
-        )
-
-        if result:
-            result, removed = _ground_llm_result(result, request.language, request.verse_text, request.tafsir_text)
-            response_data = {"ok": True, "result": result, "error": None, "quotations_removed": removed}
-            # Cache successful results
-            await cache.set(cache_key, response_data, l1_ttl=300, l2_ttl=CACHE_TTL_LLM)
-            return LLMResponse(**response_data)
-        else:
-            return LLMResponse(
-                ok=False,
-                error="LLM service unavailable" if request.language == "en" else "خدمة الذكاء الاصطناعي غير متاحة"
-            )
-    except asyncio.TimeoutError:
-        logger.error(f"LLM answer timeout after {LLM_TIMEOUT}s")
-        return LLMResponse(
-            ok=False,
-            error="Request timeout" if request.language == "en" else "انتهت مهلة الطلب"
-        )
-    except Exception as e:
-        logger.error(f"LLM answer error: {e}")
-        return LLMResponse(
-            ok=False,
-            error="AI service error" if request.language == "en" else "خطأ في خدمة الذكاء الاصطناعي"
-        )
+    question = _normalise_user_text(request.question)
+    return await _run_llm(
+        "answer", request, session,
+        lambda verse, tafsir: tafsir_llm_service.answer_question(
+            question=question, verse_text=verse, tafsir_text=tafsir, language=request.language,
+        ),
+        question=question,
+    )
 
 
+# =============================================================================
 # NOTE: This route must be LAST because it matches /{surah}/{ayah}
 # which would otherwise intercept /surah/{surah} and /health
 @router.get("/{surah}/{ayah}", response_model=TafseerResponse)
@@ -938,6 +959,8 @@ async def get_verse_tafseer(
     try:
         result = await client.get_tafseer(surah, ayah, edition_list)
 
+        if not result.success and result.error == EDITION_NOT_LICENSED:
+            raise _edition_not_licensed()
         if not result.success:
             raise HTTPException(
                 status_code=404,

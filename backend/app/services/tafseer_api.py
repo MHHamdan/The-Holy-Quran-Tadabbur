@@ -144,8 +144,19 @@ LICENSED_DB_EDITIONS: Dict[str, str] = {
 }
 
 
-def _is_unlicensed_translation(edition: str) -> bool:
-    return edition.startswith("en.") and edition not in LICENSED_DB_EDITIONS
+# Only editions whose provenance and terms are recorded are served. alquran.cloud
+# lists ~130 editions, many without an author, and at least one is mislabelled
+# (its "ar.miqbas" returns Ibn Ashur's al-Tahrir wa al-Tanwir under the title of
+# Tanwir al-Miqbas), so nothing outside this allowlist is passed through.
+ALLOWED_EDITIONS: frozenset = frozenset({"ar.muyassar"} | set(LICENSED_DB_EDITIONS))
+
+
+def is_allowed_edition(edition: str) -> bool:
+    return edition in ALLOWED_EDITIONS
+
+
+# TafseerResponse.error value when every requested edition was refused.
+EDITION_NOT_LICENSED = "EDITION_NOT_LICENSED"
 
 
 async def _db_translation(surah: int, ayah: Optional[int], key: str) -> List[tuple]:
@@ -310,11 +321,13 @@ class AlQuranCloudClient:
             )
 
         tafasir = []
+        requested = [e.strip() for e in editions if e.strip()]
+        refused: List[str] = []
 
-        for edition in editions:
-            edition = edition.strip()
-            if _is_unlicensed_translation(edition):
-                logger.warning(f"Edition {edition} refused: no republication licence")
+        for edition in requested:
+            if not is_allowed_edition(edition):
+                logger.warning(f"Edition {edition} refused: not on the licensed allowlist")
+                refused.append(edition)
                 continue
             if edition in LICENSED_DB_EDITIONS:
                 rows = await _db_translation(surah, ayah, LICENSED_DB_EDITIONS[edition])
@@ -376,7 +389,10 @@ class AlQuranCloudClient:
             ayah=ayah,
             tafasir=tafasir,
             success=len(tafasir) > 0,
-            error=None if tafasir else "No tafseer found",
+            error=None if tafasir else (
+                EDITION_NOT_LICENSED if requested and len(refused) == len(requested)
+                else "No tafseer found"
+            ),
             latency_ms=latency,
         )
 
@@ -395,8 +411,8 @@ class AlQuranCloudClient:
         Returns:
             List of TafseerVerse for all ayahs in the surah
         """
-        if _is_unlicensed_translation(edition):
-            logger.warning(f"Edition {edition} refused: no republication licence")
+        if not is_allowed_edition(edition):
+            logger.warning(f"Edition {edition} refused: not on the licensed allowlist")
             return []
         if edition in LICENSED_DB_EDITIONS:
             name = EDITION_METADATA[edition]["name_en"]

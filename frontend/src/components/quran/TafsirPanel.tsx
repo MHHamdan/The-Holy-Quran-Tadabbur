@@ -55,6 +55,12 @@ interface TafsirEdition {
   source: string;
   description_ar?: string;
   description_en?: string;
+  /**
+   * Id of the same work in the app's tafsir library (tafseer_chunks). The AI
+   * assistant is grounded on that stored passage, loaded by the server; editions
+   * without one have no AI assistant.
+   */
+  db_source_id?: string;
 }
 
 interface TafsirResponse {
@@ -78,6 +84,7 @@ interface TafsirResponse {
 interface TafsirPanelProps {
   sura: number;
   ayah: number;
+  /** Unused: the server loads the verse text for AI requests itself. */
   verseText?: string;
   isExpanded?: boolean;
   onToggle?: () => void;
@@ -96,6 +103,7 @@ interface LLMResponse {
 const TAFSIR_EDITIONS: TafsirEdition[] = [
   {
     id: 'muyassar',
+    db_source_id: 'muyassar_ar',
     slug: 'almuyassar',
     name_ar: 'التفسير الميسر',
     name_en: 'Al-Muyassar (Simplified)',
@@ -109,6 +117,7 @@ const TAFSIR_EDITIONS: TafsirEdition[] = [
   },
   {
     id: 'ibn_kathir',
+    db_source_id: 'ibn_kathir_ar',
     slug: 'ibn-kathir',
     name_ar: 'تفسير ابن كثير',
     name_en: 'Tafsir Ibn Kathir',
@@ -135,6 +144,7 @@ const TAFSIR_EDITIONS: TafsirEdition[] = [
   },
   {
     id: 'tabari',
+    db_source_id: 'tabari_ar',
     slug: 'tabari',
     name_ar: 'جامع البيان - الطبري',
     name_en: 'Jami al-Bayan (At-Tabari)',
@@ -148,6 +158,7 @@ const TAFSIR_EDITIONS: TafsirEdition[] = [
   },
   {
     id: 'qurtubi',
+    db_source_id: 'qurtubi_ar',
     slug: 'qurtubi',
     name_ar: 'الجامع لأحكام القرآن',
     name_en: 'Al-Jami (Al-Qurtubi)',
@@ -330,7 +341,7 @@ function setTafsirCached(sura: number, ayah: number, editionId: string, data: Ta
 // Main TafsirPanel Component
 // =============================================================================
 
-export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, onToggle }: TafsirPanelProps) {
+export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: TafsirPanelProps) {
   const { language } = useLanguageStore();
   const [expanded, setExpanded] = useState(isExpanded);
   const [selectedEdition, setSelectedEdition] = useState<TafsirEdition>(TAFSIR_EDITIONS[0]);
@@ -486,27 +497,32 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
     }
   }
 
+  // LLM requests carry identifiers only. The server loads the verse from the
+  // Qur'an table and the tafsir passage from the app's library, and refuses
+  // when no licensed passage exists for this source and verse.
+  const aiSourceId = selectedEdition.db_source_id;
+
+  async function postLLM(path: string, extra: Record<string, string>): Promise<LLMResponse> {
+    const response = await fetch(apiUrl(`/api/v1/tafseer/llm/${path}`), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sura, aya: ayah, source_id: aiSourceId, language, ...extra }),
+    });
+    return response.json();
+  }
+
   // LLM: Generate Summary
   async function generateSummary() {
-    if (!tafsirData?.text) return;
+    if (!aiSourceId) return;
     setSummaryLoading(true);
     try {
-      const response = await fetch(apiUrl('/api/v1/tafseer/llm/summarize'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tafsir_text: tafsirData.text,
-          verse_text: verseText,
-          language: language,
-        }),
-      });
-      const data: LLMResponse = await response.json();
+      const data = await postLLM('summarize', {});
       if (data.ok && data.result) {
         setSummary(data.result);
       } else {
         setSummary(data.error || (language === 'ar' ? 'فشل في التلخيص' : 'Failed to summarize'));
       }
-    } catch (err) {
+    } catch {
       setSummary(language === 'ar' ? 'خدمة الذكاء الاصطناعي غير متاحة' : 'AI service unavailable');
     } finally {
       setSummaryLoading(false);
@@ -515,27 +531,17 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
 
   // LLM: Explain Word
   async function explainWord(word: string) {
-    if (!word.trim()) return;
+    if (!word.trim() || !aiSourceId) return;
     setSelectedWord(word);
     setWordExplanationLoading(true);
     try {
-      const response = await fetch(apiUrl('/api/v1/tafseer/llm/explain-word'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          word: word,
-          verse_text: verseText,
-          context: tafsirData?.text || '',
-          language: language,
-        }),
-      });
-      const data: LLMResponse = await response.json();
+      const data = await postLLM('explain-word', { word: word.trim().slice(0, 64) });
       if (data.ok && data.result) {
         setWordExplanation(data.result);
       } else {
         setWordExplanation(data.error || (language === 'ar' ? 'فشل في الشرح' : 'Failed to explain'));
       }
-    } catch (err) {
+    } catch {
       setWordExplanation(language === 'ar' ? 'خدمة الذكاء الاصطناعي غير متاحة' : 'AI service unavailable');
     } finally {
       setWordExplanationLoading(false);
@@ -544,26 +550,16 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
 
   // LLM: Answer Question
   async function askQuestion() {
-    if (!question.trim() || !tafsirData?.text) return;
+    if (!question.trim() || !aiSourceId) return;
     setAnswerLoading(true);
     try {
-      const response = await fetch(apiUrl('/api/v1/tafseer/llm/answer'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: question,
-          verse_text: verseText,
-          tafsir_text: tafsirData.text,
-          language: language,
-        }),
-      });
-      const data: LLMResponse = await response.json();
+      const data = await postLLM('answer', { question: question.trim().slice(0, 500) });
       if (data.ok && data.result) {
         setAnswer(data.result);
       } else {
         setAnswer(data.error || (language === 'ar' ? 'فشل في الإجابة' : 'Failed to answer'));
       }
-    } catch (err) {
+    } catch {
       setAnswer(language === 'ar' ? 'خدمة الذكاء الاصطناعي غير متاحة' : 'AI service unavailable');
     } finally {
       setAnswerLoading(false);
@@ -810,6 +806,13 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
                       ? 'نصوص مولَّدة بالذكاء الاصطناعي، وليست قرآناً ولا تفسيراً. راجع المصدر أعلاه.'
                       : 'AI-generated text, not Qur\'an or tafsir. Check it against the source above.'}
                   </p>
+                  {!aiSourceId ? (
+                    <p className="text-sm text-gray-600" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                      {language === 'ar'
+                        ? 'المساعد الذكي متاح فقط للتفاسير المحفوظة في مكتبة التطبيق (الميسر، ابن كثير، الطبري، القرطبي).'
+                        : 'The AI assistant works only with tafsir stored in the app library (al-Muyassar, Ibn Kathir, al-Tabari, al-Qurtubi).'}
+                    </p>
+                  ) : (<>
                   {/* Summary */}
                   <div className="p-3 bg-purple-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
@@ -890,6 +893,7 @@ export function TafsirPanel({ sura, ayah, verseText = '', isExpanded = false, on
                       </p>
                     )}
                   </div>
+                  </>)}
                 </div>
               </CollapsibleSection>
 

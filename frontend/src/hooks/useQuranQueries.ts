@@ -126,27 +126,29 @@ export function useVerseAudio(
 }
 
 // =============================================================================
-// AI Summary Hook
+// AI Hooks
 // =============================================================================
+// Requests carry identifiers only (sura, aya, source_id of a stored tafsir).
+// The server loads the verse and the tafsir passage itself, so no client text
+// can reach the shared AI cache.
 
-export function useAISummary(
-  tafsirText: string,
-  verseText: string,
-  language: string,
-  enabled: boolean = false
-) {
+interface AIVerseRef {
+  sura: number;
+  aya: number;
+  sourceId: string;
+}
+
+export function useAISummary(ref: AIVerseRef, language: string, enabled: boolean = false) {
   return useQuery({
-    queryKey: ['ai', 'summary', tafsirText.slice(0, 50), language],
+    queryKey: ['ai', 'summary', ref.sura, ref.aya, ref.sourceId, language],
     queryFn: async (): Promise<AIResponse> => {
       const response = await api.post('/tafseer/llm/summarize', {
-        tafsir_text: tafsirText,
-        verse_text: verseText,
-        language,
+        sura: ref.sura, aya: ref.aya, source_id: ref.sourceId, language,
       });
       return response.data;
     },
     staleTime: staleTimes.aiResponse,
-    enabled: enabled && tafsirText.length > 0,
+    enabled: enabled && !!ref.sourceId,
     retry: 1,
   });
 }
@@ -157,24 +159,21 @@ export function useAISummary(
 
 export function useWordExplanation(
   word: string,
-  verseText: string,
-  context: string,
+  ref: AIVerseRef,
   language: string,
   enabled: boolean = false
 ) {
+  const trimmed = word.trim().slice(0, 64);
   return useQuery({
-    queryKey: ['ai', 'explain', word, verseText.slice(0, 30), language],
+    queryKey: ['ai', 'explain', trimmed, ref.sura, ref.aya, ref.sourceId, language],
     queryFn: async (): Promise<AIResponse> => {
       const response = await api.post('/tafseer/llm/explain-word', {
-        word: word.trim(),
-        verse_text: verseText,
-        context,
-        language,
+        sura: ref.sura, aya: ref.aya, source_id: ref.sourceId, language, word: trimmed,
       });
       return response.data;
     },
     staleTime: staleTimes.aiResponse,
-    enabled: enabled && word.trim().length > 0,
+    enabled: enabled && trimmed.length > 0 && !!ref.sourceId,
     retry: 1,
   });
 }
@@ -185,24 +184,21 @@ export function useWordExplanation(
 
 export function useAIAnswer(
   question: string,
-  verseText: string,
-  tafsirText: string,
+  ref: AIVerseRef,
   language: string,
   enabled: boolean = false
 ) {
+  const trimmed = question.trim().slice(0, 500);
   return useQuery({
-    queryKey: ['ai', 'answer', question, verseText.slice(0, 30), language],
+    queryKey: ['ai', 'answer', trimmed, ref.sura, ref.aya, ref.sourceId, language],
     queryFn: async (): Promise<AIResponse> => {
       const response = await api.post('/tafseer/llm/answer', {
-        question: question.trim(),
-        verse_text: verseText,
-        tafsir_text: tafsirText,
-        language,
+        sura: ref.sura, aya: ref.aya, source_id: ref.sourceId, language, question: trimmed,
       });
       return response.data;
     },
     staleTime: staleTimes.aiResponse,
-    enabled: enabled && question.trim().length > 0,
+    enabled: enabled && trimmed.length > 0 && !!ref.sourceId,
     retry: 1,
   });
 }
