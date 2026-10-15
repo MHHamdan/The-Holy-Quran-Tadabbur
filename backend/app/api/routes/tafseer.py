@@ -32,7 +32,12 @@ from app.services.tafseer_api import (
     EDITION_NOT_LICENSED,
     is_allowed_edition,
 )
-from app.services.tafsir_api import external_tafsir_service, tafsir_llm_service, TAFSIR_EDITIONS
+from app.services.tafsir_api import (
+    ALLOWED_QURAN_COM_IDS,
+    TAFSIR_EDITIONS,
+    external_tafsir_service,
+    tafsir_llm_service,
+)
 from app.services.redis_cache import get_hybrid_cache
 from app.services.tafsir_comparison import tafsir_comparison_service
 from app.db.database import get_async_session
@@ -394,8 +399,20 @@ async def get_external_tafsir(
             }
         )
 
-    # Check Redis cache first
-    cache_key = f"tafsir:external:{edition}:{sura}:{ayah}"
+    # Refuse unlisted editions before the cache: copies cached while the
+    # copyrighted English works were still proxied must not be served.
+    if edition not in TAFSIR_EDITIONS:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "TAFSIR_NOT_FOUND",
+                "message": f"Unknown or unavailable tafsir edition: {edition}",
+                "message_ar": "نسخة التفسير غير متاحة",
+            },
+        )
+
+    # Check Redis cache first (v2: text cleaned with balanced markers)
+    cache_key = f"tafsir:external:v2:{edition}:{sura}:{ayah}"
     cache = get_hybrid_cache()
     cached = await cache.get(cache_key)
 
@@ -443,20 +460,21 @@ async def get_external_tafsir(
 async def get_quran_com_tafsir(
     sura: int,
     ayah: int,
-    tafsir_id: int = Query(169, description="Quran.com tafsir ID (169=Ibn Kathir EN, 168=Ma'arif, 817=Tazkirul)"),
+    tafsir_id: int = Query(..., description="Quran.com tafsir ID of an allowlisted edition"),
     response: Response = None,
 ) -> dict:
     """
-    Get tafsir directly from Quran.com API v4 using tafsir ID.
+    Get tafsir from Quran.com API v4 by tafsir ID.
 
-    This endpoint is specifically for English tafsirs from Quran.com.
-    Common IDs:
-    - 169: Ibn Kathir (English)
-    - 168: Ma'arif al-Qur'an
-    - 817: Tazkirul Quran
+    Only the Quran.com ids of editions in TAFSIR_EDITIONS are proxied
+    (ALLOWED_QURAN_COM_IDS). The English works this route used to serve
+    (169 Ibn Kathir EN, 168 Ma'arif al-Qur'an, 817 Tazkirul Quran) are
+    copyrighted with no recorded permission and are refused with 403.
 
     Performance: Uses Redis caching + HTTP cache headers.
     """
+    if tafsir_id not in ALLOWED_QURAN_COM_IDS:
+        raise _edition_not_licensed()
     if not 1 <= sura <= 114:
         raise HTTPException(
             status_code=400,
@@ -468,7 +486,7 @@ async def get_quran_com_tafsir(
         )
 
     # Check Redis cache first
-    cache_key = f"tafsir:quran_com:{tafsir_id}:{sura}:{ayah}"
+    cache_key = f"tafsir:quran_com:v2:{tafsir_id}:{sura}:{ayah}"
     cache = get_hybrid_cache()
     cached = await cache.get(cache_key)
 

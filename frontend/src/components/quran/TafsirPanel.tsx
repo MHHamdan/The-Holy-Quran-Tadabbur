@@ -100,6 +100,9 @@ interface LLMResponse {
 // Tafsir Editions Configuration
 // =============================================================================
 
+// Only editions the backend lists (TAFSIR_EDITIONS in tafsir_api.py). Al-Wasit
+// (Tantawi, d. 2010) is under copyright with no recorded permission, and
+// al-Mukhtasar, Ibn Juzayy, al-Suddi and al-Siraj always returned 404.
 const TAFSIR_EDITIONS: TafsirEdition[] = [
   {
     id: 'muyassar',
@@ -196,72 +199,39 @@ const TAFSIR_EDITIONS: TafsirEdition[] = [
     description_ar: 'تفسير موجز ومختصر',
     description_en: 'Concise tafsir by two great Imams',
   },
-  {
-    id: 'wasit',
-    slug: 'wasit',
-    name_ar: 'التفسير الوسيط',
-    name_en: 'Al-Tafsir al-Wasit',
-    author_ar: 'الشيخ طنطاوي',
-    author_en: 'Sheikh Tantawi',
-    language: 'ar',
-    has_audio: false,
-    source: 'quran_com',
-    description_ar: 'تفسير معاصر من شيخ الأزهر',
-    description_en: 'Contemporary tafsir by Grand Imam of Al-Azhar',
-  },
-  {
-    id: 'mukhtasar',
-    slug: 'almukhtasar',
-    name_ar: 'المختصر في التفسير',
-    name_en: 'Al-Mukhtasar (Abridged)',
-    author_ar: 'مركز تفسير للدراسات القرآنية',
-    author_en: 'Tafsir Center for Quranic Studies',
-    language: 'ar',
-    has_audio: true,
-    source: 'tafsir_one',
-    description_ar: 'تفسير مختصر معتمد للقرآن الكريم',
-    description_en: 'Authoritative abridged Quran commentary',
-  },
-  {
-    id: 'ibn_juzayy',
-    slug: 'ibn-juzay',
-    name_ar: 'التسهيل لعلوم التنزيل - ابن جزي',
-    name_en: 'At-Tashil (Ibn Juzayy)',
-    author_ar: 'ابن جزي الكلبي الغرناطي',
-    author_en: 'Ibn Juzayy al-Kalbi',
-    language: 'ar',
-    has_audio: true,
-    source: 'tafsir_one',
-    description_ar: 'تفسير موجز جامع من علماء الأندلس',
-    description_en: 'Concise tafsir by Andalusian scholar',
-  },
-  {
-    id: 'alsidi',
-    slug: 'alsidi',
-    name_ar: 'تفسير السدي',
-    name_en: 'Tafsir As-Suddi',
-    author_ar: 'إسماعيل السدي',
-    author_en: 'Ismail As-Suddi',
-    language: 'ar',
-    has_audio: true,
-    source: 'tafsir_one',
-    description_ar: 'من أقدم التفاسير المسندة',
-    description_en: 'One of the earliest chain-traced tafsirs',
-  },
-  {
-    id: 'alsiraaj',
-    slug: 'alsiraaj',
-    name_ar: 'السراج في بيان غريب القرآن',
-    name_en: 'As-Siraj (Quranic Vocabulary)',
-    author_ar: 'محمد الخضيري',
-    author_en: 'Muhammad Al-Khudhayri',
-    language: 'ar',
-    has_audio: true,
-    source: 'tafsir_one',
-    description_ar: 'شرح غريب القرآن الكريم',
-    description_en: 'Explanation of rare Quranic vocabulary',
-  },
 ];
+
+// =============================================================================
+// Marked text: the API keeps Quran.com emphasis as ⟨…⟩ (key terms) and 『…』
+// (quoted verses). They become <mark> elements; no HTML is ever injected.
+// =============================================================================
+
+const MARKER_PAIRS: Record<string, { close: string; className: string }> = {
+  '⟨': { close: '⟩', className: 'bg-transparent text-amber-800 font-semibold' },
+  '『': { close: '』', className: 'bg-transparent text-emerald-800' },
+};
+
+export function TafsirMarkedText({ text }: { text: string }) {
+  const parts: React.ReactNode[] = [];
+  let buf = '';
+  let i = 0;
+  let key = 0;
+  while (i < text.length) {
+    const open = MARKER_PAIRS[text[i]];
+    const end = open ? text.indexOf(open.close, i + 1) : -1;
+    if (open && end > i) {
+      if (buf) { parts.push(buf); buf = ''; }
+      parts.push(<mark key={key++} className={open.className}>{text.slice(i + 1, end)}</mark>);
+      i = end + 1;
+      continue;
+    }
+    // Unpaired marker characters are dropped rather than shown raw.
+    if (!(text[i] in MARKER_PAIRS) && text[i] !== '⟩' && text[i] !== '』') buf += text[i];
+    i += 1;
+  }
+  if (buf) parts.push(buf);
+  return <>{parts}</>;
+}
 
 // =============================================================================
 // Collapsible Section Component
@@ -322,7 +292,7 @@ function CollapsibleSection({
 // Session cache for tafsir (avoids re-fetch when panel is re-opened)
 // =============================================================================
 
-const TAFSIR_CACHE_PREFIX = 'tafsir_panel:';
+const TAFSIR_CACHE_PREFIX = 'tafsir_panel:v2:';
 
 function getTafsirCached(sura: number, ayah: number, editionId: string): TafsirResponse | null {
   try {
@@ -350,7 +320,6 @@ export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: Tafsir
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
 
   // Collapsible sections state
@@ -431,26 +400,20 @@ export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: Tafsir
       const data: TafsirResponse = await response.json();
       setTafsirCached(sura, ayah, selectedEdition.id, data);
       setTafsirData(data);
-      setRetryCount(0);
     } catch (err) {
       if ((err as Error)?.name === 'AbortError') return;
       console.error('Error fetching tafsir:', err);
+      // Never switch the reader to another scholar's tafsir on failure: keep
+      // the chosen edition and offer Retry.
       setError(
         language === 'ar'
-          ? 'فشل في تحميل التفسير. جاري المحاولة من مصدر آخر...'
-          : 'Failed to load tafsir. Trying alternative source...'
+          ? 'تعذّر تحميل هذا التفسير. أعد المحاولة.'
+          : 'Could not load this tafsir. Please retry.'
       );
-      // Auto-retry with next edition if available
-      if (retryCount < 2) {
-        setRetryCount((c) => c + 1);
-        const currentIndex = TAFSIR_EDITIONS.findIndex((e) => e.id === selectedEdition.id);
-        const nextEdition = TAFSIR_EDITIONS[(currentIndex + 1) % TAFSIR_EDITIONS.length];
-        setTimeout(() => setSelectedEdition(nextEdition), 1000);
-      }
     } finally {
       setLoading(false);
     }
-  }, [sura, ayah, selectedEdition, language, retryCount]);
+  }, [sura, ayah, selectedEdition, language]);
 
   function handleToggle() {
     const newExpanded = !expanded;
@@ -461,7 +424,7 @@ export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: Tafsir
   function handleEditionChange(edition: TafsirEdition) {
     setSelectedEdition(edition);
     setTafsirData(null);
-    setRetryCount(0);
+    setError(null);
   }
 
   function togglePlayPause() {
@@ -489,7 +452,7 @@ export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: Tafsir
   async function handleCopyText() {
     if (!tafsirData?.text) return;
     try {
-      await navigator.clipboard.writeText(tafsirData.text);
+      await navigator.clipboard.writeText(tafsirData.text.replace(/[⟨⟩『』]/g, ''));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -710,7 +673,7 @@ export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: Tafsir
                   onMouseUp={handleTextSelection}
                 >
                   <p className="text-base leading-loose font-arabic text-gray-800 whitespace-pre-wrap selection:bg-amber-200">
-                    {tafsirData.text}
+                    <TafsirMarkedText text={tafsirData.text} />
                   </p>
                 </div>
                 <p className="text-xs text-gray-400 mt-2 text-center">

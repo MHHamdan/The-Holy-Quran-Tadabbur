@@ -123,7 +123,14 @@ class TafsirEditionInfo:
     tafsir_one_slug: Optional[str] = None  # Slug for read.tafsir.one
 
 
-# Available tafsir editions with metadata
+# Available tafsir editions with metadata.
+#
+# Removed 2026-10: the English Ibn Kathir (Darussalam abridgement), Ma'arif
+# al-Qur'an, Tazkirul Quran and al-Tafsir al-Wasit (Tantawi, d. 2010) are
+# modern copyrighted works with no recorded permission; mukhtasar, ibn_juzayy,
+# alsidi, alsiraaj and ibn_ashoor returned 404 from every upstream. Anything
+# not listed here is refused (get_tafsir returns None). Re-adding a work needs
+# its licence recorded in data/manifests/tafseer_sources.json first.
 TAFSIR_EDITIONS: Dict[str, TafsirEditionInfo] = {
     # Arabic Tafseers with Audio (from read.tafsir.one)
     "muyassar": TafsirEditionInfo(
@@ -164,71 +171,6 @@ TAFSIR_EDITIONS: Dict[str, TafsirEditionInfo] = {
         has_audio=True,
         quran_com_id=91,
         tafsir_one_slug="alsaadi",
-    ),
-    "ibn_juzayy": TafsirEditionInfo(
-        id="ibn_juzayy",
-        slug="ibn-juzay",
-        name_ar="التسهيل لعلوم التنزيل",
-        name_en="At-Tashil (Ibn Juzayy)",
-        author_ar="ابن جزي الكلبي",
-        author_en="Ibn Juzayy Al-Kalbi",
-        language="ar",
-        source=TafsirSource.TAFSIR_ONE,
-        has_audio=True,
-        quran_com_id=None,
-        tafsir_one_slug="ibn-juzay",
-    ),
-    "ibn_ashoor": TafsirEditionInfo(
-        id="ibn_ashoor",
-        slug="ibn-ashoor",
-        name_ar="التحرير والتنوير",
-        name_en="At-Tahrir wat-Tanwir",
-        author_ar="محمد الطاهر ابن عاشور",
-        author_en="Ibn Ashoor",
-        language="ar",
-        source=TafsirSource.TAFSIR_ONE,
-        has_audio=True,
-        quran_com_id=None,
-        tafsir_one_slug="ibn-ashoor",
-    ),
-    "mukhtasar": TafsirEditionInfo(
-        id="mukhtasar",
-        slug="almukhtasar",
-        name_ar="المختصر في التفسير",
-        name_en="Al-Mukhtasar (Abridged)",
-        author_ar="مركز تفسير للدراسات القرآنية",
-        author_en="Tafsir Center for Quranic Studies",
-        language="ar",
-        source=TafsirSource.TAFSIR_ONE,
-        has_audio=True,
-        quran_com_id=None,
-        tafsir_one_slug="almukhtasar",
-    ),
-    "alsidi": TafsirEditionInfo(
-        id="alsidi",
-        slug="alsidi",
-        name_ar="تفسير السدي",
-        name_en="Tafsir As-Suddi",
-        author_ar="إسماعيل السدي",
-        author_en="Ismail As-Suddi",
-        language="ar",
-        source=TafsirSource.TAFSIR_ONE,
-        has_audio=True,
-        quran_com_id=None,
-        tafsir_one_slug="alsidi",
-    ),
-    "alsiraaj": TafsirEditionInfo(
-        id="alsiraaj",
-        slug="alsiraaj",
-        name_ar="السراج في بيان غريب القرآن",
-        name_en="As-Siraj (Quranic Vocabulary)",
-        author_ar="محمد الخضيري",
-        author_en="Muhammad Al-Khudhayri",
-        language="ar",
-        source=TafsirSource.TAFSIR_ONE,
-        has_audio=True,
-        quran_com_id=None,
-        tafsir_one_slug="alsiraaj",
     ),
     # Arabic Tafseers from Quran.com (text only)
     "ibn_kathir": TafsirEditionInfo(
@@ -279,68 +221,12 @@ TAFSIR_EDITIONS: Dict[str, TafsirEditionInfo] = {
         has_audio=False,
         quran_com_id=94,
     ),
-    "wasit": TafsirEditionInfo(
-        id="wasit",
-        slug="wasit",
-        name_ar="التفسير الوسيط",
-        name_en="Al-Tafsir al-Wasit",
-        author_ar="محمد سيد طنطاوي",
-        author_en="Muhammad Sayyid Tantawi",
-        language="ar",
-        source=TafsirSource.QURAN_COM,
-        has_audio=False,
-        quran_com_id=93,
-    ),
-    # English Tafseers (from Quran.com API v4)
-    "ibn_kathir_en": TafsirEditionInfo(
-        id="ibn_kathir_en",
-        slug="ibn-kathir-en",
-        name_ar="تفسير ابن كثير (إنجليزي)",
-        name_en="Tafsir Ibn Kathir (English)",
-        author_ar="ابن كثير",
-        author_en="Ibn Kathir",
-        language="en",
-        source=TafsirSource.QURAN_COM,
-        has_audio=False,
-        quran_com_id=169,
-    ),
-    "en_ibn_kathir": TafsirEditionInfo(
-        id="en_ibn_kathir",
-        slug="ibn-kathir-en",
-        name_ar="تفسير ابن كثير (إنجليزي)",
-        name_en="Ibn Kathir (English)",
-        author_ar="ابن كثير",
-        author_en="Ibn Kathir",
-        language="en",
-        source=TafsirSource.QURAN_COM,
-        has_audio=False,
-        quran_com_id=169,
-    ),
-    "en_maarif": TafsirEditionInfo(
-        id="en_maarif",
-        slug="maarif-al-quran",
-        name_ar="معارف القرآن",
-        name_en="Ma'arif al-Qur'an",
-        author_ar="المفتي محمد شفيع",
-        author_en="Mufti Muhammad Shafi",
-        language="en",
-        source=TafsirSource.QURAN_COM,
-        has_audio=False,
-        quran_com_id=168,
-    ),
-    "en_tazkirul": TafsirEditionInfo(
-        id="en_tazkirul",
-        slug="tazkirul-quran",
-        name_ar="تذكير القرآن",
-        name_en="Tazkirul Quran",
-        author_ar="مولانا وحيد الدين خان",
-        author_en="Maulana Wahiduddin Khan",
-        language="en",
-        source=TafsirSource.QURAN_COM,
-        has_audio=False,
-        quran_com_id=817,
-    ),
 }
+
+
+ALLOWED_QURAN_COM_IDS: frozenset = frozenset(
+    e.quran_com_id for e in TAFSIR_EDITIONS.values() if e.quran_com_id
+)
 
 
 class ExternalTafsirService:
@@ -384,27 +270,56 @@ class ExternalTafsirService:
         return self._client
 
     def _clean_tafsir_text(self, text: str) -> str:
-        """Clean HTML and format tafsir text for display"""
+        """Clean HTML into display text, keeping Quran.com's emphasis markers.
+
+        Block-level closings (</p>, </div>, </hN>, <br>) become newlines so a
+        heading never runs into the next paragraph. Only spans opened with
+        class "blue" or "green" emit markers (⟨…⟩ and 『…』); their closings
+        are matched through a stack, so other </span> tags emit nothing and
+        the markers always balance. Clients render the markers as <mark>
+        elements, never as HTML.
+        """
         if not text:
             return ""
 
-        # Preserve semantic markers from Quran.com formatting
-        # Convert <span class="blue"> to special markers for key terms
-        text = re.sub(r'<span[^>]*class="blue"[^>]*>', '⟨', text)
-        text = re.sub(r'<span[^>]*class="green"[^>]*>', '『', text)
-        text = re.sub(r'</span>', '⟩', text)
-        text = text.replace('⟩⟩', '⟩').replace('⟩『', '『')
-        text = text.replace('』⟩', '』')
+        text = re.sub(r"<br\s*/?>", "\n", text, flags=re.I)
+        text = re.sub(r"</(p|div|h[1-6]|li|blockquote)\s*>", "\n", text, flags=re.I)
+
+        out: List[str] = []
+        stack: List[str] = []
+        pos = 0
+        for m in re.finditer(r"<(/?)span\b([^>]*)>", text, flags=re.I):
+            out.append(text[pos:m.start()])
+            pos = m.end()
+            if m.group(1):  # closing tag
+                if stack:
+                    out.append(stack.pop())
+                continue
+            cls = re.search(r'class\s*=\s*["\']([^"\']*)["\']', m.group(2) or "")
+            classes = set(cls.group(1).split()) if cls else set()
+            if "blue" in classes:
+                out.append("⟨")
+                stack.append("⟩")
+            elif "green" in classes:
+                out.append("『")
+                stack.append("』")
+            else:
+                stack.append("")
+        out.append(text[pos:])
+        out.extend(reversed(stack))  # close anything left open
+        text = "".join(out)
 
         # Remove remaining HTML tags
-        text = re.sub(r'<[^>]+>', '', text)
+        text = re.sub(r"<[^>]+>", "", text)
+
+        # Drop markers left empty after tag removal
+        text = text.replace("⟨⟩", "").replace("『』", "")
 
         # Clean up whitespace while preserving paragraph structure
-        text = re.sub(r'[ \t]+', ' ', text)
-        text = re.sub(r'\n\s*\n', '\n\n', text)
-        text = text.strip()
-
-        return text
+        text = re.sub(r"[ \t]+", " ", text)
+        text = re.sub(r" *\n *", "\n", text)
+        text = re.sub(r"\n{3,}", "\n\n", text)
+        return text.strip()
 
     def get_editions(self, language: Optional[str] = None, has_audio: Optional[bool] = None) -> List[Dict[str, Any]]:
         """Get list of available tafsir editions with optional filtering"""
