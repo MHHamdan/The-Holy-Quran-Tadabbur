@@ -37,7 +37,6 @@ from app.models.therapy import EmotionCategory, EMOTION_LABELS, TherapySession
 from app.services.spiritual_guidance_service import (
     HEALING_THEMES,
     build_guidance_cards,
-    _keyword_classify,
     get_recommended_themes,
     get_theme_cards,
 )
@@ -65,7 +64,11 @@ def _classify_with_confidence(message: str) -> tuple[str, float]:
     fallback signal).
     """
     from app.core.config import get_settings
-    from app.services.emotion_classifier import get_classifier, is_arabic_dominant
+    from app.services.emotion_classifier import (
+        classify_keywords_only,
+        get_classifier,
+        is_arabic_dominant,
+    )
 
     settings = get_settings()
 
@@ -80,7 +83,7 @@ def _classify_with_confidence(message: str) -> tuple[str, float]:
 
     # Keyword path. Not classify_emotion(): it would call the HF zero-shot
     # model a second time for English text the NLI step above already tried.
-    return _keyword_classify(message), 0.0
+    return classify_keywords_only(message), 0.0
 
 router = APIRouter()
 

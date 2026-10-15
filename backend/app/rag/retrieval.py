@@ -877,7 +877,7 @@ class HybridRetriever:
 
         sorted_refs = sorted(verse_scores.keys(), key=lambda k: -verse_scores[k])[:6]
         logger.info(
-            f"[THEMATIC] {len(sorted_refs)} verse groups matched for query: {query[:60]}"
+            f"[THEMATIC] {len(sorted_refs)} verse groups matched ({query_fingerprint(query)})"
         )
 
         results: List[RetrievedChunk] = []
