@@ -19,6 +19,7 @@ Endpoints:
 from typing import Any, Dict, List, Optional, Tuple
 from fastapi import APIRouter, Depends, Query, HTTPException, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 import asyncio
@@ -40,6 +41,7 @@ from app.services.tafsir_api import (
 )
 from app.services.redis_cache import get_hybrid_cache
 from app.services.tafsir_comparison import tafsir_comparison_service
+from app.models.tafseer import TafseerChunk, TafseerSource
 from app.db.database import get_async_session
 from app.core.config import settings
 from app.core.rate_limit import rag_rate_limit
@@ -312,6 +314,53 @@ class ExternalTafsirResponse(BaseModel):
     source: str
     edition: dict
     audio_url: Optional[str] = None
+    # Set when the passage comes from the local licensed library
+    # (source == LOCAL_LIBRARY_SOURCE): the tafseer_sources id and chunk id.
+    source_id: Optional[str] = None
+    chunk_id: Optional[str] = None
+
+
+# `source` value for passages read from tafseer_chunks rather than proxied.
+LOCAL_LIBRARY_SOURCE = "tadabbur_library"
+
+
+class _EditionNotServable(Exception):
+    """The edition's tafseer_sources row exists but is disabled or unverified."""
+
+
+async def _local_licensed_passage(
+    session: AsyncSession, db_source_id: str, sura: int, ayah: int
+) -> Optional[Dict[str, Any]]:
+    """The stored passage covering sura:ayah from an enabled, licence-verified
+    source, or None when the source has no row (not seeded here) or no passage
+    for this verse. Raises _EditionNotServable when the row exists but is
+    disabled or unverified: such a source must not be proxied either."""
+    source = (
+        await session.execute(select(TafseerSource).where(TafseerSource.id == db_source_id))
+    ).scalar_one_or_none()
+    if source is None:
+        return None
+    if not (source.is_enabled and source.license_verified):
+        raise _EditionNotServable(db_source_id)
+    chunk = (
+        await session.execute(
+            select(TafseerChunk)
+            .where(
+                TafseerChunk.source_id == db_source_id,
+                TafseerChunk.sura_no == sura,
+                TafseerChunk.aya_start <= ayah,
+                TafseerChunk.aya_end >= ayah,
+            )
+            .order_by(TafseerChunk.aya_start.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if chunk is None:
+        return None
+    text = (chunk.content_ar if source.language == "ar" else chunk.content_en) or chunk.content_ar or chunk.content_en
+    if not text:
+        return None
+    return {"text": text.strip(), "chunk_id": chunk.chunk_id}
 
 
 class AudioUrlResponse(BaseModel):
@@ -380,12 +429,17 @@ async def get_external_tafsir(
     ayah: int,
     edition: str = Query("muyassar", description="Edition identifier"),
     response: Response = None,
+    session: AsyncSession = Depends(get_async_session),
 ) -> ExternalTafsirResponse:
     """
-    Get tafsir for a specific verse from external API.
+    Get tafsir for a specific verse.
 
-    Fetches from Quran.com API or read.tafsir.one based on edition.
-    Includes audio URL if available for the edition.
+    Every edition names its tafseer_sources id (db_source_id). The stored,
+    licence-verified passage is served first (source "tadabbur_library",
+    with source_id and chunk_id). A source whose row is disabled or
+    unverified is refused (403), never proxied. Only when the source is not
+    seeded here, or has no passage for the verse, is the text fetched from
+    Quran.com / quran-tafseer.com / read.tafsir.one as before.
 
     Performance: Uses Redis caching + HTTP cache headers.
     """
@@ -411,8 +465,41 @@ async def get_external_tafsir(
             },
         )
 
-    # Check Redis cache first (v2: text cleaned with balanced markers)
-    cache_key = f"tafsir:external:v2:{edition}:{sura}:{ayah}"
+    info = TAFSIR_EDITIONS[edition]
+    local: Optional[Dict[str, Any]] = None
+    if info.db_source_id:
+        try:
+            local = await _local_licensed_passage(session, info.db_source_id, sura, ayah)
+        except _EditionNotServable:
+            raise _edition_not_licensed()
+        except Exception as e:  # DB unavailable: fall through to the proxy
+            logger.warning("Local tafsir lookup failed for %s %s:%s: %s", edition, sura, ayah, e)
+    if local:
+        if response:
+            set_cache_headers(response, max_age=CACHE_TTL_TAFSIR, etag_data=local["chunk_id"])
+        return ExternalTafsirResponse(
+            ok=True,
+            verse_key=f"{sura}:{ayah}",
+            text=local["text"],
+            source=LOCAL_LIBRARY_SOURCE,
+            edition={
+                "id": info.id,
+                "name_ar": info.name_ar,
+                "name_en": info.name_en,
+                "author_ar": info.author_ar,
+                "author_en": info.author_en,
+                "language": info.language,
+                "has_audio": False,
+                "db_source_id": info.db_source_id,
+            },
+            audio_url=None,
+            source_id=info.db_source_id,
+            chunk_id=local["chunk_id"],
+        )
+
+    # Check Redis cache first (v3: v2 entries predate the local-library path
+    # and the removal of saadi/jalalayn and of tafsir audio)
+    cache_key = f"tafsir:external:v3:{edition}:{sura}:{ayah}"
     cache = get_hybrid_cache()
     cached = await cache.get(cache_key)
 
@@ -444,6 +531,7 @@ async def get_external_tafsir(
         "source": result.get("source", ""),
         "edition": result.get("edition", {}),
         "audio_url": result.get("audio_url"),
+        "source_id": info.db_source_id,
     }
 
     # Cache the result
@@ -533,7 +621,7 @@ async def get_quran_com_tafsir(
 async def compare_external_tafsirs(
     sura: int,
     ayah: int,
-    editions: str = Query("muyassar,ibn_kathir,saadi", description="Comma-separated edition IDs"),
+    editions: str = Query("muyassar,ibn_kathir,tabari", description="Comma-separated edition IDs"),
 ) -> dict:
     """
     Compare tafsir from multiple editions for a verse.

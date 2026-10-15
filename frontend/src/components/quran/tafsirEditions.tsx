@@ -32,9 +32,13 @@ export interface TafsirEdition {
 // Tafsir Editions Configuration
 // =============================================================================
 
-// Only editions the backend lists (TAFSIR_EDITIONS in tafsir_api.py). Al-Wasit
+// Only editions the backend lists (TAFSIR_EDITIONS in tafsir_api.py), and
+// every one names its licensed library source in db_source_id: the server
+// serves that stored passage first (source "tadabbur_library"). Al-Wasit
 // (Tantawi, d. 2010) is under copyright with no recorded permission, and
 // al-Mukhtasar, Ibn Juzayy, al-Suddi and al-Siraj always returned 404.
+// Tafsir as-Sa'di and the Arabic al-Jalalayn were removed 2026-10-14: neither
+// has a recorded licence in data/manifests/tafseer_sources.json.
 // has_audio stays false for every edition until the owner confirms the
 // read.tafsir.one tafsir-audio terms (owner review: tafsir-audio-unverified).
 export const TAFSIR_EDITIONS: TafsirEdition[] = [
@@ -67,19 +71,6 @@ export const TAFSIR_EDITIONS: TafsirEdition[] = [
     description_en: 'Famous classical tafsir based on hadith',
   },
   {
-    id: 'saadi',
-    slug: 'alsaadi',
-    name_ar: 'تفسير السعدي',
-    name_en: 'Tafsir As-Saadi',
-    author_ar: 'الشيخ عبدالرحمن السعدي',
-    author_en: 'Sheikh As-Saadi',
-    language: 'ar',
-    has_audio: false,
-    source: 'quran_com',
-    description_ar: 'تفسير عصري سهل العبارة',
-    description_en: 'Modern tafsir with easy language',
-  },
-  {
     id: 'tabari',
     db_source_id: 'tabari_ar',
     slug: 'tabari',
@@ -109,6 +100,7 @@ export const TAFSIR_EDITIONS: TafsirEdition[] = [
   },
   {
     id: 'baghawi',
+    db_source_id: 'baghawi_ar',
     slug: 'baghawi',
     name_ar: 'معالم التنزيل',
     name_en: "Ma'alim at-Tanzil",
@@ -120,25 +112,15 @@ export const TAFSIR_EDITIONS: TafsirEdition[] = [
     description_ar: 'تفسير وسط بين المأثور والرأي',
     description_en: 'Balanced tafsir',
   },
-  {
-    id: 'jalalayn',
-    slug: 'aljalalayn',
-    name_ar: 'تفسير الجلالين',
-    name_en: 'Tafsir Al-Jalalayn',
-    author_ar: 'المحلي والسيوطي',
-    author_en: 'Al-Mahalli & As-Suyuti',
-    language: 'ar',
-    has_audio: false,
-    source: 'quran_tafseer',
-    description_ar: 'تفسير موجز ومختصر',
-    description_en: 'Concise tafsir by two great Imams',
-  },
 ];
 
 // =============================================================================
 // Attribution footer (exported so other tafsir views, e.g. the Mushaf sheet,
 // show the same title, author, licence and source line)
 // =============================================================================
+
+/** `source` value for passages served from the app's own licensed library. */
+export const LOCAL_LIBRARY_SOURCE = 'tadabbur_library';
 
 const HOST_LABELS: Record<string, string> = {
   quran_com: 'Quran.com',
@@ -169,7 +151,7 @@ export function TafsirAttributionFooter({
 }) {
   const ar = language === 'ar';
   const registry = edition.db_source_id ? getSourceById(edition.db_source_id) : undefined;
-  const host = HOST_LABELS[source] ?? source;
+  const fromLibrary = source === LOCAL_LIBRARY_SOURCE;
   return (
     <div
       className={clsx('pt-2 border-t border-gray-100 text-xs text-gray-500 space-y-0.5', ar && 'font-arabic')}
@@ -194,7 +176,11 @@ export function TafsirAttributionFooter({
       <p className="flex items-center gap-2 flex-wrap">
         <span>
           {ar ? 'المصدر: ' : 'Source: '}
-          <bdi dir="ltr">{host}</bdi>
+          {fromLibrary ? (
+            <span>{ar ? 'نسخة مخزّنة في مكتبة تدبّر' : 'Copy stored in the Tadabbur library'}</span>
+          ) : (
+            <bdi dir="ltr">{HOST_LABELS[source] ?? source}</bdi>
+          )}
         </span>
         {sourceUrl && (
           <a
@@ -213,8 +199,20 @@ export function TafsirAttributionFooter({
 }
 
 
-/** Public page for the excerpt on the host it was fetched from. */
-export function tafsirSourceUrl(source: string, sura: number, ayah: number, slug?: string): string {
+/**
+ * Public page for the excerpt on the host it was fetched from, or the
+ * registry's source page for a passage served from the local library.
+ */
+export function tafsirSourceUrl(
+  source: string,
+  sura: number,
+  ayah: number,
+  slug?: string,
+  dbSourceId?: string,
+): string | undefined {
+  if (source === LOCAL_LIBRARY_SOURCE) {
+    return dbSourceId ? getSourceById(dbSourceId)?.sourceUrl : undefined;
+  }
   if (source === 'quran_com') return `https://quran.com/${sura}/${ayah}/tafsirs`;
   if (source === 'quran_tafseer') return 'http://quran-tafseer.com';
   return `https://read.tafsir.one/${slug ?? ''}`;

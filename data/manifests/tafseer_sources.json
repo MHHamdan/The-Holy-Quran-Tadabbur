@@ -182,6 +182,11 @@
         "dataset_url": "https://huggingface.co/datasets/riotu-lab/Quran-Tafseers",
         "fetch_script": "backend/scripts/datasets/fetch_hf_tafseers.py",
         "file_sha256": "0e4172d4a80f662363029b291b186ab7228e55d6786b9ec1a8dde7a4aa0ce878"
+      },
+      "stored_copy": {
+        "seeded_from": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/ar-tafsir-ibn-kathir",
+        "seeded_data_sha256": "4f1e4bdb4e9a6e16f7087fd82eda290f33587711f9c71da8d34735c114f4f659",
+        "note": "Checked 2026-10-14: the tafseer_chunks rows of the development database (and data bundles exported from it) were seeded from the spa5k tafsir_api CDN folder above (recorded cdn_url and data_hash), not from the dataset in provenance; 560 of 6197 stored verse passages are identical to the dataset text. tafseer_sources.source_url records this origin (alembic r3d1a2b3c4d5). The terms of the spa5k digital edition are not recorded; reseeding from the pinned dataset, or recording those terms, needs owner sign-off."
       }
     },
     {
@@ -218,6 +223,11 @@
         "commercial_use": "allowed",
         "notes": "Classical Arabic text, public domain by age (d. 310 AH). Seeded from the Apache-2.0 HF dataset at a pinned revision (SHA-256 checked).",
         "verified_date": "2026-10-06"
+      },
+      "stored_copy": {
+        "seeded_from": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/ar-tafsir-al-tabari",
+        "seeded_data_sha256": "1832e0a299dc0cfb9de39c8e55182a9b3cce9da96817af4b8324fdf74b898e4f",
+        "note": "Checked 2026-10-14: the tafseer_chunks rows of the development database (and data bundles exported from it) were seeded from the spa5k tafsir_api CDN folder above (recorded cdn_url and data_hash), not from the dataset in provenance; 3237 of 6236 stored verse passages are identical to the dataset text. tafseer_sources.source_url records this origin (alembic r3d1a2b3c4d5). The terms of the spa5k digital edition are not recorded; reseeding from the pinned dataset, or recording those terms, needs owner sign-off."
       }
     },
     {
@@ -254,6 +264,11 @@
         "commercial_use": "allowed",
         "notes": "Classical Arabic text, public domain by age (d. 671 AH). Seeded from the Apache-2.0 HF dataset at a pinned revision (SHA-256 checked).",
         "verified_date": "2026-10-06"
+      },
+      "stored_copy": {
+        "seeded_from": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/ar-tafseer-al-qurtubi",
+        "seeded_data_sha256": "48af25c42298b9a6071d16f84cd2b168eec08a2d273cd1f61086c6f74a21a076",
+        "note": "Checked 2026-10-14: the tafseer_chunks rows of the development database (and data bundles exported from it) were seeded from the spa5k tafsir_api CDN folder above (recorded cdn_url and data_hash), not from the dataset in provenance; 3177 of 6176 stored verse passages are identical to the dataset text. tafseer_sources.source_url records this origin (alembic r3d1a2b3c4d5). The terms of the spa5k digital edition are not recorded; reseeding from the pinned dataset, or recording those terms, needs owner sign-off."
       }
     },
     {
@@ -274,7 +289,8 @@
         "dataset_license": "apache-2.0",
         "dataset_url": "https://huggingface.co/datasets/riotu-lab/Quran-Tafseers",
         "fetch_script": "backend/scripts/datasets/fetch_hf_tafseers.py",
-        "file_sha256": "0e4172d4a80f662363029b291b186ab7228e55d6786b9ec1a8dde7a4aa0ce878"
+        "file_sha256": "0e4172d4a80f662363029b291b186ab7228e55d6786b9ec1a8dde7a4aa0ce878",
+        "seeded_entries": 6235
       },
       "license": {
         "type": "public_domain_classical",
@@ -288,7 +304,7 @@
         ],
         "attribution_required": true,
         "commercial_use": "allowed",
-        "notes": "Classical Arabic text, public domain by age (d. 516 AH). Seeded from the Apache-2.0 HF dataset at a pinned revision (SHA-256 checked).",
+        "notes": "Classical Arabic text, public domain by age (d. 516 AH). Seeded from the Apache-2.0 HF dataset at a pinned revision (SHA-256 checked): 6,235 verse passages; the dataset has no separate passage for 1:1. Served in the reader from tafseer_chunks.",
         "verified_date": "2026-10-06"
       }
     },
@@ -303,7 +319,7 @@
       "language": "ar",
       "reliability_score": 0.92,
       "is_primary_source": true,
-      "status": "pending_user_input",
+      "status": "pending_owner_confirmation",
       "api_source": {
         "provider": "quran_tafsir_api",
         "base_url": "https://api.quran-tafsir.com/tafsir",
@@ -320,7 +336,7 @@
       },
       "license": {
         "type": "publisher_terms_non_commercial",
-        "license_url": "NEED_VERIFICATION",
+        "license_url": null,
         "tos_url": "https://qurancomplex.gov.sa",
         "allowed_use": [
           "educational",
@@ -328,13 +344,13 @@
         ],
         "attribution_required": true,
         "commercial_use": "not_permitted",
-        "notes": "King Fahd Complex publication, displayed with attribution for educational, non-commercial use. Owner decision 2026-10-14: Tadabbur is distributed free of charge, with no advertising, purchases, subscriptions or paid tiers (docs/distribution-policy.md). Any change to that model must first obtain written permission from the King Fahd Complex or drop this source.",
+        "notes": "King Fahd Complex (KFGQPC) publication. The KFGQPC's own terms have not been confirmed at source (qurancomplex.gov.sa refuses automated retrieval), so this licence is pending owner confirmation and is not cleared. Owner decision 2026-10-14 (the verified_date): it is displayed with attribution for educational, non-commercial use only, because Tadabbur is distributed free of charge with no advertising, purchases, subscriptions or paid tiers (docs/distribution-policy.md). Any change to that model must first obtain written permission from the King Fahd Complex or drop this source. The same statement is recorded in tafseer_sources (alembic r3d1a2b3c4d5) and in frontend/src/data/sourceRegistry.ts.",
         "verified_date": "2026-10-14"
       },
       "fallback": {
         "type": "manual",
-        "status": "pending_user_input",
-        "message": "Blocked until license verified. User must confirm allowed_use from King Fahd Complex."
+        "status": "pending_owner_confirmation",
+        "message": "Displayed under the non-commercial distribution policy while the KFGQPC terms await owner confirmation. If they are not confirmed, or the distribution model changes, disable this source (is_enabled=0) or switch to the QuranEnc arabic_moyassar alternative below."
       },
       "validation": {
         "expected_surah_count": 114,
@@ -356,6 +372,12 @@
         "key": "arabic_moyassar",
         "seed": "backend/scripts/ingest/seed_tafsir_quranenc.py --replace-muyassar",
         "notes": "Same work published by QuranEnc under its republication terms; swap once QuranEnc confirms the terms cover this key."
+      },
+      "provenance": {
+        "seeded_from": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/ar-tafsir-muyassar",
+        "seeded_data_sha256": "bcdde29cb3eacc40fb9e4702c3b6ef888ceed558d7fa46ffb06d12e435909502",
+        "cross_check": "Verse text identical to riotu-lab/Quran-Tafseers@9ddbdeec22bfabd9821b14c6584ad9587ed7bffa (Tafseer.json, SHA-256 0e4172d4a80f662363029b291b186ab7228e55d6786b9ec1a8dde7a4aa0ce878) for all 6,235 verses that dataset carries (checked 2026-10-14).",
+        "fetch_script": "backend/scripts/datasets/fetch_hf_tafseers.py"
       }
     },
     {

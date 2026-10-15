@@ -93,15 +93,14 @@ const TOTAL_PAGES = TOTAL_MUSHAF_PAGES;
 // Arabic tafsir editions, shown in both UI languages (always right-to-left).
 // No English tafsir is offered: the English editions previously listed here
 // (Ibn Kathir EN, Ma'arif al-Qur'an, Tazkirul Quran) have no confirmed licence
-// and are awaiting owner review. Tafsir audio stays off until its terms are
-// confirmed.
+// and are awaiting owner review. Tafsir as-Sa'di and the Arabic al-Jalalayn
+// have no recorded licence and are not offered. Tafsir audio stays off until
+// its terms are confirmed.
 const TAFSIR_EDITIONS: TafsirEdition[] = [
   { id: 'muyassar', translationKey: 'tafseer_muyassar' },
   { id: 'ibn_kathir', translationKey: 'tafseer_ibn_kathir' },
   { id: 'tabari', translationKey: 'tafseer_tabari' },
   { id: 'qurtubi', translationKey: 'tafseer_qurtubi' },
-  { id: 'jalalayn', translationKey: 'tafseer_jalalayn' },
-  { id: 'saadi', translationKey: 'tafseer_saadi' },
   { id: 'baghawi', translationKey: 'tafseer_baghawi' },
 ];
 
@@ -487,7 +486,7 @@ const VersePanel = memo(function VersePanel({
                     db_source_id: knownEdition?.db_source_id,
                   }}
                   source={tafsirData.source}
-                  sourceUrl={tafsirSourceUrl(tafsirData.source, verse.sura_no, verse.aya_no, knownEdition?.slug)}
+                  sourceUrl={tafsirSourceUrl(tafsirData.source, verse.sura_no, verse.aya_no, knownEdition?.slug, knownEdition?.db_source_id)}
                   language={language}
                 />
               </>

@@ -1,8 +1,11 @@
 """
 Every tafsir passage the comparison API returns carries its attribution:
 licence text, where the text came from, and its translator (translations).
-source_url never falls back to the CDN recorded at seed time, which the
-HF-dataset seeding never contacted.
+The service never derives source_url from cdn_url on its own; the row's
+source_url is set by the seeder (and, for older rows, by migration
+r3d1a2b3c4d5) to the URL the stored text was really fetched from, which for
+the development database's ibn_kathir_ar / tabari_ar / qurtubi_ar /
+muyassar_ar rows is the spa5k CDN (see stored_copy in the manifest).
 """
 import pytest
 import pytest_asyncio
@@ -42,7 +45,23 @@ async def test_compare_entries_carry_attribution(client):
     for e in r.json()["entries"]:
         assert {"license", "source_url", "translator"} <= set(e)
         assert e["author_ar"] and e["name_ar"] and e["source_id"]
-        assert e["source_url"] and "jsdelivr" not in e["source_url"], e["source_id"]
+        assert e["source_url"] and e["source_url"].startswith("https://"), e["source_id"]
+
+
+@pytest.mark.asyncio
+async def test_compare_source_url_is_the_rows_recorded_origin(client):
+    from sqlalchemy import text
+
+    from app.db import database
+
+    r = await client.get("/api/v1/tafseer/compare/2/255", params={"language": "ar"})
+    if r.status_code == 404:
+        pytest.skip("no seeded tafsir")
+    async with database.AsyncSessionLocal() as session:
+        rows = dict((await session.execute(text("SELECT id, source_url FROM tafseer_sources"))).all())
+    for e in r.json()["entries"]:
+        if rows.get(e["source_id"]):
+            assert e["source_url"] == rows[e["source_id"]], e["source_id"]
 
 
 @pytest.mark.asyncio
