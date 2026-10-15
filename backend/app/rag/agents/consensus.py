@@ -210,16 +210,14 @@ class ConsensusAgent:
         elif len(disagreements) == 1:
             level = ConsensusLevel.PARTIAL
             warning = (
-                "Scholars have differing views on this topic. Both perspectives are "
-                "presented without endorsing one over another. — "
-                "اختلف العلماء في هذه المسألة، وقد عُرضت الآراء المختلفة دون ترجيح."
+                "Scholars differ on this point. The views found are shown without favouring one. — "
+                "اختلف العلماء في هذه المسألة، وعُرضت الأقوال التي وُجدت دون ترجيح."
             )
         else:
             level = ConsensusLevel.SIGNIFICANT
             warning = (
-                f"Multiple scholarly disagreements detected across {n_sources} sources. "
-                "All views are presented without adjudication. — "
-                "تعدّد الاختلاف بين العلماء؛ عُرضت جميع الآراء دون ترجيح."
+                "Scholars differ on this point. The views found are shown without favouring one. — "
+                "اختلف العلماء في هذه المسألة، وعُرضت الأقوال التي وُجدت دون ترجيح."
             )
 
         # Identify majority position: source with highest avg text_match_score

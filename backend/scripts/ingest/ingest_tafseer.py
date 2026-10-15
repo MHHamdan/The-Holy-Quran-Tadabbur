@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
-Ingest tafseer data into PostgreSQL and Qdrant.
+Ingest tafseer data into PostgreSQL.
+
+Vectors are NOT written here: scripts/index/index_tafseer.py embeds the
+PostgreSQL chunks with the configured HF model (make index-tafseer).
 
 CRITICAL CHUNKING RULES:
 1. Chunks are STRICTLY ayah-anchored - each chunk maps to specific ayah range
@@ -28,11 +31,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from qdrant_client import QdrantClient
-from qdrant_client.models import (
-    VectorParams, Distance, PointStruct,
-    Filter, FieldCondition, MatchValue
-)
 
 # Paths
 SCRIPT_DIR = Path(__file__).parent
@@ -283,7 +281,7 @@ class AyahAnchoredChunker:
 
 
 class TafseerIngester:
-    """Ingests tafseer chunks into PostgreSQL and Qdrant."""
+    """Ingests tafseer chunks into PostgreSQL (vectors: index_tafseer.py)."""
 
     def __init__(self, manifest_path: Path):
         self.manifest_path = manifest_path
@@ -377,93 +375,6 @@ class TafseerIngester:
         await session.commit()
         return inserted, skipped
 
-    def ingest_to_qdrant(
-        self,
-        client: QdrantClient,
-        chunks: list[TafseerChunk],
-        collection_name: str = "tafseer_chunks"
-    ) -> tuple[int, int]:
-        """
-        Ingest chunks into Qdrant vector store.
-
-        Note: Uses placeholder vectors. Replace with proper embeddings in production.
-
-        Returns (inserted_count, skipped_count)
-        """
-        # Ensure collection exists
-        collections = client.get_collections().collections
-        collection_exists = any(c.name == collection_name for c in collections)
-
-        if not collection_exists:
-            client.create_collection(
-                collection_name=collection_name,
-                vectors_config=VectorParams(
-                    size=384,  # MiniLM dimension
-                    distance=Distance.COSINE
-                )
-            )
-
-        # Generate points
-        points = []
-        for chunk in chunks:
-            # Placeholder vector (replace with real embeddings)
-            vector = self._generate_placeholder_vector(chunk.text, 384)
-
-            point = PointStruct(
-                id=chunk.chunk_id,
-                vector=vector,
-                payload={
-                    "chunk_id": chunk.chunk_id,
-                    "source_id": chunk.source_id,
-                    "source_name_ar": chunk.source_name_ar,
-                    "source_name_en": chunk.source_name_en,
-                    "language": chunk.language,
-                    "surah_number": chunk.surah_number,
-                    "ayah_start": chunk.ayah_start,
-                    "ayah_end": chunk.ayah_end,
-                    "text": chunk.text[:1000],  # Truncate for payload
-                    "word_count": chunk.word_count,
-                    "raw_text_hash": chunk.raw_text_hash,
-                    "methodology": chunk.metadata.get("methodology", ""),
-                    "era": chunk.metadata.get("era", "")
-                }
-            )
-            points.append(point)
-
-        # Upsert in batches
-        batch_size = 100
-        for i in range(0, len(points), batch_size):
-            batch = points[i:i + batch_size]
-            client.upsert(
-                collection_name=collection_name,
-                points=batch
-            )
-
-        return len(points), 0
-
-    def _generate_placeholder_vector(self, text: str, dim: int) -> list[float]:
-        """
-        Generate placeholder vector from text hash.
-
-        WARNING: NOT a real embedding. Replace with sentence-transformers.
-        """
-        import struct
-
-        text_hash = hashlib.sha256(text.encode()).digest()
-        vector = []
-        seed = text_hash
-
-        while len(vector) < dim:
-            seed = hashlib.sha256(seed).digest()
-            for i in range(0, len(seed), 4):
-                if len(vector) >= dim:
-                    break
-                val = struct.unpack('f', seed[i:i+4])[0]
-                normalized = max(-1, min(1, val / 1e38))
-                vector.append(normalized)
-
-        return vector[:dim]
-
     def validate_chunks(self, chunks: list[TafseerChunk]) -> list[str]:
         """
         Validate chunking invariants.
@@ -507,7 +418,6 @@ class TafseerIngester:
             "chunks_created": 0,
             "postgres_inserted": 0,
             "postgres_skipped": 0,
-            "qdrant_inserted": 0,
             "validation_errors": [],
             "message": ""
         }
@@ -539,31 +449,18 @@ class TafseerIngester:
             result["status"] = "validation_failed"
             return result
 
-        # Ingest to PostgreSQL
+        # Ingest to PostgreSQL (the only target; embeddings come from index_tafseer.py)
         try:
             from app.db.database import AsyncSessionLocal
             async with AsyncSessionLocal() as session:
                 inserted, skipped = await self.ingest_to_postgres(session, source, chunks)
                 result["postgres_inserted"] = inserted
                 result["postgres_skipped"] = skipped
+            result["status"] = "success"
+            result["message"] = "Ingestion complete (run index-tafseer to embed)"
         except Exception as e:
             result["message"] = f"PostgreSQL error: {str(e)}"
             print(f"    PostgreSQL ingestion failed: {e}")
-
-        # Ingest to Qdrant
-        try:
-            from app.core.config import settings
-            client = QdrantClient(
-                host=settings.qdrant_host,
-                port=settings.qdrant_port
-            )
-            inserted, skipped = self.ingest_to_qdrant(client, chunks)
-            result["qdrant_inserted"] = inserted
-            result["status"] = "success"
-            result["message"] = "Ingestion complete"
-        except Exception as e:
-            result["message"] = f"Qdrant error: {str(e)}"
-            print(f"    Qdrant ingestion failed: {e}")
 
         return result
 
@@ -600,7 +497,6 @@ async def main():
         results.append(result)
         print(f"  Chunks: {result['chunks_created']}")
         print(f"  PostgreSQL: {result['postgres_inserted']} inserted, {result['postgres_skipped']} skipped")
-        print(f"  Qdrant: {result['qdrant_inserted']} inserted")
         print(f"  Status: {result['status']}")
         if result.get("validation_errors"):
             print(f"  Validation errors: {len(result['validation_errors'])}")
@@ -622,11 +518,10 @@ async def main():
 
     total_chunks = sum(r["chunks_created"] for r in results)
     total_pg = sum(r["postgres_inserted"] for r in results)
-    total_qdrant = sum(r["qdrant_inserted"] for r in results)
 
     print(f"\n  Total chunks created: {total_chunks}")
     print(f"  Total PostgreSQL inserts: {total_pg}")
-    print(f"  Total Qdrant inserts: {total_qdrant}")
+    print("  Next: make index-tafseer (HF embeddings into Qdrant)")
 
     print("=" * 60)
 

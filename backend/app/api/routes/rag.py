@@ -33,7 +33,6 @@ from app.core.errors import (
     create_error,
 )
 from app.rag.pipeline import RAGPipeline
-from app.rag.agents.orchestrator import AgenticRAGOrchestrator
 from app.rag.types import QueryIntent, RelatedVerse, TafsirExplanation
 from app.services.redis_cache import RedisCache
 from app.services.conversation_service import (
@@ -80,6 +79,13 @@ def make_rag_cache_key(request: "AskRequest") -> str:
     key_hash = hashlib.sha256(key_string.encode()).hexdigest()[:32]
 
     return f"ask:{key_hash}"
+
+
+def _error_response(code: ErrorCode, ctx: RAGRequestContext, details: str, status: int, language: str):
+    """Structured bilingual error; internal details are logged, never returned."""
+    error = create_error(code, ctx.correlation_id, internal_details=details)
+    error.log(ctx.question_hash)
+    return JSONResponse(status_code=status, content=error.to_response(language))
 
 
 async def _store_turn(conv_service, session_id: str, question: str, answer: str, verse_refs: List[str]):
@@ -468,58 +474,7 @@ async def ask_question(
 
 
 # ============================================================================
-# NEW: Chat Experience Endpoints
-# ============================================================================
-# Agentic RAG endpoint — M3
-# ============================================================================
-
-@router.post("/ask/agentic")
-async def ask_agentic(
-    request: "AskRequest",
-    session: AsyncSession = Depends(get_async_session),
-    _rate: None = Depends(rag_rate_limit),
-):
-    """
-    Agentic RAG endpoint — multi-hop retrieval + Validation Agent +
-    Consensus/Disagreement Agent.
-
-    Returns the same fields as /ask plus:
-    - agentic.hops_used: number of retrieval hops executed
-    - agentic.consensus: consensus level and structured disagreements
-    - agentic.evidence_validated: count of validated evidence items
-
-    API version: 2.0.0
-    """
-    import asyncio as _asyncio
-
-    try:
-        orchestrator = AgenticRAGOrchestrator(session=session, max_hops=3)
-        result = await _asyncio.wait_for(
-            orchestrator.run(
-                question=request.question,
-                language=request.language,
-                preferred_sources=request.preferred_sources,
-                session_id=request.session_id,
-            ),
-            timeout=30.0,
-        )
-        response_dict = result.to_dict()
-        response_dict["cached"] = False
-        return response_dict
-
-    except _asyncio.TimeoutError:
-        return JSONResponse(
-            status_code=504,
-            content={"error": "Agentic pipeline timeout", "status": "error"},
-        )
-    except Exception as e:
-        logger.exception(f"Agentic RAG error: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"error": "Internal error in agentic pipeline", "status": "error"},
-        )
-
-
+# Chat Experience Endpoints
 # ============================================================================
 
 @router.post("/ask/followup", response_model=Union[GroundedResponse, ErrorResponse])
@@ -556,15 +511,14 @@ async def ask_followup_question(
 
     # Build conversation context
     conversation_context = conv_session.get_context_for_llm(max_messages=6)
-
-    import asyncio as _asyncio
+    ctx = RAGRequestContext.create(request.question, request.language)
 
     try:
         # Initialize RAG pipeline
         pipeline = RAGPipeline(session)
 
         # Process follow-up query with context (60s hard timeout)
-        result = await _asyncio.wait_for(
+        result = await asyncio.wait_for(
             pipeline.query(
                 question=request.question,
                 language=request.language,
@@ -580,48 +534,19 @@ async def ask_followup_question(
         # Store follow-up messages
         verse_refs = [v.verse_reference for v in result.related_verses] if result.related_verses else []
 
-        await conv_service.add_message(
-            session_id=conv_session.session_id,
-            role="user",
-            content=request.question,
-            verses_referenced=[],
-        )
-        await conv_service.add_message(
-            session_id=conv_session.session_id,
-            role="assistant",
-            content=result.answer[:500],
-            verses_referenced=verse_refs,
-        )
+        await _store_turn(conv_service, conv_session.session_id, request.question, result.answer, verse_refs)
 
-        return result.to_dict()
+        response_dict = result.to_dict()
+        response_dict["request_id"] = ctx.correlation_id
+        return response_dict
 
-    except _asyncio.TimeoutError:
-        logger.error(f"Follow-up pipeline timeout for session {request.session_id}")
-        return JSONResponse(
-            status_code=504,
-            content={
-                "ok": False,
-                "error_code": "TIMEOUT",
-                "error_id": request.session_id,
-                "message_ar": "استغرق معالجة السؤال وقتاً طويلاً. حاول مرة أخرى.",
-                "message_en": "The request took too long to process. Please try again.",
-                "timestamp": datetime.now().isoformat(),
-            }
-        )
+    except asyncio.TimeoutError:
+        return _error_response(ErrorCode.TIMEOUT, ctx, "Follow-up pipeline exceeded 60s", 504, request.language)
 
-    except Exception as e:
-        logger.exception(f"Error in follow-up question: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={
-                "ok": False,
-                "error_code": "INTERNAL_ERROR",
-                "error_id": request.session_id,
-                "message": str(e),
-                "message_ar": "حدث خطأ أثناء معالجة السؤال",
-                "message_en": "An error occurred while processing the question",
-                "timestamp": datetime.now().isoformat(),
-            }
+    except Exception as e:  # noqa: BLE001 - details stay in the server log
+        logger.exception(f"Error in follow-up question [{ctx.correlation_id}]")
+        return _error_response(
+            ErrorCode.INTERNAL_ERROR, ctx, f"{type(e).__name__}: {e}", 500, request.language
         )
 
 
@@ -663,15 +588,14 @@ async def expand_topic(
 
     # Build conversation context
     conversation_context = conv_session.get_context_for_llm(max_messages=4)
+    ctx = RAGRequestContext.create(request.topic, request.language)
 
     try:
-        import asyncio as _asyncio
-
         # Initialize RAG pipeline
         pipeline = RAGPipeline(session)
 
         # Process expansion query
-        result = await _asyncio.wait_for(
+        result = await asyncio.wait_for(
             pipeline.query(
                 question=expansion_query,
                 language=request.language,
@@ -692,21 +616,17 @@ async def expand_topic(
             verses_referenced=[request.verse_reference] if request.verse_reference else [],
         )
 
-        return result.to_dict()
+        response_dict = result.to_dict()
+        response_dict["request_id"] = ctx.correlation_id
+        return response_dict
 
-    except Exception as e:
-        logger.exception(f"Error in expand topic: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={
-                "ok": False,
-                "error_code": "INTERNAL_ERROR",
-                "error_id": request.session_id,
-                "message": str(e),
-                "message_ar": "حدث خطأ أثناء التوسع في الموضوع",
-                "message_en": "An error occurred while expanding the topic",
-                "timestamp": datetime.now().isoformat(),
-            }
+    except asyncio.TimeoutError:
+        return _error_response(ErrorCode.TIMEOUT, ctx, "Expand pipeline exceeded 60s", 504, request.language)
+
+    except Exception as e:  # noqa: BLE001 - details stay in the server log
+        logger.exception(f"Error in expand topic [{ctx.correlation_id}]")
+        return _error_response(
+            ErrorCode.INTERNAL_ERROR, ctx, f"{type(e).__name__}: {e}", 500, request.language
         )
 
 
@@ -857,7 +777,7 @@ async def get_query_intents():
 
 
 @router.get("/cache/stats")
-async def get_cache_stats():
+async def get_cache_stats(_admin: None = Depends(require_admin_api_key)):
     """
     Get RAG cache statistics for monitoring.
 
@@ -887,24 +807,30 @@ async def get_cache_stats():
 
 
 @router.delete("/cache/clear")
-async def clear_rag_cache():
+async def clear_rag_cache(_admin: None = Depends(require_admin_api_key)):
     """
     Clear all cached RAG responses.
 
     Admin endpoint for forcing cache refresh when tafseer data is updated.
+    Uses SCAN (non-blocking) rather than KEYS.
     """
     cache = get_rag_cache()
     try:
-        # Clear all keys with the rag: prefix
-        if cache._connected and cache._client:
-            keys = await cache._client.keys(f"{cache.key_prefix}ask:*")
-            if keys:
-                await cache._client.delete(*keys)
-                return {"ok": True, "cleared_keys": len(keys)}
-            return {"ok": True, "cleared_keys": 0}
-        return {"ok": False, "error": "Cache not connected"}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+        if not (cache._connected and cache._client):
+            return {"ok": False, "error": "Cache not connected"}
+        cleared = 0
+        batch = []
+        async for key in cache._client.scan_iter(match=f"{cache.key_prefix}ask:*", count=500):
+            batch.append(key)
+            if len(batch) >= 500:
+                cleared += await cache._client.delete(*batch)
+                batch = []
+        if batch:
+            cleared += await cache._client.delete(*batch)
+        return {"ok": True, "cleared_keys": cleared}
+    except Exception:  # noqa: BLE001
+        logger.exception("RAG cache clear failed")
+        return {"ok": False, "error": "Cache clear failed"}
 
 
 @router.post("/cache/warm")
