@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom';
 import { Star, Search, ChevronRight, Info, BookOpen } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import {
   QURANIC_NAMES,
   type Gender, type NameCategory, type QuranicName,
@@ -294,6 +295,7 @@ export function QuranicNamesPage() {
           ? 'المعاني من قاموس لين ومعجم هانس فير • لا فتاوى في التسمية — استشر عالماً'
           : "Meanings: Lane's Lexicon · Hans Wehr · No rulings on naming — consult a scholar"}
       </p>
+      <QuranTextAttribution language={isRtl ? 'ar' : 'en'} className="text-center mt-1" />
     </div>
   );
 }

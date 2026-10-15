@@ -866,7 +866,7 @@ const QURANIC_ADHKAR: DhikrEntry[] = [
     quranRefs: [{ surah: 1, from: 1, to: 1 }],
     transliteration: 'Bismillah ir-Rahman ir-Rahim',
     meaningEn: 'In the name of Allah, the Most Gracious, the Most Merciful',
-    meaningAr: 'بسم الله الرحمن الرحيم',
+    meaningAr: `${quranExcerpt('1:1')}`,
     targetCount: 1,
     category: 'quranic',
     sourceRef: 'Quran 1:1 — opening of the Quran, 113 surahs begin with it',

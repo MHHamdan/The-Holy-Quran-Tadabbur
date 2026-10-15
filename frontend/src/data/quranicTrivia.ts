@@ -125,7 +125,7 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
   {
     id: 'q_bismillah_count',
     questionEn: 'How many times does "Bismillah ir-Rahman ir-Rahim" appear in the entire Quran?',
-    questionAr: 'كم مرة ورد "بسم الله الرحمن الرحيم" في القرآن كله؟',
+    questionAr: `كم مرة ورد "${quranExcerpt('1:1')}" في القرآن كله؟`,
     options: [
       { en: '112', ar: '112' },
       { en: '113', ar: '113' },
@@ -486,7 +486,7 @@ export const TRIVIA_QUESTIONS: readonly TriviaQuestion[] = [
     ],
     correctIndex: 1,
     explanationEn: 'Yunus is Jonah in the Bible — the prophet swallowed by a large fish who made the supplication "La ilaha illa anta subhanaka inni kuntu min az-zalimin" (21:87).',
-    explanationAr: 'يونس هو "يونه" في الإنجيل — النبي الذي ابتلعه الحوت ودعا "لا إله إلا أنت سبحانك إني كنت من الظالمين" (21:87).',
+    explanationAr: `يونس هو "يونه" في الإنجيل — النبي الذي ابتلعه الحوت ودعا "${quranExcerpt('21:87#15-23')}" (21:87).`,
     surahRef: 10,
     difficulty: 'easy',
     category: 'prophets',

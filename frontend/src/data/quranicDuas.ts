@@ -17,6 +17,7 @@
  *
  * Sorted by Quran order (surah ascending, ayah ascending).
  */
+import { quranExcerpt } from '../utils/quranExcerpt';
 
 export type DuaCategory =
   | 'prophets'
@@ -213,7 +214,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     meaningEn: 'Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire.',
     supportingNote: {
       kind: 'hadith',
-      textAr: 'عن أنس ﵁ قال: «كان أكثر دعاء النبي ﷺ: ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار»',
+      textAr: `عن أنس ﵁ قال: «كان أكثر دعاء النبي ﷺ: ${quranExcerpt('2:201#4-14')}»`,
       collection: 'صحيح البخاري وصحيح مسلم',
       narrator: 'أنس',
       referenceAsWrittenAr: 'متفق عليه',
@@ -553,7 +554,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     meaningEn: 'There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.',
     supportingNote: {
       kind: 'hadith',
-      textAr: 'عن سعد بن أبي وقاص ﵁ قال: قال رسول الله ﷺ: «دعوة ذي النون إذ دعا وهو في بطن الحوت: لا إله إلا أنت سبحانك إني كنت من الظالمين — فإنه لم يدعُ بها رجل مسلم في شيء قط إلا استجاب الله له»',
+      textAr: `عن سعد بن أبي وقاص ﵁ قال: قال رسول الله ﷺ: «دعوة ذي النون إذ دعا وهو في بطن الحوت: ${quranExcerpt('21:87#15-23')} — فإنه لم يدعُ بها رجل مسلم في شيء قط إلا استجاب الله له»`,
       collection: 'جامع الترمذي',
       narrator: 'سعد بن أبي وقاص',
       referenceAsWrittenAr: 'رواه الترمذي وصحَّحه',
@@ -723,7 +724,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     meaningEn: 'Exalted is He who has subjected this to us, and we could not have [otherwise] subdued it. And indeed we, to our Lord, will [surely] return.',
     supportingNote: {
       kind: 'hadith',
-      textAr: 'عن ابن عمر ﵁ أن النبي ﷺ كان إذا استوى على بعيره خارجًا إلى سفر كبَّر ثلاثًا ثم قال: «سبحان الذي سخَّر لنا هذا وما كنا له مقرنين وإنا إلى ربنا لمنقلبون»',
+      textAr: `عن ابن عمر ﵁ أن النبي ﷺ كان إذا استوى على بعيره خارجًا إلى سفر كبَّر ثلاثًا ثم قال: «${quranExcerpt('43:13#12-20')} ${quranExcerpt('43:14')}»`,
       collection: 'سنن أبي داود؛ جامع الترمذي',
       narrator: 'ابن عمر',
       referenceAsWrittenAr: 'رواه أبو داود والترمذي',
@@ -959,14 +960,14 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
   {
     id: 'dua_hasbunallah',
     titleEn: "Ḥasbunallāh — Allah is Sufficient for Us",
-    titleAr: 'حسبنا الله ونعم الوكيل',
+    titleAr: `${quranExcerpt('3:173#14-17')}`,
     surah: 3, ayah: 173,
     surahNameEn: "Āl ʿImrān", surahNameAr: 'آل عمران',
     ayatUthmani: 'حَسْبُنَا ٱللَّهُ وَنِعْمَ ٱلْوَكِيلُ',
     meaningEn: 'Allah is sufficient for us, and He is the best Disposer of affairs.',
     supportingNote: {
       kind: 'athar',
-      textAr: 'عن ابن عباس ﵁ قال: «حسبنا الله ونعم الوكيل» قالها إبراهيم حين أُلقي في النار، وقالها محمد ﷺ حين قيل له: إن الناس قد جمعوا لكم',
+      textAr: `عن ابن عباس ﵁ قال: «${quranExcerpt('3:173#14-17')}» قالها إبراهيم حين أُلقي في النار، وقالها محمد ﷺ حين قيل له: ${quranExcerpt('3:173#5-9')}`,
       collection: 'صحيح البخاري',
       narrator: 'ابن عباس',
       referenceAsWrittenAr: 'رواه البخاري',
@@ -1022,7 +1023,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
     meaningEn: "Say, 'Indeed, my prayer, my rites of sacrifice, my living and my dying are for Allah, Lord of the worlds. No partner has He. And this I have been commanded, and I am the first of the Muslims.'",
     supportingNote: {
       kind: 'hadith',
-      textAr: 'عن علي ﵁ قال: «كان رسول الله ﷺ إذا قام إلى الصلاة قال: وجَّهتُ وجهي للذي فطر السماوات والأرض... إن صلاتي ونسكي ومحياي ومماتي لله رب العالمين»',
+      textAr: `عن علي ﵁ قال: «كان رسول الله ﷺ إذا قام إلى الصلاة قال: ${quranExcerpt('6:79#2-7')}... ${quranExcerpt('6:162#2-9')}»`,
       collection: 'صحيح مسلم',
       narrator: 'علي',
       referenceAsWrittenAr: 'رواه مسلم',
@@ -1088,7 +1089,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
   {
     id: 'dua_shuayb_tawakkul',
     titleEn: "Shuʿayb's Complete Reliance — My Success Is Only Through Allah",
-    titleAr: 'إعلان شعيب التوكل الكامل — وما توفيقي إلا بالله',
+    titleAr: `إعلان شعيب التوكل الكامل — ${quranExcerpt('11:88#32-35')}`,
     surah: 11, ayah: 88,
     surahNameEn: 'Hūd', surahNameAr: 'هود',
     ayatUthmani: 'وَمَا تَوْفِيقِىٓ إِلَّا بِٱللَّهِ ۚ عَلَيْهِ تَوَكَّلْتُ وَإِلَيْهِ أُنِيبُ',
@@ -1137,7 +1138,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
   {
     id: 'dua_ibrahim_idol_protection',
     titleEn: "Ibrahim's Prayer — Protect Me and My Children from Idols",
-    titleAr: 'دعاء إبراهيم — اجنبني وبنيَّ أن نعبد الأصنام',
+    titleAr: `دعاء إبراهيم — ${quranExcerpt('14:35#9-13')}`,
     surah: 14, ayah: 35, ayahEnd: 36,
     surahNameEn: 'Ibrāhīm', surahNameAr: 'إبراهيم',
     ayatUthmani: 'رَبِّ ٱجْعَلْ هَـٰذَا ٱلْبَلَدَ ءَامِنًا وَٱجْنُبْنِى وَبَنِىَّ أَن نَّعْبُدَ ٱلْأَصْنَامَ ۝ رَبِّ إِنَّهُنَّ أَضْلَلْنَ كَثِيرًا مِّنَ ٱلنَّاسِ ۖ فَمَن تَبِعَنِى فَإِنَّهُۥ مِنِّى ۖ وَمَنْ عَصَانِى فَإِنَّكَ غَفُورٌ رَّحِيمٌ',
@@ -1220,7 +1221,7 @@ export const QURANIC_DUAS: readonly QuranicDua[] = [
   {
     id: 'dua_musa_need',
     titleEn: "Mūsā's Prayer of Need — I Am Poor to Whatever Good You Bestow",
-    titleAr: 'دعاء موسى في الفقر والحاجة — رب إني لما أنزلت إلي من خير فقير',
+    titleAr: `دعاء موسى في الفقر والحاجة — ${quranExcerpt('28:24#8-15')}`,
     surah: 28, ayah: 24,
     surahNameEn: 'Al-Qaṣaṣ', surahNameAr: 'القصص',
     ayatUthmani: 'رَبِّ إِنِّى لِمَآ أَنزَلْتَ إِلَىَّ مِنْ خَيْرٍ فَقِيرٌ',

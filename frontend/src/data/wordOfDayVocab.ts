@@ -173,7 +173,7 @@ export const WORD_OF_DAY_VOCAB: readonly VocabEntry[] = [
     simpleMeaningEn: 'guidance',
     simpleMeaningAr: 'الهداية والإرشاد',
     contextualNoteEn: 'The Quran opens by describing itself as "hudā lil-muttaqīn" (guidance for the God-conscious). Hudā implies being led to the right path.',
-    contextualNoteAr: 'القرآن يصف نفسه "هُدىً لِّلْمُتَّقِينَ" — الهداية توصيل إلى الصراط المستقيم.',
+    contextualNoteAr: `القرآن يصف نفسه "${quranExcerpt('2:2#8-9')}" — الهداية توصيل إلى الصراط المستقيم.`,
     exampleSurah: 2,
     exampleAyah: 2,
     exampleSurahNameEn: 'Al-Baqarah',

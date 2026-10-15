@@ -366,7 +366,7 @@ const PILLARS: Pillar[] = [
         translation_en: '"O you who have believed, let not a people ridicule [another] people; perhaps they may be better than them... And do not insult one another and do not call each other by [offensive] nicknames."',
         translation_ar: '"يَا أَيُّهَا الَّذِينَ آمَنُوا لَا يَسْخَرْ قَوْمٌ مِّن قَوْمٍ عَسَى أَن يَكُونُوا خَيْرًا مِّنْهُمْ وَلَا تَلْمِزُوا أَنفُسَكُمْ وَلَا تَنَابَزُوا بِالْأَلْقَابِ"',
         explanation_en: 'Mockery, slander, and demeaning nicknames poison the community. Note "perhaps they are better than you" — the one you mock may have a rank with Allah that you do not have.',
-        explanation_ar: 'السخرية والتلمز والتنابز بالألقاب تُسمّم المجتمع. لاحظ "عسى أن يكونوا خيراً منهم" — من تسخر منه قد تكون له مرتبة عند الله لا تملكها.',
+        explanation_ar: `السخرية والتلمز والتنابز بالألقاب تُسمّم المجتمع. لاحظ "${quranExcerpt('49:11#10-14')}" — من تسخر منه قد تكون له مرتبة عند الله لا تملكها.`,
       },
     ],
   },
@@ -446,7 +446,7 @@ const PILLARS: Pillar[] = [
         translation_en: '"Indeed, Allah orders justice and good conduct and giving to relatives and forbids immorality and bad conduct and oppression. He admonishes you that perhaps you will be reminded."',
         translation_ar: `"${quranExcerpt('16:90#2-18')}"`,
         explanation_en: 'This verse is recited in every Friday khutbah. Three commands (justice, ihsān, giving to kin) and three prohibitions (immorality, wrongdoing, transgression) — the entire ethical code in one sentence.',
-        explanation_ar: 'تُتلى هذه الآية في كل خطبة جمعة. ثلاثة أوامر (العدل والإحسان وإيتاء ذي القربى) وثلاثة نواهٍ (الفحشاء والمنكر والبغي) — المنظومة الأخلاقية كاملة في جملة واحدة.',
+        explanation_ar: `تُتلى هذه الآية في كل خطبة جمعة. ثلاثة أوامر (${quranExcerpt('16:90#5-9')}) وثلاثة نواهٍ (${quranExcerpt('16:90#12-14')}) — المنظومة الأخلاقية كاملة في جملة واحدة.`,
       },
       {
         surah: 41, ayah: 34,

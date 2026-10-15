@@ -31,7 +31,10 @@ def _notes():
     for m in re.finditer(r"id: '(dua_[a-z0-9_]+)'(.*?)(?=\n  \{\n    id: '|\Z)", text, re.S):
         block = re.search(r"supportingNote: \{(.*?)\n    \},", m.group(2), re.S)
         if block:
-            fields = dict(re.findall(r"(\w+): '((?:[^'\\]|\\.)*)'", block.group(1)))
+            # Single-quoted or template literals (Qur'anic words inside a
+            # hadith text are rendered with ${quranExcerpt(...)}).
+            pairs = re.findall(r"(\w+): (?:'((?:[^'\\]|\\.)*)'|`((?:[^`\\]|\\.)*)`)", block.group(1))
+            fields = {k: a or b for k, a, b in pairs}
             out.append((m.group(1), fields))
     return out
 

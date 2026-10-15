@@ -709,7 +709,7 @@ export const STORY_RECURRENCES: StoryRecurrenceEntry[] = [{
   },{
     storyId: 'story_donkey_books',
     titleEn: 'The Donkey Carrying Books — a Parable',
-    titleAr: 'مثل الحمار يحمل أسفاراً',
+    titleAr: `${quranExcerpt('62:5#8-11')}`,
     surahOccurrences: [
       { surahNumber: 62, surahName: 'Al-Jumua', ayahRange: { surah: 62, ayah: 5, rangeEnd: 5, display: '62:5' }, coverageNote: { en: 'Partial reference', ar: 'إشارة جزئية' } },
     ],

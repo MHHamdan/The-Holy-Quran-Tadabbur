@@ -5,6 +5,7 @@ import { useLanguageStore } from '../../stores/languageStore';
 import clsx from 'clsx';
 import { LiveVerse } from '../quran/LiveVerse';
 import { isDisplayableNote, type SupportingNote } from '../../data/quranicDuas';
+import { quranExcerpt } from '../../utils/quranExcerpt';
 
 // Du'as from the Qur'an and Sunnah, organised by emotional state.
 //
@@ -50,7 +51,7 @@ const PROPHETIC_DUAS: Record<string, Array<{
       name_ar: "حسبي الله — الله يكفيني",
       transliteration: "Ḥasbiyallāhu lā ilāha illā huwa 'alayhi tawakkaltu wa huwa rabbul-'arshil-'aẓīm",
       translation_en: "Allah is sufficient for me. There is no deity except Him. Upon Him I have relied, and He is the Lord of the Mighty Throne.",
-      translation_ar: "حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم.",
+      translation_ar: `${quranExcerpt('9:129#4-17')}.`,
       source_en: "Quran 9:129 and Abu Dawud. The Prophet ﷺ said whoever recites this seven times morning and evening, Allah will be sufficient for whatever concerns them.",
       source_ar: "القرآن 9:129 وأبو داود. قال النبي ﷺ: من قالها سبع مرات صباحاً ومساءً كفاه الله ما أهمّه.",
       is_quranic: true,
@@ -79,7 +80,7 @@ const PROPHETIC_DUAS: Record<string, Array<{
       name_ar: "دعاء النبي يونس — من ظلمات الضيق",
       transliteration: "Lā ilāha illā anta subḥānaka innī kuntu minaẓ-ẓālimīn",
       translation_en: "There is no deity except You. Exalted are You. Indeed, I have been among the wrongdoers.",
-      translation_ar: "لا إله إلا أنت سبحانك إني كنت من الظالمين.",
+      translation_ar: `${quranExcerpt('21:87#15-23')}.`,
       source_en:
         "Quran 21:87. The Prophet ﷺ said: 'No Muslim ever calls upon Allah with these words in distress, except that Allah answers his call.' (Tirmidhi, graded sahih)",
       source_ar:
@@ -94,7 +95,7 @@ const PROPHETIC_DUAS: Record<string, Array<{
       name_ar: "دعاء النبي يونس — من ظلمات الضيق",
       transliteration: "Lā ilāha illā anta subḥānaka innī kuntu minaẓ-ẓālimīn",
       translation_en: "There is no deity except You. Exalted are You. Indeed, I have been among the wrongdoers.",
-      translation_ar: "لا إله إلا أنت سبحانك إني كنت من الظالمين.",
+      translation_ar: `${quranExcerpt('21:87#15-23')}.`,
       source_en:
         "Quran 21:87. Recommended especially for grief, loss, and extreme distress — the du'a that was answered when all seemed hopeless.",
       source_ar: "القرآن 21:87. يُستحب في الحزن والفقد والضيق الشديد — الدعاء الذي استُجيب حين بدا كل شيء يائساً.",
@@ -123,7 +124,7 @@ const PROPHETIC_DUAS: Record<string, Array<{
       name_ar: "حسبنا الله — دعاء الصحابة في مواجهة الخوف",
       transliteration: "Ḥasbunallāhu wa ni'mal-wakīl",
       translation_en: "Allah is sufficient for us, and He is the Best Disposer of affairs.",
-      translation_ar: "حسبنا الله ونعم الوكيل.",
+      translation_ar: `${quranExcerpt('3:173#14-17')}.`,
       source_en:
         "Quran 3:173. Said by the companions when warned of an overwhelming enemy army approaching — and they were blessed in response. The Prophet ﷺ also said it when about to be overtaken by a great flood (Bukhari).",
       source_ar:
@@ -184,7 +185,7 @@ const PROPHETIC_DUAS: Record<string, Array<{
       name_ar: "دعاء من أعماق اليأس",
       transliteration: "Lā ilāha illā anta subḥānaka innī kuntu minaẓ-ẓālimīn",
       translation_en: "There is no deity except You. Exalted are You. Indeed, I have been among the wrongdoers.",
-      translation_ar: "لا إله إلا أنت سبحانك إني كنت من الظالمين.",
+      translation_ar: `${quranExcerpt('21:87#15-23')}.`,
       source_en:
         "Quran 21:87. Prophet Yunus called to Allah from the belly of the whale — from complete darkness and hopelessness. Allah answered. The Prophet ﷺ said no Muslim calls with this du'a in distress except that Allah responds. (Tirmidhi, sahih)",
       source_ar:
