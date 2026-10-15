@@ -189,6 +189,9 @@ class RelatedVerseResponse(BaseModel):
     sura_name_en: Optional[str] = None
     topic: Optional[str] = None
     relevance_score: float
+    # Stored translation edition text_en comes from (e.g. english_saheeh / quranenc)
+    translation_edition: Optional[str] = None
+    translation_source_id: Optional[str] = None
 
 
 class TafsirExplanationResponse(BaseModel):
@@ -244,9 +247,14 @@ class GroundedResponse(BaseModel):
     tafsir_by_source: Optional[dict] = None
     follow_up_suggestions: List[str] = []
     # === Phase E — Tafsir Assistant fields ===
-    answer_mode: str = "tafsir_summary"
+    # None for notices/refusals (no AI synthesis to label)
+    answer_mode: Optional[str] = "tafsir_summary"
     ai_summary_disclaimer: bool = True
     disagreement_warning: Optional[str] = None
+    disagreement_warning_en: Optional[str] = None
+    disagreement_warning_ar: Optional[str] = None
+    # Labels the client must show with the answer (e.g. scientific reflection)
+    required_labels: List[str] = []
 
 
 class ValidationResult(BaseModel):
@@ -371,8 +379,9 @@ async def ask_question(
         ctx.retrieval_source_count = result.evidence_source_count
         ctx.llm_latency_ms = result.processing_time_ms
 
-        # Check if we got insufficient evidence (this is a controlled failure)
-        if result.confidence == 0.0 and not result.citations:
+        # Check if we got insufficient evidence (this is a controlled failure).
+        # ai_unavailable answers carry evidence and an error_code of their own.
+        if result.status != "ai_unavailable" and result.confidence == 0.0 and not result.citations:
             error = create_error(
                 ErrorCode.INSUFFICIENT_EVIDENCE,
                 ctx.correlation_id,
@@ -387,6 +396,8 @@ async def ask_question(
             # but add error_id for tracing
             response_dict = result.to_dict()
             response_dict["error_id"] = ctx.correlation_id
+            response_dict["request_id"] = ctx.correlation_id
+            response_dict["cached"] = False
             return response_dict
 
         # Calculate total processing time
@@ -400,9 +411,6 @@ async def ask_question(
         response_dict = result.to_dict()
         response_dict["request_id"] = ctx.correlation_id
         response_dict["cached"] = False
-        if result.status == "ai_unavailable":
-            # Machine-readable reason so clients can show a quota/outage state.
-            response_dict["error_code"] = (result.warnings or ["ai_unavailable"])[0]
 
         # Cache meaningful, context-free responses. Per-request identifiers
         # are stripped so a cache hit can never hand them to another user.

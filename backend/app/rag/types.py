@@ -194,7 +194,7 @@ class GroundedResponse:
 
     # === Phase E — Tafsir Assistant fields ===
     # Interaction mode (determines UI labeling and retrieval strategy)
-    answer_mode: str = "tafsir_summary"
+    answer_mode: Optional[str] = "tafsir_summary"
     # AI-summary disclaimer — always True; displayed to users so they know this
     # is a retrieval-based summary, not independent scholarly tafsir.
     ai_summary_disclaimer: bool = True

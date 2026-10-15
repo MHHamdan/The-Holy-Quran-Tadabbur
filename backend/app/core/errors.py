@@ -243,9 +243,10 @@ def error_for_hf_failure(err, correlation_id: str) -> RAGError:
         code = ErrorCode.AI_QUOTA_EXCEEDED
     elif err.kind == HFErrorKind.TIMEOUT:
         code = ErrorCode.TIMEOUT
-    elif err.kind in (HFErrorKind.NOT_CONFIGURED, HFErrorKind.AUTH, HFErrorKind.FORBIDDEN):
-        code = ErrorCode.CONFIGURATION_ERROR
     else:
+        # Missing/rejected token (not_configured, auth, forbidden) is reported to
+        # users as "AI temporarily unavailable" — "contact support" helps no
+        # one. internal_details keeps the kind for operators.
         code = ErrorCode.LLM_UNAVAILABLE
     return create_error(code, correlation_id, internal_details=str(err))
 

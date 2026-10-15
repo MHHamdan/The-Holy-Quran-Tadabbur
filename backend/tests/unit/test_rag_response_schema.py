@@ -316,3 +316,64 @@ class TestToDictSerialization:
         )
         assert len(resp.related_queries) == 3
         assert "الصبر" in resp.related_queries
+
+
+# ---------------------------------------------------------------------------
+# Attribution: author on every citation / tafsir entry, labelled translation
+# ---------------------------------------------------------------------------
+
+class TestAttribution:
+    def _chunk(self, source_id="ibn_kathir_ar"):
+        from app.rag.types import RetrievedChunk
+
+        return RetrievedChunk(
+            chunk_id=f"{source_id}:2:255", source_id=source_id, source_name="Ibn Kathir",
+            source_name_ar="ابن كثير", verse_reference="2:255", sura_no=2, aya_start=255,
+            aya_end=255, content="TEST-EVIDENCE", content_ar="TEST-EVIDENCE", relevance_score=0.9,
+        )
+
+    def test_citation_author_comes_from_catalogue(self):
+        from app.rag.pipeline import RAGPipeline
+        from app.services.tafsir_sources import TAFSIR_CATALOG
+
+        c_en = RAGPipeline._make_citation(self._chunk(), "en")
+        c_ar = RAGPipeline._make_citation(self._chunk(), "ar")
+        assert c_en.author == TAFSIR_CATALOG["ibn_kathir"]["author_en"]
+        assert c_ar.author == TAFSIR_CATALOG["ibn_kathir"]["author_ar"]
+        assert c_en.reliability_level
+
+    def test_uncatalogued_source_has_no_invented_author(self):
+        from app.rag.pipeline import RAGPipeline
+
+        assert RAGPipeline._make_citation(self._chunk("unknown_work_ar"), "en").author is None
+
+    def test_tafsir_by_source_carries_author_names(self):
+        from unittest.mock import MagicMock
+        from app.rag.pipeline import RAGPipeline
+
+        p = RAGPipeline(MagicMock(), llm=MagicMock())
+        entry = p._group_tafsir_by_source([self._chunk()], "en")["ibn_kathir_ar"][0]
+        assert entry.author_name and entry.author_name_ar
+
+    async def test_related_verse_translation_is_one_labelled_edition(self):
+        from types import SimpleNamespace
+        from unittest.mock import AsyncMock, MagicMock
+        from app.core.config import settings
+        from app.rag.pipeline import RAGPipeline
+
+        seen = {}
+
+        async def execute(stmt, params=None):
+            seen.update(params or {})
+            row = (2, 255, "TEST-AR", "TEST-AR", "سورة البقرة", "Al-Baqara",
+                   "TEST-TRANSLATION", settings.rag_translation_edition, "quranenc")
+            return SimpleNamespace(fetchall=lambda: [row])
+
+        session = MagicMock()
+        session.execute = AsyncMock(side_effect=execute)
+        p = RAGPipeline(session, llm=MagicMock())
+        (verse,) = await p._extract_related_verses([self._chunk()], "ar")
+        assert seen["edition"] == settings.rag_translation_edition == "english_saheeh"
+        d = verse.to_dict()
+        assert d["translation_edition"] == "english_saheeh" and d["translation_source_id"] == "quranenc"
+        assert session.execute.await_count == 1  # one batched query, not one per verse

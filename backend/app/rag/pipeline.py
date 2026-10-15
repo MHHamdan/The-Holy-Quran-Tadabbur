@@ -253,19 +253,6 @@ class RAGPipeline:
 
         answer = "".join(answer_parts)
 
-        # Build citations from chunks
-        citations = []
-        for chunk in chunks[:5]:
-            citations.append(Citation(
-                chunk_id=chunk.chunk_id,
-                source_id=chunk.source_id,
-                source_name=chunk.source_name,
-                source_name_ar=chunk.source_name_ar,
-                verse_reference=chunk.verse_reference,
-                excerpt=chunk.content[:200] + "..." if len(chunk.content) > 200 else chunk.content,
-                relevance_score=chunk.relevance_score,
-            ))
-
         # Generate follow-up suggestions
         verse_label_ar = verse_name or f"الآية {verse_ref_str}"
         verse_label_en = verse_name or f"verse {verse_ref_str}"
@@ -286,25 +273,8 @@ class RAGPipeline:
         processing_time = int((time.time() - start_time) * 1000)
         logger.info(f"[FAST-PATH] Response built in {processing_time}ms")
 
-        # Enrich fast-path citations with reliability_level
-        enriched_citations = []
-        for chunk in chunks[:5]:
-            rel_level = reliability_float_to_level(
-                getattr(chunk, 'source_reliability', 0.8)
-            )
-            enriched_citations.append(Citation(
-                chunk_id=chunk.chunk_id,
-                source_id=chunk.source_id,
-                source_name=chunk.source_name,
-                source_name_ar=getattr(chunk, 'source_name_ar', '') or chunk.source_name,
-                verse_reference=chunk.verse_reference,
-                excerpt=chunk.content[:200] if chunk.content else "",
-                relevance_score=chunk.relevance_score,
-                reliability_level=rel_level,
-                surah_number=chunk.sura_no,
-                ayah_number=chunk.aya_start,
-                quoted_evidence=chunk.content[:400] if chunk.content else None,
-            ))
+        # Citations with reliability level and catalogued author
+        enriched_citations = [self._make_citation(chunk, language) for chunk in chunks[:5]]
 
         # Phase 2.5: validate fast-path citations against trusted source registry
         sv_result = source_validator.validate_citations(
@@ -411,22 +381,7 @@ class RAGPipeline:
             if chunk.chunk_id in seen_chunk_ids:
                 continue
             seen_chunk_ids.add(chunk.chunk_id)
-            rel_level = reliability_float_to_level(
-                getattr(chunk, "source_reliability", 0.8)
-            )
-            citations.append(Citation(
-                chunk_id=chunk.chunk_id,
-                source_id=chunk.source_id,
-                source_name=chunk.source_name,
-                source_name_ar=getattr(chunk, "source_name_ar", "") or chunk.source_name,
-                verse_reference=chunk.verse_reference,
-                excerpt=chunk.content[:200] if chunk.content else "",
-                relevance_score=chunk.relevance_score,
-                reliability_level=rel_level,
-                surah_number=chunk.sura_no,
-                ayah_number=chunk.aya_start,
-                quoted_evidence=chunk.content[:400] if chunk.content else None,
-            ))
+            citations.append(self._make_citation(chunk, language))
 
         # Phase 2.5: validate sources
         sv_result = source_validator.validate_citations(
@@ -620,7 +575,7 @@ class RAGPipeline:
         except HFInferenceError as err:
             # The AI summary is withheld, but the retrieved sources are still
             # returned verbatim so the user is never shown invented content.
-            return self._ai_unavailable_response(
+            return await self._ai_unavailable_response(
                 err, chunks, intent, language, session_id, expanded, start_time,
             )
 
@@ -655,14 +610,17 @@ class RAGPipeline:
         validated.answer_language = language
 
         # Phase E — Tafsir Assistant: mode + disclaimer + disagreement
-        answer_mode, disagreement_warning = self._determine_answer_mode(
+        answer_mode, disagreement = self._determine_answer_mode(
             question=question,
             scholarly_consensus=validated.scholarly_consensus,
             tafsir_by_source=tafsir_by_source,
         )
         validated.answer_mode = answer_mode
         validated.ai_summary_disclaimer = True  # immutable rule — always set
-        validated.disagreement_warning = disagreement_warning
+        if disagreement:
+            validated.disagreement_warning = disagreement
+            validated.disagreement_warning_en = DISAGREEMENT_WARNING_EN
+            validated.disagreement_warning_ar = DISAGREEMENT_WARNING_AR
 
         # Determine status based on citations and question
         if not validated.citations:
@@ -856,7 +814,7 @@ class RAGPipeline:
         tafsir_by_source: dict,
     ) -> tuple:
         """
-        Return (answer_mode, disagreement_warning) for Phase E labeling.
+        Return (answer_mode, disagreement_warning or None) for Phase E labeling.
 
         answer_mode values:
           simple_explanation | tafsir_summary | tafsir_comparison |
@@ -877,17 +835,16 @@ class RAGPipeline:
             base_mode = "tafsir_comparison"
 
         # Detect scholarly disagreement from consensus field
-        disagreement_warning: Optional[str] = None
+        disagreement = False
         if scholarly_consensus:
             sc_lower = scholarly_consensus.lower()
-            if any(sig in sc_lower for sig in self._DISAGREEMENT_SIGNALS):
-                disagreement_warning = (
-                    "Scholars have differing views on this topic. Both perspectives are "
-                    "presented without endorsing one over another. — "
-                    "اختلف العلماء في هذه المسألة، وقد عُرضت الآراء المختلفة دون ترجيح لأي منها."
-                )
+            disagreement = any(sig in sc_lower for sig in self._DISAGREEMENT_SIGNALS)
 
-        return base_mode, disagreement_warning
+        if not disagreement:
+            return base_mode, None
+        # Combined form kept for the legacy field; clients render the
+        # single-language disagreement_warning_en / _ar fields.
+        return base_mode, f"{DISAGREEMENT_WARNING_EN} — {DISAGREEMENT_WARNING_AR}"
 
     async def _classify_intent(self, question: str) -> QueryIntent:
         """
@@ -966,60 +923,60 @@ class RAGPipeline:
         language: str,
     ) -> List[RelatedVerse]:
         """
-        Extract unique Quranic verses from retrieved chunks.
-
-        Returns a list of RelatedVerse objects with Arabic text and translation.
+        Unique Qur'anic verses of the retrieved chunks (top 5 by relevance),
+        with canonical Arabic text and ONE fixed, labelled English translation
+        edition (settings.rag_translation_edition).
         """
-        # Collect unique verse references
-        verse_refs = {}  # sura_no, aya_no -> chunk with highest relevance
+        verse_refs = {}  # (sura_no, aya_no) -> chunk with highest relevance
         for chunk in chunks:
             key = (chunk.sura_no, chunk.aya_start)
             if key not in verse_refs or chunk.relevance_score > verse_refs[key].relevance_score:
                 verse_refs[key] = chunk
+        top = sorted(verse_refs.items(), key=lambda x: -x[1].relevance_score)[:5]
+        if not top:
+            return []
 
-        # Fetch verse texts from database
+        rows = {}
+        try:
+            clauses = " OR ".join(f"(v.sura_no = :s{i} AND v.aya_no = :a{i})" for i in range(len(top)))
+            params = {"edition": settings.rag_translation_edition}
+            for i, ((sura_no, aya_no), _) in enumerate(top):
+                params[f"s{i}"], params[f"a{i}"] = sura_no, aya_no
+            result = await self.session.execute(
+                text(f"""
+                    SELECT v.sura_no, v.aya_no, v.text_uthmani, v.text_imlaei,
+                           v.sura_name_ar, v.sura_name_en,
+                           t.text AS translation, t.translator, t.source_id
+                    FROM quran_verses v
+                    LEFT JOIN translations t
+                      ON v.id = t.verse_id AND t.language = 'en' AND t.translator = :edition
+                    WHERE {clauses}
+                """),
+                params,
+            )
+            for row in result.fetchall():
+                rows[(row[0], row[1])] = row
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Failed to fetch related verses: {e}")
+
         related_verses = []
-        for (sura_no, aya_no), chunk in sorted(verse_refs.items(), key=lambda x: -x[1].relevance_score)[:5]:
-            try:
-                # Query for verse text from quran_verses table
-                result = await self.session.execute(
-                    text("""
-                        SELECT v.text_uthmani, v.text_imlaei, v.sura_name_ar, v.sura_name_en,
-                               t.text as translation
-                        FROM quran_verses v
-                        LEFT JOIN translations t ON v.id = t.verse_id AND t.language = 'en'
-                        WHERE v.sura_no = :sura_no AND v.aya_no = :aya_no
-                        LIMIT 1
-                    """),
-                    {"sura_no": sura_no, "aya_no": aya_no}
-                )
-                row = result.fetchone()
-
-                if row:
-                    related_verses.append(RelatedVerse(
-                        sura_no=sura_no,
-                        aya_no=aya_no,
-                        verse_reference=f"{sura_no}:{aya_no}",
-                        text_ar=row[0] or row[1] or "",  # text_uthmani or text_imlaei
-                        text_en=row[4] or "",  # translation (may be empty)
-                        sura_name_ar=row[2],
-                        sura_name_en=row[3],
-                        topic=None,  # Could be enhanced with concept topics
-                        relevance_score=chunk.relevance_score,
-                    ))
-                else:
-                    # No verse found, create minimal reference
-                    related_verses.append(RelatedVerse(
-                        sura_no=sura_no,
-                        aya_no=aya_no,
-                        verse_reference=f"{sura_no}:{aya_no}",
-                        text_ar="",
-                        text_en="",
-                        relevance_score=chunk.relevance_score,
-                    ))
-            except Exception as e:
-                logger.warning(f"Failed to fetch verse {sura_no}:{aya_no}: {e}")
-                # Create verse reference without full text
+        for (sura_no, aya_no), chunk in top:
+            row = rows.get((sura_no, aya_no))
+            if row:
+                related_verses.append(RelatedVerse(
+                    sura_no=sura_no,
+                    aya_no=aya_no,
+                    verse_reference=f"{sura_no}:{aya_no}",
+                    text_ar=row[2] or row[3] or "",  # text_uthmani or text_imlaei
+                    text_en=row[6] or "",
+                    sura_name_ar=row[4],
+                    sura_name_en=row[5],
+                    topic=None,
+                    relevance_score=chunk.relevance_score,
+                    translation_edition=row[7] if row[6] else None,
+                    translation_source_id=row[8] if row[6] else None,
+                ))
+            else:
                 related_verses.append(RelatedVerse(
                     sura_no=sura_no,
                     aya_no=aya_no,
@@ -1028,7 +985,6 @@ class RAGPipeline:
                     text_en="",
                     relevance_score=chunk.relevance_score,
                 ))
-
         return related_verses
 
     def _group_tafsir_by_source(
@@ -1053,7 +1009,8 @@ class RAGPipeline:
                 source_id=chunk.source_id,
                 source_name=chunk.source_name,
                 source_name_ar=chunk.source_name_ar or chunk.source_name,
-                author_name=None,  # Could be enhanced with source metadata
+                author_name=source_author(chunk.source_id, "en"),
+                author_name_ar=source_author(chunk.source_id, "ar"),
                 methodology=chunk.methodology,
                 explanation=explanation[:1500],  # Truncate long explanations
                 verse_reference=chunk.verse_reference,
@@ -1194,7 +1151,7 @@ class RAGPipeline:
 
         return response.content, response.latency_ms
 
-    def _ai_unavailable_response(
+    async def _ai_unavailable_response(
         self,
         err: HFInferenceError,
         chunks: List[RetrievedChunk],
@@ -1211,6 +1168,7 @@ class RAGPipeline:
         else:
             answer = AI_QUOTA_EN if quota else AI_UNAVAILABLE_EN
         logger.warning("RAG synthesis unavailable: %s", err)
+        code = "ai_quota_exceeded" if quota else "ai_unavailable"
         return GroundedResponse(
             answer=answer,
             citations=[],
@@ -1218,9 +1176,11 @@ class RAGPipeline:
             confidence_level="insufficient",
             status="ai_unavailable",
             answer_kind="notice",
+            answer_mode=None,
+            error_code=code,
             answer_language=language,
             intent=intent.value,
-            warnings=["ai_quota_exceeded" if quota else "ai_unavailable"],
+            warnings=[code],
             degradation_reasons=[f"llm_{err.kind.value}"],
             query_expansion=expanded.expansion_applied if expanded and expanded.expansion_applied else None,
             session_id=session_id,
@@ -1228,6 +1188,7 @@ class RAGPipeline:
             evidence_chunk_count=len({c.chunk_id for c in chunks}),
             evidence_source_count=len({c.source_id for c in chunks}),
             tafsir_by_source=self._group_tafsir_by_source(chunks, language),
+            related_verses=await self._extract_related_verses(chunks, language),
             processing_time_ms=int((time.time() - start_time) * 1000),
             api_version=settings.api_version,
         )
