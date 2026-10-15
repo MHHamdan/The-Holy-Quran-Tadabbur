@@ -2,6 +2,7 @@
 Quran API routes for verses, translations, and tafseer.
 """
 import asyncio
+import copy
 import json
 import re
 import logging
@@ -3539,6 +3540,7 @@ async def get_semantic_similarity(
         aya_no=aya_no,
         limit=limit,
         min_score=min_similarity,
+        session=session,
     )
     if indexed:
         coverage = "full"
@@ -9558,6 +9560,7 @@ async def advanced_semantic_search(
     expand_query: bool = Query(True, description="Expand query using theme synonyms"),
     limit: int = Query(10, ge=1, le=50),
     min_score: float = Query(0.1, ge=0.0, le=1.0),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """
     Perform advanced semantic search on Quranic verses.
@@ -9569,6 +9572,7 @@ async def advanced_semantic_search(
     """
     from app.services.advanced_semantic_search_service import (
         advanced_semantic_search_service,
+        hydrate_canonical_text,
         SearchMode,
         SimilarityMetric,
     )
@@ -9585,7 +9589,7 @@ async def advanced_semantic_search(
     search_mode = mode_map.get(mode.lower(), SearchMode.HYBRID)
     similarity_metric = metric_map.get(metric.lower(), SimilarityMetric.COMBINED)
 
-    return advanced_semantic_search_service.semantic_search(
+    result = advanced_semantic_search_service.semantic_search(
         query=query,
         mode=search_mode,
         metric=similarity_metric,
@@ -9593,6 +9597,7 @@ async def advanced_semantic_search(
         limit=limit,
         min_score=min_score,
     )
+    return await hydrate_canonical_text(result, session)
 
 
 @router.get("/advanced-search/expand-query")
@@ -9633,7 +9638,7 @@ async def get_all_quranic_themes():
 
 
 @router.get("/advanced-search/themes/{theme_id}")
-async def get_theme_details(theme_id: str):
+async def get_theme_details(theme_id: str, session: AsyncSession = Depends(get_async_session)):
     """
     Get detailed information about a specific Quranic theme.
 
@@ -9643,17 +9648,20 @@ async def get_theme_details(theme_id: str):
     """
     from app.services.advanced_semantic_search_service import advanced_semantic_search_service
 
+    from app.services.advanced_semantic_search_service import hydrate_canonical_text
+
     details = advanced_semantic_search_service.get_theme_details(theme_id)
     if not details:
         raise HTTPException(status_code=404, detail=f"Theme '{theme_id}' not found")
 
-    return details
+    return await hydrate_canonical_text(copy.deepcopy(details), session)
 
 
 @router.get("/advanced-search/themes/{theme_id}/verses")
 async def search_verses_by_theme(
     theme_id: str,
     limit: int = Query(20, ge=1, le=100),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """
     Search Quranic verses by a specific theme.
@@ -9662,11 +9670,13 @@ async def search_verses_by_theme(
     """
     from app.services.advanced_semantic_search_service import advanced_semantic_search_service
 
+    from app.services.advanced_semantic_search_service import hydrate_canonical_text
+
     result = advanced_semantic_search_service.search_by_theme(theme_id, limit)
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
 
-    return result
+    return await hydrate_canonical_text(copy.deepcopy(result), session)
 
 
 @router.get("/advanced-search/themes/{theme_id}/connections")
@@ -9692,6 +9702,7 @@ async def find_similar_verses(
     surah: int,
     ayah: int,
     limit: int = Query(5, ge=1, le=20),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """
     Find verses semantically similar to a given verse.
@@ -9702,16 +9713,20 @@ async def find_similar_verses(
     """
     from app.services.advanced_semantic_search_service import advanced_semantic_search_service
 
+    from app.services.advanced_semantic_search_service import hydrate_canonical_text
+
     verse_id = f"{surah}:{ayah}"
     result = advanced_semantic_search_service.find_similar_verses(verse_id, limit)
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
 
-    return result
+    return await hydrate_canonical_text(copy.deepcopy(result), session)
 
 
 @router.get("/advanced-search/analyze-verse/{surah}/{ayah}")
-async def analyze_verse_themes(surah: int, ayah: int):
+async def analyze_verse_themes(
+    surah: int, ayah: int, session: AsyncSession = Depends(get_async_session)
+):
     """
     Analyze themes present in a specific verse.
 
@@ -9719,12 +9734,14 @@ async def analyze_verse_themes(surah: int, ayah: int):
     """
     from app.services.advanced_semantic_search_service import advanced_semantic_search_service
 
+    from app.services.advanced_semantic_search_service import hydrate_canonical_text
+
     verse_id = f"{surah}:{ayah}"
     result = advanced_semantic_search_service.analyze_verse_themes(verse_id)
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
 
-    return result
+    return await hydrate_canonical_text(copy.deepcopy(result), session)
 
 
 @router.get("/advanced-search/arabic-roots")
@@ -12766,6 +12783,7 @@ async def semantic_verse_search(
     sura_no: Optional[int] = Query(None, description="Filter by Surah number"),
     juz_no: Optional[int] = Query(None, description="Filter by Juz number"),
     include_cross_language: bool = Query(True, description="Include cross-language expansion"),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """
     Semantic search for Quran verses using vector embeddings.
@@ -12805,6 +12823,7 @@ async def semantic_verse_search(
         min_score=min_score,
         sura_filter=sura_no,
         juz_filter=juz_no,
+        session=session,
     )
 
     response = {
@@ -12846,6 +12865,7 @@ async def find_similar_verses(
     limit: int = Query(10, ge=1, le=30, description="Maximum results"),
     min_score: float = Query(0.5, ge=0.0, le=1.0, description="Minimum similarity"),
     exclude_same_sura: bool = Query(False, description="Exclude verses from same Surah"),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """
     Find verses semantically similar to a specific verse.
@@ -12875,6 +12895,7 @@ async def find_similar_verses(
         limit=limit,
         min_score=min_score,
         exclude_same_sura=exclude_same_sura,
+        session=session,
     )
 
     return {
@@ -12961,8 +12982,6 @@ async def index_verses_for_semantic_search(
             "page_no": v.page_no,
             "text_uthmani": v.text_uthmani,
             "text_imlaei": v.text_imlaei,
-            "sura_name_ar": "",  # Could be enriched
-            "sura_name_en": "",
         })
 
     # Index verses

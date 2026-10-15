@@ -32,6 +32,88 @@ EMBEDDING_DIMENSION = 1024
 
 
 @dataclass
+class _VectorHit:
+    """A Qdrant hit reduced to what we trust from it: the reference and score."""
+    sura_no: int
+    aya_no: int
+    score: float
+
+
+async def hydrate_vector_hits(
+    hits: List["_VectorHit"],
+    session=None,
+) -> Dict[Tuple[int, int], Dict[str, Any]]:
+    """Fetch canonical verse rows for Qdrant hits in one query.
+
+    The Qdrant payload keeps a copy of the verse text from whenever the index
+    was built; it drifted from the canonical Tanzil text in the database
+    (4,885 of 6,236 verses differed). Every text field shown to a reader must
+    come from ``quran_verses``, so the payload is used only for the reference.
+    """
+    refs = sorted({(h.sura_no, h.aya_no) for h in hits if h.sura_no and h.aya_no})
+    if not refs:
+        return {}
+
+    from sqlalchemy import select, tuple_
+    from app.db import database
+    from app.models.quran import QuranVerse
+
+    stmt = select(
+        QuranVerse.id,
+        QuranVerse.sura_no,
+        QuranVerse.aya_no,
+        QuranVerse.text_uthmani,
+        QuranVerse.text_imlaei,
+    ).where(tuple_(QuranVerse.sura_no, QuranVerse.aya_no).in_(refs))
+
+    if session is not None:
+        rows = (await session.execute(stmt)).all()
+    else:
+        async with database.AsyncSessionLocal() as own_session:
+            rows = (await own_session.execute(stmt)).all()
+
+    return {
+        (r.sura_no, r.aya_no): {
+            "id": r.id,
+            "text_uthmani": r.text_uthmani,
+            "text_imlaei": r.text_imlaei,
+        }
+        for r in rows
+    }
+
+
+def _build_results(
+    hits: List[_VectorHit],
+    rows: Dict[Tuple[int, int], Dict[str, Any]],
+    limit: int,
+) -> List["VerseSimilarityResult"]:
+    results: List[VerseSimilarityResult] = []
+    for h in hits:
+        row = rows.get((h.sura_no, h.aya_no))
+        if row is None:
+            # A vector whose reference is not in the canonical table is
+            # never shown.
+            continue
+        # Skip verses that are only the Bismillah (1:1) so they do not
+        # dominate similarity results.
+        if (h.sura_no, h.aya_no) == (1, 1) or is_bismillah_verse(row["text_imlaei"]):
+            continue
+        results.append(VerseSimilarityResult(
+            verse_id=row["id"],
+            sura_no=h.sura_no,
+            aya_no=h.aya_no,
+            reference=f"{h.sura_no}:{h.aya_no}",
+            text_uthmani=row["text_uthmani"],
+            text_imlaei=row["text_imlaei"],
+            similarity_score=h.score,
+            matched_themes=[],
+        ))
+        if len(results) >= limit:
+            break
+    return results
+
+
+@dataclass
 class VerseSimilarityResult:
     """Result of semantic verse search."""
     verse_id: int
@@ -196,10 +278,8 @@ class VerseEmbeddingService:
                         "aya_no": v.get('aya_no'),
                         "juz_no": v.get('juz_no', 0),
                         "page_no": v.get('page_no', 0),
-                        "text_uthmani": v.get('text_uthmani', ''),
-                        "text_imlaei": v.get('text_imlaei', ''),
-                        "sura_name_ar": v.get('sura_name_ar', ''),
-                        "sura_name_en": v.get('sura_name_en', ''),
+                        # No verse text in the payload: readers always get
+                        # the canonical text from quran_verses.
                     }
                 })
 
@@ -226,6 +306,7 @@ class VerseEmbeddingService:
         sura_filter: Optional[int] = None,
         juz_filter: Optional[int] = None,
         exclude_verse: Optional[Tuple[int, int]] = None,
+        session=None,
     ) -> List[VerseSimilarityResult]:
         """
         Search verses by semantic similarity.
@@ -264,7 +345,8 @@ class VerseEmbeddingService:
         search_body = {
             "vector": query_embedding,
             "limit": limit * 2 if exclude_verse else limit,  # Extra for filtering
-            "with_payload": True,
+            # Only the reference is read from the payload; text comes from Postgres.
+            "with_payload": ["sura_no", "aya_no"],
             "score_threshold": min_score,
         }
 
@@ -284,37 +366,16 @@ class VerseEmbeddingService:
                 logger.warning(f"Qdrant search failed: {data}")
                 return []
 
-            results = []
+            hits = []
             for hit in data.get("result", []):
                 payload = hit.get("payload", {})
-                sura_no = payload.get("sura_no", 0)
-                aya_no = payload.get("aya_no", 0)
-                text_uthmani = payload.get("text_uthmani", "")
-
-                # Skip excluded verse
-                if exclude_verse and (sura_no, aya_no) == exclude_verse:
+                ref = (payload.get("sura_no", 0), payload.get("aya_no", 0))
+                if exclude_verse and ref == exclude_verse:
                     continue
+                hits.append(_VectorHit(ref[0], ref[1], hit.get("score", 0.0)))
 
-                # Skip verses that are primarily Bismillah (e.g., 1:1)
-                # These shouldn't appear in semantic search results
-                if is_bismillah_verse(text_uthmani):
-                    continue
-
-                results.append(VerseSimilarityResult(
-                    verse_id=payload.get("verse_id", 0),
-                    sura_no=sura_no,
-                    aya_no=aya_no,
-                    reference=f"{sura_no}:{aya_no}",
-                    text_uthmani=text_uthmani,
-                    text_imlaei=payload.get("text_imlaei", ""),
-                    similarity_score=hit.get("score", 0.0),
-                    matched_themes=[],  # Can be enriched later
-                ))
-
-                if len(results) >= limit:
-                    break
-
-            return results
+            rows = await hydrate_vector_hits(hits, session=session)
+            return _build_results(hits, rows, limit)
 
         except Exception as e:
             logger.error(f"Semantic search failed: {e}")
@@ -327,6 +388,7 @@ class VerseEmbeddingService:
         limit: int = 10,
         min_score: float = 0.5,
         exclude_same_sura: bool = False,
+        session=None,
     ) -> List[VerseSimilarityResult]:
         """
         Find verses similar to a specific verse.
@@ -383,7 +445,7 @@ class VerseEmbeddingService:
             search_body = {
                 "vector": verse_vector,
                 "limit": limit + 1,  # +1 to exclude self
-                "with_payload": True,
+                "with_payload": ["sura_no", "aya_no"],
                 "score_threshold": min_score,
             }
 
@@ -403,36 +465,16 @@ class VerseEmbeddingService:
                 response.raise_for_status()
                 data = response.json()
 
-            results = []
+            hits = []
             for hit in data.get("result", []):
                 payload = hit.get("payload", {})
-                hit_sura = payload.get("sura_no", 0)
-                hit_aya = payload.get("aya_no", 0)
-                text_uthmani = payload.get("text_uthmani", "")
+                ref = (payload.get("sura_no", 0), payload.get("aya_no", 0))
+                if ref == (sura_no, aya_no):
+                    continue  # the source verse itself
+                hits.append(_VectorHit(ref[0], ref[1], hit.get("score", 0.0)))
 
-                # Skip the source verse itself
-                if hit_sura == sura_no and hit_aya == aya_no:
-                    continue
-
-                # Skip verses that are primarily Bismillah
-                if is_bismillah_verse(text_uthmani):
-                    continue
-
-                results.append(VerseSimilarityResult(
-                    verse_id=payload.get("verse_id", 0),
-                    sura_no=hit_sura,
-                    aya_no=hit_aya,
-                    reference=f"{hit_sura}:{hit_aya}",
-                    text_uthmani=text_uthmani,
-                    text_imlaei=payload.get("text_imlaei", ""),
-                    similarity_score=hit.get("score", 0.0),
-                    matched_themes=[],
-                ))
-
-                if len(results) >= limit:
-                    break
-
-            return results
+            rows = await hydrate_vector_hits(hits, session=session)
+            return _build_results(hits, rows, limit)
 
         except Exception as e:
             logger.error(f"Find similar verses failed: {e}")

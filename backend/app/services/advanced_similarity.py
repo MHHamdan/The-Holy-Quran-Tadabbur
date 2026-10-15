@@ -1465,6 +1465,7 @@ class AdvancedSimilarityService:
                     limit=top_k * 3,
                     min_score=0.40,
                     exclude_same_sura=exclude_same_sura,
+                    session=self.session,
                 )
                 for sem_result in semantic_results:
                     semantic_scores[(sem_result.sura_no, sem_result.aya_no)] = sem_result.similarity_score
