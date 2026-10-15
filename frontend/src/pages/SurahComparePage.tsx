@@ -287,7 +287,7 @@ function RevealContextSection({ dataA, dataB, surahA, surahB, isRtl }: {
 
   return (
     <div className="mb-6">
-      <h3 className={clsx('text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5', isRtl && 'flex-row-reverse font-arabic')}>
+      <h3 className={clsx('text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5', isRtl && 'font-arabic')}>
         <Clock className="w-4 h-4 text-gray-400" />
         {isRtl ? 'سياق النزول' : 'Revelation Context'}
       </h3>
@@ -300,7 +300,7 @@ function RevealContextSection({ dataA, dataB, surahA, surahB, isRtl }: {
             'rounded-2xl border p-4',
             color === 'violet' ? 'bg-violet-50/60 border-violet-100' : 'bg-blue-50/60 border-blue-100'
           )}>
-            <div className={clsx('flex items-center gap-1.5 mb-2', isRtl && 'flex-row-reverse')}>
+            <div className={clsx('flex items-center gap-1.5 mb-2')}>
               <span className={clsx('text-xs font-bold', color === 'violet' ? 'text-violet-600' : 'text-blue-600', isRtl && 'font-arabic')}>
                 {isRtl ? data.name?.ar : data.name?.en}
               </span>
@@ -333,13 +333,13 @@ const COVERAGE_COLOR: Record<string, string> = {
   mention_only: 'bg-gray-100 text-gray-500',
 };
 
-function StoryLink({ ref: sr, isRtl, color }: { ref: StoryRef; isRtl: boolean; color: 'violet' | 'blue' | 'purple' }) {
+function StoryLink({ story: sr, isRtl, color }: { story: StoryRef; isRtl: boolean; color: 'violet' | 'blue' | 'purple' }) {
   return (
     <Link
       to={`/stories/${sr.storyId}`}
       className={clsx(
         'flex items-start gap-2 rounded-lg px-3 py-2 text-xs transition-colors group hover:bg-white/80',
-        isRtl && 'flex-row-reverse text-right',
+        isRtl && 'text-right',
       )}
     >
       <BookOpen className={clsx('w-3.5 h-3.5 mt-0.5 shrink-0',
@@ -376,7 +376,7 @@ function StoriesSection({ dataA, dataB, surahA, surahB, isRtl }: {
 
   return (
     <div className="mb-6">
-      <h3 className={clsx('text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5', isRtl && 'flex-row-reverse font-arabic')}>
+      <h3 className={clsx('text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5', isRtl && 'font-arabic')}>
         <BookOpenText className="w-4 h-4 text-gray-400" />
         {isRtl ? 'القصص المذكورة في السورتين' : 'Stories in each surah'}
       </h3>
@@ -388,7 +388,7 @@ function StoriesSection({ dataA, dataB, surahA, surahB, isRtl }: {
             {isRtl ? `قصص مشتركة بين السورتين (${shared.length})` : `Shared stories (${shared.length})`}
           </p>
           <ul className="space-y-1">
-            {shared.map(sr => <li key={sr.storyId}><StoryLink ref={sr} isRtl={isRtl} color="purple" /></li>)}
+            {shared.map(sr => <li key={sr.storyId}><StoryLink story={sr} isRtl={isRtl} color="purple" /></li>)}
           </ul>
         </div>
       )}
@@ -400,7 +400,7 @@ function StoriesSection({ dataA, dataB, surahA, surahB, isRtl }: {
             {isRtl ? `${SURAH_NAMES[surahA - 1]?.ar} — مستقلة (${onlyA.length})` : `${SURAH_NAMES[surahA - 1]?.en} only (${onlyA.length})`}
           </p>
           {onlyA.length ? (
-            <ul className="space-y-1">{onlyA.map(sr => <li key={sr.storyId}><StoryLink ref={sr} isRtl={isRtl} color="violet" /></li>)}</ul>
+            <ul className="space-y-1">{onlyA.map(sr => <li key={sr.storyId}><StoryLink story={sr} isRtl={isRtl} color="violet" /></li>)}</ul>
           ) : (
             <p className={clsx('text-xs text-gray-400 italic', isRtl && 'font-arabic')}>
               {isRtl ? 'كل القصص مشتركة' : 'All stories shared'}
@@ -412,7 +412,7 @@ function StoriesSection({ dataA, dataB, surahA, surahB, isRtl }: {
             {isRtl ? `${SURAH_NAMES[surahB - 1]?.ar} — مستقلة (${onlyB.length})` : `${SURAH_NAMES[surahB - 1]?.en} only (${onlyB.length})`}
           </p>
           {onlyB.length ? (
-            <ul className="space-y-1">{onlyB.map(sr => <li key={sr.storyId}><StoryLink ref={sr} isRtl={isRtl} color="blue" /></li>)}</ul>
+            <ul className="space-y-1">{onlyB.map(sr => <li key={sr.storyId}><StoryLink story={sr} isRtl={isRtl} color="blue" /></li>)}</ul>
           ) : (
             <p className={clsx('text-xs text-gray-400 italic', isRtl && 'font-arabic')}>
               {isRtl ? 'كل القصص مشتركة' : 'All stories shared'}
@@ -484,7 +484,7 @@ function InsightsSection({ dataA, dataB, isRtl }: {
 
   return (
     <div className="mb-6">
-      <h3 className={clsx('text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5', isRtl && 'flex-row-reverse font-arabic')}>
+      <h3 className={clsx('text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5', isRtl && 'font-arabic')}>
         <Layers className="w-4 h-4 text-gray-400" />
         {isRtl ? 'ملاحظات سريعة' : 'Quick insights'}
       </h3>
@@ -522,7 +522,7 @@ function MushafPositionSection({ dataA, dataB, surahA, surahB, isRtl }: {
           { data: dataB, num: surahB, color: 'blue' as const },
         ].map(({ data, num, color }) => data.atlas?.pageStart && data.atlas?.pageEnd ? (
           <div key={num}>
-            <div className={clsx('flex items-center justify-between text-xs mb-1', isRtl && 'flex-row-reverse')}>
+            <div className={clsx('flex items-center justify-between text-xs mb-1')}>
               <span className={clsx('font-semibold', color === 'violet' ? 'text-violet-600' : 'text-blue-600', isRtl && 'font-arabic')}>
                 {isRtl ? data.name?.ar : data.name?.en}
               </span>
@@ -560,7 +560,7 @@ export function SurahComparePage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8" dir={isRtl ? 'rtl' : 'ltr'}>
 
       {/* Header */}
-      <div className={clsx('flex items-center gap-3 mb-6', isRtl && 'flex-row-reverse')}>
+      <div className={clsx('flex items-center gap-3 mb-6')}>
         <GitCompare className="w-7 h-7 text-violet-500" />
         <div>
           <h1 className={clsx('text-2xl font-bold text-gray-900', isRtl && 'font-arabic')}>
@@ -573,7 +573,7 @@ export function SurahComparePage() {
       </div>
 
       {/* Selectors */}
-      <div className={clsx('flex gap-3 mb-6 items-end', isRtl && 'flex-row-reverse')}>
+      <div className={clsx('flex gap-3 mb-6 items-end')}>
         <SurahSelector value={surahA} onChange={setSurahA} isRtl={isRtl} label={isRtl ? 'السورة الأولى' : 'Surah A'} />
         <div className="flex-shrink-0 text-gray-300 font-bold text-lg pb-3">vs</div>
         <SurahSelector value={surahB} onChange={setSurahB} isRtl={isRtl} label={isRtl ? 'السورة الثانية' : 'Surah B'} />
@@ -688,7 +688,7 @@ export function SurahComparePage() {
           }}
           className={clsx(
             'flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2 text-xs text-gray-500 hover:border-violet-300 hover:text-violet-600 transition-colors',
-            isRtl && 'flex-row-reverse font-arabic'
+            isRtl && 'font-arabic'
           )}
         >
           <Share2 className="w-3.5 h-3.5" />
