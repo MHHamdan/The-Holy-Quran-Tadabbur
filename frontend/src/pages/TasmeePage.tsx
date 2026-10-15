@@ -38,6 +38,7 @@ import clsx from 'clsx';
 import { api } from '../lib/api';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import { SURAH_NAMES, SURAH_VERSE_COUNTS } from '../data/surahNames';
 import {
   rememberTasmeeSession,
@@ -773,6 +774,7 @@ export default function TasmeePage() {
                 </div>
               </div>
             </div>
+            {ws.words.length > 0 && <QuranTextAttribution language={language} className="-mt-2 mb-4 px-2" />}
 
             {/* Controls */}
             <div className="bg-white rounded-xl shadow-lg p-6">

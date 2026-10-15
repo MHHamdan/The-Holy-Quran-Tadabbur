@@ -20,6 +20,8 @@ import {
   MultiConceptMatch,
   ConceptSuggestion
 } from '../../lib/api';
+import { useLanguageStore } from '../../stores/languageStore';
+import { QuranTextAttribution } from '../quran/QuranTextAttribution';
 
 interface ConceptSearchPanelProps {
   onConceptSelect?: (conceptIds: string[]) => void;
@@ -46,6 +48,7 @@ export function ConceptSearchPanel({
   enableNaturalLanguageSearch = true,
 }: ConceptSearchPanelProps) {
   const navigate = useNavigate();
+  const { language } = useLanguageStore();
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<ConceptExpansionResult[]>([]);
   const [selectedConcepts, setSelectedConcepts] = useState<Set<string>>(new Set());
@@ -368,6 +371,7 @@ export function ConceptSearchPanel({
               </div>
             ))}
           </div>
+          <QuranTextAttribution language={language} className="mt-2" />
         </div>
       )}
 
