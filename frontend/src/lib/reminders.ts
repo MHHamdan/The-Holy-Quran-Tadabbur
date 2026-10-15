@@ -59,7 +59,12 @@ export async function applyReminder(
         id: REMINDER_ID,
         title: text.title,
         body: text.body,
+        // Inexact on purpose: a reading reminder may arrive a few minutes late,
+        // and an exact alarm would send Android 14+ users to the system
+        // "Alarms & reminders" settings screen (the manifest also removes
+        // SCHEDULE_EXACT_ALARM).
         schedule: { on: { hour: setting.hour, minute: setting.minute }, allowWhileIdle: true },
+        isExactNotification: false,
         extra: { route: '/continue' },
       }],
     });

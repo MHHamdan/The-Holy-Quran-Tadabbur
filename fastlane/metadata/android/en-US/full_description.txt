@@ -1,0 +1,23 @@
+Tadabbur helps you read, study and reflect on the Holy Qur'an.
+
+READ
+• The Qur'an in the Uthmani script (Tanzil text) with a Mushaf view
+• Translations of the meanings: 22 editions in 20 languages from QuranEnc
+• Recitations from several reciters, with offline saving
+• Bookmarks, notes, a reading plan and an optional daily reminder
+
+STUDY
+• Classical Arabic tafsir side by side: Ibn Kathir, al-Tabari, al-Qurtubi and al-Baghawi
+• Qur'anic stories, themes and a search by word, root or meaning
+• Recitation practice (Tasmeeʿ) that follows your recitation word by word
+
+ASK WITH SOURCES
+The assistant answers questions only from the tafsir sources in the app and shows the source for every point. When no source covers a question, it says so instead of guessing. It does not issue religious rulings; for those, please ask a qualified scholar.
+
+TOOLS
+Prayer times, the Qibla direction and nearby mosques. Your location goes only to the prayer-time and map services, never to our server.
+
+PRIVACY
+No account, no ads, no analytics or tracking. Your journal, bookmarks and progress stay on your device. The full privacy policy is in the app.
+
+Free, with no ads and no in-app purchases.

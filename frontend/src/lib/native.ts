@@ -57,6 +57,9 @@ export async function initNativeShell(
   try {
     await StatusBar.setStyle({ style: Style.Dark });
     if (Capacitor.getPlatform() === 'android') {
+      // Ignored on Android 15+ (API 35, edge-to-edge): the bar is transparent
+      // there and the blue comes from the safe-area strip painted by the web
+      // layout, which keeps the light (Style.Dark) icons readable.
       await StatusBar.setBackgroundColor({ color: '#0284c7' });
     }
   } catch { /* status bar styling is cosmetic */ }

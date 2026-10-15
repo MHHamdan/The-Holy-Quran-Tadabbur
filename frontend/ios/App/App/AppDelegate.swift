@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import AVFoundation
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,7 +8,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Recitation must stay audible with the ring/silent switch on and keep
+        // playing with the screen locked (Info.plist UIBackgroundModes=audio).
+        // Only the category is set: activating the session here would interrupt
+        // other apps' audio before the user presses play. WebKit switches to
+        // play-and-record by itself while Tasmee captures the microphone.
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [])
+        } catch {
+            NSLog("Tadabbur: AVAudioSession setCategory failed: \(error)")
+        }
         return true
     }
 

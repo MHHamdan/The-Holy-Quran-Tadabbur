@@ -215,42 +215,29 @@ st.markdown("""
 # =============================================================================
 # Data Loading Functions
 # =============================================================================
+# Canonical Qur'an text: Tanzil Project (Uthmani + simple), CC BY 3.0, verbatim.
+# Built from data/raw/tanzil/ by scripts/build_quran_tanzil.py. No other source
+# and no network fallback: if the file is missing the app shows an error.
+QURAN_TANZIL_PATH = Path(__file__).resolve().parent / "data" / "raw" / "quran_tanzil.json"
+TANZIL_ATTRIBUTION_MD = (
+    "Qur'an text: [Tanzil Project](https://tanzil.net) (Uthmani), "
+    "CC BY 3.0, reproduced verbatim without changes."
+)
+
+
 @st.cache_data(ttl=3600)
 def load_quran_data() -> List[Dict]:
-    """Load Quran verses from local JSON or API."""
-    local_paths = [
-        Path("streamlit_data/hafs_smart_v8.json"),
-        Path("assets/hafs_smart_v8.json"),
-    ]
-
-    for path in local_paths:
-        if path.exists():
-            with open(path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-
-    # Fallback to API
+    """Load the 6,236 verses from the canonical Tanzil file."""
     try:
-        with httpx.Client(timeout=60.0) as client:
-            uthmani = client.get("https://api.alquran.cloud/v1/quran/quran-uthmani").json()
-            simple = client.get("https://api.alquran.cloud/v1/quran/quran-simple").json()
-
-        simple_lookup = {a["number"]: a["text"] for s in simple["data"]["surahs"] for a in s["ayahs"]}
-        verses = []
-        vid = 0
-        for sura in uthmani["data"]["surahs"]:
-            for ayah in sura["ayahs"]:
-                vid += 1
-                verses.append({
-                    "id": vid, "sura_no": sura["number"],
-                    "sura_name_ar": sura["name"], "sura_name_en": sura["englishName"],
-                    "aya_no": ayah["numberInSurah"], "aya_text": ayah["text"],
-                    "aya_text_emlaey": simple_lookup.get(ayah["number"], ayah["text"]),
-                    "page": ayah.get("page", 1), "jozz": ayah.get("juz", 1),
-                })
-        return verses
-    except Exception as e:
-        st.error(f"Failed to load Quran data: {e}")
+        with open(QURAN_TANZIL_PATH, "r", encoding="utf-8") as f:
+            verses = json.load(f)["verses"]
+    except (OSError, ValueError, KeyError) as e:
+        st.error(f"Qur'an text unavailable ({QURAN_TANZIL_PATH.name}): {e}")
         return []
+    if len(verses) != 6236:
+        st.error(f"Qur'an text incomplete: {len(verses)} verses instead of 6236")
+        return []
+    return verses
 
 
 @st.cache_data(ttl=3600)
@@ -402,9 +389,9 @@ def get_category_color(category: str) -> str:
 # =============================================================================
 # UI Components
 # =============================================================================
-def render_bismillah():
-    """Render Bismillah."""
-    st.markdown('<div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>', unsafe_allow_html=True)
+def render_bismillah(text: str):
+    """Render the Bismillah that opens a surah (text from the Tanzil data)."""
+    st.markdown(f'<div class="bismillah" dir="rtl">{text}</div>', unsafe_allow_html=True)
 
 
 def render_surah_header(surah_info: Dict):
@@ -534,8 +521,12 @@ def page_quran_browser(verses: List[Dict], surahs: List[Dict]):
 
         if surah_info:
             render_surah_header(surah_info)
-            if surah_no != 9:  # No Bismillah for Surah Tawbah
-                render_bismillah()
+            st.caption(TANZIL_ATTRIBUTION_MD)
+            # Tanzil gives the opening Bismillah of surahs 2-114 (not 9) as a
+            # field of the first verse; in Al-Fatiha it is verse 1 itself.
+            opening = surah_verses[0].get("bismillah") if surah_verses else None
+            if opening:
+                render_bismillah(opening)
 
         # Load translations
         translations = fetch_translations_bulk(surah_no) if show_translation else {}
@@ -813,7 +804,8 @@ def page_about():
 
     ### Data Sources
 
-    - Quran text: [alquran.cloud](https://alquran.cloud)
+    - Qur'an text: [Tanzil Project](https://tanzil.net) (Uthmani), CC BY 3.0, verbatim
+    - Translations and tafsir shown on demand: fetched from [alquran.cloud](https://alquran.cloud)
     - Translations: Sahih International (English)
     - Tafseer: Al-Muyassar, Ibn Kathir, Jalalayn, and more
 
@@ -870,7 +862,7 @@ def main():
 
         st.divider()
         st.markdown("---")
-        st.caption("Data from alquran.cloud API")
+        st.caption(TANZIL_ATTRIBUTION_MD)
 
     # Page routing
     if page == "Quran Browser":

@@ -107,9 +107,25 @@ docker compose -f docker-compose.prod.yml up -d --build
   - Backend: non-root uid 10001, read-only root filesystem, no compiler, no torch, no model weights.
   - Web: `nginx-unprivileged` with security headers.
   - Both images: `no-new-privileges`, CPU and memory limits, rotated JSON logs.
-- **Mounts:** `data/`, `assets/` and `frontend/src/data/generated/` are mounted read-only into the backend (reference data the API reads).
+- **Mounts:** `data/` and `frontend/src/data/generated/` are mounted read-only into the backend (reference data the API reads).
 - **Behind a TLS-intercepting proxy:** builds take an optional `extra_ca` BuildKit secret (`--secret id=extra_ca,src=ca.crt`); it is never stored in a layer.
 - **Details and verification:** `docs/migration/PHASE10_DOCKER.md`.
+
+### Release images and rollback
+
+Pushing a `vX.Y.Z` tag runs `.github/workflows/release-images.yml`, which pushes
+`ghcr.io/mhhamdan/tadabbur-backend` and `ghcr.io/mhhamdan/tadabbur-frontend`
+tagged `vX.Y.Z` and `sha-<short>`. On the server, deploy a release by tag
+instead of building on the host:
+
+```bash
+export TAG=v1.0.0
+docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
+```
+
+**Rollback:** back up Postgres first (`pg_dump`), then set `TAG` to the previous
+release and run the same two commands. Run `alembic downgrade` only when that
+release's notes say its migration is reversible; otherwise restore the backup.
 
 ### Database migrations
 
@@ -117,7 +133,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 ## Data seeding (production)
 
-The commands below were run against `docker-compose.prod.yml` on an empty stack. Every step was then **re-run on the same database to confirm it is idempotent**. Run them in order after the stack is up:
+The commands below were run against `docker-compose.prod.yml` on an empty stack. Every step was then **re-run on the same database to confirm it is idempotent**. Run them in order after the stack is up. On a development stack, `make seed` runs steps 1, 2, 3, 6 and 7 in the same order (`make -n seed` lists them), and `make verify-db` checks the result.
 
 ```bash
 DC="docker compose -f docker-compose.prod.yml"
@@ -131,9 +147,11 @@ $RUN python scripts/ingest/seed_quran.py
 
 # 2. Tafsir: fetch 5 Arabic works from the HF dataset riotu-lab/Quran-Tafseers (Apache-2.0,
 #    pinned revision, SHA-256 checked) into data/raw/, then seed them (31,081 chunks).
-#    Run the fetch on the host checkout (it writes data/raw/; needs huggingface.co access):
-python backend/scripts/datasets/fetch_hf_tafseers.py            # add --exclude muyassar_ar, see Licensing
-$RUN python scripts/ingest/seed_tafseer.py ibn_kathir_ar tabari_ar qurtubi_ar baghawi_ar muyassar_ar
+#    Run the fetch on the host checkout (it writes data/raw/; needs huggingface.co access).
+#    Al-Muyassar's licence is still pending owner confirmation: seed it only once approved
+#    (`make seed-tafseer MUYASSAR_APPROVED=1` does the same on a dev stack).
+python backend/scripts/datasets/fetch_hf_tafseers.py --exclude muyassar_ar
+$RUN python scripts/ingest/seed_tafseer.py ibn_kathir_ar tabari_ar qurtubi_ar baghawi_ar
 
 # 3. Stories, story atlas and graphs, concepts, themes, rhetorical devices (committed data)
 for s in seed_stories seed_story_atlas seed_story_graphs seed_concepts seed_themes seed_rhetorical_devices; do
@@ -148,13 +166,38 @@ curl -X POST -H "X-Admin-Token: $KG_ADMIN_TOKEN" https://<host>/api/v1/kg/import
 $RUN python scripts/index/index_tafseer.py                       # tafsir chunks -> Qdrant
 curl -X POST -H "X-Admin-API-Key: $ADMIN_API_KEY" https://<host>/api/v1/quran/search/semantic/index   # verse index
 
-# 6. Mushaf word layout (needs api.qurancdn.com)
+# 6. Mushaf word layout (needs api.qurancdn.com), then the word vocabulary, which must
+#    come after it (the QAC backfill joins mushaf_words for the Uthmani word forms)
 $RUN python scripts/ingest/seed_mushaf_words.py
+$RUN python scripts/seed_vocabulary_complete.py
 
 # 7. Translations of the meanings: 22 QuranEnc editions in 20 languages (needs quranenc.com,
 #    or a data/raw/translations/quranenc/ cache from the data bundle). Re-run to track new versions.
 $RUN python scripts/ingest/seed_translations_quranenc.py
+
+# 8. Check the result
+$RUN python scripts/verify/verify_db_seed.py
 ```
+
+### Re-indexing Qdrant (embeddings)
+
+Vectors come only from Hugging Face embeddings (`intfloat/multilingual-e5-large`,
+1024-d). Re-index when the embedding model changes, after re-seeding tafsir, and
+once after upgrading to a release whose search hydrates verse text from Postgres
+(older verse-index payloads carry their own copy of the text):
+
+```bash
+# Tafsir chunks -> collection tafseer_chunks (resumable; costs HF credit)
+$RUN python scripts/index/index_tafseer.py
+# Verse index (Qur'an verses -> Qdrant)
+curl -X POST -H "X-Admin-API-Key: $ADMIN_API_KEY" https://<host>/api/v1/quran/search/semantic/index
+```
+
+If `index_tafseer.py` aborts on a dimension mismatch, an old non-1024-d
+`tafseer_chunks` collection exists (earlier `make ingest-tafseer` runs wrote
+placeholder vectors): delete that collection in Qdrant and run it again.
+`make tafseer-pipeline` now ends with `index-tafseer`, so new chunks are
+embedded with the real model.
 
 Results of steps 1–4 on the production stack:
 
@@ -209,12 +252,12 @@ VITE_API_URL=http://10.0.2.2:8000 npm run android:debug   # -> android/app/build
 # (copy keystore.properties.example; the keystore itself stays outside git):
 npm run android:release                            # -> android/app/build/outputs/bundle/release/app-release.aab
 
-# iOS (macOS + Xcode 16 required):
+# iOS (macOS + Xcode 26 required: App Store Connect rejects builds from older Xcode/SDKs):
 npm run ios:sync && npx cap open ios               # set signing team, archive, upload
 ```
 
 - **Permissions:** the microphone, for Tasmeeʿ, requested when recording starts; location, requested only by prayer times, the Qibla compass and the mosque finder; notifications (Android 13+ / iOS), requested only when the user turns on the daily reading reminder (Reading Plan page). Reminders are local notifications: no push service.
-- **Store metadata in the projects:** app name "Tadabbur" / "تدبر" (Android `values-ar`, iOS `ar.lproj/InfoPlist.strings`), iOS privacy manifest (`PrivacyInfo.xcprivacy`, matching `/privacy`), `ITSAppUsesNonExemptEncryption=false`, version 1.0.0 (bump `versionCode` / `CURRENT_PROJECT_VERSION` for every upload).
+- **Store metadata in the projects:** app name "Tadabbur" / "تدبر" (Android `values-ar`, iOS `ar.lproj/InfoPlist.strings`), iOS privacy manifest (`PrivacyInfo.xcprivacy`, matching `/privacy`), `ITSAppUsesNonExemptEncryption=false`, version 1.0.0. CI stamps the build number (Android `versionCode`, iOS `CURRENT_PROJECT_VERSION`) from the workflow run number and the version name from the `vX.Y.Z` tag (`scripts/store/release_version.sh`).
 - **Native features:** system share sheet, haptics on the dhikr counter, background recitation with lock-screen controls (iOS `UIBackgroundModes=audio`), and deep links on the `tadabbur://` scheme (e.g. `tadabbur://quran/2?aya=255`, `tadabbur://continue`).
 - **Shared links:** set `VITE_PUBLIC_WEB_URL` (public web address) at build time so verses shared from the apps carry a link; without it they share text only.
 - **Network security:** release builds allow HTTPS only. Debug builds allow cleartext only to `10.0.2.2` and `localhost`. iOS keeps App Transport Security defaults.
@@ -222,15 +265,15 @@ npm run ios:sync && npx cap open ios               # set signing team, archive, 
 
 ### Releasing to Google Play and the App Store
 
-`.github/workflows/mobile-release.yml` runs on every push that touches `frontend/`, on `v*` tags and manually. It builds the Android App Bundle (signed once the secrets below exist) and compiles the iOS app for devices on macOS without signing, checking that the privacy manifest, Arabic strings and permission keys are in the bundle.
+`.github/workflows/mobile-release.yml` runs on every push that touches `frontend/`, on `v*` tags and manually. It lints and builds the Android App Bundle and checks its manifest with bundletool (version, no exact-alarm permission, backup rules), and compiles the iOS app with Xcode 26 without signing, checking the privacy manifest, Arabic strings, permission keys and version. A `v*` tag fails unless `PRODUCTION_API_URL`, `PRIVACY_CONTACT` and the Android upload-key secrets are set; on tags the `ios-upload` job archives, signs and uploads to App Store Connect and fails without the Apple secrets. Store answers and listing drafts: `docs/store/` and `fastlane/metadata/` (owner review required).
 
 What only the owner can do, in order:
 
-1. **Host the backend** on a public HTTPS domain (`docker-compose.prod.yml`, see "Production deployment"), then set the repository variable `PRODUCTION_API_URL` (and optionally `PUBLIC_WEB_URL`, `PRIVACY_CONTACT`). Add the domain to `CORS_ORIGINS` along with `https://localhost` and `capacitor://localhost`.
+1. **Host the backend** on a public HTTPS domain (`docker-compose.prod.yml`, see "Production deployment"), then set the repository variables `PRODUCTION_API_URL` and `PRIVACY_CONTACT` (privacy contact e-mail, required for a release tag), and optionally `PUBLIC_WEB_URL`. Add the domain to `CORS_ORIGINS` along with `https://localhost` and `capacitor://localhost`.
 2. **Hugging Face credit** on the account whose `HF_TOKEN` the server uses, then `pytest -m live_hf` (the last open completion gate).
 3. **Google Play:** create the upload key (`keytool`, see `frontend/android/keystore.properties.example`), store it as `ANDROID_UPLOAD_KEYSTORE_BASE64` plus `ANDROID_UPLOAD_STORE_PASSWORD`, `ANDROID_UPLOAD_KEY_ALIAS`, `ANDROID_UPLOAD_KEY_PASSWORD` secrets, push a `v1.0.0` tag, and upload the AAB artifact. Data-safety answers follow `/privacy`: no data shared or sold, nothing linked to identity, audio/messages/searches/location processed for app functionality, deletion available in the app.
-4. **App Store:** in Xcode (`npm run ios:sync && npx cap open ios`) set the Apple Developer team, archive and upload. Privacy labels follow `PrivacyInfo.xcprivacy`. Check on a device: background recitation, the microphone and location prompts, and reminders.
-5. **Listings:** privacy policy URL `https://<web domain>/privacy`; category Books/Education; the app is free, with no ads or purchases (required by `docs/distribution-policy.md`).
+4. **App Store:** enrol in the Apple Developer Program, create the App ID `com.mhamdan.tadabbur` and the App Store Connect app record, and create an App Store Connect API key (App Manager). Store `APPLE_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID` and `ASC_KEY_P8_BASE64` as repository secrets; the `ios-upload` job then uploads every `v*` tag to TestFlight (export options: `frontend/ios/ExportOptions.plist`). Privacy labels follow `PrivacyInfo.xcprivacy` and `docs/store/data-safety.md`. Check on a device: background recitation with the silent switch on and the screen locked, the microphone and location prompts, and reminders.
+5. **Listings:** privacy policy URL `https://<web domain>/privacy`; category Books/Education; the app is free, with no ads or purchases (required by `docs/distribution-policy.md`). Draft texts are in `fastlane/metadata/` (en, ar); content-rating answers in `docs/store/content-rating.md`; screenshots (phone and 13-inch iPad, en and ar) come from `python3 scripts/store/screenshots.py`.
 
 ## Tests
 

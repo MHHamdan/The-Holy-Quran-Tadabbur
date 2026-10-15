@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Backups: journal entries, reflections, reading progress and the last
+         location live in WebView storage (app_webview/) and are described in
+         the privacy policy as kept only on the device, so they are excluded
+         from Google cloud backup and device transfer
+         (res/xml/data_extraction_rules.xml for Android 12+,
+         res/xml/backup_rules.xml for older versions). -->
     <application
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        tools:targetApi="31"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -49,6 +59,11 @@
     <!-- Daily reading reminder (local notification, opt-in from the Reading Plan
          page). Requested at runtime on Android 13+ only when the user turns it on. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- The reminder is an inexact daily notification (reminders.ts sets
+         isExactNotification: false), so the exact-alarm permission that
+         @capacitor/local-notifications merges in is removed: no system
+         "Alarms & reminders" screen and no Play exact-alarm declaration. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />
     <!-- Prayer times, Qibla and nearby mosques read the location through the
          WebView's geolocation API, which needs these declared. Asked at
          runtime only when the user uses one of those tools. -->

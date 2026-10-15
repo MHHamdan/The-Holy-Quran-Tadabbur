@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and older (android:fullBackupContent): keep the WebView's
+     storage (journal, reflections, reading progress, last location) out of
+     Auto Backup, and downloaded recitations (files/audio/). Mirrors data_extraction_rules.xml. -->
+<full-backup-content>
+    <exclude domain="root" path="app_webview/" />
+    <exclude domain="sharedpref" path="CapacitorStorage.xml" />
+    <exclude domain="file" path="audio/" />
+</full-backup-content>

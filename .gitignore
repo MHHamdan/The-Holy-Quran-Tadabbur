@@ -116,3 +116,6 @@ docs/prophets-atlas-*.md
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# Store screenshots are generated per release (scripts/store/screenshots.py)
+fastlane/screenshots/

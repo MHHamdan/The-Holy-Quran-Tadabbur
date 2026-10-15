@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ (API 31): what Auto Backup and device-to-device transfer may
+     copy. The WebView's storage (localStorage / IndexedDB under app_webview/)
+     holds the journal, reflections, reading progress and the last location,
+     which the privacy policy says stay on the device. Downloaded recitations
+     (files/audio/) are re-downloadable and would exceed the backup quota. The same exclusions for
+     Android 11 and older are in backup_rules.xml. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="app_webview/" />
+        <exclude domain="sharedpref" path="CapacitorStorage.xml" />
+        <exclude domain="file" path="audio/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="app_webview/" />
+        <exclude domain="sharedpref" path="CapacitorStorage.xml" />
+        <exclude domain="file" path="audio/" />
+    </device-transfer>
+</data-extraction-rules>

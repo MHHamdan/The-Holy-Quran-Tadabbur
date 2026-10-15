@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 30
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:15-alpine  # same major as docker-compose.prod.yml
         env:
           POSTGRES_USER: tadabbur
           POSTGRES_PASSWORD: ci_only_password
@@ -76,6 +76,15 @@ jobs:
             echo "::error::an ML runtime was installed by the default dependencies"; exit 1
           fi
 
+      - name: No eval() in application code
+        # Guards against regressions like the Tasmee WebSocket eval() of client
+        # frames (remote code execution). Method calls such as model.eval() and
+        # ast.literal_eval() do not match.
+        run: |
+          if grep -rnE --include='*.py' '(^|[^A-Za-z0-9_.])eval[[:space:]]*\(' app; then
+            echo "::error::eval() in backend/app: parse untrusted input with json.loads / ast.literal_eval"; exit 1
+          fi
+
       - name: Lint (whole tree) — syntax errors and undefined names
         run: ruff check --isolated --select E9,F63,F7,F82 app tests scripts alembic
 
@@ -105,6 +114,16 @@ jobs:
           python scripts/ingest/seed_themes.py
           python scripts/ingest/seed_rhetorical_devices.py
 
+      - name: Qur'an text integrity (canonical Tanzil text, served text)
+        run: |
+          tests="tests/test_quran_text_source.py"
+          if [ -f tests/test_quran_canonical_integrity.py ]; then
+            tests="$tests tests/test_quran_canonical_integrity.py"
+          else
+            echo "::warning::tests/test_quran_canonical_integrity.py not present yet"
+          fi
+          python -m pytest -m "not live_hf" -q -p no:cacheprovider $tests
+
       - name: Unit and integration tests (no Hugging Face calls)
         run: python -m pytest -m "not live_hf" -q -p no:cacheprovider
 
@@ -123,6 +142,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci --no-audit --no-fund
+      - name: Qur'an content integrity validator (CLAUDE.md gate)
+        run: npx tsx ../scripts/validate-quran-integrity.ts
       - run: npm run typecheck
       - run: npm run lint
       - name: Build (same-origin API; a loopback VITE_API_URL fails the build)
@@ -153,7 +174,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           packages: "platform-tools platforms;android-36 build-tools;36.0.0"
       - run: npm ci --no-audit --no-fund
@@ -183,9 +204,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
       - name: Backend image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: backend
           target: production
@@ -195,7 +216,7 @@ jobs:
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
       - name: Web image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: frontend
           target: production
@@ -233,11 +254,20 @@ jobs:
         with:
           python-version: "3.11"
       - name: Python dependency audit (pip-audit)
+        # The hashed lock (backend/requirements.lock) is what the production
+        # image installs, so it is the thing to audit. Until it exists, audit
+        # the resolved default install instead.
         run: |
           python -m venv /tmp/audit
           /tmp/audit/bin/pip install -q --upgrade pip setuptools
-          /tmp/audit/bin/pip install -q pip-audit ./backend
-          /tmp/audit/bin/pip-audit --progress-spinner off --skip-editable
+          /tmp/audit/bin/pip install -q pip-audit
+          if [ -f backend/requirements.lock ]; then
+            /tmp/audit/bin/pip-audit --progress-spinner off -r backend/requirements.lock
+          else
+            echo "::warning::backend/requirements.lock not found: auditing the resolved install of ./backend"
+            /tmp/audit/bin/pip install -q ./backend
+            /tmp/audit/bin/pip-audit --progress-spinner off --skip-editable
+          fi
       - uses: actions/setup-node@v5
         with:
           node-version: "22"

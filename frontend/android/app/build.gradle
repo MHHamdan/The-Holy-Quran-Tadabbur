@@ -19,9 +19,11 @@ android {
         applicationId "com.mhamdan.tadabbur"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // Bump both for every store upload: versionCode must increase.
-        versionCode 1
-        versionName "1.0.0"
+        // CI sets both per build (scripts/store/release_version.sh): versionCode
+        // from the workflow run number, versionName from the vX.Y.Z tag. Play
+        // rejects a reused versionCode. Local builds fall back to 1 / 1.0.0.
+        versionCode((System.getenv('TADABBUR_VERSION_CODE') ?: '1') as Integer)
+        versionName(System.getenv('TADABBUR_VERSION_NAME') ?: '1.0.0')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
