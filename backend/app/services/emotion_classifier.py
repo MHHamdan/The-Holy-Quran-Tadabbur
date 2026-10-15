@@ -184,6 +184,19 @@ class NLIEmotionClassifier:
         return [self.classify(t) for t in texts]
 
 
+def classify_keywords_only(text: str) -> str:
+    """
+    Keyword-only emotion classification (no Hugging Face call).
+
+    For callers that already ran the NLI classifier on the same text and got
+    no confident label: falling back to ``classify_emotion`` would make the
+    same zero-shot call a second time.
+    """
+    from app.services.spiritual_guidance_service import _keyword_classify
+
+    return _keyword_classify(text)
+
+
 # ---------------------------------------------------------------------------
 # Module-level singleton
 # ---------------------------------------------------------------------------

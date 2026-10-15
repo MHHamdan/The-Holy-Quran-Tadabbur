@@ -11,6 +11,7 @@ import { TafsirAccordion } from './TafsirAccordion';
 import { FollowUpChips } from './FollowUpChips';
 import { MissingSourceWarning } from '../common/SourceBadge';
 import { DisagreementCard } from './DisagreementCard';
+import { RichAnswerText, disagreementText, localizeWarnings, type AskResponse } from './answerText';
 
 export interface ChatMessageData {
   id: string;
@@ -88,10 +89,14 @@ function AssistantMessage({
   // Warnings: split scientific caution out so generic amber box doesn't duplicate it
   const SCIENTIFIC_CAUTION_MARKER = 'specialized scholarly and scientific review';
   const scientificWarnings = response?.warnings?.filter(w => w.includes(SCIENTIFIC_CAUTION_MARKER)) ?? [];
-  // ai_unavailable carries its machine code in warnings; it is rendered by AIUnavailableNotice instead.
-  const otherWarnings = response?.warnings?.filter(
-    w => !w.includes(SCIENTIFIC_CAUTION_MARKER) && w !== 'ai_quota_exceeded' && w !== 'ai_unavailable'
-  ) ?? [];
+  // Machine codes are mapped to the UI language; unknown codes are never shown raw.
+  const otherWarnings = localizeWarnings(
+    response?.warnings?.filter(w => !w.includes(SCIENTIFIC_CAUTION_MARKER)),
+    language,
+  );
+  const isQuota =
+    response?.error_code === 'ai_quota_exceeded' || !!response?.warnings?.includes('ai_quota_exceeded');
+  const disagreement = response ? disagreementText(response as AskResponse, language) : null;
 
   // Check if we have meaningful data
   const hasVerses = response?.related_verses && response.related_verses.length > 0;
@@ -116,7 +121,7 @@ function AssistantMessage({
         {response && (
           <>
             {isAiUnavailable && (
-              <AIUnavailableNotice quota={response.error_code === 'ai_quota_exceeded'} language={language} />
+              <AIUnavailableNotice quota={isQuota} language={language} />
             )}
 
             {/* Needs clarification notice */}
@@ -146,8 +151,9 @@ function AssistantMessage({
               <NoDataNotice language={language} />
             )}
 
-            {/* Main answer — always show first (safe refusal text when no_verified_source) */}
-            <AnswerCard response={response} language={language} />
+            {/* Main answer (safe refusal text when no_verified_source). When the AI
+                is unavailable the notice above already says so: no answer card. */}
+            {!isAiUnavailable && <AnswerCard response={response} language={language} />}
 
             {/* Related verses - supporting evidence */}
             {hasVerses && !isNoSource && (
@@ -164,9 +170,9 @@ function AssistantMessage({
               <DisagreementCard consensus={response.agentic.consensus} className="mb-2" />
             )}
 
-            {/* Phase E — scholarly disagreement warning (legacy / non-agentic) */}
-            {response.disagreement_warning && !response.agentic?.consensus && (
-              <DisagreementWarning warning={response.disagreement_warning} language={language} />
+            {/* Phase E — scholarly disagreement notice, in the UI language only */}
+            {disagreement && !response.agentic?.consensus && (
+              <DisagreementWarning text={disagreement} language={language} />
             )}
 
             {/* Citation cards (Phase 2: richer display) */}
@@ -443,12 +449,16 @@ function CitationCards({ citations, language }: { citations: Citation[]; languag
 
 /** Answer card with copy/share actions */
 function AIUnavailableNotice({ quota, language }: { quota: boolean; language: 'ar' | 'en' }) {
-  const title = quota
-    ? (language === 'ar' ? 'تم بلوغ حدّ خدمة الذكاء الاصطناعي مؤقتاً' : 'AI usage limit reached for now')
-    : (language === 'ar' ? 'خدمة الذكاء الاصطناعي غير متاحة حالياً' : 'AI service is temporarily unavailable');
-  const body = language === 'ar'
-    ? 'لم تُولَّد إجابة. المقتطفات أدناه من كتب التفسير كما هي دون تلخيص. حاول مرة أخرى لاحقاً.'
-    : 'No answer was generated. The tafsir excerpts below are shown verbatim, without summarisation. Please try again later.';
+  const title = language === 'ar'
+    ? 'الإجابة الآلية غير متاحة — مقاطع التفسير ذات الصلة'
+    : 'AI answer unavailable — relevant tafsir passages';
+  const body = quota
+    ? (language === 'ar'
+      ? 'بلغت خدمة الذكاء الاصطناعي حدّ الاستخدام مؤقتاً. المقاطع أدناه من كتب التفسير كما هي دون تلخيص. حاول مرة أخرى لاحقاً.'
+      : 'The AI service has reached its usage limit for now. The passages below are shown verbatim from the tafsir works, without a summary. Please try again later.')
+    : (language === 'ar'
+      ? 'لم تُولَّد إجابة آلية. المقاطع أدناه من كتب التفسير كما هي دون تلخيص.'
+      : 'No AI answer was generated. The passages below are shown verbatim from the tafsir works, without a summary.');
   return (
     <div role="status" className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
       <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -489,6 +499,10 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
     }
   }, [response.answer, language]);
 
+  // Notices and refusals are fixed texts, not answers: no score, mode or rating.
+  const isFixedText = response.answer_kind === 'notice' || response.answer_kind === 'refusal';
+  const isAiText = response.ai_generated === true || response.answer_kind === 'ai_synthesis';
+
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
       {/* Header */}
@@ -496,13 +510,13 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-500 flex-shrink-0" />
           <h4 className="text-xs sm:text-sm font-semibold text-gray-700 truncate">
-            {language === 'ar' ? 'الإجابة' : 'Answer'}
+            {answerHeader(response, language)}
           </h4>
-          {response.answer_mode && (
+          {response.answer_mode && !isFixedText && (
             <AnswerModeBadge mode={response.answer_mode} language={language} />
           )}
         </div>
-        <ConfidenceBadge confidence={response.confidence} language={language} />
+        {!isFixedText && <ConfidenceBadge confidence={response.confidence} language={language} />}
       </div>
 
       {/* Content */}
@@ -511,9 +525,7 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
           className="prose prose-sm max-w-none text-gray-700 leading-relaxed text-sm"
           dir={language === 'ar' ? 'rtl' : 'ltr'}
         >
-          {response.answer.split('\n').map((para, i) => (
-            para.trim() && <p key={i} className="mb-2 last:mb-0">{para}</p>
-          ))}
+          <RichAnswerText text={response.answer} language={language} />
         </div>
 
         {response.scholarly_consensus && (
@@ -525,8 +537,8 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
           </div>
         )}
 
-        {/* Phase E — AI summary disclaimer (shown unless the text is a fixed notice/refusal) */}
-        {response.ai_summary_disclaimer !== false && response.answer_kind !== 'notice' && response.answer_kind !== 'refusal' && (
+        {/* Phase E — AI summary disclaimer: only on text the AI actually wrote */}
+        {isAiText && response.ai_summary_disclaimer !== false && (
           <AISummaryDisclaimer language={language} />
         )}
       </div>
@@ -560,7 +572,8 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
           )}
         </div>
 
-        {/* Feedback buttons */}
+        {/* Feedback buttons (not for fixed notices/refusals) */}
+        {!isFixedText && (
         <div className="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-end">
           <span className="text-xs text-gray-400 me-1 sm:me-2">
             {language === 'ar' ? 'مفيدة؟' : 'Helpful?'}
@@ -614,9 +627,23 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
             </button>
           </div>
         </div>
+        )}
       </div>
     </div>
   );
+}
+
+function answerHeader(response: RAGResponse, language: 'ar' | 'en'): string {
+  if (response.answer_kind === 'ai_synthesis' || response.ai_generated) {
+    return language === 'ar' ? 'ملخص آلي من التفاسير المستشهد بها' : 'AI summary of cited tafsir';
+  }
+  if (response.answer_kind === 'source_digest') {
+    if (response.intent === 'verse_meaning') {
+      return language === 'ar' ? 'مصادر هذه الآية' : 'Sources for this verse';
+    }
+    return language === 'ar' ? 'من مصادر التفسير' : 'From the tafsir sources';
+  }
+  return language === 'ar' ? 'الإجابة' : 'Answer';
 }
 
 // ---------------------------------------------------------------------------
@@ -659,18 +686,15 @@ function AISummaryDisclaimer({ language }: { language: 'ar' | 'en' }) {
       className="mt-3 pt-3 border-t border-gray-100 flex items-start gap-1.5"
       dir={language === 'ar' ? 'rtl' : 'ltr'}
     >
-      <Info className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
-      <p className="text-[11px] text-gray-400 leading-relaxed">
+      <Info className="w-3.5 h-3.5 text-gray-600 flex-shrink-0 mt-0.5" />
+      <p className="text-xs text-gray-600 leading-relaxed">
         {t('rag_ai_disclaimer', language)}
       </p>
     </div>
   );
 }
 
-function DisagreementWarning({ warning, language }: { warning: string; language: 'ar' | 'en' }) {
-  // The warning string contains both EN and AR parts separated by " — "
-  const parts = warning.split(' — ');
-  const displayText = language === 'ar' && parts.length > 1 ? parts[1] : parts[0];
+function DisagreementWarning({ text, language }: { text: string; language: 'ar' | 'en' }) {
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="flex items-start gap-2">
@@ -679,7 +703,7 @@ function DisagreementWarning({ warning, language }: { warning: string; language:
           <p className="text-xs font-semibold text-amber-800 mb-0.5">
             {t('rag_disagreement_title', language)}
           </p>
-          <p className="text-xs text-amber-700">{displayText}</p>
+          <p className="text-xs text-amber-700">{text}</p>
         </div>
       </div>
     </div>

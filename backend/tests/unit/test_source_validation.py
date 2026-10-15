@@ -134,6 +134,18 @@ class TestTrustedSourceIds:
         for unknown in ("random_scholar", "hallucinated_tafsir", "", "ibn"):
             assert unknown not in TRUSTED_SOURCE_IDS
 
+    @pytest.mark.parametrize("translation_id", ["alquran_cloud_en.sahih", "alquran_cloud_en.hilali"])
+    def test_translation_editions_are_not_tafsir_sources(self, translation_id):
+        assert not source_validator.is_trusted_source_id(translation_id)
+        result = source_validator.validate_citations(
+            [make_citation(source_id=translation_id)], intent="verse_meaning"
+        )
+        assert not result.is_valid
+
+    def test_alquran_cloud_tafsir_editions_stay_trusted(self):
+        assert source_validator.is_trusted_source_id("alquran_cloud_ar.muyassar")
+        assert not any(s.startswith("alquran_cloud_en.") for s in TRUSTED_SOURCE_IDS)
+
 
 # ---------------------------------------------------------------------------
 # 6–7. Experimental-only + ruling intent

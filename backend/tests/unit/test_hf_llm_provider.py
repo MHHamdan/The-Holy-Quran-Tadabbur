@@ -61,6 +61,16 @@ class _FakeClient:
         return outcome
 
 
+@pytest.fixture(autouse=True)
+def _no_cooldown_leak():
+    """Quota/auth failures open a process-wide cooldown; keep it per test."""
+    from app.ai.hf_client import reset_cooldown
+
+    reset_cooldown()
+    yield
+    reset_cooldown()
+
+
 @pytest.fixture
 def token(monkeypatch):
     monkeypatch.setattr(settings, "hf_token", SecretStr(FAKE_TOKEN))

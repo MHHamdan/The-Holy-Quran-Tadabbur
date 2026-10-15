@@ -9,7 +9,7 @@ import pytest
 
 from app.rag.source_validator import TRUSTED_SOURCE_IDS
 from app.services import tafseer_api
-from app.services.tafseer_api import LICENSED_DB_EDITIONS, AlQuranCloudClient
+from app.services.tafseer_api import AlQuranCloudClient
 
 
 @pytest.fixture
@@ -21,9 +21,11 @@ def no_network(monkeypatch):
     monkeypatch.setattr(tafseer_api.httpx, "AsyncClient", Boom)
 
 
-def test_only_licensed_english_ids_are_trusted():
+def test_no_translation_id_validates_as_a_tafsir_citation():
+    # Translations (licensed or not) are not tafsir: a RAG answer must never
+    # validate a citation against an alquran_cloud_en.* translation id.
     english = {s for s in TRUSTED_SOURCE_IDS if s.startswith("alquran_cloud_en.")}
-    assert english == {f"alquran_cloud_{e}" for e in LICENSED_DB_EDITIONS}
+    assert english == set()
 
 
 @pytest.mark.asyncio

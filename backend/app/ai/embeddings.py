@@ -29,7 +29,9 @@ TextInput = Union[str, Sequence[str]]
 # hf-inference accepts batched inputs; latency is dominated per call, not per item.
 DEFAULT_BATCH_SIZE = 64
 # Transient upstream errors (502/503, resets, timeouts) are retried; quota
-# and auth errors are not.
+# and auth errors are not. Request-path callers (RAG retrieval) make a single
+# attempt with a short timeout so a slow upstream degrades to keyword search
+# instead of stalling the request; batch indexing passes max_attempts=3.
 MAX_ATTEMPTS = 3
 RETRY_BACKOFF_SECONDS = 2.0
 
@@ -37,11 +39,19 @@ RETRY_BACKOFF_SECONDS = 2.0
 class HFEmbeddingModel:
     """SentenceTransformer-compatible embedding client backed by HF."""
 
-    def __init__(self, model: Optional[str] = None, dimension: Optional[int] = None):
+    def __init__(
+        self,
+        model: Optional[str] = None,
+        dimension: Optional[int] = None,
+        max_attempts: int = MAX_ATTEMPTS,
+        timeout: Optional[float] = None,
+    ):
         from app.core.config import settings
 
         self.model_name = model or settings.hf_embedding_model
         self._dimension = dimension or settings.embedding_dimension
+        self.max_attempts = max(1, int(max_attempts))
+        self.timeout = timeout or settings.hf_timeout_seconds
 
     def get_sentence_embedding_dimension(self) -> int:
         return self._dimension
@@ -66,7 +76,7 @@ class HFEmbeddingModel:
             return np.zeros((0, self._dimension), dtype=np.float32)
 
         size = batch_size or DEFAULT_BATCH_SIZE
-        client = task_client("embeddings")
+        client = task_client("embeddings", timeout=self.timeout)
         vectors = []
         for start in range(0, len(texts), size):
             batch = texts[start : start + size]
@@ -98,7 +108,7 @@ class HFEmbeddingModel:
 
     def _request(self, client, batch: List[str]):
         """One feature-extraction call, retried on transient upstream errors."""
-        for attempt in range(1, MAX_ATTEMPTS + 1):
+        for attempt in range(1, self.max_attempts + 1):
             try:
                 return client.feature_extraction(batch, model=self.model_name, truncate=True)
             except Exception as exc:  # noqa: BLE001
@@ -108,7 +118,7 @@ class HFEmbeddingModel:
                     HFErrorKind.NETWORK,
                     HFErrorKind.TIMEOUT,
                 )
-                if retryable and attempt < MAX_ATTEMPTS:
+                if retryable and attempt < self.max_attempts:
                     logger.info("Embedding request failed (%s); retry %d", err, attempt)
                     time.sleep(RETRY_BACKOFF_SECONDS * attempt)
                     continue
@@ -124,8 +134,16 @@ _default_model: Optional[HFEmbeddingModel] = None
 
 
 def get_embedding_model() -> HFEmbeddingModel:
-    """Process-wide embedding client for ``HF_EMBEDDING_MODEL``."""
+    """
+    Process-wide embedding client for ``HF_EMBEDDING_MODEL`` on the request
+    path: one attempt within ``hf_embedding_timeout_seconds``, so a slow
+    upstream degrades to keyword retrieval instead of stalling the request.
+    """
     global _default_model
     if _default_model is None:
-        _default_model = HFEmbeddingModel()
+        from app.core.config import settings
+
+        _default_model = HFEmbeddingModel(
+            max_attempts=1, timeout=settings.hf_embedding_timeout_seconds
+        )
     return _default_model

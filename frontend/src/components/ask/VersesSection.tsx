@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, ExternalLink, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import clsx from 'clsx';
-import { RelatedVerse } from '../../lib/api';
+import type { AttributedRelatedVerse } from './answerText';
+import { translationLabel } from './answerText';
 
 const INITIAL_VERSE_COUNT = 3;
 
 interface VersesSectionProps {
-  verses: RelatedVerse[];
+  verses: AttributedRelatedVerse[];
   language: 'ar' | 'en';
 }
 
@@ -54,7 +55,7 @@ export function VersesSection({ verses, language }: VersesSectionProps) {
   );
 }
 
-function VerseCard({ verse, language }: { verse: RelatedVerse; language: 'ar' | 'en' }) {
+function VerseCard({ verse, language }: { verse: AttributedRelatedVerse; language: 'ar' | 'en' }) {
   const suraName = language === 'ar' ? verse.sura_name_ar : verse.sura_name_en;
   const quranLink = `/quran/${verse.sura_no}?aya=${verse.aya_no}&highlight=true`;
 
@@ -110,18 +111,22 @@ function VerseCard({ verse, language }: { verse: RelatedVerse; language: 'ar' | 
         </p>
       </div>
 
-      {/* Translation */}
-      <div className="px-4 pb-4">
-        <p
-          className="text-sm text-gray-700 leading-relaxed bg-white/50 rounded-lg p-3 border border-gray-100 text-start"
-          dir={language === 'ar' ? 'rtl' : 'ltr'}
-        >
-          <span className="text-gray-500 font-medium">
-            {language === 'ar' ? 'الترجمة: ' : 'Translation: '}
-          </span>
-          {verse.text_en}
-        </p>
-      </div>
+      {/* Translation: labelled with its edition; the English text is always LTR */}
+      {verse.text_en && (
+        <div className="px-4 pb-4">
+          <div className="bg-white/50 rounded-lg p-3 border border-gray-100">
+            <p
+              className="text-xs text-gray-600 font-medium mb-1"
+              dir={language === 'ar' ? 'rtl' : 'ltr'}
+            >
+              {translationLabel(verse.translation_edition, language)}
+            </p>
+            <p className="text-sm text-gray-700 leading-relaxed text-left" dir="ltr" lang="en">
+              {verse.text_en}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Footer with relevance and quick link */}
       <div className="px-4 pb-3 flex items-center justify-between text-xs">

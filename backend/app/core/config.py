@@ -75,6 +75,12 @@ class Settings(BaseSettings):
     hf_llm_provider: str = "auto"
     hf_llm_max_tokens: int = 1500
     hf_timeout_seconds: float = 60.0
+    # Per-task budgets on the /rag/ask request path. Their sum (10+10+40)
+    # stays under the route's 60 s hard timeout, so a slow upstream yields a
+    # degraded answer with sources instead of a 504.
+    hf_embedding_timeout_seconds: float = 10.0
+    hf_rerank_timeout_seconds: float = 10.0
+    hf_chat_timeout_seconds: float = 40.0
     # Embeddings must match the vectors already stored in Qdrant
     # (multilingual-e5-large, 1024-d).
     hf_embedding_model: str = "intfloat/multilingual-e5-large"
@@ -89,6 +95,8 @@ class Settings(BaseSettings):
     embedding_dimension: int = 1024
 
     # RAG Configuration
+    # English translation shown under related verses (translations.translator)
+    rag_translation_edition: str = "english_saheeh"
     rag_top_k: int = 10
     rag_min_confidence: float = 0.5
     rag_citation_required: bool = True
