@@ -1,7 +1,7 @@
 # Store privacy answers (draft for owner review)
 
 Google Play **Data safety** form and App Store Connect **App Privacy** labels,
-derived from the code as of 2026-10-14. These are drafts: the owner submits the
+derived from the code as of 2026-10-14 (refreshed after the privacy and deletion fixes). These are drafts: the owner submits the
 final answers and must decide the items marked **OWNER DECISION**.
 
 Sources of truth that must stay in step with this file:
@@ -16,19 +16,28 @@ Sources of truth that must stay in step with this file:
 
 | Data | Where it goes | Kept | Code |
 |---|---|---|---|
-| Questions to the AI assistant | Backend, processed by Hugging Face | Conversation up to 24 h (Redis TTL), then deleted | `backend/app/services/conversation_service.py` (`SESSION_TTL_SECONDS`) |
-| Spiritual-guidance message | Backend, processed by Hugging Face | Message **not stored**; detected feeling, theme, verse references and any reflection the user saves, without identity, up to 180 days | `backend/app/api/routes/therapy.py` (`THERAPY_RETENTION_DAYS`) |
-| Recitation audio (Tasmeeʿ) | Streamed to the backend, transcribed by Hugging Face | Audio never written to disk; session accuracy kept without identity | `backend/app/api/routes/tasmee.py` |
-| Feedback | Backend | Message text and page URL; no retention limit yet | `backend/app/api/routes/feedback.py` |
-| Search queries | Backend (meaning-based search also via Hugging Face) | Transient; recent searches may sit in server memory until restart | search routes |
-| Location | Device → AlAdhan, OpenStreetMap (Nominatim, Overpass) directly; never to our server | Last position cached on the device only | `frontend/src/hooks/useGeolocation.ts` |
+| Questions to the AI assistant | Backend, processed by Hugging Face | Conversation up to 24 h (Redis TTL), then deleted; "Delete my data" deletes it sooner | `backend/app/services/conversation_service.py` (`SESSION_TTL_SECONDS`), `frontend/src/lib/dataErasure.ts` |
+| Spiritual-guidance message (guidance and its chat mode) | Backend, processed by Hugging Face | Message **not stored**; detected feeling, theme, verse references and any reflection the user saves, without identity, up to 180 days (purged daily). Each session has a server-generated id and a secret token held only by the device (SHA-256 stored); reading, writing and deleting need the token | `backend/app/api/routes/therapy.py` (`THERAPY_RETENTION_DAYS`, `purge_expired_private_data`) |
+| Recitation audio (Tasmeeʿ) | Streamed to the backend, transcribed by Hugging Face | Audio never written to disk; recognised words and possible slips of each session, without identity, up to 90 days (purged daily); token-protected like guidance sessions | `backend/app/api/routes/tasmee.py` (`TASMEE_RETENTION_DAYS`) |
+| Feedback | Backend | Message text and page URL; not linked to the device, so not reachable by "Delete my data"; no retention limit yet (**OWNER DECISION**) | `backend/app/api/routes/feedback.py` |
+| Search queries | Backend (meaning-based search also via Hugging Face) | The device's recent searches may sit in server memory under its random session key, returned only to that key, for up to 30 days or until restart; never aggregated or shown to others; "Delete my data" clears them | `backend/app/services/search_history.py` (`SEARCH_HISTORY_TTL_DAYS`) |
+| Dhikr counts | Device only (this version sends nothing) | Older app versions sent anonymous daily totals (date, category, counts; no identifier); the server deletes them after 30 days | `frontend/src/pages/DhikrPage.tsx`, `backend/app/api/routes/adhkar.py` (`DHIKR_RETENTION_DAYS`) |
+| Location | Device → AlAdhan, OpenStreetMap (Nominatim, Overpass) directly, rounded to 2 decimals (about 1 km) before it leaves the device; never to our server | Last position cached on the device only (exact value used on the device for the Qibla) | `frontend/src/lib/islamicApis.ts` (`coarsen`), `frontend/src/pages/tools/MosqueFinderPage.tsx` |
 | IP address | Backend rate limiter | In memory about a minute; not logged | rate limiting |
-| Journal, bookmarks, progress, reminder time, offline recitations | Device only | Excluded from Android cloud backup and device transfer | WebView storage, `files/audio/` |
+| Journal, bookmarks, progress, dhikr counts, reminder time, offline recitations | Device only | Excluded from Android cloud backup and device transfer | WebView storage, `files/audio/` |
+| Server backups | Backend host | Daily backups, 7 daily + 4 weekly kept, so deleted rows can remain in a backup for up to about five weeks (stated on `/privacy`) | `scripts/ops/backup_prod.sh` |
 
 No accounts, no device or advertising identifiers, no analytics, no ads, no
-tracking, no sale of data. Deletion: the "Delete my data" button on `/privacy`
-erases guidance sessions and reflections on the server and all app data on the
-device.
+tracking, no sale of data.
+
+Deletion: the "Delete my data" button on `/privacy` deletes, on the server,
+every guidance and chat session (with reflections) and every Tasmeeʿ session
+this device created, the device's recent searches and its AI-assistant
+conversation; then it erases all app data on the device. If the server cannot
+be reached, the device keeps only the keys to what is still on the server and
+retries automatically (next launch / back online); the page says which parts
+are still pending. Feedback messages and server backups are outside its reach,
+and the page says so.
 
 ## Google Play — Data safety
 
@@ -69,12 +78,12 @@ Required-reason API declared: File Timestamp, reason C617.1
 
 ## Open questions — OWNER DECISION
 
-1. **Precise vs approximate location.** The app requests fine location on
-   Android and currently sends the device's coordinates unrounded to AlAdhan and
-   OpenStreetMap. Either round the coordinates before they leave the device
-   (then "Approximate" / Coarse Location is accurate), or declare Precise
-   Location in both stores and add `NSPrivacyCollectedDataTypePreciseLocation`
-   to the privacy manifest.
+1. **Precise vs approximate location.** Coordinates are rounded to about
+   1 km (`coarsen()`) before they reach AlAdhan or OpenStreetMap, so
+   "Approximate" / Coarse Location matches what leaves the device. The Android
+   manifest still requests `ACCESS_FINE_LOCATION` (the exact fix is used on
+   the device for the Qibla direction); decide whether to drop it or to keep
+   it and confirm Play accepts the Approximate declaration.
 2. **Sensitive information.** The spiritual-guidance feature stores a detected
    feeling (for example sadness or anxiety) with verse references for up to 180
    days, without identity. Decide whether this counts as Apple "Sensitive Info"

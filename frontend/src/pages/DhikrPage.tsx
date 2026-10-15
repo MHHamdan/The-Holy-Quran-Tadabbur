@@ -2,9 +2,8 @@
  * Dhikr Page — immersive remembrance tracker with focus mode, timer,
  * auto-play, TTS audio, and streak rewards.
  *
- * Counts persist per day in localStorage.
- * Session stats are optionally sent to /api/v1/dhikr/sessions (anonymous).
- * No auth required. Fully functional offline.
+ * Counts persist per day in localStorage and never leave the device
+ * (see /privacy). No auth required. Fully functional offline.
  */
 
 import {
@@ -16,7 +15,6 @@ import {
   Star, Check, Sun, Moon, Search, Infinity as InfinityIcon, BedDouble,
 } from 'lucide-react';
 import clsx from 'clsx';
-import { apiUrl } from '../lib/config';
 import { useLanguageStore } from '../stores/languageStore';
 import {
   ADHKAR, CATEGORY_META, MORNING_IDS, EVENING_IDS, SLEEP_IDS,
@@ -33,7 +31,6 @@ const STORAGE_KEY    = 'tadabbur_dhikr_v1';
 const REWARDS_KEY    = 'tadabbur_dhikr_rewards_v1'; // gitleaks:allow (storage key name)
 /** Today's local date; computed on each use so an app left open past midnight rolls over. */
 const todayStr = () => localDateStr();
-const API_BASE       = apiUrl('/api/v1/dhikr');
 
 type CountRecord = Record<string, { count: number; date: string }>;
 
@@ -1016,27 +1013,13 @@ export function DhikrPage() {
     }
   }
 
+  // Session totals are kept on the device only (rewards); nothing is sent.
   function recordSession() {
-    const total = ADHKAR.reduce((sum, d) => sum + getCount(counts, d.id), 0);
-    const done  = ADHKAR.filter(d => getCount(counts, d.id) >= d.targetCount).length;
-    const cat   = focusCategory === 'all' ? undefined : focusCategory;
-
     setRewards(prev => {
       const r = { ...prev, totalSessions: prev.totalSessions + 1 };
       saveRewards(r);
       return r;
     });
-
-    fetch(`${API_BASE}/sessions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        session_date: todayStr(),
-        category: cat ?? null,
-        total_dhikr_completed: done,
-        total_count: total,
-      }),
-    }).catch(() => { /* offline — silent */ });
   }
 
   // ── Browse view derived data ─────────────────────────────────────────────────
