@@ -467,6 +467,9 @@ export interface RelatedVerse {
   sura_name_en?: string;
   topic?: string;
   relevance_score: number;
+  /** QuranEnc edition of text_en (e.g. english_saheeh), for its attribution. */
+  translation_edition?: string | null;
+  translation_source_id?: string | null;
 }
 
 export interface TafsirExplanation {
@@ -526,6 +529,8 @@ export interface RAGResponse {
   answer_mode?: RAGAnswerMode;
   ai_summary_disclaimer?: boolean;
   disagreement_warning?: string | null;
+  disagreement_warning_en?: string | null;
+  disagreement_warning_ar?: string | null;
   // Phase K — scientific miracle safety labels (from QuranAnswerGuard)
   required_labels?: string[];
   // M3/M4 — Agentic pipeline metadata

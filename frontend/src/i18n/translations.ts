@@ -240,12 +240,16 @@ export const translations: Translations = {
   // Ask page intro (rendered by AskPage)
   ask_intro_title: { ar: 'كيف تعمل الإجابات', en: 'How answers work' },
   ask_intro_body: {
-    ar: 'كيف تعمل الإجابات: نبحث في كتب التفسير المعتمدة ثم يلخّص الذكاء الاصطناعي ما وجدناه مع ذكر المصدر. ليست فتوى ولا تفسيراً جديداً.',
-    en: 'How answers work: we search the listed tafsir books, then AI summarises what was found and cites each source. It is not a fatwa or new tafsir.',
+    ar: 'نبحث في كتب التفسير المذكورة في صفحة المصادر، ثم يلخّص الذكاء الاصطناعي ما وجدناه مع ذكر المصادر التي اعتمد عليها. قد يخطئ الملخّص، فارجع دائماً إلى المصدر. وهو ليس فتوى ولا تفسيراً جديداً.',
+    en: 'We search the tafsir books listed on the Sources page, then AI summarises what was found and cites the sources it used. The summary can contain mistakes, so always check the source. It is not a fatwa or new tafsir.',
   },
   ask_intro_sources_link: { ar: 'المصادر', en: 'Sources' },
   ask_intro_how_to_ask_link: { ar: 'كيف أسأل؟', en: 'How to ask' },
-  ask_tip_cited_answers: { ar: 'إجابات موثّقة بالمصادر', en: 'answers with cited sources' },
+  ask_quick_tip_title: { ar: 'نصيحة سريعة', en: 'Quick tip' },
+  ask_quick_tip_body: {
+    ar: 'جرّب أسئلة محددة مثل «ما معنى آية الكرسي؟» لتحصل على إجابات موثّقة بالمصادر.',
+    en: 'Try specific questions such as "What does Ayat al-Kursi mean?" to get answers with cited sources.',
+  },
 
   // Home page — honest feature wording
   home_ask_desc: {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, memo, KeyboardEvent } from 'react';
-import { Send, Settings2, ChevronDown, ChevronUp, Search, Sparkles, MessageCircle, Trash2, Users, Heart, Star, Lightbulb, BookOpen } from 'lucide-react';
+import { Send, Settings2, ChevronDown, ChevronUp, Search, Sparkles, MessageCircle, Trash2, Users, Heart, Star, Lightbulb, BookOpen, Info } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import { ragApi, RAGResponse, TafseerSource } from '../lib/api';
@@ -45,7 +46,7 @@ export function AskPage() {
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesListRef = useRef<HTMLDivElement>(null);
   const debouncedQuestion = useDebounce(question, 300);
 
   // Keyboard navigation for suggestions
@@ -83,9 +84,15 @@ export function AskPage() {
     setSelectedSuggestionIndex(-1);
   }, [suggestions]);
 
-  // Scroll to bottom when messages change
+  // Scroll the message list (not the window) to the newest message. Nothing to
+  // do on the welcome screen, so the page opens at the top with the intro card.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length === 0) return;
+    const list = messagesListRef.current;
+    if (!list) return;
+    const reduce = typeof window !== 'undefined'
+      && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    list.scrollTo({ top: list.scrollHeight, behavior: reduce ? 'auto' : 'smooth' });
   }, [messages]);
 
   // Load session from localStorage on mount
@@ -314,7 +321,7 @@ export function AskPage() {
   }, [sessionId, messages.length, language, selectedSources]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="flex flex-col h-[calc(100dvh_-_var(--app-header-h)_-_var(--bottom-nav-h))] max-w-4xl mx-auto" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="flex-shrink-0 px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
         <div className="flex items-center justify-between gap-2">
@@ -417,7 +424,7 @@ export function AskPage() {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-3 sm:py-4 space-y-4 sm:space-y-6 chat-scroll custom-scrollbar">
+      <div ref={messagesListRef} className="flex-1 overflow-y-auto px-3 sm:px-6 py-3 sm:py-4 space-y-4 sm:space-y-6 chat-scroll custom-scrollbar">
         {messages.length === 0 ? (
           <EmptyState
             language={language}
@@ -437,7 +444,6 @@ export function AskPage() {
             />
           ))
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
@@ -727,6 +733,33 @@ const EmptyState = memo(function EmptyState({
         </p>
       </div>
 
+      {/* How answers work — shown before the first question */}
+      <section
+        aria-labelledby="ask-intro-title"
+        className="w-full max-w-3xl mb-5 sm:mb-6 p-3 sm:p-4 rounded-xl border border-sky-200 bg-sky-50"
+        dir={language === 'ar' ? 'rtl' : 'ltr'}
+      >
+        <div className="flex items-start gap-2 sm:gap-3">
+          <Info className="w-4 h-4 sm:w-5 sm:h-5 text-sky-700 flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <div className="min-w-0">
+            <h3 id="ask-intro-title" className={clsx('font-semibold text-gray-900 text-sm sm:text-base mb-1', language === 'ar' && 'font-arabic')}>
+              {t('ask_intro_title', language)}
+            </h3>
+            <p className={clsx('text-xs sm:text-sm text-gray-700 leading-relaxed', language === 'ar' && 'font-arabic')}>
+              {t('ask_intro_body', language)}
+            </p>
+            <div className={clsx('mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm', language === 'ar' && 'font-arabic')}>
+              <Link to="/sources" className="inline-flex min-h-11 items-center font-medium text-sky-800 underline underline-offset-2 hover:text-sky-900">
+                {t('ask_intro_sources_link', language)}
+              </Link>
+              <Link to="/tools/prompt-guide" className="inline-flex min-h-11 items-center font-medium text-sky-800 underline underline-offset-2 hover:text-sky-900">
+                {t('ask_intro_how_to_ask_link', language)}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Category Tabs */}
       <div className="w-full max-w-3xl mb-4 sm:mb-6">
         <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-6 px-1">
@@ -804,12 +837,10 @@ const EmptyState = memo(function EmptyState({
           </div>
           <div className="min-w-0">
             <h4 className={clsx('font-semibold text-gray-900 mb-0.5 sm:mb-1 text-sm sm:text-base', language === 'ar' && 'font-arabic')}>
-              {language === 'ar' ? 'نصيحة سريعة' : 'Quick Tip'}
+              {t('ask_quick_tip_title', language)}
             </h4>
             <p className={clsx('text-xs sm:text-sm text-gray-600 leading-relaxed', language === 'ar' && 'font-arabic')}>
-              {language === 'ar'
-                ? 'جرب أسئلة مثل "ما معنى آية الكرسي؟" للحصول على إجابات سريعة ودقيقة من التفاسير المعتمدة'
-                : 'Try questions like "What is Ayat al-Kursi?" for fast, accurate answers from trusted tafsir sources'}
+              {t('ask_quick_tip_body', language)}
             </p>
           </div>
         </div>

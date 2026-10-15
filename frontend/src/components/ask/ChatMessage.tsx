@@ -11,7 +11,7 @@ import { TafsirAccordion } from './TafsirAccordion';
 import { FollowUpChips } from './FollowUpChips';
 import { MissingSourceWarning } from '../common/SourceBadge';
 import { DisagreementCard } from './DisagreementCard';
-import { RichAnswerText, disagreementText, localizeWarnings, type AskResponse } from './answerText';
+import { RichAnswerText, disagreementText, localizeWarnings } from './answerText';
 
 export interface ChatMessageData {
   id: string;
@@ -96,7 +96,7 @@ function AssistantMessage({
   );
   const isQuota =
     response?.error_code === 'ai_quota_exceeded' || !!response?.warnings?.includes('ai_quota_exceeded');
-  const disagreement = response ? disagreementText(response as AskResponse, language) : null;
+  const disagreement = response ? disagreementText(response, language) : null;
 
   // Check if we have meaningful data
   const hasVerses = response?.related_verses && response.related_verses.length > 0;

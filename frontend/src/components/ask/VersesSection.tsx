@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, ExternalLink, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import clsx from 'clsx';
-import type { AttributedRelatedVerse } from './answerText';
+import type { RelatedVerse } from '../../lib/api';
 import { translationLabel } from './answerText';
 
 const INITIAL_VERSE_COUNT = 3;
 
 interface VersesSectionProps {
-  verses: AttributedRelatedVerse[];
+  verses: RelatedVerse[];
   language: 'ar' | 'en';
 }
 
@@ -55,7 +55,7 @@ export function VersesSection({ verses, language }: VersesSectionProps) {
   );
 }
 
-function VerseCard({ verse, language }: { verse: AttributedRelatedVerse; language: 'ar' | 'en' }) {
+function VerseCard({ verse, language }: { verse: RelatedVerse; language: 'ar' | 'en' }) {
   const suraName = language === 'ar' ? verse.sura_name_ar : verse.sura_name_en;
   const quranLink = `/quran/${verse.sura_no}?aya=${verse.aya_no}&highlight=true`;
 
