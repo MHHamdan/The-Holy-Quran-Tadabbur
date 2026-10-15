@@ -428,12 +428,14 @@ def test_source_registry_has_tirmidhi_entry() -> None:
     assert "quran_com_verse_audio" in text
 
 
-def test_audio_player_uses_quran_com_cdn() -> None:
-    """Audio player must stream from verses.quran.com (CDN policy) and must
-    attribute the reciter (per the source registry license terms)."""
+def test_audio_player_uses_everyayah_not_quran_com() -> None:
+    """Audio player streams from everyayah.com (the reader's verse source) and
+    never from verses.quran.com, whose terms allow only individual,
+    non-commercial use; it must attribute the reciter."""
     path = ROOT / "frontend" / "src" / "components" / "quran" / "AsmaAudioPlayer.tsx"
     src = path.read_text(encoding="utf-8")
-    assert "verses.quran.com/Alafasy/mp3" in src
+    assert "everyayah.com/data/Alafasy_128kbps" in src
+    assert "verses.quran.com/Alafasy" not in src.split("*/", 1)[-1]
     assert "Mishary Rashid Alafasy" in src
     # No Quran text rendered in the player.
     forbidden = ["aya_text", "ayahText", "dangerouslySetInnerHTML"]
