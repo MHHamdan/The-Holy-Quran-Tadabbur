@@ -59,15 +59,14 @@ async def get_verse_translation(
     ayah: int,
     language: str = Query("en", description="Target language code"),
     translator: Optional[str] = Query(None, description="Specific translator to use"),
-    mode: str = Query("scholarly", description="Translation mode: 'scholarly' or 'literal'"),
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Get translation for a specific verse.
+    Get the stored scholarly translation of a verse.
 
-    Modes:
-    - scholarly: Only return existing scholarly translations (Sahih International, etc.)
-    - literal: May generate new literal translations if not available (requires LLM)
+    Only published editions are returned; nothing is machine-translated. (The
+    former mode=literal path referenced an enum member that did not exist and
+    answered 500.)
     """
     # Get the verse
     result = await session.execute(
@@ -85,12 +84,7 @@ async def get_verse_translation(
         )
 
     # Get translation
-    translation_mode = TranslationMode.SCHOLARLY if mode == "scholarly" else TranslationMode.LITERAL
-    service = TranslationService(
-        session=session,
-        llm_client=None,  # Don't generate new translations via API by default
-        mode=translation_mode
-    )
+    service = TranslationService(session=session)
 
     translation_result = await service.translate_verse(
         verse=verse,
