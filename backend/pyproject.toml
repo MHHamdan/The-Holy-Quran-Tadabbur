@@ -63,9 +63,11 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
     "httpx>=0.26.0",
-    "black>=26.3.1",
-    "ruff>=0.1.0",
-    "mypy>=1.8.0",
+    # Exact pins: CI's strict lint/format/type step must give the same verdict
+    # locally. Bump deliberately and reformat the STRICT path list in ci.yml.
+    "black==26.10.1",
+    "ruff==0.17.0",
+    "mypy==2.4.0",
 ]
 # Optional local speech-to-text for self-hosters (STT_PROVIDER=faster-whisper).
 # Not used by the default deployment, which needs no GPU or model files.

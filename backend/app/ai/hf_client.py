@@ -130,7 +130,9 @@ def record_failure(err: "HFInferenceError", retry_after: Optional[float] = None)
     )
 
 
-def _active(task: Optional[str], any_task: bool) -> Optional[Tuple[HFErrorKind, Optional[str], float]]:
+def _active(
+    task: Optional[str], any_task: bool
+) -> Optional[Tuple[HFErrorKind, Optional[str], float]]:
     now = time.monotonic()
     with _cooldown_lock:
         for kind in _KIND_ORDER:
