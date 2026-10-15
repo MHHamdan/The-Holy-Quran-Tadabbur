@@ -83,7 +83,9 @@ async def test_migration_removes_english_from_compare_and_rag_sources():
     from app.services.tafsir_comparison import tafsir_comparison_service
 
     mod = _migration()
-    assert mod.down_revision == "u0v1w2x3y4z5"
+    # The swarm migrations were linearised (ws2a -> ws3a -> ...); pin the
+    # revision, not its parent.
+    assert mod.revision == "ws3a1b2c3d4e5"
     async with database.AsyncSessionLocal() as session:
         try:
             await session.execute(text("SELECT 1 FROM tafseer_sources LIMIT 1"))

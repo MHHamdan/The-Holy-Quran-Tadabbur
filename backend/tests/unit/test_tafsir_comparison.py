@@ -147,11 +147,20 @@ class TestFiltering:
         r = await client.get(f"/api/v1/tafseer/compare/{s}/{a}", params={"language": "ar"})
         assert all(e["language"] == "ar" for e in r.json()["entries"])
 
-    @pytest.mark.requires_data("tafsir_en:2:255")
+    @pytest.mark.requires_data("tafsir:2:255")
     async def test_language_filter_english(self, client: AsyncClient):
+        # Unlicensed English tafsir (ibn_kathir_en, jalalayn_en) is disabled
+        # (migration ws3a), so until a licensed English source is enabled the
+        # English filter finds nothing; when one is, it must return only English.
         s, a = AYAT_AL_KURSI
         r = await client.get(f"/api/v1/tafseer/compare/{s}/{a}", params={"language": "en"})
-        assert all(e["language"] == "en" for e in r.json()["entries"])
+        if r.status_code == 404:
+            assert r.json()["detail"]["code"] == "NO_TAFSIR_FOUND"
+            return
+        assert r.status_code == 200
+        entries = r.json()["entries"]
+        assert all(e["language"] == "en" for e in entries)
+        assert not {"ibn_kathir_en", "jalalayn_en"} & {e["source_id"] for e in entries}
 
     async def test_invalid_language_rejected(self, client: AsyncClient):
         s, a = AYAT_AL_KURSI
