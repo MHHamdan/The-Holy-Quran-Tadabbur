@@ -135,6 +135,8 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs" if settings.debug else None,
     redoc_url="/redoc" if settings.debug else None,
+    # The schema lists every route (admin ones included): development only.
+    openapi_url="/openapi.json" if settings.debug else None,
 )
 
 # Compress JSON responses >= 1KB (verse lists, tafseer chunks, search results)
@@ -312,7 +314,9 @@ app.include_router(search.router, prefix="/api/v1/search", tags=["Search"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["Graph & Semantic"])
 app.include_router(streaming.router, prefix="/api/v1", tags=["Streaming"])
-app.include_router(performance.router, prefix="/api/v1", tags=["Performance"])
+# Operator diagnostics (admin key required); not mounted in production.
+if settings.environment.lower() not in ("production", "prod"):
+    app.include_router(performance.router, prefix="/api/v1", tags=["Performance"])
 app.include_router(rhetoric.router, prefix="/api/v1/rhetoric", tags=["Rhetoric"])
 app.include_router(themes.router, prefix="/api/v1/themes", tags=["Quranic Themes"])
 app.include_router(tasmee.router, prefix="/api/v1/tasmee", tags=["Tasmee (Memorization)"])

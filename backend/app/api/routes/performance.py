@@ -16,16 +16,24 @@ import logging
 from typing import Dict, Any, Optional
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
+from app.core.admin_auth import require_admin_api_key
 from app.db.database import get_async_session, async_engine
 from app.services.fast_similarity import get_fast_similarity_service
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/performance", tags=["performance"])
+# Operator-only: pool sizes, memory and timings are internal details, and the
+# benchmark burns CPU. Every route needs X-Admin-API-Key, and main.py does not
+# mount this router at all in production.
+router = APIRouter(
+    prefix="/performance",
+    tags=["performance"],
+    dependencies=[Depends(require_admin_api_key)],
+)
 
 # Track response times
 _response_times: Dict[str, list] = {}
@@ -165,7 +173,7 @@ async def get_services_status() -> Dict[str, Any]:
 async def benchmark_similarity(
     sura_no: int,
     aya_no: int,
-    iterations: int = 10,
+    iterations: int = Query(10, ge=1, le=100),
     session: AsyncSession = Depends(get_async_session),
 ) -> Dict[str, Any]:
     """

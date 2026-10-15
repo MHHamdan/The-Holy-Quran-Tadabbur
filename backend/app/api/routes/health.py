@@ -7,7 +7,7 @@ SECURITY NOTES:
 - /health/detailed requires authentication in production
 - /health/data requires authentication in production
 - /health/rag requires authentication in production
-- /metrics requires authentication in production
+- /metrics, /metrics/summary and /metrics/app require authentication in production
 """
 from datetime import datetime
 from functools import wraps
@@ -153,17 +153,20 @@ async def readiness_check(
 
 
 @router.get("/metrics")
-async def prometheus_metrics():
+async def prometheus_metrics(request: Request):
     """
     Prometheus metrics endpoint.
 
-    PUBLIC: Exposes metrics in Prometheus format for scraping.
+    PROTECTED IN PRODUCTION: requires the X-Metrics-Secret header (503 when
+    METRICS_SECRET is unset). Prometheus format for scraping.
     Includes:
     - RAG query metrics (latency, cache hits, confidence)
     - Search metrics (vector, keyword, hybrid)
     - Cache metrics (hit rate, size)
     - Reranker metrics (method, latency)
     """
+    _check_production_auth(request)
+
     from fastapi.responses import Response
     from app.services.metrics import metrics_endpoint_handler
 
@@ -172,12 +175,15 @@ async def prometheus_metrics():
 
 
 @router.get("/metrics/summary")
-async def metrics_summary():
+async def metrics_summary(request: Request):
     """
     Human-readable metrics summary.
 
+    PROTECTED IN PRODUCTION (X-Metrics-Secret).
     Returns a JSON summary of key metrics for dashboard display.
     """
+    _check_production_auth(request)
+
     from app.services.metrics import get_metrics, PROMETHEUS_AVAILABLE
 
     if not PROMETHEUS_AVAILABLE:
@@ -200,14 +206,14 @@ async def metrics_summary():
             "errors": cache_stats.errors,
         }
     except Exception as e:
-        cache_info = {"error": str(e)}
+        cache_info = {"error": type(e).__name__}
 
     # Get reranker status
     try:
         from app.rag.reranker import is_reranker_available
         reranker_info = is_reranker_available()
     except Exception as e:
-        reranker_info = {"error": str(e)}
+        reranker_info = {"error": type(e).__name__}
 
     return {
         "ok": True,
@@ -284,10 +290,13 @@ async def detailed_health_check(
     return health_status
 
 
-@router.get("/metrics")
+@router.get("/metrics/app")
 async def get_metrics(request: Request):
     """
-    Get application metrics.
+    Get application metrics (JSON).
+
+    Was a second GET /metrics registration, shadowed by the Prometheus one
+    above, so it never ran.
 
     PROTECTED IN PRODUCTION: Reveals operational data.
     Requires X-Metrics-Secret header in production.
@@ -477,6 +486,9 @@ async def security_check(request: Request):
             "/health/data",
             "/health/rag",
             "/metrics",
+            "/metrics/summary",
+            "/metrics/app",
+            "/health/cache",
         ],
         "public_endpoints": [
             "/health",
