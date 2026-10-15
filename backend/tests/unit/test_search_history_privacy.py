@@ -6,8 +6,10 @@ appended the global most_common queries to every session's suggestions and the
 public /history/stats endpoint listed them as top_searches, even after the
 author cleared their history.
 """
+import hashlib
 import uuid
 from datetime import datetime, timedelta
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -120,8 +122,15 @@ def test_api_suggestions_and_stats_do_not_leak_across_sessions(monkeypatch):
     assert r.status_code == 200
     assert SECRET not in r.text
 
-    r = client.get("/api/v1/quran/history/stats")
+    # Aggregate stats are admin-only, and even the admin view has no query text
+    assert client.get("/api/v1/quran/history/stats").status_code in (401, 403, 503)
+    key = "test-admin-key-history-stats"
+    with patch("app.core.admin_auth._get_configured_key_hash",
+               return_value=hashlib.sha256(key.encode()).hexdigest()):
+        r = client.get("/api/v1/quran/history/stats", headers={"X-Admin-API-Key": key})
+    assert r.status_code == 200
     assert SECRET not in r.text
+    assert "top_searches" not in r.json()
 
     # Delete my data path: DELETE /history removes the author's copy too
     assert client.delete("/api/v1/quran/history", params={"session_id": a}).status_code == 200

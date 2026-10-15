@@ -2796,10 +2796,12 @@ async def clear_search_history(
     return {"status": "cleared", "session_id": session_id}
 
 
-@router.get("/history/stats")
+@router.get("/history/stats", dependencies=[Depends(require_admin_api_key)])
 async def get_search_stats():
     """
-    Get global search statistics (admin endpoint).
+    Get global search statistics (admin only: X-Admin-API-Key).
+
+    Aggregate counts across all readers; never query text.
 
     Arabic: إحصائيات البحث العامة
     """
