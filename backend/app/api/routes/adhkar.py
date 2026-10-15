@@ -5,16 +5,22 @@ Public endpoints:
   POST /api/v1/dhikr/sessions  — record a completed session (anonymous, no PII)
   GET  /api/v1/dhikr/stats     — aggregate community stats for the current day
 
+The current app keeps dhikr counts on the device and no longer calls
+POST /sessions; it remains only for older installed versions. Rows hold a
+date, a category and counts (no id, no IP) and are deleted after
+DHIKR_RETENTION_DAYS (see therapy.purge_expired_private_data).
+
 Rate-limited to 20 requests/min per IP.
 No authentication required — sessions are intentionally anonymous.
 """
 import logging
-from datetime import date
+import os
+from datetime import date, datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func
+from sqlalchemy import delete, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_async_session
@@ -30,6 +36,14 @@ _dhikr_limiter = InMemoryRateLimiter(max_requests=20, window_seconds=60, name="d
 
 async def dhikr_rate_limit(request: Request) -> None:
     await enforce(_dhikr_limiter, request, "Dhikr")
+
+
+DHIKR_RETENTION_DAYS = int(os.getenv("DHIKR_RETENTION_DAYS", "30"))
+
+
+async def purge_expired_dhikr_sessions(db: AsyncSession) -> None:
+    cutoff = datetime.utcnow() - timedelta(days=DHIKR_RETENTION_DAYS)
+    await db.execute(delete(DhikrSession).where(DhikrSession.created_at < cutoff))
 
 
 # ── Pydantic schemas ─────────────────────────────────────────────────────────

@@ -48,6 +48,11 @@ async def _no_rate_limit() -> None:
     pass
 
 
+def _creds(*responses) -> list[dict]:
+    """[{id, token}] for /ask or /chat responses (the token proves ownership)."""
+    return [{"id": d["session_id"], "token": d["client_token"]} for d in responses]
+
+
 app.dependency_overrides[therapy_rate_limit] = _no_rate_limit
 
 
@@ -165,8 +170,8 @@ class TestComputeStreak:
 class TestInsightsGrowthMap:
     _ids: list[str] = []
 
-    async def _create_session(self, client, emotion: str) -> str:
-        """Helper: create a session via /ask and return session_id."""
+    async def _create_session(self, client, emotion: str) -> dict:
+        """Helper: create a session via /ask and return its {id, token}."""
         r = await client.post(
             "/api/v1/therapy/ask",
             json={"message": f"I feel {emotion}", "emotion_override": emotion},
@@ -174,14 +179,14 @@ class TestInsightsGrowthMap:
         assert r.status_code == 200
         sid = r.json()["session_id"]
         self._ids.append(sid)
-        return sid
+        return _creds(r.json())[0]
 
     async def test_insights_returns_emotion_timeline(self, client):
         s1 = await self._create_session(client, "anxiety")
         s2 = await self._create_session(client, "gratitude")
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [s1, s2], "language": "en"},
+            json={"sessions": [s1, s2], "language": "en"},
         )
         assert r.status_code == 200
         data = r.json()
@@ -193,7 +198,7 @@ class TestInsightsGrowthMap:
         s1 = await self._create_session(client, "sadness")
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [s1], "language": "en"},
+            json={"sessions": [s1], "language": "en"},
         )
         assert r.status_code == 200
         pt = r.json()["emotion_timeline"][0]
@@ -206,7 +211,7 @@ class TestInsightsGrowthMap:
         s1 = await self._create_session(client, "anxiety")
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [s1], "language": "en"},
+            json={"sessions": [s1], "language": "en"},
         )
         assert r.status_code == 200
         assert r.json()["trend"] in ("improving", "stable", "challenging")
@@ -215,7 +220,7 @@ class TestInsightsGrowthMap:
         s1 = await self._create_session(client, "doubt")
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [s1], "language": "en"},
+            json={"sessions": [s1], "language": "en"},
         )
         assert r.status_code == 200
         assert isinstance(r.json()["streak_days"], int)
@@ -224,7 +229,7 @@ class TestInsightsGrowthMap:
     async def test_empty_session_ids_returns_empty_timeline(self, client):
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": ["nonexistent-id-xyz"], "language": "en"},
+            json={"sessions": [{"id": "nonexistent-id-xyz", "token": "unknown-token"}], "language": "en"},
         )
         assert r.status_code == 200
         data = r.json()
