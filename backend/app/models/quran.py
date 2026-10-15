@@ -65,11 +65,11 @@ class QuranVerse(Base):
     # Relationships
     translations = relationship("Translation", back_populates="verse", lazy="select")  # Changed from selectin to avoid eager loading
 
+    # page_no / juz_no are indexed via index=True; (sura_no, aya_no) by the
+    # unique constraint. The former duplicate Index() entries were dropped
+    # in migration ws4b2c3d4e5f6.
     __table_args__ = (
         UniqueConstraint("sura_no", "aya_no", name="uq_sura_aya"),
-        Index("ix_verse_sura_aya", "sura_no", "aya_no"),
-        Index("ix_verse_page", "page_no"),
-        Index("ix_verse_juz", "juz_no"),
     )
 
     def __repr__(self):
@@ -118,7 +118,6 @@ class Translation(Base):
 
     __table_args__ = (
         UniqueConstraint("verse_id", "language", "translator", name="uq_verse_lang_translator"),
-        Index("ix_translation_lang", "language"),
         Index("ix_translation_translator", "translator"),
     )
 

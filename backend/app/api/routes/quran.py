@@ -90,6 +90,40 @@ class ResolveRateLimiter:
 _resolve_rate_limiter = ResolveRateLimiter(max_requests=30, window_seconds=60)
 
 
+class _TTLCache:
+    """Small bounded TTL cache for responses computed from immutable data
+    (Quran text, verse vectors, seeded tafsir). Per process; oldest entry is
+    evicted when full."""
+
+    def __init__(self, maxsize: int = 512, ttl_seconds: float = 3600.0):
+        self.maxsize = maxsize
+        self.ttl = ttl_seconds
+        self._data: Dict[Any, Tuple[float, Any]] = {}
+        self._lock = Lock()
+
+    def get(self, key):
+        with self._lock:
+            hit = self._data.get(key)
+            if hit is None:
+                return None
+            if time.monotonic() - hit[0] > self.ttl:
+                del self._data[key]
+                return None
+            return hit[1]
+
+    def set(self, key, value) -> None:
+        with self._lock:
+            if len(self._data) >= self.maxsize and key not in self._data:
+                oldest = min(self._data.items(), key=lambda kv: kv[1][0])[0]
+                del self._data[oldest]
+            self._data[key] = (time.monotonic(), value)
+
+
+_connections_cache = _TTLCache(maxsize=1024)
+_semantic_similar_cache = _TTLCache(maxsize=1024)
+_allah_names_cache = _TTLCache(maxsize=256)
+
+
 # Pydantic schemas
 class TranslationResponse(BaseModel):
     """Translation response schema."""
@@ -767,6 +801,7 @@ async def get_juz_verses(
 
 @router.get("/tafseer/{sura_no}/{aya_no}", response_model=List[TafseerChunkResponse])
 async def get_verse_tafseer(
+    http_response: Response,
     sura_no: int,
     aya_no: int,
     sources: Optional[List[str]] = Query(None, description="Filter by source IDs"),
@@ -787,6 +822,10 @@ async def get_verse_tafseer(
 
     if not verse_id:
         raise HTTPException(status_code=404, detail=f"Verse {sura_no}:{aya_no} not found")
+
+    # Seeded tafsir only changes on re-ingest; an hour keeps licence
+    # changes (sources hidden) visible the same day.
+    http_response.headers["Cache-Control"] = "public, max-age=3600"
 
     # Get tafseer chunks
     query = select(TafseerChunk).where(
@@ -1669,6 +1708,11 @@ async def find_similar_verses(
                 detail=f"Invalid theme. Valid themes: {[t.value for t in ThematicCategory]}"
             )
 
+    cache_key = (sura_no, aya_no, top_k, theme_filter.value if theme_filter else None, exclude_same_sura)
+    cached = _semantic_similar_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     semantic_service = SemanticSearchService(session)
     result = await semantic_service.find_similar_verses(
         verse_text=source_verse.text_imlaei,
@@ -1680,7 +1724,7 @@ async def find_similar_verses(
     similar = result.verses
     names = await _sura_names(session, {m["sura_no"] for m in similar})
 
-    return {
+    payload = {
         "source_verse": {
             "reference": f"{sura_no}:{aya_no}",
             "sura_name_ar": source_verse.sura_name_ar,
@@ -1710,6 +1754,9 @@ async def find_similar_verses(
         "search_method": result.search_method,
         "total_found": len(similar),
     }
+    if similar and result.search_method != "fallback":
+        _semantic_similar_cache.set(cache_key, payload)
+    return payload
 
 
 async def _sura_names(session: AsyncSession, sura_numbers: set) -> dict:
@@ -1745,6 +1792,11 @@ async def get_thematic_connections(
         except ValueError:
             pass
 
+    cache_key = (sura_no, aya_no, top_k, theme_filter.value if theme_filter else None)
+    cached = _connections_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     semantic_service = SemanticSearchService(session)
     result = await semantic_service.find_thematic_connections(
         sura_no=sura_no,
@@ -1757,7 +1809,7 @@ async def get_thematic_connections(
     def _theme(c):
         return (c.themes[0] if c.themes else (theme_filter.value if theme_filter else ""))
 
-    return {
+    payload = {
         "source_reference": f"{sura_no}:{aya_no}",
         "connections": [
             ThematicConnectionResponse(
@@ -1773,6 +1825,9 @@ async def get_thematic_connections(
         "dominant_themes": result.dominant_themes,
         "total_connections": len(connections),
     }
+    if connections:
+        _connections_cache.set(cache_key, payload)
+    return payload
 
 
 @router.get("/semantic/evolution/{concept}")
@@ -12162,8 +12217,17 @@ async def get_miracles_by_prophet(
 # AUDIO RECITATION ENDPOINTS
 # =============================================================================
 
+# Unknown reciters are rejected (422) instead of silently swapped for Afasy
+# while the response still claimed the requested reciter.
+ReciterParam = Query(
+    default="mishary_afasy",
+    pattern="^(saud_shuraim|maher_muaiqly|mishary_afasy|abdul_basit|husary|minshawi)$",
+    description="Reciter ID (see /quran/audio/reciters)",
+)
+
+
 @router.get("/audio/reciters")
-async def get_reciters():
+async def get_reciters(http_response: Response):
     """
     Get list of available Quran reciters.
 
@@ -12172,43 +12236,10 @@ async def get_reciters():
     from app.services.audio_service import get_audio_service
 
     audio_service = get_audio_service()
+    http_response.headers["Cache-Control"] = "public, max-age=86400"
     return {
         "ok": True,
         "reciters": audio_service.get_reciters(),
-    }
-
-
-@router.get("/audio/surah/{sura_no}")
-async def get_surah_audio(
-    sura_no: int,
-    reciter: str = Query(default="mishary_afasy", description="Reciter ID"),
-):
-    """
-    Get audio URL for a complete Surah.
-
-    Args:
-        sura_no: Surah number (1-114)
-        reciter: Reciter ID (default: mishary_afasy)
-
-    Arabic: رابط صوت السورة كاملة
-    """
-    from app.services.audio_service import get_audio_service
-
-    if sura_no < 1 or sura_no > 114:
-        raise HTTPException(status_code=400, detail="Surah number must be between 1 and 114")
-
-    audio_service = get_audio_service()
-    url = audio_service.get_surah_audio_url(sura_no, reciter)
-
-    if not url:
-        raise HTTPException(status_code=404, detail="Audio not found")
-
-    return {
-        "ok": True,
-        "sura_no": sura_no,
-        "reciter": reciter,
-        "audio_url": url,
-        "type": "surah",
     }
 
 
@@ -12216,7 +12247,7 @@ async def get_surah_audio(
 async def get_verse_audio(
     sura_no: int,
     aya_no: int,
-    reciter: str = Query(default="mishary_afasy", description="Reciter ID"),
+    reciter: str = ReciterParam,
     include_fallback: bool = Query(default=True, description="Include fallback URLs"),
 ):
     """
@@ -12230,10 +12261,17 @@ async def get_verse_audio(
 
     Arabic: رابط صوت الآية مع البدائل
     """
-    from app.services.audio_service import get_audio_service
+    from app.services.audio_service import get_audio_service, SURAH_VERSE_COUNTS
 
     if sura_no < 1 or sura_no > 114:
         raise HTTPException(status_code=400, detail="Surah number must be between 1 and 114")
+    if not 1 <= aya_no <= SURAH_VERSE_COUNTS[sura_no - 1]:
+        # An out-of-range ayah would map to another surah's verse in the
+        # absolute-numbered fallback CDN.
+        raise HTTPException(
+            status_code=400,
+            detail=f"Surah {sura_no} has {SURAH_VERSE_COUNTS[sura_no - 1]} verses",
+        )
 
     audio_service = get_audio_service()
 
@@ -12280,7 +12318,7 @@ async def get_verse_range_audio(
     sura_no: int,
     aya_start: int,
     aya_end: int,
-    reciter: str = Query(default="mishary_afasy", description="Reciter ID"),
+    reciter: str = ReciterParam,
 ):
     """
     Get audio URLs for a range of verses.
@@ -12319,7 +12357,7 @@ async def get_verse_range_audio(
 @router.get("/audio/page/{page_no}")
 async def get_page_audio(
     page_no: int,
-    reciter: str = Query(default="mishary_afasy", description="Reciter ID"),
+    reciter: str = ReciterParam,
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -13629,6 +13667,8 @@ class NameVerseMatchResponse(BaseModel):
     text_uthmani: str
     highlighted_text: str
     tafseer_snippet: str = ""
+    # Attribution for the snippet (required wherever tafsir text is shown)
+    tafseer_source_id: Optional[str] = None
 
 
 class AllahNameResponse(BaseModel):
@@ -13679,6 +13719,14 @@ async def get_allah_names(
     from app.data.allah_names import ALLAH_NAMES_99, CATEGORY_LABELS
     from app.services.quran_search import QuranSearchService, normalize_arabic
 
+    # Names, verses and seeded tafsir are immutable per release: serve
+    # repeated requests from memory instead of rescanning 6,236 verses.
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    cache_key = (lang, name_number, category, include_verses, max_verses_per_name)
+    cached = _allah_names_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     search_service = QuranSearchService(session)
 
     # Filter names
@@ -13699,9 +13747,11 @@ async def get_allah_names(
     # Now: fetch verses ONCE, normalize ONCE, batch tafseer with IN(...).
     verses_all: List[QuranVerse] = []
     verse_normalized_index: Dict[int, str] = {}
-    tafseer_by_ref: Dict[Tuple[int, int], str] = {}
+    tafseer_by_ref: Dict[Tuple[int, int], Tuple[str, str]] = {}
     if include_verses:
-        verses_all = list((await session.execute(select(QuranVerse))).scalars().all())
+        verses_all = list((await session.execute(
+            select(QuranVerse).order_by(QuranVerse.id)
+        )).scalars().all())
         verse_normalized_index = {
             v.id: normalize_arabic(v.text_uthmani).lower() for v in verses_all
         }
@@ -13753,7 +13803,8 @@ async def get_allah_names(
                                 content = t.content_ar if lang == "ar" else (t.content_en or t.content_ar)
                                 if content:
                                     tafseer_by_ref[key] = (
-                                        content[:200] + "..." if len(content) > 200 else content
+                                        content[:200] + "..." if len(content) > 200 else content,
+                                        t.source_id,
                                     )
 
     for name_data in names_to_process:
@@ -13777,7 +13828,8 @@ async def get_allah_names(
                     reference=f"{verse.sura_no}:{verse.aya_no}",
                     text_uthmani=verse.text_uthmani,
                     highlighted_text=highlighted,
-                    tafseer_snippet=tafseer_by_ref.get((verse.sura_no, verse.aya_no), ""),
+                    tafseer_snippet=tafseer_by_ref.get((verse.sura_no, verse.aya_no), ("", None))[0],
+                    tafseer_source_id=tafseer_by_ref.get((verse.sura_no, verse.aya_no), ("", None))[1],
                 ))
 
         # Get category labels
@@ -13800,10 +13852,9 @@ async def get_allah_names(
             verses=verses_list,
         ))
 
-    # Names list is effectively immutable per release; cache aggressively at
-    # the browser. Lite mode (include_verses=False) becomes essentially free.
-    response.headers["Cache-Control"] = "public, max-age=3600"
-    return AllahNamesListResponse(
+    result = AllahNamesListResponse(
         names=result_names,
         total=len(result_names),
     )
+    _allah_names_cache.set(cache_key, result)
+    return result

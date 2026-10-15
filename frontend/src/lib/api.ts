@@ -2124,14 +2124,6 @@ export interface ReciterInfo {
   style: string;
 }
 
-export interface SurahAudioResponse {
-  ok: boolean;
-  sura_no: number;
-  reciter: string;
-  audio_url: string;
-  type: 'surah';
-}
-
 export interface VerseAudioResponse {
   ok: boolean;
   sura_no: number;
@@ -2182,14 +2174,6 @@ export const audioApi = {
    */
   getReciters: () =>
     api.get<{ ok: boolean; reciters: ReciterInfo[] }>('/quran/audio/reciters'),
-
-  /**
-   * Get audio URL for a complete Surah.
-   */
-  getSurahAudio: (suraNo: number, reciter?: string) =>
-    api.get<SurahAudioResponse>(`/quran/audio/surah/${suraNo}`, {
-      params: reciter ? { reciter } : undefined
-    }),
 
   /**
    * Get audio URL for a single verse.

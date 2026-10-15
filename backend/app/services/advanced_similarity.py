@@ -11,6 +11,7 @@ Provides multi-layered similarity analysis using:
 Arabic: خدمة البحث المتقدم عن التشابه في الآيات القرآنية
 """
 
+import asyncio
 import logging
 import math
 import re
@@ -1472,196 +1473,201 @@ class AdvancedSimilarityService:
             except Exception as e:
                 logger.debug(f"Semantic similarity unavailable (Qdrant not populated): {e}")
 
-        # Score all candidates
-        scored_matches = []
-        theme_dist = defaultdict(int)
-        conn_type_dist = defaultdict(int)
+        # Score all candidates. This is pure CPU work over ~6,200 verses, so
+        # it runs in a worker thread instead of blocking the event loop.
+        def _score_all():
+            scored_matches = []
+            theme_dist = defaultdict(int)
+            conn_type_dist = defaultdict(int)
 
-        for candidate in candidates:
-            # Preprocess candidate text (exclude Bismillah if enabled)
-            cand_text = candidate.text_imlaei
-            if exclude_bismillah:
-                # Skip verses that are essentially just Bismillah (like 1:1)
-                if is_bismillah_verse(candidate.text_imlaei):
-                    logger.debug(f"Skipping Bismillah verse: {candidate.sura_no}:{candidate.aya_no}")
+            for candidate in candidates:
+                # Preprocess candidate text (exclude Bismillah if enabled)
+                cand_text = candidate.text_imlaei
+                if exclude_bismillah:
+                    # Skip verses that are essentially just Bismillah (like 1:1)
+                    if is_bismillah_verse(candidate.text_imlaei):
+                        logger.debug(f"Skipping Bismillah verse: {candidate.sura_no}:{candidate.aya_no}")
+                        continue
+
+                    # For first verses of suras, check if they're primarily Bismillah
+                    if is_first_verse_with_bismillah(candidate.sura_no, candidate.aya_no):
+                        # Preprocess to remove Bismillah
+                        cand_text = preprocess_for_similarity(
+                            candidate.text_imlaei,
+                            sura_no=candidate.sura_no,
+                            aya_no=candidate.aya_no,
+                            exclude_bismillah=True
+                        )
+                        # Skip if very little content remains after removing Bismillah
+                        if not cand_text or len(cand_text.strip().split()) < 2:
+                            logger.debug(f"Skipping first verse with minimal content after Bismillah removal: {candidate.sura_no}:{candidate.aya_no}")
+                            continue
+                    else:
+                        cand_text = preprocess_for_similarity(
+                            candidate.text_imlaei,
+                            sura_no=candidate.sura_no,
+                            aya_no=candidate.aya_no,
+                            exclude_bismillah=True
+                        )
+
+                # Extract candidate features (using preprocessed text)
+                cand_words = set(extract_words(cand_text))
+                cand_roots = extract_roots_from_text(cand_text)
+                cand_themes = detect_themes(cand_text)
+                cand_structure = detect_sentence_structure(cand_text)
+                cand_tfidf = self._compute_tfidf_vector(cand_text, idf)
+
+                # Get concepts from candidate
+                cand_concepts = set()
+                for word in cand_words:
+                    if word in CONCEPT_EXPANSIONS:
+                        cand_concepts.update(CONCEPT_EXPANSIONS[word])
+                    cand_concepts.add(word)
+
+                # Compute basic similarity scores
+                jacc = jaccard_similarity(source_words, cand_words)
+                cos = cosine_similarity(source_tfidf, cand_tfidf)
+                concept = concept_overlap_score(source_concepts, cand_concepts)
+                gram = grammatical_similarity(source_structure, cand_structure)
+                root = root_similarity_score(source_roots, cand_roots)
+
+                # Compute ENHANCED contextual similarity scores
+                ctx_jacc = contextual_weighted_jaccard(source_words, cand_words)
+                ctx_cos = contextual_cosine_similarity(source_tfidf, cand_tfidf)
+
+                # Compute prophetic/cross-story similarity
+                prophetic_score, prophetic_elements, prophetic_theme = prophetic_theme_similarity(
+                    verse_text, candidate.text_imlaei
+                )
+
+                # Compute narrative arc similarity
+                narrative_score = narrative_arc_similarity(
+                    verse_text, candidate.text_imlaei,
+                    source_verse.sura_no if source_verse else 0,
+                    candidate.sura_no,
+                    source_verse.aya_no if source_verse else 0,
+                    candidate.aya_no
+                )
+
+                # Semantic embedding score from Qdrant (0.0 when not available)
+                semantic_score = semantic_scores.get(
+                    (candidate.sura_no, candidate.aya_no), 0.0
+                )
+
+                # Compute combined score; if semantic unavailable, redistribute its weight
+                if semantic_score > 0:
+                    combined = (
+                        self.WEIGHTS["jaccard"] * jacc +
+                        self.WEIGHTS["contextual_jaccard"] * ctx_jacc +
+                        self.WEIGHTS["cosine"] * cos +
+                        self.WEIGHTS["contextual_cosine"] * ctx_cos +
+                        self.WEIGHTS["concept_overlap"] * concept +
+                        self.WEIGHTS["grammatical"] * gram +
+                        self.WEIGHTS["semantic"] * semantic_score +
+                        self.WEIGHTS["root_based"] * root +
+                        self.WEIGHTS["prophetic"] * prophetic_score +
+                        self.WEIGHTS["narrative"] * narrative_score
+                    )
+                    combined = combined / sum(self.WEIGHTS.values())
+                else:
+                    # Normalize excluding the unused semantic weight
+                    active_weights = sum(v for k, v in self.WEIGHTS.items() if k != "semantic")
+                    combined = (
+                        self.WEIGHTS["jaccard"] * jacc +
+                        self.WEIGHTS["contextual_jaccard"] * ctx_jacc +
+                        self.WEIGHTS["cosine"] * cos +
+                        self.WEIGHTS["contextual_cosine"] * ctx_cos +
+                        self.WEIGHTS["concept_overlap"] * concept +
+                        self.WEIGHTS["grammatical"] * gram +
+                        self.WEIGHTS["root_based"] * root +
+                        self.WEIGHTS["prophetic"] * prophetic_score +
+                        self.WEIGHTS["narrative"] * narrative_score
+                    )
+                    combined = combined / active_weights if active_weights > 0 else 0
+
+                if combined < min_score:
                     continue
 
-                # For first verses of suras, check if they're primarily Bismillah
-                if is_first_verse_with_bismillah(candidate.sura_no, candidate.aya_no):
-                    # Preprocess to remove Bismillah
-                    cand_text = preprocess_for_similarity(
-                        candidate.text_imlaei,
-                        sura_no=candidate.sura_no,
-                        aya_no=candidate.aya_no,
-                        exclude_bismillah=True
-                    )
-                    # Skip if very little content remains after removing Bismillah
-                    if not cand_text or len(cand_text.strip().split()) < 2:
-                        logger.debug(f"Skipping first verse with minimal content after Bismillah removal: {candidate.sura_no}:{candidate.aya_no}")
-                        continue
-                else:
-                    cand_text = preprocess_for_similarity(
-                        candidate.text_imlaei,
-                        sura_no=candidate.sura_no,
-                        aya_no=candidate.aya_no,
-                        exclude_bismillah=True
-                    )
+                # Apply filters
+                if theme_filter and theme_filter not in cand_themes:
+                    continue
 
-            # Extract candidate features (using preprocessed text)
-            cand_words = set(extract_words(cand_text))
-            cand_roots = extract_roots_from_text(cand_text)
-            cand_themes = detect_themes(cand_text)
-            cand_structure = detect_sentence_structure(cand_text)
-            cand_tfidf = self._compute_tfidf_vector(cand_text, idf)
-
-            # Get concepts from candidate
-            cand_concepts = set()
-            for word in cand_words:
-                if word in CONCEPT_EXPANSIONS:
-                    cand_concepts.update(CONCEPT_EXPANSIONS[word])
-                cand_concepts.add(word)
-
-            # Compute basic similarity scores
-            jacc = jaccard_similarity(source_words, cand_words)
-            cos = cosine_similarity(source_tfidf, cand_tfidf)
-            concept = concept_overlap_score(source_concepts, cand_concepts)
-            gram = grammatical_similarity(source_structure, cand_structure)
-            root = root_similarity_score(source_roots, cand_roots)
-
-            # Compute ENHANCED contextual similarity scores
-            ctx_jacc = contextual_weighted_jaccard(source_words, cand_words)
-            ctx_cos = contextual_cosine_similarity(source_tfidf, cand_tfidf)
-
-            # Compute prophetic/cross-story similarity
-            prophetic_score, prophetic_elements, prophetic_theme = prophetic_theme_similarity(
-                verse_text, candidate.text_imlaei
-            )
-
-            # Compute narrative arc similarity
-            narrative_score = narrative_arc_similarity(
-                verse_text, candidate.text_imlaei,
-                source_verse.sura_no if source_verse else 0,
-                candidate.sura_no,
-                source_verse.aya_no if source_verse else 0,
-                candidate.aya_no
-            )
-
-            # Semantic embedding score from Qdrant (0.0 when not available)
-            semantic_score = semantic_scores.get(
-                (candidate.sura_no, candidate.aya_no), 0.0
-            )
-
-            # Compute combined score; if semantic unavailable, redistribute its weight
-            if semantic_score > 0:
-                combined = (
-                    self.WEIGHTS["jaccard"] * jacc +
-                    self.WEIGHTS["contextual_jaccard"] * ctx_jacc +
-                    self.WEIGHTS["cosine"] * cos +
-                    self.WEIGHTS["contextual_cosine"] * ctx_cos +
-                    self.WEIGHTS["concept_overlap"] * concept +
-                    self.WEIGHTS["grammatical"] * gram +
-                    self.WEIGHTS["semantic"] * semantic_score +
-                    self.WEIGHTS["root_based"] * root +
-                    self.WEIGHTS["prophetic"] * prophetic_score +
-                    self.WEIGHTS["narrative"] * narrative_score
+                scores = SimilarityScores(
+                    jaccard=round(jacc, 4),
+                    cosine=round(cos, 4),
+                    concept_overlap=round(concept, 4),
+                    grammatical=round(gram, 4),
+                    semantic=round(semantic_score, 4),
+                    root_based=round(root, 4),
+                    contextual_jaccard=round(ctx_jacc, 4),
+                    contextual_cosine=round(ctx_cos, 4),
+                    prophetic=round(prophetic_score, 4),
+                    narrative=round(narrative_score, 4),
+                    combined=round(combined, 4),
                 )
-                combined = combined / sum(self.WEIGHTS.values())
-            else:
-                # Normalize excluding the unused semantic weight
-                active_weights = sum(v for k, v in self.WEIGHTS.items() if k != "semantic")
-                combined = (
-                    self.WEIGHTS["jaccard"] * jacc +
-                    self.WEIGHTS["contextual_jaccard"] * ctx_jacc +
-                    self.WEIGHTS["cosine"] * cos +
-                    self.WEIGHTS["contextual_cosine"] * ctx_cos +
-                    self.WEIGHTS["concept_overlap"] * concept +
-                    self.WEIGHTS["grammatical"] * gram +
-                    self.WEIGHTS["root_based"] * root +
-                    self.WEIGHTS["prophetic"] * prophetic_score +
-                    self.WEIGHTS["narrative"] * narrative_score
+
+                # Determine connection type
+                conn_type = determine_connection_type(scores)
+
+                if connection_types and conn_type.value not in connection_types:
+                    continue
+
+                # Shared elements
+                shared_words = list(source_words & cand_words)[:10]
+                shared_roots = list(source_roots & cand_roots)[:5]
+                shared_themes = list(set(source_themes) & set(cand_themes))
+                shared_concepts = list(source_concepts & cand_concepts)[:10]
+
+                # Primary theme
+                primary_theme = cand_themes[0] if cand_themes else ""
+
+                # Extract prophets from prophetic elements
+                shared_prophets_list = [e for e in prophetic_elements if e in PROPHETIC_THEMES]
+                cross_story_theme_data = CROSS_STORY_THEMES.get(prophetic_theme, {})
+
+                # Build match
+                match = AdvancedSimilarityMatch(
+                    verse_id=candidate.id,
+                    sura_no=candidate.sura_no,
+                    sura_name_ar=candidate.sura_name_ar,
+                    sura_name_en=candidate.sura_name_en,
+                    aya_no=candidate.aya_no,
+                    text_uthmani=candidate.text_uthmani,
+                    text_imlaei=candidate.text_imlaei,
+                    reference=f"{candidate.sura_no}:{candidate.aya_no}",
+                    scores=scores,
+                    connection_type=conn_type,
+                    connection_strength=get_connection_strength(combined),
+                    shared_words=shared_words,
+                    shared_roots=shared_roots,
+                    shared_concepts=shared_concepts,
+                    shared_themes=shared_themes,
+                    primary_theme=primary_theme,
+                    primary_theme_ar=THEME_LABELS_AR.get(primary_theme, ""),
+                    theme_color=THEME_COLORS.get(primary_theme, "#6B7280"),
+                    sentence_structure=cand_structure.value,
+                    sentence_structure_ar=get_sentence_structure_ar(cand_structure),
+                    shared_prophets=shared_prophets_list,
+                    cross_story_theme=prophetic_theme,
+                    cross_story_theme_ar=cross_story_theme_data.get("ar", ""),
+                    tafsir_available=True,  # Will check in API layer
+                    similarity_explanation_ar=generate_explanation(
+                        shared_words, shared_roots, shared_themes, conn_type, "ar"
+                    ),
+                    similarity_explanation_en=generate_explanation(
+                        shared_words, shared_roots, shared_themes, conn_type, "en"
+                    ),
                 )
-                combined = combined / active_weights if active_weights > 0 else 0
 
-            if combined < min_score:
-                continue
+                scored_matches.append((combined, match))
 
-            # Apply filters
-            if theme_filter and theme_filter not in cand_themes:
-                continue
+                # Update distributions
+                for theme in cand_themes:
+                    theme_dist[theme] += 1
+                conn_type_dist[conn_type.value] += 1
+            return scored_matches, theme_dist, conn_type_dist
 
-            scores = SimilarityScores(
-                jaccard=round(jacc, 4),
-                cosine=round(cos, 4),
-                concept_overlap=round(concept, 4),
-                grammatical=round(gram, 4),
-                semantic=round(semantic_score, 4),
-                root_based=round(root, 4),
-                contextual_jaccard=round(ctx_jacc, 4),
-                contextual_cosine=round(ctx_cos, 4),
-                prophetic=round(prophetic_score, 4),
-                narrative=round(narrative_score, 4),
-                combined=round(combined, 4),
-            )
-
-            # Determine connection type
-            conn_type = determine_connection_type(scores)
-
-            if connection_types and conn_type.value not in connection_types:
-                continue
-
-            # Shared elements
-            shared_words = list(source_words & cand_words)[:10]
-            shared_roots = list(source_roots & cand_roots)[:5]
-            shared_themes = list(set(source_themes) & set(cand_themes))
-            shared_concepts = list(source_concepts & cand_concepts)[:10]
-
-            # Primary theme
-            primary_theme = cand_themes[0] if cand_themes else ""
-
-            # Extract prophets from prophetic elements
-            shared_prophets_list = [e for e in prophetic_elements if e in PROPHETIC_THEMES]
-            cross_story_theme_data = CROSS_STORY_THEMES.get(prophetic_theme, {})
-
-            # Build match
-            match = AdvancedSimilarityMatch(
-                verse_id=candidate.id,
-                sura_no=candidate.sura_no,
-                sura_name_ar=candidate.sura_name_ar,
-                sura_name_en=candidate.sura_name_en,
-                aya_no=candidate.aya_no,
-                text_uthmani=candidate.text_uthmani,
-                text_imlaei=candidate.text_imlaei,
-                reference=f"{candidate.sura_no}:{candidate.aya_no}",
-                scores=scores,
-                connection_type=conn_type,
-                connection_strength=get_connection_strength(combined),
-                shared_words=shared_words,
-                shared_roots=shared_roots,
-                shared_concepts=shared_concepts,
-                shared_themes=shared_themes,
-                primary_theme=primary_theme,
-                primary_theme_ar=THEME_LABELS_AR.get(primary_theme, ""),
-                theme_color=THEME_COLORS.get(primary_theme, "#6B7280"),
-                sentence_structure=cand_structure.value,
-                sentence_structure_ar=get_sentence_structure_ar(cand_structure),
-                shared_prophets=shared_prophets_list,
-                cross_story_theme=prophetic_theme,
-                cross_story_theme_ar=cross_story_theme_data.get("ar", ""),
-                tafsir_available=True,  # Will check in API layer
-                similarity_explanation_ar=generate_explanation(
-                    shared_words, shared_roots, shared_themes, conn_type, "ar"
-                ),
-                similarity_explanation_en=generate_explanation(
-                    shared_words, shared_roots, shared_themes, conn_type, "en"
-                ),
-            )
-
-            scored_matches.append((combined, match))
-
-            # Update distributions
-            for theme in cand_themes:
-                theme_dist[theme] += 1
-            conn_type_dist[conn_type.value] += 1
+        scored_matches, theme_dist, conn_type_dist = await asyncio.to_thread(_score_all)
 
         # Sort by combined score and take top_k
         scored_matches.sort(key=lambda x: x[0], reverse=True)
