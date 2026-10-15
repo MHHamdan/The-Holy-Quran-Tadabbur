@@ -631,6 +631,7 @@ export function DuasPage() {
           isRtl ? 'right-3' : 'left-3',
         )} />
         <input
+          aria-label={isRtl ? 'ابحث في الأدعية' : 'Search duas'}
           type="text"
           value={search}
           onChange={e => { setSearch(e.target.value); setRandomId(null); }}

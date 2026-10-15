@@ -32,6 +32,7 @@ import { VerseText } from '../components/quran/WordMeaningPopover';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { ErrorPanel, parseAPIError, type APIErrorData } from '../components/common/ErrorPanel';
 import { VerseTranslations, useTranslationEditions } from '../components/quran/VerseTranslations';
+import { scrollBehavior } from '../hooks/usePrefersReducedMotion';
 import { ReaderSettingsPanel } from '../components/quran/ReaderSettingsPanel';
 import { VerseMarkers } from '../components/quran/VerseMarkers';
 import {
@@ -238,7 +239,7 @@ export function QuranPage() {
   useEffect(() => {
     if (highlightRef.current && !loading) {
       setTimeout(() => {
-        highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        highlightRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
       }, 100);
     }
   }, [loading, highlightAya]);
@@ -284,7 +285,7 @@ export function QuranPage() {
     const el = document.querySelector<HTMLElement>(
       `[data-verse-key="${currentSura}:${currentPlayingAya}"]`,
     );
-    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
   }, [autoScroll, currentPlayingAya, currentSura]);
 
   // Load concept highlights when concept or concepts param is present

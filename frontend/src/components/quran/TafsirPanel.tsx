@@ -635,7 +635,7 @@ export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: Tafsir
                 icon={<Sparkles className="w-4 h-4 text-purple-600" />}
                 isOpen={showAI}
                 onToggle={() => setShowAI(!showAI)}
-                badge="Beta"
+                badge={language === 'ar' ? 'تجريبي' : 'Beta'}
                 badgeColor="bg-purple-100 text-purple-700"
               >
                 <div className="space-y-4">
@@ -706,6 +706,7 @@ export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: Tafsir
                     </h4>
                     <div className="flex gap-2">
                       <input
+                        aria-label={language === 'ar' ? 'سؤالك عن التفسير' : 'Your question about the tafsir'}
                         type="text"
                         value={question}
                         onChange={(e) => setQuestion(e.target.value)}

@@ -250,6 +250,7 @@ export function ConceptSearchPanel({
       <div className="mb-4">
         <div className="relative">
           <input
+            aria-label={language === 'ar' ? 'ابحث عن مفهوم' : 'Search concepts'}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}

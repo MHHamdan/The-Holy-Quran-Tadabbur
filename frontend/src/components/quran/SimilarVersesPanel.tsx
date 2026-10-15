@@ -395,6 +395,7 @@ function FilterPanel({
             {language === 'ar' ? 'الموضوع' : 'Theme'}
           </label>
           <select
+            aria-label={language === 'ar' ? 'الموضوع' : 'Theme'}
             value={selectedTheme || ''}
             onChange={(e) => onThemeChange(e.target.value || null)}
             className="w-full text-sm border-gray-200 rounded-md"
@@ -414,6 +415,7 @@ function FilterPanel({
             {language === 'ar' ? 'نوع الاتصال' : 'Connection Type'}
           </label>
           <select
+            aria-label={language === 'ar' ? 'نوع الاتصال' : 'Connection type'}
             value={selectedConnectionType || ''}
             onChange={(e) => onConnectionTypeChange(e.target.value || null)}
             className="w-full text-sm border-gray-200 rounded-md"
@@ -675,6 +677,7 @@ export function SimilarVersesPanel({ suraNo, ayaNo, verseText, onVerseSelect }: 
           {isArabic ? 'تجميع حسب:' : 'Group by:'}
         </span>
         <select
+          aria-label={isArabic ? 'تجميع حسب' : 'Group by'}
           value={groupBy}
           onChange={(e) => setGroupBy(e.target.value as 'none' | 'theme' | 'connection')}
           className="text-sm border-gray-200 rounded-md"

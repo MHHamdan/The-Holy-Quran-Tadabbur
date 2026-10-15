@@ -729,6 +729,7 @@ export function SearchPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
+              aria-label={language === 'ar' ? 'ابحث في القرآن' : 'Search the Quran'}
               ref={inputRef}
               type="text"
               value={query}
@@ -815,6 +816,7 @@ export function SearchPage() {
               <div className="p-3 rounded-lg border border-gray-200">
                 <label className="block text-sm font-medium mb-2">{t('search_filter_sura', language)}</label>
                 <select
+                  aria-label={language === 'ar' ? 'السورة' : 'Surah'}
                   value={selectedSura || ''}
                   onChange={(e) => setSelectedSura(e.target.value ? Number(e.target.value) : undefined)}
                   className="input w-full text-sm"
@@ -840,6 +842,7 @@ export function SearchPage() {
                   {language === 'ar' ? 'تصفية حسب الموضوع' : 'Filter by Theme'}
                 </label>
                 <select
+                  aria-label={language === 'ar' ? 'الموضوع' : 'Theme'}
                   value={selectedTheme || ''}
                   onChange={(e) => setSelectedTheme(e.target.value || undefined)}
                   className="input w-full text-sm"

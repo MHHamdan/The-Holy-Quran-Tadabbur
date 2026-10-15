@@ -136,6 +136,7 @@ export function SemanticSearchPanel({
       <form onSubmit={handleSubmit} className="search-form">
         <div className="search-input-wrapper">
           <input
+            aria-label={language === 'ar' ? 'بحث دلالي' : 'Semantic search'}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -246,7 +247,7 @@ export function SemanticSearchPanel({
                       </span>
                       {hit.metadata.matched_via ? (
                         <span className="match-type">
-                          via {String(hit.metadata.matched_via)}
+                          {language === 'ar' ? 'عبر' : 'via'} <bdi>{String(hit.metadata.matched_via)}</bdi>
                         </span>
                       ) : null}
                     </div>

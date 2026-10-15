@@ -199,9 +199,11 @@ export function StoryAtlasPage() {
           <p className={clsx('text-red-800 font-medium', isArabic && 'font-arabic')}>
             {isArabic ? REGISTRY_MISSING_AR : REGISTRY_MISSING_EN}
           </p>
-          <p className="text-xs text-red-700 mt-2 font-mono">
-            npx tsx scripts/build-quran-story-registry.ts
-          </p>
+          {import.meta.env.DEV && (
+            <p className="text-xs text-red-700 mt-2 font-mono" dir="ltr" lang="en">
+              npx tsx scripts/build-quran-story-registry.ts
+            </p>
+          )}
         </div>
       ) : (
         <>
@@ -215,6 +217,7 @@ export function StoryAtlasPage() {
                 )}
               />
               <input
+                aria-label={isArabic ? 'بحث في القصص' : 'Search stories'}
                 type="text"
                 placeholder={
                   isArabic

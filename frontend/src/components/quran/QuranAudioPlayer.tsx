@@ -608,6 +608,7 @@ export function QuranAudioPlayer({
         <div className="progress-section">
           <span className="time-label">{formatTime(currentTime)}</span>
           <input
+            aria-label={language === 'ar' ? 'موضع التشغيل' : 'Playback position'}
             type="range"
             min="0"
             max={duration || 0}
@@ -630,6 +631,7 @@ export function QuranAudioPlayer({
 
           {!compact && (
             <input
+              aria-label={language === 'ar' ? 'مستوى الصوت' : 'Volume'}
               type="range"
               min="0"
               max="1"

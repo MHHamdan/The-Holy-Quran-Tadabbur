@@ -869,6 +869,7 @@ const AIAssistant = memo(function AIAssistant({
 
                 <div className="flex gap-2">
                   <input
+                    aria-label={t('ai_enter_word')}
                     type="text"
                     value={selectedWord}
                     onChange={(e) => setSelectedWord(e.target.value)}
@@ -908,6 +909,7 @@ const AIAssistant = memo(function AIAssistant({
               <div className="space-y-4">
                 <div className="flex gap-2">
                   <input
+                    aria-label={t('ai_ask_question')}
                     type="text"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
