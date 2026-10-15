@@ -54,7 +54,7 @@ import { ReaderThemePicker } from '../components/quran/ReaderThemePicker';
 import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import { surahVerseCount } from '../data/surahVerseCounts';
 import { SURAH_NAMES } from '../data/surahNames';
-import { TafsirSourceFooter, type TafsirEditionMeta } from '../components/reader/TafsirSourceFooter';
+import { TafsirAttributionFooter, getTafsirEdition, tafsirSourceUrl } from '../components/quran/tafsirEditions';
 import {
   firstPageOfJuz, firstPageOfSurah, surahOnPage, SURAH_REVELATION, TOTAL_MUSHAF_PAGES,
 } from '../components/reader/surahNavigation';
@@ -74,7 +74,7 @@ interface TafsirData {
   /** Provider the text was retrieved from (quran_com, quran_tafseer). */
   source: string;
   /** Edition metadata from the API: title, author, language. */
-  edition: TafsirEditionMeta;
+  edition: { id: string; name_ar?: string; name_en?: string; author_ar?: string; author_en?: string; language?: string };
 }
 
 interface ReciterOption {
@@ -312,6 +312,8 @@ const VersePanel = memo(function VersePanel({
     showTafsir,
   );
   const tafsirLang = tafsirData?.edition.language === 'en' ? 'en' : 'ar';
+  // Static metadata (registry source id, slug) for the edition the text came from.
+  const knownEdition = tafsirData ? getTafsirEdition(tafsirData.edition.id) : undefined;
   const ar = language === 'ar';
   const actionBtn = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-h-[36px]';
 
@@ -445,7 +447,19 @@ const VersePanel = memo(function VersePanel({
                 >
                   {tafsirData.text}
                 </p>
-                <TafsirSourceFooter edition={tafsirData.edition} provider={tafsirData.source} language={language} />
+                <TafsirAttributionFooter
+                  edition={{
+                    id: tafsirData.edition.id,
+                    name_ar: tafsirData.edition.name_ar ?? knownEdition?.name_ar ?? tafsirData.edition.id,
+                    name_en: tafsirData.edition.name_en ?? knownEdition?.name_en ?? tafsirData.edition.id,
+                    author_ar: tafsirData.edition.author_ar ?? knownEdition?.author_ar ?? '',
+                    author_en: tafsirData.edition.author_en ?? knownEdition?.author_en ?? '',
+                    db_source_id: knownEdition?.db_source_id,
+                  }}
+                  source={tafsirData.source}
+                  sourceUrl={tafsirSourceUrl(tafsirData.source, verse.sura_no, verse.aya_no, knownEdition?.slug)}
+                  language={language}
+                />
               </>
             ) : (
               <p className="text-gray-500 text-center">{t('tafseer_not_found')}</p>
