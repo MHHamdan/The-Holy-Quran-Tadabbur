@@ -118,7 +118,8 @@ def _session():
 
 @pytest.fixture(autouse=True)
 def _reset_quran_cache():
-    RAGPipeline._quran_index = None
+    # Same canonical rows the mocked session serves; built once per module.
+    RAGPipeline._quran_index = QURAN_INDEX
     RAGPipeline._surah_index = None
     yield
     RAGPipeline._quran_index = None
@@ -199,6 +200,7 @@ class TestNoFabricatedQuran:
         assert any("quotation" in w for w in r.warnings)
 
     async def test_without_canonical_text_unverifiable_quotes_are_removed(self):
+        RAGPipeline._quran_index = None
         p = _pipeline()
         p.session.execute = AsyncMock(side_effect=RuntimeError("db down"))
         r = await p._validate_and_parse_response(

@@ -84,6 +84,10 @@ from app.rag.types import (
     SAFE_REFUSAL_UNSUPPORTED_AR,
     SAFE_REFUSAL_CLARIFICATION_EN,
     SAFE_REFUSAL_CLARIFICATION_AR,
+    SAFE_REFUSAL_INJECTION_EN,
+    SAFE_REFUSAL_INJECTION_AR,
+    DISAGREEMENT_WARNING_EN,
+    DISAGREEMENT_WARNING_AR,
     RAG_SUPPORTED_LANGUAGES,
     reliability_float_to_level,
     AI_UNAVAILABLE_EN,
@@ -123,6 +127,7 @@ from app.safety.quran_question_classifier import (
     quran_question_classifier,
     classifier_intent_to_query_intent,
     INTENT_FATWA_LIKE,
+    INTENT_PROMPT_INJECTION,
     INTENT_NEEDS_CLARIFICATION,
     INTENT_UNSUPPORTED,
     ROUTE_REFUSAL,
@@ -772,6 +777,21 @@ class RAGPipeline:
                 api_version=settings.api_version,
             )
 
+        if classification.intent == INTENT_PROMPT_INJECTION:
+            msg = SAFE_REFUSAL_INJECTION_AR if language == "ar" else SAFE_REFUSAL_INJECTION_EN
+            return GroundedResponse(
+                answer=msg,
+                citations=[],
+                status="no_verified_source",
+                answer_kind="refusal",
+                answer_language=language,
+                confidence=0.0,
+                intent=classification.intent,
+                warnings=["prompt_injection_refused"],
+                session_id=session_id,
+                api_version=settings.api_version,
+            )
+
         if classification.route_to == ROUTE_CLARIFICATION:
             msg = SAFE_REFUSAL_CLARIFICATION_AR if language == "ar" else SAFE_REFUSAL_CLARIFICATION_EN
             return GroundedResponse(
@@ -821,6 +841,7 @@ class RAGPipeline:
         "fatwa_like":               "needs_scholar_review",
         "unsupported":              "simple_explanation",
         "needs_clarification":      "simple_explanation",
+        "prompt_injection":         "simple_explanation",
     }
 
     _DISAGREEMENT_SIGNALS = frozenset({
@@ -880,7 +901,13 @@ class RAGPipeline:
             # Whole-word match: "حكم" (ruling) must not fire on "الحكمة" (wisdom).
             return any(contains_keyword(question, w) for w in words)
 
-        # Rule-based classification
+        # Rule-based classification. Ruling vocabulary is checked first so
+        # "Is X forbidden — explain" is still treated as a fiqh question.
+        if has("ruling", "halal", "haram", "allowed", "forbidden", "permissible", "permitted",
+               "prohibited", "sin", "fatwa", "حكم", "حلال", "حرام", "يجوز", "تجوز", "يصح", "تصح",
+               "محرم", "مباح"):
+            return QueryIntent.RULING
+
         if has("meaning", "tafseer", "explain", "معنى", "تفسير"):
             return QueryIntent.VERSE_MEANING
 
@@ -895,9 +922,6 @@ class RAGPipeline:
 
         if has("root", "word", "grammar", "جذر", "كلمة"):
             return QueryIntent.LINGUISTIC
-
-        if has("ruling", "halal", "haram", "allowed", "حكم", "حلال", "حرام"):
-            return QueryIntent.RULING
 
         # Default to verse meaning for Quran-related questions
         return QueryIntent.VERSE_MEANING

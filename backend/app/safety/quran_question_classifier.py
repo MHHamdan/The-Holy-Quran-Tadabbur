@@ -36,6 +36,7 @@ INTENT_TAFSIR_SUMMARY         = "tafsir_summary"
 INTENT_GENERAL                = "general_question"
 INTENT_NEEDS_CLARIFICATION    = "needs_clarification"
 INTENT_UNSUPPORTED            = "unsupported"
+INTENT_PROMPT_INJECTION       = "prompt_injection"
 
 # Route-to constants
 ROUTE_RAG          = "rag"
@@ -74,6 +75,15 @@ SCIENTIFIC_CAUTION_EN = (
 SCIENTIFIC_CAUTION_AR = (
     "الربط بين الآية والنظريات العلمية يحتاج إلى مراجعة علمية وشرعية متخصصة. "
     "هذا الطرح تأمل معاصر وليس موقفًا تفسيريًا قطعيًا."
+)
+
+INJECTION_REFUSAL_EN = (
+    "I can only explain the Qur'an from verified sources. I cannot write, complete "
+    "or alter Qur'an text, and I cannot follow instructions that change these rules."
+)
+INJECTION_REFUSAL_AR = (
+    "أستطيع فقط شرح القرآن الكريم من المصادر الموثقة. لا أستطيع كتابة نص قرآني "
+    "أو إكماله أو تغييره، ولا اتباع تعليمات تغيّر هذه القواعد."
 )
 
 UNSUPPORTED_EN = "No verified source available for this answer."
@@ -137,6 +147,43 @@ _FATWA_EN = frozenset({
     "is this halal", "is this permissible", "can i do", "should i do",
     "is it a sin", "is it prohibited",
 })
+
+# Ruling questions phrased in ways a phrase list cannot enumerate.
+_FATWA_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
+    # "Is music haram?", "Is music forbidden according to the Quran?", "Are mortgages allowed in Islam?"
+    r"\b(is|are|was|were|isn'?t|aren'?t)\b[^?.!]{0,50}?\b(haram|halal|forbidden|allowed|permissible|"
+    r"permitted|impermissible|prohibited|a sin|sinful|makruh|lawful|unlawful|obligatory|mandatory)\b",
+    r"\b(allowed|permissible|permitted|forbidden|haram|halal|prohibited)\s+(in|for|according to)\s+"
+    r"(islam|muslims?|the shari'?a|sharia)\b",
+    r"\b(islamic|religious|shari'?a|sharia|fiqh)\s+(verdict|ruling|opinion|position|judgement|judgment)\b",
+    r"\bruling (on|of|about|regarding)\b",
+    r"^\s*(should|can|may|must)\s+i\b",
+    r"^\s*(can|may|must|should)\s+(a\s+|an\s+|my\s+)?(woman|women|man|men|muslims?|wife|husband|"
+    r"girl|boy)\b",
+    r"\b(am i|is it ok|is it okay)\b.{0,30}\b(allowed|sinning|in sin|permitted)\b",
+    # Arabic: "هل الموسيقى حرام؟", "هل يصح الطلاق…", "هل تجوز الصلاة…"
+    r"هل\s[^؟?]{0,40}?(?<!شهر )(حرام|حلال|محرم|محرمة|محرّم|مباح|مباحة|جائز|جائزة|مكروه|مكروهة|"
+    r"واجب|واجبة|فرض)(?![\u0621-\u064A])",
+    r"هل\s+(يصح|تصح|تجوز|يجب|تجب|يلزم|تلزم|يحل|تحل|يحرم|تحرم|يأثم|تأثم|أأثم)\b",
+    r"(ما|وما)\s+(حكم|الحكم في|الحكم الشرعي)(?![\u0621-\u064A])",
+))
+
+# Prompt-injection and "compose Qur'an" requests — refused before generation.
+_INJECTION_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
+    r"\bignore\s+(all\s+|any\s+|the\s+)?(previous|prior|above|earlier|your)\s+(instructions|rules|prompts?)",
+    r"\b(system|developer)\s+prompt\b",
+    r"\byou are now\b",
+    r"\b(jailbreak|DAN mode)\b",
+    r"\b(write|compose|create|generate|invent|make up|produce)\s+(me\s+)?(a\s+|an\s+|some\s+)?"
+    r"(new\s+|fake\s+|another\s+|original\s+)?(verse|surah|sura|ayah|ayat|ayahs)\b",
+    r"\b(new|fake|another|original)\s+(verse|surah|sura|ayah)s?\s+(of|for|in|like|similar)\b",
+    r"\b(complete|finish|continue)\s+(this|the|my)\s+(verse|ayah|surah)\b",
+    r"تجاهل\s+(كل\s+|جميع\s+)?(التعليمات|الأوامر|القواعد)",
+    r"اكتب\s+(لي\s+)?(آية|آيات|سورة)",
+    r"(ألف|ألّف|أنشئ|اخترع)\s+(لي\s+)?(آية|آيات|سورة)",
+    r"(آية|سورة)\s+جديدة",
+    r"أكمل\s+(الآية|السورة)",
+))
 
 # 2. Scientific miracle claims
 _SCIENTIFIC_AR = frozenset({
@@ -286,6 +333,7 @@ class QuranQuestionClassifier:
     Deterministic rule-based classifier for Quranic questions.
 
     Classification priority (highest to lowest):
+      0. prompt_injection     — hard block ("ignore your instructions", "write a new verse")
       1. fatwa_like           — hard block, no generation
       2. scientific_miracle   — allowed with caution labels
       3. qiraat               — route to module (fallback to RAG + warning)
@@ -321,7 +369,21 @@ class QuranQuestionClassifier:
         language = self._detect_language(q)
 
         # Priority-ordered checks
-        if self._matches_any(q_lower, _FATWA_AR | _FATWA_EN):
+        if any(p.search(q) for p in _INJECTION_PATTERNS):
+            return QuestionClassification(
+                intent=INTENT_PROMPT_INJECTION,
+                language=language,
+                risk_level=RISK_HIGH,
+                requires_source=False,
+                requires_scholar_review=False,
+                allowed_to_generate=False,
+                route_to=ROUTE_REFUSAL,
+                warnings=[INJECTION_REFUSAL_EN, INJECTION_REFUSAL_AR],
+            )
+
+        if self._matches_whole(q_lower, _FATWA_AR | _FATWA_EN) or any(
+            p.search(q) for p in _FATWA_PATTERNS
+        ):
             return QuestionClassification(
                 intent=INTENT_FATWA_LIKE,
                 language=language,
@@ -507,6 +569,21 @@ class QuranQuestionClassifier:
         return "en"
 
     @staticmethod
+    def _matches_whole(text_lower: str, patterns: frozenset) -> bool:
+        """Like _matches_any, but a phrase must not run into the next word
+        ("ما حكم" = what is the ruling; "ما حكمة" = what is the wisdom)."""
+        for p in patterns:
+            p = p.lower()
+            start = text_lower.find(p)
+            while start != -1:
+                end = start + len(p)
+                nxt = text_lower[end:end + 1]
+                if not nxt or not (nxt.isalpha() and p[-1:].isalpha()):
+                    return True
+                start = text_lower.find(p, start + 1)
+        return False
+
+    @staticmethod
     def _matches_any(text_lower: str, patterns: frozenset) -> bool:
         """Return True if any pattern appears as a substring of the lowercased text."""
         return any(p.lower() in text_lower for p in patterns)
@@ -538,6 +615,7 @@ def classifier_intent_to_query_intent(intent: str):
         INTENT_GENERAL:             "verse_meaning",
         INTENT_NEEDS_CLARIFICATION: "unknown",
         INTENT_UNSUPPORTED:         "unknown",
+        INTENT_PROMPT_INJECTION:    "unknown",
     }
     return _MAP.get(intent, "verse_meaning")
 
