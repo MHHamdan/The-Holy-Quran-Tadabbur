@@ -91,8 +91,8 @@ export function SurahAtlasHero({ entry }: SurahAtlasHeroProps) {
           <AlertTriangle size={13} className="flex-shrink-0" />
           <span>
             {isAr
-              ? 'محتوى هذه السورة في الأطلس قيد المراجعة العلمية. الملخصات نصوص مؤقتة وتتطلب مراجعة.'
-              : 'This surah\'s atlas content is pending scholarly review. Summaries are placeholders.'}
+              ? 'محتوى هذه السورة في الأطلس قيد المراجعة العلمية. الملخصات تحريرية وليست تفسيرًا.'
+              : 'This surah\'s atlas content is pending scholarly review. Summaries are editorial, not tafsir.'}
           </span>
         </div>
       )}

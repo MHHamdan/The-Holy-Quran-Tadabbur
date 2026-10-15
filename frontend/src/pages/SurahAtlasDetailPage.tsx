@@ -29,6 +29,8 @@ import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { getSurahAtlasEntry, SURAH_ATLAS_DATA } from '../data/surahAtlas';
 import { SurahAtlasHero } from '../components/atlas/SurahAtlasHero';
+import { ProvenanceLabel } from '../components/common/ProvenanceLabel';
+import { getSourceById, isSourceDisplayBlocked } from '../data/sourceRegistry';
 import {
   getMemorizationLinksForSurah,
   getConfusionPairsForSurah,
@@ -38,6 +40,27 @@ import {
 const STORY_TITLE_MAP = Object.fromEntries(
   STORY_RECURRENCES.map((r) => [r.storyId, { en: r.titleEn, ar: r.titleAr }]),
 );
+
+const COVERAGE_LABELS: Record<string, { ar: string; en: string }> = {
+  complete: { ar: 'القصة كاملة', en: 'Full story' },
+  partial: { ar: 'جزء من القصة', en: 'Part of the story' },
+  mention_only: { ar: 'ذكر بالاسم', en: 'Named only' },
+};
+
+/**
+ * Summary sources whose licence blocks display. `maududi_tafhim` is the
+ * Surah Atlas id for the registry's `tafheem_mawdudi_en` (Tafhim al-Quran).
+ */
+const SUMMARY_SOURCE_REGISTRY_ALIAS: Record<string, string> = {
+  maududi_tafhim: 'tafheem_mawdudi_en',
+};
+
+function summaryBlocked(sourceIds: string[]): boolean {
+  return sourceIds.some((id) => {
+    const src = getSourceById(SUMMARY_SOURCE_REGISTRY_ALIAS[id] ?? id);
+    return !!src && isSourceDisplayBlocked(src);
+  });
+}
 
 function storyTitle(storyId: string, isAr: boolean): string {
   const t = STORY_TITLE_MAP[storyId];
@@ -129,6 +152,10 @@ export default function SurahAtlasDetailPage() {
   }
 
   const indexedCount = SURAH_ATLAS_DATA.filter((s) => s.structure.length > 0).length;
+  // Only render a summary whose source is not licence-blocked.
+  const summaryText = summaryBlocked(entry.sourceIds)
+    ? ''
+    : (isAr ? entry.summary.short.ar : entry.summary.short.en).trim();
 
   return (
     <div className={clsx('min-h-screen bg-gray-50', isAr ? 'font-arabic' : '')}>
@@ -157,12 +184,20 @@ export default function SurahAtlasDetailPage() {
                   <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
                     {isAr ? 'الملخص القصير' : 'Short Summary'}
                   </h3>
-                  <p className="text-sm text-gray-800 leading-relaxed" dir={isAr ? 'rtl' : 'ltr'}>
-                    {isAr ? entry.summary.short.ar : entry.summary.short.en}
-                  </p>
-                  {entry.summarySource && (
-                    <p className="text-xs text-gray-400 mt-2 italic" dir="ltr">
-                      {isAr ? 'المصدر: ' : 'Source: '}{entry.summarySource}
+                  {summaryText ? (
+                    <>
+                      <p className="text-sm text-gray-800 leading-relaxed" dir={isAr ? 'rtl' : 'ltr'}>
+                        {summaryText}
+                      </p>
+                      <div className="mt-2">
+                        <ProvenanceLabel kind="editorial_summary" status="needs_review" language={isAr ? 'ar' : 'en'} />
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-500" dir={isAr ? 'rtl' : 'ltr'}>
+                      {isAr
+                        ? 'لا يتوفر ملخص لهذه السورة بهذه اللغة حاليًا.'
+                        : 'No summary of this surah is available in English yet.'}
                     </p>
                   )}
                 </div>
@@ -273,7 +308,7 @@ export default function SurahAtlasDetailPage() {
                 <div className="space-y-2">
                   {entry.storiesMentioned.map((s) => (
                     <Link
-                      key={s.storyId}
+                      key={`${s.storyId}-${s.ayahRange.display}`}
                       to={`/stories/${s.storyId}`}
                       className="flex items-center justify-between gap-3 p-3 rounded-xl border hover:bg-gray-50 hover:border-primary-300 transition-colors"
                     >
@@ -282,13 +317,13 @@ export default function SurahAtlasDetailPage() {
                           {storyTitle(s.storyId, isAr)}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {s.ayahRange.display}
+                          <span dir="ltr">{s.ayahRange.display}</span>
                           {s.coverage && (
                             <span className={clsx(
-                              'ml-1.5 px-1.5 py-0.5 rounded text-[10px]',
+                              'ms-1.5 px-1.5 py-0.5 rounded text-[10px]',
                               s.coverage === 'complete' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-500'
                             )}>
-                              {s.coverage}
+                              {COVERAGE_LABELS[s.coverage]?.[isAr ? 'ar' : 'en'] ?? ''}
                             </span>
                           )}
                         </div>
