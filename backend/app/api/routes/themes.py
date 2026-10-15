@@ -25,7 +25,7 @@ GROUNDING RULES:
 - Evidence from 4 madhab sources only
 - Layer separation: Quran → Tafsir → Classification
 """
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Response
 from pydantic import BaseModel, Field
@@ -285,20 +285,46 @@ class SegmentEvidenceResponse(BaseModel):
 # =============================================================================
 # Withheld segment summaries (owner review)
 #
-# These segment summaries state a hadith claim (e.g. "Surah Al-Ikhlas equals
-# one-third of the Quran") without a hadith citation, and the attached
-# evidence "snippet" is not text from the cited tafsir chunk. Until the owner
-# sources or removes the claim, the summary and snippet are withheld; the
-# segment itself (verse reference) is still served.
+# These segment summaries state a hadith claim without a hadith citation
+# ("Surah Al-Ikhlas equals one-third of the Quran", "Ayat al-Kursi is the
+# greatest verse in the Quran"), and the attached evidence "snippet" is not
+# verified text from the cited tafsir chunk. Until the owner sources or
+# removes the claim, every free-text field that carries it (summary,
+# reasons, evidence snippet, and a title that restates it) is withheld on
+# every endpoint; the segment itself (verse reference) is still served.
+# Both ids are queued for owner review (sourcing or removal of the claim).
 # =============================================================================
 
-SUMMARY_WITHHELD_SEGMENT_IDS = frozenset({"theme_tawheed:112:1-4"})
+SUMMARY_WITHHELD_SEGMENT_IDS = frozenset({
+    "theme_tawheed:112:1-4",
+    "theme_tawheed:2:255",
+})
+
+# Neutral replacement titles for withheld segments whose stored title restates
+# the withheld claim. Only the surah/verse name is kept (no claim).
+_WITHHELD_TITLE_OVERRIDES: Dict[str, Tuple[str, str]] = {
+    "theme_tawheed:2:255": ("آية الكرسي", "Ayat al-Kursi"),
+}
 
 
 def _public_summary(segment_id: Optional[str], text_value: Optional[str]) -> str:
     if segment_id in SUMMARY_WITHHELD_SEGMENT_IDS:
         return ""
     return text_value or ""
+
+
+def _public_optional_text(segment_id: Optional[str], text_value: Optional[str]) -> Optional[str]:
+    """Like _public_summary but keeps None for optional fields."""
+    if segment_id in SUMMARY_WITHHELD_SEGMENT_IDS:
+        return None
+    return text_value
+
+
+def _public_title(segment_id: Optional[str], text_value: Optional[str], lang: str) -> Optional[str]:
+    override = _WITHHELD_TITLE_OVERRIDES.get(segment_id or "")
+    if override:
+        return override[0] if lang == "ar" else override[1]
+    return text_value
 
 
 # =============================================================================
@@ -851,8 +877,8 @@ async def get_themes_by_ayah(
             theme_title_ar=o.theme_title_ar,
             theme_title_en=o.theme_title_en,
             segment_id=o.segment_id,
-            segment_title_ar=o.segment_title_ar,
-            segment_title_en=o.segment_title_en,
+            segment_title_ar=_public_title(o.segment_id, o.segment_title_ar, "ar"),
+            segment_title_en=_public_title(o.segment_id, o.segment_title_en, "en"),
             summary_ar=_public_summary(o.segment_id, o.summary_ar),
             summary_en=_public_summary(o.segment_id, o.summary_en),
         )
@@ -980,8 +1006,8 @@ async def get_theme_segments(
                 ayah_start=s.ayah_start,
                 ayah_end=s.ayah_end,
                 verse_reference=getattr(s, 'verse_reference', f"{s.sura_no}:{s.ayah_start}-{s.ayah_end}"),
-                title_ar=s.title_ar,
-                title_en=s.title_en,
+                title_ar=_public_title(s.id, s.title_ar, "ar"),
+                title_en=_public_title(s.id, s.title_en, "en"),
                 summary_ar=_public_summary(s.id, s.summary_ar),
                 summary_en=_public_summary(s.id, s.summary_en),
                 semantic_tags=getattr(s, 'semantic_tags', []),
@@ -993,8 +1019,8 @@ async def get_theme_segments(
                 # Discovery fields
                 match_type=getattr(s, 'match_type', None),
                 confidence=getattr(s, 'confidence', None),
-                reasons_ar=getattr(s, 'reasons_ar', None),
-                reasons_en=getattr(s, 'reasons_en', None),
+                reasons_ar=_public_optional_text(s.id, getattr(s, 'reasons_ar', None)),
+                reasons_en=_public_optional_text(s.id, getattr(s, 'reasons_en', None)),
                 is_core=getattr(s, 'is_core', None),
                 discovered_at=str(getattr(s, 'discovered_at', None)) if getattr(s, 'discovered_at', None) else None,
             )
@@ -1053,6 +1079,10 @@ async def get_segment_evidence(
             {k: v for k, v in (src or {}).items() if k != "snippet"}
             for src in evidence.get("evidence_sources", [])
         ]
+        # reasons_ar falls back to the segment summary in the service, so it
+        # carries the same withheld claim.
+        evidence["reasons_ar"] = ""
+        evidence["reasons_en"] = None
 
     return SegmentEvidenceResponse(**evidence)
 
@@ -1090,8 +1120,8 @@ async def get_theme_graph(
             ThemeGraphNodeResponse(
                 id=n.id,
                 type=n.type,
-                label=n.label,
-                label_ar=n.label_ar,
+                label=_public_title(n.id, n.label, language),
+                label_ar=_public_title(n.id, n.label_ar, "ar"),
                 data=n.data,
                 x=n.x,
                 y=n.y,
@@ -1150,8 +1180,8 @@ async def get_theme_timeline(
             ayah_start=t.ayah_start,
             ayah_end=t.ayah_end,
             verse_reference=t.verse_reference,
-            title_ar=t.title_ar,
-            title_en=t.title_en,
+            title_ar=_public_title(t.segment_id, t.title_ar, "ar"),
+            title_en=_public_title(t.segment_id, t.title_en, "en"),
             summary_ar=_public_summary(t.segment_id, t.summary_ar),
             summary_en=_public_summary(t.segment_id, t.summary_en),
             revelation_context=t.revelation_context,
@@ -1554,10 +1584,10 @@ async def get_theme_tafsir(
                 ayah_start=a_start,
                 ayah_end=a_end,
                 verse_reference=verse_ref,
-                title_ar=seg["title_ar"],
-                title_en=seg["title_en"],
-                summary_ar=seg["summary_ar"] or "",
-                summary_en=seg["summary_en"] or "",
+                title_ar=_public_title(seg_id, seg["title_ar"], "ar"),
+                title_en=_public_title(seg_id, seg["title_en"], "en"),
+                summary_ar=_public_summary(seg_id, seg["summary_ar"]),
+                summary_en=_public_summary(seg_id, seg["summary_en"]),
                 is_verified=bool(seg["is_verified"]),
                 is_core=bool(seg["is_core"]),
                 confidence=seg["confidence"],
