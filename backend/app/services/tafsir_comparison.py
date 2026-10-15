@@ -20,6 +20,7 @@ response carries that disclaimer inline so it cannot be dropped downstream.
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -115,6 +116,16 @@ def _jaccard(a: set[str], b: set[str]) -> float:
         return 0.0
     union = len(a | b)
     return round(len(a & b) / union, 4) if union else 0.0
+
+
+# Sources that stay hidden until their flag is set, even once their row is
+# enabled: the QuranEnc English Mukhtasar waits for the owner's confirmation
+# that QuranEnc's terms cover it.
+FLAGGED_SOURCES: Dict[str, str] = {"mukhtasar_en": "FEATURE_MUKHTASAR_EN"}
+
+
+def _flag_on(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 _MANIFEST = Path(__file__).resolve().parents[3] / "data" / "manifests" / "tafseer_sources.json"
@@ -280,6 +291,8 @@ class TafsirComparisonService:
             source = sources.get(chunk.source_id)
             # Disabled or licence-unverified sources are never shown.
             if source is not None and (source.is_enabled == 0 or not source.license_verified):
+                continue
+            if chunk.source_id in FLAGGED_SOURCES and not _flag_on(FLAGGED_SOURCES[chunk.source_id]):
                 continue
 
             lang = (source.language if source else None) or (

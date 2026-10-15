@@ -350,6 +350,12 @@
             "text"
           ]
         }
+      },
+      "alternative_source": {
+        "provider": "quranenc",
+        "key": "arabic_moyassar",
+        "seed": "backend/scripts/ingest/seed_tafsir_quranenc.py --replace-muyassar",
+        "notes": "Same work published by QuranEnc under its republication terms; swap once QuranEnc confirms the terms cover this key."
       }
     },
     {
@@ -557,21 +563,68 @@
         "notes": "Classical text, public domain by age (d. 468 AH); assessed on the author's death date. The digital edition comes from alquran.cloud ar.wahidi and has not been proof-read against a printed edition. Served at /api/v1/quran/asbab/{surah}.",
         "verified_date": "2026-10-14"
       }
-    }
-  ],
-  "placeholder_sources": [
+    },
+    {
+      "id": "mukhtasar_en",
+      "name_ar": "المختصر في التفسير (إنجليزي)",
+      "name_en": "Al-Mukhtasar fi al-Tafsir (English)",
+      "author_ar": "مركز تفسير للدراسات القرآنية",
+      "author_en": "Tafsir Center for Quranic Studies",
+      "translator": "Tafsir Center for Quranic Studies (English edition)",
+      "era": "contemporary",
+      "methodology": "concise",
+      "language": "en",
+      "is_primary_source": true,
+      "status": "pending_user_input",
+      "api_source": {
+        "provider": "quranenc",
+        "key": "english_mokhtasar",
+        "endpoint_pattern": "https://quranenc.com/api/v1/translation/sura/{key}/{sura}",
+        "seed_script": "backend/scripts/ingest/seed_tafsir_quranenc.py",
+        "cache": "data/raw/tafsir/quranenc/english_mokhtasar.json"
+      },
+      "license": {
+        "type": "pending_verification",
+        "license_url": "https://quranenc.com/en/home/api/",
+        "tos_url": "https://quranenc.com/en/home/api/",
+        "allowed_use": [],
+        "attribution_required": true,
+        "commercial_use": "pending_user_input",
+        "notes": "QuranEnc.com republication terms (verbatim; credit the publisher and QuranEnc.com; state the version; keep the notes; track the latest version; no inappropriate ads). Whether they cover this tafsir key is not yet confirmed: english_mokhtasar is not in /translations/list and its browse page returns 404. Seeded disabled (license_verified=0); mukhtasar_en is also behind FEATURE_MUKHTASAR_EN.",
+        "verified_date": null
+      }
+    },
     {
       "id": "mukhtasar_ar",
       "name_ar": "المختصر في التفسير",
-      "name_en": "Al-Mukhtasar fi al-Tafsir (Concise Tafsir)",
+      "name_en": "Al-Mukhtasar fi al-Tafsir",
       "author_ar": "مركز تفسير للدراسات القرآنية",
       "author_en": "Tafsir Center for Quranic Studies",
+      "era": "contemporary",
+      "methodology": "concise",
+      "language": "ar",
+      "is_primary_source": true,
       "status": "pending_user_input",
-      "priority": "medium",
-      "license": "pending_verification",
-      "notes": "Modern concise tafsir. Verify terms from Tafsir Center before use."
+      "api_source": {
+        "provider": "quranenc",
+        "key": "arabic_mokhtasar",
+        "endpoint_pattern": "https://quranenc.com/api/v1/translation/sura/{key}/{sura}",
+        "seed_script": "backend/scripts/ingest/seed_tafsir_quranenc.py",
+        "cache": "data/raw/tafsir/quranenc/arabic_mokhtasar.json"
+      },
+      "license": {
+        "type": "pending_verification",
+        "license_url": "https://quranenc.com/en/home/api/",
+        "tos_url": "https://quranenc.com/en/home/api/",
+        "allowed_use": [],
+        "attribution_required": true,
+        "commercial_use": "pending_user_input",
+        "notes": "QuranEnc.com republication terms (verbatim; credit the publisher and QuranEnc.com; state the version; keep the notes; track the latest version; no inappropriate ads). Whether they cover this tafsir key is not yet confirmed: english_mokhtasar is not in /translations/list and its browse page returns 404. Seeded disabled (license_verified=0); mukhtasar_en is also behind FEATURE_MUKHTASAR_EN.",
+        "verified_date": null
+      }
     }
   ],
+  "placeholder_sources": [],
   "ingestion_config": {
     "chunk_strategy": "ayah_anchored",
     "max_chunk_words": 500,
