@@ -98,7 +98,7 @@ function NameCard({ name, isRtl, expanded, onToggle }: {
       </div>
 
       {/* Expanded detail */}
-      {expanded && (name.notesEn || name.notesAr || name.quranicCiteEn || name.hadithEn) && (
+      {expanded && (name.notesEn || name.notesAr || name.quranicCiteEn) && (
         <div className={clsx('px-4 pb-4 pt-0 border-t border-gray-50 bg-violet-50/40')}>
           {(name.notesEn || name.notesAr) && (
             <p className={clsx('text-xs text-gray-600 leading-relaxed mt-3 mb-3', isRtl && 'font-arabic text-right')}>
@@ -116,21 +116,6 @@ function NameCard({ name, isRtl, expanded, onToggle }: {
                 </p>
                 <p className={clsx('text-xs text-amber-800 leading-relaxed', isRtl ? 'font-arabic' : 'italic')}>
                   {isRtl ? (name.quranicCiteAr ?? name.quranicCiteEn) : name.quranicCiteEn}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Hadith callout */}
-          {(name.hadithEn || name.hadithAr) && (
-            <div className={clsx('flex gap-2 p-2.5 rounded-xl bg-teal-50 border border-teal-100 mb-2', isRtl && 'flex-row-reverse')}>
-              <span className="text-teal-500 flex-shrink-0 text-sm leading-none mt-0.5">📜</span>
-              <div className="min-w-0">
-                <p className={clsx('text-[10px] font-semibold text-teal-600 mb-0.5', isRtl && 'font-arabic')}>
-                  {isRtl ? 'حديث شريف' : 'Hadith Reference'}
-                </p>
-                <p className={clsx('text-xs text-teal-800 leading-relaxed', isRtl ? 'font-arabic' : 'italic')}>
-                  {isRtl ? (name.hadithAr ?? name.hadithEn) : name.hadithEn}
                 </p>
               </div>
             </div>

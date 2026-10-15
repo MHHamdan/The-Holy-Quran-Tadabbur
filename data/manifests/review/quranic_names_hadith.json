@@ -1,0 +1,193 @@
+{
+  "description": "Hadith notes removed from frontend/src/data/quranicNames.ts (QuranicNamesPage). They were free text with collection numbers and no verified source. A scholar must verify text, collection, number and grader (only when a grader is named) before any entry returns, as a structured SupportingNote (kind=hadith). Not rendered anywhere.",
+  "count": 27,
+  "entries": [
+    {
+      "nameId": "ibrahim",
+      "status": "rejected",
+      "issue": "Was shown as a hadith ('Sahih Bukhari 3350') but the quoted words are Qur'an 4:125. Do not restore; quote 4:125 through quranExcerpt if needed."
+    },
+    {
+      "nameId": "musa",
+      "hadithEn": "\"Do not exalt me over Musa ibn Imran\" — Sahih Bukhari 2411",
+      "hadithAr": "\"لا تفضلوني على موسى بن عمران\" — صحيح البخاري 2411",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "isa",
+      "hadithEn": "\"Isa will descend and judge justly — he will break the cross and kill the swine\" — Sahih Bukhari 2222",
+      "hadithAr": "\"ينزل عيسى ويحكم بالعدل ويكسر الصليب ويقتل الخنزير\" — صحيح البخاري 2222",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "yusuf",
+      "hadithEn": "\"The noble, son of the noble, son of the noble — Yusuf son of Yaqub son of Ishaq son of Ibrahim\" — Sahih Bukhari 3382",
+      "hadithAr": "\"الكريم ابن الكريم ابن الكريم ابن الكريم — يوسف بن يعقوب بن إسحاق بن إبراهيم\" — صحيح البخاري 3382",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "nuh",
+      "hadithEn": "\"Nuh will be asked on the Day of Resurrection: Did you convey the message? He will say: Yes, my Lord\" — Sahih Bukhari 4712",
+      "hadithAr": "\"يُسأل نوح يوم القيامة: هل بلّغتَ؟ فيقول: نعم يا رب\" — صحيح البخاري 4712",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "dawud",
+      "hadithEn": "\"The most beloved prayer to Allah is that of Dawud — he slept half the night and prayed a third\" — Sahih Bukhari 1131",
+      "hadithAr": "\"أحب الصلاة إلى الله صلاة داود كان ينام نصف الليل ويقوم ثلثه\" — صحيح البخاري 1131",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "sulayman",
+      "hadithEn": "\"Sulayman asked his Lord for a kingdom none shall have after him, and Allah granted it\" — Sahih Bukhari 2977",
+      "hadithAr": "\"طلب سليمان من ربه ملكاً لا ينبغي لأحد من بعده فأعطاه الله\" — صحيح البخاري 2977",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "yunus",
+      "hadithEn": "\"Do not say I am better than Yunus ibn Matta\" — Sahih Bukhari 3413, Muslim 2376",
+      "hadithAr": "\"لا تفضلوني على يونس بن متى\" — صحيح البخاري 3413، صحيح مسلم 2376",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "ismail",
+      "hadithEn": "\"Ismail was the first to speak clear Arabic — he learned it from the Jurhum tribe\" — Sahih Bukhari 3364",
+      "hadithAr": "\"إسماعيل أول من أفصح بالعربية تعلمها من قبيلة جرهم\" — صحيح البخاري 3364",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "maryam",
+      "hadithEn": "\"Four women reached perfection: Maryam daughter of Imran, Asiya wife of Pharaoh, Khadija, and Fatima\" — Sahih Bukhari 3411",
+      "hadithAr": "\"كمل من النساء أربع: مريم بنت عمران، وآسية امرأة فرعون، وخديجة، وفاطمة\" — صحيح البخاري 3411",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "asiya",
+      "hadithEn": "Among the four women who reached perfection alongside Maryam, Khadija, and Fatima — Sahih Bukhari 3411",
+      "hadithAr": "من الأربع الكامل من النساء مع مريم وخديجة وفاطمة — صحيح البخاري 3411",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "noor",
+      "hadithEn": "\"Allah is Light — there is no darkness in Him\" — Sahih Muslim 179",
+      "hadithAr": "\"الله نور لا ظلام فيه\" — صحيح مسلم 179",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "salam",
+      "hadithEn": "\"Spread the greeting of salam among yourselves\" — Sahih Muslim 54",
+      "hadithAr": "\"أفشوا السلام بينكم\" — صحيح مسلم 54",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "fatima",
+      "hadithEn": "\"Fatima is a part of me — whoever upsets her upsets me\" — Sahih Bukhari 3767",
+      "hadithAr": "\"فاطمة بضعة مني فمن أغضبها أغضبني\" — صحيح البخاري 3767",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "badr",
+      "hadithEn": "\"No one who witnessed Badr will enter the Fire\" — Sahih Muslim 2494 (hadith of Jabir)",
+      "hadithAr": "\"لن يدخل النار أحد شهد بدراً\" — صحيح مسلم 2494 (حديث جابر)",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "rayan",
+      "hadithEn": "\"In Paradise there is a gate called Al-Rayyan — only those who fasted will enter through it\" — Sahih Bukhari 1896, Muslim 1152",
+      "hadithAr": "\"في الجنة باب يقال له الريان لا يدخل منه إلا الصائمون\" — صحيح البخاري 1896، صحيح مسلم 1152",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "jamil",
+      "hadithEn": "\"Allah is beautiful and loves beauty\" — Sahih Muslim 91",
+      "hadithAr": "\"إن الله جميل يحب الجمال\" — صحيح مسلم 91",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "layla",
+      "hadithEn": "\"Seek Laylat al-Qadr in the odd nights of the last ten nights of Ramadan\" — Sahih Bukhari 2017",
+      "hadithAr": "\"التمسوا ليلة القدر في الأوتار من العشر الأواخر من رمضان\" — صحيح البخاري 2017",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "iman",
+      "hadithEn": "\"Faith has over seventy branches — the highest is to say there is no god but Allah\" — Sahih Bukhari 9, Muslim 35",
+      "hadithAr": "\"الإيمان بضع وسبعون شعبة أعلاها قول لا إله إلا الله\" — صحيح البخاري 9، صحيح مسلم 35",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "khadija",
+      "hadithEn": "\"The best of the women of Paradise are Khadija bint Khuwaylid and Fatima bint Muhammad\" — Sahih Bukhari 3432",
+      "hadithAr": "\"أفضل نساء أهل الجنة خديجة بنت خويلد وفاطمة بنت محمد\" — صحيح البخاري 3432",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "anas",
+      "hadithEn": "Anas ibn Malik served the Prophet for ten years and never heard him say 'why did you do that' — Sahih Bukhari 6038",
+      "hadithAr": "خدم أنس بن مالك النبيَّ عشر سنوات ولم يسمعه يقول لشيء فعله: لم فعلت؟ — صحيح البخاري 6038",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "bilal",
+      "hadithEn": "\"I heard your footsteps in Paradise ahead of mine\" — the Prophet told Bilal (Sahih Bukhari 1149)",
+      "hadithAr": "\"سمعت دَفَّ نعليك في الجنة أمامي\" — قاله النبي لبلال (صحيح البخاري 1149)",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "rahma",
+      "hadithEn": "\"Allah divided mercy into one hundred parts — one part is in the world, ninety-nine are held by Him\" — Sahih Bukhari 6000",
+      "hadithAr": "\"جعل الله الرحمة مئة جزء أنزل منها جزءاً واحداً في الدنيا وعنده تسعة وتسعون\" — صحيح البخاري 6000",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "subhan",
+      "hadithEn": "\"Whoever says Subhanallah 100 times, his sins are forgiven even if they are like the foam of the sea\" — Sahih Muslim 2691",
+      "hadithAr": "\"من قال سبحان الله مئة مرة غُفرت خطاياه ولو كانت مثل زبد البحر\" — صحيح مسلم 2691",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "sabir",
+      "hadithEn": "\"No one has been given a better or more ample gift than patience (sabr)\" — Sahih Bukhari 1469",
+      "hadithAr": "\"ما أُعطي أحد عطاء خيراً وأوسع من الصبر\" — صحيح البخاري 1469",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "shakir",
+      "hadithEn": "\"Whoever is not grateful to people is not grateful to Allah\" — Sunan Abu Dawud 4811",
+      "hadithAr": "\"من لا يشكر الناس لا يشكر الله\" — سنن أبي داود 4811",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    },
+    {
+      "nameId": "taqwa",
+      "hadithEn": "\"Taqwa is here\" — the Prophet pointed to his chest three times (Sahih Muslim 2564)",
+      "hadithAr": "\"التقوى هاهنا\" — أشار النبي إلى صدره ثلاثاً (صحيح مسلم 2564)",
+      "status": "needs_scholar_review",
+      "issue": "Free-text hadith wording with a collection number; text, number, narrator and grade unverified."
+    }
+  ]
+}
