@@ -22,6 +22,9 @@ import {
 } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
+import { scrollBehavior } from '../../hooks/usePrefersReducedMotion';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { Dialog } from '../../components/ui/Dialog';
 import clsx from 'clsx';
 import atlasData from '../../data/generated/surahMemoryAtlas.json';
 import { QuranTextAttribution } from '../../components/quran/QuranTextAttribution';
@@ -1105,6 +1108,8 @@ export function SurahMemoryAtlasPage() {
   }, []);
 
   const closePanel = useCallback(() => setSelectedNum(null), []);
+  // Below the lg breakpoint the detail panel is a modal bottom sheet.
+  const belowLg = useMediaQuery('(max-width: 1023.98px)');
 
   // Keyboard navigation inside detail panel
   useEffect(() => {
@@ -1128,7 +1133,7 @@ export function SurahMemoryAtlasPage() {
   useEffect(() => {
     if (selectedNum === null) return;
     const el = document.getElementById(`surah-card-${selectedNum}`);
-    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    el?.scrollIntoView({ behavior: scrollBehavior(), block: 'nearest' });
   }, [selectedNum]);
 
   return (
@@ -1206,6 +1211,7 @@ export function SurahMemoryAtlasPage() {
                 <div className="relative flex-1">
                   <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
+                    aria-label={t('sma_search_placeholder', lang)}
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
@@ -1398,31 +1404,27 @@ export function SurahMemoryAtlasPage() {
         )}
       </div>
 
-      {/* ── Mobile bottom sheet ──────────────────────────────────────── */}
-      {selectedSurah && viewMode === 'grid' && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="lg:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
-            onClick={closePanel}
-          />
-          {/* Sheet */}
-          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[80vh] overflow-hidden flex flex-col safe-area-bottom">
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-1 shrink-0">
-              <div className="w-10 h-1 bg-gray-200 rounded-full" />
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <SurahDetailPanel
-                surah={selectedSurah}
-                surahs={SURAHS}
-                onClose={closePanel}
-                onNavigate={setSelectedNum}
-                language={lang}
-              />
-            </div>
+      {/* ── Mobile bottom sheet (accessible modal: focus trap, Escape, scroll lock) ── */}
+      {selectedSurah && (
+        <Dialog
+          open={viewMode === 'grid' && belowLg}
+          onClose={closePanel}
+          variant="sheet"
+          ariaLabel={lang === 'ar' ? selectedSurah.nameArabic : (selectedSurah.nameEnglish || selectedSurah.nameArabic)}
+          dir={isRtl ? 'rtl' : 'ltr'}
+        >
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-1 shrink-0" aria-hidden="true">
+            <div className="w-10 h-1 bg-gray-200 rounded-full" />
           </div>
-        </>
+          <SurahDetailPanel
+            surah={selectedSurah}
+            surahs={SURAHS}
+            onClose={closePanel}
+            onNavigate={setSelectedNum}
+            language={lang}
+          />
+        </Dialog>
       )}
     </div>
   );

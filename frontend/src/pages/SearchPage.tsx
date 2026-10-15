@@ -17,6 +17,7 @@ import {
 } from '../lib/api';
 import clsx from 'clsx';
 import { TranslationSearchResults } from '../components/search/TranslationSearchResults';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 
 // =============================================================================
 // TYPES
@@ -333,13 +334,13 @@ const AUTOCOMPLETE_SUGGESTIONS = [
   { word: 'القصاص', category: 'ruling', category_ar: 'أحكام' },
   { word: 'الشهادة', category: 'ruling', category_ar: 'أحكام' },
 
-  // Du'a & Prayer Phrases (أدعية)
-  { word: 'ربنا آتنا في الدنيا حسنة', category: 'dua', category_ar: 'دعاء' },
+  // Du'a & Prayer (أدعية) — single search words, never typed verse quotations
+  { word: 'الدعاء', category: 'dua', category_ar: 'دعاء' },
   { word: 'رب اغفر لي', category: 'dua', category_ar: 'دعاء' },
-  { word: 'لا إله إلا أنت سبحانك', category: 'dua', category_ar: 'دعاء' },
-  { word: 'ربنا لا تزغ قلوبنا', category: 'dua', category_ar: 'دعاء' },
-  { word: 'حسبنا الله ونعم الوكيل', category: 'dua', category_ar: 'دعاء' },
-  { word: 'إنا لله وإنا إليه راجعون', category: 'dua', category_ar: 'دعاء' },
+  { word: 'سبحانك', category: 'dua', category_ar: 'دعاء' },
+  { word: 'قلوبنا', category: 'dua', category_ar: 'دعاء' },
+  { word: 'الوكيل', category: 'dua', category_ar: 'دعاء' },
+  { word: 'راجعون', category: 'dua', category_ar: 'دعاء' },
 
   // Stories & Parables (قصص وأمثال)
   { word: 'أصحاب الجنة', category: 'story', category_ar: 'قصة' },
@@ -728,6 +729,7 @@ export function SearchPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
+              aria-label={language === 'ar' ? 'ابحث في القرآن' : 'Search the Quran'}
               ref={inputRef}
               type="text"
               value={query}
@@ -814,6 +816,7 @@ export function SearchPage() {
               <div className="p-3 rounded-lg border border-gray-200">
                 <label className="block text-sm font-medium mb-2">{t('search_filter_sura', language)}</label>
                 <select
+                  aria-label={language === 'ar' ? 'السورة' : 'Surah'}
                   value={selectedSura || ''}
                   onChange={(e) => setSelectedSura(e.target.value ? Number(e.target.value) : undefined)}
                   className="input w-full text-sm"
@@ -839,6 +842,7 @@ export function SearchPage() {
                   {language === 'ar' ? 'تصفية حسب الموضوع' : 'Filter by Theme'}
                 </label>
                 <select
+                  aria-label={language === 'ar' ? 'الموضوع' : 'Theme'}
                   value={selectedTheme || ''}
                   onChange={(e) => setSelectedTheme(e.target.value || undefined)}
                   className="input w-full text-sm"
@@ -1112,6 +1116,7 @@ export function SearchPage() {
                 />
               ))}
             </div>
+            <QuranTextAttribution language={language} className="mt-4" />
 
             {/* Load More */}
             {results.matches.length < results.total_matches && (
@@ -1935,6 +1940,7 @@ function SimilarVersesPanel({
               </div>
             ))}
           </div>
+          <QuranTextAttribution language={language} />
         </div>
       ) : null}
     </div>
@@ -2071,6 +2077,7 @@ function ConceptEvolutionPanel({
                 </div>
               )}
             </div>
+            <QuranTextAttribution language={language} className="mt-3" />
           </div>
         </div>
       ) : null}

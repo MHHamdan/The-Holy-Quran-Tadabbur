@@ -17,6 +17,7 @@ import { BookOpen, X, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import { vocabularyApi, VocabularyResponse } from '../../lib/api';
 import { useLanguageStore } from '../../stores/languageStore';
+import { t } from '../../i18n/translations';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -168,7 +169,7 @@ export function WordMeaningPopover({
             </span>
             <button
               onClick={handleClose}
-              aria-label="Close"
+              aria-label={t('close', language)}
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-4 h-4" />
@@ -180,7 +181,7 @@ export function WordMeaningPopover({
             {state === 'loading' && (
               <div className="flex items-center justify-center py-3 text-gray-400">
                 <Loader2 className="w-4 h-4 animate-spin me-2" />
-                <span>Loading…</span>
+                <span>{t('loading', language)}</span>
               </div>
             )}
 

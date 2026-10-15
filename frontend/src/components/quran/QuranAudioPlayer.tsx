@@ -11,7 +11,7 @@
  *
  * Arabic: مشغل صوت القرآن الكريم
  */
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useId } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Download, Repeat, Settings, CheckCircle2, Trash2 } from 'lucide-react';
 import { audioApi, ReciterInfo, VerseAudioInfo } from '../../lib/api';
 import { Language } from '../../i18n/translations';
@@ -31,6 +31,7 @@ import {
   savedSurah,
 } from '../../lib/offlineAudio';
 import clsx from 'clsx';
+import { AudioSourceAttribution, audioHost } from './AudioSourceAttribution';
 
 // =============================================================================
 // TYPES
@@ -138,12 +139,17 @@ export function QuranAudioPlayer({
   const fallbackAttemptRef = useRef(0);
   // Whether playback was requested, so a fallback resumes only if it should.
   const wantPlayRef = useRef(false);
+  // Host of the recitation file now loaded (for the attribution line). An
+  // offline copy keeps the host it was downloaded from.
+  const [sourceHost, setSourceHost] = useState<string | null>(null);
+  const idBase = useId();
 
   /** Point the player at a verse, preferring its offline copy, and optionally play. */
   const setSource = useCallback(async (audio: HTMLAudioElement, url: string, sura: number, play: boolean) => {
     fallbackAttemptRef.current = 0;
     wantPlayRef.current = play;
     const src = await playableUrl(selectedReciter, sura, url);
+    setSourceHost(audioHost(url));
     if (blobUrlRef.current && blobUrlRef.current !== src) {
       URL.revokeObjectURL(blobUrlRef.current);
       blobUrlRef.current = null;
@@ -340,6 +346,7 @@ export function QuranAudioPlayer({
       if (attempt < fallbacks.length) {
         fallbackAttemptRef.current = attempt + 1;
         audio.src = fallbacks[attempt];
+        setSourceHost(audioHost(fallbacks[attempt]));
         audio.load();
         if (wantPlayRef.current) {
           // If this fallback also fails, the error handler runs again.
@@ -548,6 +555,7 @@ export function QuranAudioPlayer({
               value={selectedReciter}
               onChange={(e) => setSelectedReciter(e.target.value)}
               className="reciter-select"
+              aria-label={language === 'ar' ? 'القارئ' : 'Reciter'}
             >
               {reciters.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -600,6 +608,7 @@ export function QuranAudioPlayer({
         <div className="progress-section">
           <span className="time-label">{formatTime(currentTime)}</span>
           <input
+            aria-label={language === 'ar' ? 'موضع التشغيل' : 'Playback position'}
             type="range"
             min="0"
             max={duration || 0}
@@ -622,6 +631,7 @@ export function QuranAudioPlayer({
 
           {!compact && (
             <input
+              aria-label={language === 'ar' ? 'مستوى الصوت' : 'Volume'}
               type="range"
               min="0"
               max="1"
@@ -673,8 +683,9 @@ export function QuranAudioPlayer({
       {showSettings && (
         <div className="settings-panel">
           <div className="setting-row">
-            <label>{language === 'ar' ? 'سرعة التشغيل' : 'Playback Speed'}</label>
+            <label htmlFor={`${idBase}-rate`}>{language === 'ar' ? 'سرعة التشغيل' : 'Playback Speed'}</label>
             <select
+              id={`${idBase}-rate`}
               value={playbackRate}
               onChange={(e) => setPlaybackRate(parseFloat(e.target.value))}
             >
@@ -685,8 +696,9 @@ export function QuranAudioPlayer({
           </div>
 
           <div className="setting-row">
-            <label>{language === 'ar' ? 'تكرار كل آية' : 'Repeat each verse'}</label>
+            <label htmlFor={`${idBase}-repeat`}>{language === 'ar' ? 'تكرار كل آية' : 'Repeat each verse'}</label>
             <select
+              id={`${idBase}-repeat`}
               value={verseRepeat}
               onChange={(e) => setVerseRepeat(parseInt(e.target.value, 10))}
             >
@@ -700,8 +712,9 @@ export function QuranAudioPlayer({
 
           {compact && (
             <div className="setting-row">
-              <label>{language === 'ar' ? 'القارئ' : 'Reciter'}</label>
+              <label htmlFor={`${idBase}-reciter`}>{language === 'ar' ? 'القارئ' : 'Reciter'}</label>
               <select
+                id={`${idBase}-reciter`}
                 value={selectedReciter}
                 onChange={(e) => setSelectedReciter(e.target.value)}
               >
@@ -779,6 +792,9 @@ export function QuranAudioPlayer({
           </button>
         </div>
       )}
+
+      {/* Recitation audio source (attribution) */}
+      <AudioSourceAttribution host={sourceHost} language={language} className="mt-2" />
 
       {/* Styles */}
       <style>{`

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Play, Pause, SkipBack, SkipForward, Loader2 } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
+import { t } from '../../i18n/translations';
+import { AudioSourceAttribution } from './AudioSourceAttribution';
 import type { AsmaNameSummary } from '../../lib/api';
 
 /**
@@ -70,7 +72,7 @@ export function AsmaAudioPlayer({ names }: AsmaAudioPlayerProps) {
   const [index, setIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(false);
 
   const current = playlist[index];
 
@@ -82,11 +84,11 @@ export function AsmaAudioPlayer({ names }: AsmaAudioPlayerProps) {
     (i: number) => {
       if (i < 0 || i >= playlist.length) return;
       setIndex(i);
-      setError(null);
+      setError(false);
       const a = audioRef.current;
       if (!a) return;
       a.src = playlist[i].url;
-      a.play().catch((e) => setError(e?.message || 'Audio playback failed'));
+      a.play().catch(() => setError(true));
     },
     [playlist]
   );
@@ -96,7 +98,7 @@ export function AsmaAudioPlayer({ names }: AsmaAudioPlayerProps) {
     if (!a) return;
     if (!a.src && current) a.src = current.url;
     if (a.paused) {
-      a.play().catch((e) => setError(e?.message || 'Audio playback failed'));
+      a.play().catch(() => setError(true));
     } else {
       a.pause();
     }
@@ -123,7 +125,7 @@ export function AsmaAudioPlayer({ names }: AsmaAudioPlayerProps) {
     };
     const onErrorEvt = () => {
       setLoading(false);
-      setError('Could not load audio for this verse.');
+      setError(true);
     };
     a.addEventListener('play', onPlay);
     a.addEventListener('pause', onPause);
@@ -238,11 +240,11 @@ export function AsmaAudioPlayer({ names }: AsmaAudioPlayerProps) {
 
         {error && (
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
-            {language === 'ar'
-              ? 'تعذّر تحميل الصوت لهذه الآية. يرجى المحاولة لاحقاً.'
-              : error}
+            {t('audio_load_failed', language)}
           </p>
         )}
+
+        <AudioSourceAttribution host="everyayah.com" language={language} />
 
         <audio ref={audioRef} preload="none" />
       </div>

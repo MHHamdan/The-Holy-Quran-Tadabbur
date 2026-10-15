@@ -21,6 +21,7 @@ import {
 import { useLanguageStore } from '../../stores/languageStore';
 import { useSearchHistoryStore } from '../../stores/searchHistoryStore';
 import clsx from 'clsx';
+import { QuranTextAttribution } from '../quran/QuranTextAttribution';
 
 interface Props {
   onSearchSelect?: (query: string) => void;
@@ -346,6 +347,7 @@ export function SearchHistoryPanel({ onSearchSelect, onVerseSelect, compact = fa
               </button>
             ))
           )}
+          {recommendations.length > 0 && <QuranTextAttribution language={language} className="px-3" />}
         </div>
       )}
     </div>

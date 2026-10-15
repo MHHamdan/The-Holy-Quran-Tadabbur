@@ -54,11 +54,13 @@ import { ReaderThemePicker } from '../components/quran/ReaderThemePicker';
 import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import { surahVerseCount } from '../data/surahVerseCounts';
 import { SURAH_NAMES } from '../data/surahNames';
-import { TafsirSourceFooter, type TafsirEditionMeta } from '../components/reader/TafsirSourceFooter';
+import { TafsirAttributionFooter, getTafsirEdition, tafsirSourceUrl } from '../components/quran/tafsirEditions';
 import {
   firstPageOfJuz, firstPageOfSurah, surahOnPage, SURAH_REVELATION, TOTAL_MUSHAF_PAGES,
 } from '../components/reader/surahNavigation';
 import { playableUrl } from '../lib/offlineAudio';
+import { loadOfflinePage, offlineQuranKey } from '../lib/offlineQuran';
+import { AudioSourceAttribution, audioHost } from '../components/quran/AudioSourceAttribution';
 
 // =============================================================================
 // Types & Interfaces
@@ -74,7 +76,7 @@ interface TafsirData {
   /** Provider the text was retrieved from (quran_com, quran_tafseer). */
   source: string;
   /** Edition metadata from the API: title, author, language. */
-  edition: TafsirEditionMeta;
+  edition: { id: string; name_ar?: string; name_en?: string; author_ar?: string; author_en?: string; language?: string };
 }
 
 interface ReciterOption {
@@ -165,6 +167,21 @@ function usePageVerses(pageNo: number) {
     enabled: pageNo >= 1 && pageNo <= TOTAL_PAGES,
   });
 
+  // API unreachable (paused offline, failed, or retrying): show the Arabic text
+  // bundled with the app (verbatim Tanzil) until the API answers.
+  const apiUnreachable = !query.data && pageNo >= 1 && pageNo <= TOTAL_PAGES &&
+    (query.fetchStatus === 'paused' || query.isError || query.failureCount > 0);
+  const bundle = useQuery({
+    queryKey: offlineQuranKey('page', pageNo),
+    queryFn: () => loadOfflinePage(pageNo),
+    enabled: apiUnreachable,
+    staleTime: Infinity,
+    networkMode: 'always',
+    retry: false,
+    placeholderData: undefined,
+  });
+  const fromBundle = !query.data && !!bundle.data;
+
   const prefetchAdjacent = useCallback(() => {
     if (pageNo > 1) {
       queryClient.prefetchQuery({
@@ -182,7 +199,16 @@ function usePageVerses(pageNo: number) {
     }
   }, [pageNo, queryClient]);
 
-  return { ...query, prefetchAdjacent };
+  return {
+    data: query.data ?? bundle.data,
+    fromBundle,
+    isLoading: !query.data && !fromBundle && (query.isFetching || bundle.isFetching),
+    // Nothing to show from either source: the API error, or (paused offline)
+    // the bundle's own failure.
+    error: query.data || fromBundle || bundle.isFetching ? null : query.error ?? bundle.error,
+    refetch: query.refetch,
+    prefetchAdjacent,
+  };
 }
 
 function useTafsir(
@@ -252,6 +278,8 @@ interface VersePanelProps {
   language: 'ar' | 'en';
   isPlaying: boolean;
   audioError: boolean;
+  /** Host of the recitation file loaded for this verse, for the credit line. */
+  audioSourceHost: string | null;
   onPlayAudio: () => void;
   onOpenAI: () => void;
   onClose: () => void;
@@ -263,6 +291,7 @@ const VersePanel = memo(function VersePanel({
   language,
   isPlaying,
   audioError,
+  audioSourceHost,
   onPlayAudio,
   onOpenAI,
   onClose,
@@ -312,6 +341,8 @@ const VersePanel = memo(function VersePanel({
     showTafsir,
   );
   const tafsirLang = tafsirData?.edition.language === 'en' ? 'en' : 'ar';
+  // Static metadata (registry source id, slug) for the edition the text came from.
+  const knownEdition = tafsirData ? getTafsirEdition(tafsirData.edition.id) : undefined;
   const ar = language === 'ar';
   const actionBtn = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-h-[36px]';
 
@@ -391,6 +422,7 @@ const VersePanel = memo(function VersePanel({
           {ar ? 'تعذّر تشغيل التلاوة' : 'Could not play recitation'}
         </p>
       )}
+      {isPlaying && <AudioSourceAttribution host={audioSourceHost} language={language} className="px-4 pt-2" />}
 
       {/* Selected Verse Text */}
       <div className="px-6 py-4 bg-amber-50 border-b border-amber-200">
@@ -445,7 +477,19 @@ const VersePanel = memo(function VersePanel({
                 >
                   {tafsirData.text}
                 </p>
-                <TafsirSourceFooter edition={tafsirData.edition} provider={tafsirData.source} language={language} />
+                <TafsirAttributionFooter
+                  edition={{
+                    id: tafsirData.edition.id,
+                    name_ar: tafsirData.edition.name_ar ?? knownEdition?.name_ar ?? tafsirData.edition.id,
+                    name_en: tafsirData.edition.name_en ?? knownEdition?.name_en ?? tafsirData.edition.id,
+                    author_ar: tafsirData.edition.author_ar ?? knownEdition?.author_ar ?? '',
+                    author_en: tafsirData.edition.author_en ?? knownEdition?.author_en ?? '',
+                    db_source_id: knownEdition?.db_source_id,
+                  }}
+                  source={tafsirData.source}
+                  sourceUrl={tafsirSourceUrl(tafsirData.source, verse.sura_no, verse.aya_no, knownEdition?.slug)}
+                  language={language}
+                />
               </>
             ) : (
               <p className="text-gray-500 text-center">{t('tafseer_not_found')}</p>
@@ -850,6 +894,7 @@ const AIAssistant = memo(function AIAssistant({
 
                 <div className="flex gap-2">
                   <input
+                    aria-label={t('ai_enter_word')}
                     type="text"
                     value={selectedWord}
                     onChange={(e) => setSelectedWord(e.target.value)}
@@ -889,6 +934,7 @@ const AIAssistant = memo(function AIAssistant({
               <div className="space-y-4">
                 <div className="flex gap-2">
                   <input
+                    aria-label={t('ai_ask_question')}
                     type="text"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
@@ -975,6 +1021,7 @@ export function MushafPage() {
   const [showAI, setShowAI] = useState(false);
   const [playingVerseId, setPlayingVerseId] = useState<number | null>(null);
   const [audioError, setAudioError] = useState(false);
+  const [audioSourceHost, setAudioSourceHost] = useState<string | null>(null);
   const [currentTafsirText, setCurrentTafsirText] = useState('');
   // Same-verse, same-reciter alternatives for the verse now loaded.
   const audioFallbacksRef = useRef<string[]>([]);
@@ -982,7 +1029,7 @@ export function MushafPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Data Fetching
-  const { data: verses = [], isLoading, error, prefetchAdjacent } = usePageVerses(currentPage);
+  const { data: verses = [], isLoading, error, fromBundle, prefetchAdjacent } = usePageVerses(currentPage);
 
   // Reset the selection when the language changes
   useEffect(() => {
@@ -1060,6 +1107,7 @@ export function MushafPage() {
       audioFallbacksRef.current = alternatives.filter((u, i) => !!u && u !== primary && alternatives.indexOf(u) === i);
       // Prefer the offline copy when this surah was saved for this reciter.
       audio.src = await playableUrl(selectedReciter, verse.sura_no, primary);
+      setAudioSourceHost(audioHost(primary));
       setPlayingVerseId(verse.id);
       await audio.play().catch(() => undefined);
     } catch {
@@ -1075,6 +1123,7 @@ export function MushafPage() {
     const next = audioFallbacksRef.current.shift();
     if (next) {
       audio.src = next;
+      setAudioSourceHost(audioHost(next));
       audio.play().catch(() => undefined);
       return;
     }
@@ -1362,6 +1411,19 @@ export function MushafPage() {
               </div>
             </div>
 
+            {fromBundle && (
+              <p
+                className={clsx('mx-4 mt-3 rounded-lg border border-amber-200 bg-amber-100/60 px-3 py-2 text-xs text-amber-900', language === 'ar' && 'font-arabic')}
+                dir={language === 'ar' ? 'rtl' : 'ltr'}
+                role="status"
+                data-testid="offline-quran-notice"
+              >
+                {language === 'ar'
+                  ? 'دون اتصال: النص العربي فقط (نسخة مضمّنة في التطبيق). التفسير والتلاوة تحتاج إلى اتصال.'
+                  : 'Offline: Arabic text only (copy bundled with the app). Tafsir and recitation need a connection.'}
+              </p>
+            )}
+
             {/* Mushaf Page Content - Flowing Text */}
             <div className="p-8 min-h-[70vh] mushaf-page">
               {isLoading || isPending ? (
@@ -1456,6 +1518,7 @@ export function MushafPage() {
           language={language}
           isPlaying={playingVerseId === selectedVerse.id}
           audioError={audioError}
+          audioSourceHost={audioSourceHost}
           onPlayAudio={() => playVerse(selectedVerse)}
           onOpenAI={handleOpenAI}
           onClose={() => setSelectedVerse(null)}

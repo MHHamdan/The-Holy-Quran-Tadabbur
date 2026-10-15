@@ -103,6 +103,7 @@ export function BookmarksPage() {
         <div className="relative mb-6">
           <Search className={clsx('absolute top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400', isRtl ? 'right-3' : 'left-3')} />
           <input
+            aria-label={isRtl ? 'ابحث في المحفوظات' : 'Filter bookmarks'}
             type="text"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
@@ -234,6 +235,7 @@ export function BookmarksPage() {
                     {editingNote?.id === b.id ? (
                       <div className="mt-2 pt-2 border-t border-amber-100">
                         <textarea
+                          aria-label={isRtl ? 'ملاحظتك' : 'Your note'}
                           value={editingNote.draft}
                           onChange={(e) => setEditingNote({ ...editingNote, draft: e.target.value })}
                           placeholder={isRtl ? 'أضف ملاحظتك هنا...' : 'Add your reflection here...'}

@@ -23,6 +23,8 @@ import {
 import { useLanguageStore } from '../stores/languageStore';
 import { api, quranApi, grammarApi, Verse, conceptHighlightsApi, multiConceptApi } from '../lib/api';
 import { queryKeys, staleTimes } from '../lib/queryClient';
+import { loadOfflinePage, loadOfflineSurah, offlineQuranKey } from '../lib/offlineQuran';
+import { SURAH_NAMES, SURAH_VERSE_COUNTS } from '../data/surahNames';
 import { useBookmarksStore } from '../stores/bookmarksStore';
 import {
   recordSurahVisit, recordReadingPosition, markSurahRead, getReadingProgress,
@@ -32,6 +34,7 @@ import { VerseText } from '../components/quran/WordMeaningPopover';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { ErrorPanel, parseAPIError, type APIErrorData } from '../components/common/ErrorPanel';
 import { VerseTranslations, useTranslationEditions } from '../components/quran/VerseTranslations';
+import { scrollBehavior } from '../hooks/usePrefersReducedMotion';
 import { ReaderSettingsPanel } from '../components/quran/ReaderSettingsPanel';
 import { VerseMarkers } from '../components/quran/VerseMarkers';
 import {
@@ -194,7 +197,10 @@ export function QuranPage() {
     staleTime: staleTimes.quranText,
     networkMode: 'offlineFirst',
   });
-  const suras: SuraInfo[] = metadataQuery.data?.suras ?? [];
+  // Offline with no saved metadata: the bundled surah names keep the selector usable.
+  const suras: SuraInfo[] = metadataQuery.data?.suras ?? SURAH_NAMES.map((n, i) => ({
+    sura_no: i + 1, name_ar: n.ar, name_en: n.en, total_verses: SURAH_VERSE_COUNTS[i],
+  }));
 
   const pageMode = navMode === 'page' && currentPage >= 1 && currentPage <= 604;
   const versesQuery = useQuery({
@@ -209,13 +215,29 @@ export function QuranPage() {
     networkMode: 'offlineFirst',
     placeholderData: undefined,
   });
-  const verses: Verse[] = versesQuery.data ?? [];
-  const loading = (pageMode || validSura) && (versesQuery.isPending || versesQuery.isPlaceholderData) && versesQuery.fetchStatus !== 'paused';
+  // The API could not be reached (first failure, paused offline, or error):
+  // read the Arabic text bundled with the app (verbatim Tanzil, no translations).
+  const apiUnreachable = !versesQuery.data && (pageMode || validSura) &&
+    (versesQuery.fetchStatus === 'paused' || versesQuery.isError || versesQuery.failureCount > 0);
+  const bundleQuery = useQuery({
+    queryKey: offlineQuranKey(pageMode ? 'page' : 'sura', pageMode ? currentPage : currentSura),
+    queryFn: () => (pageMode ? loadOfflinePage(currentPage) : loadOfflineSurah(currentSura)),
+    enabled: apiUnreachable,
+    staleTime: Infinity,
+    networkMode: 'always',
+    retry: false,
+    placeholderData: undefined,
+  });
+  const fromBundle = !versesQuery.data && !!bundleQuery.data;
+  const verses: Verse[] = versesQuery.data ?? bundleQuery.data ?? [];
   // No data and no connection: the request is paused (offlineFirst) or failed offline.
-  const offline = !versesQuery.data && (versesQuery.fetchStatus === 'paused' ||
+  const offline = !versesQuery.data && !fromBundle && !bundleQuery.isFetching && (versesQuery.fetchStatus === 'paused' ||
     (versesQuery.isError && typeof navigator !== 'undefined' && navigator.onLine === false));
   // Verse text comes from the backend; a failed load must not look like an empty surah.
-  const loadError: APIErrorData | null = versesQuery.isError && !versesQuery.data ? parseAPIError(versesQuery.error) : null;
+  const loadError: APIErrorData | null = versesQuery.isError && !versesQuery.data && !fromBundle && !bundleQuery.isFetching ? parseAPIError(versesQuery.error) : null;
+  // Still waiting: the API request (or its retries) or the bundled fallback is in flight.
+  const loading = (pageMode || validSura) && !versesQuery.data && !fromBundle && !offline && !loadError &&
+    (versesQuery.isPending || versesQuery.isFetching || bundleQuery.isFetching);
   const retryLoad = () => { void versesQuery.refetch(); };
 
   // In surah mode, follow the surah's first page for page navigation.
@@ -238,7 +260,7 @@ export function QuranPage() {
   useEffect(() => {
     if (highlightRef.current && !loading) {
       setTimeout(() => {
-        highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        highlightRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
       }, 100);
     }
   }, [loading, highlightAya]);
@@ -284,7 +306,7 @@ export function QuranPage() {
     const el = document.querySelector<HTMLElement>(
       `[data-verse-key="${currentSura}:${currentPlayingAya}"]`,
     );
-    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
   }, [autoScroll, currentPlayingAya, currentSura]);
 
   // Load concept highlights when concept or concepts param is present
@@ -736,7 +758,25 @@ export function QuranPage() {
         </div>
       ) : loadError ? (
         <ErrorPanel error={loadError} onRetry={retryLoad} />
-      ) : viewMode === 'mushaf' ? (
+      ) : (<>
+      {fromBundle && (
+        <div
+          className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
+          role="status"
+          data-testid="offline-quran-notice"
+        >
+          <WifiOff className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
+          <span className={clsx('flex-1', isAr && 'font-arabic')} dir={isAr ? 'rtl' : 'ltr'}>
+            {isAr
+              ? 'دون اتصال: النص العربي فقط (نسخة مضمّنة في التطبيق). الترجمات والتفسير والتلاوة تحتاج إلى اتصال.'
+              : 'Offline: Arabic text only (copy bundled with the app). Translations, tafsir and recitation need a connection.'}
+          </span>
+          <button onClick={retryLoad} className="text-xs underline flex-shrink-0">
+            {isAr ? 'حاول مجددًا' : 'Try again'}
+          </button>
+        </div>
+      )}
+      {viewMode === 'mushaf' ? (
         /* Mushaf Style View */
         <div className="reader-mushaf rounded-2xl bg-[#fefcf3] border-2 border-amber-200 shadow-lg overflow-hidden">
           {/* Decorative Header */}
@@ -1098,6 +1138,7 @@ export function QuranPage() {
           <QuranTextAttribution language={language} className="text-center pt-2" />
         </div>
       )}
+      </>)}
     </div>
   );
 }
