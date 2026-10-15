@@ -10,11 +10,25 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { quranApi, SearchHistoryEntry, SearchSuggestion, VerseRecommendation } from '../lib/api';
 
-// Generate a unique session ID
-function generateSessionId(): string {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 10);
-  return `sess_${timestamp}_${random}`;
+// The session id is the only key to a reader's server-side search history,
+// so it comes from the CSPRNG: "sess_" + a v4 UUID (the backend rejects
+// anything else).
+export const SESSION_ID_PATTERN = /^sess_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+function uuidV4(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Older WebViews without randomUUID: same format from getRandomValues
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+export function generateSessionId(): string {
+  return `sess_${uuidV4()}`;
 }
 
 interface SearchHistoryState {
@@ -171,6 +185,15 @@ export const useSearchHistoryStore = create<SearchHistoryState>()(
     }),
     {
       name: 'tadabbur-search-history',
+      // v1: ids from Math.random (v0) are replaced with CSPRNG ids
+      version: 1,
+      migrate: (persisted) => {
+        const state = (persisted ?? {}) as { sessionId?: string };
+        const sessionId = state.sessionId && SESSION_ID_PATTERN.test(state.sessionId)
+          ? state.sessionId
+          : generateSessionId();
+        return { ...state, sessionId } as SearchHistoryState;
+      },
       partialize: (state) => ({
         sessionId: state.sessionId,
         // Don't persist the cache, always fetch fresh

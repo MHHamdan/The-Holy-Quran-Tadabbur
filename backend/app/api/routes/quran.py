@@ -181,24 +181,6 @@ class TafseerChunkResponse(BaseModel):
         from_attributes = True
 
 
-class SuraMetadata(BaseModel):
-    """Sura metadata response."""
-    sura_no: int
-    name_ar: str
-    name_en: str
-    total_verses: int
-    revelation_type: Optional[str] = None
-
-
-class VerseResolveResponse(BaseModel):
-    """Response for verse text resolution."""
-    sura_no: int
-    aya_no: int
-    text_ar: str
-    confidence: float = Field(..., ge=0.0, le=1.0)
-    match_type: str  # "exact", "fuzzy", "partial"
-
-
 # =============================================================================
 # Arabic Text Normalization Utilities
 # =============================================================================
@@ -1012,12 +994,6 @@ class WordAnalyticsResponse(BaseModel):
     by_juz: dict
     top_verses: List[dict]
     co_occurring_words: List[dict]
-
-
-class GrammaticalFilterRequest(BaseModel):
-    """Request for filtering by grammatical role."""
-    role: Optional[str] = Field(None, description="Grammatical role filter (subject, object, verb, etc.)")
-    sentence_type: Optional[str] = Field(None, description="Sentence type filter (verbal, nominal, etc.)")
 
 
 class TranslationSearchHit(BaseModel):
@@ -2498,59 +2474,6 @@ async def get_connection_types():
 # =============================================================================
 
 
-class CrossStoryConnectionResponse(BaseModel):
-    """Response for cross-story connection."""
-    verse_id: int
-    sura_no: int
-    sura_name_ar: str
-    sura_name_en: str
-    aya_no: int
-    text_uthmani: str
-    reference: str
-    prophet: str
-    theme_id: str
-    theme_ar: str
-    theme_en: str
-
-
-class CrossStoryResponse(BaseModel):
-    """Response for cross-story thematic connections."""
-    prophet: str
-    prophet_themes: List[str]
-    related_prophets: List[str]
-    source_verses_count: int
-    cross_story_connections: List[CrossStoryConnectionResponse]
-    available_themes: List[Dict[str, str]]
-
-
-class NarrativeSectionResponse(BaseModel):
-    """Response for a narrative arc section."""
-    title_ar: str
-    title_en: str
-    description_ar: str
-    description_en: str
-    verses: List[Dict[str, Any]]
-
-
-class NarrativeArcResponse(BaseModel):
-    """Response for story mode narrative arc."""
-    introduction: NarrativeSectionResponse
-    development: NarrativeSectionResponse
-    climax: NarrativeSectionResponse
-    resolution: NarrativeSectionResponse
-
-
-class StoryModeResponse(BaseModel):
-    """Response for story mode."""
-    theme: str
-    theme_ar: str
-    theme_en: str
-    theme_color: str
-    total_verses: int
-    related_prophets: List[str]
-    narrative_arc: NarrativeArcResponse
-
-
 class StoryThemeResponse(BaseModel):
     """Response for an available story theme."""
     id: str
@@ -2715,6 +2638,15 @@ async def get_available_prophets():
 
 from app.services.search_history import search_history_service
 
+# Search-history / bookmark / feedback sessions are keyed only by this id, so
+# it must be unguessable: "sess_" + a UUID from crypto.randomUUID() in the
+# client (searchHistoryStore). Short or Math.random ids are rejected (422).
+SessionIdParam = Query(
+    ...,
+    pattern=r"^sess_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    description="Client session id: sess_<uuid4>",
+)
+
 
 class SearchHistoryEntryResponse(BaseModel):
     """Search history entry response."""
@@ -2764,7 +2696,7 @@ class RecordClickRequest(BaseModel):
 @router.post("/history/search")
 async def record_search(
     request: RecordSearchRequest,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Record a search query in the user's history.
@@ -2784,7 +2716,7 @@ async def record_search(
 @router.post("/history/click")
 async def record_verse_click(
     request: RecordClickRequest,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Record a verse click/view in the user's history.
@@ -2802,7 +2734,7 @@ async def record_verse_click(
 
 @router.get("/history", response_model=List[SearchHistoryEntryResponse])
 async def get_search_history(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
     limit: int = Query(20, ge=1, le=100),
     query_type: Optional[str] = Query(None),
 ):
@@ -2831,7 +2763,7 @@ async def get_search_history(
 
 @router.get("/history/suggestions", response_model=List[SearchSuggestionResponse])
 async def get_search_suggestions(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
     prefix: Optional[str] = Query(None, description="Search prefix for filtering"),
     limit: int = Query(10, ge=1, le=50),
 ):
@@ -2859,7 +2791,7 @@ async def get_search_suggestions(
 
 @router.get("/history/recommendations", response_model=List[VerseRecommendationResponse])
 async def get_personalized_recommendations(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
     limit: int = Query(10, ge=1, le=50),
     session: AsyncSession = Depends(get_async_session),
 ):
@@ -2892,7 +2824,7 @@ async def get_personalized_recommendations(
 
 @router.get("/history/interests")
 async def get_theme_interests(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Get user's theme interests based on search history.
@@ -2909,7 +2841,7 @@ async def get_theme_interests(
 
 @router.delete("/history")
 async def clear_search_history(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Clear user's search history.
@@ -2959,7 +2891,7 @@ class SimilarityFeedbackResponse(BaseModel):
 @router.post("/similarity/feedback")
 async def record_similarity_feedback(
     request: SimilarityFeedbackRequest,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Record user feedback on a similarity search result.
@@ -3022,7 +2954,7 @@ async def get_similarity_relevance_score(
 
 @router.get("/similarity/feedback/history", response_model=List[SimilarityFeedbackResponse])
 async def get_session_similarity_feedback(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
     limit: int = Query(50, ge=1, le=200),
 ):
     """
@@ -3247,18 +3179,10 @@ class BookmarkRequest(BaseModel):
     tags: Optional[List[str]] = None
 
 
-class StudyGoalRequest(BaseModel):
-    """Request to set a study goal."""
-    goal_type: str = Field(..., description="memorization, comprehension, research, or reflection")
-    themes: Optional[List[str]] = None
-    prophets: Optional[List[str]] = None
-    suras: Optional[List[int]] = None
-
-
 @router.post("/bookmarks")
 async def add_bookmark(
     request: BookmarkRequest,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """
     Add a verse bookmark.
@@ -3283,7 +3207,7 @@ async def add_bookmark(
 async def remove_bookmark(
     sura_no: int,
     aya_no: int,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """Remove a verse bookmark."""
     result = await search_history_service.remove_bookmark(
@@ -3296,7 +3220,7 @@ async def remove_bookmark(
 
 @router.get("/bookmarks")
 async def get_bookmarks(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
     collection: Optional[str] = Query(None, description="Filter by collection"),
     tags: Optional[List[str]] = Query(None, description="Filter by tags"),
 ):
@@ -3315,74 +3239,11 @@ async def get_bookmarks(
 
 @router.get("/bookmarks/collections")
 async def get_bookmark_collections(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
+    session_id: str = SessionIdParam,
 ):
     """Get user's bookmark collections with counts."""
     collections = await search_history_service.get_bookmark_collections(session_id)
     return {"collections": collections}
-
-
-@router.post("/personalization/study-goal")
-async def set_study_goal(
-    request: StudyGoalRequest,
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-):
-    """
-    Set user's study goal for personalized results.
-
-    Study goals affect how similarity results are ranked:
-    - memorization: Emphasizes lexical and root-based connections
-    - comprehension: Emphasizes thematic and conceptual connections
-    - research: Emphasizes prophetic and narrative connections
-    - reflection: Emphasizes thematic and semantic connections
-
-    Arabic: تحديد هدف الدراسة للحصول على نتائج مخصصة
-    """
-    result = await search_history_service.set_study_goal(
-        session_id=session_id,
-        goal_type=request.goal_type,
-        themes=request.themes,
-        prophets=request.prophets,
-        suras=request.suras,
-    )
-    return result
-
-
-@router.get("/personalization/study-goal")
-async def get_study_goal(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-):
-    """Get user's current study goal."""
-    goal = await search_history_service.get_study_goal(session_id)
-    return {"goal": goal}
-
-
-@router.get("/personalization/filters")
-async def get_personalized_filters(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-):
-    """
-    Get personalized search filters based on user's history and goals.
-
-    Returns suggested themes, prophets, and weight adjustments.
-
-    Arabic: الحصول على الفلاتر المخصصة بناءً على سجل المستخدم
-    """
-    filters = await search_history_service.get_personalized_filters(session_id)
-    return filters
-
-
-@router.get("/personalization/topic-clusters")
-async def get_topic_clusters(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-):
-    """
-    Get topic clusters based on user's search history.
-
-    Arabic: الحصول على مجموعات المواضيع بناءً على سجل البحث
-    """
-    clusters = await search_history_service.get_topic_clusters_summary(session_id)
-    return {"clusters": clusters}
 
 
 @router.get("/similarity/feedback/learning")
@@ -4497,22 +4358,6 @@ async def compare_tafsir_detailed(
 # =============================================================================
 
 
-@router.get("/cross-story/themes")
-async def get_all_cross_story_themes():
-    """
-    Get all cross-story themes for exploring connections across prophet narratives.
-
-    Arabic: الحصول على جميع المواضيع المشتركة عبر قصص الأنبياء
-    """
-    from app.services.cross_story_themes import cross_story_service
-
-    themes = cross_story_service.get_all_themes()
-    return {
-        "themes": themes,
-        "count": len(themes),
-    }
-
-
 @router.get("/cross-story/themes/{theme_id}")
 async def get_cross_story_theme_details(theme_id: str):
     """
@@ -5034,171 +4879,6 @@ async def get_all_tafsir_scholars():
         "classical_count": len(by_era["classical"]),
         "modern_count": len(by_era["modern"]),
         "contemporary_count": len(by_era["contemporary"]),
-    }
-
-
-# =============================================================================
-# AI-BASED PERSONALIZATION
-# =============================================================================
-
-
-@router.get("/personalization/adaptive-recommendations")
-async def get_adaptive_recommendations(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-    context: str = Query("general", description="Context: general, memorization, research, reflection"),
-    limit: int = Query(10, ge=1, le=30),
-):
-    """
-    Get AI-powered adaptive recommendations based on user behavior.
-
-    Analyzes search history, feedback, and study patterns to provide
-    personalized suggestions.
-
-    Arabic: الحصول على توصيات متكيفة بناءً على سلوك المستخدم
-    """
-    from app.services.search_history import search_history_service
-    from app.services.recommendation_engine import recommendation_engine
-
-    # Get user's history and interests
-    theme_interests = await search_history_service.get_theme_interests(session_id)
-    study_goal = await search_history_service.get_study_goal(session_id)
-    weight_adjustments = await search_history_service.get_personalized_weight_adjustments(session_id)
-
-    # Get recommendations based on context
-    if context == "memorization":
-        # Recommend verses due for review
-        from app.services.study_progress import study_progress_service
-        due_verses = await study_progress_service.get_verses_due_for_review(session_id, limit)
-        recommendations = {
-            "type": "memorization_review",
-            "items": [
-                {
-                    "verse_reference": v.verse_reference,
-                    "confidence_level": v.confidence_level,
-                    "priority": "high" if v.confidence_level < 3 else "normal",
-                }
-                for v in due_verses
-            ],
-        }
-    else:
-        # Theme-based recommendations
-        themes_explored = list(theme_interests.keys())
-        theme_recs = await recommendation_engine.get_theme_recommendations(
-            user_themes_explored=themes_explored,
-            user_prophets_studied=[],
-            study_goal=study_goal.get("goal_type", "comprehension") if study_goal else "comprehension",
-            limit=limit,
-        )
-        recommendations = {
-            "type": "thematic_exploration",
-            "items": [
-                {
-                    "theme_id": r.theme_id,
-                    "theme_name_ar": r.theme_name_ar,
-                    "theme_name_en": r.theme_name_en,
-                    "relevance_score": round(r.relevance_score, 3),
-                    "reason": r.reason,
-                }
-                for r in theme_recs
-            ],
-        }
-
-    return {
-        "session_id": session_id,
-        "context": context,
-        "user_profile": {
-            "themes_explored": len(theme_interests),
-            "top_themes": list(theme_interests.keys())[:5],
-            "study_goal": study_goal.get("goal_type") if study_goal else None,
-            "personalization_level": "high" if len(theme_interests) > 5 else "medium" if theme_interests else "low",
-        },
-        "weight_adjustments": weight_adjustments,
-        "recommendations": recommendations,
-    }
-
-
-@router.post("/personalization/learn-from-interaction")
-async def learn_from_user_interaction(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-    interaction_type: str = Query(..., description="view, search, bookmark, feedback"),
-    target_type: str = Query(..., description="verse, theme, prophet, tafsir"),
-    target_id: str = Query(..., description="ID of the target item"),
-    value: Optional[float] = Query(None, description="Interaction value (e.g., rating)"),
-):
-    """
-    Record user interaction for AI learning.
-
-    Used to improve future recommendations based on user behavior.
-
-    Arabic: تسجيل تفاعل المستخدم للتعلم الذكي
-    """
-    from app.services.search_history import search_history_service
-
-    # Record the interaction
-    interaction = {
-        "session_id": session_id,
-        "interaction_type": interaction_type,
-        "target_type": target_type,
-        "target_id": target_id,
-        "value": value,
-    }
-
-    # Update theme interests if relevant
-    if target_type == "theme":
-        await search_history_service.update_theme_interest(
-            session_id=session_id,
-            theme=target_id,
-            weight=value or 1.0,
-        )
-
-    return {
-        "status": "recorded",
-        "interaction": interaction,
-        "message": "Interaction recorded for personalization",
-    }
-
-
-@router.get("/personalization/learning-insights")
-async def get_learning_insights(
-    session_id: str = Query(..., max_length=64, description="User session ID"),
-):
-    """
-    Get insights about user's learning patterns.
-
-    Arabic: الحصول على رؤى حول أنماط تعلم المستخدم
-    """
-    from app.services.search_history import search_history_service
-    from app.services.study_progress import study_progress_service
-
-    # Get various user data
-    theme_interests = await search_history_service.get_theme_interests(session_id)
-    study_goal = await search_history_service.get_study_goal(session_id)
-    feedback_learning = await search_history_service.learn_from_feedback()
-
-    # Get study progress
-    overall_progress = await study_progress_service.get_overall_progress(session_id)
-    daily_stats = await study_progress_service.get_daily_stats(session_id, days=7)
-
-    # Analyze patterns
-    theme_focus = sorted(theme_interests.items(), key=lambda x: x[1], reverse=True)[:5]
-
-    return {
-        "session_id": session_id,
-        "learning_profile": {
-            "primary_study_goal": study_goal.get("goal_type") if study_goal else "exploration",
-            "focus_themes": [t[0] for t in theme_focus],
-            "engagement_level": "high" if len(theme_interests) > 10 else "medium" if len(theme_interests) > 3 else "developing",
-        },
-        "progress_summary": overall_progress,
-        "weekly_activity": daily_stats,
-        "ai_insights": {
-            "recommendation_quality": feedback_learning.get("relevance_rate", 0),
-            "suggested_adjustment": feedback_learning.get("recommendation", "continue_current"),
-        },
-        "suggestions": {
-            "ar": "استمر في استكشاف المواضيع ذات الصلة بأهدافك",
-            "en": "Continue exploring themes related to your goals",
-        },
     }
 
 
@@ -6163,173 +5843,6 @@ async def get_daily_limits():
 
 
 # =============================================================================
-# MULTI-SCHOOL TAFSIR COMPARISON (PHASE 5)
-# =============================================================================
-
-
-@router.get("/tafsir-schools")
-async def get_all_tafsir_schools():
-    """
-    Get all Tafsir schools with descriptions.
-
-    Returns schools like: Sunni Traditional, Linguistic, Rational, Sufi, Shia, Contemporary, etc.
-
-    Arabic: جميع مذاهب التفسير مع وصفها
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    schools = tafsir_schools_service.get_all_schools()
-
-    return {
-        "schools": schools,
-        "count": len(schools),
-        "guidance_ar": "كل مذهب له منهجه الخاص في فهم القرآن",
-        "guidance_en": "Each school has its own methodology for understanding the Quran",
-    }
-
-
-@router.get("/tafsir-schools/{school_id}/scholars")
-async def get_scholars_by_school(
-    school_id: str,
-):
-    """
-    Get scholars belonging to a specific Tafsir school.
-
-    Arabic: العلماء المنتمون لمذهب تفسيري معين
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    scholars = tafsir_schools_service.get_scholars_by_school(school_id)
-
-    if not scholars:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"School '{school_id}' not found"},
-        )
-
-    return {
-        "school_id": school_id,
-        "scholars": scholars,
-        "count": len(scholars),
-    }
-
-
-@router.get("/tafsir-schools/scholar/{scholar_id}")
-async def get_scholar_details(
-    scholar_id: str,
-):
-    """
-    Get detailed information about a Tafsir scholar.
-
-    Arabic: معلومات تفصيلية عن عالم تفسير
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    scholar = tafsir_schools_service.get_scholar_details(scholar_id)
-
-    if not scholar:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Scholar '{scholar_id}' not found"},
-        )
-
-    return scholar
-
-
-@router.get("/tafsir-schools/compare/{sura_no}/{aya_no}")
-async def compare_schools_on_verse(
-    sura_no: int,
-    aya_no: int,
-    schools: Optional[str] = Query(None, description="Comma-separated school IDs"),
-):
-    """
-    Compare interpretations from different schools on a specific verse.
-
-    Arabic: مقارنة تفاسير المذاهب المختلفة لآية معينة
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    school_list = schools.split(",") if schools else None
-
-    return tafsir_schools_service.compare_schools_on_verse(
-        sura_no=sura_no,
-        aya_no=aya_no,
-        schools=school_list,
-    )
-
-
-@router.get("/tafsir-schools/theological-topics")
-async def get_theological_topics():
-    """
-    Get all comparative theological topics where schools differ.
-
-    Examples: Divine Attributes, Free Will, Seeing Allah, Intercession
-
-    Arabic: المواضيع العقدية التي تختلف فيها المذاهب
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    topics = tafsir_schools_service.get_theological_topics()
-
-    return {
-        "topics": topics,
-        "count": len(topics),
-        "note_ar": "هذه خلافات فكرية تاريخية ضمن إطار الإسلام",
-        "note_en": "These are historical intellectual differences within Islam",
-    }
-
-
-@router.get("/tafsir-schools/theological-topics/{topic_id}")
-async def get_topic_comparison(
-    topic_id: str,
-):
-    """
-    Get detailed comparison of schools on a theological topic.
-
-    Arabic: مقارنة تفصيلية للمذاهب في موضوع عقدي
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    comparison = tafsir_schools_service.get_topic_comparison(topic_id)
-
-    if not comparison:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Topic '{topic_id}' not found"},
-        )
-
-    return comparison
-
-
-@router.get("/tafsir-schools/methodologies")
-async def get_tafsir_methodologies():
-    """
-    Get all Tafsir methodologies with descriptions.
-
-    Arabic: منهجيات التفسير مع وصفها
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    return {
-        "methodologies": tafsir_schools_service.get_methodologies(),
-    }
-
-
-@router.get("/tafsir-schools/recommend")
-async def recommend_tafsir_for_goal(
-    goal: str = Query(..., description="Study goal: beginner, linguistic, hadith, philosophical, spiritual, contemporary"),
-):
-    """
-    Recommend Tafsir sources based on study goal.
-
-    Arabic: توصية بمصادر التفسير حسب هدف الدراسة
-    """
-    from app.services.tafsir_schools import tafsir_schools_service
-
-    return tafsir_schools_service.recommend_tafsir_for_goal(goal)
-
-
-# =============================================================================
 # INTERACTIVE THEMATIC EXPLORATION (PHASE 5)
 # =============================================================================
 
@@ -7143,410 +6656,6 @@ async def invalidate_user_cache(
 
 
 # =============================================================================
-# NAMED ENTITY RECOGNITION (NER) - PHASE 7
-# =============================================================================
-
-
-class EntityResponse(BaseModel):
-    """Named entity response."""
-    text: str
-    entity_type: str
-    start_pos: int
-    end_pos: int
-    english_name: str
-    confidence: float
-    metadata: Dict[str, Any] = {}
-
-
-class EntityAnalysisResponse(BaseModel):
-    """Entity analysis response."""
-    original_text: str
-    entities: List[EntityResponse]
-    entity_counts: Dict[str, int]
-    primary_entities: List[EntityResponse]
-    context_summary: Dict[str, str]
-
-
-@router.post("/ner/analyze")
-async def analyze_text_for_entities(
-    text: str = Query(..., min_length=2, description="Arabic or English text to analyze"),
-    min_confidence: float = Query(0.5, ge=0.0, le=1.0),
-):
-    """
-    Analyze text for named entities (prophets, angels, places, events, etc.)
-
-    Features:
-    - Identifies 25+ prophets with metadata
-    - Recognizes 7 angels mentioned in Quran
-    - Detects 11+ significant places
-    - Identifies historical events
-    - Recognizes divine names
-    - Detects nations mentioned in Quran
-
-    Arabic: تحليل النص لاستخراج الكيانات المسماة (أنبياء، ملائكة، أماكن، أحداث)
-    """
-    from app.services.ner_service import ner_service
-
-    result = ner_service.extract_entities(
-        text=text,
-        min_confidence=min_confidence,
-    )
-
-    return EntityAnalysisResponse(
-        original_text=result.original_text,
-        entities=[
-            EntityResponse(
-                text=e.text,
-                entity_type=e.entity_type.value,
-                start_pos=e.start_pos,
-                end_pos=e.end_pos,
-                english_name=e.english_name,
-                confidence=e.confidence,
-                metadata=e.metadata,
-            )
-            for e in result.entities
-        ],
-        entity_counts=result.entity_counts,
-        primary_entities=[
-            EntityResponse(
-                text=e.text,
-                entity_type=e.entity_type.value,
-                start_pos=e.start_pos,
-                end_pos=e.end_pos,
-                english_name=e.english_name,
-                confidence=e.confidence,
-                metadata=e.metadata,
-            )
-            for e in result.primary_entities
-        ],
-        context_summary=result.context_summary,
-    )
-
-
-@router.get("/ner/entity/{entity_name}")
-async def get_entity_details(
-    entity_name: str,
-    entity_type: Optional[str] = Query(None, description="Type: prophet, place, nation, angel"),
-):
-    """
-    Get detailed information about a specific entity.
-
-    Arabic: الحصول على معلومات تفصيلية عن كيان محدد
-    """
-    from app.services.ner_service import ner_service
-
-    details = ner_service.get_entity_details(
-        entity_name=entity_name,
-        entity_type=entity_type,
-    )
-
-    if not details:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Entity '{entity_name}' not found"},
-        )
-
-    return details
-
-
-@router.get("/ner/prophets")
-async def get_all_prophets():
-    """
-    Get list of all prophets mentioned in the Quran.
-
-    Returns 25 prophets with:
-    - Arabic and English names
-    - Number of mentions in Quran
-    - Key suras where they appear
-    - Descriptions
-
-    Arabic: قائمة جميع الأنبياء المذكورين في القرآن
-    """
-    from app.services.ner_service import ner_service
-
-    prophets = ner_service.get_all_prophets()
-
-    # Sort by mentions (most mentioned first)
-    prophets_sorted = sorted(prophets, key=lambda p: p["mentions"], reverse=True)
-
-    return {
-        "prophets": prophets_sorted,
-        "count": len(prophets_sorted),
-        "most_mentioned": prophets_sorted[0] if prophets_sorted else None,
-        "guidance_ar": "الأنبياء قدوة للبشرية",
-        "guidance_en": "The prophets are exemplars for humanity",
-    }
-
-
-@router.get("/ner/places")
-async def get_all_places():
-    """
-    Get list of all places mentioned in the Quran.
-
-    Returns places with:
-    - Arabic and English names
-    - Type (city, mountain, region, etc.)
-    - Significance
-    - Key suras
-
-    Arabic: قائمة جميع الأماكن المذكورة في القرآن
-    """
-    from app.services.ner_service import ner_service
-
-    places = ner_service.get_all_places()
-
-    return {
-        "places": places,
-        "count": len(places),
-        "note_ar": "الأماكن القرآنية لها دلالات تاريخية ودينية",
-        "note_en": "Quranic places have historical and religious significance",
-    }
-
-
-@router.get("/ner/events")
-async def get_all_events():
-    """
-    Get list of all historical events mentioned in the Quran.
-
-    Returns events with:
-    - Arabic and English names
-    - Associated prophet
-    - Type (miracle, battle, divine punishment, etc.)
-    - Key suras
-
-    Arabic: قائمة جميع الأحداث التاريخية المذكورة في القرآن
-    """
-    from app.services.ner_service import ner_service
-
-    events = ner_service.get_all_events()
-
-    return {
-        "events": events,
-        "count": len(events),
-        "note_ar": "القصص القرآني عبرة للعالمين",
-        "note_en": "Quranic stories are lessons for all of humanity",
-    }
-
-
-@router.get("/ner/stats")
-async def get_ner_statistics():
-    """
-    Get statistics about all named entities in the database.
-
-    Arabic: إحصائيات الكيانات المسماة في قاعدة البيانات
-    """
-    from app.services.ner_service import ner_service
-
-    return ner_service.get_entity_stats()
-
-
-@router.get("/ner/types")
-async def get_entity_types():
-    """
-    Get all available entity types for NER.
-
-    Arabic: أنواع الكيانات المتاحة للتعرف
-    """
-    from app.services.ner_service import EntityType
-
-    return {
-        "entity_types": [
-            {"id": e.value, "description_ar": desc_ar, "description_en": desc_en}
-            for e, desc_ar, desc_en in [
-                (EntityType.PROPHET, "نبي أو رسول", "Prophet or messenger"),
-                (EntityType.ANGEL, "ملاك", "Angel"),
-                (EntityType.HISTORICAL_FIGURE, "شخصية تاريخية", "Historical figure"),
-                (EntityType.PLACE, "مكان", "Place"),
-                (EntityType.EVENT, "حدث تاريخي", "Historical event"),
-                (EntityType.DIVINE_NAME, "اسم من أسماء الله", "Divine name"),
-                (EntityType.DIVINE_ATTRIBUTE, "صفة إلهية", "Divine attribute"),
-                (EntityType.RELIGIOUS_CONCEPT, "مفهوم ديني", "Religious concept"),
-                (EntityType.NATION, "أمة أو قوم", "Nation or people"),
-                (EntityType.BOOK, "كتاب سماوي", "Divine book"),
-                (EntityType.TIME_PERIOD, "فترة زمنية", "Time period"),
-            ]
-        ],
-        "count": 11,
-    }
-
-
-@router.get("/ner/analyze-verse/{sura_no}/{aya_no}")
-async def analyze_verse_entities(
-    sura_no: int,
-    aya_no: int,
-    session: AsyncSession = Depends(get_async_session),
-):
-    """
-    Analyze a specific verse for named entities.
-
-    Arabic: تحليل آية معينة لاستخراج الكيانات المسماة
-    """
-    from app.services.ner_service import ner_service
-    from app.models.quran import QuranVerse
-
-    # Get verse
-    result = await session.execute(
-        select(QuranVerse).where(
-            QuranVerse.sura_no == sura_no,
-            QuranVerse.aya_no == aya_no,
-        )
-    )
-    verse = result.scalar_one_or_none()
-
-    if not verse:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Verse {sura_no}:{aya_no} not found"},
-        )
-
-    # Analyze verse text
-    analysis = ner_service.extract_entities(verse.text_uthmani)
-
-    return {
-        "verse_reference": f"{sura_no}:{aya_no}",
-        "verse_text": verse.text_uthmani,
-        "entities": [
-            {
-                "text": e.text,
-                "type": e.entity_type.value,
-                "english_name": e.english_name,
-                "confidence": e.confidence,
-            }
-            for e in analysis.entities
-        ],
-        "entity_counts": analysis.entity_counts,
-        "context_summary": analysis.context_summary,
-    }
-
-
-@router.get("/ner/search-by-entity")
-async def search_by_entity(
-    entity_name: str = Query(..., description="Entity name in Arabic or English"),
-    entity_type: Optional[str] = Query(None, description="Type: prophet, place, event, nation"),
-    session: AsyncSession = Depends(get_async_session),
-):
-    """
-    Search verses containing a specific entity.
-
-    Arabic: البحث عن الآيات التي تحتوي على كيان معين
-    """
-    from app.services.ner_service import ner_service
-    from app.models.quran import QuranVerse
-
-    # Get entity details to find aliases
-    entity_details = ner_service.get_entity_details(entity_name, entity_type)
-
-    if not entity_details:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Entity '{entity_name}' not found"},
-        )
-
-    # Build search terms
-    search_terms = [entity_details.get("name_ar", entity_name)]
-    if "aliases" in entity_details:
-        search_terms.extend(entity_details["aliases"])
-
-    # Search in key suras first
-    key_suras = entity_details.get("key_suras", [])
-
-    matching_verses = []
-
-    if key_suras:
-        # Batch all suras in one query instead of one query per sura
-        batch_result = await session.execute(
-            select(QuranVerse).where(QuranVerse.sura_no.in_(key_suras[:5]))
-        )
-        for verse in batch_result.scalars().all():
-            for term in search_terms:
-                if term in verse.text_uthmani:
-                    matching_verses.append({
-                        "sura_no": verse.sura_no,
-                        "aya_no": verse.aya_no,
-                        "reference": f"{verse.sura_no}:{verse.aya_no}",
-                        "text_uthmani": verse.text_uthmani,
-                        "matched_term": term,
-                    })
-                    break
-
-    return {
-        "entity": entity_details,
-        "search_terms": search_terms,
-        "verses": matching_verses[:30],  # Limit results
-        "count": len(matching_verses),
-    }
-
-
-@router.get("/ner/entity-connections/{entity_name}")
-async def get_entity_connections(
-    entity_name: str,
-    entity_type: Optional[str] = Query(None),
-):
-    """
-    Get connections between an entity and other entities.
-
-    Arabic: الحصول على روابط بين كيان وكيانات أخرى
-    """
-    from app.services.ner_service import ner_service, PROPHETS, NATIONS, EVENTS
-
-    # Get entity details
-    entity = ner_service.get_entity_details(entity_name, entity_type)
-
-    if not entity:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Entity '{entity_name}' not found"},
-        )
-
-    connections = {
-        "related_prophets": [],
-        "related_places": [],
-        "related_events": [],
-        "related_nations": [],
-    }
-
-    entity_ar = entity.get("name_ar", entity_name)
-
-    # Find related events
-    for event_ar, event_data in EVENTS.items():
-        if event_data.get("prophet") == entity_ar:
-            connections["related_events"].append({
-                "name_ar": event_ar,
-                "name_en": event_data["en"],
-                "type": event_data["type"],
-            })
-
-    # Find related nations
-    for nation_ar, nation_data in NATIONS.items():
-        if nation_data.get("prophet") == entity_ar:
-            connections["related_nations"].append({
-                "name_ar": nation_ar,
-                "name_en": nation_data["en"],
-                "fate_en": nation_data["fate_en"],
-            })
-
-    # Find prophets with shared suras
-    if entity.get("type") == "prophet" and "key_suras" in entity:
-        entity_suras = set(entity["key_suras"])
-        for prophet_ar, prophet_data in PROPHETS.items():
-            if prophet_ar != entity_ar:
-                prophet_suras = set(prophet_data.get("key_suras", []))
-                shared = entity_suras.intersection(prophet_suras)
-                if len(shared) >= 2:
-                    connections["related_prophets"].append({
-                        "name_ar": prophet_ar,
-                        "name_en": prophet_data["en"],
-                        "shared_suras": list(shared)[:5],
-                    })
-
-    return {
-        "entity": entity,
-        "connections": connections,
-        "total_connections": sum(len(v) for v in connections.values()),
-    }
-
-
-# =============================================================================
 # CROSS-SURA NARRATIVE ARC EXPLORATION (PHASE 7)
 # =============================================================================
 
@@ -7807,607 +6916,6 @@ async def get_narrative_statistics():
 
 
 # =============================================================================
-# CROSS-DISCIPLINARY KNOWLEDGE INTEGRATION (PHASE 7)
-# =============================================================================
-
-
-@router.get("/cross-discipline/verse/{sura_no}/{aya_no}")
-async def get_verse_cross_references(
-    sura_no: int,
-    aya_no: int,
-):
-    """
-    Get cross-disciplinary references for a verse (Fiqh, Hadith, Sira).
-
-    Arabic: المراجع متعددة التخصصات لآية
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    verse_ref = f"{sura_no}:{aya_no}"
-    return cross_disciplinary_service.get_verse_cross_references(verse_ref)
-
-
-@router.get("/cross-discipline/fiqh")
-async def get_all_fiqh_rulings(
-    category: Optional[str] = Query(None, description="Filter by category: worship, dress, transactions, family"),
-):
-    """
-    Get all Fiqh rulings.
-
-    Categories: worship, dress, transactions, family
-
-    Arabic: جميع الأحكام الفقهية
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    rulings = cross_disciplinary_service.get_all_fiqh_rulings(category=category)
-
-    return {
-        "fiqh_rulings": rulings,
-        "count": len(rulings),
-        "filter": category,
-    }
-
-
-@router.get("/cross-discipline/fiqh/{ruling_id}")
-async def get_fiqh_ruling_details(
-    ruling_id: str,
-):
-    """
-    Get detailed Fiqh ruling with evidence and school positions.
-
-    Arabic: تفاصيل الحكم الفقهي مع الأدلة ومواقف المذاهب
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    ruling = cross_disciplinary_service.get_fiqh_ruling(ruling_id)
-
-    if not ruling:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Fiqh ruling '{ruling_id}' not found"},
-        )
-
-    return ruling
-
-
-@router.get("/cross-discipline/fiqh/categories")
-async def get_fiqh_categories():
-    """
-    Get all Fiqh categories.
-
-    Arabic: فئات الفقه
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    categories = cross_disciplinary_service.get_fiqh_categories()
-
-    return {
-        "categories": categories,
-        "count": len(categories),
-    }
-
-
-@router.get("/cross-discipline/hadith")
-async def get_all_hadith(
-    grade: Optional[str] = Query(None, description="Filter by grade: sahih, hasan, daif, mutawatir"),
-    theme: Optional[str] = Query(None, description="Filter by theme"),
-):
-    """
-    Get all Hadith references.
-
-    Arabic: جميع الأحاديث
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    hadith = cross_disciplinary_service.get_all_hadith(grade=grade, theme=theme)
-
-    return {
-        "hadith": hadith,
-        "count": len(hadith),
-        "filters": {"grade": grade, "theme": theme},
-    }
-
-
-@router.get("/cross-discipline/hadith/{hadith_id}")
-async def get_hadith_details(
-    hadith_id: str,
-):
-    """
-    Get detailed Hadith information.
-
-    Arabic: تفاصيل الحديث
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    hadith = cross_disciplinary_service.get_hadith_details(hadith_id)
-
-    if not hadith:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Hadith '{hadith_id}' not found"},
-        )
-
-    return hadith
-
-
-@router.get("/cross-discipline/hadith/themes")
-async def get_hadith_themes():
-    """
-    Get all Hadith themes.
-
-    Arabic: مواضيع الأحاديث
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    themes = cross_disciplinary_service.get_hadith_themes()
-
-    return {
-        "themes": themes,
-        "count": len(themes),
-    }
-
-
-@router.get("/cross-discipline/sira")
-async def get_all_sira_events(
-    era: Optional[str] = Query(None, description="Filter by era: pre_prophethood, meccan, medinan, final_years"),
-):
-    """
-    Get all Sira (Prophetic Biography) events.
-
-    Arabic: جميع أحداث السيرة النبوية
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    events = cross_disciplinary_service.get_all_sira_events(era=era)
-
-    return {
-        "sira_events": events,
-        "count": len(events),
-        "filter": era,
-    }
-
-
-@router.get("/cross-discipline/sira/timeline")
-async def get_sira_timeline():
-    """
-    Get Sira events as a chronological timeline.
-
-    Arabic: السيرة النبوية كجدول زمني
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    timeline = cross_disciplinary_service.get_sira_timeline()
-
-    return {
-        "timeline": timeline,
-        "count": len(timeline),
-        "guidance_ar": "السيرة النبوية منهج حياة",
-        "guidance_en": "The Prophetic biography is a way of life",
-    }
-
-
-@router.get("/cross-discipline/sira/{event_id}")
-async def get_sira_event_details(
-    event_id: str,
-):
-    """
-    Get detailed Sira event information.
-
-    Arabic: تفاصيل حدث من السيرة
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    event = cross_disciplinary_service.get_sira_event(event_id)
-
-    if not event:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Sira event '{event_id}' not found"},
-        )
-
-    return event
-
-
-@router.get("/cross-discipline/sira/eras")
-async def get_sira_eras():
-    """
-    Get all Sira eras with descriptions.
-
-    Arabic: حقب السيرة النبوية
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    return {
-        "eras": cross_disciplinary_service.get_sira_eras(),
-    }
-
-
-@router.get("/cross-discipline/search")
-async def search_cross_discipline(
-    topic: str = Query(..., description="Topic to search across all disciplines"),
-):
-    """
-    Search across Fiqh, Hadith, and Sira by topic.
-
-    Arabic: البحث عبر الفقه والحديث والسيرة
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    return cross_disciplinary_service.search_by_topic(topic)
-
-
-@router.get("/cross-discipline/stats")
-async def get_cross_discipline_statistics():
-    """
-    Get statistics about cross-disciplinary data.
-
-    Arabic: إحصائيات البيانات متعددة التخصصات
-    """
-    from app.services.cross_disciplinary_service import cross_disciplinary_service
-
-    return cross_disciplinary_service.get_statistics()
-
-
-# =============================================================================
-# CROWDSOURCED ANNOTATION SYSTEM (PHASE 7)
-# =============================================================================
-
-
-# =============================================================================
-# ENTITY RELATIONSHIPS (PHASE 8)
-# =============================================================================
-
-
-@router.get("/ner/relationships/{entity_name}")
-async def get_entity_relationships(
-    entity_name: str,
-):
-    """
-    Get all relationships for an entity (family, parallels, place connections).
-
-    Arabic: جميع العلاقات لكيان (أسرة، تجارب متوازية، روابط مكانية)
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    return entity_relationship_service.get_entity_relationships(entity_name)
-
-
-@router.get("/ner/parallel-experiences/{prophet_name}")
-async def get_parallel_experiences(
-    prophet_name: str,
-):
-    """
-    Get prophets with parallel experiences to the given prophet.
-
-    Arabic: الأنبياء ذوو التجارب المتوازية مع النبي المحدد
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    parallels = entity_relationship_service.get_parallel_experiences(prophet_name)
-
-    return {
-        "prophet": prophet_name,
-        "parallel_experiences": parallels,
-        "count": len(parallels),
-    }
-
-
-@router.get("/ner/thematic-parallels")
-async def get_thematic_parallels(
-    theme: Optional[str] = Query(None, description="Filter by theme"),
-):
-    """
-    Get thematic parallels between prophets.
-
-    Arabic: التوازيات الموضوعية بين الأنبياء
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    parallels = entity_relationship_service.get_thematic_parallels(theme)
-
-    return {
-        "thematic_parallels": parallels,
-        "count": len(parallels),
-        "filter": theme,
-    }
-
-
-@router.get("/ner/prophets-by-theme/{theme_id}")
-async def get_prophets_by_thematic_parallel(
-    theme_id: str,
-):
-    """
-    Get prophets associated with a thematic parallel (e.g., patience_under_trial).
-
-    Arabic: الأنبياء المرتبطون بموضوع معين
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    result = entity_relationship_service.get_prophets_by_theme(theme_id)
-
-    if not result:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Theme '{theme_id}' not found"},
-        )
-
-    return result
-
-
-@router.get("/ner/relationship-graph")
-async def get_entity_relationship_graph():
-    """
-    Get data for visualizing entity relationships as an interactive graph.
-
-    Arabic: بيانات لتصور علاقات الكيانات كرسم بياني تفاعلي
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    return entity_relationship_service.get_relationship_graph()
-
-
-@router.get("/ner/connection-path")
-async def find_entity_connection_path(
-    entity1: str = Query(..., description="First entity name (Arabic)"),
-    entity2: str = Query(..., description="Second entity name (Arabic)"),
-    max_depth: int = Query(3, ge=1, le=5),
-):
-    """
-    Find connection path between two entities using graph traversal.
-
-    Arabic: إيجاد مسار الاتصال بين كيانين
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    return entity_relationship_service.find_connection_path(
-        entity1=entity1,
-        entity2=entity2,
-        max_depth=max_depth,
-    )
-
-
-@router.get("/ner/relationship-stats")
-async def get_entity_relationship_statistics():
-    """
-    Get statistics about entity relationships.
-
-    Arabic: إحصائيات علاقات الكيانات
-    """
-    from app.services.ner_service import entity_relationship_service
-
-    return entity_relationship_service.get_relationship_statistics()
-
-
-# =============================================================================
-# MULTI-DISCIPLINARY LEARNING PATHS (PHASE 8)
-# =============================================================================
-
-
-@router.get("/learning-paths")
-async def get_all_learning_paths(
-    category: Optional[str] = Query(None, description="Filter by category: foundational, thematic, prophet_study, jurisprudence, spirituality, research"),
-    difficulty: Optional[str] = Query(None, description="Filter by difficulty: beginner, intermediate, advanced, scholar"),
-):
-    """
-    Get all available multi-disciplinary learning paths.
-
-    These paths guide users through cross-disciplinary exploration
-    integrating Fiqh, Hadith, Tafsir, Sira, and thematic studies.
-
-    Arabic: الحصول على جميع مسارات التعلم متعددة التخصصات
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    paths = learning_path_service.get_all_paths(
-        category=category,
-        difficulty=difficulty,
-    )
-
-    return {
-        "paths": paths,
-        "count": len(paths),
-        "filter": {
-            "category": category,
-            "difficulty": difficulty,
-        },
-    }
-
-
-@router.get("/learning-paths/categories")
-async def get_learning_path_categories():
-    """
-    Get all available learning path categories.
-
-    Arabic: أقسام مسارات التعلم المتاحة
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    return {
-        "categories": learning_path_service.get_path_categories(),
-    }
-
-
-@router.get("/learning-paths/difficulties")
-async def get_learning_path_difficulties():
-    """
-    Get all difficulty levels with descriptions.
-
-    Arabic: مستويات الصعوبة مع الوصف
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    return {
-        "difficulty_levels": learning_path_service.get_difficulty_levels(),
-    }
-
-
-@router.get("/learning-paths/stats")
-async def get_learning_paths_statistics():
-    """
-    Get statistics about the learning path system.
-
-    Arabic: إحصائيات نظام مسارات التعلم
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    return learning_path_service.get_statistics()
-
-
-@router.get("/learning-paths/{path_id}")
-async def get_learning_path_details(
-    path_id: str,
-):
-    """
-    Get detailed information about a specific learning path.
-
-    Returns modules, lessons, duration, and learning outcomes.
-
-    Arabic: معلومات تفصيلية عن مسار تعلم محدد
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    path = learning_path_service.get_path_details(path_id)
-
-    if not path:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": f"Learning path '{path_id}' not found"},
-        )
-
-    return path
-
-
-@router.get("/learning-paths/{path_id}/modules/{module_id}/lessons/{lesson_id}")
-async def get_lesson_content(
-    path_id: str,
-    module_id: str,
-    lesson_id: str,
-):
-    """
-    Get detailed content for a specific lesson.
-
-    Returns lesson content, objectives, and resources.
-
-    Arabic: محتوى الدرس التفصيلي
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    lesson = learning_path_service.get_lesson_content(
-        path_id=path_id,
-        module_id=module_id,
-        lesson_id=lesson_id,
-    )
-
-    if not lesson:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": "Lesson not found"},
-        )
-
-    return lesson
-
-
-@router.post("/learning-paths/{path_id}/enroll")
-async def enroll_in_learning_path(
-    path_id: str,
-    user_id: str = Query(..., description="User ID"),
-):
-    """
-    Enroll a user in a learning path.
-
-    Arabic: تسجيل المستخدم في مسار تعلم
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    result = learning_path_service.enroll_in_path(
-        user_id=user_id,
-        path_id=path_id,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.post("/learning-paths/{path_id}/lessons/{lesson_id}/complete")
-async def complete_lesson(
-    path_id: str,
-    lesson_id: str,
-    user_id: str = Query(..., description="User ID"),
-):
-    """
-    Mark a lesson as complete.
-
-    Arabic: تحديد الدرس كمكتمل
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    result = learning_path_service.complete_lesson(
-        user_id=user_id,
-        path_id=path_id,
-        lesson_id=lesson_id,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/learning-paths/user/{user_id}/progress")
-async def get_user_learning_progress(
-    user_id: str,
-    path_id: Optional[str] = Query(None, description="Filter by specific path"),
-):
-    """
-    Get user's progress in learning paths.
-
-    Arabic: تقدم المستخدم في مسارات التعلم
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    progress = learning_path_service.get_user_progress(
-        user_id=user_id,
-        path_id=path_id,
-    )
-
-    if "error" in progress:
-        raise HTTPException(status_code=404, detail=progress)
-
-    return progress
-
-
-@router.get("/learning-paths/user/{user_id}/recommendations")
-async def get_recommended_learning_paths(
-    user_id: str,
-    interests: Optional[List[str]] = Query(None, description="User interests (e.g., patience, prophets, fiqh)"),
-    difficulty: Optional[str] = Query(None, description="Preferred difficulty level"),
-):
-    """
-    Get personalized learning path recommendations.
-
-    Arabic: توصيات مسارات التعلم المخصصة
-    """
-    from app.services.learning_path_service import learning_path_service
-
-    recommendations = learning_path_service.get_recommended_paths(
-        user_id=user_id,
-        interests=interests,
-        difficulty=difficulty,
-    )
-
-    return {
-        "user_id": user_id,
-        "recommendations": recommendations,
-        "count": len(recommendations),
-        "message_ar": "مسارات موصى بها بناءً على اهتماماتك",
-        "message_en": "Recommended paths based on your interests",
-    }
-
-
-# =============================================================================
 # CROSS-STORY SEARCH (PHASE 8)
 # =============================================================================
 
@@ -8570,11 +7078,6 @@ async def get_multi_story_journey_status(
     from app.services.narrative_arc_service import cross_story_search_service
 
     return cross_story_search_service.get_user_journey_status(user_id)
-
-
-# =============================================================================
-# EXPERT ANNOTATION SYSTEM (PHASE 8)
-# =============================================================================
 
 
 # =============================================================================
@@ -8946,174 +7449,6 @@ async def get_semantic_search_statistics():
 
 
 # =============================================================================
-# PERSONALIZATION (PHASE 9)
-# =============================================================================
-
-
-@router.post("/personalization/profile/create")
-async def create_user_profile(
-    user_id: str = Query(..., description="User ID"),
-    preferred_language: str = Query("en", description="Preferred language: en, ar"),
-    initial_level: str = Query("beginner", description="Level: beginner, intermediate, advanced"),
-    daily_goal_minutes: int = Query(15, ge=5, le=120),
-):
-    """
-    Create a new user profile for personalization.
-
-    Arabic: إنشاء ملف شخصي جديد للمستخدم للتخصيص
-    """
-    from app.services.personalization_service import personalization_service
-
-    result = personalization_service.create_user_profile(
-        user_id=user_id,
-        preferred_language=preferred_language,
-        initial_level=initial_level,
-        daily_goal_minutes=daily_goal_minutes,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/personalization/profile/{user_id}")
-async def get_personalization_profile(
-    user_id: str,
-):
-    """
-    Get user's personalization profile.
-
-    Arabic: الحصول على ملف التخصيص للمستخدم
-    """
-    from app.services.personalization_service import personalization_service
-
-    profile = personalization_service.get_user_profile(user_id)
-
-    if not profile:
-        raise HTTPException(
-            status_code=404,
-            detail={"error": "User not found"},
-        )
-
-    return profile
-
-
-class InteractionRequest(BaseModel):
-    content_type: str
-    content_id: str
-    metadata: Optional[Dict[str, Any]] = None
-    duration_seconds: int = 0
-
-
-@router.post("/personalization/record-interaction")
-async def record_user_interaction(
-    user_id: str = Query(..., description="User ID"),
-    interaction_type: str = Query(..., description="Type: search, view, save, complete_lesson, annotation"),
-    request: InteractionRequest = None,
-):
-    """
-    Record a user interaction for learning preferences.
-
-    Arabic: تسجيل تفاعل المستخدم لتعلم التفضيلات
-    """
-    from app.services.personalization_service import personalization_service
-
-    result = personalization_service.record_interaction(
-        user_id=user_id,
-        interaction_type=interaction_type,
-        content_type=request.content_type,
-        content_id=request.content_id,
-        metadata=request.metadata,
-        duration_seconds=request.duration_seconds,
-    )
-
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
-
-
-@router.get("/personalization/recommendations/{user_id}")
-async def get_personalized_recommendations(
-    user_id: str,
-    content_types: Optional[List[str]] = Query(None, description="Filter by content types"),
-    limit: int = Query(10, ge=1, le=50),
-):
-    """
-    Get personalized content recommendations.
-
-    Arabic: الحصول على توصيات محتوى مخصصة
-    """
-    from app.services.personalization_service import personalization_service
-
-    return personalization_service.get_recommendations(
-        user_id=user_id,
-        content_types=content_types,
-        limit=limit,
-    )
-
-
-@router.get("/personalization/daily/{user_id}")
-async def get_daily_recommendations(
-    user_id: str,
-):
-    """
-    Get daily personalized recommendations.
-
-    Arabic: الحصول على التوصيات اليومية المخصصة
-    """
-    from app.services.personalization_service import personalization_service
-
-    return personalization_service.get_daily_recommendations(user_id)
-
-
-@router.get("/personalization/insights/{user_id}")
-async def get_study_insights(
-    user_id: str,
-):
-    """
-    Get study insights and analytics for user.
-
-    Arabic: الحصول على رؤى وتحليلات الدراسة للمستخدم
-    """
-    from app.services.personalization_service import personalization_service
-
-    result = personalization_service.get_study_insights(user_id)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result)
-
-    return result
-
-
-@router.get("/personalization/next-study/{user_id}")
-async def suggest_next_study(
-    user_id: str,
-):
-    """
-    Suggest what to study next based on user's journey.
-
-    Arabic: اقتراح ما يجب دراسته بعد ذلك بناءً على رحلة المستخدم
-    """
-    from app.services.personalization_service import personalization_service
-
-    return personalization_service.suggest_next_study(user_id)
-
-
-@router.get("/personalization/stats")
-async def get_personalization_statistics():
-    """
-    Get personalization service statistics.
-
-    Arabic: إحصائيات خدمة التخصيص
-    """
-    from app.services.personalization_service import personalization_service
-
-    return personalization_service.get_statistics()
-
-
-# =============================================================================
 # ADAPTIVE QUIZ SYSTEM (PHASE 9)
 # =============================================================================
 
@@ -9321,20 +7656,6 @@ async def get_scholars_by_school(school_id: str):
     }
 
 
-@router.get("/tafsir/methodologies")
-async def get_tafsir_methodologies():
-    """
-    Get all tafsir methodologies (bil-mathur, bil-ray, ishari, etc.).
-
-    Arabic: الحصول على جميع مناهج التفسير
-    """
-    from app.services.tafsir_service import tafsir_service
-
-    return {
-        "methodologies": tafsir_service.get_methodologies(),
-    }
-
-
 @router.get("/tafsir/methodologies/{methodology_id}/scholars")
 async def get_scholars_by_methodology(methodology_id: str):
     """
@@ -9349,20 +7670,6 @@ async def get_scholars_by_methodology(methodology_id: str):
         "methodology": methodology_id,
         "scholars": scholars,
         "total": len(scholars),
-    }
-
-
-@router.get("/tafsir/eras")
-async def get_tafsir_eras():
-    """
-    Get all historical eras of tafsir scholarship.
-
-    Arabic: الحصول على جميع العصور التاريخية لعلم التفسير
-    """
-    from app.services.tafsir_service import tafsir_service
-
-    return {
-        "eras": tafsir_service.get_eras(),
     }
 
 
@@ -10167,255 +8474,6 @@ async def get_learning_statistics():
 
 
 # =============================================================================
-# Enhanced Knowledge Graph with Entity Relationships and BFS Pathfinding
-# الرسم البياني المعرفي المحسّن مع علاقات الكيانات والبحث بالعرض أولاً
-# =============================================================================
-
-
-@router.get("/enhanced-kg/entities")
-async def get_all_kg_entities(
-    entity_type: Optional[str] = Query(None, description="Filter by type: prophet, companion, place, divine_name, concept, event"),
-):
-    """
-    Get all entities in the enhanced knowledge graph.
-
-    Includes prophets, companions, places, divine names, concepts, and events.
-
-    Arabic: الحصول على جميع الكيانات في الرسم البياني المعرفي
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    if entity_type:
-        entities = enhanced_knowledge_graph_service.get_entities_by_type(entity_type)
-    else:
-        stats = enhanced_knowledge_graph_service.get_statistics()
-        entities = []
-        for etype in stats["entity_types"]:
-            entities.extend(enhanced_knowledge_graph_service.get_entities_by_type(etype))
-
-    return {
-        "entities": entities,
-        "total": len(entities),
-        "filter": entity_type,
-    }
-
-
-@router.get("/enhanced-kg/entities/{entity_id}")
-async def get_kg_entity(entity_id: str):
-    """
-    Get detailed information about a specific entity with all relationships.
-
-    Arabic: الحصول على معلومات تفصيلية عن كيان معين مع جميع العلاقات
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    entity = enhanced_knowledge_graph_service.get_entity(entity_id)
-    if not entity:
-        raise HTTPException(status_code=404, detail=f"Entity '{entity_id}' not found")
-
-    return entity
-
-
-@router.get("/enhanced-kg/entities/by-theme/{theme}")
-async def get_entities_by_theme(theme: str):
-    """
-    Get all entities related to a specific theme.
-
-    Themes include: mercy, patience, justice, guidance, sacrifice, monotheism, etc.
-
-    Arabic: الحصول على جميع الكيانات المتعلقة بموضوع معين
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    entities = enhanced_knowledge_graph_service.get_entities_by_theme(theme)
-
-    return {
-        "theme": theme,
-        "entities": entities,
-        "total": len(entities),
-    }
-
-
-@router.get("/enhanced-kg/explore/{entity_id}")
-async def explore_from_entity(
-    entity_id: str,
-    depth: int = Query(2, ge=1, le=4, description="Exploration depth"),
-):
-    """
-    Explore the knowledge graph from a starting entity.
-
-    Returns nodes and edges within the specified depth for visualization.
-
-    Arabic: استكشاف الرسم البياني المعرفي من كيان بداية
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    result = enhanced_knowledge_graph_service.explore_from_entity(entity_id, depth)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-
-    return result
-
-
-@router.get("/enhanced-kg/path")
-async def find_path_between_entities(
-    source: str = Query(..., description="Source entity ID (e.g., 'ibrahim')"),
-    target: str = Query(..., description="Target entity ID (e.g., 'muhammad')"),
-    max_depth: int = Query(10, ge=1, le=15, description="Maximum search depth"),
-):
-    """
-    Find the shortest path between two entities using BFS.
-
-    Useful for discovering connections between prophets, places, concepts, etc.
-
-    Arabic: إيجاد أقصر مسار بين كيانين باستخدام البحث بالعرض أولاً
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    result = enhanced_knowledge_graph_service.find_path_bfs(source, target, max_depth)
-
-    if not result:
-        return {
-            "path_found": False,
-            "source": source,
-            "target": target,
-            "message_ar": f"لم يتم العثور على مسار بين {source} و {target}",
-            "message_en": f"No path found between {source} and {target} within depth {max_depth}",
-        }
-
-    return {
-        "path_found": True,
-        **result,
-    }
-
-
-@router.get("/enhanced-kg/all-paths")
-async def find_all_paths_between_entities(
-    source: str = Query(..., description="Source entity ID"),
-    target: str = Query(..., description="Target entity ID"),
-    max_depth: int = Query(5, ge=1, le=7, description="Maximum search depth"),
-):
-    """
-    Find all possible paths between two entities (up to max_depth).
-
-    Returns multiple paths with different relationship chains.
-
-    Arabic: إيجاد جميع المسارات الممكنة بين كيانين
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    paths = enhanced_knowledge_graph_service.find_all_paths(source, target, max_depth)
-
-    return {
-        "source": source,
-        "target": target,
-        "paths": paths,
-        "total_paths": len(paths),
-        "message_ar": "جميع المسارات المتاحة" if paths else "لم يتم العثور على مسارات",
-        "message_en": "All available paths" if paths else "No paths found",
-    }
-
-
-@router.get("/enhanced-kg/prophet-lineage/{prophet_id}")
-async def get_prophet_lineage(prophet_id: str):
-    """
-    Get the lineage (ancestors and descendants) of a prophet.
-
-    Arabic: الحصول على نسب النبي (الأسلاف والأحفاد)
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    result = enhanced_knowledge_graph_service.get_prophet_lineage(prophet_id)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-
-    return result
-
-
-@router.get("/enhanced-kg/thematic-journey/{theme}")
-async def get_thematic_journey(theme: str):
-    """
-    Create a thematic journey through related entities.
-
-    Connects entities that share the specified theme (e.g., patience, mercy, trust).
-
-    Arabic: إنشاء رحلة موضوعية عبر الكيانات ذات الصلة
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    result = enhanced_knowledge_graph_service.get_thematic_journey(theme)
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-
-    return result
-
-
-@router.get("/enhanced-kg/visualization")
-async def get_kg_visualization_data():
-    """
-    Get complete graph data formatted for visualization.
-
-    Returns all nodes and edges with labels and types for rendering an interactive graph.
-
-    Arabic: الحصول على بيانات الرسم البياني الكاملة للتصور
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    return enhanced_knowledge_graph_service.get_graph_visualization_data()
-
-
-@router.get("/enhanced-kg/entity-types")
-async def get_kg_entity_types():
-    """
-    Get all available entity types in the knowledge graph.
-
-    Arabic: الحصول على جميع أنواع الكيانات المتاحة
-    """
-    from app.services.enhanced_knowledge_graph_service import EntityType
-
-    return {
-        "entity_types": [
-            {"id": t.value, "name_en": t.name.replace("_", " ").title()}
-            for t in EntityType
-        ],
-        "total": len(EntityType),
-    }
-
-
-@router.get("/enhanced-kg/relationship-types")
-async def get_kg_relationship_types():
-    """
-    Get all available relationship types in the knowledge graph.
-
-    Arabic: الحصول على جميع أنواع العلاقات المتاحة
-    """
-    from app.services.enhanced_knowledge_graph_service import RelationshipType
-
-    return {
-        "relationship_types": [
-            {"id": t.value, "name_en": t.name.replace("_", " ").title()}
-            for t in RelationshipType
-        ],
-        "total": len(RelationshipType),
-    }
-
-
-@router.get("/enhanced-kg/stats")
-async def get_enhanced_kg_statistics():
-    """
-    Get enhanced knowledge graph statistics.
-
-    Arabic: إحصائيات الرسم البياني المعرفي المحسّن
-    """
-    from app.services.enhanced_knowledge_graph_service import enhanced_knowledge_graph_service
-
-    return enhanced_knowledge_graph_service.get_statistics()
-
-
-# =============================================================================
 # Grounded Ask Feature - Deterministic Answers from Four Sunni Schools
 # ميزة الإجابة المسندة - إجابات محددة من المذاهب السنية الأربعة
 # =============================================================================
@@ -10630,53 +8688,6 @@ async def get_available_ask_themes():
     return {
         "themes": grounded_ask_service.get_all_themes(),
         "total": len(grounded_ask_service.get_all_themes()),
-    }
-
-
-@router.get("/ask/madhabs")
-async def get_supported_madhabs():
-    """
-    Get information about the four supported Sunni madhabs.
-
-    Arabic: الحصول على معلومات عن المذاهب السنية الأربعة المدعومة
-    """
-    return {
-        "madhabs": [
-            {
-                "id": "hanafi",
-                "name_ar": "الحنفي",
-                "name_en": "Hanafi",
-                "founder_ar": "أبو حنيفة النعمان",
-                "founder_en": "Abu Hanifa",
-                "key_texts": ["Al-Hidaya", "Radd al-Muhtar"],
-            },
-            {
-                "id": "maliki",
-                "name_ar": "المالكي",
-                "name_en": "Maliki",
-                "founder_ar": "مالك بن أنس",
-                "founder_en": "Malik ibn Anas",
-                "key_texts": ["Al-Muwatta", "Al-Mudawwana"],
-            },
-            {
-                "id": "shafii",
-                "name_ar": "الشافعي",
-                "name_en": "Shafi'i",
-                "founder_ar": "محمد بن إدريس الشافعي",
-                "founder_en": "Muhammad ibn Idris al-Shafi'i",
-                "key_texts": ["Al-Umm", "Al-Risala"],
-            },
-            {
-                "id": "hanbali",
-                "name_ar": "الحنبلي",
-                "name_en": "Hanbali",
-                "founder_ar": "أحمد بن حنبل",
-                "founder_en": "Ahmad ibn Hanbal",
-                "key_texts": ["Al-Mughni", "Musnad Ahmad"],
-            },
-        ],
-        "note_ar": "المذاهب الأربعة كلها على الحق ومعتبرة",
-        "note_en": "All four madhabs are valid and respected",
     }
 
 
