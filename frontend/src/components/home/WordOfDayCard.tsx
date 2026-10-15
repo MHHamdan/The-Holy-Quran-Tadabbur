@@ -92,7 +92,7 @@ export function WordOfDayCard() {
         <button
           onClick={() => setShowHint(v => !v)}
           className={clsx(
-            'flex items-center gap-1.5 text-xs text-amber-700 hover:text-amber-900 transition-colors w-full',
+            'flex min-h-11 items-center gap-1.5 text-xs text-amber-700 hover:text-amber-900 transition-colors w-full',
             isRtl && 'flex-row-reverse'
           )}
         >

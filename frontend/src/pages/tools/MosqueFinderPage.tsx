@@ -276,7 +276,7 @@ export function MosqueFinderPage() {
       <div className="mb-6">
         <Link
           to="/tools"
-          className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-4"
+          className="inline-flex min-h-11 items-center gap-2 text-primary-600 hover:text-primary-700 mb-2"
         >
           <ArrowLeft className={clsx('w-4 h-4', isArabic && 'rotate-180')} />
           {isArabic ? 'العودة للأدوات' : 'Back to Tools'}
@@ -391,7 +391,7 @@ export function MosqueFinderPage() {
               key={type.id}
               onClick={() => setSelectedType(type.id)}
               className={clsx(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2',
+                'min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2',
                 selectedType === type.id
                   ? 'bg-teal-700 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -413,7 +413,7 @@ export function MosqueFinderPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label={isArabic ? 'ابحث عن مكان' : 'Search places'}
               placeholder={isArabic ? 'ابحث عن مكان...' : 'Search places...'}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              className="w-full min-h-11 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -422,7 +422,7 @@ export function MosqueFinderPage() {
               value={radius}
               aria-label={isArabic ? 'نطاق البحث' : 'Search radius'}
               onChange={(e) => setRadius(Number(e.target.value))}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              className="min-h-11 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             >
               {RADIUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>

@@ -153,8 +153,9 @@ export function VerseOfDayCard({ compact = false }: Props) {
         </div>
         <button
           onClick={rotate}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-white/60 transition-colors"
+          className="tap shrink-0 rounded-lg text-gray-500 hover:text-emerald-600 hover:bg-white/60 transition-colors"
           title={isRtl ? 'آية أخرى' : 'Another verse'}
+          aria-label={isRtl ? 'آية أخرى' : 'Another verse'}
         >
           <RefreshCw className="w-3.5 h-3.5" />
         </button>
@@ -209,7 +210,7 @@ export function VerseOfDayCard({ compact = false }: Props) {
         <Link
           to={`/quran/${ref[0]}`}
           className={clsx(
-            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium',
+            'inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium',
             'bg-emerald-600 text-white hover:bg-emerald-700 transition-colors',
             isRtl && 'flex-row-reverse font-arabic',
           )}
@@ -220,7 +221,7 @@ export function VerseOfDayCard({ compact = false }: Props) {
         <Link
           to={`/ask`}
           className={clsx(
-            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium',
+            'inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium',
             'bg-white/70 text-emerald-700 border border-emerald-200 hover:bg-white transition-colors',
             isRtl && 'flex-row-reverse font-arabic',
           )}
@@ -233,7 +234,7 @@ export function VerseOfDayCard({ compact = false }: Props) {
             <button
               onClick={toggleBookmark}
               className={clsx(
-                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                'inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
                 bookmarked
                   ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
                   : 'bg-white/70 text-gray-600 border border-gray-200 hover:bg-white',
@@ -247,7 +248,7 @@ export function VerseOfDayCard({ compact = false }: Props) {
             <button
               onClick={shareVerse}
               className={clsx(
-                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium',
+                'inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium',
                 'bg-white/70 text-gray-600 border border-gray-200 hover:bg-white transition-colors',
                 isRtl && 'font-arabic',
               )}
