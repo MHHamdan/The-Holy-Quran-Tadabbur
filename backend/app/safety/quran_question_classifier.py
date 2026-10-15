@@ -187,6 +187,25 @@ _FATWA_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     r"جائزة|مكروه|مكروهة|واجب|واجبة|فرض)(?![ء-ي])",
     r"هل\s+(يصح|تصح|تجوز|يجب|تجب|يلزم|تلزم|يحل|تحل|يحرم|تحرم|يأثم|تأثم|أأثم)\b",
     r"(ما|وما)\s+(حكم|الحكم في|الحكم الشرعي)(?![ء-ي])",
+    # Validity of the asker's own worship or contract: "Is my prayer valid if…",
+    # "Is our marriage still valid…"
+    r"\b(is|are|was|were|will)\s+(my|our|his|her|their)\b[^?.!]{0,50}?\b(valid|invalid|void|"
+    r"nullified|broken|accepted|sound|binding)\b",
+    r"\bdoes\s+(my|our|the|a|his|her)\s+[^?.!]{0,40}?\b(break|invalidate|nullify|void)\b"
+    r"[^?.!]{0,30}\b(prayer|fast|fasting|wudu|ablution|ghusl|marriage|nikah)\b",
+    # Takfir questions: "Is someone who abandons prayer a kafir?"
+    r"\b(is|are|am|was|were)\s+(i|he|she|they|someone|anyone|a person|a muslim|people|those|the one|"
+    r"one|whoever)\b[^?]{0,60}?\b(kafirs?|kaafirs?|kuffar|disbelievers?|apostates?|murtads?|"
+    r"out of (the fold of )?islam)\b",
+    # Amounts owed: "How much zakat do I have to pay?"
+    r"\bhow much\s+(zakat|zakah|zakaat|fidya|fidyah|kaffara|kaffarah|expiation)\b",
+    r"\bhow much\s+(do|should|must)\s+i\s+(pay|give)\b",
+    # Arabic: "هل يقع الطلاق…", "هل تبطل الصلاة…", "هل تارك الصلاة كافر؟", "كم يجب علي…"
+    r"هل\s+(يقع|تقع|وقع|يبطل|تبطل|يفسد|تفسد|ينقض|تنقض|ينتقض|تنتقض|يكفر|أكفر|يخرج)(?![ء-ي])",
+    r"هل\s[^؟?]{0,50}?(?<![ء-ي])(كافر|كافرة|كفار|مرتد|مرتدة|مشرك|مشركة)(?![ء-ي])"
+    r"(?![^؟?]{0,30}(في القرآن|في الآية|في السورة|في قصة))",
+    r"(?<![ء-ي])كم\s+(يجب|يلزم|يتوجب|يتعين)\s+(علي|عليّ|علينا|عليه|عليها|عليك)(?![ء-ي])",
+    r"(?<![ء-ي])كم\s+(زكاة|الزكاة|نصاب|فدية|الفدية|كفارة|الكفارة)(?![ء-ي])",
 ))
 
 # Prompt-injection and "compose Qur'an" requests — refused before generation.
@@ -204,6 +223,27 @@ _INJECTION_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     r"(ألف|ألّف|أنشئ|اخترع)\s+(لي\s+)?(آية|آيات|سورة)",
     r"(آية|سورة)\s+جديدة",
     r"أكمل\s+(الآية|السورة)",
+    # Role-play: "Pretend you are a mufti…", "Act as a scholar and…"
+    r"\bpretend\s+(that\s+)?(you|to\s+be)\b",
+    r"\b(act|behave|respond|answer|speak|reply)\s+(as|like)\s+(if\s+you\s+(were|are)|a|an|the)\s+"
+    r"(mufti|scholar|sheikh|shaykh|imam|faqih|mujtahid|qadi|judge|unrestricted|different|another)\b",
+    r"\brole[\s-]?play\b",
+    # "Answer from your own knowledge", "skip the sources", "without citations"
+    r"\b(from|using|use|with|on)\s+(only\s+)?your\s+own\s+(knowledge|opinion|view|understanding)\b",
+    r"\bwithout\s+(any\s+|the\s+|using\s+)?(sources|citations|references|evidence)\b",
+    r"\b(skip|ignore|disregard|forget|drop|bypass)\s+(all\s+|the\s+|any\s+|your\s+)?(sources|citations|"
+    r"references|rules|guidelines|instructions|restrictions)\b",
+    r"\b(the\s+)?sources\s+(don'?t|do not|doesn'?t)\s+matter\b",
+    r"\bdeveloper\s+mode\b",
+    # Markup that impersonates prompt structure: "</question><system>…"
+    r"<\s*/?\s*(system|assistant|user|question|source|instructions?|conversation_history|im_start|im_end)\b[^>]*>",
+    r"<\|[^|>]{0,40}\|>",
+    # Arabic: "تصرف كأنك مفتٍ", "أجب من معرفتك الخاصة", "دون مصادر", "لا تلتزم بالمصادر"
+    r"(تصرف|تصرّف|تظاهر|تقمص|تقمّص)\s+(ك|وك)?(أنك|انك|كأنك|كانك|بأنك|بانك|على\s+أنك|دور)",
+    r"(اعتبر|تخيل|تخيّل)\s+(أنك|انك|نفسك)",
+    r"(من|على|حسب|بحسب)\s+(معرفتك|علمك|رأيك|فهمك)(\s+الخاص(ة)?)?(?![ء-ي])",
+    r"(دون|بدون|بلا|من\s+غير)\s+(أي\s+)?(ال)?(مصادر|مراجع|استشهاد|استشهادات|توثيق|أدلة)(?![ء-ي])",
+    r"(لا|ولا)\s+(تلتزم|تتقيد|تتقيّد|تهتم)\s+(بال|ب)?(مصادر|قواعد|تعليمات|مراجع)",
 ))
 
 # 2. Scientific miracle claims
