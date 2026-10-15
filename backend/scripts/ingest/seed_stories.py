@@ -324,6 +324,11 @@ def seed_cross_story_connections(session: Session, connections: list) -> int:
     """Seed cross-story connections from manifest."""
     count = 0
     for conn_data in connections:
+        # Connections flagged needs_review (cited verses do not clearly
+        # support the claim) are not published until a scholar reviews them.
+        if conn_data.get("needs_review"):
+            print(f"  Skipping connection {conn_data.get('id', 'unknown')} - needs_review")
+            continue
         explanation = conn_data.get("explanation", {})
 
         # Calculate strength based on connection type
@@ -451,6 +456,16 @@ def main():
                 session, manifest.get("inter_story_connections", [])
             )
             print(f"  Seeded {cross_conn_count} cross-story connections")
+
+            # Map the manifest's legacy tafsir citations (ibn_kathir:S:A-B)
+            # to real tafseer_chunks ids.
+            import importlib.util
+            _spec = importlib.util.spec_from_file_location(
+                "resolve_story_evidence", SCRIPT_DIR / "resolve_story_evidence.py"
+            )
+            _resolver = importlib.util.module_from_spec(_spec)
+            _spec.loader.exec_module(_resolver)
+            _resolver.resolve()
 
             # Audit log
             AuditLog.log(

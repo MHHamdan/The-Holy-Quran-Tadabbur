@@ -13433,6 +13433,8 @@
     },
     {
       "id": "conn_ibrahim_ismail_sacrifice",
+      "needs_review": true,
+      "review_note": "Hidden pending scholar review: the cited verses do not clearly support the stated link.",
       "source_story_id": "story_ibrahim",
       "target_story_id": "story_musa",
       "connection_type": "thematic",
@@ -13465,6 +13467,8 @@
     },
     {
       "id": "conn_musa_sabbath",
+      "needs_review": true,
+      "review_note": "Hidden pending scholar review: the cited verses do not clearly support the stated link.",
       "source_story_id": "story_musa",
       "target_story_id": "story_sabbath_breakers",
       "connection_type": "thematic",
@@ -13657,6 +13661,8 @@
     },
     {
       "id": "conn_luqman_ibrahim",
+      "needs_review": true,
+      "review_note": "Hidden pending scholar review: the cited verses do not clearly support the stated link.",
       "source_story_id": "story_luqman",
       "target_story_id": "story_ibrahim",
       "connection_type": "thematic",
@@ -13705,6 +13711,8 @@
     },
     {
       "id": "conn_nuh_ibrahim_destruction",
+      "needs_review": true,
+      "review_note": "Hidden pending scholar review: the cited verses do not clearly support the stated link.",
       "source_story_id": "story_nuh",
       "target_story_id": "story_ibrahim",
       "connection_type": "thematic",
@@ -13721,6 +13729,8 @@
     },
     {
       "id": "conn_isa_muhammad_lineage",
+      "needs_review": true,
+      "review_note": "Hidden pending scholar review: the cited verses do not clearly support the stated link.",
       "source_story_id": "story_isa",
       "target_story_id": "story_ibrahim",
       "connection_type": "thematic",

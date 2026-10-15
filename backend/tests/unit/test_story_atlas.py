@@ -247,14 +247,36 @@ class TestPlaceTimeBasis:
     """Test that place/time basis rules are enforced."""
 
     def test_era_basis_is_valid(self, db_session):
-        """Era basis must be explicit, inferred, or unknown."""
-        valid_bases = ['explicit', 'inferred', 'unknown']
+        """Era basis must be explicit, inferred, tradition, or unknown.
+
+        'tradition' was added for dates known from sira/history but not stated
+        in the Quran (Badr 2 AH, Uhud 3 AH, ...), which were wrongly 'explicit'.
+        """
         result = db_session.execute(text("""
             SELECT id, era_basis FROM story_clusters
-            WHERE era_basis IS NOT NULL AND era_basis NOT IN ('explicit', 'inferred', 'unknown')
+            WHERE era_basis IS NOT NULL
+              AND era_basis NOT IN ('explicit', 'inferred', 'tradition', 'unknown')
         """))
         invalid = result.fetchall()
         assert len(invalid) == 0, f"Invalid era_basis values: {invalid}"
+
+    def test_sira_dates_are_not_explicit(self, db_session):
+        """Dates not stated in the Quran must not claim era_basis 'explicit'."""
+        result = db_session.execute(text("""
+            SELECT id FROM story_clusters
+            WHERE id IN ('cluster_badr', 'cluster_uhud_hypocrites', 'cluster_fath_mecca',
+                         'cluster_hudaybiyyah', 'cluster_ifk', 'cluster_elephant', 'cluster_isra_miraj')
+              AND era_basis = 'explicit'
+        """))
+        assert result.fetchall() == []
+
+    def test_seed_marks_sira_dates_as_tradition(self):
+        """The seed source itself (not just the DB) carries era_basis 'tradition'."""
+        from pathlib import Path
+        src = (Path(__file__).resolve().parents[2] / "scripts" / "ingest" / "seed_story_atlas.py").read_text(encoding="utf-8")
+        badr = src[src.index('"id": "cluster_badr"'):]
+        badr = badr[: badr.index('"era_basis"') + 40]
+        assert '"era_basis": "tradition"' in badr
 
     def test_places_have_basis(self, db_session):
         """Each place must have a basis (explicit, inferred, or unknown)."""
@@ -391,6 +413,50 @@ class TestNarrativeRoles:
         """))
         count = result.scalar()
         assert count >= 5, f"Expected >= 5 outcome events, got {count}"
+
+
+class TestNoMisattributedSnippets:
+    """Event evidence must not carry 'snippet' text attributed to a tafsir.
+
+    The 62 seeded snippets were paraphrased ayah translations labelled as
+    Ibn Kathir; none occurred in the cited tafseer_chunks row.
+    """
+
+    def test_seed_has_no_snippets(self):
+        from pathlib import Path
+        src = (Path(__file__).resolve().parents[2] / "scripts" / "ingest" / "seed_story_atlas.py").read_text(encoding="utf-8")
+        assert '"snippet":' not in src
+
+    def test_db_events_have_no_snippets(self, db_session):
+        n = db_session.execute(text(
+            "SELECT count(*) FROM story_events WHERE evidence::text LIKE '%snippet%'"
+        )).scalar()
+        assert n == 0
+
+
+class TestEmptyClustersHidden:
+    """Clusters with no events are not listed, not linked, and 404 on detail."""
+
+    @pytest.mark.asyncio(loop_scope="session")
+    async def test_api_hides_empty_clusters(self, db_session):
+        from httpx import ASGITransport, AsyncClient
+        from app.main import app
+
+        empty = {r[0] for r in db_session.execute(text("""
+            SELECT c.id FROM story_clusters c
+            WHERE NOT EXISTS (SELECT 1 FROM story_events e WHERE e.cluster_id = c.id)
+        """)).fetchall()}
+        if not empty:
+            pytest.skip("no empty clusters in this DB")
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            listed = (await ac.get("/api/v1/story-atlas?limit=100")).json()
+            status = (await ac.get(f"/api/v1/story-atlas/{sorted(empty)[0]}")).status_code
+
+        ids = {c["id"] for c in listed["clusters"]}
+        assert ids.isdisjoint(empty)
+        assert listed["total"] == len(listed["clusters"])
+        assert status == 404
 
 
 class TestEntryPoints:

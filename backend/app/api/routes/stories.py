@@ -6,8 +6,12 @@ Enhanced API with:
 - Timeline endpoint for step-by-step learning
 - Cross-story connections for thematic exploration
 """
+import json
+import re
 from collections import defaultdict
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from functools import lru_cache
+from pathlib import Path
+from typing import Dict, FrozenSet, Iterable, List, Optional, Set, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field
@@ -17,6 +21,7 @@ from sqlalchemy.orm import selectinload
 
 from app.db.database import get_async_session
 from app.models.story import Story, StorySegment, StoryConnection, CrossStoryConnection, Theme
+from app.models.tafseer import TafseerChunk, TafseerSource
 from app.services.story_graph import StoryGraphService
 from app.services.similarity import SimilarityService
 
@@ -80,7 +85,126 @@ def _resolve_total_verses(stored: Optional[int], derived: Optional[int]) -> int:
     return stored or 0
 
 
+# ---------------------------------------------------------------------------
+# Manifest-backed review flags for cross-story connections
+#
+# Some inter-story connections in data/manifests/stories.json cite verses that
+# do not clearly support the stated link (e.g. a lineage or destruction claim).
+# They carry "needs_review": true and are hidden from the public API until a
+# scholar reviews them — even if an older seed already wrote them to the DB.
+# ---------------------------------------------------------------------------
+
+_MANIFEST_CANDIDATES = (
+    Path("/app/data/manifests/stories.json"),
+    Path(__file__).resolve().parents[4] / "data" / "manifests" / "stories.json",
+)
+
+# Fallback when the manifest is not shipped with the API image.
+_KNOWN_NEEDS_REVIEW: Tuple[Tuple[str, str, str, bool], ...] = (
+    ("story_ibrahim", "story_musa", "thematic", False),           # conn_ibrahim_ismail_sacrifice
+    ("story_musa", "story_sabbath_breakers", "thematic", False),  # conn_musa_sabbath
+    ("story_luqman", "story_ibrahim", "thematic", True),          # conn_luqman_ibrahim
+    ("story_nuh", "story_ibrahim", "thematic", True),             # conn_nuh_ibrahim_destruction
+    ("story_isa", "story_ibrahim", "thematic", False),            # conn_isa_muhammad_lineage
+)
+
+
+@lru_cache(maxsize=1)
+def _manifest_connection_index() -> Tuple[FrozenSet[Tuple[str, str, str]], Dict[Tuple[str, str, str], Tuple[str, ...]]]:
+    """(hidden (src, tgt, type) keys, (src, tgt, type) -> verse refs "S:A-B")."""
+    hidden: Set[Tuple[str, str, str]] = set()
+    refs: Dict[Tuple[str, str, str], Tuple[str, ...]] = {}
+    manifest = None
+    for path in _MANIFEST_CANDIDATES:
+        if path.exists():
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            break
+    if manifest is None:
+        for src, tgt, ctype, bidi in _KNOWN_NEEDS_REVIEW:
+            hidden.add((src, tgt, ctype))
+            if bidi:
+                hidden.add((tgt, src, ctype))
+        return frozenset(hidden), refs
+    for conn in manifest.get("inter_story_connections", []):
+        key = (conn["source_story_id"], conn["target_story_id"], conn.get("connection_type", "thematic"))
+        keys = [key, (key[1], key[0], key[2])] if conn.get("bidirectional") else [key]
+        verse_refs: List[str] = []
+        for ev in conn.get("evidence_chunk_ids") or []:
+            m = re.match(r"^[a-z_]+:(\d{1,3}:\d{1,3}(?:-\d{1,3})?)$", ev or "")
+            if m and m.group(1) not in verse_refs:
+                verse_refs.append(m.group(1))
+        for k in keys:
+            refs[k] = tuple(verse_refs)
+            if conn.get("needs_review"):
+                hidden.add(k)
+    return frozenset(hidden), refs
+
+
+async def _segment_evidence(
+    session: AsyncSession, segments: Iterable[StorySegment]
+) -> Dict[str, List["SegmentEvidence"]]:
+    """segment id -> resolved tafsir evidence (enabled sources only), one batched query."""
+    by_segment = {s.id: list(s.evidence_chunk_ids or []) for s in segments}
+    all_ids = sorted({cid for ids in by_segment.values() for cid in ids})
+    if not all_ids:
+        return {}
+    rows = (
+        await session.execute(
+            select(
+                TafseerChunk.chunk_id,
+                TafseerChunk.source_id,
+                TafseerChunk.sura_no,
+                TafseerChunk.aya_start,
+                TafseerChunk.aya_end,
+                TafseerSource.name_ar,
+                TafseerSource.name_en,
+                TafseerSource.author_ar,
+                TafseerSource.author_en,
+            )
+            .join(TafseerSource, TafseerSource.id == TafseerChunk.source_id)
+            .where(TafseerChunk.chunk_id.in_(all_ids))
+            .where(TafseerSource.is_enabled == 1)
+        )
+    ).all()
+    info = {r.chunk_id: r for r in rows}
+    out: Dict[str, List[SegmentEvidence]] = {}
+    for seg_id, ids in by_segment.items():
+        items = []
+        for cid in ids:
+            r = info.get(cid)
+            if r is None:
+                continue
+            items.append(
+                SegmentEvidence(
+                    chunk_id=r.chunk_id,
+                    source_id=r.source_id,
+                    title=r.name_en,
+                    title_ar=r.name_ar,
+                    author=r.author_en,
+                    author_ar=r.author_ar,
+                    sura_no=r.sura_no,
+                    aya_start=r.aya_start,
+                    aya_end=r.aya_end,
+                )
+            )
+        out[seg_id] = items
+    return out
+
+
 # Pydantic schemas
+class SegmentEvidence(BaseModel):
+    """A tafsir chunk cited as evidence for a segment (never the chunk text)."""
+    chunk_id: str
+    source_id: str
+    title: Optional[str] = None
+    title_ar: Optional[str] = None
+    author: Optional[str] = None
+    author_ar: Optional[str] = None
+    sura_no: int
+    aya_start: int
+    aya_end: int
+
+
 class SegmentResponse(BaseModel):
     """Story segment response."""
     id: str
@@ -99,6 +223,7 @@ class SegmentResponse(BaseModel):
     summary_en: Optional[str] = None
     semantic_tags: Optional[List[str]] = None
     is_entry_point: bool = False
+    evidence: List[SegmentEvidence] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
@@ -210,8 +335,15 @@ class CrossStoryConnectionResponse(BaseModel):
     label_en: Optional[str] = None
     label_ar: Optional[str] = None
     explanation_en: Optional[str] = None
+    explanation_ar: Optional[str] = None
     shared_themes: Optional[List[str]] = None
     shared_figures: Optional[List[str]] = None
+    evidence_chunk_ids: List[str] = Field(default_factory=list)
+    # Verse references ("S:A-B") the connection cites, for display as links.
+    verse_refs: List[str] = Field(default_factory=list)
+    # Connections are app-authored analytical links, not tafsir.
+    provenance: str = "analytical"
+    review_status: str = "needs_review"
 
     class Config:
         from_attributes = True
@@ -323,10 +455,13 @@ async def get_story(
 
     # Sort segments by narrative order
     if story.segments:
-        response.segments = sorted(
-            [SegmentResponse.model_validate(s) for s in story.segments],
-            key=lambda x: x.narrative_order,
-        )
+        evidence = await _segment_evidence(session, story.segments)
+        segs = []
+        for s in story.segments:
+            seg = SegmentResponse.model_validate(s)
+            seg.evidence = evidence.get(s.id, [])
+            segs.append(seg)
+        response.segments = sorted(segs, key=lambda x: x.narrative_order)
 
     if include_segments:
         # Segments are already loaded — count without a second round trip.
@@ -468,13 +603,19 @@ async def get_story_timeline(
 @router.get("/{story_id}/cross-connections", response_model=List[CrossStoryConnectionResponse])
 async def get_cross_story_connections(
     story_id: str,
+    include_needs_review: bool = Query(
+        False,
+        description="Include connections hidden pending scholar review (admin/review use only)",
+    ),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
     Get connections between this story and other stories.
 
     Returns thematic links, shared figures, and narrative parallels
-    for exploration across the Quranic story corpus.
+    for exploration across the Quranic story corpus. These are analytical
+    links (not tafsir); connections flagged needs_review in the manifest are
+    excluded by default.
     """
     result = await session.execute(
         select(CrossStoryConnection).where(
@@ -484,7 +625,17 @@ async def get_cross_story_connections(
     )
     connections = result.scalars().all()
 
-    return [CrossStoryConnectionResponse.model_validate(c) for c in connections]
+    hidden, verse_refs = _manifest_connection_index()
+    out = []
+    for c in connections:
+        key = (c.source_story_id, c.target_story_id, c.connection_type)
+        if key in hidden and not include_needs_review:
+            continue
+        payload = CrossStoryConnectionResponse.model_validate(c)
+        payload.evidence_chunk_ids = list(c.evidence_chunk_ids or [])
+        payload.verse_refs = list(verse_refs.get(key, ()))
+        out.append(payload)
+    return out
 
 
 @router.get("/{story_id}/similar", response_model=List[SimilarStoryResponse])
