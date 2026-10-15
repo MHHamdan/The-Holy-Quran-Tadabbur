@@ -138,6 +138,32 @@ def main() -> int:
         check(page.locator("button.fab-offset").count() == 0, "no floating feedback button on /mushaf")
         page.context.close()
 
+        # 4b. The tab bar never covers a page's bottom panel: tap a verse on
+        #     /mushaf and the verse/tafsir panel, not the nav, owns the bottom edge.
+        page = new_page(browser, "ar", 390)
+        page.goto(BASE + "/mushaf", wait_until="networkidle")
+        page.wait_for_selector(".ksu-verse", timeout=15000)
+        verses = page.locator(".ksu-verse")
+        verses.nth(1 if verses.count() > 1 else 0).click()
+        page.wait_for_timeout(500)
+        hit = page.evaluate(
+            """() => {
+              const nav = document.querySelector('nav.fixed');
+              const navTop = nav ? nav.getBoundingClientRect().top : innerHeight;
+              const out = [];
+              for (const y of [innerHeight - 4, Math.round((navTop + innerHeight) / 2)]) {
+                const el = document.elementFromPoint(innerWidth / 2, y);
+                let panel = el;
+                while (panel && getComputedStyle(panel).position !== 'fixed') panel = panel.parentElement;
+                out.push({ inNav: !!(el && el.closest('nav.fixed')), inPanel: !!panel && panel !== nav && !(nav && nav.contains(panel)) });
+              }
+              return out;
+            }"""
+        )
+        check(all(h["inPanel"] and not h["inNav"] for h in hit),
+              f"[ar 390] /mushaf verse panel covers the tab bar at the bottom edge ({hit})")
+        page.context.close()
+
         # 5. Uthmani font: Scheherazade New wins in the Arabic UI, self-hosted
         page = new_page(browser, "ar", 390)
         page.goto(BASE + "/", wait_until="networkidle")

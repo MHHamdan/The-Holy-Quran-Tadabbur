@@ -10,7 +10,9 @@ export function tabTarget(id: TabId, to: string | null, active: TabId | null): s
   return to;
 }
 
-/** Five-tab bar fixed to the bottom of the screen on phones (hidden from md up). */
+/** Five-tab bar fixed to the bottom of the screen on phones (hidden from md up).
+ *  z-40 on purpose: page-level bottom panels and sheets (z-50, e.g. the Mushaf
+ *  verse/tafsir panel) must cover it, and dialogs (z-[60]) sit above both. */
 export function BottomNav({
   language,
   active,
@@ -33,7 +35,7 @@ export function BottomNav({
   return (
     <nav
       aria-label={t('nav_primary_label', language)}
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white safe-area-bottom md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white safe-area-bottom md:hidden"
     >
       <ul className="mx-auto grid max-w-lg grid-cols-5">
         {TABS.map((tab) => {
