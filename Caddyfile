@@ -1,0 +1,12 @@
+# TLS terminator for docker-compose.prod.yml (profile "tls").
+#
+#   PUBLIC_DOMAIN=tadabbur.example.org docker compose -f docker-compose.prod.yml --profile tls up -d
+#
+# Caddy obtains and renews the certificate automatically (ports 80 and 443
+# must reach this host) and redirects HTTP to HTTPS. It overwrites
+# X-Forwarded-For with the real client address; nginx in the web container
+# trusts that header only from this container (172.28.0.10).
+{$PUBLIC_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy web:8080
+}
