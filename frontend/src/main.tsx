@@ -11,7 +11,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClient } from './lib/queryClient'
+import { queryClient, restorePersistedQueries, startQueryPersistence } from './lib/queryClient'
 import App from './App'
 import './styles/globals.css'
 
@@ -30,12 +30,22 @@ window.addEventListener('vite:preloadError', (event) => {
   window.location.reload()
 })
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </QueryClientProvider>
-  </React.StrictMode>,
-)
+const root = ReactDOM.createRoot(document.getElementById('root')!)
+
+// Restore the offline Qur'an cache (IndexedDB) before the first render, so a
+// reader opened without a connection finds its text; never wait more than 1.5 s.
+void Promise.race([
+  restorePersistedQueries().catch(() => 0),
+  new Promise((resolve) => setTimeout(resolve, 1500)),
+]).finally(() => {
+  startQueryPersistence()
+  root.render(
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </React.StrictMode>,
+  )
+})

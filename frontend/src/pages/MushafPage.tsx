@@ -1019,6 +1019,16 @@ export function MushafPage() {
   useEffect(() => {
     const first = verses[0];
     if (!first) return;
+    // Every surah on the page is read up to its last verse here (a surah whose
+    // last verse is on this page counts as read); the page start is recorded
+    // last so "continue reading" reopens this page.
+    const lastOnPage = new Map<number, Verse>();
+    for (const v of verses) lastOnPage.set(v.sura_no, v);
+    for (const v of lastOnPage.values()) {
+      recordReadingPosition({
+        surah: v.sura_no, aya: v.aya_no, nameAr: v.sura_name_ar, nameEn: v.sura_name_en, page: currentPage,
+      });
+    }
     recordReadingPosition({
       surah: first.sura_no, aya: first.aya_no,
       nameAr: first.sura_name_ar, nameEn: first.sura_name_en, page: currentPage,
