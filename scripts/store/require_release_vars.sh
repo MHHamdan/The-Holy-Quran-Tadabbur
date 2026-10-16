@@ -24,4 +24,11 @@ elif ! [[ "$PRIVACY" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then
   fail=1
 fi
 
+# Store metadata must not ship placeholders (e.g. fastlane privacy_url.txt).
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+if grep -rq 'REPLACE_WITH' "$ROOT/fastlane/metadata" 2>/dev/null; then
+  echo "::error::fastlane/metadata still holds REPLACE_WITH placeholders ($(grep -rl 'REPLACE_WITH' "$ROOT/fastlane/metadata" | sed "s#$ROOT/##" | tr '\n' ' ')): set the public web host before tagging a release."
+  fail=1
+fi
+
 exit "$fail"
