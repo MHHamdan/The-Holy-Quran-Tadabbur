@@ -128,8 +128,6 @@ class Settings(BaseSettings):
     alquran_cloud_base_url: str = "https://api.alquran.cloud/v1"
     alquran_cloud_timeout: float = 30.0
     alquran_cloud_cache_ttl: int = 86400  # 24 hours
-    # Default tafseer editions (bilingual focus)
-    tafseer_default_editions: str = "ar.muyassar,en.sahih"
 
     # Cache Warming Configuration
     cache_warm_on_startup: bool = False  # Auto-warm cache on startup

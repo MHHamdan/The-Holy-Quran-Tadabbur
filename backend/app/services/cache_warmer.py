@@ -16,6 +16,9 @@ from typing import Dict, Any, List
 from dataclasses import dataclass
 from datetime import datetime
 
+# Licence-cleared defaults (al-Baghawi + en.sahih); al-Muyassar is on licence hold.
+from app.services.tafseer_api import DEFAULT_EDITIONS, DEFAULT_TAFSIR_EDITION
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,7 +49,6 @@ POPULAR_VERSES = [
     (113, 1), (113, 2), (113, 3), (113, 4), (113, 5),  # Al-Falaq
     (114, 1), (114, 2), (114, 3), (114, 4), (114, 5), (114, 6),  # An-Nas
 ]
-DEFAULT_EDITIONS = ["ar.muyassar", "en.sahih"]
 
 
 class CacheWarmer:
@@ -125,7 +127,7 @@ class CacheWarmer:
 
     async def warm_popular_surahs(
         self,
-        edition: str = "ar.muyassar",
+        edition: str = DEFAULT_TAFSIR_EDITION,
     ) -> Dict[str, int]:
         """Pre-fetch tafseer for entire popular surahs."""
         await self._init_clients()

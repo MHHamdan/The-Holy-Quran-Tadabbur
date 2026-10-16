@@ -41,7 +41,7 @@ class TestHelpers:
         r._tafseer_client = client
         await r._external_api_fallback(2, 255, "en")
         editions = client.get_tafseer.await_args.args[2]
-        assert editions == ["ar.muyassar"]
+        assert editions == ["ar.baghawi"]
 
     async def test_vector_failure_sets_degraded_flag(self, monkeypatch):
         r = HybridRetriever(session=None)

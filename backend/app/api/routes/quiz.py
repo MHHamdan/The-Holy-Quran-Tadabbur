@@ -19,12 +19,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.db.database import get_async_session
-from app.models.tafseer import TafseerChunk
+from app.models.tafseer import TafseerChunk, TafseerSource
 from app.ai.hf_client import HFInferenceError
 from app.core.ai_errors import AI_BAD_OUTPUT, SERVICE_UNAVAILABLE, ai_error_response, hf_failure_response
 from app.core.rate_limit import rag_rate_limit
 from app.rag.llm_provider import get_llm
-from app.services.tafseer_api import get_tafseer_client
+from app.services.tafseer_api import DEFAULT_TAFSIR_EDITION, get_tafseer_client
+from app.services.tafsir_sources import is_tafsir_placeholder
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -145,9 +146,15 @@ async def _fetch_surah_context(
     primary_field = "content_ar" if lang == "ar" else "content_en"
     fallback_field = "content_en" if lang == "ar" else "content_ar"
 
+    # Only enabled, licence-verified sources may feed quiz context.
     stmt = (
         select(TafseerChunk)
-        .where(TafseerChunk.sura_no == surah)
+        .join(TafseerSource, TafseerSource.id == TafseerChunk.source_id)
+        .where(
+            TafseerChunk.sura_no == surah,
+            TafseerSource.is_enabled == 1,
+            TafseerSource.license_verified == 1,
+        )
         .order_by(TafseerChunk.aya_start)
         .limit(40)
     )
@@ -160,7 +167,7 @@ async def _fetch_surah_context(
     if db_chunks:
         for chunk in db_chunks:
             text = getattr(chunk, primary_field, None) or getattr(chunk, fallback_field, None) or ""
-            if not text.strip():
+            if is_tafsir_placeholder(text):
                 continue
             ref = f"{chunk.sura_no}:{chunk.aya_start}"
             if chunk.aya_start != chunk.aya_end:
@@ -174,8 +181,9 @@ async def _fetch_surah_context(
             parts.append(snippet)
             total += len(snippet) + 1
     else:
-        # Fall back to alquran.cloud — ar.muyassar for Arabic, en.sahih for English
-        edition = "ar.muyassar" if lang == "ar" else "en.sahih"
+        # Fall back to alquran.cloud: the licence-cleared default tafsir
+        # (al-Baghawi) for Arabic, en.sahih for English.
+        edition = DEFAULT_TAFSIR_EDITION if lang == "ar" else "en.sahih"
         client = get_tafseer_client()
         verses = await client.get_surah_tafseer(surah, edition)
         for v in verses:

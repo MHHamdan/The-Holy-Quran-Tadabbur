@@ -913,6 +913,8 @@ class HybridRetriever:
         Fallback to external alquran.cloud API when local results are insufficient.
         """
         try:
+            from app.services.tafseer_api import DEFAULT_TAFSIR_EDITION
+
             # Lazy-load the tafseer client
             if self._tafseer_client is None:
                 from app.services.tafseer_api import get_tafseer_client
@@ -921,7 +923,8 @@ class HybridRetriever:
             # Get tafseer from external API
             # Tafsir editions only: a translation of meanings (e.g. en.sahih)
             # must never be cited as tafsir evidence.
-            editions = ["ar.muyassar"]
+            # Licence-cleared default (al-Baghawi); al-Muyassar is on licence hold.
+            editions = [DEFAULT_TAFSIR_EDITION]
             response = await self._tafseer_client.get_tafseer(sura_no, aya_no, editions)
 
             if not response.success:

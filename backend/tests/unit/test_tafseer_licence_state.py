@@ -129,3 +129,34 @@ async def test_migration_removes_english_from_compare_and_rag_sources():
             assert not [e for e in result["entries"] if e["source_id"].endswith("_en")]
         finally:
             await session.rollback()
+
+
+@pytest.mark.asyncio
+@pytest.mark.requires_data("tafsir:112:1")
+async def test_quiz_context_uses_licensed_sources_only():
+    """Quiz generation context never draws on a source on licence hold or disabled."""
+    from app.api.routes.quiz import _fetch_surah_context
+    from app.db import database
+
+    async with database.AsyncSessionLocal() as session:
+        held = (await session.execute(text(
+            "SELECT COALESCE(c.content_ar, c.content_en) FROM tafseer_chunks c "
+            "JOIN tafseer_sources s ON s.id = c.source_id "
+            "WHERE c.sura_no = 112 AND (s.is_enabled = 0 OR s.license_verified = 0)"
+        ))).scalars().all()
+        context, n = await _fetch_surah_context(session, 112, "ar")
+    assert n >= 1
+    flat = " ".join(context.split())
+    for body in held:
+        snippet = " ".join((body or "").split())[:60]
+        if len(snippet) >= 30:
+            assert snippet not in flat, "unlicensed tafsir in quiz context"
+
+
+def test_offline_defaults_are_not_on_licence_hold():
+    """Cache warmer and the alquran.cloud fallbacks default to a cleared edition."""
+    from app.services import cache_warmer
+    from app.services.tafseer_api import DEFAULT_TAFSIR_EDITION
+
+    assert DEFAULT_TAFSIR_EDITION == "ar.baghawi"
+    assert "ar.muyassar" not in cache_warmer.DEFAULT_EDITIONS
