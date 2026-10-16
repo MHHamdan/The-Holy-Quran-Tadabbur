@@ -15,6 +15,7 @@ import { useLanguageStore } from '../stores/languageStore';
 import { useReadingProgress } from '../hooks/useReadingProgress';
 import { JUZ_OVERVIEW, type JuzEntry } from '../data/juzOverview';
 import { SURAH_NAMES } from '../data/surahNames';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 
 function juzProgress(juz: JuzEntry, visited: Set<number>): { done: number; total: number } {
   const total = juz.surahRange.length;
@@ -103,6 +104,8 @@ function JuzCard({ juz, isRtl, visited }: { juz: JuzEntry; isRtl: boolean; visit
                 </li>
               ))}
             </ul>
+            {/* Some key topics quote Qur'an excerpts (Tanzil text). */}
+            <QuranTextAttribution language={isRtl ? 'ar' : 'en'} className="mt-2" />
           </div>
 
           {/* Highlight verse */}

@@ -817,12 +817,9 @@ const ATTRIBUTION_PATTERN = /<QuranTextAttribution\b|<LiveVerse\b/;
 const EXCERPT_ROOTS = ['frontend/src/utils/quranExcerpt.ts', 'frontend/src/data/generated/quranExcerpts.json'];
 
 /** Views that render Qur'an text without attribution today; warnings, not errors. */
-const ATTRIBUTION_KNOWN_GAPS: Record<string, string> = {
-  'frontend/src/components/ask/VersesSection.tsx': 'Related verses on /ask (verse.text_ar); R4-C adds QuranTextAttribution',
-  'frontend/src/pages/QuizPage.tsx': 'quranicTrivia questions/explanations quote excerpts; page owner to add attribution',
-  'frontend/src/pages/JuzNavigatorPage.tsx': 'juzOverview keyTopicsAr quotes excerpts; page owner to add attribution',
-  'frontend/src/pages/DailyChallengePage.tsx': 'quranStories options/explanations quote excerpts; page owner to add attribution',
-};
+// Empty since 2026-10-16: /ask, the quiz, the Juz navigator and the daily
+// challenge all carry QuranTextAttribution, so any new gap is an error.
+const ATTRIBUTION_KNOWN_GAPS: Record<string, string> = {};
 
 /** Import a verse data module but render none of its verse-bearing fields (checked 2026-10-15). */
 const METADATA_ONLY: Record<string, string> = {

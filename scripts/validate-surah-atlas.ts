@@ -23,7 +23,9 @@ import { resolve, join } from 'path';
 
 const ROOT = resolve(__dirname, '..');
 const SURAH_ATLAS_PATH = join(ROOT, 'frontend/src/data/surahAtlas.ts');
-const QURAN_PATH = join(ROOT, 'data/raw/quran_uthmani.json');
+// Canonical Qur'an text (Tanzil, built by scripts/build_quran_tanzil.py): the
+// source of the expected ayah count of every surah.
+const QURAN_PATH = join(ROOT, 'data/raw/quran_tanzil.json');
 
 const args = process.argv.slice(2);
 const VERBOSE = args.includes('--verbose');
@@ -53,12 +55,16 @@ if (!existsSync(QURAN_PATH)) {
   process.exit(1);
 }
 
-const quranRaw = JSON.parse(readFileSync(QURAN_PATH, 'utf-8'));
+// quran_tanzil.json: { verses: [{ sura_no, aya_no, ... }] } (values are strings).
+const quranRaw = JSON.parse(readFileSync(QURAN_PATH, 'utf-8')) as { verses?: { sura_no: string | number }[] };
 const EXPECTED_AYAH_COUNTS: Record<number, number> = {};
-for (const surah of quranRaw) {
-  if (typeof surah.id === 'number' && Array.isArray(surah.verses)) {
-    EXPECTED_AYAH_COUNTS[surah.id] = surah.verses.length;
-  }
+for (const verse of quranRaw.verses ?? []) {
+  const sura = Number(verse.sura_no);
+  EXPECTED_AYAH_COUNTS[sura] = (EXPECTED_AYAH_COUNTS[sura] ?? 0) + 1;
+}
+if (Object.keys(EXPECTED_AYAH_COUNTS).length !== 114) {
+  fail(`Expected 114 surahs in ${QURAN_PATH}, found ${Object.keys(EXPECTED_AYAH_COUNTS).length}`);
+  process.exit(1);
 }
 
 // ---------------------------------------------------------------------------
@@ -117,6 +123,25 @@ if (invalidNumbers.length > 0) {
   fail(`Invalid surah numbers (must be 1–114): ${invalidNumbers.join(', ')}`);
 } else {
   pass('All surah numbers are valid (1–114)');
+}
+
+// Check each entry's ayahCount against the canonical text
+const countMismatches: string[] = [];
+let countsChecked = 0;
+for (const m of source.matchAll(/\{\s*\n\s*surahNumber:\s*(\d+),[^{}]*?\n\s*ayahCount:\s*(\d+)/g)) {
+  const sura = parseInt(m[1]);
+  const count = parseInt(m[2]);
+  countsChecked++;
+  if (EXPECTED_AYAH_COUNTS[sura] !== count) {
+    countMismatches.push(`${sura}: atlas ${count}, Tanzil ${EXPECTED_AYAH_COUNTS[sura]}`);
+  }
+}
+if (countsChecked !== entryCount) {
+  fail(`ayahCount found on ${countsChecked} of ${entryCount} entries`);
+} else if (countMismatches.length > 0) {
+  fail(`ayahCount differs from the canonical text: ${countMismatches.join('; ')}`);
+} else {
+  pass('Every ayahCount matches the canonical Tanzil text');
 }
 
 // Check needs_review count
