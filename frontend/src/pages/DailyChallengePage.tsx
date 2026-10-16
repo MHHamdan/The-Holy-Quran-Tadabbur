@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { QURAN_STORIES_FIRST_BATCH } from '../data/quranStories';
 import { SURAH_NAMES } from '../data/surahNames';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import {
   getChallengePool, getPoolSize, getQuestionForDate,
   CATEGORY_META,
@@ -687,6 +688,9 @@ export function DailyChallengePage() {
             </p>
           </div>
         )}
+
+        {/* Questions, options and explanations may quote Qur'an excerpts (Tanzil text). */}
+        <QuranTextAttribution language={isRtl ? 'ar' : 'en'} className="px-5 pb-3 pt-2" />
       </div>
 
       {/* ── Post-answer panels ── */}

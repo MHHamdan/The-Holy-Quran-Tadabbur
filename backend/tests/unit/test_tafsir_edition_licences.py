@@ -11,8 +11,10 @@ Reader tafsir editions are served only from sources with a recorded licence.
   (source "tadabbur_library" with source_id + chunk_id) and refuses an
   edition whose tafseer_sources row is disabled or unverified.
 - Al-Muyassar's licence statement is the same (pending owner confirmation,
-  non-commercial display under the distribution policy, not cleared) in the
-  manifest, the registry and the DB migration.
+  not cleared) in the manifest, the registry and the DB migrations. Since
+  2026-10-16 it is on licence hold (manifest licence_hold_ids, alembic
+  r5c1a2b3c4d5 license_verified=0): still listed by the backend, which refuses
+  it, but no longer offered by the reader or the Mushaf.
 """
 import importlib.util
 import json
@@ -34,6 +36,7 @@ MUSHAF_TSX = (ROOT / "frontend" / "src" / "pages" / "MushafPage.tsx").read_text(
 MIGRATION = ROOT / "backend" / "alembic" / "versions" / "r3d1a2b3c4d5_tafsir_provenance_story_evidence.py"
 
 UNLICENSED = ("saadi", "jalalayn")
+HOLD_IDS = set(MANIFEST.get("licence_hold_ids", []))
 
 
 def _registry_entry(source_id: str) -> str:
@@ -63,6 +66,13 @@ def test_every_edition_maps_to_a_recorded_licence(edition_id):
     assert info.db_source_id, f"{edition_id} has no db_source_id"
     entry = _manifest_entry(info.db_source_id)
     lic = entry["license"]
+    if info.db_source_id in HOLD_IDS:
+        # Licence on hold: the backend refuses it (license_verified=0) and no
+        # reader offers it.
+        assert not lic["verified_date"], edition_id
+        assert f"id: '{edition_id}'" not in EDITIONS_TSX
+        assert f"{{ id: '{edition_id}'" not in MUSHAF_TSX
+        return
     assert not str(lic["type"]).startswith("pending"), edition_id
     assert lic["verified_date"], edition_id
     assert info.db_source_id in MANIFEST["enabled_ids"], edition_id
@@ -86,11 +96,12 @@ def test_no_edition_offers_unconfirmed_tafsir_audio():
 
 def test_frontend_editions_match_backend_with_same_db_source_ids():
     ids = re.findall(r"\n    id: '([a-z_]+)',\n(?:    db_source_id: '([a-z_]+)',\n)?", EDITIONS_TSX)
-    assert {i for i, _ in ids} == set(TAFSIR_EDITIONS)
+    offered = {e for e, info in TAFSIR_EDITIONS.items() if info.db_source_id not in HOLD_IDS}
+    assert {i for i, _ in ids} == offered
     for eid, db_id in ids:
         assert db_id == TAFSIR_EDITIONS[eid].db_source_id, eid
     mushaf_ids = set(re.findall(r"\{ id: '([a-z_]+)', translationKey: 'tafseer_", MUSHAF_TSX))
-    assert mushaf_ids and mushaf_ids <= set(TAFSIR_EDITIONS)
+    assert mushaf_ids and mushaf_ids <= offered
 
 
 def test_muyassar_statements_agree_and_are_not_cleared():
@@ -108,6 +119,18 @@ def test_muyassar_statements_agree_and_are_not_cleared():
     assert "no restrictive terms" not in reg
     lic = _migration().MUYASSAR_LICENSE
     assert "pending owner confirmation" in lic and "distribution-policy.md" in lic and len(lic) <= 200
+    # Interim licence hold (final release audit P1).
+    assert "muyassar_ar" in HOLD_IDS
+    assert entry["license"]["verified_date"] is None
+    assert "licenseStatus: 'unverified'" in reg
+    spec = importlib.util.spec_from_file_location(
+        "r5c_migration", MIGRATION.parent / "r5c1a2b3c4d5_muyassar_licence_not_verified.py"
+    )
+    r5c = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(r5c)
+    assert "pending owner confirmation" in r5c.MUYASSAR_LICENSE and len(r5c.MUYASSAR_LICENSE) <= 200
+    sql = " ".join(r5c.UPGRADE_SQL)
+    assert "license_verified = 0" in sql and "is_enabled" not in sql and "DELETE" not in sql.upper()
 
 
 def test_baghawi_manifest_records_dataset_provenance():

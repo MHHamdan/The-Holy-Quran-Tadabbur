@@ -39,22 +39,26 @@ export interface TafsirEdition {
 // al-Mukhtasar, Ibn Juzayy, al-Suddi and al-Siraj always returned 404.
 // Tafsir as-Sa'di and the Arabic al-Jalalayn were removed 2026-10-14: neither
 // has a recorded licence in data/manifests/tafseer_sources.json.
+// Al-Muyassar is not offered while its King Fahd Complex terms await owner
+// confirmation (manifest licence_hold_ids; license_verified=0, so the server
+// refuses it with EDITION_NOT_LICENSED). The first edition is the readers'
+// default: Tafsir al-Baghawi, a cleared classical source.
 // has_audio stays false for every edition until the owner confirms the
 // read.tafsir.one tafsir-audio terms (owner review: tafsir-audio-unverified).
 export const TAFSIR_EDITIONS: TafsirEdition[] = [
   {
-    id: 'muyassar',
-    db_source_id: 'muyassar_ar',
-    slug: 'almuyassar',
-    name_ar: 'التفسير الميسر',
-    name_en: 'Al-Muyassar (Simplified)',
-    author_ar: 'مجمع الملك فهد لطباعة المصحف',
-    author_en: 'King Fahd Complex',
+    id: 'baghawi',
+    db_source_id: 'baghawi_ar',
+    slug: 'baghawi',
+    name_ar: 'معالم التنزيل',
+    name_en: "Ma'alim at-Tanzil",
+    author_ar: 'الإمام البغوي',
+    author_en: 'Imam Al-Baghawi',
     language: 'ar',
     has_audio: false,
     source: 'quran_com',
-    description_ar: 'تفسير ميسر للقرآن الكريم',
-    description_en: 'Simplified Quran interpretation',
+    description_ar: 'تفسير وسط بين المأثور والرأي',
+    description_en: 'Balanced tafsir',
   },
   {
     id: 'ibn_kathir',
@@ -98,21 +102,10 @@ export const TAFSIR_EDITIONS: TafsirEdition[] = [
     description_ar: 'تفسير فقهي شامل',
     description_en: 'Comprehensive fiqh-focused tafsir',
   },
-  {
-    id: 'baghawi',
-    db_source_id: 'baghawi_ar',
-    slug: 'baghawi',
-    name_ar: 'معالم التنزيل',
-    name_en: "Ma'alim at-Tanzil",
-    author_ar: 'الإمام البغوي',
-    author_en: 'Imam Al-Baghawi',
-    language: 'ar',
-    has_audio: false,
-    source: 'quran_com',
-    description_ar: 'تفسير وسط بين المأثور والرأي',
-    description_en: 'Balanced tafsir',
-  },
 ];
+
+/** The readers' default edition (TafsirPanel, Mushaf sheet, Qur'an page prefetch). */
+export const DEFAULT_TAFSIR_EDITION_ID = TAFSIR_EDITIONS[0].id;
 
 // =============================================================================
 // Attribution footer (exported so other tafsir views, e.g. the Mushaf sheet,

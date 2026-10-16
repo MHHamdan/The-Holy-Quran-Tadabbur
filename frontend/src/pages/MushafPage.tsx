@@ -55,7 +55,7 @@ import { ReaderThemePicker } from '../components/quran/ReaderThemePicker';
 import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import { surahVerseCount } from '../data/surahVerseCounts';
 import { SURAH_NAMES } from '../data/surahNames';
-import { TafsirAttributionFooter, getTafsirEdition, tafsirSourceUrl } from '../components/quran/tafsirEditions';
+import { DEFAULT_TAFSIR_EDITION_ID, TafsirAttributionFooter, getTafsirEdition, tafsirSourceUrl } from '../components/quran/tafsirEditions';
 import {
   firstPageOfJuz, firstPageOfSurah, surahOnPage, SURAH_REVELATION, TOTAL_MUSHAF_PAGES,
 } from '../components/reader/surahNavigation';
@@ -95,14 +95,15 @@ const TOTAL_PAGES = TOTAL_MUSHAF_PAGES;
 // No English tafsir is offered: the English editions previously listed here
 // (Ibn Kathir EN, Ma'arif al-Qur'an, Tazkirul Quran) have no confirmed licence
 // and are awaiting owner review. Tafsir as-Sa'di and the Arabic al-Jalalayn
-// have no recorded licence and are not offered. Tafsir audio stays off until
-// its terms are confirmed.
+// have no recorded licence and are not offered. Al-Muyassar is not offered
+// while its King Fahd Complex terms await owner confirmation (the server
+// refuses it). Tafsir audio stays off until its terms are confirmed. The
+// first entry is the default (DEFAULT_TAFSIR_EDITION_ID).
 const TAFSIR_EDITIONS: TafsirEdition[] = [
-  { id: 'muyassar', translationKey: 'tafseer_muyassar' },
+  { id: 'baghawi', translationKey: 'tafseer_baghawi' },
   { id: 'ibn_kathir', translationKey: 'tafseer_ibn_kathir' },
   { id: 'tabari', translationKey: 'tafseer_tabari' },
   { id: 'qurtubi', translationKey: 'tafseer_qurtubi' },
-  { id: 'baghawi', translationKey: 'tafseer_baghawi' },
 ];
 
 const RECITERS: ReciterOption[] = [
@@ -1022,7 +1023,7 @@ export function MushafPage() {
   } = useReaderSettingsStore();
   useEffect(() => applyReaderThemeToDocument(theme), [theme]);
   const fontSize = Math.round(28 * fontScale);
-  const [selectedTafsir, setSelectedTafsir] = useState('muyassar');
+  const [selectedTafsir, setSelectedTafsir] = useState(DEFAULT_TAFSIR_EDITION_ID);
   const [showSettings, setShowSettings] = useState(false);
   const [showAI, setShowAI] = useState(false);
   const [playingVerseId, setPlayingVerseId] = useState<number | null>(null);

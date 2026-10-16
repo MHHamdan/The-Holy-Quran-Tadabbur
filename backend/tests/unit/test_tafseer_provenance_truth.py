@@ -48,6 +48,19 @@ def test_source_really_is_from_the_dataset(source_id):
     assert "stored_copy" not in _manifest(source_id)
 
 
+@pytest.mark.parametrize(
+    "source_id",
+    sorted(s["id"] for s in MANIFEST["sources"] if (s.get("provenance") or {}).get("dataset")),
+)
+def test_dataset_sourced_notes_do_not_name_an_old_origin(source_id):
+    """A source reseeded from the pinned dataset must not still say it came from spa5k."""
+    entry = _manifest(source_id)
+    notes = (entry.get("license") or {}).get("notes", "")
+    assert "spa5k" not in notes, source_id
+    assert "marks it unverified" not in notes, source_id
+    assert HF_DATASET in notes or entry["provenance"]["dataset"] == HF_DATASET
+
+
 @pytest.mark.asyncio
 async def test_registry_agrees_with_the_database_origin():
     """A registry entry may credit the dataset only if the row's text came from it."""

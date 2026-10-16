@@ -50,10 +50,11 @@ export interface Source {
   lastVerifiedAt: string;   // ISO 8601 date string; 'unverified' if not yet checked
   notes: string;
   /**
-   * Licence clearance. Optional for legacy entries; when absent, the display
-   * gate falls back to the 'DO NOT DISPLAY' marker in `notes`.
+   * Licence clearance, required on every entry (unknown terms are
+   * 'unverified', never 'cleared'). A 'DO NOT DISPLAY' marker at the start of
+   * `notes` also blocks display, whatever the status.
    */
-  licenseStatus?: LicenseStatus;
+  licenseStatus: LicenseStatus;
 }
 
 // ---------------------------------------------------------------------------
@@ -519,7 +520,7 @@ export const SOURCE_REGISTRY: Source[] = [
     notes: 'DO NOT DISPLAY. Disabled in tafseer_sources (alembic ws3a1b2c3d4e5). Seeded from the spa5k CDN as "public domain" by mistake.',
   },
 
-  // === Tafsir (Pending Verification) ===
+  // === Tafsir (Pending Verification: licence on hold) ===
   {
     sourceId: 'muyassar_ar',
     titleArabic: 'التفسير الميسر',
@@ -528,11 +529,11 @@ export const SOURCE_REGISTRY: Source[] = [
     language: 'ar',
     type: 'tafsir',
     reliabilityLevel: 'supporting',
-    licenseOrTerms: 'King Fahd Complex publication, displayed with attribution for educational, non-commercial use only, under the free, ad-free distribution policy (docs/distribution-policy.md). The King Fahd Complex terms are pending owner confirmation; not cleared.',
+    licenseOrTerms: 'King Fahd Complex (KFGQPC) publication. The KFGQPC terms are pending owner confirmation; not cleared. Not served while they are unconfirmed (interim hold).',
     sourceUrl: 'https://qurancomplex.gov.sa',
-    lastVerifiedAt: '2026-10-14',
-    licenseStatus: 'restricted', // non-commercial display only; KFGQPC terms pending owner confirmation (not 'cleared')
-    notes: 'Same statement in data/manifests/tafseer_sources.json (status pending_owner_confirmation) and in tafseer_sources (alembic r3d1a2b3c4d5). Owner decision 2026-10-14: shown because Tadabbur is distributed free of charge with no ads, purchases, subscriptions or paid tiers; any change to that model needs written KFGQPC permission or removal of this source. qurancomplex.gov.sa refuses automated retrieval, so the terms were not read at source. Stored text: spa5k tafsir_api CDN (ar-tafsir-muyassar), identical to riotu-lab/Quran-Tafseers at the pinned revision for all 6,235 verses that dataset carries. Alternative: QuranEnc arabic_moyassar once QuranEnc confirms its terms cover that key.',
+    lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified', // KFGQPC terms pending owner confirmation: never 'cleared' or 'restricted' until confirmed
+    notes: 'Interim hold since 2026-10-16: license_verified=0 in tafseer_sources (alembic r5c1a2b3c4d5) and listed in licence_hold_ids in data/manifests/tafseer_sources.json (status pending_owner_confirmation). The row and stored text are kept, but the reader, the Mushaf tafsir sheet, /tafseer/compare, the AI tafsir assistant, RAG citations and story/theme evidence do not serve it, and the reader default is Tafsir al-Baghawi. The owner\'s 2026-10-14 note (attributed, non-commercial display under docs/distribution-policy.md, since Tadabbur is free with no ads, purchases, subscriptions or paid tiers) did not confirm the KFGQPC terms; qurancomplex.gov.sa refuses automated retrieval, so the terms were not read at source. Final decision queued for the owner (data/review/owner_review_queue.json, legal-muyassar-and-audio-licences): confirm the KFGQPC terms in writing, or switch to QuranEnc arabic_moyassar. Stored text: spa5k tafsir_api CDN (ar-tafsir-muyassar), identical to riotu-lab/Quran-Tafseers at the pinned revision for all 6,235 verses that dataset carries.',
   },
   {
     sourceId: 'mukhtasar_en',
@@ -589,6 +590,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Original research — internal use. All verse references must be cross-checked with Quran text.',
     sourceUrl: 'data/manifests/stories.json',
     lastVerifiedAt: '2026-01-02',
+    licenseStatus: 'cleared', // the project's own editorial data
     notes: '122+ curated stories with verse references and tafsir chunk IDs as evidence. No AI-generated content.',
   },
   {
@@ -602,6 +604,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Original research — internal use.',
     sourceUrl: 'data/concepts/curated_concepts.json',
     lastVerifiedAt: '2026-01-02',
+    licenseStatus: 'cleared', // the project's own editorial data
     notes: 'Curated dictionary of Quranic persons, events, places, and attributes. Descriptions are brief and non-interpretive.',
   },
   {
@@ -615,6 +618,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Original research — internal use. Methodology: Sunni Orthodox (4 madhabs).',
     sourceUrl: 'backend/app/data/themes/quranic_themes.json',
     lastVerifiedAt: '2026-01-02',
+    licenseStatus: 'cleared', // the project's own editorial data
     notes: 'Hierarchical theme taxonomy. Each theme links to tafsir sources for evidence.',
   },
 
@@ -630,6 +634,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'License not yet confirmed. Requires human verification of each source before use.',
     sourceUrl: '/api/v1/vocabulary/status',
     lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified',
     notes: 'DO NOT DISPLAY to users. Placeholder for Phase F vocabulary module. No verified word-level data integrated yet. See docs/quran-vocabulary-module-plan.md.',
   },
 
@@ -645,6 +650,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Public domain — classical text (d. 276 AH). No modern edition rights established.',
     sourceUrl: 'https://shamela.ws/book/11388',
     lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified', // classical work; digital edition terms not verified
     notes: 'DO NOT DISPLAY to users — no data integrated yet. The earliest specialized work on rare and unusual Quranic vocabulary. Foundational Sunni reference. Era: 3rd century AH. Requires license verification for the specific digital edition before use.',
   },
   {
@@ -658,6 +664,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Public domain — classical text (d. 502 AH). No modern edition rights established.',
     sourceUrl: 'https://shamela.ws/book/1655',
     lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified', // classical work; digital edition terms not verified
     notes: 'DO NOT DISPLAY to users — no data integrated yet. The most cited specialized lexicon of Quranic terminology and vocabulary. Used by all major Sunni tafsir scholars. Era: 5th century AH. Priority source for Phase F integration.',
   },
   {
@@ -671,6 +678,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Public domain — classical text (d. 711 AH). Digital edition rights require verification.',
     sourceUrl: 'https://shamela.ws/book/891',
     lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified', // classical work; digital edition terms not verified
     notes: 'DO NOT DISPLAY to users — no data integrated yet. The largest classical Arabic dictionary — 20 volumes with extensive Quranic and poetic citations. Authoritative Sunni reference. Era: 7th century AH.',
   },
   {
@@ -684,6 +692,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Public domain — classical text (d. 817 AH). Digital edition rights require verification.',
     sourceUrl: 'https://shamela.ws/book/819',
     lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified', // classical work; digital edition terms not verified
     notes: 'DO NOT DISPLAY to users — no data integrated yet. Comprehensive classical Arabic lexicon widely used in Sunni scholarship. Era: 9th century AH.',
   },
   {
@@ -697,6 +706,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Public domain — classical text (d. 606 AH). Digital edition rights require verification.',
     sourceUrl: 'https://shamela.ws/book/11341',
     lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified', // classical work; digital edition terms not verified
     notes: 'DO NOT DISPLAY to users — no data integrated yet. Covers rare and unusual words in Hadith narrations and the Quran. Major Sunni reference for Arabic lexicography. Era: 6th century AH.',
   },
   {
@@ -710,6 +720,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Public domain — compiled 1863-1893, Lane d. 1876. No digital edition rights expected for the original text.',
     sourceUrl: 'https://archive.org/details/ArabicEnglishLexicon.CopiousEasternSources',
     lastVerifiedAt: 'unverified',
+    licenseStatus: 'unverified', // public-domain print work; no digital edition chosen or verified
     notes: 'DO NOT DISPLAY to users — no data integrated yet. The most comprehensive Arabic-English lexicon ever compiled — 8 volumes. Extensively cites Lisan Al-Arab and other classical sources. Standard English reference for Quranic Arabic. Registry corrected 2026-09-23: the previous sourceUrl (lane.quran.com) no longer resolves, and laneslexicon.org is also down. Two further caveats before integration — no structured JSON edition of Lane is known to exist, and Lane died at the letter qaf, so volumes VI-VIII are posthumous and materially incomplete.',
   },
   {
@@ -739,6 +750,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Curated internal dataset — based on classical Islamic scholarship (public domain). Requires human scholarly review before canonical use.',
     sourceUrl: 'internal://scripts/build-surah-memory-atlas.ts',
     lastVerifiedAt: 'unverified',
+    licenseStatus: 'cleared', // the project's own curated dataset (needs scholarly review, not a licence)
     notes: 'Makki/Madani classification derived from Al-Itqan fi Ulum al-Quran (Al-Suyuti). 7 disputed surahs marked revelationType:unknown. English surah meanings from standard scholarly consensus. ALL entries generated from this source must display a needs_review badge. Do not display as verified without human scholar review.',
   },
 
@@ -754,6 +766,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Per-reciter terms. Attribution of reciter name required in UI.',
     sourceUrl: '/api/v1/quran/audio/',
     lastVerifiedAt: '2026-01-02',
+    licenseStatus: 'unverified', // per-reciter terms not recorded
     notes: 'Audio served via CDN URLs. Reciter name must always be displayed. License terms vary per reciter.',
   },
   {
@@ -767,6 +780,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Served by Quran.com (Quran Foundation). Reciter attribution required. See https://quran.com for terms.',
     sourceUrl: 'https://verses.quran.com/Alafasy/mp3/',
     lastVerifiedAt: '2026-05-17',
+    licenseStatus: 'unverified', // Quran.com streaming terms not recorded
     notes: 'Per-ayah MP3 stream. URL pattern: https://verses.quran.com/Alafasy/mp3/{SSS}{AAA}.mp3 (zero-padded surah/ayah). Used by the Asmā\' Allah al-Ḥusnā page to recite the primary Quranic verse of each Name. Reciter name "Mishary Rashid Alafasy" must always be displayed in the player.',
   },
 
@@ -855,6 +869,7 @@ export const SOURCE_REGISTRY: Source[] = [
     licenseOrTerms: 'Curated reference list — based on the widely-attested Tirmidhi 99 Names list (public-tradition scholarship). The hadith is graded ḍaʿīf by some scholars; the list is universally taught for memorisation. Each Name→ayah mapping requires reviewer-verification before display as "verified".',
     sourceUrl: 'https://en.wikipedia.org/wiki/Names_of_God_in_Islam',
     lastVerifiedAt: '2026-05-17',
+    licenseStatus: 'unverified', // curated mapping; reference terms not recorded
     notes: 'Provides each Name\'s primary Quranic verse references (surah:ayah). NOT a substitute for the corpus-derived occurrence count — these are the verses scholars cite as the canonical reference for each Name, regardless of how many times the lemma appears in the Quran. All entries flagged needs_review until a human reviewer verifies.',
   },
 ];
@@ -881,8 +896,8 @@ export function getVerifiedSources(): Source[] {
  * True when a source must not be rendered to users.
  *
  * An explicit licence block, or a 'DO NOT DISPLAY' marker in notes, overrides
- * every other signal. The notes fallback keeps legacy entries (which predate
- * `licenseStatus`) enforced rather than silently permitted.
+ * every other signal. The notes marker blocks entries whose terms may be
+ * fine but that have no data integrated yet (the planned lexicons).
  *
  * 'unverified' deliberately does NOT block. Unconfirmed terms are a deployment
  * risk to resolve before shipping publicly, not a reason to blank the reader —

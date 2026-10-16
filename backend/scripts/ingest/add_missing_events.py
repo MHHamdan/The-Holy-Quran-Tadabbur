@@ -2,6 +2,15 @@
 """
 Add missing story events to the database.
 Stories with 0 events: Badr, Idris, Ifk, Isra/Miraj, Hudaybiyyah, Fath Mecca
+
+Evidence is a pointer only ({"source_id", "reference"}): the tafsir text is
+read from tafseer_chunks by the reader. Events cite the Arabic Ibn Kathir
+(ibn_kathir_ar, enabled and licence-verified), never the blocked English
+translation, and carry no hand-typed "snippet" (those were verse translations
+presented as tafsir). Before writing, every pointer goes through the same
+resolver as seed_story_atlas.py (resolve_seed_evidence_sync), so a pointer to
+a disabled or unlicensed source, or to a verse the source has no passage for,
+is dropped.
 """
 import json
 import os
@@ -13,10 +22,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
+from app.services.story_atlas_evidence import resolve_seed_evidence_sync
+
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur"
-)
+).replace("+asyncpg", "")  # the seeder uses a sync engine
 
 # =============================================================================
 # NEW STORY EVENTS
@@ -38,7 +49,7 @@ NEW_EVENTS = {
             "summary_ar": "خرج المسلمون من المدينة وبعضهم كاره للقتال",
             "summary_en": "Muslims departed from Madinah, some reluctant about fighting.",
             "semantic_tags": ["departure", "reluctance", "faith"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "8:5", "snippet": "As your Lord caused you to go out from your home in truth, and verily a party among the believers disliked it."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "8:5"}],
         },
         {
             "id": "cluster_badr:promise_of_victory",
@@ -51,7 +62,7 @@ NEW_EVENTS = {
             "summary_ar": "وعد الله المسلمين بإحدى الطائفتين: العير أو النفير",
             "summary_en": "Allah promised Muslims one of two groups: the caravan or the army.",
             "semantic_tags": ["promise", "choice", "divine_plan"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "8:7", "snippet": "And when Allah promised you one of the two parties that it should be yours."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "8:7"}],
         },
         {
             "id": "cluster_badr:dua_and_angels",
@@ -64,7 +75,7 @@ NEW_EVENTS = {
             "summary_ar": "استغاثة المسلمين وإمداد الله لهم بألف من الملائكة",
             "summary_en": "Muslims called for help, Allah reinforced them with a thousand angels.",
             "semantic_tags": ["dua", "angels", "divine_help", "reinforcement"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "8:9", "snippet": "When you sought help of your Lord, and He answered you: I will help you with a thousand of the angels following one another."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "8:9"}],
         },
         {
             "id": "cluster_badr:rain_and_sleep",
@@ -77,7 +88,7 @@ NEW_EVENTS = {
             "summary_ar": "أنزل الله المطر والنعاس أمانةً من عنده",
             "summary_en": "Allah sent rain and drowsiness as security from Him.",
             "semantic_tags": ["rain", "sleep", "tranquility", "miracle"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "8:11", "snippet": "He covered you with drowsiness as a security from Him, and He sent down water from the sky."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "8:11"}],
         },
         {
             "id": "cluster_badr:battle",
@@ -90,7 +101,7 @@ NEW_EVENTS = {
             "summary_ar": "فما قتلتموهم ولكن الله قتلهم، وما رميت إذ رميت ولكن الله رمى",
             "summary_en": "You did not kill them, but Allah killed them. You did not throw when you threw, but Allah threw.",
             "semantic_tags": ["battle", "victory", "divine_action"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "8:17", "snippet": "You killed them not, but Allah killed them. And you threw not when you threw, but Allah threw."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "8:17"}],
         },
         {
             "id": "cluster_badr:abu_jahl_death",
@@ -103,7 +114,7 @@ NEW_EVENTS = {
             "summary_ar": "قُتل فرعون هذه الأمة أبو جهل في المعركة",
             "summary_en": "The Pharaoh of this Ummah, Abu Jahl, was killed in the battle.",
             "semantic_tags": ["victory", "tyrant_death", "outcome"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "8:48", "snippet": "When Satan made their deeds attractive to them, and said: None of mankind can overcome you today."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "8:48"}],
         },
         {
             "id": "cluster_badr:victory_lessons",
@@ -116,7 +127,7 @@ NEW_EVENTS = {
             "summary_ar": "يوم الفرقان يوم التقى الجمعان، والنصر من عند الله",
             "summary_en": "Day of Criterion when the two armies met; victory is from Allah.",
             "semantic_tags": ["furqan", "lesson", "gratitude", "victory"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "8:41", "snippet": "And what you have captured, a fifth of it is for Allah and for the Messenger."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "8:41"}],
         },
     ],
 
@@ -135,7 +146,7 @@ NEW_EVENTS = {
             "summary_ar": "سبحان الذي أسرى بعبده ليلاً من المسجد الحرام إلى المسجد الأقصى",
             "summary_en": "Glory to Him who took His servant by night from Masjid al-Haram to Masjid al-Aqsa.",
             "semantic_tags": ["glorification", "miracle", "journey"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "17:1", "snippet": "Exalted is He who took His Servant by night from al-Masjid al-Haram to al-Masjid al-Aqsa."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "17:1"}],
         },
         {
             "id": "cluster_isra_miraj:blessed_surroundings",
@@ -148,7 +159,7 @@ NEW_EVENTS = {
             "summary_ar": "المسجد الأقصى الذي باركنا حوله",
             "summary_en": "Al-Aqsa Mosque whose surroundings We have blessed.",
             "semantic_tags": ["blessing", "aqsa", "holiness"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "17:1", "snippet": "To al-Masjid al-Aqsa, whose surroundings We have blessed."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "17:1"}],
         },
         {
             "id": "cluster_isra_miraj:show_signs",
@@ -161,7 +172,7 @@ NEW_EVENTS = {
             "summary_ar": "لنريه من آياتنا إنه هو السميع البصير",
             "summary_en": "To show him of Our signs. Indeed, He is the Hearing, the Seeing.",
             "semantic_tags": ["signs", "divine_wisdom", "hearing", "seeing"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "17:1", "snippet": "To show him of Our signs. Indeed, He is the Hearing, the Seeing."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "17:1"}],
         },
     ],
 
@@ -180,7 +191,7 @@ NEW_EVENTS = {
             "summary_ar": "إنا فتحنا لك فتحاً مبيناً",
             "summary_en": "Indeed, We have given you a clear conquest.",
             "semantic_tags": ["victory", "conquest", "divine_gift"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "48:1", "snippet": "Indeed, We have given you a clear conquest."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "48:1"}],
         },
         {
             "id": "cluster_fath_mecca:forgiveness_past_future",
@@ -193,7 +204,7 @@ NEW_EVENTS = {
             "summary_ar": "ليغفر لك الله ما تقدم من ذنبك وما تأخر",
             "summary_en": "That Allah may forgive you your sins of the past and future.",
             "semantic_tags": ["forgiveness", "blessing", "honor"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "48:2", "snippet": "That Allah may forgive for you what preceded of your sin and what will follow."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "48:2"}],
         },
         {
             "id": "cluster_fath_mecca:tranquility",
@@ -206,7 +217,7 @@ NEW_EVENTS = {
             "summary_ar": "هو الذي أنزل السكينة في قلوب المؤمنين",
             "summary_en": "It is He who sent down tranquility into the hearts of the believers.",
             "semantic_tags": ["tranquility", "faith", "increase"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "48:4", "snippet": "It is He who sent down tranquility into the hearts of the believers."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "48:4"}],
         },
         {
             "id": "cluster_fath_mecca:entry",
@@ -219,7 +230,7 @@ NEW_EVENTS = {
             "summary_ar": "لتدخلن المسجد الحرام إن شاء الله آمنين",
             "summary_en": "You will surely enter al-Masjid al-Haram, if Allah wills, in safety.",
             "semantic_tags": ["entry", "safety", "fulfillment"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "48:27", "snippet": "You will surely enter al-Masjid al-Haram, if Allah wills, in safety."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "48:27"}],
         },
         {
             "id": "cluster_fath_mecca:islam_prevails",
@@ -232,7 +243,7 @@ NEW_EVENTS = {
             "summary_ar": "هو الذي أرسل رسوله بالهدى ودين الحق ليظهره على الدين كله",
             "summary_en": "It is He who sent His Messenger with guidance and the religion of truth to manifest it over all religion.",
             "semantic_tags": ["islam", "truth", "victory", "prophecy"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "48:28", "snippet": "It is He who sent His Messenger with guidance and the religion of truth to manifest it over all religion."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "48:28"}],
         },
     ],
 
@@ -251,7 +262,7 @@ NEW_EVENTS = {
             "summary_ar": "واذكر في الكتاب إدريس إنه كان صديقاً نبياً",
             "summary_en": "Mention in the Book, Idris. Indeed, he was a man of truth and a prophet.",
             "semantic_tags": ["prophet", "truthfulness", "mention"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "19:56", "snippet": "And mention in the Book, Idris. Indeed, he was a man of truth and a prophet."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "19:56"}],
         },
         {
             "id": "cluster_idris:elevated",
@@ -264,7 +275,7 @@ NEW_EVENTS = {
             "summary_ar": "ورفعناه مكاناً علياً",
             "summary_en": "And We raised him to a high station.",
             "semantic_tags": ["elevation", "honor", "station"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "19:57", "snippet": "And We raised him to a high station."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "19:57"}],
         },
         {
             "id": "cluster_idris:among_patient",
@@ -277,7 +288,7 @@ NEW_EVENTS = {
             "summary_ar": "وإسماعيل وإدريس وذا الكفل كل من الصابرين",
             "summary_en": "And Ismail and Idris and Dhul-Kifl - all were of the patient.",
             "semantic_tags": ["patience", "righteousness", "mention"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "21:85", "snippet": "And Ismail and Idris and Dhul-Kifl - all were of the patient."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "21:85"}],
         },
     ],
 
@@ -296,7 +307,7 @@ NEW_EVENTS = {
             "summary_ar": "إن الذين جاءوا بالإفك عصبة منكم",
             "summary_en": "Indeed, those who came with falsehood are a group among you.",
             "semantic_tags": ["slander", "hypocrites", "falsehood"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "24:11", "snippet": "Indeed, those who came with falsehood are a group among you."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "24:11"}],
         },
         {
             "id": "cluster_ifk:good_in_it",
@@ -309,7 +320,7 @@ NEW_EVENTS = {
             "summary_ar": "لا تحسبوه شراً لكم بل هو خير لكم",
             "summary_en": "Do not think it bad for you; rather it is good for you.",
             "semantic_tags": ["wisdom", "good", "lesson"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "24:11", "snippet": "Do not think it bad for you; rather it is good for you."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "24:11"}],
         },
         {
             "id": "cluster_ifk:why_not_good_opinion",
@@ -322,7 +333,7 @@ NEW_EVENTS = {
             "summary_ar": "لولا إذ سمعتموه ظن المؤمنون والمؤمنات بأنفسهم خيراً",
             "summary_en": "Why did the believing men and women not think good of their own people?",
             "semantic_tags": ["good_opinion", "believers", "lesson"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "24:12", "snippet": "Why, when you heard it, did not the believing men and believing women think good of one another?"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "24:12"}],
         },
         {
             "id": "cluster_ifk:innocence_revealed",
@@ -335,7 +346,7 @@ NEW_EVENTS = {
             "summary_ar": "الطيبات للطيبين والطيبون للطيبات أولئك مبرءون مما يقولون",
             "summary_en": "Good women are for good men; those are declared innocent of what the slanderers say.",
             "semantic_tags": ["innocence", "purity", "vindication"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "24:26", "snippet": "Good women are for good men, and good men are for good women. Those are declared innocent of what the slanderers say."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "24:26"}],
         },
     ],
 
@@ -354,7 +365,7 @@ NEW_EVENTS = {
             "summary_ar": "إنا فتحنا لك فتحاً مبيناً - صلح الحديبية",
             "summary_en": "Indeed, We have given you a clear victory - Treaty of Hudaybiyyah.",
             "semantic_tags": ["treaty", "victory", "wisdom"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "48:1", "snippet": "Indeed, We have given you a clear conquest."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "48:1"}],
         },
         {
             "id": "cluster_hudaybiyyah:pledge_tree",
@@ -367,7 +378,7 @@ NEW_EVENTS = {
             "summary_ar": "لقد رضي الله عن المؤمنين إذ يبايعونك تحت الشجرة",
             "summary_en": "Allah was pleased with the believers when they pledged allegiance under the tree.",
             "semantic_tags": ["pledge", "ridwan", "tree", "satisfaction"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "48:18", "snippet": "Certainly was Allah pleased with the believers when they pledged allegiance to you under the tree."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "48:18"}],
         },
         {
             "id": "cluster_hudaybiyyah:tranquility",
@@ -380,7 +391,7 @@ NEW_EVENTS = {
             "summary_ar": "فعلم ما في قلوبهم فأنزل السكينة عليهم",
             "summary_en": "He knew what was in their hearts and sent down tranquility upon them.",
             "semantic_tags": ["tranquility", "knowledge", "hearts"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "48:18", "snippet": "And He knew what was in their hearts, so He sent down tranquility upon them."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "48:18"}],
         },
         {
             "id": "cluster_hudaybiyyah:victory_soon",
@@ -393,7 +404,7 @@ NEW_EVENTS = {
             "summary_ar": "وأثابهم فتحاً قريباً",
             "summary_en": "And rewarded them with an imminent conquest.",
             "semantic_tags": ["conquest", "reward", "prophecy"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "48:18", "snippet": "And rewarded them with an imminent conquest."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "48:18"}],
         },
         {
             "id": "cluster_hudaybiyyah:spoils_plenty",
@@ -406,7 +417,7 @@ NEW_EVENTS = {
             "summary_ar": "ومغانم كثيرة يأخذونها وكان الله عزيزاً حكيماً",
             "summary_en": "And much war booty they will take. Allah is Mighty and Wise.",
             "semantic_tags": ["spoils", "blessing", "wisdom"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "48:19", "snippet": "And much war booty which they will take. And ever is Allah Exalted in Might and Wise."}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "48:19"}],
         },
     ],
 }
@@ -418,7 +429,10 @@ def seed_events(session):
 
     for cluster_id, events in NEW_EVENTS.items():
         print(f"\n  Cluster: {cluster_id}")
-        for event in events:
+        # Only pointers that resolve to an enabled, licensed tafsir passage.
+        resolved = resolve_seed_evidence_sync(session, [e.get("evidence", []) for e in events])
+        for event, evidence in zip(events, resolved):
+            event = {**event, "evidence": evidence}
             event_id = event["id"]
 
             # Check if exists

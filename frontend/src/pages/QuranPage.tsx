@@ -47,6 +47,7 @@ import {
 import clsx from 'clsx';
 import { shareContent } from '../lib/native';
 import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
+import { DEFAULT_TAFSIR_EDITION_ID } from '../components/quran/tafsirEditions';
 import { shareVerseImage } from '../lib/verseImage';
 
 const GrammarAnalysisView = lazy(() =>
@@ -181,9 +182,10 @@ export function QuranPage() {
   }, []);
 
   const prefetchTafsir = useCallback((suraNo: number, ayaNo: number) => {
-    const key = `tafsir_panel:${suraNo}:${ayaNo}:muyassar`;
+    // Same key TafsirPanel reads for its default edition.
+    const key = `tafsir_panel:v2:${suraNo}:${ayaNo}:${DEFAULT_TAFSIR_EDITION_ID}`;
     if (sessionStorage.getItem(key)) return;
-    fetch(apiUrl(`/api/v1/tafseer/external/verse/${suraNo}/${ayaNo}?edition=muyassar`))
+    fetch(apiUrl(`/api/v1/tafseer/external/verse/${suraNo}/${ayaNo}?edition=${DEFAULT_TAFSIR_EDITION_ID}`))
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (data) try { sessionStorage.setItem(key, JSON.stringify(data)); } catch { /* storage unavailable or full: caching is best-effort */ } })
       .catch(() => {});

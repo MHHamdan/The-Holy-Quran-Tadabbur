@@ -416,7 +416,7 @@ def normalize_arabic(text: str) -> str:
 PLACEHOLDER_MARKERS: Tuple[str, ...] = ("لا يوجد تفسير",)
 # External (alquran.cloud) editions that carry the same text as a local
 # source; they follow that source's enabled/licence status.
-EXTERNAL_EDITION_LOCAL_SOURCE: Dict[str, str] = {"ar.muyassar": "muyassar_ar"}
+EXTERNAL_EDITION_LOCAL_SOURCE: Dict[str, str] = {"ar.muyassar": "muyassar_ar", "ar.baghawi": "baghawi_ar"}
 # Passages shorter than this carry no usable commentary.
 MIN_EVIDENCE_CHARS = 20
 
@@ -951,6 +951,8 @@ class HybridRetriever:
         Fallback to external alquran.cloud API when local results are insufficient.
         """
         try:
+            from app.services.tafseer_api import DEFAULT_TAFSIR_EDITION
+
             # Lazy-load the tafseer client
             if self._tafseer_client is None:
                 from app.services.tafseer_api import get_tafseer_client
@@ -958,10 +960,11 @@ class HybridRetriever:
 
             # Get tafseer from external API. Tafsir editions only: a translation
             # of meanings (e.g. en.sahih) must never be cited as tafsir evidence.
-            # An external edition that mirrors a
-            # local source is only used while that local source is retrievable
-            # (enabled + licence-verified): the API must not bypass the gate.
-            editions = ["ar.muyassar"]
+            # Licence-cleared default (al-Baghawi); al-Muyassar is on licence hold.
+            # An external edition that mirrors a local source is only used while
+            # that local source is retrievable (enabled + licence-verified): the
+            # API must not bypass the gate.
+            editions = [DEFAULT_TAFSIR_EDITION]
             retrievable = await self._get_enabled_source_ids()
             editions = [
                 e for e in editions

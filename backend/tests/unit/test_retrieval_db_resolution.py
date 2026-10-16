@@ -183,9 +183,11 @@ class TestVectorHitResolutionUnit:
 
         r._tafseer_client = _Client()
         assert await r._external_api_fallback(2, 255, "ar") == []
-        assert requested == []  # only edition was ar.muyassar -> skipped
+        assert await r._external_api_fallback(2, 255, "en") == []
+        assert requested == []  # the only edition (ar.baghawi) mirrors baghawi_ar -> skipped
+        r._enabled_sources_cache = {"baghawi_ar"}
         await r._external_api_fallback(2, 255, "en")
-        assert requested == [["en.sahih"]]
+        assert requested == [["ar.baghawi"]]  # never a translation (en.sahih)
 
 
 # ---------------------------------------------------------------------------

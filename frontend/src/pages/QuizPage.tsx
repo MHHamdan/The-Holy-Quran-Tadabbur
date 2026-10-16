@@ -25,6 +25,7 @@ import {
 } from '../data/quranicTrivia';
 import { SURAH_NAMES } from '../data/surahNames';
 import { quizApi, type AIQuizQuestion } from '../lib/api';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 
 const QUESTIONS_PER_SESSION = 10;
 
@@ -314,6 +315,9 @@ function QuestionCard({
             </button>
           </div>
         )}
+
+        {/* Questions, options and explanations quote Qur'an excerpts (Tanzil text). */}
+        <QuranTextAttribution language={isRtl ? 'ar' : 'en'} className="pt-1" />
       </div>
     </div>
   );

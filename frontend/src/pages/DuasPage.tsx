@@ -5,8 +5,8 @@
  * Safety: all content referenced from exact surah:ayah. The Arabic is verbatim
  * Tanzil text (an excerpt is labelled and the full verse is one tap away); the
  * English is the QuranEnc Saheeh International translation and the Arabic
- * explanation is al-Tafsir al-Muyassar, both fetched from the API with their
- * attribution. No AI-generated meanings.
+ * explanation is a licence-cleared tafsir (al-Baghawi, else Ibn Kathir), both
+ * fetched from the API with their attribution. No AI-generated meanings.
  */
 
 import { useState, useMemo, useCallback, useRef } from 'react';
@@ -150,18 +150,26 @@ function ShareButton({ title, text, isRtl }: { title: string; text: string; isRt
   );
 }
 
-// ─── Explanation: al-Tafsir al-Muyassar from the app's library ────────────────
+// ─── Explanation: a licence-cleared tafsir from the app's library ───────────
 
-function MuyassarExplanation({ dua }: { dua: QuranicDua }) {
+/** al-Baghawi first (concise); Ibn Kathir where al-Baghawi has no passage. */
+const DUA_TAFSIR_SOURCES = ['baghawi_ar', 'ibn_kathir_ar'];
+
+function DuaTafsirExplanation({ dua }: { dua: QuranicDua }) {
   const last = dua.ayahEnd ?? dua.ayah;
   const ayat = Array.from({ length: last - dua.ayah + 1 }, (_, i) => dua.ayah + i);
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['dua-muyassar', dua.surah, dua.ayah, last],
+    queryKey: ['dua-tafsir', dua.surah, dua.ayah, last],
     queryFn: async () => Promise.all(
       ayat.map(async (a) => {
         try {
-          const res = await tafsirComparisonApi.compare(dua.surah, a, { sources: ['muyassar_ar'] });
-          return res.data.entries[0] ?? null;
+          const res = await tafsirComparisonApi.compare(dua.surah, a, { sources: DUA_TAFSIR_SOURCES });
+          const entries = res.data.entries;
+          for (const sid of DUA_TAFSIR_SOURCES) {
+            const hit = entries.find((e) => e.source_id === sid);
+            if (hit) return hit;
+          }
+          return null;
         } catch {
           return null;
         }
@@ -173,12 +181,18 @@ function MuyassarExplanation({ dua }: { dua: QuranicDua }) {
   const entries = (data ?? []).filter((e): e is TafsirComparisonEntry => !!e);
   if (isError || entries.length === 0) {
     return (
-      <p className="font-arabic text-xs text-gray-500 text-right" dir="rtl">
-        لا يتوفر شرح من التفسير الميسر لهذه الآية حالياً.
+      <p className="text-xs text-gray-500">
+        <span className="block font-arabic text-right" dir="rtl" lang="ar">
+          لا يتوفر شرح من مكتبة التفسير لهذه الآية حالياً.
+        </span>
+        <span className="block" dir="ltr" lang="en">
+          No tafsir explanation is available for this verse yet.
+        </span>
       </p>
     );
   }
-  const first = entries[0];
+  // One credit line per work actually shown (an ayah range may mix sources).
+  const credited = entries.filter((e, i) => entries.findIndex((x) => x.source_id === e.source_id) === i);
   return (
     <div className="space-y-1">
       {entries.map((e) => (
@@ -186,9 +200,11 @@ function MuyassarExplanation({ dua }: { dua: QuranicDua }) {
           {e.text}
         </p>
       ))}
-      <p className="font-arabic text-[11px] text-gray-400 text-right" dir="rtl">
-        {first.name_ar} — {first.author_ar} · <bdi dir="ltr" className="font-mono">{first.source_id}</bdi>
-      </p>
+      {credited.map((e) => (
+        <p key={e.source_id} className="font-arabic text-[11px] text-gray-400 text-right" dir="rtl">
+          {e.name_ar} — {e.author_ar} · <bdi dir="ltr" className="font-mono">{e.source_id}</bdi>
+        </p>
+      ))}
     </div>
   );
 }
@@ -374,11 +390,11 @@ function DuaCard({
             </div>
           )}
 
-          {/* Meaning: QuranEnc translation (EN) or al-Muyassar (AR), each credited */}
+          {/* Meaning: QuranEnc translation (EN) or a cleared tafsir (AR), each credited */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <span className={clsx('text-[10px] font-semibold uppercase tracking-wider text-gray-400', isRtl && 'font-arabic normal-case')}>
-                {isRtl ? 'المعنى من التفسير الميسر' : 'Translation of the meanings'}
+                {isRtl ? 'المعنى من مكتبة التفسير' : 'Translation of the meanings'}
               </span>
               {memorizeMode && (
                 <button
@@ -393,7 +409,7 @@ function DuaCard({
             </div>
             {!hideMeaning && (
               isRtl ? (
-                <MuyassarExplanation dua={dua} />
+                <DuaTafsirExplanation dua={dua} />
               ) : translations.length > 0 ? (
                 <div className="space-y-1" dir="ltr">
                   {translations.map((t, i) => (

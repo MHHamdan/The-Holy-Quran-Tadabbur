@@ -47,10 +47,27 @@ def test_manifest_marks_english_unverified(sid):
     assert state == {**state, "verified": False, "enabled": False}
 
 
-@pytest.mark.parametrize("sid", ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar", "baghawi_ar", "muyassar_ar"])
+@pytest.mark.parametrize("sid", ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar", "baghawi_ar"])
 def test_manifest_enables_verified_arabic(sid):
     state = seed_tafseer.load_licence_state(sid)
     assert state["verified"] and state["enabled"], state
+
+
+def test_muyassar_licence_on_hold_is_unverified():
+    """KFGQPC terms pending owner confirmation: never written license_verified=1."""
+    state = seed_tafseer.load_licence_state("muyassar_ar")
+    assert state["verified"] is False and state["enabled"] is False, state
+
+
+def test_licence_hold_overrides_a_recorded_licence(tmp_path):
+    manifest = {
+        "enabled_ids": ["x_ar"],
+        "licence_hold_ids": ["x_ar"],
+        "sources": [{"id": "x_ar", "license": {"type": "public_domain_classical", "verified_date": "2026-01-01"}}],
+    }
+    path = tmp_path / "m.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    assert not seed_tafseer.load_licence_state("x_ar", path)["verified"]
 
 
 def test_unknown_source_is_unverified(tmp_path):
@@ -71,8 +88,12 @@ def test_seeder_skips_unverified_without_flag(monkeypatch):
 def test_manifest_enabled_ids_have_verified_licences():
     manifest = json.loads((ROOT / "data" / "manifests" / "tafseer_sources.json").read_text(encoding="utf-8"))
     by_id = {s["id"]: s for s in manifest["sources"]}
+    hold = set(manifest.get("licence_hold_ids", []))
     for sid in manifest["enabled_ids"]:
         lic = by_id[sid]["license"]
+        if sid in hold:  # row kept enabled, licence explicitly not verified
+            assert not lic["verified_date"], sid
+            continue
         assert lic["verified_date"] and not lic["type"].startswith("pending"), sid
     assert not set(ENGLISH) & set(manifest["enabled_ids"])
 
@@ -108,3 +129,34 @@ async def test_migration_removes_english_from_compare_and_rag_sources():
             assert not [e for e in result["entries"] if e["source_id"].endswith("_en")]
         finally:
             await session.rollback()
+
+
+@pytest.mark.asyncio
+@pytest.mark.requires_data("tafsir:112:1")
+async def test_quiz_context_uses_licensed_sources_only():
+    """Quiz generation context never draws on a source on licence hold or disabled."""
+    from app.api.routes.quiz import _fetch_surah_context
+    from app.db import database
+
+    async with database.AsyncSessionLocal() as session:
+        held = (await session.execute(text(
+            "SELECT COALESCE(c.content_ar, c.content_en) FROM tafseer_chunks c "
+            "JOIN tafseer_sources s ON s.id = c.source_id "
+            "WHERE c.sura_no = 112 AND (s.is_enabled = 0 OR s.license_verified = 0)"
+        ))).scalars().all()
+        context, n = await _fetch_surah_context(session, 112, "ar")
+    assert n >= 1
+    flat = " ".join(context.split())
+    for body in held:
+        snippet = " ".join((body or "").split())[:60]
+        if len(snippet) >= 30:
+            assert snippet not in flat, "unlicensed tafsir in quiz context"
+
+
+def test_offline_defaults_are_not_on_licence_hold():
+    """Cache warmer and the alquran.cloud fallbacks default to a cleared edition."""
+    from app.services import cache_warmer
+    from app.services.tafseer_api import DEFAULT_TAFSIR_EDITION
+
+    assert DEFAULT_TAFSIR_EDITION == "ar.baghawi"
+    assert "ar.muyassar" not in cache_warmer.DEFAULT_EDITIONS

@@ -37,11 +37,12 @@ class TestHelpers:
 
     async def test_external_fallback_requests_tafsir_editions_only(self):
         r = HybridRetriever(session=None)
+        r._enabled_sources_cache = {"baghawi_ar"}
         client = SimpleNamespace(get_tafseer=AsyncMock(return_value=SimpleNamespace(success=False)))
         r._tafseer_client = client
         await r._external_api_fallback(2, 255, "en")
         editions = client.get_tafseer.await_args.args[2]
-        assert editions == ["ar.muyassar"]
+        assert editions == ["ar.baghawi"]
 
     async def test_vector_failure_sets_degraded_flag(self, monkeypatch):
         r = HybridRetriever(session=None)

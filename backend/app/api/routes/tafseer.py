@@ -28,10 +28,12 @@ import json
 
 from app.services.tafseer_api import (
     get_tafseer_client,
-    ALLOWED_EDITIONS,
+    DEFAULT_TAFSIR_EDITION,
     EDITION_METADATA,
     EDITION_NOT_LICENSED,
+    LICENSED_DB_EDITIONS,
     is_allowed_edition,
+    servable_editions,
 )
 from app.services.tafsir_api import (
     ALLOWED_QURAN_COM_IDS,
@@ -101,11 +103,11 @@ class EditionResponse(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "identifier": "ar.muyassar",
-                "name_ar": "التفسير الميسر",
-                "name_en": "Al-Muyassar (Simplified)",
-                "author_ar": "مجمع الملك فهد",
-                "author_en": "King Fahd Complex",
+                "identifier": "ar.baghawi",
+                "name_ar": "تفسير البغوي",
+                "name_en": "Tafsir Al-Baghawi",
+                "author_ar": "البغوي",
+                "author_en": "Al-Baghawi",
                 "language": "ar",
                 "type": "tafsir",
             }
@@ -168,12 +170,18 @@ async def list_editions(
     """
     List the tafseer and translation editions this API will serve.
 
-    Only the licensed allowlist (ALLOWED_EDITIONS) is listed, whatever
-    feature_external_tafseer says: the upstream catalogue holds editions with
-    no recorded licence or author. Can be filtered by language.
+    Only allowlisted editions (ALLOWED_EDITIONS) whose source is enabled and
+    licence-verified right now are listed, whatever feature_external_tafseer
+    says: the upstream catalogue holds editions with no recorded licence or
+    author. Can be filtered by language.
     """
+    try:
+        identifiers = await servable_editions()
+    except Exception as e:  # database unavailable: only the translations are certain
+        logger.warning("Tafsir licence lookup failed, listing translations only: %s", e)
+        identifiers = sorted(LICENSED_DB_EDITIONS)
     editions = []
-    for identifier in sorted(ALLOWED_EDITIONS):
+    for identifier in identifiers:
         metadata = EDITION_METADATA[identifier]
         lang = "ar" if identifier.startswith("ar.") else "en"
         if language and lang != language:
@@ -194,7 +202,7 @@ async def list_editions(
 async def get_surah_tafseer(
     surah: int,
     edition: str = Query(
-        "ar.muyassar",
+        DEFAULT_TAFSIR_EDITION,
         description="Edition identifier",
     ),
 ) -> SurahTafseerResponse:
@@ -216,6 +224,13 @@ async def get_surah_tafseer(
         )
 
     if not is_allowed_edition(edition):
+        raise _edition_not_licensed()
+    try:
+        servable = await servable_editions()
+    except Exception as e:
+        logger.error(f"Tafsir licence lookup failed: {e}")
+        raise HTTPException(status_code=503, detail="Tafseer service unavailable")
+    if edition not in servable:
         raise _edition_not_licensed()
 
     client = get_tafseer_client()
@@ -459,7 +474,7 @@ async def get_tafsir_audio_url(
 async def get_external_tafsir(
     sura: int,
     ayah: int,
-    edition: str = Query("muyassar", description="Edition identifier"),
+    edition: str = Query("baghawi", description="Edition identifier"),
     response: Response = None,
     session: AsyncSession = Depends(get_async_session),
 ) -> ExternalTafsirResponse:
@@ -578,7 +593,7 @@ async def get_quran_com_tafsir(
 async def compare_external_tafsirs(
     sura: int,
     ayah: int,
-    editions: str = Query("muyassar,ibn_kathir,tabari", description="Comma-separated edition IDs"),
+    editions: str = Query("baghawi,ibn_kathir,tabari", description="Comma-separated edition IDs"),
     session: AsyncSession = Depends(get_async_session),
 ) -> dict:
     """
@@ -769,7 +784,7 @@ class _LLMVerseRequest(BaseModel):
     aya: int = Field(..., ge=1, le=286, description="Ayah number")
     source_id: str = Field(
         ..., pattern=r"^[a-z0-9_]{1,64}$",
-        description="Seeded tafsir source id (e.g. muyassar_ar)",
+        description="Seeded tafsir source id (e.g. baghawi_ar)",
     )
     language: str = Field("ar", pattern="^(ar|en)$", description="Output language")
 
@@ -1018,14 +1033,15 @@ async def get_verse_tafseer(
     ayah: int,
     editions: Optional[str] = Query(
         None,
-        description="Comma-separated edition identifiers (default: ar.muyassar,en.sahih)",
+        description="Comma-separated edition identifiers (default: ar.baghawi,en.sahih)",
     ),
 ) -> TafseerResponse:
     """
     Get tafseer for a specific verse.
 
     Returns tafseer/translation content from the requested editions.
-    Defaults to Al-Muyassar (Arabic) and Sahih International (English).
+    Defaults to Tafsir al-Baghawi (Arabic) and Saheeh International (English).
+    Arabic tafsir comes from enabled, licence-verified sources only.
 
     Args:
         surah: Surah number (1-114)
