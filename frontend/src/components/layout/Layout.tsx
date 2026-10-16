@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import { FeedbackButton } from '../feedback/FeedbackButton';
-import { activeTabFor, TABS } from './navConfig';
+import { activeTabFor, isReaderRoute, TABS } from './navConfig';
 import { BottomNav, tabTarget } from './BottomNav';
 import { MoreSheet } from './MoreSheet';
 
@@ -22,6 +22,8 @@ export function Layout({ children }: LayoutProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const isAr = language === 'ar';
   const active = activeTabFor(location.pathname);
+  // Same predicate FeedbackButton uses to decide whether the FAB renders.
+  const fabShown = !isReaderRoute(location.pathname);
 
   // Close the More sheet whenever the route changes.
   useEffect(() => {
@@ -121,8 +123,10 @@ export function Layout({ children }: LayoutProps) {
 
       {/* pb-20 clears the floating feedback button (44px, 1rem above the tab
           bar) so the last controls on a page, e.g. a duʿā's Share action, can be
-          scrolled out from under it. */}
-      <main id="main" tabIndex={-1} className="flex-1 min-w-0 pb-20 focus:outline-none">
+          scrolled out from under it. Only where the FAB renders: reader routes
+          (/ask, /mushaf, /quran, /tasmee) have no FAB, and /ask is a fixed-height
+          chat that extra padding would make scroll. */}
+      <main id="main" tabIndex={-1} className={clsx('flex-1 min-w-0 focus:outline-none', fabShown && 'pb-20')}>
         {children}
       </main>
 
