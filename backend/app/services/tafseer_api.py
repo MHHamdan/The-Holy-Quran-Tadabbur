@@ -1,16 +1,18 @@
 """
-AlQuran.Cloud API Client for Tafseer Integration.
+Tafseer client behind /api/v1/tafseer/{surah}/{ayah} and /tafseer/surah.
 
-Provides access to multiple Quranic translations and tafsir
-from the free alquran.cloud API.
+Every edition is answered from the app's own licensed library; nothing is
+proxied from alquran.cloud any more (its edition catalogue is only used by the
+health check):
 
-API Documentation: https://alquran.cloud/api
+- Arabic tafsir editions (ar.*) read tafseer_chunks of the matching
+  tafseer_sources row, and only while that row is enabled AND
+  licence-verified. A source whose licence is not verified (al-Muyassar, whose
+  King Fahd Complex terms await owner confirmation) is refused like an
+  unlisted edition.
+- English editions read the QuranEnc translations table (LICENSED_DB_EDITIONS).
 
-Features:
-- Multiple tafsir editions (Ibn Kathir, Jalalayn, Al-Muyassar)
-- Bilingual support (Arabic and English)
-- Automatic caching with configurable TTL
-- Graceful error handling with retries
+API Documentation (catalogue only): https://alquran.cloud/api
 """
 import time
 import logging
@@ -144,15 +146,99 @@ LICENSED_DB_EDITIONS: Dict[str, str] = {
 }
 
 
-# Only editions whose provenance and terms are recorded are served. alquran.cloud
+# Arabic tafsir editions -> their tafseer_sources id. Served from tafseer_chunks
+# only while that source is enabled and licence-verified (_licensed_tafsir_ids),
+# so the licence decision lives in one place: the database row, which follows
+# data/manifests/tafseer_sources.json.
+LICENSED_DB_TAFSIR: Dict[str, str] = {
+    "ar.baghawi": "baghawi_ar",
+    "ar.tabari": "tabari_ar",
+    "ar.qurtubi": "qurtubi_ar",
+    "ar.ibnkathir": "ibn_kathir_ar",
+    # Licence pending owner confirmation: refused while license_verified=0.
+    "ar.muyassar": "muyassar_ar",
+}
+
+# Default editions when a request names none: a cleared Arabic tafsir and the
+# licensed English translation of the meanings.
+DEFAULT_TAFSIR_EDITION = "ar.baghawi"
+DEFAULT_EDITIONS: List[str] = [DEFAULT_TAFSIR_EDITION, "en.sahih"]
+
+# Only editions whose provenance and terms are recorded can be served. alquran.cloud
 # lists ~130 editions, many without an author, and at least one is mislabelled
 # (its "ar.miqbas" returns Ibn Ashur's al-Tahrir wa al-Tanwir under the title of
-# Tanwir al-Miqbas), so nothing outside this allowlist is passed through.
-ALLOWED_EDITIONS: frozenset = frozenset({"ar.muyassar"} | set(LICENSED_DB_EDITIONS))
+# Tanwir al-Miqbas), so nothing outside this allowlist is considered, and an
+# Arabic edition on it is still refused while its source is not licence-verified.
+ALLOWED_EDITIONS: frozenset = frozenset(set(LICENSED_DB_TAFSIR) | set(LICENSED_DB_EDITIONS))
 
 
 def is_allowed_edition(edition: str) -> bool:
     return edition in ALLOWED_EDITIONS
+
+
+async def _licensed_tafsir_ids() -> frozenset:
+    """tafseer_sources ids that are enabled and licence-verified right now."""
+    from sqlalchemy import select
+    from app.db.database import AsyncSessionLocal
+    from app.models.tafseer import TafseerSource
+
+    async with AsyncSessionLocal() as session:
+        rows = await session.execute(
+            select(TafseerSource.id).where(
+                TafseerSource.id.in_(list(LICENSED_DB_TAFSIR.values())),
+                TafseerSource.is_enabled == 1,
+                TafseerSource.license_verified == 1,
+            )
+        )
+        return frozenset(r[0] for r in rows)
+
+
+async def servable_editions() -> List[str]:
+    """Allowlisted editions this installation will actually serve now."""
+    licensed = await _licensed_tafsir_ids()
+    return sorted(
+        e for e in ALLOWED_EDITIONS
+        if e in LICENSED_DB_EDITIONS or LICENSED_DB_TAFSIR.get(e) in licensed
+    )
+
+
+async def _db_tafsir(surah: int, ayah: Optional[int], source_id: str) -> Optional[List[tuple]]:
+    """(ayah, text) rows of one licensed tafsir source, or None when the source
+    is not enabled and licence-verified (the edition must then be refused).
+    A range passage is reported at its first ayah; upstream placeholders
+    ("no tafsir for this verse") are never returned."""
+    from sqlalchemy import select
+    from app.db.database import AsyncSessionLocal
+    from app.models.tafseer import TafseerChunk, TafseerSource
+    from app.services.tafsir_sources import is_tafsir_placeholder
+
+    async with AsyncSessionLocal() as session:
+        servable = (
+            await session.execute(
+                select(TafseerSource.id).where(
+                    TafseerSource.id == source_id,
+                    TafseerSource.is_enabled == 1,
+                    TafseerSource.license_verified == 1,
+                )
+            )
+        ).scalar_one_or_none()
+        if servable is None:
+            return None
+        query = (
+            select(TafseerChunk.aya_start, TafseerChunk.content_ar, TafseerChunk.content_en)
+            .where(TafseerChunk.source_id == source_id, TafseerChunk.sura_no == surah)
+            .order_by(TafseerChunk.aya_start, TafseerChunk.chunk_order)
+        )
+        if ayah is not None:
+            query = query.where(TafseerChunk.aya_start <= ayah, TafseerChunk.aya_end >= ayah)
+        rows = (await session.execute(query)).all()
+    out: List[tuple] = []
+    for aya_start, content_ar, content_en in rows:
+        text = (content_ar or content_en or "").strip()
+        if is_tafsir_placeholder(text):
+            continue
+        out.append((ayah if ayah is not None else aya_start, text))
+    return out
 
 
 # TafseerResponse.error value when every requested edition was refused.
@@ -179,10 +265,12 @@ async def _db_translation(surah: int, ayah: Optional[int], key: str) -> List[tup
 
 class AlQuranCloudClient:
     """
-    Client for the alquran.cloud API.
+    Tafseer and translation client.
 
-    Provides access to Quranic tafsir and translations
-    with hybrid L1/L2 caching (in-memory + Redis).
+    Verse and surah text comes from the licensed library only (tafseer_chunks
+    of enabled, licence-verified sources; QuranEnc translations). The
+    alquran.cloud API is called only for its edition catalogue and the health
+    check, cached in the hybrid L1/L2 cache (in-memory + Redis).
     """
 
     def __init__(
@@ -208,10 +296,6 @@ class AlQuranCloudClient:
 
         # Fallback simple in-memory cache
         self._cache: Dict[str, tuple] = {}
-
-    def _get_cache_key(self, surah: int, ayah: int, edition: str) -> str:
-        """Generate cache key."""
-        return f"tafseer:{edition}:{surah}:{ayah}"
 
     async def _get_cached(self, key: str) -> Optional[Dict[str, Any]]:
         """Get cached value (hybrid cache first, then fallback)."""
@@ -309,7 +393,7 @@ class AlQuranCloudClient:
         start = time.perf_counter()
 
         if editions is None:
-            editions = settings.tafseer_default_editions.split(",")
+            editions = DEFAULT_EDITIONS
 
         # Validate surah/ayah
         if not 1 <= surah <= 114:
@@ -339,48 +423,16 @@ class AlQuranCloudClient:
                         language="en",
                     ))
                 continue
-            cache_key = self._get_cache_key(surah, ayah, edition)
-
-            # Check cache
-            cached = await self._get_cached(cache_key)
-            if cached:
-                tafasir.append(TafseerVerse(**cached))
+            rows = await _db_tafsir(surah, ayah, LICENSED_DB_TAFSIR[edition])
+            if rows is None:
+                logger.info(f"Edition {edition} refused: its source is not licence-verified")
+                refused.append(edition)
                 continue
-
-            # Fetch from API
-            try:
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    response = await client.get(
-                        f"{self.base_url}/ayah/{surah}:{ayah}/{edition}"
-                    )
-
-                    if response.status_code == 404:
-                        logger.warning(f"Verse {surah}:{ayah} not found for edition {edition}")
-                        continue
-
-                    response.raise_for_status()
-                    data = response.json()
-
-                ayah_data = data.get("data", {})
-                edition_info = ayah_data.get("edition", {})
-
-                verse = TafseerVerse(
-                    surah=surah,
-                    ayah=ayah,
-                    text=ayah_data.get("text", ""),
-                    edition=edition,
-                    edition_name=edition_info.get("name", edition),
-                    language=edition_info.get("language", "ar"),
-                )
-
-                # Cache the result
-                await self._set_cached(cache_key, vars(verse))
-                tafasir.append(verse)
-
-            except httpx.TimeoutException:
-                logger.error(f"Timeout fetching tafseer for {surah}:{ayah} edition {edition}")
-            except Exception as e:
-                logger.error(f"Error fetching tafseer: {e}")
+            for _, text in rows[:1]:
+                tafasir.append(TafseerVerse(
+                    surah=surah, ayah=ayah, text=text, edition=edition,
+                    edition_name=EDITION_METADATA[edition]["name_ar"], language="ar",
+                ))
 
         latency = int((time.perf_counter() - start) * 1000)
 
@@ -399,17 +451,19 @@ class AlQuranCloudClient:
     async def get_surah_tafseer(
         self,
         surah: int,
-        edition: str = "ar.muyassar",
+        edition: str = DEFAULT_TAFSIR_EDITION,
     ) -> List[TafseerVerse]:
         """
-        Get tafseer for an entire surah.
+        Get tafseer for an entire surah from the licensed library.
 
         Args:
             surah: Surah number (1-114)
             edition: Edition identifier
 
         Returns:
-            List of TafseerVerse for all ayahs in the surah
+            List of TafseerVerse for the ayahs the source has a passage for;
+            empty when the edition is not on the allowlist or its source is
+            not licence-verified.
         """
         if not is_allowed_edition(edition):
             logger.warning(f"Edition {edition} refused: not on the licensed allowlist")
@@ -421,41 +475,16 @@ class AlQuranCloudClient:
                              edition_name=f"{name} v{version}", language="en")
                 for a, text, version in await _db_translation(surah, None, LICENSED_DB_EDITIONS[edition])
             ]
-
-        cache_key = f"tafseer:surah:{edition}:{surah}"
-        cached = await self._get_cached(cache_key)
-        if cached:
-            return [TafseerVerse(**v) for v in cached]
-
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    f"{self.base_url}/surah/{surah}/{edition}"
-                )
-                response.raise_for_status()
-                data = response.json()
-
-            verses = []
-            surah_data = data.get("data", {})
-            edition_info = surah_data.get("edition", {})
-
-            for ayah_data in surah_data.get("ayahs", []):
-                verses.append(TafseerVerse(
-                    surah=surah,
-                    ayah=ayah_data.get("numberInSurah"),
-                    text=ayah_data.get("text", ""),
-                    edition=edition,
-                    edition_name=edition_info.get("name", edition),
-                    language=edition_info.get("language", "ar"),
-                ))
-
-            # Cache the result
-            await self._set_cached(cache_key, [vars(v) for v in verses])
-            return verses
-
-        except Exception as e:
-            logger.error(f"Failed to fetch surah tafseer: {e}")
+        rows = await _db_tafsir(surah, None, LICENSED_DB_TAFSIR[edition])
+        if rows is None:
+            logger.info(f"Edition {edition} refused: its source is not licence-verified")
             return []
+        name = EDITION_METADATA[edition]["name_ar"]
+        return [
+            TafseerVerse(surah=surah, ayah=a, text=text, edition=edition,
+                         edition_name=name, language="ar")
+            for a, text in rows
+        ]
 
     async def health_check(self) -> bool:
         """Check if the API is accessible."""
@@ -508,7 +537,7 @@ async def test_tafseer_api() -> Dict[str, Any]:
         result["editions_count"] = len(editions)
 
         # Test fetching tafseer for Ayat al-Kursi
-        response = await client.get_tafseer(2, 255, ["ar.muyassar", "en.sahih"])
+        response = await client.get_tafseer(2, 255, DEFAULT_EDITIONS)
         result["tafseer_test"] = {
             "success": response.success,
             "tafasir_count": len(response.tafasir),

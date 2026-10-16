@@ -47,10 +47,27 @@ def test_manifest_marks_english_unverified(sid):
     assert state == {**state, "verified": False, "enabled": False}
 
 
-@pytest.mark.parametrize("sid", ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar", "baghawi_ar", "muyassar_ar"])
+@pytest.mark.parametrize("sid", ["ibn_kathir_ar", "tabari_ar", "qurtubi_ar", "baghawi_ar"])
 def test_manifest_enables_verified_arabic(sid):
     state = seed_tafseer.load_licence_state(sid)
     assert state["verified"] and state["enabled"], state
+
+
+def test_muyassar_licence_on_hold_is_unverified():
+    """KFGQPC terms pending owner confirmation: never written license_verified=1."""
+    state = seed_tafseer.load_licence_state("muyassar_ar")
+    assert state["verified"] is False and state["enabled"] is False, state
+
+
+def test_licence_hold_overrides_a_recorded_licence(tmp_path):
+    manifest = {
+        "enabled_ids": ["x_ar"],
+        "licence_hold_ids": ["x_ar"],
+        "sources": [{"id": "x_ar", "license": {"type": "public_domain_classical", "verified_date": "2026-01-01"}}],
+    }
+    path = tmp_path / "m.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    assert not seed_tafseer.load_licence_state("x_ar", path)["verified"]
 
 
 def test_unknown_source_is_unverified(tmp_path):
@@ -71,8 +88,12 @@ def test_seeder_skips_unverified_without_flag(monkeypatch):
 def test_manifest_enabled_ids_have_verified_licences():
     manifest = json.loads((ROOT / "data" / "manifests" / "tafseer_sources.json").read_text(encoding="utf-8"))
     by_id = {s["id"]: s for s in manifest["sources"]}
+    hold = set(manifest.get("licence_hold_ids", []))
     for sid in manifest["enabled_ids"]:
         lic = by_id[sid]["license"]
+        if sid in hold:  # row kept enabled, licence explicitly not verified
+            assert not lic["verified_date"], sid
+            continue
         assert lic["verified_date"] and not lic["type"].startswith("pending"), sid
     assert not set(ENGLISH) & set(manifest["enabled_ids"])
 

@@ -25,7 +25,7 @@ import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
 import { spawnSync } from 'child_process';
 import { QURANIC_DUAS } from '../frontend/src/data/quranicDuas';
 import { CONFUSION_PAIRS, REPEATED_PHRASES } from '../frontend/src/data/quranMemorizationLinks';
-import { resolve, join } from 'path';
+import { resolve, join, relative } from 'path';
 
 // ---------------------------------------------------------------------------
 // CLI args
@@ -46,6 +46,7 @@ const QURAN_JSON_PATH = join(ROOT, 'data/raw/quran_tanzil.json');
 const QURAN_MANIFEST_PATH = join(ROOT, 'data/manifests/quran_hafs.json');
 const TAFSIR_MANIFEST_PATH = join(ROOT, 'data/manifests/tafseer_sources.json');
 const SOURCE_REGISTRY_PATH = join(ROOT, 'frontend/src/data/sourceRegistry.ts');
+const READER_TAFSIR_EDITIONS_PATH = join(ROOT, 'frontend/src/components/quran/tafsirEditions.tsx');
 
 // ---------------------------------------------------------------------------
 // Types (minimal, matching actual JSON structure)
@@ -501,6 +502,11 @@ const AVAILABLE_STATUSES = new Set(['available', 'available_via_api']);
  * that is neither blocked nor unverified, and the manifest must record when
  * that licence was verified. "May serve" means: listed in the manifest's
  * enabled_ids, or carrying an available status.
+ *
+ * Exception: ids in the manifest's licence_hold_ids keep their enabled row and
+ * stored text but must NOT be licence-verified anywhere (empty verified_date,
+ * registry neither cleared nor restricted, DB license_verified=0) and must not
+ * be offered by the reader editions list, so no licensed-only path serves them.
  */
 function checkTafsirLicenceCrossCheck(manifest: TafsirManifest): CheckResult {
   return check('Tafsir sources: enabled ids are registered with verified licences', () => {
@@ -516,9 +522,35 @@ function checkTafsirLicenceCrossCheck(manifest: TafsirManifest): CheckResult {
       errors.push('tafseer_sources.json has no "enabled_ids" list (ids allowed to be enabled in tafseer_sources)');
     }
 
+    const holdIds = new Set<string>(
+      ((manifest as Record<string, unknown>).licence_hold_ids as string[] | undefined) ?? [],
+    );
     const mustBeShippable = new Set<string>(enabledIds ?? []);
     for (const s of [...sources, ...placeholders]) {
       if (AVAILABLE_STATUSES.has(String(s.status ?? ''))) mustBeShippable.add(s.id);
+    }
+    // The Mushaf list may only use ids from this file (test_tafsir_edition_licences).
+    const readerSources = [READER_TAFSIR_EDITIONS_PATH]
+      .filter((p) => existsSync(p))
+      .map((p) => [p, readFileSync(p, 'utf-8')] as const);
+    for (const id of holdIds) {
+      mustBeShippable.delete(id);
+      const entry = byId.get(id);
+      const licence = entry?.license as ManifestLicence | undefined;
+      if (!entry) errors.push(`licence_hold_ids: "${id}" is not in manifest.sources`);
+      else if (licence && typeof licence === 'object' && licence.verified_date) {
+        errors.push(`"${id}" is on licence hold but manifest license.verified_date is set`);
+      }
+      const reg = registry.get(id);
+      if (!reg) errors.push(`"${id}" is on licence hold but has no sourceRegistry.ts entry`);
+      else if (reg.licenseStatus === 'cleared' || reg.licenseStatus === 'restricted') {
+        errors.push(`"${id}" is on licence hold but sourceRegistry licenseStatus is "${reg.licenseStatus}"`);
+      }
+      for (const [path, text] of readerSources) {
+        if (text.includes(`db_source_id: '${id}'`)) {
+          errors.push(`${relative(ROOT, path)}: offers "${id}", which is on licence hold`);
+        }
+      }
     }
 
     for (const id of mustBeShippable) {
@@ -580,6 +612,12 @@ function checkTafsirLicenceCrossCheck(manifest: TafsirManifest): CheckResult {
       else warnings.push(`database cross-check skipped: ${db.error}`);
     } else {
       for (const row of db.rows) {
+        if (holdIds.has(row.id)) {
+          if (row.license_verified !== 0) {
+            errors.push(`DB tafseer_sources "${row.id}" is on licence hold but license_verified=${row.license_verified}`);
+          }
+          continue;
+        }
         if (!mustBeShippable.has(row.id)) {
           errors.push(`DB tafseer_sources "${row.id}" is enabled but not in manifest enabled_ids`);
         }

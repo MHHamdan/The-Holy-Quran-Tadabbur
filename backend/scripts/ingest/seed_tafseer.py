@@ -12,8 +12,8 @@ LICENSING:
   data/manifests/tafseer_sources.json, not from the metadata below. A source
   is written with license_verified=1 and is_enabled=1 only when the manifest
   lists it in enabled_ids with a verified licence (verified_date set, type not
-  pending). Anything else is skipped, or with --allow-unverified written
-  disabled and unverified, for review only.
+  pending, not in licence_hold_ids). Anything else is skipped, or with
+  --allow-unverified written disabled and unverified, for review only.
 
 REPLACING A STORED COPY (--replace):
 - By default existing chunks are never touched, so a source seeded earlier
@@ -123,8 +123,14 @@ SOURCE_METADATA = {
         # PROVENANCE
         "cdn_folder": "ar-tafsir-muyassar",
         "version_tag": "main",
-        "license_type": "educational_use",
-        "license": "King Fahd Complex - educational and non-commercial use",
+        # Licence pending owner confirmation (manifest licence_hold_ids):
+        # load_licence_state() reports it unverified, so it is never written
+        # with license_verified=1. Same statement as alembic r5c1a2b3c4d5.
+        "license_type": "publisher_terms_non_commercial",
+        "license": (
+            "King Fahd Complex (KFGQPC) publication; terms pending owner confirmation, "
+            "not cleared. Not licence-verified, so not served (interim hold, alembic r5c1a2b3c4d5)"
+        ),
         "license_url": "https://qurancomplex.gov.sa",
     },
     "qurtubi_ar": {
@@ -300,6 +306,8 @@ def load_licence_state(source_id: str, manifest_path: Path = MANIFEST_PATH) -> d
     licence = entry.get("license")
     if not isinstance(licence, dict):
         return {"verified": False, "enabled": False, "reason": "no structured licence"}
+    if source_id in set(manifest.get("licence_hold_ids", [])):
+        return {"verified": False, "enabled": False, "reason": "licence on hold (licence_hold_ids)"}
     if str(licence.get("type", "")).startswith("pending") or not licence.get("verified_date"):
         return {"verified": False, "enabled": False, "reason": f"licence {licence.get('type')} not verified"}
     enabled = source_id in set(manifest.get("enabled_ids", []))

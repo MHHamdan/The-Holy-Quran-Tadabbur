@@ -1,8 +1,8 @@
 {
   "name": "Tafseer Sources Manifest",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Manifest of available tafseer sources with explicit licensing and rate limits",
-  "last_updated": "2026-10-15",
+  "last_updated": "2026-10-16",
   "enabled_ids": [
     "ibn_kathir_ar",
     "tabari_ar",
@@ -10,6 +10,10 @@
     "baghawi_ar",
     "muyassar_ar"
   ],
+  "licence_hold_ids": [
+    "muyassar_ar"
+  ],
+  "licence_hold_note": "Sources listed here keep their tafseer_sources row, is_enabled=1 and stored text, but their licence is not verified (license_verified=0), so every licensed-only path skips them: the reader and Mushaf tafsir, /tafseer/compare, /tafseer/{surah}/{ayah}, the AI tafsir assistant, RAG citations and story/theme evidence. seed_tafseer.py treats them as unverified. Only the owner may lift a hold, by recording the confirmed terms (license.verified_date) here.",
   "sources": [
     {
       "id": "ibn_kathir_en",
@@ -157,7 +161,7 @@
         ],
         "attribution_required": true,
         "commercial_use": "allowed",
-        "notes": "The work is classical Arabic text, public domain by age (d. 774 AH). The stored digital copy was seeded from the spa5k tafsir_api CDN (ar-tafsir-ibn-kathir); the terms of that digital edition are not recorded, so the registry marks it unverified. The pinned HF dataset under provenance is the reproducible replacement path, not the origin of the stored text.",
+        "notes": "The work is classical Arabic text, public domain by age (d. 774 AH). The stored copy was reseeded on 2026-10-15 from the Apache-2.0 Hugging Face dataset riotu-lab/Quran-Tafseers at the pinned revision under provenance (Tafseer.json, SHA-256 0e4172d4a80f662363029b291b186ab7228e55d6786b9ec1a8dde7a4aa0ce878) by backend/scripts/datasets/fetch_hf_tafseers.py and seed_tafseer.py --replace; the seeder only normalises whitespace and drops upstream 'no tafsir for this verse' placeholders. Ayat the dataset has no passage for have no stored passage.",
         "verified_date": "2026-10-06"
       },
       "validation": {
@@ -216,7 +220,7 @@
         ],
         "attribution_required": true,
         "commercial_use": "allowed",
-        "notes": "The work is classical Arabic text, public domain by age (d. 310 AH). The stored digital copy was seeded from the spa5k tafsir_api CDN (ar-tafsir-al-tabari); the terms of that digital edition are not recorded, so the registry marks it unverified. The pinned HF dataset under provenance is the reproducible replacement path, not the origin of the stored text.",
+        "notes": "The work is classical Arabic text, public domain by age (d. 310 AH). The stored copy was reseeded on 2026-10-15 from the Apache-2.0 Hugging Face dataset riotu-lab/Quran-Tafseers at the pinned revision under provenance (Tafseer.json, SHA-256 0e4172d4a80f662363029b291b186ab7228e55d6786b9ec1a8dde7a4aa0ce878) by backend/scripts/datasets/fetch_hf_tafseers.py and seed_tafseer.py --replace; the seeder only normalises whitespace and drops upstream 'no tafsir for this verse' placeholders. Ayat the dataset has no passage for have no stored passage.",
         "verified_date": "2026-10-06"
       }
     },
@@ -252,7 +256,7 @@
         ],
         "attribution_required": true,
         "commercial_use": "allowed",
-        "notes": "The work is classical Arabic text, public domain by age (d. 671 AH). The stored digital copy was seeded from the spa5k tafsir_api CDN (ar-tafseer-al-qurtubi); the terms of that digital edition are not recorded, so the registry marks it unverified. The pinned HF dataset under provenance is the reproducible replacement path, not the origin of the stored text.",
+        "notes": "The work is classical Arabic text, public domain by age (d. 671 AH). The stored copy was reseeded on 2026-10-15 from the Apache-2.0 Hugging Face dataset riotu-lab/Quran-Tafseers at the pinned revision under provenance (Tafseer.json, SHA-256 0e4172d4a80f662363029b291b186ab7228e55d6786b9ec1a8dde7a4aa0ce878) by backend/scripts/datasets/fetch_hf_tafseers.py and seed_tafseer.py --replace; the seeder only normalises whitespace and drops upstream 'no tafsir for this verse' placeholders. Ayat the dataset has no passage for have no stored passage.",
         "verified_date": "2026-10-06"
       }
     },
@@ -329,13 +333,13 @@
         ],
         "attribution_required": true,
         "commercial_use": "not_permitted",
-        "notes": "King Fahd Complex (KFGQPC) publication. The KFGQPC's own terms have not been confirmed at source (qurancomplex.gov.sa refuses automated retrieval), so this licence is pending owner confirmation and is not cleared. Owner decision 2026-10-14 (the verified_date): it is displayed with attribution for educational, non-commercial use only, because Tadabbur is distributed free of charge with no advertising, purchases, subscriptions or paid tiers (docs/distribution-policy.md). Any change to that model must first obtain written permission from the King Fahd Complex or drop this source. The same statement is recorded in tafseer_sources (alembic r3d1a2b3c4d5) and in frontend/src/data/sourceRegistry.ts.",
-        "verified_date": "2026-10-14"
+        "notes": "King Fahd Complex (KFGQPC) publication. The KFGQPC's own terms have not been confirmed at source (qurancomplex.gov.sa refuses automated retrieval), so this licence is pending owner confirmation and is NOT cleared. Interim hold since 2026-10-16 (final release audit, P1): license_verified=0 in tafseer_sources (alembic r5c1a2b3c4d5); the row, is_enabled=1 and the stored text are kept, but nothing that requires a verified licence serves it (reader and Mushaf tafsir, /tafseer/compare, the AI tafsir assistant, RAG citations, story and theme evidence), and the reader default is Tafsir al-Baghawi. The owner's 2026-10-14 note (attributed, educational, non-commercial display under docs/distribution-policy.md, because Tadabbur is free with no advertising, purchases, subscriptions or paid tiers) did not confirm the KFGQPC terms, so verified_date stays empty. To lift the hold the owner either records written KFGQPC terms here (verified_date) or switches to the QuranEnc arabic_moyassar edition below.",
+        "verified_date": null
       },
       "fallback": {
         "type": "manual",
         "status": "pending_owner_confirmation",
-        "message": "Displayed under the non-commercial distribution policy while the KFGQPC terms await owner confirmation. If they are not confirmed, or the distribution model changes, disable this source (is_enabled=0) or switch to the QuranEnc arabic_moyassar alternative below."
+        "message": "Interim hold: not served while the KFGQPC terms await owner confirmation (license_verified=0, alembic r5c1a2b3c4d5). If they are not confirmed, switch to the QuranEnc arabic_moyassar alternative below or disable this source (is_enabled=0)."
       },
       "validation": {
         "expected_surah_count": 114,
