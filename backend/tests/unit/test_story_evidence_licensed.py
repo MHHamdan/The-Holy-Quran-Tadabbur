@@ -52,7 +52,8 @@ def test_seed_cites_no_disabled_source_and_no_snippets():
 def test_migration_chains_after_story_prune():
     mod = _load(MIGRATION, "r3d_migration")
     assert mod.revision == "r3d1a2b3c4d5"
-    assert mod.down_revision == "r2a1b2c3d4e5"
+    # Chained after r3b1c2d3e4f5 when the round-3 migrations were linearised.
+    assert mod.down_revision == "r3b1c2d3e4f5"
 
 
 @pytest_asyncio.fixture

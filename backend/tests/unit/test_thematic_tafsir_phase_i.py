@@ -154,6 +154,9 @@ async def test_tafsir_segment_integer_coords(client: AsyncClient):
     assert isinstance(seg["ayah_end"], int)
 
 
+# Summaries are shown only when their tafsir evidence resolves (unsourced
+# claim text is withheld), so this needs the evidence chunks to be loaded.
+@pytest.mark.requires_data("tafsir:2:155")
 async def test_tafsir_segment_summaries_not_empty(client: AsyncClient):
     r = await _tafsir(client, _SABR)
     for seg in r.json()["segments"]:
