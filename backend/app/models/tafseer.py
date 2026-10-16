@@ -249,3 +249,15 @@ class TafseerChunk(Base):
     def citation(self) -> str:
         """Get citation string for this chunk."""
         return f"[{self.source_id}, {self.verse_reference}]"
+
+
+def servable_source_ids():
+    """Subquery of tafsir source ids whose text may be served to users:
+    enabled and licence-verified. Every public endpoint returning tafsir text
+    filters TafseerChunk.source_id on this, so a source on licence hold
+    (license_verified=0) or disabled (is_enabled=0) is never redistributed."""
+    from sqlalchemy import select
+
+    return select(TafseerSource.id).where(
+        TafseerSource.is_enabled == 1, TafseerSource.license_verified == 1
+    )

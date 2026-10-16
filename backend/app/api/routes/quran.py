@@ -23,7 +23,7 @@ from app.core.rate_limit import InMemoryRateLimiter, enforce, feedback_rate_limi
 from app.core.config import settings
 from app.db.database import get_async_session
 from app.models.quran import QuranVerse, Translation, TranslationEdition
-from app.models.tafseer import TafseerChunk, TafseerSource
+from app.models.tafseer import TafseerChunk, TafseerSource, servable_source_ids
 
 router = APIRouter()
 
@@ -755,6 +755,7 @@ async def get_verse_tafseer(
     query = select(TafseerChunk).where(
         TafseerChunk.verse_start_id <= verse_id,
         TafseerChunk.verse_end_id >= verse_id,
+        TafseerChunk.source_id.in_(servable_source_ids()),
     )
 
     if sources:
@@ -1269,7 +1270,8 @@ async def get_word_context(
         select(TafseerChunk).where(
             TafseerChunk.sura_no == sura_no,
             TafseerChunk.aya_start <= aya_no,
-            TafseerChunk.aya_end >= aya_no
+            TafseerChunk.aya_end >= aya_no,
+            TafseerChunk.source_id.in_(servable_source_ids()),
         ).limit(3)
     )
     tafseer_chunks = tafseer_result.scalars().all()
@@ -2980,6 +2982,7 @@ async def get_verse_tafsir_for_similarity(
     query = select(TafseerChunk).where(
         TafseerChunk.verse_start_id <= verse_id,
         TafseerChunk.verse_end_id >= verse_id,
+        TafseerChunk.source_id.in_(servable_source_ids()),
     ).limit(limit)
 
     if sources:
@@ -3066,6 +3069,7 @@ async def compare_tafsir_interpretations(
     query = select(TafseerChunk).where(
         TafseerChunk.verse_start_id <= verse.id,
         TafseerChunk.verse_end_id >= verse.id,
+        TafseerChunk.source_id.in_(servable_source_ids()),
     )
 
     if sources:
@@ -5039,7 +5043,7 @@ async def get_tafsir_historical_evolution(
     """
     from app.services.tafsir_sources import modern_tafsir_service, TafsirEra
     from app.models.quran import QuranVerse
-    from app.models.tafseer import TafseerChunk, TafseerSource
+    from app.models.tafseer import TafseerChunk, TafseerSource, servable_source_ids
 
     # Get verse
     verse_result = await session.execute(
@@ -5059,6 +5063,7 @@ async def get_tafsir_historical_evolution(
         ).where(
             TafseerChunk.verse_start_id <= verse.id,
             TafseerChunk.verse_end_id >= verse.id,
+            TafseerChunk.source_id.in_(servable_source_ids()),
         )
     )
 
@@ -5150,7 +5155,7 @@ async def get_side_by_side_tafsir(
     """
     from app.services.tafsir_sources import modern_tafsir_service
     from app.models.quran import QuranVerse
-    from app.models.tafseer import TafseerChunk
+    from app.models.tafseer import TafseerChunk, servable_source_ids
 
     # Get verse
     verse_result = await session.execute(
@@ -5170,6 +5175,7 @@ async def get_side_by_side_tafsir(
     chunks_result = await session.execute(
         select(TafseerChunk).where(
             TafseerChunk.source_id.in_(all_sids),
+            TafseerChunk.source_id.in_(servable_source_ids()),
             TafseerChunk.verse_start_id <= verse.id,
             TafseerChunk.verse_end_id >= verse.id,
         )
@@ -11668,7 +11674,7 @@ async def get_allah_names(
                     )
                     for (s, a) in batch
                 ]
-                tafseer_stmt = select(TafseerChunk).where(or_(*conds))
+                tafseer_stmt = select(TafseerChunk).where(or_(*conds), TafseerChunk.source_id.in_(servable_source_ids()))
                 for t in (await session.execute(tafseer_stmt)).scalars().all():
                     for (s, a) in batch:
                         if t.sura_no == s and t.aya_start <= a <= t.aya_end:

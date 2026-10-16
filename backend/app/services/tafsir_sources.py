@@ -724,7 +724,7 @@ class ModernTafsirService:
         Arabic: مقارنة تفسيرات مختلفة للآية الواحدة
         """
         from app.models.quran import QuranVerse
-        from app.models.tafseer import TafseerChunk, TafseerSource
+        from app.models.tafseer import TafseerChunk, TafseerSource, servable_source_ids
 
         # Get verse
         verse_result = await session.execute(
@@ -751,6 +751,7 @@ class ModernTafsirService:
                 chunk_result = await session.execute(
                     select(TafseerChunk).where(
                         TafseerChunk.source_id == sid,
+                        TafseerChunk.source_id.in_(servable_source_ids()),
                         TafseerChunk.verse_start_id <= verse.id,
                         TafseerChunk.verse_end_id >= verse.id,
                     )
@@ -839,7 +840,7 @@ class ModernTafsirService:
         Arabic: الحصول على التفسير بلغات متعددة
         """
         from app.models.quran import QuranVerse
-        from app.models.tafseer import TafseerChunk, TafseerSource
+        from app.models.tafseer import TafseerChunk, TafseerSource, servable_source_ids
 
         # Get verse
         verse_result = await session.execute(
@@ -859,6 +860,7 @@ class ModernTafsirService:
             ).where(
                 TafseerChunk.verse_start_id <= verse.id,
                 TafseerChunk.verse_end_id >= verse.id,
+                TafseerChunk.source_id.in_(servable_source_ids()),
             )
         )
 
@@ -935,11 +937,12 @@ class ModernTafsirService:
         results = []
 
         if session:
-            from app.models.tafseer import TafseerChunk, TafseerSource
+            from app.models.tafseer import TafseerChunk, TafseerSource, servable_source_ids
 
             # Build query
             query = select(TafseerChunk).where(
-                TafseerChunk.source_id.in_([scholar_id, f"{scholar_id}_ar", f"{scholar_id}_en"])
+                TafseerChunk.source_id.in_([scholar_id, f"{scholar_id}_ar", f"{scholar_id}_en"]),
+                TafseerChunk.source_id.in_(servable_source_ids()),
             )
 
             if sura_no:
@@ -1070,7 +1073,7 @@ class ModernTafsirService:
         Arabic: الحصول على التفسير المناسب لهدف الدراسة
         """
         from app.models.quran import QuranVerse
-        from app.models.tafseer import TafseerChunk, TafseerSource
+        from app.models.tafseer import TafseerChunk, TafseerSource, servable_source_ids
 
         # Map goals to preferred sources
         goal_sources = {
@@ -1100,6 +1103,7 @@ class ModernTafsirService:
                 chunk_result = await session.execute(
                     select(TafseerChunk).where(
                         TafseerChunk.source_id == sid,
+                        TafseerChunk.source_id.in_(servable_source_ids()),
                         TafseerChunk.verse_start_id <= verse.id,
                         TafseerChunk.verse_end_id >= verse.id,
                     )
@@ -1165,7 +1169,7 @@ class ModernTafsirService:
         Arabic: الحصول على أبرز النقاط والاختلافات بين التفاسير
         """
         from app.models.quran import QuranVerse
-        from app.models.tafseer import TafseerChunk, TafseerSource
+        from app.models.tafseer import TafseerChunk, TafseerSource, servable_source_ids
 
         # Get verse
         verse_result = await session.execute(
@@ -1185,6 +1189,7 @@ class ModernTafsirService:
             ).where(
                 TafseerChunk.verse_start_id <= verse.id,
                 TafseerChunk.verse_end_id >= verse.id,
+                TafseerChunk.source_id.in_(servable_source_ids()),
             )
         )
 

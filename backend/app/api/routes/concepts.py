@@ -1019,6 +1019,7 @@ async def get_occurrence_evidence(
                 JOIN tafseer_sources ts ON tc.source_id = ts.id
                 WHERE tc.id::text = ANY(:ids)
                   AND ts.id = ANY(:approved_sources)
+                  AND ts.is_enabled = 1 AND ts.license_verified = 1
                 ORDER BY ts.madhab NULLS LAST, ts.name_en
             """),
             {"ids": chunk_ids, "approved_sources": approved_sources}
