@@ -121,10 +121,36 @@ def remap_same_work(evidence: Any) -> list[Any]:
     return out
 
 
+# Seed time: a pointer is dropped when its source is known to be disabled or
+# unlicensed, or when that source's passages are loaded and none covers the
+# verse. A pointer to a source whose passages are simply not loaded yet (CI, or
+# a fresh install before seed_tafseer) is kept: it is only a source + verse
+# reference, and the read-time filter (_RESOLVE_SQL) never shows it until an
+# enabled, licensed passage exists.
+_SEED_KEEP_SQL = """
+SELECT r.i
+  FROM unnest(CAST(:src AS text[]), CAST(:sura AS int[]), CAST(:a AS int[]),
+              CAST(:b AS int[]), CAST(:cid AS text[])) WITH ORDINALITY AS r(src, s, a, b, cid, i)
+ WHERE r.src <> ALL(CAST(:blocked AS text[]))
+   AND NOT EXISTS (SELECT 1 FROM tafseer_sources ts
+                    WHERE ts.id = r.src AND (ts.is_enabled = 0 OR ts.license_verified = 0))
+   AND (NOT EXISTS (SELECT 1 FROM tafseer_chunks c WHERE c.source_id = r.src)
+        OR CASE WHEN r.cid IS NOT NULL
+                THEN EXISTS (SELECT 1 FROM tafseer_chunks c WHERE c.chunk_id = r.cid AND c.source_id = r.src)
+                ELSE EXISTS (SELECT 1 FROM tafseer_chunks c
+                              WHERE c.source_id = r.src AND c.sura_no = r.s
+                                AND c.aya_start <= r.b AND c.aya_end >= r.a) END)
+"""
+
+# Sources that must never be cited, whatever the database says (no licence).
+SEED_BLOCKED_SOURCES = ("ibn_kathir_en", "jalalayn_en", "ibn_abbas_en")
+
+
 def resolve_seed_evidence_sync(session, evidence_lists: list[Any]) -> list[list[dict]]:
-    """Seeder variant (sync session): remap same-work legacy ids, then filter."""
+    """Seeder variant (sync session): remap same-work legacy ids, then filter (see _SEED_KEEP_SQL)."""
     shaped, flat = _split([remap_same_work(ev) for ev in evidence_lists])
     if not flat:
         return [[] for _ in shaped]
-    rows = session.execute(text(_RESOLVE_SQL), _params(flat))
+    params = {**_params(flat), "blocked": list(SEED_BLOCKED_SOURCES)}
+    rows = session.execute(text(_SEED_KEEP_SQL), params)
     return _rejoin(shaped, {int(r[0]) for r in rows})

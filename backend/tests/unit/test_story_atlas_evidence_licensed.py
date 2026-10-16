@@ -136,6 +136,8 @@ def test_migration_chains_after_r3d():
 
 
 @pytest.mark.asyncio
+# Asserts every pointer resolves to a stored passage, so it needs the corpus.
+@pytest.mark.requires_data("tafsir_corpus")
 async def test_migration_is_idempotent_and_leaves_only_licensed_evidence():
     from app.db import database
 

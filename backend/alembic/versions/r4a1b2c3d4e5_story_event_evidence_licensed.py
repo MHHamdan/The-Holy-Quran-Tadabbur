@@ -27,7 +27,11 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 # One pointer, remapped to the same work's enabled edition and reduced to its
-# public keys; NULL when it does not resolve to an enabled, licensed chunk.
+# public keys. NULL when its source is blocked, disabled or unlicensed, or when
+# that source's passages are loaded and none covers the verse. A pointer to a
+# source whose passages are not loaded yet is kept (a database seeded before
+# the tafsir corpus); the API's read-time filter never shows it until an
+# enabled, licensed passage exists. Same rule as seed_story_atlas.
 _RESOLVED = r"""
 (SELECT jsonb_strip_nulls(jsonb_build_object(
           'source_id', x.src,
@@ -37,9 +41,11 @@ _RESOLVED = r"""
                      ELSE e->>'source_id' END AS src,
                 e->>'reference' AS ref,
                 regexp_match(e->>'reference', '^(\d{1,3}):(\d{1,3})(?:-(\d{1,3}))?$') AS m) x
-  WHERE EXISTS (SELECT 1 FROM tafseer_sources s
-                 WHERE s.id = x.src AND s.is_enabled = 1 AND s.license_verified = 1)
-    AND CASE WHEN x.src = e->>'source_id' AND e ? 'chunk_id'
+  WHERE x.src NOT IN ('ibn_kathir_en', 'jalalayn_en', 'ibn_abbas_en')
+    AND NOT EXISTS (SELECT 1 FROM tafseer_sources s
+                     WHERE s.id = x.src AND (s.is_enabled = 0 OR s.license_verified = 0))
+    AND (NOT EXISTS (SELECT 1 FROM tafseer_chunks c0 WHERE c0.source_id = x.src) OR
+         CASE WHEN x.src = e->>'source_id' AND e ? 'chunk_id'
              THEN EXISTS (SELECT 1 FROM tafseer_chunks c
                            WHERE c.chunk_id = e->>'chunk_id' AND c.source_id = x.src)
              ELSE x.m IS NOT NULL
@@ -47,7 +53,7 @@ _RESOLVED = r"""
                                WHERE c.source_id = x.src
                                  AND c.sura_no = x.m[1]::int
                                  AND c.aya_start <= COALESCE(x.m[3], x.m[2])::int
-                                 AND c.aya_end >= x.m[2]::int) END)
+                                 AND c.aya_end >= x.m[2]::int) END))
 """
 
 _NEW_EVIDENCE = f"""
