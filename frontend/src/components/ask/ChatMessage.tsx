@@ -12,6 +12,8 @@ import { FollowUpChips } from './FollowUpChips';
 import { MissingSourceWarning } from '../common/SourceBadge';
 import { DisagreementCard } from './DisagreementCard';
 import { RichAnswerText, disagreementText, localizeWarnings } from './answerText';
+import { askErrorCopy, type AskErrorKind } from './askErrors';
+import { consensusLabel } from './consensus';
 
 export interface ChatMessageData {
   id: string;
@@ -22,6 +24,8 @@ export interface ChatMessageData {
   response?: RAGResponse;
   isLoading?: boolean;
   error?: string;
+  /** Specific failure (AI service down, quota, rate limit, offline); see askErrors.ts */
+  errorKind?: AskErrorKind;
 }
 
 interface ChatMessageProps {
@@ -70,7 +74,8 @@ function AssistantMessage({
   onFollowUp?: (question: string) => void;
   isLatest?: boolean;
 }) {
-  const { response, isLoading, error } = message;
+  const { response, isLoading, error, errorKind } = message;
+  const serviceError = error && errorKind ? askErrorCopy(errorKind, language) : null;
 
   // Status-based routing (Phase 2)
   const status = response?.status ?? (response?.citations?.length ? 'answered' : 'no_verified_source');
@@ -115,7 +120,9 @@ function AssistantMessage({
         {isLoading && <LoadingIndicator language={language} />}
 
         {/* Error state */}
-        {error && <ErrorDisplay error={error} language={language} />}
+        {error && (serviceError
+          ? <ServiceNotice title={serviceError.title} body={serviceError.body} language={language} />
+          : <ErrorDisplay error={error} language={language} />)}
 
         {/* Response content */}
         {response && (
@@ -296,6 +303,24 @@ function ErrorDisplay({ error, language }: { error: string; language: 'ar' | 'en
             {language === 'ar' ? 'حدث خطأ' : 'An Error Occurred'}
           </h4>
           <p className="text-sm text-red-700">{error}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** A known, temporary failure (AI service, quota, rate limit, offline): not a red error. */
+function ServiceNotice({ title, body, language }: { title: string; body: string; language: 'ar' | 'en' }) {
+  return (
+    <div role="status" className="bg-amber-50 border border-amber-200 rounded-xl p-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <h4 className={clsx('text-sm font-semibold text-amber-800 mb-1', language === 'ar' && 'font-arabic')}>{title}</h4>
+          <p className={clsx('text-sm text-amber-700', language === 'ar' && 'font-arabic')}>{body}</p>
+          <Link to="/tafsir/compare" className="mt-2 inline-flex min-h-6 items-center text-xs font-medium text-amber-800 underline">
+            {language === 'ar' ? 'مقارنة التفاسير' : 'Compare Tafsir'}
+          </Link>
         </div>
       </div>
     </div>
@@ -501,6 +526,11 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
 
   // Notices and refusals are fixed texts, not answers: no score, mode or rating.
   const isFixedText = response.answer_kind === 'notice' || response.answer_kind === 'refusal';
+  // A source digest quotes the tafsir directly: it is not a summary and has no
+  // model confidence to report. A no_verified_source reply has nothing to score.
+  const isDigest = response.answer_kind === 'source_digest';
+  const showScore = !isFixedText && !isDigest && response.status !== 'no_verified_source';
+  const consensus = consensusLabel(response.scholarly_consensus, language);
   const isAiText = response.ai_generated === true || response.answer_kind === 'ai_synthesis';
 
   return (
@@ -512,11 +542,11 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
           <h4 className="text-xs sm:text-sm font-semibold text-gray-700 truncate">
             {answerHeader(response, language)}
           </h4>
-          {response.answer_mode && !isFixedText && (
+          {response.answer_mode && !isFixedText && !isDigest && (
             <AnswerModeBadge mode={response.answer_mode} language={language} />
           )}
         </div>
-        {!isFixedText && <ConfidenceBadge confidence={response.confidence} language={language} />}
+        {showScore && <ConfidenceBadge confidence={response.confidence} language={language} />}
       </div>
 
       {/* Content */}
@@ -528,11 +558,11 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
           <RichAnswerText text={response.answer} language={language} />
         </div>
 
-        {response.scholarly_consensus && (
+        {consensus && (
           <div className="mt-3 pt-3 border-t border-gray-100">
             <span className="inline-flex items-center gap-1.5 text-xs text-green-700 bg-green-50 px-2 py-1 rounded-lg">
               <CheckCircle className="w-3.5 h-3.5" />
-              {response.scholarly_consensus}
+              {consensus}
             </span>
           </div>
         )}
@@ -561,7 +591,7 @@ function AnswerCard({ response, language }: { response: RAGResponse; language: '
               ? (language === 'ar' ? 'تم النسخ!' : 'Copied!')
               : (language === 'ar' ? 'نسخ' : 'Copy')}
           </button>
-          {typeof navigator.share === 'function' && (
+          {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
             <button
               onClick={handleShare}
               className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-xs font-medium bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-95 rounded-lg transition-all duration-200"
