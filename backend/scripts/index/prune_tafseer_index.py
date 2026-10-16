@@ -74,8 +74,10 @@ class Plan:
     kept_chunks: Dict[str, Set[str]] = field(default_factory=lambda: defaultdict(set))
     total_points: int = 0
 
-    def to_delete(self, include_unlicensed: bool) -> List[object]:
+    def to_delete(self, include_unlicensed: bool, only: Optional[Set[str]] = None) -> List[object]:
         allowed = set(ALWAYS_DELETE) | ({"unlicensed"} if include_unlicensed else set())
+        if only is not None:
+            allowed &= only
         return [pid for pid, r in self.reasons.items() if r in allowed]
 
 
@@ -215,6 +217,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--apply", action="store_true", help="delete the stale points")
     parser.add_argument("--include-unlicensed", action="store_true",
                         help="also delete points of enabled sources whose licence is not verified")
+    parser.add_argument("--only", type=lambda v: {r.strip() for r in v.split(",") if r.strip()},
+                        help="restrict deletion to these reasons, comma-separated (e.g. orphan,placeholder: "
+                             "keeps disabled-source vectors, which retrieval already ignores, for a later re-enable)")
     args = parser.parse_args(argv)
 
     collection = os.getenv("QDRANT_COLLECTION", settings.qdrant_collection_tafseer)
@@ -226,7 +231,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         plan = classify(points, sources, chunks)
         report(plan, sources, chunks, f"{collection} BEFORE")
 
-        doomed = plan.to_delete(args.include_unlicensed)
+        doomed = plan.to_delete(args.include_unlicensed, args.only)
         by_reason = Counter(plan.reasons[p] for p in doomed)
         print(f"\nStale points to delete: {len(doomed)} {dict(by_reason)}")
         if not args.apply:
