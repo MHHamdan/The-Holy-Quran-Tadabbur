@@ -778,14 +778,14 @@ function ConfidenceBadge({ confidence, language }: { confidence: number; languag
     : 'bg-red-100 text-red-700 border-red-200';
 
   const label = confidence >= 0.7
-    ? (language === 'ar' ? 'ممتاز' : 'High')
+    ? (language === 'ar' ? 'مرتفعة' : 'High')
     : confidence >= 0.4
-    ? (language === 'ar' ? 'متوسط' : 'Medium')
-    : (language === 'ar' ? 'منخفض' : 'Low');
+    ? (language === 'ar' ? 'متوسطة' : 'Medium')
+    : (language === 'ar' ? 'منخفضة' : 'Low');
 
   return (
     <span className={clsx('text-[10px] sm:text-xs font-medium px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg border whitespace-nowrap', colorScheme)}>
-      {percent}% <span className="hidden xs:inline">{language === 'ar' ? 'ثقة' : 'confidence'}</span> ({label})
+      {language === 'ar' ? `${percent.toLocaleString('ar-EG')}٪` : `${percent}%`} <span className="hidden xs:inline">{language === 'ar' ? 'ثقة' : 'confidence'}</span> ({label})
     </span>
   );
 }
