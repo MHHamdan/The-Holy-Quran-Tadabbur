@@ -53,13 +53,15 @@ and the page says so.
 | Location → Approximate location | Yes | Yes (AlAdhan, OpenStreetMap) | No | Optional | App functionality |
 | Location → Precise location | **OWNER DECISION** (see below) | | | Optional | App functionality |
 | Audio → Voice or sound recordings | Yes | No (Hugging Face is a service provider) | Yes | Optional | App functionality |
-| App activity → In-app search history | Yes | No | Yes | Optional | App functionality |
+| App activity → In-app search history | Yes | No | No | Optional | App functionality |
 | App activity → Other user-generated content (questions, reflections, feedback) | Yes | No | No | Optional | App functionality |
 
-Search history is **ephemeral** in Play's sense: queries are processed in
-memory only for as long as it takes to serve the request, and the app keeps no
-search list on the device or the server. It is still declared as collected,
-conservatively, because the query text reaches our backend and Hugging Face.
+Search history is declared **not** ephemeral, conservatively. This version
+processes queries only to serve the request and keeps no search list on the
+device or the server, but the server's `/quran/history` endpoint still accepts
+entries (earlier builds posted to it) and keeps them in memory for up to 30
+days. **OWNER DECISION**: once that endpoint is removed, the answer can become
+Yes (ephemeral).
 
 Play treats data sent to a service provider that processes it on the
 developer's behalf (Hugging Face) as not "shared". Data the device sends
