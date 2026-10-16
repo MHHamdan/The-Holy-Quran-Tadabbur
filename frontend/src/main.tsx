@@ -48,4 +48,10 @@ void Promise.race([
       </QueryClientProvider>
     </React.StrictMode>,
   )
+  // "Delete my data" server deletes that failed (offline, server down) are
+  // retried on every launch and whenever the device comes back online — not
+  // only when /privacy or /therapy is opened. Loaded lazily, off the first paint.
+  void import('./lib/dataErasure')
+    .then(({ startPendingErasureRetry }) => startPendingErasureRetry())
+    .catch(() => { /* chunk unavailable: the Privacy and Guidance pages retry too */ })
 })

@@ -47,6 +47,11 @@ async def _no_rate_limit() -> None:
     pass
 
 
+def _creds(*responses) -> list[dict]:
+    """[{id, token}] for /ask or /chat responses (the token proves ownership)."""
+    return [{"id": d["session_id"], "token": d["client_token"]} for d in responses]
+
+
 app.dependency_overrides[therapy_rate_limit] = _no_rate_limit
 
 
@@ -291,7 +296,9 @@ class TestChatFallback:
         self._ids.append(data["session_id"])
         assert isinstance(data["follow_up_suggestions"], list)
 
-    async def test_chat_session_id_provided_reused(self, client):
+    async def test_chat_client_chosen_session_id_not_honoured(self, client):
+        # The server generates session ids; an id the client picks (without
+        # the token issued for it) starts a new session instead.
         prior_sid = str(uuid.uuid4())
         async with self._rag_patches():
             r = await client.post(
@@ -300,7 +307,22 @@ class TestChatFallback:
             )
         data = r.json()
         self._ids.append(data["session_id"])
-        assert data["session_id"] == prior_sid
+        assert data["session_id"] != prior_sid
+        assert data["client_token"]
+
+    async def test_chat_follow_up_with_token_reuses_session(self, client):
+        async with self._rag_patches():
+            r1 = await client.post("/api/v1/therapy/chat", json={"message": "I feel anxious about tomorrow"})
+            first = r1.json()
+            self._ids.append(first["session_id"])
+            r2 = await client.post(
+                "/api/v1/therapy/chat",
+                json={"message": "Tell me more about patience please",
+                      "session_id": first["session_id"], "session_token": first["client_token"]},
+            )
+        assert r2.status_code == 200, r2.text
+        assert r2.json()["session_id"] == first["session_id"]
+        assert r2.json()["client_token"] is None
 
     async def test_chat_invalid_emotion_override_422(self, client):
         r = await client.post(
@@ -330,14 +352,15 @@ class TestInsights:
     _ids: list[str] = []
 
     async def test_insights_empty_session_list_422(self, client):
-        r = await client.post("/api/v1/therapy/insights", json={"session_ids": []})
-        # min_length=1 validation on session_ids
+        r = await client.post("/api/v1/therapy/insights", json={"sessions": []})
+        # min_length=1 validation on sessions
         assert r.status_code == 422
 
     async def test_insights_unknown_sessions_zero_total(self, client):
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [str(uuid.uuid4()), str(uuid.uuid4())]},
+            json={"sessions": [{"id": str(uuid.uuid4()), "token": "unknown-token-1"},
+                               {"id": str(uuid.uuid4()), "token": "unknown-token-2"}]},
         )
         assert r.status_code == 200
         data = r.json()
@@ -355,7 +378,7 @@ class TestInsights:
 
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": session_ids},
+            json={"sessions": _creds(d1, d2, d3)},
         )
         assert r.status_code == 200
         data = r.json()
@@ -367,7 +390,7 @@ class TestInsights:
         self._ids.append(d["session_id"])
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [d["session_id"]]},
+            json={"sessions": _creds(d)},
         )
         data = r.json()
         if data["emotion_distribution"]:
@@ -383,7 +406,7 @@ class TestInsights:
         d2 = await _ask(client, "I am scared of what might happen")
         ids = [d1["session_id"], d2["session_id"]]
         self._ids.extend(ids)
-        r = await client.post("/api/v1/therapy/insights", json={"session_ids": ids})
+        r = await client.post("/api/v1/therapy/insights", json={"sessions": _creds(d1, d2)})
         data = r.json()
         if data["top_emotion"] and data["emotion_distribution"]:
             assert data["top_emotion"] == data["emotion_distribution"][0]["emotion"]
@@ -393,7 +416,7 @@ class TestInsights:
         self._ids.append(d["session_id"])
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [d["session_id"]], "language": "ar"},
+            json={"sessions": _creds(d), "language": "ar"},
         )
         assert r.status_code == 200
 
@@ -402,7 +425,7 @@ class TestInsights:
         self._ids.append(d["session_id"])
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [d["session_id"]]},
+            json={"sessions": _creds(d)},
         )
         data = r.json()
         required_keys = {

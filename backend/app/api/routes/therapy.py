@@ -8,7 +8,15 @@ Public endpoints:
   GET  /api/v1/therapy/themes       — list all healing themes
   GET  /api/v1/therapy/theme/{name} — explore a specific healing theme
   POST /api/v1/therapy/reflect      — save a personal reflection entry
+  POST /api/v1/therapy/reflections  — read back saved reflections
+  POST /api/v1/therapy/sessions/delete — delete sessions (and reflections)
   GET  /api/v1/therapy/emotions     — list all emotion categories
+
+Session ownership: /ask and the first /chat turn create a session with a
+server-generated id and return a secret ``client_token`` once. Only its
+SHA-256 is stored. /reflect, /reflections, /insights, a follow-up /chat turn
+and /sessions/delete must present the token; an unknown id and a wrong token
+look the same to the caller.
 
 Rate-limited to 20 requests/min per IP (public, no auth required).
 
@@ -18,9 +26,13 @@ IMPORTANT DISCLAIMER — included in every response:
   If you are in crisis, please contact a qualified professional.
 """
 import asyncio
+import contextlib
+import hashlib
+import hmac
 import json
 import logging
 import os
+import secrets
 import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
@@ -84,6 +96,52 @@ def _classify_with_confidence(message: str) -> tuple[str, float]:
     # Keyword path. Not classify_emotion(): it would call the HF zero-shot
     # model a second time for English text the NLI step above already tried.
     return classify_keywords_only(message), 0.0
+
+# ---------------------------------------------------------------------------
+# Session ownership tokens
+# ---------------------------------------------------------------------------
+
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _new_client_token() -> tuple[str, str]:
+    """Return (token, sha256-hex). The token goes to the client once; only the hash is stored."""
+    token = secrets.token_urlsafe(24)
+    return token, _hash_token(token)
+
+
+def _token_matches(row: TherapySession, token: Optional[str]) -> bool:
+    if not token or not isinstance(token, str) or not row.client_token_hash:
+        return False
+    return hmac.compare_digest(_hash_token(token), row.client_token_hash)
+
+
+class SessionCredential(BaseModel):
+    id: str = Field(..., min_length=1, max_length=64)
+    token: str = Field(..., min_length=8, max_length=128)
+
+
+class DeleteCredential(BaseModel):
+    id: str = Field(..., min_length=1, max_length=64)
+    # Optional only so sessions created before tokens existed (no hash on the
+    # row) can still be deleted by their owner; a row that has a hash is only
+    # deleted with its token.
+    token: Optional[str] = Field(None, min_length=8, max_length=128)
+
+
+async def _owned_rows(db: AsyncSession, creds: List[SessionCredential]) -> List[TherapySession]:
+    """Rows whose token matches; unknown ids and wrong tokens are skipped alike."""
+    from sqlalchemy import select as sa_select
+
+    tokens = {c.id: c.token for c in creds[:200]}
+    if not tokens:
+        return []
+    result = await db.execute(
+        sa_select(TherapySession).where(TherapySession.session_id.in_(list(tokens)))
+    )
+    return [row for row in result.scalars().all() if _token_matches(row, tokens.get(row.session_id))]
+
 
 router = APIRouter()
 
@@ -167,6 +225,8 @@ class GuidanceCard(BaseModel):
 class AskResponse(BaseModel):
     ok: bool = True
     session_id: str
+    # Secret proving ownership of session_id; returned once, keep it on the device.
+    client_token: Optional[str] = None
     emotion: str
     emotion_label_en: str
     emotion_label_ar: str
@@ -209,7 +269,12 @@ class ChatRequest(BaseModel):
     message: str = Field(..., min_length=3, max_length=1500)
     language: str = Field("en", description="'en' or 'ar'")
     emotion_override: Optional[str] = Field(None)
-    session_id: Optional[str] = Field(None, description="Conversation session ID for continuity")
+    session_id: Optional[str] = Field(
+        None, max_length=64, description="Conversation session ID returned by the first turn"
+    )
+    session_token: Optional[str] = Field(
+        None, max_length=128, description="client_token returned with that session ID"
+    )
     conversation_context: Optional[List[Dict[str, str]]] = Field(
         None, description="Prior turns [{role, content}]"
     )
@@ -239,6 +304,9 @@ class ChatCitation(BaseModel):
 class ChatResponse(BaseModel):
     ok: bool = True
     session_id: str
+    # Set only when this turn started a new session (first turn, or the
+    # session_id/session_token sent did not match one): store it with session_id.
+    client_token: Optional[str] = None
     emotion: str
     emotion_label_en: str
     emotion_label_ar: str
@@ -263,7 +331,7 @@ class ChatResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 class InsightsRequest(BaseModel):
-    session_ids: List[str] = Field(..., min_length=1, max_length=200)
+    sessions: List[SessionCredential] = Field(..., min_length=1, max_length=200)
     language: str = Field("en")
 
     @field_validator("language")
@@ -336,6 +404,7 @@ class ThemeDetailResponse(BaseModel):
 
 class ReflectRequest(BaseModel):
     session_id: str = Field(..., min_length=10, max_length=100)
+    token: str = Field(..., min_length=8, max_length=128)
     reflection: str = Field(..., min_length=1, max_length=3000)
 
 
@@ -358,7 +427,7 @@ class ReflectionRecord(BaseModel):
 
 
 class ReflectionsRequest(BaseModel):
-    session_ids: List[str] = Field(..., min_length=1, max_length=200)
+    sessions: List[SessionCredential] = Field(..., min_length=1, max_length=200)
 
 
 class ReflectionsResponse(BaseModel):
@@ -1109,6 +1178,7 @@ async def ask(
         suggested_theme_reason_ar = reason.get("ar")
 
     session_id = str(uuid.uuid4())
+    client_token, token_hash = _new_client_token()
     verses_shown = json.dumps([c["reference"] for c in cards_data])
 
     session = TherapySession(
@@ -1118,6 +1188,7 @@ async def ask(
         user_message=None,  # never stored (see "Privacy: retention and deletion")
         verses_shown=verses_shown,
         language=body.language,
+        client_token_hash=token_hash,
     )
     db.add(session)
     await _purge_expired_sessions(db)
@@ -1141,6 +1212,7 @@ async def ask(
 
     return AskResponse(
         session_id=session_id,
+        client_token=client_token,
         emotion=emotion,
         emotion_label_en=labels["en"],
         emotion_label_ar=labels["ar"],
@@ -1243,14 +1315,11 @@ async def save_reflection(
     Attach a personal reflection note to an existing therapy session.
     Creates a lightweight journaling trail for the user.
     """
-    from sqlalchemy import select as sa_select
-
-    result = await db.execute(
-        sa_select(TherapySession).where(TherapySession.session_id == body.session_id)
-    )
-    session = result.scalar_one_or_none()
-    if session is None:
+    rows = await _owned_rows(db, [SessionCredential(id=body.session_id, token=body.token)])
+    if not rows:
+        # Unknown id and wrong token look the same, so ids cannot be probed.
         raise HTTPException(status_code=404, detail="Session not found.")
+    session = rows[0]
 
     session.reflection_logged = body.reflection[:3000]
     await db.commit()
@@ -1310,7 +1379,23 @@ async def chat(
     directive = build_tone_directive(emotion, emotion_confidence, body.language)
 
     labels = EMOTION_LABELS.get(emotion, {"en": emotion, "ar": emotion})
-    session_id = body.session_id or str(uuid.uuid4())
+
+    # A follow-up turn continues its session only with the matching token;
+    # anything else starts a new session with a server-generated id (the
+    # client never chooses an id).
+    existing: Optional[TherapySession] = None
+    if body.session_id and body.session_token:
+        owned = await _owned_rows(
+            db, [SessionCredential.model_construct(id=body.session_id, token=body.session_token)]
+        )
+        existing = owned[0] if owned else None
+    client_token: Optional[str] = None
+    token_hash: Optional[str] = None
+    if existing is not None:
+        session_id = existing.session_id
+    else:
+        session_id = str(uuid.uuid4())
+        client_token, token_hash = _new_client_token()
 
     # Compose a Quran-focused spiritual question from the raw user message
     emotion_label = labels[body.language] if body.language in ("en", "ar") else labels["en"]
@@ -1363,20 +1448,15 @@ async def chat(
             follow_ups = list(result.follow_up_suggestions or [])[:3]
 
             # Record the session so it shows up in insights
-            ts = TherapySession(
-                session_id=session_id,
-                emotion=emotion,
-                theme=None,
-                user_message=None,  # never stored (see "Privacy: retention and deletion")
-                verses_shown=json.dumps(related_verses[:5]),
-                language=body.language,
+            await _record_chat_turn(
+                db, existing, session_id, token_hash,
+                emotion=emotion, theme=None,
+                verses=related_verses[:5], language=body.language,
             )
-            db.add(ts)
-            await _purge_expired_sessions(db)
-            await db.commit()
 
             return ChatResponse(
                 session_id=session_id,
+                client_token=client_token,
                 emotion=emotion,
                 emotion_label_en=labels["en"],
                 emotion_label_ar=labels["ar"],
@@ -1398,20 +1478,15 @@ async def chat(
     empathy = _EMPATHY.get(emotion, _EMPATHY[EmotionCategory.GENERAL])
     fallback_answer = empathy[body.language] if body.language in ("en", "ar") else empathy["en"]
 
-    ts = TherapySession(
-        session_id=session_id,
-        emotion=emotion,
-        theme=cards_data[0]["theme"] if cards_data else None,
-        user_message=None,  # never stored (see "Privacy: retention and deletion")
-        verses_shown=json.dumps([c["reference"] for c in cards_data]),
-        language=body.language,
+    await _record_chat_turn(
+        db, existing, session_id, token_hash,
+        emotion=emotion, theme=cards_data[0]["theme"] if cards_data else None,
+        verses=[c["reference"] for c in cards_data], language=body.language,
     )
-    db.add(ts)
-    await _purge_expired_sessions(db)
-    await db.commit()
 
     return ChatResponse(
         session_id=session_id,
+        client_token=client_token,
         emotion=emotion,
         emotion_label_en=labels["en"],
         emotion_label_ar=labels["ar"],
@@ -1422,6 +1497,52 @@ async def chat(
         emotion_confidence=emotion_confidence,
         tone_profile=tone.label,
     )
+
+
+async def _record_chat_turn(
+    db: AsyncSession,
+    existing: Optional[TherapySession],
+    session_id: str,
+    token_hash: Optional[str],
+    *,
+    emotion: str,
+    theme: Optional[str],
+    verses: List[str],
+    language: str,
+) -> None:
+    """One row per conversation: a follow-up turn updates the session's row
+    (a second INSERT with the same session_id violated the unique key).
+
+    An UPDATE by id rather than attribute writes on ``existing``: the RAG
+    pipeline shares this db session and may have rolled it back, which
+    expires loaded rows."""
+    if existing is not None:
+        from sqlalchemy import update as sa_update
+
+        values: Dict[str, Any] = {
+            "emotion": emotion,
+            "verses_shown": json.dumps(verses),
+            "language": language,
+        }
+        if theme is not None:
+            values["theme"] = theme
+        await db.execute(
+            sa_update(TherapySession)
+            .where(TherapySession.session_id == session_id)
+            .values(**values)
+        )
+    else:
+        db.add(TherapySession(
+            session_id=session_id,
+            emotion=emotion,
+            theme=theme,
+            user_message=None,  # never stored (see "Privacy: retention and deletion")
+            verses_shown=json.dumps(verses),
+            language=language,
+            client_token_hash=token_hash,
+        ))
+    await _purge_expired_sessions(db)
+    await db.commit()
 
 
 # ---------------------------------------------------------------------------
@@ -1441,19 +1562,18 @@ async def get_insights(
     """
     Aggregate therapy session data for the provided session IDs and return
     an emotional journey summary: emotion distribution, most-visited theme,
-    and top emotion.  All session IDs are client-generated, so this endpoint
-    is privacy-preserving — no user account required.
+    and top emotion.  Only sessions whose client token matches are counted;
+    no user account is involved.
     """
     from sqlalchemy import select as sa_select, func
 
-    if not body.session_ids:
+    # Limit to 200 sessions to bound query size
+    ids = [row.session_id for row in await _owned_rows(db, body.sessions[:200])]
+    if not ids:
         return InsightsResponse(
             total_sessions=0,
             emotion_distribution=[],
         )
-
-    # Limit to 200 session IDs to bound query size
-    ids = body.session_ids[:200]
 
     result = await db.execute(
         sa_select(TherapySession.emotion, func.count(TherapySession.id).label("cnt"))
@@ -1594,8 +1714,55 @@ async def _purge_expired_sessions(db: AsyncSession) -> None:
     await db.execute(sa_delete(TherapySession).where(TherapySession.created_at < cutoff))
 
 
+# Retention must not depend on new sessions being created: a background task
+# purges expired private rows once shortly after startup and then daily.
+PRIVACY_PURGE_INTERVAL_SECONDS = int(os.getenv("PRIVACY_PURGE_INTERVAL_SECONDS", str(24 * 3600)))
+PRIVACY_PURGE_INITIAL_DELAY_SECONDS = int(os.getenv("PRIVACY_PURGE_INITIAL_DELAY_SECONDS", "60"))
+PRIVACY_PURGE_ENABLED = os.getenv("PRIVACY_PURGE_ENABLED", "1") == "1"
+
+
+async def purge_expired_private_data(db: AsyncSession) -> None:
+    """Apply every retention limit stated on /privacy: guidance sessions,
+    Tasmeeʿ sessions and anonymous dhikr counts."""
+    from app.api.routes import adhkar, tasmee
+
+    await _purge_expired_sessions(db)
+    await tasmee._purge_expired_sessions(db)
+    await adhkar.purge_expired_dhikr_sessions(db)
+    await db.commit()
+
+
+async def _retention_loop() -> None:
+    from app.db.database import AsyncSessionLocal
+
+    await asyncio.sleep(PRIVACY_PURGE_INITIAL_DELAY_SECONDS)
+    while True:
+        try:
+            async with AsyncSessionLocal() as db:
+                await purge_expired_private_data(db)
+        except Exception as exc:  # noqa: BLE001 — retry on the next tick
+            logger.warning("[privacy] retention purge failed: %s", type(exc).__name__)
+        await asyncio.sleep(PRIVACY_PURGE_INTERVAL_SECONDS)
+
+
+@contextlib.asynccontextmanager
+async def _retention_lifespan(_app):
+    """Merged into the app lifespan by include_router."""
+    task = asyncio.create_task(_retention_loop()) if PRIVACY_PURGE_ENABLED else None
+    try:
+        yield
+    finally:
+        if task is not None:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await task
+
+
+router.lifespan_context = _retention_lifespan
+
+
 class DeleteSessionsRequest(BaseModel):
-    session_ids: List[str] = Field(..., min_length=1, max_length=200)
+    sessions: List[DeleteCredential] = Field(..., min_length=1, max_length=200)
 
 
 class DeleteSessionsResponse(BaseModel):
@@ -1612,14 +1779,32 @@ async def delete_sessions(
     body: DeleteSessionsRequest,
     db: AsyncSession = Depends(get_async_session),
 ) -> DeleteSessionsResponse:
-    """Session IDs are random UUIDs held only by the client, so possession is the proof of ownership."""
-    from sqlalchemy import delete as sa_delete
+    """Delete each session whose client token matches. Sessions created before
+    tokens existed (no hash stored) are deleted by id alone so their owners
+    can still erase them. Unknown ids and wrong tokens are skipped silently."""
+    from sqlalchemy import delete as sa_delete, select as sa_select
 
+    tokens = {c.id: c.token for c in body.sessions[:200]}
     result = await db.execute(
-        sa_delete(TherapySession).where(TherapySession.session_id.in_(body.session_ids[:200]))
+        sa_select(TherapySession.session_id, TherapySession.client_token_hash)
+        .where(TherapySession.session_id.in_(list(tokens)))
     )
+    deletable = [
+        row.session_id
+        for row in result.all()
+        if row.client_token_hash is None
+        or (tokens.get(row.session_id) and hmac.compare_digest(
+            _hash_token(tokens[row.session_id]), row.client_token_hash))
+    ]
+    deleted = 0
+    if deletable:
+        res = await db.execute(
+            sa_delete(TherapySession).where(TherapySession.session_id.in_(deletable))
+        )
+        deleted = res.rowcount or 0
+    await _purge_expired_sessions(db)
     await db.commit()
-    return DeleteSessionsResponse(deleted=result.rowcount or 0)
+    return DeleteSessionsResponse(deleted=deleted)
 
 
 # ---------------------------------------------------------------------------
@@ -1637,22 +1822,15 @@ async def get_reflections(
     db: AsyncSession = Depends(get_async_session),
 ) -> ReflectionsResponse:
     """
-    Return all therapy sessions that have a saved reflection, ordered by
-    created_at descending.  Privacy-preserving — session IDs are client-generated.
+    Return the caller's sessions (token must match) that have a saved
+    reflection, oldest first.
     """
     import json as _json
-    from sqlalchemy import select as sa_select, asc as sa_asc
 
-    ids = body.session_ids[:200]
-    result = await db.execute(
-        sa_select(TherapySession)
-        .where(
-            TherapySession.session_id.in_(ids),
-            TherapySession.reflection_logged.is_not(None),
-        )
-        .order_by(sa_asc(TherapySession.created_at))
+    sessions = sorted(
+        (s for s in await _owned_rows(db, body.sessions[:200]) if s.reflection_logged is not None),
+        key=lambda s: s.created_at or datetime.min,
     )
-    sessions = result.scalars().all()
 
     records: List[ReflectionRecord] = []
     for s in sessions:

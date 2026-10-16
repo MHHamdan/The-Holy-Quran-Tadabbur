@@ -83,6 +83,11 @@ async def _no_rate_limit() -> None:
     pass
 
 
+def _creds(*responses) -> list[dict]:
+    """[{id, token}] for /ask or /chat responses (the token proves ownership)."""
+    return [{"id": d["session_id"], "token": d["client_token"]} for d in responses]
+
+
 app.dependency_overrides[therapy_rate_limit] = _no_rate_limit
 
 
@@ -419,7 +424,8 @@ async def test_reflect_saves_to_session(client):
 
         r = await client.post(
             "/api/v1/therapy/reflect",
-            json={"session_id": session_id, "reflection": "This verse gave me peace."},
+            json={"session_id": session_id, "token": data["client_token"],
+                  "reflection": "This verse gave me peace."},
         )
         assert r.status_code == 200
         assert r.json()["ok"] is True
@@ -432,6 +438,7 @@ async def test_reflect_404_for_missing_session(client):
         "/api/v1/therapy/reflect",
         json={
             "session_id": "nonexistent-session-id-xyz-12345",
+            "token": "some-token-value",
             "reflection": "This verse helped me.",
         },
     )
@@ -441,7 +448,7 @@ async def test_reflect_404_for_missing_session(client):
 async def test_reflect_blank_rejected(client):
     r = await client.post(
         "/api/v1/therapy/reflect",
-        json={"session_id": "any-session", "reflection": ""},
+        json={"session_id": "any-session-id", "token": "some-token-value", "reflection": ""},
     )
     assert r.status_code == 422
 

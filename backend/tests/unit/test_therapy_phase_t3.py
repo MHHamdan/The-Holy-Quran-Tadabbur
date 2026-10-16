@@ -47,6 +47,11 @@ async def _no_rate_limit() -> None:
     pass
 
 
+def _creds(*responses) -> list[dict]:
+    """[{id, token}] for /ask or /chat responses (the token proves ownership)."""
+    return [{"id": d["session_id"], "token": d["client_token"]} for d in responses]
+
+
 app.dependency_overrides[therapy_rate_limit] = _no_rate_limit
 
 
@@ -274,7 +279,7 @@ class TestGrowthPrompts:
 
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [d["session_id"]]},
+            json={"sessions": _creds(d)},
         )
         assert r.status_code == 200
         data = r.json()
@@ -287,7 +292,7 @@ class TestGrowthPrompts:
 
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [d["session_id"]]},
+            json={"sessions": _creds(d)},
         )
         data = r.json()
         assert data["growth_prompt_ar"] is not None
@@ -299,7 +304,7 @@ class TestGrowthPrompts:
 
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [d["session_id"]]},
+            json={"sessions": _creds(d)},
         )
         data = r.json()
         assert data["suggested_next_theme"] is not None
@@ -308,7 +313,7 @@ class TestGrowthPrompts:
     async def test_no_growth_prompt_when_no_sessions(self, client):
         r = await client.post(
             "/api/v1/therapy/insights",
-            json={"session_ids": [str(uuid.uuid4())]},
+            json={"sessions": [{"id": str(uuid.uuid4()), "token": "unknown-token"}]},
         )
         data = r.json()
         assert data["total_sessions"] == 0

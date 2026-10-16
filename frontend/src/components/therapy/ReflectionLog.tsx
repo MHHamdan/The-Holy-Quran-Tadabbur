@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BookMarked, ChevronDown, ChevronUp, Clock, Trash2, Save, Lightbulb } from 'lucide-react';
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
-import { therapyApi } from '../../lib/api';
+import { fetchReflections } from '../../lib/therapySessions';
 import type { ReflectionEntry } from '../../types/therapy';
 import clsx from 'clsx';
 
@@ -88,7 +88,7 @@ export function ReflectionLog({
   // Phase T5-D: fetch persisted reflections from DB on open
   useEffect(() => {
     if (!open || allSessionIds.length === 0) return;
-    therapyApi.getReflections(allSessionIds)
+    fetchReflections(allSessionIds)
       .then(data => setDbEntries(data.reflections))
       .catch(() => {/* silent — localStorage entries still shown */});
   }, [open, allSessionIds.join(',')]);

@@ -37,6 +37,11 @@ async def _no_rate_limit() -> None:
     pass
 
 
+def _creds(*responses) -> list[dict]:
+    """[{id, token}] for /ask or /chat responses (the token proves ownership)."""
+    return [{"id": d["session_id"], "token": d["client_token"]} for d in responses]
+
+
 app.dependency_overrides[therapy_rate_limit] = _no_rate_limit
 
 
@@ -157,15 +162,15 @@ class TestDistressEmpathySelection:
 # ===========================================================================
 
 class TestReflectionsEndpoint:
-    """POST /therapy/reflections — retrieve saved reflections by session_ids."""
+    """POST /therapy/reflections — retrieve saved reflections by {id, token}."""
 
     async def test_empty_session_ids_rejected(self, fclient):
-        resp = await fclient.post("/api/v1/therapy/reflections", json={"session_ids": []})
+        resp = await fclient.post("/api/v1/therapy/reflections", json={"sessions": []})
         assert resp.status_code == 422
 
     async def test_nonexistent_ids_return_empty(self, fclient):
         fake_id = str(uuid.uuid4())
-        resp = await fclient.post("/api/v1/therapy/reflections", json={"session_ids": [fake_id]})
+        resp = await fclient.post("/api/v1/therapy/reflections", json={"sessions": [{"id": fake_id, "token": "unknown-token"}]})
         assert resp.status_code == 200
         assert resp.json()["reflections"] == []
 
@@ -179,13 +184,14 @@ class TestReflectionsEndpoint:
 
         save_resp = await fclient.post(
             "/api/v1/therapy/reflect",
-            json={"session_id": sid, "reflection": "Writing helps me calm down"},
+            json={"session_id": sid, "token": ask_resp.json()["client_token"],
+                  "reflection": "Writing helps me calm down"},
         )
         assert save_resp.status_code == 200
 
         refl_resp = await fclient.post(
             "/api/v1/therapy/reflections",
-            json={"session_ids": [sid]},
+            json={"sessions": _creds(ask_resp.json())},
         )
         assert refl_resp.status_code == 200
         data = refl_resp.json()
@@ -205,11 +211,12 @@ class TestReflectionsEndpoint:
 
         await fclient.post(
             "/api/v1/therapy/reflect",
-            json={"session_id": sid, "reflection": "Feeling the loss"},
+            json={"session_id": sid, "token": ask_resp.json()["client_token"],
+                  "reflection": "Feeling the loss"},
         )
         refl_resp = await fclient.post(
             "/api/v1/therapy/reflections",
-            json={"session_ids": [sid]},
+            json={"sessions": _creds(ask_resp.json())},
         )
         rec = refl_resp.json()["reflections"][0]
         assert "label_en" in rec and rec["label_en"]
@@ -227,14 +234,17 @@ class TestReflectionsEndpoint:
 
         refl_resp = await fclient.post(
             "/api/v1/therapy/reflections",
-            json={"session_ids": [sid]},
+            json={"sessions": _creds(ask_resp.json())},
         )
         assert refl_resp.status_code == 200
         assert refl_resp.json()["reflections"] == []
 
     async def test_exactly_200_ids_accepted(self, fclient):
         ids = [str(uuid.uuid4()) for _ in range(200)]
-        resp = await fclient.post("/api/v1/therapy/reflections", json={"session_ids": ids})
+        resp = await fclient.post(
+            "/api/v1/therapy/reflections",
+            json={"sessions": [{"id": i, "token": "unknown-token"} for i in ids]},
+        )
         assert resp.status_code == 200
         assert resp.json()["reflections"] == []
 

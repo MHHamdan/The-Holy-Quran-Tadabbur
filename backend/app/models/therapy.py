@@ -53,6 +53,9 @@ class TherapySession(Base):
     user_message = Column(Text, nullable=True)  # no longer stored (privacy); legacy column
     verses_shown = Column(Text, nullable=True)  # JSON-serialised list of "surah:ayah" refs
     reflection_logged = Column(Text, nullable=True)
+    # SHA-256 of the secret client token returned once at creation; every
+    # later read/write/delete must present the token (NULL on legacy rows).
+    client_token_hash = Column(String(64), nullable=True)
     language = Column(String(5), nullable=False, default="en")
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
