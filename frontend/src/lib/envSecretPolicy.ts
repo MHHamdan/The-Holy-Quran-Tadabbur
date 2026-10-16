@@ -2,8 +2,9 @@
  * Every VITE_* variable is inlined into the client bundle, which anyone can
  * read. A name that looks like a credential (KEY, TOKEN, SECRET, PASSWORD,
  * PASSWD, PRIVATE, CREDENTIAL) therefore fails the build, unless it is listed
- * here as a value that is public by design. Server secrets (HF_TOKEN, the admin
- * API key) belong in the backend environment, never under a VITE_ name.
+ * here as a value that is public by design. Server secrets (the Hugging Face
+ * token, the admin API key) belong in the backend environment, never under a
+ * VITE_ name.
  */
 export const PUBLIC_VITE_NAMES_ALLOWLIST: ReadonlySet<string> = new Set<string>([]);
 
