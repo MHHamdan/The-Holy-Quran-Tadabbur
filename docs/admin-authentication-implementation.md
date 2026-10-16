@@ -1,3 +1,9 @@
+> **Superseded (HF migration, Phase 11):** `VITE_ADMIN_API_KEY` was removed. The
+> admin key is no longer compiled into the frontend; administrators enter it at
+> runtime and it is kept in `sessionStorage` for the tab only. The frontend build
+> now refuses any secret-looking `VITE_*` name (`frontend/src/lib/envSecretPolicy.ts`),
+> so the `VITE_ADMIN_API_KEY` setup steps below no longer apply.
+
 # Admin Authentication Implementation
 
 **Phase:** Security (pre-staging requirement)  
