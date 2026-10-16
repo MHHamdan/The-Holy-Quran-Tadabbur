@@ -42,7 +42,9 @@ EN_STOP = frozenset((
     "some such own same other another more most very can could will would shall should may might must "
     "also just only even still yet too again ever never once whether while until unless because since "
     "although though however therefore thus hence indeed namely e g i e etc s t one ones "
-    "become becomes became get gets got come comes came go goes went make makes made let lets"
+    "become becomes became get gets got come comes came go goes went make makes made let lets "
+    # the same light verbs in their -ing forms, and prepositions of degree
+    "becoming getting coming going making letting beyond whenever wherever whatever whichever"
 ).split())
 
 # Report verbs and discourse words: framing, not content.
@@ -59,7 +61,9 @@ EN_META = frozenset((
     "teach teaches taught show shows shown lesson lessons understood understand understanding "
     "imam shaykh sheikh scholar scholars author book work ibn bin abu al el thing things kind "
     "cite cites cited citing quote quotes quoted quoting hadith hadiths narration narrations narrated "
-    "report reports reported tradition traditions also further adds added allah god"
+    "report reports reported tradition traditions also further adds added allah god "
+    # report verbs that only frame what the source says
+    "affirm affirms affirmed affirming stress stresses stressed stressing remind reminds reminded reminding"
 ).split())
 
 _EN_WORD = re.compile(r"[a-z]+")
@@ -191,6 +195,13 @@ class Lexicon:
         """Add words the English tafsir literature uses to the domain
         vocabulary (no translations: they only mark a term as in-domain)."""
         extra = {en_stem(w) for w in words if w and len(w) > 2}
+        return Lexicon(self.ar2en, self.en2ar, self.vocab | frozenset(extra), self.names, self.ar_freq)
+
+    def with_domain_words_ar(self, words: Iterable[str]) -> "Lexicon":
+        """Add words the Arabic tafsir literature uses to the domain
+        vocabulary ("مواساة", "المصاب"): an Arabic claim word is foreign to
+        the evidence only when classical tafsir never uses it."""
+        extra = {st for w in words if w for st in ar_content(w)}
         return Lexicon(self.ar2en, self.en2ar, self.vocab | frozenset(extra), self.names, self.ar_freq)
 
     @classmethod
@@ -643,7 +654,8 @@ def support(claim: str, view: EvidenceView, window: int = 60, per_word: int = TR
 _EN_NEG_SPLIT = re.compile(
     r"(\b(?:not|no|never|nor|neither|without|cannot|cant|dont|doesnt|didnt|isnt|arent|wasnt|werent|wont|"
     r"regardless\s+of(?:\s+whether)?|irrespective\s+of|no\s+matter(?:\s+whether|\s+if)?|need\s+not|neednt|"
-    r"no\s+need\s+(?:to|for)|instead\s+of|rather\s+than|free\s+from|free\s+of|exempt\s+from)\b|[,;:.!?])"
+    r"no\s+need\s+(?:to|for)|instead\s+of|rather\s+than|free\s+from|free\s+of|exempt\s+from|safe\s+from|"
+    r"protected\s+from|spared\s+from)\b|[,;:.!?])"
 )
 _EN_SCOPE_RESET = frozenset("but except only unless while whereas until till so".split())
 # On the claim side only cancelled conditions count ("without repentance",
@@ -660,6 +672,12 @@ _AR_CANCEL_PHRASE = re.compile(r"(?<![ء-ي])(?:من\s+غير|بغض\s+النظ�
 _AR_NEG_WORDS = frozenset(normalize_arabic(w) for w in
                           "لا ولا فلا ليس ليست غير بغير لم ولم فلم لن ولن بلا دون بدون عدم".split())
 _AR_SCOPE_RESET = frozenset(normalize_arabic(w) for w in "إلا الا لكن ولكن بل حتى".split())
+# Privatives in evidence: "يسلمون من الإثم" (kept safe from sin), "خال من",
+# "بريء من" state the absence of what follows, like a negation.
+_AR_PRIVATIVE = re.compile(
+    r"(?<![ء-ي])[وف]?(?:يسلمون|يسلم|تسلم|سلم|سلموا|سالم|سالما|سالمين|سالمون|خال|خالية|خاليا|بريء|بريئا|براء|"
+    r"ينجو|ينجون|نجا|نجوا|معصوم|معصومون)(?:\s+(?:فيه|فيها|به|بها|بذلك))?\s+من(?![ء-ي])")
+_TASHKEEL = re.compile(r"[\u064b-\u0652\u0670\u0640]")
 NEG_SCOPE_EN = 3
 NEG_SCOPE_AR = 2
 
@@ -710,6 +728,8 @@ def _polar_tokens(text: str, claim: bool = False) -> Tuple[_Text, List[bool]]:
     cancelled condition (``claim``)."""
     if claim and re.search(r"[ء-ي]", text or ""):
         text = _AR_CANCEL_PHRASE.sub(" بدون ", text)
+    elif re.search(r"[ء-ي]", text or ""):
+        text = _AR_PRIVATIVE.sub(" بدون ", _TASHKEEL.sub("", text))
     ar_n = len(re.findall(r"[ء-ي]", text or ""))
     en_n = len(re.findall(r"[A-Za-z]", text or ""))
     toks: List[str] = []
@@ -730,8 +750,8 @@ def _polar_tokens(text: str, claim: bool = False) -> Tuple[_Text, List[bool]]:
             if w in (_AR_CANCEL if claim else _AR_NEG_WORDS):
                 scope = NEG_SCOPE_AR
                 continue
-            negated = scope > 0
-            scope = max(0, scope - 1)
+            # Function words ("لا تجعلوا له شريكا") do not use up the
+            # negation's reach: it covers the next content words.
             if len(w) <= 2 or w in _AR_STOP or w in AR_META:
                 continue
             st = _stem_ar(w)
@@ -739,7 +759,8 @@ def _polar_tokens(text: str, claim: bool = False) -> Tuple[_Text, List[bool]]:
                 continue
             toks.append(st)
             sks.append(arabic_skeleton(w))
-            negs.append(negated)
+            negs.append(scope > 0)
+            scope = max(0, scope - 1)
         return _Text("ar", toks, sks), negs
     scope = 0
     split = _EN_CANCEL if claim else _EN_NEG_SPLIT
@@ -804,9 +825,14 @@ def polarity_conflicts(claim: str, texts: Sequence[str], lexicon: Optional[Lexic
     return out
 
 
+# A claim that carries negation in its own words (a prohibition, or a
+# privative: "free from fear", "refused to give up", "losing hope") restates
+# a denial; its words cannot be read one by one as affirmations.
 _FORBID_PARAPHRASE = re.compile(
     r"\b(?:forbid\w*|forbade|prohibit\w*|avoid\w*|refrain\w*|abstain\w*|warn\w*|shun\w*|stay\s+away|keep\s+away|"
-    r"bann?\w*|not\s+allowed|unlawful|haram|never|not|no|nor|neither|cannot|only|except)\b"
+    r"bann?\w*|not\s+allowed|unlawful|haram|never|not|no|nor|neither|cannot|only|except|without|free\s+(?:from|of)|"
+    r"safe\s+from|lack\w*|devoid|refus\w*|los(?:e|es|ing|t)|give\s+up|gave\s+up|giving\s+up|despair\w*|"
+    r"rather\s+than|instead\s+of|nothing|none)\b"
     r"|(?<![ء-ي])[وف]?(?:ينهى|نهى|ينهي|نهي|النهي|حرم|يحرم|تحريم|محرم|اجتناب|يجتنب|اجتنبوا|تجنب|يحذر|حذر|لا|ليس|لم|لن|"
     r"غير|إلا|الا|إنما|انما|عدم|دون)(?![ء-ي])", re.IGNORECASE)
 

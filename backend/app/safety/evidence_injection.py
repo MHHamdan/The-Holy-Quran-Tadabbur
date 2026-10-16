@@ -227,6 +227,7 @@ _DEDICATION_HEAD = re.compile(r"^\s*(?:[#>*_\-\s]*)([^:\n.؟?!]{2,70}?)\s*(?:[:�
 _STRUCTURAL = re.compile(
     r"\b(ignore|disregard|forget)\s+(all\s+|any\s+|the\s+)?(previous|prior|above|earlier|your|other)\s+"
     r"(instructions|rules|prompts?|guidelines)\b|\b(system|developer)\s+prompt\b"
+    r"|\b(ignore|disregard|forget)\s+(everything|anything|all)\s+(else|above|before|previous|other)\b"
     r"|<\s*/?\s*(system|assistant|source|question|user|im_start|im_end|instructions?)\b|<\|[^|>]{0,40}\|>"
     r"|^\s*(system|assistant|user|developer)\s*:|\bnew\s+(system\s+)?instructions?\s*:|\bnew\s+system\s+prompt\b"
     r"|تجاهل\s+(كل\s+|جميع\s+)?(التعليمات|الأوامر|الاوامر|القواعد)",
@@ -276,6 +277,13 @@ _EN_DEDICATION = re.compile(
 )
 
 
+_EN_VOCATIVE = re.compile(
+    r"^\W*(?:dear\s+|hey\s+|hi\s+|o\s+|attention\s+)?(?:the\s+)?(?:assistant|chat\s*bot|chatbot|bot|a\.?i\.?|"
+    r"language\s+model|llm|gpt|model|ai\s+model|system)\s*[,:!\-–—]",
+    re.IGNORECASE,
+)
+
+
 def _addresses_producer(head: str) -> bool:
     return bool(_EN_PRODUCTION.search(head) or _AR_PRODUCTION.search(head) or _EN_ROLE.search(head)
                 or _AR_ROLE.search(head) or _EN_ROLE_WEAK.search(head) or _EN_ADDRESSEE.search(head)
@@ -302,6 +310,10 @@ def _sentence_injected(t: str) -> bool:
     if en_dir and (_EN_ROLE_WEAK.search(t) or _EN_RESPONSE_META.search(t)):
         return True
     if en_dir and _EN_ADDRESSEE.search(t) and re.search(r"\b(you|your)\b", t, re.IGNORECASE):
+        return True
+    # The software addressed by name, then ordered: "Assistant, disregard…",
+    # "AI: say…".
+    if en_dir and _EN_VOCATIVE.match(t):
         return True
     if _EN_RESPONSE_META.search(t) and _EN_ADDRESSEE.search(t):
         return True

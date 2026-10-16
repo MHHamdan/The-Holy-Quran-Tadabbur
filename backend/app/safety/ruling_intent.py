@@ -117,6 +117,12 @@ _AR_LEGISLATE = _ar_set("حرم احل فرض اوجب كتب نهي امر شر
 _AR_STATUS_SUBJECT = _ar_set("من ومن فمن كل وكل تارك وتارك الذي التي الذين فهو فهي فانه فانها هو هي فقد يعتبر يعد "
                              "انت وانت فانت انه انها")
 _AR_NEGATORS = _ar_set("لا ولا فلا ليس ليست غير لم لن")
+# Muslim schools and communities: named as the subject of a status word they
+# are takfir of a group ("والصوفية كفار").
+_AR_MUSLIM_GROUPS = _ar_set(
+    "الشيعه والشيعه فالشيعه الرافضه والرافضه الصوفيه والصوفيه فالصوفيه السلفيه والسلفيه الاشاعره والاشاعره "
+    "فالاشاعره الماتريديه والماتريديه المعتزله والمعتزله الاباضيه والاباضيه الزيديه والزيديه الوهابيه "
+    "والوهابيه المسلمون والمسلمون فالمسلمون المسلمين")
 _AR_TAFSIR_FRAME = _ar_set("معني تفسير الحكمه حكمه لماذا لم سبب مراد تاويل دلاله يفسر فسر اشرح")
 
 
@@ -537,7 +543,7 @@ def ruling_claims(sentence: str) -> List[RulingClaim]:
                     # Takfir needs a predicate about a person or category
                     # ("من ترك… كافر", "فهو كافر"), not the word in a story.
                     if base == STATUS and not (person == SECOND or any(
-                            t in _AR_STATUS_SUBJECT for t in ctoks[max(0, i - 8): i])):
+                            t in _AR_STATUS_SUBJECT or t in _AR_MUSLIM_GROUPS for t in ctoks[max(0, i - 8): i])):
                         continue
                     out.append(RulingClaim(person, base, s, _subject_ar(ctoks, i), reported=c.endswith(":reported")
                                            or reported_frame))
@@ -548,8 +554,16 @@ def ruling_claims(sentence: str) -> List[RulingClaim]:
         elif re.search(r"(?<![ء-ي])[وف]?(عليك|عليكي)\s+(أن|ان)\s+ت|(?<![ء-ي])[وف]?(لازم|لازمك|يلزمك|واجب\s+عليك)\s+ت", s):
             out.append(RulingClaim(SECOND, OBLIGE, s, s))
         if re.search(r"(?<![ء-ي])(ليس|ليست|لم\s+يعد|لم\s+تعد|غير)\s+(ب)?(مسلم|مسلما|مسلمة|مؤمن|مؤمنا|من\s+المسلمين)"
-                     r"(?![ء-ي])|(خرج|يخرج|خارج|تخرج|خرجت)\s+(عن|من)\s+(الملة|ملة|الإسلام|الاسلام|الدين)", s) \
+                     r"(?![ء-ي])|(خرج|يخرج|خارج|تخرج|خرجت|خرجوا|يخرجون|خارجون|خارجين|خارجة)\s+(عن|من)\s+"
+                     r"(الملة|ملة|الإسلام|الاسلام|الدين)", s) \
                 or _AR_STATUS_CHANGE.search(s):
+            out.append(RulingClaim(GENERAL, STATUS, s, s))
+        # A Muslim school or community denied the faith in the plural
+        # ("الأشاعرة ليسوا من المسلمين"); the Qur'an's own subjects described
+        # ("المنافقون ليسوا بمؤمنين") are not takfir by the answer.
+        elif any(t in _AR_MUSLIM_GROUPS for t in toks) and re.search(
+                r"(?<![ء-ي])(ليسوا|لسن|لستم|لم\s+يعودوا|غير)\s+(ب|من\s+)?(ال)?(مسلمين|مؤمنين|مسلمون|مؤمنون|"
+                r"الإسلام|الاسلام|أهل\s+القبلة|اهل\s+القبلة)(?![ء-ي])", s):
             out.append(RulingClaim(GENERAL, STATUS, s, s))
     low = s
     seen_cls: Set[str] = set()
@@ -583,7 +597,12 @@ def ruling_claims(sentence: str) -> List[RulingClaim]:
                 # "they are disbelievers who were warned" — the verse's own
                 # subjects described — is not takfir; a rule about anyone who
                 # does something is.
-                if not re.search(r"\b(anyone|anybody|whoever|whosoever|someone|somebody|a\s+person|any\s+person|"
+                # A Muslim school or community named as the subject ("Shia
+                # Muslims are not believers", "Sufis are disbelievers") is
+                # takfir of a group, whatever verse is cited beside it.
+                if _EN_MUSLIM_GROUP.search(s[:m.start()]):
+                    pass
+                elif not re.search(r"\b(anyone|anybody|whoever|whosoever|someone|somebody|a\s+person|any\s+person|"
                                  r"a\s+muslim|any\s+muslim|muslims\s+who|one\s+who|he\s+who|she\s+who|those\s+who|"
                                  r"people\s+who|everyone\s+who|you|he|she|they)\b", s, re.I) or \
                         re.search(r"\b(the\s+verse|this\s+verse|the\s+ayah|in\s+the\s+verse|mentioned|described|"
@@ -610,6 +629,12 @@ def ruling_claims(sentence: str) -> List[RulingClaim]:
     return out
 
 
+_EN_MUSLIM_GROUP = re.compile(
+    r"\b(?:muslims?|shi['’]?(?:a|as|ah|ahs|is|ites?)|shiites?|sunnis?|sufis?|salafis?|wahhabis?|ash['’]?aris?|"
+    r"ash['’]?arites?|maturidis?|mu['’]?tazil(?:a|is|ites?)|ibadis?|zaydis?|deobandis?|barelvis?|"
+    r"(?:hanafi|maliki|shafi['’]?i|hanbali)s?)\b",
+    re.IGNORECASE,
+)
 _EN_ANY_DEONTIC = re.compile(
     r"\b(?:permissible|permitted|allowed|lawful|halal|haram|forbidden|prohibited|unlawful|impermissible|sinful|"
     r"obligatory|mandatory|compulsory|required|valid|invalid)\b", re.IGNORECASE)
