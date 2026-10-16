@@ -6,7 +6,7 @@
  * - ayatUthmani is verbatim Tanzil Uthmani text (data/raw/quran_tanzil.json),
  *   one segment per verse of the range; validate-quran-integrity.ts checks it
  * - The UI shows the translation (QuranEnc Saheeh International) and the
- *   explanation (al-Tafsir al-Muyassar) from the API with their attribution;
+ *   explanation (al-Baghawi / Ibn Kathir, licence-cleared) from the API with their attribution;
  *   meaningEn is a search summary only, and no Arabic explanation is stored
  * - No AI-generated content
  *

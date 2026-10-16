@@ -877,7 +877,7 @@ export function DuasPage() {
         <p className="text-xs text-gray-300 flex items-center justify-center gap-1.5">
           <Heart className="w-3.5 h-3.5 text-rose-300" />
           {isRtl
-            ? 'النص القرآني: مشروع تنزيل (رواية حفص) · الشرح: التفسير الميسر · لا محتوى مُولَّد بالذكاء الاصطناعي'
+            ? 'النص القرآني: مشروع تنزيل (رواية حفص) · الشرح: تفسير البغوي وتفسير ابن كثير · لا محتوى مُولَّد بالذكاء الاصطناعي'
             : "Arabic: Tanzil Project (Ḥafṣ ʿan ʿĀṣim) · English: Saheeh International via QuranEnc.com · No AI-generated content"}
         </p>
         <p className="text-[10px] text-gray-300 mt-1">

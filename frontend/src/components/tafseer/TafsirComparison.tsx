@@ -59,9 +59,10 @@ type AttributedEntry = TafsirComparisonEntry & {
 /**
  * Library sources the comparison can return. When one has no passage for the
  * verse (upstream often comments on several verses in one passage), the page
- * says so instead of leaving the reader to wonder.
+ * says so instead of leaving the reader to wonder. al-Muyassar is on licence
+ * hold and withheld by the API, so it is not listed as "no passage".
  */
-const LIBRARY_SOURCE_IDS = ['tabari_ar', 'qurtubi_ar', 'ibn_kathir_ar', 'baghawi_ar', 'muyassar_ar'];
+const LIBRARY_SOURCE_IDS = ['tabari_ar', 'qurtubi_ar', 'ibn_kathir_ar', 'baghawi_ar'];
 
 type LanguageFilter = 'all' | 'ar' | 'en';
 

@@ -648,8 +648,8 @@ export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: Tafsir
                   {!aiSourceId ? (
                     <p className="text-sm text-gray-600" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                       {language === 'ar'
-                        ? 'المساعد الذكي متاح فقط للتفاسير المحفوظة في مكتبة التطبيق (الميسر، ابن كثير، الطبري، القرطبي).'
-                        : 'The AI assistant works only with tafsir stored in the app library (al-Muyassar, Ibn Kathir, al-Tabari, al-Qurtubi).'}
+                        ? 'المساعد الذكي متاح فقط للتفاسير المحفوظة في مكتبة التطبيق (البغوي، ابن كثير، الطبري، القرطبي).'
+                        : 'The AI assistant works only with tafsir stored in the app library (al-Baghawi, Ibn Kathir, al-Tabari, al-Qurtubi).'}
                     </p>
                   ) : (<>
                   {/* Summary */}
