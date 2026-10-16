@@ -4,6 +4,7 @@ import { BookOpen, ExternalLink, ArrowRight, ChevronDown, ChevronUp } from 'luci
 import clsx from 'clsx';
 import type { RelatedVerse } from '../../lib/api';
 import { translationLabel } from './answerText';
+import { QuranTextAttribution } from '../quran/QuranTextAttribution';
 
 const INITIAL_VERSE_COUNT = 3;
 
@@ -36,7 +37,7 @@ export function VersesSection({ verses, language }: VersesSectionProps) {
       {verses.length > INITIAL_VERSE_COUNT && (
         <button
           onClick={() => setShowAll(v => !v)}
-          className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
+          className="w-full flex items-center justify-center gap-1.5 py-2 min-h-11 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
         >
           {showAll ? (
             <>
@@ -51,6 +52,9 @@ export function VersesSection({ verses, language }: VersesSectionProps) {
           )}
         </button>
       )}
+      {/* The Qur'an text above is Tanzil's (CC BY 3.0): the licence requires the
+          source to be named, with a link, wherever the text is shown. */}
+      <QuranTextAttribution language={language} className="text-center" />
     </div>
   );
 }
@@ -94,7 +98,8 @@ function VerseCard({ verse, language }: { verse: RelatedVerse; language: 'ar' | 
         </Link>
       </div>
 
-      {/* Arabic verse text - HIGHLIGHTED */}
+      {/* Arabic verse text - HIGHLIGHTED (omitted when the API had no text) */}
+      {verse.text_ar && (
       <div className="px-4 py-4 mx-4 my-2 bg-white/80 rounded-xl border border-emerald-100 shadow-inner">
         <p
           className="text-xl leading-loose text-gray-900 font-arabic text-center"
@@ -107,9 +112,10 @@ function VerseCard({ verse, language }: { verse: RelatedVerse; language: 'ar' | 
         </p>
         {/* Verse reference in Arabic numerals */}
         <p className="text-center text-sm text-emerald-600 mt-2 font-medium">
-          [{verse.verse_reference}]
+          [<bdi dir="ltr">{verse.verse_reference}</bdi>]
         </p>
       </div>
+      )}
 
       {/* Translation: labelled with its edition; the English text is always LTR */}
       {verse.text_en && (
@@ -137,7 +143,7 @@ function VerseCard({ verse, language }: { verse: RelatedVerse; language: 'ar' | 
         )}
         <Link
           to={quranLink}
-          className="text-emerald-600 hover:text-emerald-800 hover:underline inline-flex items-center gap-1"
+          className="text-emerald-600 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 min-h-6 py-1"
         >
           {language === 'ar' ? 'قراءة في السياق' : 'Read in context'}
           <ExternalLink className="w-3 h-3" />
