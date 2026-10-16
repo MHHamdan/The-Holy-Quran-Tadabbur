@@ -113,8 +113,11 @@ class Settings(BaseSettings):
     # Primary NLP provider for grammar analysis: farasa, camel, stanza, llm
     nlp_primary_provider: str = "farasa"
     nlp_enable_farasa: bool = True
-    nlp_enable_camel: bool = True
-    nlp_enable_stanza: bool = True
+    # CAMeL Tools and Stanza are heavy local-inference packages that are not
+    # installed in production and no user-facing endpoint requires them; they
+    # are off unless explicitly enabled (NLP_ENABLE_CAMEL / NLP_ENABLE_STANZA).
+    nlp_enable_camel: bool = False
+    nlp_enable_stanza: bool = False
     nlp_enable_llm: bool = True
     nlp_farasa_use_api: bool = False  # Use local farasapy library by default
     nlp_farasa_api_url: str = "https://farasa.qcri.org/webapi"
