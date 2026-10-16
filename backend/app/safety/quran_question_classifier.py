@@ -16,7 +16,9 @@ Design principles:
 """
 import re
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List
+
+from app.safety.ruling_intent import ruling_request
 
 # ---------------------------------------------------------------------------
 # Intent constants
@@ -177,8 +179,12 @@ _FATWA_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     # "Can I read the Quran without wudu?" — a retrieval verb plus ruling vocabulary.
     r"^\s*(should|can|may|must)\s+i\b[^?]{0,80}\b(haram|halal|allowed|permissible|permitted|sin|"
     r"sinful|wudu|ablution|menstruat\w*|my period|janabah?|junub)\b",
-    r"^\s*(can|may|must|should)\s+(a\s+|an\s+|my\s+)?(woman|women|man|men|muslims?|wife|husband|"
-    r"girl|boy)\b",
+    # "Can a woman travel…", "Can my sister pray…" — not "Can a person
+    # understand the Quran…" (ability, not permission).
+    r"^\s*(can|may|must|should)\s+(a\s+|an\s+|my\s+|our\s+|his\s+|her\s+)?(woman|women|man|men|muslims?|"
+    r"wife|husband|girl|boy|sister|brother|mother|father|son|daughter|child|children|parents?|kids?)\s+"
+    r"(?!(understand|learn|read|know|see|benefit|reflect|memori[sz]e|study|recite\s+and|hear|listen\s+to\s+the\s+"
+    r"tafsir|find|get)\b)",
     r"\b(am i|is it ok|is it okay)\b.{0,30}\b(allowed|sinning|in sin|permitted)\b",
     # Arabic: "هل الموسيقى حرام؟", "هل يصح الطلاق…", "هل تجوز الصلاة…"
     # The ruling word must stand alone: "المسجد الحرام", "البيت الحرام",
@@ -264,6 +270,50 @@ _INJECTION_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     r"(من|على|حسب|بحسب)\s+(معرفتك|علمك|رأيك|فهمك)(\s+الخاص(ة)?)?(?![ء-ي])",
     r"(دون|بدون|بلا|من\s+غير)\s+(أي\s+)?(ال)?(مصادر|مراجع|استشهاد|استشهادات|توثيق)(?![ء-ي])",
     r"(لا|ولا)\s+(تلتزم|تتقيد|تتقيّد|تهتم)\s+(بال|ب)?(مصادر|قواعد|تعليمات|مراجع)",
+    # Role labels that impersonate the conversation structure.
+    r"(^|\n|[.!?]\s+)\s*(system|user|assistant|developer|admin)\s*[:：]",
+    r"(^|\n|[.!?]\s*)\s*(النظام|المستخدم|المساعد|المطور)\s*[:：]",
+    # Switching the rules off.
+    r"\b(citations?|sources?|grounding|safety|filters?|rules|restrictions|guardrails?)\s+(are\s+|is\s+)?"
+    r"(now\s+)?(disabled|off|turned\s+off|lifted|removed|not\s+required|optional|suspended)\b",
+    r"\bno\s+(need|requirement)\s+(for|of|to\s+(use|cite|follow))\s+(any\s+|the\s+)?(tafsir|tafseer|sources|"
+    r"citations|references|evidence|scholars|commentaries|commentators)\b",
+    r"\b(unrestricted|unfiltered|uncensored|free[\s-]thinking|jailbroken|independent|unbound)\s+(ai|a\.i\.|assistant|"
+    r"model|chatbot|bot|mode|scholar|mujtahid|mufti)\b",
+    r"\b(disregard|forget|ignore|override|bypass|drop|skip)\s+(everything|all|anything|whatever)\s+(you\s+(were|have\s+"
+    r"been|'ve\s+been)\s+(told|given|instructed)|(said|told|given)\s+(to\s+you\s+)?(before|earlier|previously)|"
+    r"(before|earlier|previously|above))",
+    r"\b(forget|ignore|disregard|skip|leave\s+aside|set\s+aside|never\s+mind)\s+(the\s+|all\s+the\s+|those\s+)?"
+    r"(commentators|scholars|exegetes|mufassirun|tafsirs?|tafseers?|commentaries|sources|books)\b",
+    # The assistant's own opinion / interpretation / ijtihad.
+    r"\b(your|ur)\s+(\w+\s+){0,2}?(opinion|view|interpretation|take|ijtihad|reading|understanding|tafsir|"
+    r"tafseer|verdict|thoughts)\b(?!\s+(of|from)\s+(ibn|al-|the\s+(scholars|tafsir|commentators)))",
+    r"\b(pretend|imagine|suppose|assume|act\s+as\s+if)\b[^.?!]{0,30}\b(there\s+(are|is|were)\s+no|without\s+any)\s+"
+    r"(rules|restrictions|guidelines|limits|sources|filters)\b",
+    r"\b(new|fake|original|invented|made[\s-]up|additional|extra|own|another)\s+(\w+\s+)?(verses?|ayat|ayahs?|surahs?|suras?)\b",
+    r"\byou\s+are\s+(now\s+)?(a|an|the)\s+(\w+\s+)?(mufti|scholar|sheikh|shaykh|imam|faqih|mujtahid|qadi)\b"
+    r"|\b(with|under)\s+no\s+(rules|restrictions|limits|filters)\b|\blet'?s\s+play\s+a\s+game\b",
+    r"\b(like|in\s+the\s+manner\s+of|modelled\s+on|modeled\s+on|imitating)\s+(surah|surat|sura)\s+\S+",
+    r"\bwhat\s+do\s+you\s+(personally\s+)?(think|believe|feel)\b",
+    # Text styled as the Qur'an.
+    r"\b(write|compose|create|generate|produce|craft|draft|make|render|translate|turn|rewrite|put)\b[^.?!]{0,60}"
+    r"\b(in\s+the\s+style\s+of\s+(the\s+)?(qur'?an|koran|a\s+verse|an\s+ayah|scripture|revelation)|"
+    r"quranic\s+(style|arabic|language|verse|form|prose)|as\s+(though|if)\s+it\s+(were|was)\s+(a|an)\s+"
+    r"(verse|ayah|surah)|like\s+(a|an)\s+(verse|ayah|surah)|verse[\s-]like|in\s+(the\s+)?form\s+of\s+(a|an)\s+"
+    r"(verse|ayah|surah))",
+    r"\b(qur'?an|koran|scripture|ayah|surah)[\s-]*(like|style|styled|sounding)\b",
+    r"(على\s+(نسق|نمط|شكل|طريقة|منوال|هيئة)|بأسلوب|بنفس\s+أسلوب|كأنها|كأنه)\s+(آية|آيات|الآيات|القرآن|"
+    r"سورة|السور|قرآني|قرآنية)",
+    r"(اكتب|ألف|ألّف|أنشئ|صغ|اصنع|ترجم|حول|حوّل)[^.؟!]{0,40}(آية|آيات|سورة|قرآنا|قرآني)",
+    # Arabic: forget the rules / answer without the tafsir / own ijtihad.
+    r"(تجاوز|انس|انسَ|تجاهل|اترك|أهمل|اهمل)\s+(كل|جميع|كافة)?\s*(ما\s+قيل|التعليمات|الأوامر|القواعد|التوجيهات|"
+    r"القيود|ما\s+سبق)",
+    r"(دون|بدون|من\s+غير|بلا)\s+(الرجوع|الاستناد|العودة|الاعتماد|النظر)\s+(إلى|الى|على|ل|في)\s*(كتب\s+)?"
+    r"(ال)?(تفسير|تفاسير|مصادر|علماء|مراجع|مفسرين)",
+    r"(اجتهادك|رأيك|فهمك|تفسيرك|تأويلك|قناعتك)(\s+(الخاص|الشخصي|المستقل))?(?![ء-ي])",
+    r"بصفتك\s+(عالما|عالمًا|مجتهدا|مجتهدًا|مفتيا|فقيها|شيخا|مفسرا|إماما)",
+    r"(المصادر|الاستشهاد|التوثيق|القواعد)\s+(معطلة|معطل|ملغاة|ملغى|غير\s+مطلوب|غير\s+مطلوبة|تم\s+تعطيلها)",
+    r"تم\s+(تعطيل|إلغاء|الغاء)\s+(المصادر|الاستشهاد|القواعد|التعليمات|القيود)",
 ))
 
 # 2. Scientific miracle claims
@@ -464,7 +514,7 @@ class QuranQuestionClassifier:
 
         if self._matches_whole(q_lower, _FATWA_AR | _FATWA_EN) or any(
             p.search(q) for p in _FATWA_PATTERNS
-        ):
+        ) or ruling_request(q) is not None:
             return QuestionClassification(
                 intent=INTENT_FATWA_LIKE,
                 language=language,
