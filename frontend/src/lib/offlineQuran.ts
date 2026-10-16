@@ -5,11 +5,13 @@
  * scripts/export-offline-quran.ts, verbatim from data/raw/quran_tanzil.json
  * (the same Tanzil text the API serves). The Android/iOS packages carry them,
  * so there any surah or Mushaf page can be read with no network and no earlier
- * visit. On the web they are files on the site: the service worker keeps each
- * one after it is first fetched (they are not precached), so offline a
- * never-opened surah or page is only available after "Save the Qur'an for
- * offline reading". Only the Arabic text is bundled: translations of the
- * meanings, tafsir and audio still need the API.
+ * visit. On the web the production service worker precaches all of them with
+ * the app shell (vite.config.ts globPatterns 'offline-quran/*.json'), so after
+ * the first load any surah or Mushaf page opens offline with no earlier visit;
+ * "Save the Qur'an for offline reading" stays as an explicit way to fetch them
+ * (for example before the service worker has finished installing). Only the
+ * Arabic text is bundled: translations of the meanings, tafsir and audio still
+ * need the API.
  *
  * The readers use this only when the API cannot be reached. Text is passed
  * through as loaded: never edited, trimmed or re-normalised here.

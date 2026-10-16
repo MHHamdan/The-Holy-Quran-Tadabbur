@@ -299,8 +299,8 @@ export const translations: Translations = {
 
   // Offline banner
   offline_banner: {
-    ar: 'أنت غير متصل. الصفحات التي فتحتها سابقاً تعمل، أما ميزات الذكاء الاصطناعي فتحتاج إلى اتصال.',
-    en: 'You are offline. Pages you have already opened still work; AI features need a connection.',
+    ar: 'أنت غير متصل. نص القرآن متاح، أما الترجمات والتفسير والتلاوات الصوتية وميزات الذكاء الاصطناعي فتحتاج إلى اتصال.',
+    en: "You are offline. The Qur'an text is available; translations, tafsir, audio and AI features need a connection.",
   },
 
   // Generic UI strings shared by Skeleton / EmptyState / API errors
