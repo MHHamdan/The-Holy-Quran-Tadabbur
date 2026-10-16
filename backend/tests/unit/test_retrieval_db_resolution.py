@@ -285,3 +285,27 @@ class TestDbFallbackWithoutMuyassar:
         out = await retriever._keyword_search("الصبر", [], "ar", None, top_k=8)
         sources = self._assert_licensed(out)
         assert len(sources) >= 3, sources
+
+    async def test_english_keyword_miss_is_fast(self, retriever):
+        # Regression: coalesce(content_en, content_ar) ILIKE defeated the
+        # trigram indexes and seq-scanned the corpus (~1.6 s for a miss).
+        import time
+
+        await retriever._keyword_search("warmup", [], "en", None, top_k=8)
+        start = time.perf_counter()
+        out = await retriever._keyword_search("zzzqqq nonexistentword", [], "en", None, top_k=8)
+        elapsed = time.perf_counter() - start
+        assert out == []
+        assert elapsed < 0.5, f"English keyword miss took {elapsed:.2f}s"
+
+    async def test_english_keyword_with_glossary_terms_fast(self, retriever):
+        import time
+
+        start = time.perf_counter()
+        out = await retriever._keyword_search(
+            "What does 39:53 say about despair?", ["قنوط", "يأس"], "en", None, top_k=8
+        )
+        elapsed = time.perf_counter() - start
+        assert elapsed < 0.5, f"English keyword search took {elapsed:.2f}s"
+        if out:
+            self._assert_licensed(out)
