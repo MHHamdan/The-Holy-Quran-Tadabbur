@@ -18,31 +18,12 @@ tafsir source.
 
 ## Verdict
 
+Updated after round 5 (HEAD `76e1950`+, script re-run on the dev DB and Qdrant).
+
 | Gate | Grade | Why |
 |---|---|---|
-| **RG-04** content coverage | **PASS** | Qur'an 114/114 and 6236/6236, byte-identical to Tanzil. All 22 translations are 6236/6236, verbatim with QuranEnc. The 5 enabled tafsir sources are all at 99% or more (tabari 99.95, baghawi 99.98, muyassar 100, ibn_kathir_ar 99.49, qurtubi 99.01). Qur'anic duas 66/66 are cited and exact. i18n parity is 926/926. Audio: 6 reciters x 6236 URLs, probe 30/30. Caveat: qurtubi sits 0.01 points above the 99% line. The RAG vector index covers far less (see below); RG-04 has no index target, but it limits /ask. |
-| **RG-28** provenance | **PARTIAL** (was FAIL) | Fixed: story-atlas events now cite only `ibn_kathir_ar` (62/62 resolve to a non-empty passage), and the UI shows "Tafsir Ibn Kathir (Arabic)". tabari, qurtubi and ibn_kathir_ar were reseeded from the pinned Apache-2.0 dataset; the stored text equals it, ignoring whitespace, for 100% of passages, so the footer credit is now true. The reader no longer proxies Quran.com or shows its placeholder. Still open: (1) Al-Muyassar is enabled, `license_verified=1` and the reader's default, while its licence reads "pending owner confirmation, not cleared" (owner). (2) The manifest licence notes for the three reseeded works still say the text came from spa5k and that the registry marks it unverified. Both statements are now false. (3) The Qdrant index that /ask retrieves from still holds 99 "لا يوجد تفسير" placeholder points and 85 orphan points under enabled sources. 32/39 checked entries are clean (87.18%). |
-
-## Qur'an text
-
-| Metric | Value |
-|---|---|
-| Canonical file | `data/raw/quran_tanzil.json` (Tanzil Uthmani, CC BY 3.0) |
-| Surahs (canonical / DB) | 114 / 114 |
-| Ayat (canonical / DB) | 6236 / 6236 |
-| DB `text_uthmani` byte-identical to canonical | 6236 / 6236 (100%) |
-| Empty verse texts | 0 |
-| `npx tsx scripts/validate-quran-integrity.ts` | exit 0: 21 passed, 0 failed, 4 warnings (3 known attribution gaps on quiz/juz/challenge pages; `VersesSection.tsx` is listed as a known gap but is now attributed) |
-
-## Translations
-
-All 22 editions come from QuranEnc. `translation_sources.json` has `license_status: verified`.
-
-| Check | Result |
-|---|---|
-| Editions with 6236/6236 non-empty verses | 22 / 22 |
-| DB text and footnotes identical to the cached QuranEnc file | 6236/6236 in each of the 22 editions |
-| Orphan translator keys / manifest editions missing in DB | 0 / 0 |
+| **RG-04** content coverage | **PASS** | Qur'an 114/114 and 6236/6236, byte-identical to Tanzil. All 22 translations are 6236/6236, verbatim with QuranEnc. The 4 servable (enabled, licence-verified) tafsir sources are all at 99% or more (tabari 99.95, baghawi 99.98, ibn_kathir_ar 99.49, qurtubi 99.01). Qur'anic duas 66/66 are cited and exact. i18n parity is 926/926. Audio: 6 reciters x 6236 URLs, probe 30/30. The RAG vector index covers far less (see below); keyword/verse retrieval from Postgres covers every servable source. |
+| **RG-28** provenance | **PASS (owner items open)** | Story-atlas events cite only `ibn_kathir_ar` (62/62 resolve). tabari, qurtubi, ibn_kathir_ar and baghawi equal the pinned Apache-2.0 dataset for 100% of passages (ignoring whitespace). Al-Muyassar is on licence hold (`license_verified=0`, migration `r5c1a2b3c4d5`): no endpoint serves its text (all public `/quran/*` tafsir queries now filter on `servable_source_ids()`), RAG never cites it, and the default edition is al-Baghawi. Stale spa5k manifest notes were corrected. The Qdrant index has 0 orphan and 0 placeholder points, and retrieval resolves every hit to the DB row. Owner decisions: confirm or replace the Muyassar licence; KFGQPC text files in the public repo. |
 
 ## Tafsir (`tafseer_sources`, `tafseer_chunks`)
 
@@ -54,7 +35,7 @@ each stored passage with the pinned dataset `riotu-lab/Quran-Tafseers@9ddbdeec` 
 |---|---|---|---|---|---|---|---|
 | tabari_ar | yes / yes | 6233 | 99.95% | 1:1, 77:16-17 | 5836 / **6233 of 6233** | available | cleared |
 | baghawi_ar | yes / yes | 6235 | 99.98% | 1:1 | **6235 / 6235** | available | cleared |
-| muyassar_ar | yes / yes | 6236 | 100.00% | — | 6235 / 6235 (+1:1 not in dataset) | **pending_owner_confirmation** | **restricted** |
+| muyassar_ar | yes / **no (licence hold)** | 6236 | 100.00% | — | 6235 / 6235 (+1:1 not in dataset) | **pending_owner_confirmation** | **restricted** |
 | ibn_kathir_ar | yes / yes | 6204 | 99.49% | 32 (1:1, 26:174-180, …) | **6204 / 6204** | available_via_api | cleared |
 | qurtubi_ar | yes / yes | 6174 | 99.01% | 62 (1:1, 26:33-49, …) | 6111 / **6174 of 6174** | available | cleared |
 | ibn_kathir_en | no / no | 6236 | 100% | — | n/a | pending_user_input | blocked |
@@ -64,29 +45,32 @@ each stored passage with the pinned dataset `riotu-lab/Quran-Tafseers@9ddbdeec` 
   dataset glues the quoted verse to the commentary ("مَرَضٌقال"); the DB adds a space.
 * 0 placeholder passages ("لا يوجد تفسير") remain in the DB. The 1:1 gap is the dataset's own (it has
   6235 rows per work).
-* Manifest `enabled_ids` equals the DB enabled set. `/tafseer/compare/2/255` returns these 5 sources.
+* Manifest `enabled_ids` equals the DB enabled set. `/tafseer/compare/2/255` returns the 4 servable sources (al-Muyassar withheld).
 * Reader panel: `/tafseer/external/verse/26/40?edition=qurtubi`, `/1/1?edition=baghawi` and
   `/1/1?edition=tabari` return 404 `NO_PASSAGE_IN_SOURCE`, and `/2/251?edition=ibn_kathir` returns the
   stored passage (`source: tadabbur_library`). No Quran.com proxy and no placeholder. The default edition
-  (no `edition` parameter) is still `muyassar`.
+  (no `edition` parameter) is `baghawi`; `edition=muyassar` returns 403 `EDITION_NOT_LICENSED`.
 
 ### RAG vector index (Qdrant `tafseer_chunks`)
 
-/ask's semantic retrieval serves the Qdrant payload text directly (`rag/retrieval.py`, vector search),
-so this is what answers can cite. Reseeding dropped stale points, but the index was not rebuilt
-(this needs HF embedding credit).
+Retrieval resolves every vector hit to its `tafseer_chunks` row (one batched query) and serves the DB
+text from enabled, licence-verified sources only; orphan, placeholder and unlicensed hits are dropped.
+After round 5 the dev index was pruned of 85 orphan and 14 placeholder points
+(`backend/scripts/index/prune_tafseer_index.py --only orphan,placeholder --apply`). Re-embedding the
+missing passages needs HF credit (owner).
 
-| Source | Points | Match current passage | Index coverage | Orphan (chunk gone) | Placeholder text | Stale text |
+| Source | Points | Match current passage | Index coverage | Orphan | Placeholder | Stale |
 |---|---|---|---|---|---|---|
-| muyassar_ar | 6236 | 6236 | 100.00% | 0 | 0 | 0 |
 | tabari_ar | 3215 | 3215 | 51.58% | 0 | 0 | 0 |
-| qurtubi_ar | 3176 | 3116 | 50.47% | 60 | 60 | 0 |
-| ibn_kathir_ar | 599 | 560 | 9.03% | 25 | 39 | 14 |
+| qurtubi_ar | 3116 | 3116 | 50.47% | 0 | 0 | 0 |
+| ibn_kathir_ar | 560 | 560 | 9.03% | 0 | 0 | 0 |
 | baghawi_ar | 0 | 0 | 0.00% | 0 | 0 | 0 |
+| muyassar_ar (licence hold, never retrieved) | 6236 | 6236 | 100.00% | 0 | 0 | 0 |
 
-The disabled `ibn_kathir_en` and `jalalayn_en` hold another 12,472 of the 25,698 points. Retrieval drops
-them after the search, which takes `top_k*2` hits. The only enabled source fully indexed is
-Al-Muyassar, whose licence is not cleared.
+The disabled `ibn_kathir_en` and `jalalayn_en` hold another 12,472 points, kept deliberately (filtered
+inside the Qdrant query and again in the DB join; re-embedding them later would cost HF credit).
+Until re-indexing, /ask relies on the Postgres verse-reference and ranked keyword retrieval, which
+covers all four servable sources.
 
 ## Audio
 

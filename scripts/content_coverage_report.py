@@ -157,7 +157,7 @@ def vector_index_section(db_text: dict):
                         "placeholder_text_points": ph, "db_passages": len(chunks),
                         "index_coverage_pct": pct(fresh, len(chunks))}
         return {"collection": "tafseer_chunks", "by_enabled_source": out,
-                "note": "retrieval serves payload text directly (rag/retrieval.py vector search)"}
+                "note": "retrieval resolves every vector hit to its tafseer_chunks row and serves DB text from enabled, licence-verified sources only (rag/retrieval.py)"}
     except Exception as ex:  # Qdrant not reachable
         return {"error": f"{type(ex).__name__}: {ex}"}
 
