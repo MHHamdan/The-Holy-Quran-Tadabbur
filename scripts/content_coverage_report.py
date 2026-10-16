@@ -143,6 +143,31 @@ async def translations_section(c, id2ref):
             "in_manifest": e["key"] in m_ed, "is_default": e["is_default"],
             "ayat_covered": n, "coverage_pct": pct(n, TOTAL_AYAT),
         })
+    # verbatim check against the cached QuranEnc files (term 1: no modification)
+    cache_dir = ROOT / manifest.get("cache_dir", "data/raw/translations/quranenc")
+    rows = await c.fetch("select t.translator, v.sura_no, v.aya_no, t.text, t.footnotes, t.edition_version "
+                         "from translations t join quran_verses v on v.id = t.verse_id")
+    by_ed = defaultdict(dict)
+    for r in rows:
+        by_ed[r["translator"]][(r["sura_no"], r["aya_no"])] = r
+    for o in out:
+        f = cache_dir / f"{o['key']}.json"
+        if not f.exists():
+            o["verbatim_vs_cache"] = "cache file missing"
+            continue
+        cj = json.loads(f.read_text(encoding="utf-8"))
+        dbe = by_ed.get(o["key"], {})
+        same_text = same_fn = 0
+        for v in cj["verses"]:
+            r = dbe.get((int(v["sura"]), int(v["aya"])))
+            if r and (r["text"] or "") == (v.get("translation") or ""):
+                same_text += 1
+            if r and (r["footnotes"] or None) == (v.get("footnotes") or None):
+                same_fn += 1
+        o["verbatim_vs_cache"] = {"cache_version": cj.get("version"),
+                                  "db_versions": sorted({str(x["edition_version"]) for x in dbe.values()}),
+                                  "cache_verses": len(cj["verses"]), "text_identical": same_text,
+                                  "footnotes_identical": same_fn}
     orphan = sorted(set(covd) - {e["key"] for e in eds})
     return {"editions": out, "edition_count": len(out),
             "editions_at_100pct": sum(1 for e in out if e["ayat_covered"] == TOTAL_AYAT),
@@ -154,6 +179,7 @@ async def tafsir_section(c, valid, ts):
     manifest = load_json("data/manifests/tafseer_sources.json")
     m_src = {s["id"]: s for s in manifest["sources"]}
     srcs = await c.fetch("select * from tafseer_sources order by id")
+    reg = {r["sourceId"]: r for r in ts["registry"]}
     chunks = await c.fetch(
         "select source_id, sura_no, aya_start, aya_end from tafseer_chunks "
         "where coalesce(btrim(content_ar),'') <> '' or coalesce(btrim(content_en),'') <> ''"
@@ -180,6 +206,11 @@ async def tafsir_section(c, valid, ts):
             "manifest_licence_type": ml.get("type"),
             "manifest_licence_url": ml.get("license_url"),
             "manifest_has_provenance": bool((m_src.get(s["id"]) or {}).get("provenance")),
+            "registry_licence_status": (reg.get(s["id"]) or {}).get("licenseStatus"),
+            "registry_footer_licence": (reg.get(s["id"]) or {}).get("licenseOrTerms"),
+            "db_source_url": s["source_url"],
+            "stored_copy_origin": ((m_src.get(s["id"]) or {}).get("stored_copy") or {}).get("seeded_from"),
+            "stored_copy_differs_from_documented_dataset": bool((m_src.get(s["id"]) or {}).get("stored_copy")),
             "in_manifest_enabled_ids": s["id"] in manifest.get("enabled_ids", []),
             "ayat_covered": n, "coverage_pct": pct(n, TOTAL_AYAT),
             "missing_ayat": TOTAL_AYAT - n,
@@ -187,8 +218,7 @@ async def tafsir_section(c, valid, ts):
         })
     db_ids = {s["id"] for s in srcs}
     enabled_ids = manifest.get("enabled_ids", [])
-    # externally proxied editions shown in the reader's tafsir panel
-    reg = {r["sourceId"]: r for r in ts["registry"]}
+    # reader tafsir panel: stored passage first, external proxy for ayat with no stored passage
     panel = []
     for e in ts["panelEditions"]:
         dbid = e.get("db_source_id")
@@ -201,6 +231,7 @@ async def tafsir_section(c, valid, ts):
             "footer_licence_shown": (reg[dbid]["licenseOrTerms"] if dbid in reg else "not yet recorded"),
             "manifest_id_checked": guess, "manifest_status": (m_src.get(guess) or {}).get("status"),
             "manifest_licence_type": ml.get("type"),
+            "ayat_served_by_external_proxy_fallback": (TOTAL_AYAT - len(per.get(dbid, ()))) if dbid else TOTAL_AYAT,
         })
     return {
         "db_sources": db_sources,
@@ -293,7 +324,19 @@ async def stories_section(c, valid):
                   "ids_naming_disabled_en_source": ids["disabled_prefix"]}
     r = await c.fetchrow("select count(*) n, count(*) filter (where evidence is not null and "
                          "evidence::text not in ('null','[]','{}')) ev from story_events")
-    rel["story_events"] = {"total": r["n"], "with_evidence": r["ev"], "evidence_pct": pct(r["ev"], r["n"])}
+    ev_ev = await c.fetch(
+        "select e->>'source_id' sid, count(*) n from story_events, jsonb_array_elements("
+        "case when jsonb_typeof(evidence::jsonb)='array' then evidence::jsonb else '[]'::jsonb end) e "
+        "group by 1 order by 1")
+    enabled_src = {x["id"] for x in await c.fetch(
+        "select id from tafseer_sources where is_enabled = 1 and license_verified = 1")}
+    rel["story_events"] = {"total": r["n"], "with_evidence": r["ev"], "evidence_pct": pct(r["ev"], r["n"]),
+                           "evidence_source_ids": {x["sid"]: x["n"] for x in ev_ev},
+                           "evidence_refs_from_enabled_licensed_source": sum(
+                               x["n"] for x in ev_ev if x["sid"] in enabled_src),
+                           "evidence_refs_total": sum(x["n"] for x in ev_ev),
+                           "served_by": "GET /story-atlas/{cluster_id} (events[].evidence), "
+                                        "StoryAtlasDetailPage 'In tafsir' label"}
     stories_with_segments = len({s["story_id"] for s in segs})
     return {
         "stories": stories, "stories_with_segments": stories_with_segments,
@@ -456,11 +499,13 @@ def i18n_section(ts):
         ar_no_ar = [k for k in keys if str(d[k].get("ar", "")).strip() and not AR_LETTER.search(str(d[k]["ar"]))]
         en_has_ar = [k for k in keys if AR_LETTER.search(str(d[k].get("en", "")))]
         same = [k for k in keys if d[k].get("ar") == d[k].get("en") and str(d[k].get("ar", "")).strip()]
+        ar_latin = [k for k in keys if re.search(r"[A-Za-z]{4,}", re.sub(r"\{[^}]*\}", "", str(d[k].get("ar", ""))))]
         out[name] = {
             "keys": len(keys), "missing_ar": len(miss_ar), "missing_en": len(miss_en),
             "empty_ar": empty_ar, "empty_en": empty_en,
             "ar_without_arabic_letters": ar_no_ar, "en_with_arabic_letters": en_has_ar,
             "ar_equals_en": same,
+            "ar_with_latin_words": ar_latin,
         }
     # duplicate keys in the main object literal (later definition silently wins)
     main = src[src.index("export const translations"):src.index("export const categoryTranslations")]
@@ -502,22 +547,33 @@ async def provenance_section(c, ts):
 
     manifest = load_json("data/manifests/tafseer_sources.json")
     m_src = {s["id"]: s for s in manifest["sources"]}
+    reg_all = {r["sourceId"]: r for r in ts["registry"]}
     for s in await c.fetch("select * from tafseer_sources where is_enabled = 1 order by id"):
         m = m_src.get(s["id"]) or {}
         lic = m.get("license") or {}
         prov = m.get("provenance") or {}
         source = s["source_url"] or prov.get("dataset_url") or (m.get("api_source") or {}).get("base_url")
         lic_ok = bool(s["license_verified"]) and lic.get("type") not in (None, "pending_verification") \
-            and "NEED" not in str(lic.get("license_url") or "") and m.get("status") != "pending_user_input"
+            and "NEED" not in str(lic.get("license_url") or "") and "pending" not in str(m.get("status") or "")
         check("tafsir_db_enabled", s["id"], s["name_en"], s["author_en"], s["language"], source,
               s["license"], lic_ok)
+        r = reg_all.get(s["id"]) or {}
+        if r.get("licenseStatus") != "cleared":
+            issues.append({"kind": "tafsir_db_enabled", "id": s["id"],
+                           "missing": [f"registry_licence_status={r.get('licenseStatus')}"]})
+        if m.get("stored_copy"):
+            issues.append({"kind": "tafsir_db_enabled", "id": s["id"],
+                           "missing": ["stored_copy_origin_terms_unrecorded: served text seeded from "
+                                       + str(m["stored_copy"].get("seeded_from"))
+                                       + "; footer licence cites " + str(r.get("sourceUrl"))]})
     for sid in manifest.get("enabled_ids", []):
         m = m_src.get(sid) or {}
         lic = m.get("license") or {}
         check("tafsir_manifest_enabled", sid, m.get("name_en"), m.get("author_en"), m.get("language"),
               (m.get("provenance") or {}).get("dataset_url") or (m.get("api_source") or {}).get("base_url")
               or lic.get("tos_url"),
-              lic.get("type"), lic.get("type") not in (None, "pending_verification"))
+              lic.get("type"), lic.get("type") not in (None, "pending_verification")
+              and "pending" not in str(m.get("status") or ""))
     tm = load_json("data/manifests/translation_sources.json")
     for e in await c.fetch("select * from translation_editions order by key"):
         check("translation_edition", e["key"], e["title"], e["translator_name"], e["language"],
@@ -534,20 +590,34 @@ async def provenance_section(c, ts):
         check("reader_panel_external_tafsir", e["id"], e["name_en"], e["author_en"], e["language"],
               e["source"], r["licenseOrTerms"] if r else None,
               bool(r) and lic_type not in (None, "pending_verification"))
+    # story-atlas events shown publicly cite a tafsir source by id
+    for x in await c.fetch(
+            "select distinct e->>'source_id' sid from story_events, jsonb_array_elements("
+            "case when jsonb_typeof(evidence::jsonb)='array' then evidence::jsonb else '[]'::jsonb end) e"):
+        row = await c.fetchrow("select is_enabled, license_verified from tafseer_sources where id = $1", x["sid"])
+        checked.append({"kind": "story_atlas_event_evidence", "id": x["sid"], "missing": []})
+        if not row or not (row["is_enabled"] and row["license_verified"]):
+            issues.append({"kind": "story_atlas_event_evidence", "id": x["sid"],
+                           "missing": ["cited source is disabled or unlicensed"]})
     rel_types = {"quran_text", "tafsir", "translation", "audio", "lexicon"}
     lic_status = Counter()
+    unset = []
     for r in ts["registry"]:
         if r["type"] not in rel_types:
             continue
         lic_status[r.get("licenseStatus") or "unset"] += 1
+        if not r.get("licenseStatus"):
+            unset.append(r["sourceId"])
         miss = [f for f in ("titleEnglish", "author", "language", "sourceUrl", "licenseOrTerms") if not str(r.get(f) or "").strip()]
         if miss:
             issues.append({"kind": "registry_entry", "id": r["sourceId"], "missing": miss})
     return {
         "checked": len(checked), "with_issues": len(issues),
-        "complete_pct": pct(len(checked) - sum(1 for i in issues if i["kind"] != "registry_entry"), len(checked)),
+        "complete_pct": pct(len(checked) - len({(i["kind"], i["id"]) for i in issues
+                                                 if i["kind"] in {c_["kind"] for c_ in checked}}), len(checked)),
         "issues": issues,
         "registry_religious_entries_licence_status": dict(sorted(lic_status.items())),
+        "registry_religious_entries_licence_status_unset": sorted(unset),
     }
 
 
