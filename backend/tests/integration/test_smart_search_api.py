@@ -94,6 +94,7 @@ async def test_two_letter_query_whole_word(client):
     assert "2:177" not in refs
 
 
+@pytest.mark.requires_data("translations")
 async def test_moses_translation(client):
     body = await _get(client, "Moses", lang="en")
     assert body["translations"]["total"] > 100

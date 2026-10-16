@@ -137,6 +137,7 @@ async def test_root_search_uses_derived_words(client):
     await _assert_canonical(body["matches"])
 
 
+@pytest.mark.requires_data("translations")
 async def test_moses_translation(client):
     body = (await client.get(f"{Q}/search/smart", params={"q": "Moses", "lang": "en"})).json()
     assert body["translations"]["total"] >= 100

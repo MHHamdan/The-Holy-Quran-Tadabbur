@@ -159,7 +159,10 @@ class HuggingFaceSTTProvider(STTProvider):
                 end = float(ts[1]) if ts[1] is not None else max(begin, duration or begin)
                 words.append(
                     WordInfo(
-                        word=word, start_time=begin, end_time=end, confidence=DEFAULT_WORD_CONFIDENCE
+                        word=word,
+                        start_time=begin,
+                        end_time=end,
+                        confidence=DEFAULT_WORD_CONFIDENCE,
                     )
                 )
                 last_end = end
