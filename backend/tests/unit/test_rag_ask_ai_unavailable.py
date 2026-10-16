@@ -108,3 +108,38 @@ def test_pipeline_module_has_no_llm_gate():
 
     assert "llm_configured" not in inspect.getsource(rag_routes)
     assert pipeline_module.RAGPipeline  # imported for the monkeypatch target above
+
+
+# ------------------------------------------ processing time is never negative
+
+@pytest.fixture
+def non_utc_timezone(monkeypatch):
+    """A host clock west of UTC (the live server ran at UTC-4)."""
+    import time as _time
+
+    if not hasattr(_time, "tzset"):
+        pytest.skip("time.tzset unavailable on this platform")
+    monkeypatch.setenv("TZ", "America/New_York")
+    _time.tzset()
+    yield
+    monkeypatch.undo()
+    _time.tzset()
+
+
+@pytest.mark.parametrize("question", [
+    "Give me a fatwa on music",
+    "What lessons do the scholars draw from the People of the Cave?",
+])
+async def test_processing_time_is_non_negative(client, non_utc_timezone, question):
+    status, body = await _ask(client, question)
+    assert status == 200
+    assert body["processing_time_ms"] >= 0, body["processing_time_ms"]
+    # A naive local-minus-UTC subtraction is off by hours, not milliseconds.
+    assert body["processing_time_ms"] < 10 * 60 * 1000
+
+
+def test_request_context_elapsed_is_monotonic(non_utc_timezone):
+    from app.core.errors import RAGRequestContext
+
+    ctx = RAGRequestContext.create("q", "en")
+    assert 0 <= ctx.elapsed_ms() < 60_000

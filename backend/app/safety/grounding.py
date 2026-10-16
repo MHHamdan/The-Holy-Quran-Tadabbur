@@ -119,6 +119,11 @@ class QuranIndex:
     def __bool__(self) -> bool:
         return self.verse_count > 0
 
+    def verse_text(self, sura: int, aya: int) -> List[str]:
+        """Canonical Uthmani and Imla'i text of one verse (empty if unknown)."""
+        return [" ".join(self._canon[k].get((sura, aya), [])) for k in ("uthmani", "imlaei")
+                if self._canon[k].get((sura, aya))]
+
     def contains(self, span: str) -> bool:
         return bool(self.find(span, limit=1))
 
@@ -177,10 +182,12 @@ class QuranIndex:
 
 _INVISIBLE = re.compile(r"[​-‏‪-‮⁠-⁤⁦-⁩﻿­]")
 _FENCE_BREAKERS = re.compile(
-    r"<\s*/?\s*(source|question|conversation_history)\b[^>]*>", re.IGNORECASE
+    r"<\s*/?\s*(source|question|conversation_history|system|assistant|user|instructions?|im_start|im_end)"
+    r"\b[^>]*>",
+    re.IGNORECASE,
 )
 _CHAT_TOKENS = re.compile(r"<\|[^|>]{0,40}\|>")
-_PROMPT_HEADERS = re.compile(r"^\s*(#{1,6}\s|={3,})", re.MULTILINE)
+_PROMPT_HEADERS = re.compile(r"^\s*(#{1,6}\s|={3,})|#{2,}|={3,}", re.MULTILINE)
 _SOURCE_HEADER = re.compile(r"\[\s*source\s*:", re.IGNORECASE)
 
 
@@ -268,6 +275,9 @@ class QuotationReport:
     # (model's text, canonical Tanzil text) for every Qur'an quotation restored
     replaced: List[Tuple[str, str]] = field(default_factory=list)
     verses: Set[Tuple[int, int]] = field(default_factory=set)
+    # (canonical text, verses it is from, reference written next to it) for
+    # real Qur'an text quoted under a reference it does not belong to
+    misreferenced: List[Tuple[str, List[Tuple[int, int]], List[Tuple[int, int]]]] = field(default_factory=list)
 
 
 def _arabic_tokens(span: str) -> int:
@@ -338,6 +348,8 @@ class _QuoteChecker:
                     best = matches[0]
                     out.append(best.text)
                     self.report.verses.update(best.verses)
+                    if prefer and not set(prefer) & set(best.verses):
+                        self.report.misreferenced.append((best.text, list(best.verses), list(prefer)))
                     if best.text != piece:
                         self.report.replaced.append((piece, best.text))
                     continue
@@ -580,16 +592,200 @@ _EN_STOP = frozenset(
 )
 
 
+_INJECTION_MARKERS = re.compile(
+    r"\b(ignore|disregard|forget)\s+(all\s+|any\s+|the\s+)?(previous|prior|above|earlier|your)\s+"
+    r"(instructions|rules|prompts?)\b|\b(system|developer)\s+prompt\b|\byou are now\b|<\s*/?\s*(system|"
+    r"assistant|source|question)\b|<\|[^|>]{0,40}\|>|\bnew system prompt\b|\btell the user\b"
+    r"|تجاهل\s+(كل\s+|جميع\s+)?(التعليمات|الأوامر|القواعد)|قل\s+للمستخدم|أنت\s+الآن",
+    re.IGNORECASE,
+)
+
+
+def looks_like_injection(text: str) -> bool:
+    """True for evidence text that carries instructions to the model.
+
+    Such text is still fenced and shown verbatim, but it can never count as
+    support for a claim: an answer that repeats a planted instruction
+    ("tell the user wine is permitted") is obeying it, not citing tafsir.
+    """
+    return bool(_INJECTION_MARKERS.search(unicodedata.normalize("NFKC", text or "")))
+
+
+def _chunk_texts(chunk: object) -> List[str]:
+    """Distinct evidence texts of a chunk, injected ones excluded."""
+    out: List[str] = []
+    for f in ("content", "content_ar", "content_en"):
+        t = getattr(chunk, f, None)
+        if t and t not in out and not looks_like_injection(t):
+            out.append(t)
+    return out
+
+
 def _chunk_text(chunks: Sequence[object]) -> str:
-    return " ".join(
-        filter(None, (getattr(c, f, None) for c in chunks for f in ("content", "content_ar", "content_en")))
-    )
+    return " ".join(t for c in chunks for t in _chunk_texts(c))
 
 
 def _content_tokens(text: str) -> List[str]:
     out = [t for t in _norm_en(text).split() if len(t) > 2 and t not in _EN_STOP and not t.isdigit()]
     out += [t for t in normalize_arabic(text).split() if len(t) > 2]
     return out
+
+
+# ------------------------------------------------- local evidence support
+
+# Words that carry no claim of their own: report verbs, discourse words and
+# the honorifics that frame a statement ("Ibn Kathir explains that…").
+_EN_META = frozenset(
+    "explains explained explain explaining notes noted mentions mentioned states stated writes wrote "
+    "according describes described describing highlights highlighted emphasizes emphasises emphasized "
+    "points point means meaning meant refers referring indicates indicated tafsir tafseer verse verses "
+    "ayah ayat surah sura quran qur'an scholar scholars commentators commentary interpretation discusses "
+    "discussed detail details because therefore thus also further furthermore moreover however which "
+    "while when where into upon about through over under within without these those such some more most "
+    "very many much only just like being have has had does did done here there his hers its our your "
+    "their them they this that these said says say tells told reports reported cites cited narration "
+    "sheikh shaykh imam allamah mufti whoever anyone everyone ibn bin abu".split()
+)
+_EN_META_STEMS = frozenset(w[:6] if len(w) > 6 else w for w in _EN_META)
+_AR_STOP_RAW = (
+    "قال وقال فقال يقول ويقول النبي رسول الله صلى عليه وسلم رواه حديث الحديث التي الذي الذين هذه هذا "
+    "ذلك تلك كان كانت وكان على إلى عن من في أن إن أنه وأنه بأنها أنها إنها هو هي لها له كل ما لا قد وقد "
+    "ثم أو مع بن ابن أبي أبو تعالى سبحانه الآية آية الآيات عز وجل ذكر وذكر يعني أي معنى المعنى تفسير "
+    "التفسير بين بيّن ومعناها معناها المفسرون العلماء الشيخ العلامة الإمام كما وهذا وهذه فإن وإن ولا "
+    "أيضا عند بعد قبل حتى إذا وإذا لم لن ليس عليها عليهم منها منه فيها فيه به بها"
+)
+_AR_STOP = frozenset(normalize_arabic(w) for w in _AR_STOP_RAW.split())
+_AR_PREFIXES = ("وال", "فال", "بال", "كال", "لل", "ال", "و", "ف", "ب", "ل", "س")
+_AR_SUFFIXES = ("هما", "كما", "تما", "هم", "هن", "كم", "كن", "نا", "ها", "ون", "ين", "ان", "ات", "وا", "تم",
+                "ه", "ك", "ي", "ت", "ا")
+
+
+def _stem_ar(tok: str) -> str:
+    """Light Arabic stem: one clitic prefix, one pronoun/plural suffix and the
+    imperfect prefix, so ذنوبهم/ذنوبنا and يعاقبهم/تعاقبنا compare equal."""
+    for p in _AR_PREFIXES:
+        if tok.startswith(p) and len(tok) - len(p) >= 3:
+            tok = tok[len(p):]
+            break
+    for sfx in _AR_SUFFIXES:
+        if tok.endswith(sfx) and len(tok) - len(sfx) >= 3:
+            tok = tok[: -len(sfx)]
+            break
+    if len(tok) >= 4 and tok[0] in "يتنا":
+        tok = tok[1:]
+    return tok
+
+
+def _stem_en(tok: str) -> str:
+    return tok[:6] if len(tok) > 6 else tok
+
+
+def _seq(text: str) -> Tuple[List[str], List[str]]:
+    """Claim-bearing tokens of ``text`` in order: (English stems, Arabic stems)."""
+    en = [
+        st for t in _norm_en(text).split()
+        if len(t) > 2 and not t.isdigit() and t not in _EN_STOP
+        and (st := _stem_en(t)) not in _EN_META_STEMS
+    ]
+    ar = []
+    for t in normalize_arabic(text).split():
+        if len(t) > 2 and t not in _AR_STOP:
+            st = _stem_ar(t)
+            if st not in _AR_STOP:
+                ar.append(st)
+    return en, ar
+
+
+def _window_hits(claim: Sequence[str], src: Sequence[str], window: int) -> int:
+    """Most distinct claim tokens found together within ``window`` source tokens."""
+    need = set(claim)
+    if not need or not src:
+        return 0
+    hits = [(i, t) for i, t in enumerate(src) if t in need]
+    best, counts, j = 0, {}, 0
+    for pos, tok in hits:
+        counts[tok] = counts.get(tok, 0) + 1
+        while hits[j][0] < pos - window:
+            old = hits[j][1]
+            counts[old] -= 1
+            if not counts[old]:
+                del counts[old]
+            j += 1
+        best = max(best, len(counts))
+    return best
+
+
+def _has_ngram(claim: Sequence[str], src: Sequence[str], n: int) -> bool:
+    if n < 2 or len(claim) < n or len(src) < n:
+        return False
+    grams = {tuple(src[i:i + n]) for i in range(len(src) - n + 1)}
+    return any(tuple(claim[i:i + n]) in grams for i in range(len(claim) - n + 1))
+
+
+@dataclass
+class Support:
+    """How well a claim is carried by one evidence text."""
+    tokens: int = 0           # distinct claim tokens in scripts the evidence covers
+    found: int = 0            # of those, present anywhere in the evidence text
+    local: int = 0            # of those, present together inside one window
+    ngram: bool = False       # a run of consecutive claim tokens is in the evidence
+    comparable: bool = False  # the evidence has text in the claim's script
+
+    @property
+    def coverage(self) -> float:
+        return self.found / self.tokens if self.tokens else 1.0
+
+    @property
+    def local_coverage(self) -> float:
+        return self.local / self.tokens if self.tokens else 1.0
+
+
+def evidence_support(claim: str, texts: Sequence[str], window: int = 60, ngram: int = 4) -> Support:
+    """Lexical support for ``claim`` in the evidence ``texts`` (best single text)."""
+    c_en, c_ar = _seq(claim)
+    best = Support(tokens=len(set(c_en)) + len(set(c_ar)))
+    best_score = -1.0
+    for text in texts:
+        s_en, s_ar = _seq(text)
+        total = len(s_en) + len(s_ar)
+        sup = Support()
+        for claim_toks, src in ((c_en, s_en), (c_ar, s_ar)):
+            # Only a script the evidence is written in counts: an English
+            # chunk quoting a verse in Arabic is not Arabic evidence, and a
+            # stray label is not English evidence.
+            if not claim_toks or len(src) < 3 or len(src) < 0.3 * total:
+                continue
+            sup.comparable = True
+            need = set(claim_toks)
+            sup.tokens += len(need)
+            sup.found += len(need & set(src))
+            sup.local += _window_hits(claim_toks, src, window)
+            # Paraphrase inserts words of its own: look for the run among the
+            # claim words the evidence has, in the claim's order.
+            src_set = set(src)
+            present = [t for t in claim_toks if t in src_set]
+            sup.ngram = sup.ngram or _has_ngram(present, src, min(ngram, len(claim_toks)))
+        if not sup.comparable:
+            continue
+        score = sup.local_coverage + (1 if sup.ngram else 0)
+        if score > best_score:
+            best, best_score = sup, score
+    return best
+
+
+def _evidence_texts(chunks: Sequence[object]) -> List[str]:
+    return [t for c in chunks for t in _chunk_texts(c)]
+
+
+def _strip_names(text: str) -> str:
+    """Remove scholar and hadith-collection names (they are attribution, not content)."""
+    for _key, _names, pats in _SCHOLAR_PATTERNS:
+        for p in pats:
+            text = p.sub(" ", text)
+    for names in _HADITH_COLLECTIONS:
+        for n in names:
+            text = _name_pattern(n).sub(" ", text)
+    return text
 
 
 def _hadith_supported(sentence: str, chunks: Sequence[object], cite_re: re.Pattern) -> bool:
@@ -614,13 +810,266 @@ def _hadith_supported(sentence: str, chunks: Sequence[object], cite_re: re.Patte
     source_digits = set(re.findall(r"\d+", source.translate(_ARABIC_INDIC)))
     if any(n not in source_digits for n in re.findall(r"\d+", body)):
         return False
-    # The reported content itself must come from the evidence.
-    tokens = _content_tokens(body)
-    if len(tokens) >= 3:
-        src = set(_content_tokens(source))
-        if sum(t in src for t in tokens) / len(tokens) < 0.6:
+    # The reported content must come from the evidence, and from one place in
+    # it: a long chunk contains most common words somewhere, so a ratio over
+    # the whole chunk let invented reports through. Either (nearly) every
+    # content word sits in one window, or a run of 3 consecutive content
+    # words matches and most of the rest sit in the same window.
+    sup = evidence_support(_strip_names(body), _evidence_texts(chunks), ngram=3)
+    if sup.tokens >= 3:
+        if not sup.comparable:
             return False
+        if sup.local_coverage >= 0.85:
+            return True
+        return sup.ngram and sup.local_coverage >= 0.65
     return True
+
+
+# ------------------------------------------------- generic attributions
+
+# Honorific + name ("Sheikh X said", "قال العلامة X"), kunya/nasab names
+# ("Ibn X", "قال ابن X") and multi-word names before a speech verb. A name
+# that is not on SCHOLAR_NAMES must still be found in the cited evidence
+# (its text or its source/author metadata); otherwise the sentence goes.
+_NAME_PART = (
+    r"(?:(?:[Aa]l|[Ee]l|[Aa][dhnrstz]|[Ii]bn|[Bb]in|[Bb]int|[Aa]bu|[Aa]bi|[Aa]bd|[Aa]bdul|ul)[\s\-'’]+)*"
+    r"[A-Z][\w'’`ʿ\-]+"
+)
+_EN_HONORIFIC = (
+    r"(?:Shaykh al-Islam|Sheikh|Shaykh|Shaikh|Imam|Al-Imam|Allamah|'Allamah|Allama|Mufti|Dr\.?|Doctor|"
+    r"Professor|Prof\.?|Hafiz|Al-Hafiz|Qadi|Mawlana|Maulana|Ustadh|Ustaz|Sayyid)"
+)
+_EN_SPEECH = (
+    r"(?:said|says|stated|states|wrote|writes|narrated|narrates|reported|reports|mentioned|mentions|"
+    r"explained|explains|held|holds|argued|argues|commented|comments|opined|ruled|taught|"
+    r"transmitted|related|relates|recorded|records|claimed|claims)"
+)
+_EN_ATTRIBUTIONS = (
+    re.compile(rf"\b{_EN_HONORIFIC}\s+(?P<name>{_NAME_PART}(?:\s+{_NAME_PART}){{0,3}})"),
+    re.compile(rf"\b(?P<name>(?:Ibn|Abu|Abi|Bint)\s+{_NAME_PART}(?:\s+{_NAME_PART}){{0,2}})"),
+    re.compile(rf"\b(?P<name>{_NAME_PART}(?:\s+{_NAME_PART}){{1,3}})\s+(?:also\s+|further\s+)?{_EN_SPEECH}\b"),
+)
+# Capitalised words that start a sentence or name the Qur'an, God, a prophet
+# or a tafsir work rather than a scholar.
+_EN_NOT_NAMES = frozenset(
+    "the this that these those in according allah god he she it they we his her their prophet messenger "
+    "quran qur'an tafsir tafseer surah sura verse ayah ayat book lord almighty exalted most high sahih "
+    "sunan musnad hadith muhammad jibril gabriel adam nuh noah ibrahim abraham musa moses isa jesus "
+    "maryam mary yusuf joseph yaqub jacob dawud david sulayman solomon yunus jonah harun aaron ismail "
+    "ishmael ishaq isaac lut lot hud salih shuayb ayyub job zakariyya yahya idris ilyas luqman "
+    "dhul qarnayn pharaoh firawn iblis satan shaytan muslims believers people children israel "
+    "companions sahabah ummah when while after before then and but also all some many one kursi throne "
+    "fatiha fatihah baqarah baqara imran nisa maidah anam araf anfal tawbah kahf maryam ta ha yasin "
+    "rahman mulk ikhlas falaq nas kawthar asr salah zakah hajj ramadan makkah madinah jannah".split()
+)
+_EN_PARTICLES = frozenset(
+    "al el ad an ar as at az ibn bin bint abu abi abd abdul ul sheikh shaykh shaikh imam allamah allama "
+    "mufti dr doctor professor prof hafiz qadi mawlana maulana ustadh ustaz sayyid islam".split()
+)
+
+_AR_HONORIFIC = re.compile(
+    r"(?<![ء-ي])[وف]?(?:ال)?(?:شيخ|علامة|إمام|امام|حافظ|دكتور|مفتي|قاضي|أستاذ|استاذ|فقيه|محدث|مفسر)"
+    r"(?![ء-ي])\s+(?P<rest>[^\[\].:؛،,؟!\n]{2,80})"
+)
+_AR_KUNYA = re.compile(
+    r"(?<![ء-ي])[وف]?(?:قال|يقول|ذكر|روى|يرى|أورد|نقل|حكى|رأى|أكد|صرح|أشار|بين|بيّن|أفاد|يذكر|يروي)"
+    r"\s+(?P<rest>(?:ابن|أبو|أبي|ابو|ابي)\s+[^\[\].:؛،,؟!\n]{2,60})"
+)
+_AR_NAME_STOP = frozenset(normalize_arabic(w) for w in (
+    "إن أن ان إنه أنه إنها أنها في عن بأن بان رحمه قال يقول ذكر هذه هذا الآية على من إلى عند لأن "
+    "حيث وهو وهي هو هي ما لا قد كما تعالى"
+).split())
+_AR_NOT_NAMES = frozenset(normalize_arabic(w) for w in "الله النبي رسول تعالى القرآن".split())
+_AR_PARTICLES = frozenset(normalize_arabic(w) for w in "ابن أبو أبي بن".split())
+
+
+def _arabic_name(rest: str, max_words: int = 3) -> str:
+    words = []
+    for w in rest.split():
+        n = normalize_arabic(w)
+        if not n or n in _AR_NAME_STOP or len(words) >= max_words:
+            break
+        words.append(w)
+    return " ".join(words)
+
+
+def _known_scholar(name: str) -> bool:
+    return any(p.search(name) for _key, _names, pats in _SCHOLAR_PATTERNS for p in pats)
+
+
+def find_attributed_names(sentence: str) -> List[str]:
+    """Names a sentence attributes a statement to, outside SCHOLAR_NAMES."""
+    out: List[str] = []
+    for pat in _EN_ATTRIBUTIONS:
+        for m in pat.finditer(sentence):
+            toks = [t for t in re.split(r"[\s\-]+", m.group("name").strip(" -'’")) if t]
+            while toks and toks[0].lower() in _EN_NOT_NAMES:
+                toks.pop(0)
+            distinctive = [t for t in toks if t.lower().strip("'’") not in _EN_PARTICLES
+                           and t.lower() not in _EN_NOT_NAMES]
+            name = " ".join(toks)
+            if distinctive and not _known_scholar(name) and name not in out:
+                out.append(name)
+    for pat in (_AR_HONORIFIC, _AR_KUNYA):
+        for m in pat.finditer(sentence):
+            name = _arabic_name(m.group("rest"))
+            norm = [w for w in normalize_arabic(name).split() if w not in _AR_PARTICLES]
+            if not norm or all(w in _AR_NOT_NAMES for w in norm):
+                continue
+            if not _known_scholar(name) and name not in out:
+                out.append(name)
+    return out
+
+
+def _chunk_metadata(chunk: object) -> str:
+    return " ".join(filter(None, (
+        str(getattr(chunk, f, "") or "") for f in
+        ("source_name", "source_name_ar", "author", "author_name", "author_name_ar", "source_id")
+    )))
+
+
+def _name_supported(name: str, chunks: Sequence[object]) -> bool:
+    """Every distinctive part of ``name`` appears in a cited chunk's text or metadata."""
+    if re.search(r"[؀-ۿ]", name):
+        parts = [_stem_ar(w) for w in normalize_arabic(name).split() if w not in _AR_PARTICLES and len(w) > 1]
+        for c in chunks:
+            hay = " ".join(_chunk_texts(c)) + " " + _chunk_metadata(c)
+            words = {_stem_ar(w) for w in normalize_arabic(hay).split()}
+            if parts and all(p in words for p in parts):
+                return True
+        return False
+    parts = [t for t in _norm_en(name).split() if t not in _EN_PARTICLES and len(t) > 2]
+    if not parts:
+        return bool(chunks)
+    for c in chunks:
+        hay = f" {_norm_en(' '.join(_chunk_texts(c)) + ' ' + _chunk_metadata(c).replace('_', ' '))} "
+        if all(f" {p} " in hay for p in parts):
+            return True
+    return False
+
+
+# "All the scholars agree", "أجمع العلماء": a consensus claim needs a
+# consensus statement in the cited evidence.
+_CONSENSUS_CLAIM = re.compile(
+    r"\b(all\s+(of\s+)?(the\s+)?scholars|the\s+scholars|scholars|the\s+ummah|all\s+(the\s+)?muslims|"
+    r"all\s+(the\s+)?(mufassirun|commentators|exegetes))\s+(have\s+)?(unanimously\s+|all\s+)?"
+    r"(agree|agreed|are\s+unanimous|were\s+unanimous|concur|concurred)\b"
+    r"|\b(unanimous(ly)?|consensus|ijma['’]?)\b"
+    r"|(أجمع|اجمع|أجمعت|اجمعت|اتفق|اتفقت)\s+(العلماء|الأمة|الامة|المفسرون|المسلمون|أهل\s+العلم|السلف)"
+    r"|(?<![ء-ي])(إجماع|اجماع|بالإجماع|بالاجماع)(?![ء-ي])|لا\s+خلاف\s+بين",
+    re.IGNORECASE,
+)
+_CONSENSUS_IN_SOURCE = re.compile(
+    r"\b(consensus|unanimous\w*|agree\w*|ijma\w*|no\s+(disagreement|difference))\b"
+    r"|أجمع|اجمع|إجماع|اجماع|اتفق|لا\s+خلاف",
+    re.IGNORECASE,
+)
+
+# Promised benefits of reciting a verse ("whoever recites it will never be
+# poor", "قراءتها سبعين مرة تشفي من كل داء") are a common fabrication. The
+# benefit words and any count must be in one cited evidence text, near the
+# rest of the claim.
+_RECITATION_CUE = re.compile(
+    r"\b(recit\w*|reads?\s+(it|this)|reading\s+(it|this)|whoever\s+(says|reads|recites))\b"
+    r"|(?<![ء-ي])[وف]?(قرأ|قرأها|يقرأ|يقرؤها|قراءتها|قراءة|تلاها|تلاوتها|يتلوها|من\s+قال)(?![ء-ي])",
+    re.IGNORECASE,
+)
+_BENEFIT = re.compile(
+    r"\b(wealth\w*|rich\w*|poor|poverty|cur(e|es|ed|ing)|disease\w*|illness\w*|sick\w*|heal\w*|"
+    r"guarantee\w*|protect\w*|forgiv\w*|paradise|jannah|debts?|jobs?|marriage|success\w*|rizq|"
+    r"provision)\b"
+    r"|(?<![ء-ي])[وف]?(شفاء|يشفي|تشفي|شفي|داء|مرض|الأمراض|الغنى|غني|يفتقر|فقر|الفقر|رزق|الرزق|الجنة|"
+    r"يغفر|غفر|غفرت|ذنوب|الذنوب|ذنوبه|حساب|يحفظ|حفظ|حفظه|ديون|زواج)(?![ء-ي])",
+    re.IGNORECASE,
+)
+
+
+def _benefit_supported(sentence: str, chunks: Sequence[object], cite_re: re.Pattern) -> bool:
+    body = _strip_names(cite_re.sub(" ", sentence)).translate(_ARABIC_INDIC)
+    body = _VERSE_REF.sub(" ", body)
+    texts = _evidence_texts(chunks)
+    if not texts:
+        return False
+    digits = set(re.findall(r"\d+", " ".join(texts).translate(_ARABIC_INDIC)))
+    if any(n not in digits for n in re.findall(r"\d+", body)):
+        return False
+    b_en, b_ar = _seq(" ".join(m.group(0) for m in _BENEFIT.finditer(body)))
+    for text in texts:
+        s_en, s_ar = _seq(text)
+        if set(b_en) <= set(s_en) and set(b_ar) <= set(s_ar):
+            sup = evidence_support(body, [text])
+            if sup.comparable and sup.local_coverage >= 0.6:
+                return True
+    return False
+
+
+def verdict_supported(subject: str, chunks: Sequence[object], window: int = 40) -> bool:
+    """
+    True when the cited evidence itself says ``subject`` is permitted (each
+    word of the subject within ``window`` tokens of a permission word).
+    Pronoun subjects ("it is permissible") are never supported: the claim
+    names nothing the evidence could be checked against.
+    """
+    s_en, s_ar = _seq(subject)
+    if not s_en and not s_ar:
+        return False
+    perm_en = {_stem_en(w) for w in ("permitted", "permissible", "permission", "permits", "permit",
+                                       "lawful", "halal", "allowed", "allow", "allows")}
+    perm_ar = {_stem_ar(normalize_arabic(w)) for w in ("أحل", "أحلت", "حلال", "مباح", "يجوز", "جائز", "أباح",
+                                                        "يحل", "تحل", "رخص", "رخصة")}
+    for text in _evidence_texts(chunks):
+        t_en, t_ar = _seq(text)
+        for subj, src, perm in ((s_en, t_en, perm_en), (s_ar, t_ar, perm_ar)):
+            if not subj:
+                continue
+            spots = [i for i, t in enumerate(src) if t in perm]
+            if not spots:
+                continue
+            where = {}
+            for j, t in enumerate(src):
+                where.setdefault(t, []).append(j)
+            if all(any(abs(i - j) <= window for i in spots for j in where.get(tok, ())) for tok in set(subj)):
+                return True
+    return False
+
+
+def ruling_report_supported(
+    claim: str, chunks: Sequence[object], min_coverage: float = 0.6, min_local: float = 0.5,
+) -> bool:
+    """
+    True when the cited evidence itself states the ruling a sentence reports
+    ("the verse tells you that you must not eat the property of orphans").
+    The claim is scored with its reporting frame and the reader's address
+    removed: what must be in the evidence is the content of the command.
+    No comparable evidence (an English claim against Arabic-only text, or
+    only planted instructions) is no support.
+    """
+    texts = _evidence_texts(chunks)
+    if not texts:
+        return False
+    claim = _RULING_REPORT_NOISE.sub(" ", _strip_names(claim))
+    sup = evidence_support(claim, texts)
+    if not sup.comparable or not sup.tokens:
+        return False
+    return sup.coverage >= min_coverage and sup.local_coverage >= min_local
+
+
+_RULING_REPORT_NOISE = re.compile(
+    r"\b(you|your|yours|yourself|must|should|need|needs|ought|may|might|have|has|believers?|muslims?|"
+    r"tells?|told|commands?|commanded|instructs?|instructed|teach(es)?|taught|orders?|ordered|urges?|"
+    r"urged|enjoins?|enjoined|reminds?|reminded|warns?|warned|address(es)?|addressed|directs?|directed|"
+    r"forbids?|forbade|requires?|obliges?|promises?|promised|instance|case)\b",
+    re.IGNORECASE,
+)
+
+
+def _digits_supported(sentence: str, chunks: Sequence[object], cite_re: re.Pattern) -> bool:
+    body = _VERSE_REF.sub(" ", cite_re.sub(" ", sentence).translate(_ARABIC_INDIC))
+    numbers = re.findall(r"\d+", body)
+    if not numbers:
+        return True
+    digits = set(re.findall(r"\d+", _chunk_text(chunks).translate(_ARABIC_INDIC)))
+    return all(n in digits for n in numbers)
 
 
 def check_named_attributions(
@@ -629,13 +1078,27 @@ def check_named_attributions(
     citation_pattern: str,
 ) -> Tuple[str, List[str]]:
     """
-    Drop sentences that name a scholar the evidence does not support.
+    Drop sentences whose attributions the cited evidence does not support.
 
-    ``cited`` maps each VALID citation marker (exact text) to its chunk. A
-    sentence naming a scholar survives only if a citation in the sentence
-    (or, for an uncited sentence, in its paragraph) points to that scholar's
-    work, or the cited chunk's text itself names them.
-    Returns (answer, removed_names).
+    ``cited`` maps each VALID citation marker (exact text) to its chunk. The
+    evidence for a sentence is the chunks it cites (or, for an uncited
+    sentence, those its paragraph cites). A sentence is removed when:
+
+    - it names a scholar on SCHOLAR_NAMES that is neither the cited work's
+      author nor named in the cited text;
+    - it attributes a statement to any other name (an honorific such as
+      Sheikh/Imam/الشيخ/العلامة, an Ibn/Abu/ابن/أبو name, or a multi-word
+      name before a speech verb) that the cited text and source metadata
+      do not contain;
+    - it reports a hadith the cited text does not carry (collection, number
+      and wording, matched in one place of the text);
+    - it claims scholarly consensus the cited text does not state;
+    - it promises a benefit for reciting something ("whoever recites it will
+      never be poor") that the cited text does not state;
+    - it follows a hadith sentence and gives a number (a hadith number split
+      off after "no.") the cited text does not contain.
+
+    Returns (answer, removed_reasons).
     """
     cite_re = re.compile(citation_pattern)
     from app.services.tafsir_sources import source_base_id
@@ -650,14 +1113,21 @@ def check_named_attributions(
         para_chunks = [cited[m.group(0)] for m in cite_re.finditer(paragraph) if m.group(0) in cited]
         parts = _SENTENCE_SPLIT.split(paragraph)
         kept = []
+        prev_hadith = False
         for i, part in enumerate(parts):
             if i % 2 == 1:
                 kept.append(part)
                 continue
+            bare = cite_re.sub(" ", part)
             named = [(key, names) for key, names, pats in _SCHOLAR_PATTERNS
                      if any(p.search(part) for p in pats)]
-            hadith = bool(_HADITH_CUE.search(cite_re.sub(" ", part)))
-            if not named and not hadith:
+            others = find_attributed_names(bare)
+            hadith = bool(_HADITH_CUE.search(bare))
+            consensus = bool(_CONSENSUS_CLAIM.search(bare))
+            benefit = bool(_RECITATION_CUE.search(bare) and _BENEFIT.search(bare))
+            follows_hadith = prev_hadith and bool(re.search(r"\d", _VERSE_REF.sub(" ", bare.translate(_ARABIC_INDIC))))
+            prev_hadith = hadith
+            if not (named or others or hadith or consensus or benefit or follows_hadith):
                 kept.append(part)
                 continue
             chunks = [cited[m.group(0)] for m in cite_re.finditer(part) if m.group(0) in cited]
@@ -666,25 +1136,187 @@ def check_named_attributions(
             if hadith and not _hadith_supported(part, chunks, cite_re):
                 ok = False
                 removed.append("hadith attribution")
+            if follows_hadith and not hadith and not _digits_supported(part, chunks, cite_re):
+                ok = False
+                removed.append("hadith number")
             for key, names in named:
                 own_work = key is not None and any(
                     source_base_id(getattr(c, "source_id", "")) == key for c in chunks
                 )
-                in_text = any(
-                    _mentioned_in(names, " ".join(filter(None, (
-                        getattr(c, "content", None), getattr(c, "content_ar", None),
-                        getattr(c, "content_en", None)))))
-                    for c in chunks
-                )
+                in_text = any(_mentioned_in(names, " ".join(_chunk_texts(c))) for c in chunks)
                 if not (own_work or in_text):
                     ok = False
                     removed.append(names[0])
+            for name in others:
+                if not _name_supported(name, chunks):
+                    ok = False
+                    removed.append(name)
+            if consensus and not any(_CONSENSUS_IN_SOURCE.search(t) for t in _evidence_texts(chunks)):
+                ok = False
+                removed.append("consensus claim")
+            if benefit and not _benefit_supported(part, chunks, cite_re):
+                ok = False
+                removed.append("recitation benefit")
             if ok:
                 kept.append(part)
         out_paragraphs.append("".join(kept))
     text = "".join(out_paragraphs)
     text = re.sub(r"\n{3,}", "\n\n", text)
     return re.sub(r"[ \t]+\n", "\n", text).strip(), removed
+
+
+# ------------------------------------------------ claim-to-evidence checks
+
+# Text presented as what the Qur'an itself says, without a quotation:
+# "In this verse Allah says that…", "يخبر الله تعالى أن…".
+_QURAN_VOICE = re.compile(
+    r"\b(allah|god|the\s+(holy\s+)?qur'?an|the\s+verse|this\s+verse|the\s+ayah|this\s+ayah|the\s+surah|"
+    r"this\s+surah)\b[^.;\n]{0,40}?\b(says?|said|states?|declares?|tells\s+us|promises?|informs?\s+us|"
+    r"commands?|reveals?)\b"
+    r"|(?<![ء-ي])[وف]?(قال|يقول|أخبر|يخبر|وعد|يعد)\s+(الله|تعالى|سبحانه|ربنا)(?![ء-ي])"
+    r"|في\s+(هذه\s+)?الآية\s+(يقول|يخبر|يعد)",
+    re.IGNORECASE,
+)
+
+
+def has_quran_voice(text: str) -> bool:
+    """True when the text presents something as what the Qur'an / Allah says."""
+    return bool(_QURAN_VOICE.search(text or ""))
+
+
+_QUOTED_SPANS = re.compile(r"﴿[^﴾]*﴾|«[^»]*»|“[^”]*”|\"[^\"\n]*\"")
+_ORNATE = re.compile(r"﴿[^﴾]*﴾")
+
+
+def _verses_covered(refs: Iterable[Tuple[int, int]], chunks: Sequence[object]) -> bool:
+    for s, a in refs:
+        for c in chunks:
+            lo = getattr(c, "aya_start", None)
+            hi = getattr(c, "aya_end", None) or lo
+            if getattr(c, "sura_no", None) == s and lo is not None and lo <= a <= hi:
+                return True
+    return False
+
+
+def check_quran_self_citations(
+    answer: str,
+    quran_markers: Mapping[str, Tuple[int, int, int]],
+    tafsir_markers: Mapping[str, object],
+    chunks: Sequence[object],
+    citation_pattern: str,
+    verse_texts: Optional[Mapping[Tuple[int, int], List[str]]] = None,
+) -> Tuple[str, List[str]]:
+    """
+    Prose backed only by a Qur'an self-reference ("[Quran, 5:90]") is not
+    evidence: the citation validator accepts any existing verse, so an
+    invented claim could pass as paraphrase. A sentence is removed when:
+
+    - all its citations are Qur'an self-references to verses no retrieved
+      chunk covers, and it says more than a verified quotation (``﴿…﴾``
+      quotations are checked separately against the canonical text);
+    - it presents unquoted text as the Qur'an's own words ("Allah says
+      that…") and that text is not carried by the stored translation or
+      text of the cited verse, or by the retrieved tafsir of it.
+
+    ``quran_markers`` maps valid Qur'an self-citation markers to
+    (sura, first ayah, last ayah); ``tafsir_markers`` maps valid tafsir
+    citation markers to their chunk; ``verse_texts`` holds the stored
+    translations / canonical text per (sura, ayah).
+    Returns (answer, removed_reasons).
+    """
+    cite_re = re.compile(citation_pattern)
+    verse_texts = verse_texts or {}
+    removed: List[str] = []
+    parts = _SENTENCE_SPLIT.split(answer)
+    out = []
+    for i, part in enumerate(parts):
+        if i % 2 == 1:
+            out.append(part)
+            continue
+        markers = [m.group(0) for m in cite_re.finditer(part)]
+        q_refs = [
+            (s, a) for mk in markers if mk in quran_markers
+            for s, a0, a1 in [quran_markers[mk]] for a in range(a0, a1 + 1)
+        ]
+        t_chunks = [tafsir_markers[mk] for mk in markers if mk in tafsir_markers]
+        prose = _QUOTED_SPANS.sub(" ", cite_re.sub(" ", part))
+        p_en, p_ar = _seq(prose)
+        substantive = len(set(p_en)) + len(set(p_ar)) >= 3
+
+        if q_refs and not t_chunks and substantive and not _verses_covered(q_refs, chunks):
+            removed.append("uncovered Qur'an citation")
+            continue
+
+        if substantive and _QURAN_VOICE.search(prose) and not _QUOTED_SPANS.search(part):
+            refs = q_refs or [
+                (getattr(c, "sura_no", 0), a) for c in t_chunks
+                for a in range(getattr(c, "aya_start", 0), (getattr(c, "aya_end", None) or getattr(c, "aya_start", 0)) + 1)
+            ]
+            pool = [t for ref in refs for t in verse_texts.get(ref, [])]
+            covering = [c for c in chunks if _verses_covered(refs, [c])] if refs else []
+            pool += _evidence_texts(covering + t_chunks)
+            claim = _QURAN_VOICE.sub(" ", prose)
+            sup = evidence_support(claim, pool)
+            if not sup.comparable or sup.coverage < 0.6:
+                removed.append("unverified Qur'an paraphrase")
+                continue
+        out.append(part)
+    text = "".join(out)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return re.sub(r"[ \t]+\n", "\n", text).strip(), removed
+
+
+def check_claim_support(
+    answer: str,
+    tafsir_markers: Mapping[str, object],
+    citation_pattern: str,
+    *,
+    min_tokens: int = 4,
+    drop_below: float = 0.25,
+    weak_below: float = 0.5,
+) -> Tuple[str, int, int]:
+    """
+    Claim-to-evidence relevance: a sentence citing a retrieved chunk must
+    share its content words with that chunk. Only comparable text counts (an
+    English sentence is not scored against an Arabic-only chunk).
+
+    - coverage < ``drop_below`` (e.g. a claim about cryptocurrency cited to
+      the tafsir of 94:5): the sentence is removed;
+    - coverage < ``weak_below``: kept, but counted as weakly supported so the
+      confidence score can be lowered;
+    - every text of the cited chunks is a planted instruction: removed.
+
+    Returns (answer, dropped, weak).
+    """
+    cite_re = re.compile(citation_pattern)
+    dropped = weak = 0
+    parts = _SENTENCE_SPLIT.split(answer)
+    out = []
+    for i, part in enumerate(parts):
+        if i % 2 == 1:
+            out.append(part)
+            continue
+        chunks = [tafsir_markers[m.group(0)] for m in cite_re.finditer(part) if m.group(0) in tafsir_markers]
+        if not chunks:
+            out.append(part)
+            continue
+        texts = _evidence_texts(chunks)
+        has_text = any(getattr(c, f, None) for c in chunks for f in ("content", "content_ar", "content_en"))
+        if has_text and not texts:
+            dropped += 1
+            continue
+        claim = _strip_names(_ORNATE.sub(" ", cite_re.sub(" ", part)))
+        sup = evidence_support(claim, texts)
+        if sup.comparable and sup.tokens >= min_tokens:
+            if sup.coverage < drop_below:
+                dropped += 1
+                continue
+            if sup.coverage < weak_below:
+                weak += 1
+        out.append(part)
+    text = "".join(out)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return re.sub(r"[ \t]+\n", "\n", text).strip(), dropped, weak
 
 
 # ------------------------------------------------------------------ citations
@@ -706,8 +1338,17 @@ def strip_citation_markers(answer: str, markers: Iterable[str]) -> str:
     return re.sub(r"[ \t]{2,}", " ", answer)
 
 
-# Split on sentence ends and line breaks, keeping the separators.
-_SENTENCE_SPLIT = re.compile(r"(\n+|(?<=[.!?؟۔])[ \t]+)")
+# Split on sentence ends and line breaks, keeping the separators. A full
+# stop that ends a common abbreviation ("hadith no. 5010", "vol. 2", "e.g.")
+# does not end the sentence: splitting there detached a hadith number from
+# its hadith cue, so the number escaped the evidence check.
+_ABBREVIATIONS = (
+    r"(?<!\bno\.)(?<!\bNo\.)(?<!\bNO\.)(?<!\bnos\.)(?<!\bNos\.)(?<!\bvol\.)(?<!\bVol\.)"
+    r"(?<!\bvols\.)(?<!\bp\.)(?<!\bpp\.)(?<!\bch\.)(?<!\bCh\.)(?<!\bcf\.)(?<!\bed\.)(?<!\bEd\.)"
+    r"(?<!\bDr\.)(?<!\bdr\.)(?<!\bProf\.)(?<!\bSt\.)(?<!\bvs\.)(?<!\bal\.)(?<!\bet\.)"
+    r"(?<!e\.g\.)(?<!i\.e\.)(?<!\bviz\.)(?<!\bapprox\.)(?<!\bhad\.)(?<!رقم\.)(?<!ج\.)(?<!ص\.)"
+)
+_SENTENCE_SPLIT = re.compile(r"(\n+|(?<=[.!?؟۔])" + _ABBREVIATIONS + r"[ \t]+)")
 
 
 def split_sentences(text: str) -> List[str]:
