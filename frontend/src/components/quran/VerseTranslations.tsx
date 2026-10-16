@@ -128,7 +128,7 @@ function TranslationBlock({
             target="_blank"
             rel="noopener noreferrer"
             dir="ltr"
-            className="underline hover:text-primary-600"
+            className="inline-flex items-center min-h-[24px] underline hover:text-primary-600"
           >
             QuranEnc.com
           </a>
@@ -138,7 +138,7 @@ function TranslationBlock({
             type="button"
             onClick={() => setShowNotes((v) => !v)}
             aria-expanded={showNotes}
-            className="underline hover:text-primary-600"
+            className="inline-flex items-center min-h-[24px] underline hover:text-primary-600"
           >
             {showNotes
               ? uiAr ? 'إخفاء الحواشي' : 'Hide footnotes'

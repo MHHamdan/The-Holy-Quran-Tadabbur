@@ -545,7 +545,7 @@ export function QuranPage() {
               <button
                 onClick={() => setNavMode('surah')}
                 className={clsx(
-                  'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                  'flex items-center gap-2 px-3 py-1.5 min-h-[44px] rounded-md text-sm font-medium transition-colors',
                   navMode === 'surah'
                     ? 'bg-white shadow text-primary-600'
                     : 'text-gray-600 hover:text-gray-900',
@@ -558,7 +558,7 @@ export function QuranPage() {
               <button
                 onClick={() => setNavMode('page')}
                 className={clsx(
-                  'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                  'flex items-center gap-2 px-3 py-1.5 min-h-[44px] rounded-md text-sm font-medium transition-colors',
                   navMode === 'page'
                     ? 'bg-white shadow text-primary-600'
                     : 'text-gray-600 hover:text-gray-900',
@@ -575,7 +575,7 @@ export function QuranPage() {
               <button
                 onClick={() => setViewMode('mushaf')}
                 className={clsx(
-                  'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                  'flex items-center gap-2 px-3 py-1.5 min-h-[44px] rounded-md text-sm font-medium transition-colors',
                   viewMode === 'mushaf'
                     ? 'bg-white shadow text-primary-600'
                     : 'text-gray-600 hover:text-gray-900',
@@ -587,7 +587,7 @@ export function QuranPage() {
               <button
                 onClick={() => setViewMode('list')}
                 className={clsx(
-                  'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                  'flex items-center gap-2 px-3 py-1.5 min-h-[44px] rounded-md text-sm font-medium transition-colors',
                   viewMode === 'list'
                     ? 'bg-white shadow text-primary-600'
                     : 'text-gray-600 hover:text-gray-900',
@@ -638,7 +638,7 @@ export function QuranPage() {
                     disabled={currentPage <= 1}
                     aria-label={isAr ? 'الصفحة السابقة' : 'Previous page'}
                     className={clsx(
-                      'p-2 rounded-lg hover:bg-gray-100 transition-colors',
+                      'p-2 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors',
                       currentPage <= 1 && 'opacity-50 pointer-events-none'
                     )}
                   >
@@ -659,7 +659,7 @@ export function QuranPage() {
                     disabled={currentPage >= 604}
                     aria-label={isAr ? 'الصفحة التالية' : 'Next page'}
                     className={clsx(
-                      'p-2 rounded-lg hover:bg-gray-100 transition-colors',
+                      'p-2 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors',
                       currentPage >= 604 && 'opacity-50 pointer-events-none'
                     )}
                   >
@@ -674,7 +674,7 @@ export function QuranPage() {
                     aria-disabled={currentSura <= 1 || undefined}
                     tabIndex={currentSura <= 1 ? -1 : undefined}
                     className={clsx(
-                      'p-2 rounded-lg hover:bg-gray-100 transition-colors',
+                      'p-2 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors',
                       currentSura <= 1 && 'opacity-50 pointer-events-none'
                     )}
                   >
@@ -698,7 +698,7 @@ export function QuranPage() {
                     aria-disabled={currentSura >= 114 || undefined}
                     tabIndex={currentSura >= 114 ? -1 : undefined}
                     className={clsx(
-                      'p-2 rounded-lg hover:bg-gray-100 transition-colors',
+                      'p-2 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors',
                       currentSura >= 114 && 'opacity-50 pointer-events-none'
                     )}
                   >
