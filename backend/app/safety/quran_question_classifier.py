@@ -313,7 +313,7 @@ _INJECTION_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     r"\bwhat\s+do\s+you\s+(personally\s+)?(think|believe|feel)\b",
     # Text styled as the Qur'an.
     r"\b(write|compose|create|generate|produce|craft|draft|make|render|translate|turn|rewrite|put)\b[^.?!]{0,60}"
-    r"\b(in\s+the\s+style\s+of\s+(the\s+)?(qur'?an|koran|a\s+verse|an\s+ayah|scripture|revelation)|"
+    r"\b(in\s+the\s+style\s+of\s+(the\s+)?(a\s+(?:qur'?an(?:ic)?\s+|koranic\s+)?verse|an\s+ayah|qur'?an|koran|scripture|revelation)|"
     r"quranic\s+(style|arabic|language|verse|form|prose)|as\s+(though|if)\s+it\s+(were|was)\s+(a|an)\s+"
     r"(verse|ayah|surah)|like\s+(a|an)\s+(verse|ayah|surah)|verse[\s-]like|in\s+(the\s+)?form\s+of\s+(a|an)\s+"
     r"(verse|ayah|surah))",
