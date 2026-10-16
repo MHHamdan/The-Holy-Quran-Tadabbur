@@ -515,7 +515,7 @@ function RegistryStoryCard({
         <Link
           to={detail}
           className={clsx(
-            'flex items-center text-primary-600 text-sm font-medium hover:underline',
+            'flex items-center min-h-11 -my-3.5 text-primary-600 text-sm font-medium hover:underline',
             isArabic && 'flex-row-reverse',
           )}
         >
@@ -529,7 +529,7 @@ function RegistryStoryCard({
           onClick={() => setShowConnections(s => !s)}
           aria-expanded={showConnections}
           className={clsx(
-            'flex items-center gap-1 text-xs text-gray-600 hover:text-primary-600 transition-colors',
+            'flex items-center gap-1 min-h-11 -my-3.5 px-1 text-xs text-gray-600 hover:text-primary-600 transition-colors',
             isArabic && 'flex-row-reverse font-arabic',
           )}
         >
@@ -576,7 +576,7 @@ function SubcategoryFacets({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="text-xs text-emerald-700 hover:underline"
+          className="inline-flex items-center min-h-11 -my-3.5 px-1 text-xs text-emerald-700 hover:underline"
         >
           {expanded
             ? (isArabic ? 'إخفاء' : 'Hide')
@@ -699,7 +699,7 @@ function PeopleFacets({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="text-xs text-indigo-700 hover:underline"
+          className="inline-flex items-center min-h-11 -my-3.5 px-1 text-xs text-indigo-700 hover:underline"
         >
           {expanded
             ? (isArabic ? 'إخفاء' : 'Hide')
@@ -824,7 +824,7 @@ function PlaceFacets({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="text-xs text-amber-700 hover:underline"
+          className="inline-flex items-center min-h-11 -my-3.5 px-1 text-xs text-amber-700 hover:underline"
         >
           {expanded
             ? (isArabic ? 'إخفاء' : 'Hide')

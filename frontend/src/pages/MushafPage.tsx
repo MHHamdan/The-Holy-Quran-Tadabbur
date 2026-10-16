@@ -1190,6 +1190,13 @@ export function MushafPage() {
 
   // Current surah info
   const currentSura = useMemo(() => verses.length > 0 ? verses[0] : null, [verses]);
+  // The surah select follows the page header (the surah of the first verse on
+  // the page), except right after the reader picks a surah that starts
+  // mid-page, so the select keeps showing their choice.
+  const [pickedSurah, setPickedSurah] = useState<{ page: number; sura: number } | null>(null);
+  const selectedSurah = pickedSurah && pickedSurah.page === currentPage
+    ? pickedSurah.sura
+    : (currentSura?.sura_no ?? surahOnPage(currentPage));
 
   return (
     <div
@@ -1214,7 +1221,7 @@ export function MushafPage() {
             <button
               onClick={() => goToPage(currentPage + 1)}
               disabled={currentPage >= TOTAL_PAGES || isPending}
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 transition-colors"
+              className="inline-flex items-center justify-center min-h-11 min-w-11 p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 transition-colors"
               title={t('mushaf_next_page')}
               aria-label={t('mushaf_next_page')}
             >
@@ -1237,7 +1244,7 @@ export function MushafPage() {
             <button
               onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage <= 1 || isPending}
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 transition-colors"
+              className="inline-flex items-center justify-center min-h-11 min-w-11 p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 transition-colors"
               title={t('mushaf_prev_page')}
               aria-label={t('mushaf_prev_page')}
             >
@@ -1261,8 +1268,13 @@ export function MushafPage() {
             </label>
             <select
               id="mushaf-surah"
-              value={surahOnPage(currentPage)}
-              onChange={(e) => goToPage(firstPageOfSurah(parseInt(e.target.value, 10)))}
+              value={selectedSurah}
+              onChange={(e) => {
+                const sura = parseInt(e.target.value, 10);
+                const page = firstPageOfSurah(sura);
+                setPickedSurah({ page, sura });
+                goToPage(page);
+              }}
               className="max-w-[9rem] px-2 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm border border-white/20 outline-none cursor-pointer"
               aria-label={language === 'ar' ? 'انتقل إلى السورة' : 'Jump to surah'}
             >

@@ -137,11 +137,11 @@ export function SurahIndexPage() {
                   <Link to={`/quran/${n}`} className="flex-1 min-w-0">
                     <span className="flex items-center justify-between gap-2">
                       <span className="font-arabic text-lg text-gray-900" dir="rtl" lang="ar">{name.ar}</span>
-                      <span className="text-sm text-gray-600 truncate" dir="ltr" lang="en">{name.en}</span>
+                      {!ar && <span className="text-sm text-gray-600 truncate" dir="ltr" lang="en">{name.en}</span>}
                     </span>
                     <span className={clsx('block text-xs text-gray-500 mt-0.5', ar && 'font-arabic')}>
                       {ar
-                        ? `${arDigits(SURAH_VERSE_COUNTS[n - 1])} آية${rev === 'makki' ? ' · مكية' : rev === 'madani' ? ' · مدنية' : ''} · الجزء ${arDigits(SURAH_FIRST_JUZ[n - 1])}`
+                        ? `${arDigits(SURAH_VERSE_COUNTS[n - 1])} آية${rev === 'makki' ? '، مكية' : rev === 'madani' ? '، مدنية' : ''}، الجزء ${arDigits(SURAH_FIRST_JUZ[n - 1])}`
                         : `${SURAH_VERSE_COUNTS[n - 1]} verses${rev === 'makki' ? ' · Makki' : rev === 'madani' ? ' · Madani' : ''} · Juz ${SURAH_FIRST_JUZ[n - 1]}`}
                     </span>
                   </Link>
@@ -153,7 +153,7 @@ export function SurahIndexPage() {
                   )}
                   <Link
                     to={`/mushaf?page=${SURAH_FIRST_PAGE[n - 1]}`}
-                    className="text-xs text-primary-700 hover:underline flex-shrink-0"
+                    className="inline-flex items-center justify-center min-h-11 min-w-11 px-1 text-xs text-primary-700 hover:underline flex-shrink-0"
                     aria-label={ar ? `افتح ${name.ar} في المصحف، صفحة ${arDigits(SURAH_FIRST_PAGE[n - 1])}` : `Open ${name.en} in the Mushaf, page ${SURAH_FIRST_PAGE[n - 1]}`}
                   >
                     {ar ? `ص ${arDigits(SURAH_FIRST_PAGE[n - 1])}` : `p. ${SURAH_FIRST_PAGE[n - 1]}`}
