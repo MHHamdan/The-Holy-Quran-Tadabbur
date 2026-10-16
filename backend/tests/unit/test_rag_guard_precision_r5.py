@@ -283,3 +283,18 @@ class TestPromptFence:
         p = RAGPipeline(SimpleNamespace(), llm=FakeLLM())
         ctx = p._build_context([EV_PLAIN], "ar")
         assert EV_PLAIN.content_ar in ctx
+
+
+# ---------------------------------------------------------------- numbers
+
+class TestDefiniteNumberWords:
+    """Arabic number words with the article ("الخمس") count as numbers, so an
+    English answer's "five" is supported by them (verifier case 2:43)."""
+
+    def test_number_check_reads_definite_arabic_forms(self):
+        guard = ClaimGuard([], {}, {}, CITATION_MARKER_PATTERN)
+        evidence = ["TEST-EVIDENCE: نص تجريبي: أقيموا الصلوات الخمس في أوقاتها."]
+        assert guard._numbers_ok("establish the five daily prayers", evidence)
+        assert guard._numbers_ok("أقيموا الصلوات الخمس", evidence)
+        # a number the evidence does not carry still fails
+        assert not guard._numbers_ok("establish the seven daily prayers", evidence)

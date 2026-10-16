@@ -208,7 +208,8 @@ _VERSE_REF = re.compile(r"(?<![\d:])(\d{1,3})\s*:\s*(\d{1,3})(?:\s*[-–]\s*(\d{
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
 
 
-# Number words (three and up: "one", "two" also mean "a", "both").
+# Number words (three and up: "one", "two" also mean "a", "both"). Arabic ones
+# may carry a conjunction/preposition and the article: "الخمس", "والسبع".
 _NUMBER_WORDS = {
     "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11,
     "twelve": 12, "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70,
@@ -220,7 +221,7 @@ _NUMBER_WORDS = {
     "مائة": 100, "مئة": 100, "مائه": 100, "ألف": 1000, "الف": 1000,
 }
 _NUMBER_WORD_RE = re.compile(
-    r"(?<![\w\u0621-\u064a])[وفب]?(" + "|".join(sorted(map(re.escape, _NUMBER_WORDS), key=len, reverse=True))
+    r"(?<![\w\u0621-\u064a])[وفب]?(?:ال)?(" + "|".join(sorted(map(re.escape, _NUMBER_WORDS), key=len, reverse=True))
     + r")(?![\w\u0621-\u064a])", re.IGNORECASE)
 
 
