@@ -4,13 +4,17 @@
  * Validates local Quran data files and the source registry for structural
  * and content integrity. Run this after any change to content-related files.
  *
- * With DATABASE_URL set, enabled rows of tafseer_sources are cross-checked
- * against the manifest too (needs python3 + asyncpg).
+ * Enabled rows of tafseer_sources are cross-checked against the manifest too
+ * (needs python3 + asyncpg). DATABASE_URL comes from the environment, else
+ * from the repository's .env (the main checkout's .env in a git worktree).
+ * Without a database the check is skipped with a warning; --require-db (or
+ * REQUIRE_DB_CHECK=1) makes that an error.
  *
  * Usage:
  *   npx tsx scripts/validate-quran-integrity.ts
  *   npx tsx scripts/validate-quran-integrity.ts --verbose
  *   npx tsx scripts/validate-quran-integrity.ts --summary
+ *   npx tsx scripts/validate-quran-integrity.ts --require-db
  *
  * Exit codes:
  *   0 = all checks passed
@@ -30,6 +34,7 @@ import { resolve, join } from 'path';
 const args = process.argv.slice(2);
 const VERBOSE = args.includes('--verbose');
 const SUMMARY = args.includes('--summary');
+const REQUIRE_DB = args.includes('--require-db') || process.env.REQUIRE_DB_CHECK === '1';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -571,7 +576,8 @@ function checkTafsirLicenceCrossCheck(manifest: TafsirManifest): CheckResult {
     // Database: enabled rows must be in enabled_ids. Optional, needs DATABASE_URL.
     const db = readEnabledDbSources();
     if (db.error) {
-      warnings.push(`database cross-check skipped: ${db.error}`);
+      if (REQUIRE_DB) errors.push(`database cross-check could not run: ${db.error}`);
+      else warnings.push(`database cross-check skipped: ${db.error}`);
     } else {
       for (const row of db.rows) {
         if (!mustBeShippable.has(row.id)) {
@@ -588,9 +594,43 @@ function checkTafsirLicenceCrossCheck(manifest: TafsirManifest): CheckResult {
 
 interface DbSourceRow { id: string; license_verified: number }
 
+/** KEY=VALUE pairs of a dotenv file (no interpolation). */
+function readDotenv(path: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!existsSync(path)) return out;
+  for (const line of readFileSync(path, 'utf-8').split(/\r?\n/)) {
+    const m = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/);
+    if (!m) continue;
+    out[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2');
+  }
+  return out;
+}
+
+/**
+ * DATABASE_URL from the environment, else from the repository's .env (in a
+ * linked git worktree, the main checkout's .env), so a local run does the
+ * database cross-check by default instead of silently skipping it.
+ */
+function resolveDatabaseUrl(): { url?: string; from?: string } {
+  if (process.env.DATABASE_URL) return { url: process.env.DATABASE_URL, from: 'environment' };
+  const candidates = [join(ROOT, '.env'), join(ROOT, 'backend/.env')];
+  const common = spawnSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], {
+    cwd: ROOT, encoding: 'utf-8', timeout: 5000,
+  });
+  if (common.status === 0 && common.stdout.trim()) {
+    const mainRoot = resolve(common.stdout.trim(), '..');
+    if (mainRoot !== ROOT) candidates.push(join(mainRoot, '.env'), join(mainRoot, 'backend/.env'));
+  }
+  for (const path of candidates) {
+    const url = readDotenv(path).DATABASE_URL;
+    if (url) return { url, from: path };
+  }
+  return {};
+}
+
 function readEnabledDbSources(): { rows: DbSourceRow[]; error?: string } {
-  const url = process.env.DATABASE_URL;
-  if (!url) return { rows: [], error: 'DATABASE_URL not set' };
+  const { url } = resolveDatabaseUrl();
+  if (!url) return { rows: [], error: 'DATABASE_URL not set and not found in .env' };
   const py = [
     'import asyncio, json, os, asyncpg',
     'async def main():',
@@ -600,7 +640,7 @@ function readEnabledDbSources(): { rows: DbSourceRow[]; error?: string } {
     '    await c.close()',
     'asyncio.run(main())',
   ].join('\n');
-  const r = spawnSync('python3', ['-c', py], { encoding: 'utf-8', env: process.env, timeout: 20000 });
+  const r = spawnSync('python3', ['-c', py], { encoding: 'utf-8', env: { ...process.env, DATABASE_URL: url }, timeout: 20000 });
   if (r.status !== 0) return { rows: [], error: (r.stderr || r.error?.message || 'query failed').trim().split('\n').pop() };
   try {
     return { rows: JSON.parse(r.stdout) as DbSourceRow[] };
@@ -709,57 +749,128 @@ function checkMemorizationPhrases(ayahs: QuranAyah[]): CheckResult {
 // Attribution: every view that renders Qur'an text credits Tanzil
 // ---------------------------------------------------------------------------
 
-/** Signs that a component renders Qur'an text. */
-const VERSE_TEXT_PATTERN = /\b(text_uthmani|ayahTextUthmani|firstAyahPreview|lastAyahPreview|ayatUthmani|verseTextFor)\b|quranExcerpt\(/;
+/*
+ * A view renders Qur'an text when either
+ *   (a) it reads a verse-text field of an API verse object (text_uthmani,
+ *       verse.text_ar, ...) or calls quranExcerpt() itself, or
+ *   (b) it imports, directly or through other .ts modules, a data module
+ *       built on the canonical excerpts (utils/quranExcerpt.ts or
+ *       data/generated/quranExcerpts.json), e.g. revelationTimeline.ts.
+ * (b) follows the import graph, so a new page that quotes verses through a
+ * data module is caught without anyone adding its name here.
+ *
+ * Every such view must render <QuranTextAttribution> (or <LiveVerse>, which
+ * renders it). A missing attribution is an error, except for the views listed
+ * in ATTRIBUTION_KNOWN_GAPS (reported as warnings, each with its owner) and
+ * METADATA_ONLY (import a verse module but render none of its verse fields).
+ */
+
+/** (a) Fields that carry Qur'an text, and direct excerpt calls. */
+const VERSE_FIELD_PATTERN = new RegExp(
+  [
+    String.raw`\b(text_uthmani|text_imlaei|ayahTextUthmani|firstAyahPreview|lastAyahPreview|ayatUthmani|verseTextFor)\b`,
+    String.raw`\b(verse|ayah|aya|v)\??\.text_ar\b`,
+    String.raw`quranExcerpt\(`,
+  ].join('|'),
+);
 /** Ways a component satisfies the Tanzil attribution requirement. */
 const ATTRIBUTION_PATTERN = /<QuranTextAttribution\b|<LiveVerse\b/;
+/** (b) Roots of the data path: the canonical excerpt accessor and its data. */
+const EXCERPT_ROOTS = ['frontend/src/utils/quranExcerpt.ts', 'frontend/src/data/generated/quranExcerpts.json'];
 
-/**
- * Views fixed so far: a regression here is an error. Other views are reported
- * as warnings until their owners add the attribution; move them here then.
- */
-const ATTRIBUTION_ENFORCED = new Set([
-  'frontend/src/components/home/VerseOfDayCard.tsx',
-  'frontend/src/components/home/WordOfDayCard.tsx',
-  'frontend/src/components/therapy/IslamicPillarsPanel.tsx',
-  'frontend/src/components/therapy/SpiritualGuidanceCard.tsx',
-  'frontend/src/components/therapy/RuqyahGuide.tsx',
-  'frontend/src/pages/DuasPage.tsx',
-  'frontend/src/pages/DhikrPage.tsx',
-  'frontend/src/pages/EmotionalGuidancePage.tsx',
-  'frontend/src/pages/MemorizationLinksPage.tsx',
-  'frontend/src/pages/QuranWondersPage.tsx',
-  'frontend/src/pages/TherapyPage.tsx',
-  'frontend/src/pages/tools/SurahMemoryAtlasPage.tsx',
-  'frontend/src/pages/tools/HajjUmrahGuidePage.tsx',
-  'frontend/src/components/quran/LiveVerse.tsx',
-  'frontend/src/components/quran/QuranTextAttribution.tsx',
-]);
+/** Views that render Qur'an text without attribution today; warnings, not errors. */
+const ATTRIBUTION_KNOWN_GAPS: Record<string, string> = {
+  'frontend/src/components/ask/VersesSection.tsx': 'Related verses on /ask (verse.text_ar); R4-C adds QuranTextAttribution',
+  'frontend/src/pages/QuizPage.tsx': 'quranicTrivia questions/explanations quote excerpts; page owner to add attribution',
+  'frontend/src/pages/JuzNavigatorPage.tsx': 'juzOverview keyTopicsAr quotes excerpts; page owner to add attribution',
+  'frontend/src/pages/DailyChallengePage.tsx': 'quranStories options/explanations quote excerpts; page owner to add attribution',
+};
 
-function listTsx(dir: string, out: string[] = []): string[] {
+/** Import a verse data module but render none of its verse-bearing fields (checked 2026-10-15). */
+const METADATA_ONLY: Record<string, string> = {
+  'frontend/src/pages/ReadingStatsPage.tsx': 'JUZ_OVERVIEW numbers and names only',
+  'frontend/src/pages/SurahComparePage.tsx': 'SURAH_ATLAS_DATA ayah counts and TIMELINE_BY_SURAH period only',
+  'frontend/src/components/stories/WhereElseMentionedPanel.tsx': 'QURAN_STORIES_FIRST_BATCH verse references only',
+};
+
+function listSources(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
-    if (name === 'node_modules') continue;
+    if (name === 'node_modules' || name === '__tests__') continue;
     const p = join(dir, name);
-    if (statSync(p).isDirectory()) listTsx(p, out);
-    else if (p.endsWith('.tsx')) out.push(p);
+    if (statSync(p).isDirectory()) listSources(p, out);
+    else if (/\.(tsx?|json)$/.test(p) && !/\.(test|spec)\.tsx?$/.test(p)) out.push(p);
   }
   return out;
+}
+
+const IMPORT_RE = /(?:import|export)\s[^'"]*?from\s+['"](\.{1,2}\/[^'"]+)['"]|import\(\s*['"](\.{1,2}\/[^'"]+)['"]\s*\)/g;
+
+/** Repo-relative paths of the local modules a file imports. */
+function localImports(file: string, src: string, known: Set<string>): string[] {
+  const out: string[] = [];
+  for (const m of src.matchAll(IMPORT_RE)) {
+    const base = resolve(file, '..', m[1] ?? m[2]);
+    for (const cand of [base, `${base}.ts`, `${base}.tsx`, join(base, 'index.ts'), join(base, 'index.tsx')]) {
+      const rel = cand.slice(ROOT.length + 1);
+      if (known.has(rel)) { out.push(rel); break; }
+    }
+  }
+  return out;
+}
+
+/** Views (.tsx) that render Qur'an text, with the reason each was detected. */
+function findVerseTextViews(): Map<string, { reason: string; attributed: boolean }> {
+  const files = listSources(join(ROOT, 'frontend/src'));
+  const known = new Set(files.map((f) => f.slice(ROOT.length + 1)));
+  const src = new Map<string, string>();
+  const imports = new Map<string, string[]>();
+  for (const f of files) {
+    const rel = f.slice(ROOT.length + 1);
+    const text = f.endsWith('.json') ? '' : readFileSync(f, 'utf-8');
+    src.set(rel, text);
+    imports.set(rel, localImports(f, text, known));
+  }
+  // .ts modules that (transitively) carry canonical excerpts.
+  const verseModules = new Set(EXCERPT_ROOTS);
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const [rel, deps] of imports) {
+      if (!rel.endsWith('.ts') || verseModules.has(rel)) continue;
+      if (deps.some((d) => verseModules.has(d))) { verseModules.add(rel); changed = true; }
+    }
+  }
+  const views = new Map<string, { reason: string; attributed: boolean }>();
+  for (const [rel, text] of src) {
+    if (!rel.endsWith('.tsx')) continue;
+    const attributed = ATTRIBUTION_PATTERN.test(text);
+    const field = text.match(VERSE_FIELD_PATTERN)?.[0];
+    if (field) {
+      views.set(rel, { reason: `renders ${field.replace(/\($/, '()')}`, attributed });
+      continue;
+    }
+    const via = (imports.get(rel) ?? []).find((d) => verseModules.has(d));
+    if (via && !(rel in METADATA_ONLY)) views.set(rel, { reason: `imports ${via}`, attributed });
+  }
+  return views;
 }
 
 function checkQuranAttribution(): CheckResult {
   return check('Views that render Qur\'an text show the Tanzil attribution', () => {
     const errors: string[] = [];
     const warnings: string[] = [];
-    const missing: string[] = [];
-    for (const file of listTsx(join(ROOT, 'frontend/src'))) {
-      const rel = file.slice(ROOT.length + 1);
-      const src = readFileSync(file, 'utf-8');
-      if (!VERSE_TEXT_PATTERN.test(src) || ATTRIBUTION_PATTERN.test(src)) continue;
-      if (ATTRIBUTION_ENFORCED.has(rel)) errors.push(`${rel}: renders Qur'an text without QuranTextAttribution`);
-      else missing.push(rel);
+    const views = findVerseTextViews();
+    for (const [rel, { reason, attributed }] of views) {
+      if (attributed) continue;
+      const gap = ATTRIBUTION_KNOWN_GAPS[rel];
+      if (gap) warnings.push(`${rel}: ${reason} without QuranTextAttribution (known gap: ${gap})`);
+      else errors.push(`${rel}: ${reason} without QuranTextAttribution`);
     }
-    if (missing.length > 0) {
-      warnings.push(`${missing.length} view(s) render Qur'an text without attribution (owned by other workstreams): ${missing.join(', ')}`);
+    for (const rel of Object.keys(ATTRIBUTION_KNOWN_GAPS)) {
+      const v = views.get(rel);
+      if (!v || v.attributed) warnings.push(`${rel}: listed in ATTRIBUTION_KNOWN_GAPS but no longer a gap; remove it`);
+    }
+    for (const rel of Object.keys(METADATA_ONLY)) {
+      if (!existsSync(join(ROOT, rel))) warnings.push(`${rel}: listed in METADATA_ONLY but missing; remove it`);
     }
     return { errors, warnings };
   });

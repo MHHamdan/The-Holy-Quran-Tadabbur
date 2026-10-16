@@ -12,6 +12,7 @@ import { Clock, Search, ChevronRight, GitCompare, Map } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguageStore } from '../stores/languageStore';
 import { SURAH_NAMES } from '../data/surahNames';
+import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import {
   REVELATION_TIMELINE, PERIOD_META,
   type RevPeriod, type RevelationEntry,
@@ -321,6 +322,8 @@ export function RevelationTimelinePage() {
           ? 'مبني على رواية ابن عباس والطبعة المصرية الرسمية • بعض العلماء يختلفون في ترتيب سور معينة'
           : "Based on Ibn Abbas's narration & Egyptian Standard Edition · Scholars differ on some positions"}
       </p>
+      {/* Verse fragments in the timeline come from quranExcerpt() (Tanzil). */}
+      <QuranTextAttribution language={language} className="text-center mt-2" />
     </div>
   );
 }
