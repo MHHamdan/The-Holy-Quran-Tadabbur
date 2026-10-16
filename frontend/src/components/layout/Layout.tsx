@@ -119,7 +119,10 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </header>
 
-      <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
+      {/* pb-20 clears the floating feedback button (44px, 1rem above the tab
+          bar) so the last controls on a page, e.g. a duʿā's Share action, can be
+          scrolled out from under it. */}
+      <main id="main" tabIndex={-1} className="flex-1 min-w-0 pb-20 focus:outline-none">
         {children}
       </main>
 
