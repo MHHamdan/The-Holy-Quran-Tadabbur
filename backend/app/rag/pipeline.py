@@ -1358,7 +1358,20 @@ class RAGPipeline:
                 pairs = [(a, b) for a, b in pairs if isinstance(a, str) and isinstance(b, str) and a and b]
                 if not pairs:
                     return Lexicon()
-                RAGPipeline._lexicon = await asyncio.to_thread(Lexicon.build, pairs)
+                lexicon = await asyncio.to_thread(Lexicon.build, pairs)
+                # Words the English tafsir literature itself uses are in-domain
+                # ("Khalifah", "Bedouin"); a term no Qur'an translation or
+                # English tafsir ever uses is foreign to any evidence here.
+                try:
+                    words = (await self.session.execute(text(
+                        "SELECT DISTINCT w FROM tafseer_chunks, "
+                        "regexp_split_to_table(lower(content_en), '[^a-z]+') AS w "
+                        "WHERE content_en IS NOT NULL AND length(w) > 2"
+                    ))).scalars().all()
+                    lexicon = lexicon.with_domain_words(w for w in words if isinstance(w, str))
+                except Exception as e:  # noqa: BLE001 - the parallel corpus vocabulary remains
+                    logger.warning(f"English tafsir vocabulary unavailable: {e}")
+                RAGPipeline._lexicon = lexicon
                 logger.info(f"[XLING] lexicon built from {len(pairs)} verse/translation pairs")
             except Exception as e:  # noqa: BLE001 - cross-lingual checks then use translations only
                 logger.warning(f"Could not build the cross-lingual lexicon: {e}")
@@ -1419,7 +1432,17 @@ class RAGPipeline:
             "اشرح الآية", "explain the verse", "what does this verse mean",
         ]
         q_lower = q.lower()
-        return any(p in q_lower for p in vague_patterns) and len(q) < 40
+        if not (any(p in q_lower for p in vague_patterns) and len(q) < 40):
+            return False
+        # "اشرح دعاء رب زدني علما" names what it asks about: only a request
+        # whose words are all the vague pattern itself lacks a referent.
+        rest = q_lower
+        for p in sorted(vague_patterns, key=len, reverse=True):
+            rest = rest.replace(p, " ")
+        from app.safety.xling import claim_tokens
+        if re.search(r"[0-9٠-٩]{1,3}\s*[:：]\s*[0-9٠-٩]{1,3}", rest):
+            return False  # a verse reference is a referent
+        return len(claim_tokens(rest)[1]) < 2
 
     async def _validate_and_parse_response(
         self,

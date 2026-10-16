@@ -175,6 +175,12 @@ class Lexicon:
     def __len__(self) -> int:
         return len(self.ar2en)
 
+    def with_domain_words(self, words: Iterable[str]) -> "Lexicon":
+        """Add words the English tafsir literature uses to the domain
+        vocabulary (no translations: they only mark a term as in-domain)."""
+        extra = {en_stem(w) for w in words if w and len(w) > 2}
+        return Lexicon(self.ar2en, self.en2ar, self.vocab | frozenset(extra), self.names)
+
     @classmethod
     def build(cls, pairs: Iterable[Tuple[str, str]], top_k: int = 6, min_dice: float = 0.08,
               min_pair: int = 2) -> "Lexicon":

@@ -83,7 +83,6 @@ _log = logging.getLogger(__name__)
 # Thresholds (local-window coverage of a claim's content by the evidence).
 HIGH_RISK_SUPPORT = 0.6
 ATTRIBUTED_QURAN_SUPPORT = 0.4
-CROSS_LINGUAL_REPORT_SUPPORT = 0.8
 RULING_SUBJECT_SUPPORT = 0.5
 SYNTHESIS_DROP = 0.3
 CROSS_LINGUAL_SYNTHESIS_DROP = 0.2
@@ -630,7 +629,8 @@ class ClaimGuard:
         # Read through the lexicon only: nearly every content word of the
         # report must be carried (one specific invented detail — "in the
         # rain", "a house of pearls" — is exactly what an invented report adds).
-        return sup.comparable and sup.local_coverage >= CROSS_LINGUAL_REPORT_SUPPORT
+        allowed = 0 if sup.tokens <= 4 else (1 if sup.tokens <= 6 else int(sup.tokens * 0.3))
+        return sup.comparable and sup.tokens - sup.local <= allowed
 
     # -------------------------------------------------------- quran claims
     def _judge_quran_claim(self, part: str, prose: str, chunks: Sequence[object], own: Sequence[object],
@@ -685,7 +685,7 @@ class ClaimGuard:
         drop_below = SYNTHESIS_DROP if same_script else CROSS_LINGUAL_SYNTHESIS_DROP
         if sup.local_coverage < drop_below:
             return f"content not in evidence ({sup.local}/{sup.tokens})"
-        if foreign and sup.local_coverage <= 0.4 or len(foreign) >= 2 and sup.local_coverage <= SYNTHESIS_WEAK:
+        if (len(foreign) >= 2 and sup.local_coverage <= SYNTHESIS_WEAK) or (foreign and sup.local_coverage <= 0.4):
             return f"content foreign to the evidence: {', '.join(foreign[:3])}"
         # The asked-about topic is absent from everything retrieved: the
         # answer is speaking beyond its evidence ("What does the Qur'an say

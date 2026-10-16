@@ -76,6 +76,9 @@ EV_PLAIN = _en("ev-plain", "jalalayn_en", "Tafsir al-Jalalayn", "تفسير ال
     ("هل يلزمنا الصيام في السفر؟", FIRST),
     ("ينفع أتوضأ وعلي مكياج؟", GENERAL),
     ("ما حكم بيع التقسيط؟", GENERAL),
+    ("وش حكم اللي يأخر الصلاة؟", GENERAL),
+    ("If a man insults the adhan, does he leave Islam?", GENERAL),
+    ("Is a marriage contract signed by email valid?", GENERAL),
 ])
 def test_ruling_requests_are_routed(question, person):
     req = ruling_request(question)
@@ -92,6 +95,7 @@ def test_ruling_requests_are_routed(question, person):
     "هل في القرآن ذكر للحلال والحرام؟",
     "كيف حكم سليمان بين المرأتين؟",
     "هل كان قوم لوط من الكفار في القصة؟",
+    "كيف أشكر الله على نعمه كما في الآية ١٤:٧؟",  # "على" (on), not "عليّ" (on me)
 ])
 def test_tafsir_questions_still_generate(question):
     assert quran_question_classifier.classify(question).allowed_to_generate, question
@@ -126,6 +130,7 @@ async def test_ruling_request_gets_sourced_context_only():
 
 @pytest.mark.parametrize("sentence,person,cls", [
     ("You may skip the fast when work is tiring.", SECOND, PERMIT),
+    ("You can give the money to your brother instead.", SECOND, PERMIT),
     ("I would say that small bets are permissible.", FIRST, PERMIT),
     ("Anyone who misses a prayer is no longer a Muslim.", GENERAL, STATUS),
     ("وما عليك شيء لو أخرت الصلاة.", SECOND, PERMIT),
@@ -137,6 +142,7 @@ def test_ruling_claims_are_typed(sentence, person, cls):
 
 
 @pytest.mark.parametrize("sentence", [
+    "You can reflect on this verse at night.",
     "Patience in leaving what is forbidden is rewarded.",
     "Your repentance is accepted when sincere, the verse promises.",
     "بين الميسر أن المقصود إقامة الصلاة على الوجه الصحيح.",
@@ -303,3 +309,13 @@ def test_answer_repeating_a_planted_instruction_is_neutralised():
                          "Quux dealings are fine [Tafsir al-Jalalayn, 2:255].", [EV_PLAIN, planted])
     assert "Quux" not in out or report.withheld
     assert report.injected_chunks == ["inj"]
+
+
+# ------------------------------------------------- vague questions
+
+def test_vague_question_needs_a_referent():
+    from app.rag.pipeline import RAGPipeline
+    p = RAGPipeline.__new__(RAGPipeline)
+    assert p._is_vague_question("explain it") and p._is_vague_question("اشرح الآية")
+    assert not p._is_vague_question("Explain the verse 2:255")
+    assert not p._is_vague_question("اشرح دعاء موسى عليه السلام")

@@ -136,8 +136,11 @@ def _ar_classes(tok: str) -> Set[str]:
     return out
 
 
-def _ar_first_person(tokens: Sequence[str]) -> bool:
+def _ar_first_person(tokens: Sequence[str], raw: str = "") -> bool:
+    raw_words = set(re.findall(r"[\u0621-\u064a]+", re.sub(r"[\u064b-\u0652\u0670]", "", raw))) if raw else set()
     for t in tokens:
+        if t in ("علي",) and raw and "علي" not in raw_words and "وعلي" not in raw_words and "فعلي" not in raw_words:
+            continue  # the preposition "على", not "عليّ"
         if t in _AR_FIRST_WORDS:
             return True
         # Suffixed first person on a deontic verb or act noun: "يلزمني",
@@ -299,7 +302,7 @@ def _ar_ruling_request(q: str) -> Optional[RulingRequest]:
         before = normalize_arabic(raw[:hukm.start()]).split()[-2:] if hukm else []
         if fatwa or not any(t in _AR_TAFSIR_FRAME for t in before):
             return RulingRequest(GENERAL, set(), "ruling_noun")
-    first = _ar_first_person(toks)
+    first = _ar_first_person(toks, q)
     second = _ar_second_person(toks)
     asks = bool(set(toks) & _AR_INTERROGATIVE) or "؟" in q or "?" in q or toks[0].startswith("ا") and \
         bool(segment(toks[0][1:]) & (_AR_PERMIT | _AR_FORBID | _AR_OBLIGE | _AR_VALIDITY))
@@ -326,7 +329,8 @@ def _ar_ruling_request(q: str) -> Optional[RulingRequest]:
         if not framed:
             return RulingRequest(GENERAL, set(own), "general_deontic")
     # "ماذا علي؟", "كم يجب علي", "هل علي قضاء" — obligations of the speaker.
-    if asks and first and (acts or any(t in ("علي", "علينا") for t in toks)) and not framed:
+    if asks and first and (acts or re.search(r"(?<![ء-ي])[وف]?(علي|عليّ|علينا)(?![ء-ي\u064b-\u0652])", q)) \
+            and not framed:
         return RulingRequest(FIRST, {OBLIGE}, "personal_act")
     # "هل أنا مسلم؟", "هل ما زلنا متزوجين؟" — the speaker's status.
     if asks and first and acts:
@@ -365,6 +369,13 @@ def _en_ruling_request(q: str) -> Optional[RulingRequest]:
             r"\b(is|are|am|was|were|becomes?|become)\s+(i|he|she|they|someone|somebody|anyone|anybody|a\s+person|"
             r"a\s+muslim|muslims|people|whoever|one|my\s+\w+|the\s+one|those)\b", low) and not framed:
         return RulingRequest(GENERAL, {STATUS}, "status")
+    if re.search(r"\b(leave|leaves|left|exit|exits|exited|go|goes|out)\s+(out\s+of\s+)?(the\s+fold\s+of\s+)?"
+                 r"(islam|the\s+religion|the\s+faith|the\s+deen)\b", low) and ("?" in q or toks[:1] and toks[0] in
+                                                                                  {"does", "do", "is", "will", "would"}):
+        return RulingRequest(FIRST if tset & _EN_FIRST else GENERAL, {STATUS}, "status")
+    if re.search(r"\b(is|are|was|were|will|would)\b[^?]{0,60}\b(" + "|".join(sorted(_EN_ACTS)) + r")\b[^?]{0,50}"
+                 r"\b(valid|invalid|void|binding|accepted\s+as\s+valid|nullified|sound)\b", low) and not framed:
+        return RulingRequest(FIRST if tset & _EN_FIRST else GENERAL, {VALIDITY}, "validity")
     if re.search(r"\b(still|no\s+longer)\s+(a\s+)?(muslim|married|believer)\b", low):
         person = FIRST if tset & _EN_FIRST else GENERAL
         return RulingRequest(person, {STATUS}, "status")
@@ -415,8 +426,9 @@ _EN_CLAIM_PATTERNS: Tuple[Tuple[str, re.Pattern], ...] = tuple((cls, re.compile(
     (PERMIT, r"\b(no|nothing)\s+(harm|sin|blame|problem|issue|wrong)\s+(in|with|if|for)\b|\bnothing\s+wrong\b"
              r"|\b(you|one|anyone|anybody|a\s+(person|muslim|woman|man|believer|traveller|traveler)|muslims|"
              r"believers|women|men|people|someone|whoever)\s+(\w+\s+){0,2}?(may|can|is\s+free\s+to|are\s+free\s+to)\s+"
-             r"(\w+\s+){0,2}?(skip|break|leave|eat|drink|take|marry|divorce|pray|fast|delay|combine|shorten|wear|"
-             r"listen|use|keep|have)\b"),
+             r"(still\s+|also\s+|even\s+|safely\s+|freely\s+|simply\s+)?(?!(see|read|learn|reflect|ponder|find|notice|"
+             r"understand|consult|ask|refer|recite\s+it\s+and\s+reflect|look|hope|trust|turn\s+to|seek\s+forgiveness|"
+             r"repent|remember|thank|benefit)\b)[a-z]+\b"),
 ))
 # Frames that report what Allah / the verse / a source says.
 _EN_REPORT_FRAME = re.compile(
