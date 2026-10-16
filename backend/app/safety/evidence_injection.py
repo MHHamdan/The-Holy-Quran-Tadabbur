@@ -87,6 +87,17 @@ def is_injected(text: str) -> bool:
     return any(_sentence_injected(s) for s in _CLAUSES.split(t) if s.strip())
 
 
+def injected_sentences(text: str) -> list:
+    """The sentences of ``text`` that carry instructions (all of it when the
+    text impersonates prompt structure)."""
+    t = unicodedata.normalize("NFKC", text or "")
+    if not t:
+        return []
+    if _STRUCTURAL.search(t):
+        return [t]
+    return [s for s in _CLAUSES.split(t) if s.strip() and _sentence_injected(s)]
+
+
 def _sentence_injected(t: str) -> bool:
     en_addr = bool(_EN_ADDRESSEE.search(t))
     en_meta = bool(_EN_RESPONSE_META.search(t))

@@ -179,8 +179,12 @@ _FATWA_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     # "Can I read the Quran without wudu?" — a retrieval verb plus ruling vocabulary.
     r"^\s*(should|can|may|must)\s+i\b[^?]{0,80}\b(haram|halal|allowed|permissible|permitted|sin|"
     r"sinful|wudu|ablution|menstruat\w*|my period|janabah?|junub)\b",
-    r"^\s*(can|may|must|should)\s+(a\s+|an\s+|my\s+)?(woman|women|man|men|muslims?|wife|husband|"
-    r"girl|boy)\b",
+    # "Can a woman travel…", "Can my sister pray…" — not "Can a person
+    # understand the Quran…" (ability, not permission).
+    r"^\s*(can|may|must|should)\s+(a\s+|an\s+|my\s+|our\s+|his\s+|her\s+)?(woman|women|man|men|muslims?|"
+    r"wife|husband|girl|boy|sister|brother|mother|father|son|daughter|child|children|parents?|kids?)\s+"
+    r"(?!(understand|learn|read|know|see|benefit|reflect|memori[sz]e|study|recite\s+and|hear|listen\s+to\s+the\s+"
+    r"tafsir|find|get)\b)",
     r"\b(am i|is it ok|is it okay)\b.{0,30}\b(allowed|sinning|in sin|permitted)\b",
     # Arabic: "هل الموسيقى حرام؟", "هل يصح الطلاق…", "هل تجوز الصلاة…"
     # The ruling word must stand alone: "المسجد الحرام", "البيت الحرام",
@@ -297,6 +301,7 @@ _INJECTION_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     r"quranic\s+(style|arabic|language|verse|form|prose)|as\s+(though|if)\s+it\s+(were|was)\s+(a|an)\s+"
     r"(verse|ayah|surah)|like\s+(a|an)\s+(verse|ayah|surah)|verse[\s-]like|in\s+(the\s+)?form\s+of\s+(a|an)\s+"
     r"(verse|ayah|surah))",
+    r"\b(qur'?an|koran|scripture|ayah|surah)[\s-]*(like|style|styled|sounding)\b",
     r"(على\s+(نسق|نمط|شكل|طريقة|منوال|هيئة)|بأسلوب|بنفس\s+أسلوب|كأنها|كأنه)\s+(آية|آيات|الآيات|القرآن|"
     r"سورة|السور|قرآني|قرآنية)",
     r"(اكتب|ألف|ألّف|أنشئ|صغ|اصنع|ترجم|حول|حوّل)[^.؟!]{0,40}(آية|آيات|سورة|قرآنا|قرآني)",

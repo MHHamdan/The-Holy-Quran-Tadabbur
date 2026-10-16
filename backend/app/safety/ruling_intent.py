@@ -85,7 +85,7 @@ _AR_PERMIT = _ar_set(
     "رخص يرخص بأس باس حرج جناح عادي عادى ينفع يصير مانع مشكله"
 )
 _AR_FORBID = _ar_set(
-    "يحرم تحرم حرام محرم محرمه محرما محرمه ممنوع ممنوعه منهي ياثم تاثم اثمت اثم"
+    "يحرم تحرم حرام محرم محرمه محرما محرمه ممنوع ممنوعه منهي ياثم تاثم ناثم ااثم اثمت اثم"
 )
 _AR_OBLIGE = _ar_set(
     "يجب تجب وجب واجب واجبه الوجوب فرض فريضه مفروض مفروضه يلزم تلزم يلزمك لازم لازمه يتوجب يتعين "
@@ -143,6 +143,10 @@ def _ar_first_person(tokens: Sequence[str], raw: str = "") -> bool:
             continue  # the preposition "على", not "عليّ"
         if t in _AR_FIRST_WORDS:
             return True
+        # First-person imperfect of a ruling verb: "نأثم", "أأثم".
+        if t[:1] == "ن" or t.startswith("اا"):
+            if segment(t) & (_AR_FORBID | _AR_OBLIGE | _AR_PERMIT):
+                return True
         # Suffixed first person on a deontic verb or act noun: "يلزمني",
         # "صلاتي", "زوجي", "علينا".
         if len(t) > 3 and (t.endswith("ني") or t.endswith("تي") or t.endswith("نا")):

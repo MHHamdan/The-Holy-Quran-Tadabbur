@@ -504,12 +504,15 @@ class ClaimGuard:
         return False
 
     def _echoes_injection(self, prose: str, chunks: Sequence[object]) -> bool:
-        inj_texts = [t for c in self.injected for t in self._raw_texts(c)]
-        sup_inj = xling.support(prose, self._view(inj_texts))
-        if sup_inj.tokens < 2 or sup_inj.local_coverage < 0.6:
+        """The sentence carries what a planted instruction asks the answer to
+        say (judged against the instruction sentences themselves, so a
+        tafsir passage that merely shares the chunk is not affected)."""
+        from app.safety.evidence_injection import injected_sentences
+        orders = [s for c in self.injected for t in self._raw_texts(c) for s in injected_sentences(t)]
+        if not orders:
             return False
-        sup_clean = xling.support(prose, self._view(self._texts(chunks)))
-        return sup_inj.local > sup_clean.local or sup_clean.local_coverage < 0.6
+        sup = xling.support(prose, self._view(orders))
+        return sup.tokens >= 2 and sup.local_coverage >= 0.6
 
     # ----------------------------------------------------------- rulings
     def _judge_ruling(self, claim: RulingClaim, chunks: Sequence[object], texts: Sequence[str],
@@ -850,6 +853,11 @@ _ENTITY_EXEMPT = frozenset((
     "note reflection however therefore thus moreover furthermore indeed truly also according english arabic "
     "saheeh international sahih kursi throne fatihah baqarah imran nisa maidah kahf yasin rahman mulk ikhlas "
     "dhu dhul dhi muharram rajab safar shaban sha'ban shawwal qa'dah qadah hijjah "
+    # the Qur'an's own figures
+    "adam nuh noah ibrahim abraham musa moses isa jesus maryam mary yusuf joseph yaqub jacob dawud david "
+    "sulayman solomon yunus jonah harun aaron ismail ishmael ishaq isaac lut lot hud salih shuayb ayyub job "
+    "zakariyya zechariah yahya john idris ilyas elias luqman khidr pharaoh firawn iblis satan shaytan jibril "
+    "gabriel mikail michael haman qarun korah talut saul jalut goliath imran "
     "falaq nas asr sharh inshirah duha kafirun nasr"
 ).split())
 _PRONOUNS = frozenset("he his him himself i we our us you your me my it they them their".split())
