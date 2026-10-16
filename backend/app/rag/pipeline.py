@@ -119,6 +119,7 @@ from app.safety.grounding import (
     split_sentences,
     verify_quotations,
 )
+from app.safety.evidence_injection import split_tainted
 from app.safety.quran_answer_guard import QuranAnswerGuard
 from app.safety.xling import Lexicon
 from app.safety.quran_question_classifier import (
@@ -129,6 +130,21 @@ from app.safety.quran_question_classifier import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# Shown above the cited passages when the AI summary could not be verified.
+UNVERIFIED_SYNTHESIS_DIGEST_EN = (
+    "The AI summary could not be fully verified against the sources, so it is not shown. "
+    "The cited tafsir passages are shown below as written."
+)
+UNVERIFIED_SYNTHESIS_DIGEST_AR = (
+    "تعذّر التحقق من الملخص الآلي بالكامل من المصادر، لذلك لم يُعرض. "
+    "وتظهر أدناه نصوص التفسير المستشهد بها كما وردت."
+)
+
+
+# Stands in the prompt for text in a source that addressed the assistant.
+PLANTED_TEXT_OMITTED = "[omitted: text in this source addressed to the assistant]"
 
 
 class RAGPipeline:
@@ -961,6 +977,13 @@ class RAGPipeline:
                 content = chunk.content_en if language == "en" else chunk.content_ar
                 if not content:
                     content = chunk.content_ar or chunk.content_en or ""
+                # Instructions planted in a source never reach the model: the
+                # instruction and what it controls are cut from the prompt
+                # (the claim guard still sees them and treats them as data).
+                clean, tainted = split_tainted(content)
+                if tainted:
+                    logger.warning(f"[INJECTION] instructions removed from source {chunk.chunk_id} before generation")
+                    content = (clean.strip() + " " if clean.strip() else "") + PLANTED_TEXT_OMITTED
                 context_parts.append(
                     fence_source(chunk.chunk_id, chunk.source_name, chunk.verse_reference, content[:limit]) + "\n"
                 )
@@ -1382,6 +1405,20 @@ class RAGPipeline:
                     lexicon = lexicon.with_domain_words(w for w in words if isinstance(w, str))
                 except Exception as e:  # noqa: BLE001 - the parallel corpus vocabulary remains
                     logger.warning(f"English tafsir vocabulary unavailable: {e}")
+                # Likewise the Arabic tafsir literature (Ibn Kathir, al-Baghawi):
+                # a word classical tafsir uses is in-domain Arabic.
+                try:
+                    words = (await self.session.execute(text(
+                        "SELECT DISTINCT w FROM tafseer_chunks, regexp_split_to_table("
+                        "regexp_replace(content_ar, '[\u064B-\u0652\u0670\u0640]', '', 'g'), "
+                        "'[^\u0621-\u064A]+') AS w "
+                        "WHERE source_id IN ('ibn_kathir_ar', 'baghawi_ar') AND content_ar IS NOT NULL "
+                        "AND length(w) > 2"
+                    ))).scalars().all()
+                    lexicon = await asyncio.to_thread(
+                        lexicon.with_domain_words_ar, [w for w in words if isinstance(w, str)])
+                except Exception as e:  # noqa: BLE001 - the parallel corpus vocabulary remains
+                    logger.warning(f"Arabic tafsir vocabulary unavailable: {e}")
                 RAGPipeline._lexicon = lexicon
                 logger.info(f"[XLING] lexicon built from {len(pairs)} verse/translation pairs")
             except Exception as e:  # noqa: BLE001 - cross-lingual checks then use translations only
@@ -1434,6 +1471,9 @@ class RAGPipeline:
     def _is_vague_question(self, question: str) -> bool:
         """Return True if the question lacks enough context to retrieve targeted sources."""
         q = question.strip()
+        # A verse reference is a referent however short the question ("39:53").
+        if re.search(r"[0-9٠-٩]{1,3}\s*[:：]\s*[0-9٠-٩]{1,3}", q):
+            return False
         # Very short questions are likely decontextualised
         if len(q) < 10:
             return True
@@ -1567,6 +1607,15 @@ class RAGPipeline:
         # grounded. Return the safe fallback (sources are still shown verbatim)
         # rather than unattributed AI text.
         if not citations or not raw_response.strip():
+            # When the only problem was weak support for ordinary synthesis
+            # (no fabricated quote, attribution, hadith, number, reference or
+            # planted instruction), the cited tafsir passages are shown as
+            # written instead of a bare refusal: nothing the model wrote is shown.
+            if self._digest_eligible(claims, matched, quote_report, uncited_dropped):
+                logger.info("[CLAIM-GUARD] synthesis unverified — returning the cited sources verbatim")
+                return self._unverified_synthesis_digest(
+                    chunks, list(cited_chunks.values()), intent, language, query_expansion,
+                )
             logger.warning("[CITATION] No valid citations in LLM answer — returning safe fallback")
             return self._withheld_response(
                 SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN,
@@ -1725,6 +1774,59 @@ class RAGPipeline:
             evidence=chunks,
             required_labels=list(guard_result.required_labels),
             # API version for contract compatibility
+            api_version=settings.api_version,
+        )
+
+    # Removal types that are only weak support for ordinary synthesis: the
+    # sentence asserted nothing high-risk, the evidence just did not carry it.
+    _SOFT_REMOVALS = frozenset({"synthesis", "scope", "polarity"})
+
+    def _digest_eligible(self, claims, matched, quote_report, uncited_dropped: int) -> bool:
+        return bool(
+            claims.removed
+            and all(kind in self._SOFT_REMOVALS for kind, _ in claims.removed)
+            and not claims.injected_chunks
+            and not matched.invalid
+            and not quote_report.removed
+            and not quote_report.misreferenced
+            and not uncited_dropped
+        )
+
+    def _unverified_synthesis_digest(
+        self,
+        chunks: List[RetrievedChunk],
+        cited: List[RetrievedChunk],
+        intent: QueryIntent,
+        language: str,
+        query_expansion: Optional[ExpandedQuery],
+    ) -> GroundedResponse:
+        """
+        The cited tafsir passages, verbatim, in place of an AI summary that
+        could not be verified against them (answer_kind "source_digest").
+        """
+        ordered: List[RetrievedChunk] = []
+        for c in list(cited) + list(chunks):
+            if c is not None and c.chunk_id not in {o.chunk_id for o in ordered}:
+                ordered.append(c)
+        citations = [self._make_citation(c, language) for c in ordered[:5]]
+        sv_result = source_validator.validate_citations(citations, intent.value, language)
+        if not citations or not sv_result.is_valid:
+            return self._withheld_response(
+                SAFE_REFUSAL_NO_SOURCES_AR if language == "ar" else SAFE_REFUSAL_NO_SOURCES_EN,
+                "ungrounded_answer_withheld", chunks, intent, language, query_expansion,
+            )
+        return GroundedResponse(
+            answer=UNVERIFIED_SYNTHESIS_DIGEST_AR if language == "ar" else UNVERIFIED_SYNTHESIS_DIGEST_EN,
+            answer_kind="source_digest",
+            citations=citations,
+            confidence=0.9,
+            confidence_level="high",
+            intent=intent.value,
+            warnings=["synthesis_unverified_sources_shown"],
+            query_expansion=query_expansion.expansion_applied if query_expansion else None,
+            evidence=chunks,
+            evidence_chunk_count=len({c.chunk_id for c in chunks}),
+            evidence_source_count=len({c.source_id for c in chunks}),
             api_version=settings.api_version,
         )
 

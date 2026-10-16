@@ -440,7 +440,14 @@ def verify_quotations(
     answer = _CONTAINERS.sub(_container, answer)
 
     # Pass 2: text presented as the Qur'an after a cue ("قال الله تعالى: …")
+    shells = [(p.start(), p.end()) for ph in (UNVERIFIED_QUOTE_AR, UNVERIFIED_QUOTE_EN)
+              for p in re.finditer(re.escape(ph), answer)]
+
     def _cue(m: re.Match) -> str:
+        # A removal notice from pass 1 is not a quotation ("…في القرآن أو
+        # المصادر" inside it reads like a cue and its span).
+        if any(m.start() < pe and m.end() > ps for ps, pe in shells):
+            return m.group(0)
         span = m.group("span")
         lead = len(span) - len(span.lstrip())
         core = span.strip()
@@ -482,6 +489,8 @@ def verify_quotations(
             answer = answer[:a] + rep + answer[b:]
 
     return answer, report
+
+
 
 
 # ----------------------------------------------------- names and hadith cues
@@ -737,9 +746,13 @@ _QURAN_VOICE = re.compile(
     r"in\s+the\s+language\s+of)\s+(the\s+|this\s+|that\s+)?(holy\s+|noble\s+)?(qur'?an|verse|ayah|surah|"
     r"book|revelation|lord|allah|scripture)\b"
     r"|\b(qur'?an|qur'?anic|divine)\s+(words|text|statement|declaration|wording)\b"
-    r"|(?<![ء-ي])[وف]?(قال|يقول|أخبر|يخبر|وعد|يعد|قرر|يقرر|نص|ينص|أكد|يؤكد|ذكر|يذكر|بين|يبين|أمر|يأمر|"
+    r"|(?<![ء-ي])[وف]?(قال|يقول|أخبر|يخبر|وعد|يعد|قرر|يقرر|نص|ينص|أكد|يؤكد|بين|يبين|أمر|يأمر|"
     r"تخبر|تخبرنا|يخبرنا|أخبرنا|تقرر|تنص|تؤكد|تبين|تذكر|تعلمنا|يعلمنا|تقول)\s+(الله|تعالى|سبحانه|ربنا|ربك|"
     r"الحق|المولى|القرآن|القران|الآية|الاية|هذه\s+الآية|هذه\s+الاية|التنزيل|السورة|الكتاب)(?![ء-ي])"
+    # "ذكر الله" is also "remembering Allah" ("فمن ذكر الله ذكره الله"): a
+    # cue only when what He mentioned follows ("ذكر الله أن…", "ذكر الله في…").
+    r"|(?<![ء-ي])[وف]?(ذكر|يذكر)\s+(الله|تعالى|سبحانه|القرآن|القران|الآية|الاية|هذه\s+الآية|هذه\s+الاية|"
+    r"السورة|الكتاب)(\s+تعالى|\s+سبحانه)?(?=\s*(أن|ان|أنه|انه|في|:))"
     r"|(?<![ء-ي])(في|وفي|كما\s+في|جاء\s+في|ورد\s+في|كما\s+جاء\s+في|نص)\s+(محكم\s+التنزيل|التنزيل|"
     r"الذكر\s+الحكيم|كتاب\s+الله|القرآن\s+الكريم|الكتاب\s+العزيز|القرآن|القران)(?![ء-ي])"
     r"|(?<![ء-ي])(قوله\s+تعالى|قوله\s+سبحانه|قوله\s*[:：]|قال\s+جل\s+وعلا|قال\s+عز\s+وجل|"

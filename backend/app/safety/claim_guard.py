@@ -89,6 +89,14 @@ SYNTHESIS_DROP = 0.3
 CROSS_LINGUAL_SYNTHESIS_DROP = 0.2
 SYNTHESIS_WEAK = 0.5
 CROSS_LINGUAL_REASON = 0.25
+# A synthesis sentence that carries its own valid citation is anchored to
+# that evidence: across scripts it is judged by the citation (and every
+# high-risk check before it), and dropped only when almost nothing of it is
+# carried; in the evidence's script a run of three carried content words
+# anchors the rest of the sentence as the writer's framing.
+ANCHORED_CROSS_LINGUAL_DROP = 0.1
+ANCHORED_SAME_SCRIPT_DROP = 0.2
+ANCHOR_TOKENS = 3
 # A reported narration paraphrased in the evidence's own script: most of its
 # content words in one place (or a verbatim run of three plus over half).
 REPORT_SAME_SCRIPT = 0.85
@@ -175,6 +183,15 @@ _REFLECTION_LABEL = re.compile(
     re.IGNORECASE,
 )
 # Reference-like text that is not a valid citation marker.
+_REFLECTION_HEADING = re.compile(
+    r"(?m)^[ \t]*(?:#{1,6}[ \t]*)?(?:\*\*|__)?[ \t]*(?P<label>reflection|for\s+reflection|to\s+reflect|"
+    r"a\s+moment\s+of\s+reflection|food\s+for\s+thought|questions?\s+for\s+reflection|للتأمل|تأمل|تأمّل|"
+    r"وقفة\s+تأمل|وقفة\s+تأملية|سؤال\s+للتأمل|أسئلة\s+للتأمل)[ \t]*[:：]?[ \t]*(?:\*\*|__)?[ \t]*[:：]?[ \t]*"
+    r"\n+(?=[ \t]*\S)",
+    re.IGNORECASE,
+)
+_LIST_MARKER = re.compile(r"\s*(?:(?:\d{1,3}|[٠-٩]{1,3})[.)]|[-*•])\s*")
+_ORPHAN_MARKER_LINE = re.compile(r"(?m)^[ \t]*(?:(?:\d{1,3}|[٠-٩]{1,3})[.)]|[-*•])[ \t]*$\n?")
 _LOOSE_REFS = re.compile(
     r"\[[^\[\]\n]*[0-9٠-٩][^\[\]\n]*\]"                                # [2:153], [Ibn Kathir 2:153]
     r"|[<{【⟨〈«][^<>{}【】⟨⟩〈〉«»\n]*[0-9٠-٩]{1,3}\s*[:/]\s*[0-9٠-٩]{1,3}[^<>{}【】⟨⟩〈〉«»\n]*[>}】⟩〉»]"
@@ -356,7 +373,11 @@ class ClaimGuard:
 
     # ------------------------------------------------------------- driver
     def check(self, answer: str) -> Tuple[str, ClaimReport]:
-        paragraphs = re.split(r"(\n{2,})", answer or "")
+        # A reflection heading on its own line ("**Reflection**", "### تأمل")
+        # labels the paragraph under it, as "**Reflection:** …" / "**تأمل:** …"
+        # does inline: one reflection policy for both forms and languages.
+        answer = _REFLECTION_HEADING.sub(lambda m: f"**{m.group('label').strip()}:** ", answer or "")
+        paragraphs = re.split(r"(\n{2,})", answer)
         out_paragraphs: List[str] = []
         for p_index, paragraph in enumerate(paragraphs):
             if p_index % 2 == 1:
@@ -371,8 +392,8 @@ class ClaimGuard:
                 if i % 2 == 1:
                     kept.append(part)
                     continue
-                if not part.strip():
-                    kept.append(part)
+                if not part.strip() or _LIST_MARKER.fullmatch(part):
+                    kept.append(part)  # a list marker ("2.", "٣.") is structure, not a claim
                     continue
                 verdict, prev_hadith = self._judge(part, para_chunks, reflection, prev_hadith)
                 if self.report.withheld:
@@ -383,6 +404,8 @@ class ClaimGuard:
                     self.report.removed.append(verdict)
             out_paragraphs.append("".join(kept))
         text = "".join(out_paragraphs)
+        # List markers whose item was removed ("…[49:13].\n2.\n\n2. **…**").
+        text = _ORPHAN_MARKER_LINE.sub("", text)
         text = re.sub(r"\n{3,}", "\n\n", text)
         return re.sub(r"[ \t]+\n", "\n", text).strip(), self.report
 
@@ -424,8 +447,12 @@ class ClaimGuard:
         if reflection and _is_question(prose):
             return None, False
 
-        # 2. Rulings.
+        # 2. Rulings. A ruling quoted word for word from the cited evidence
+        #    ("…فرض الله عليكم الصيام" copied from the tafsir) is the
+        #    source's statement, not the answer issuing one.
         for claim in ruling_claims(prose):
+            if claim.cls != STATUS and self._verbatim_claim(claim, prose, chunks):
+                continue
             v = self._judge_ruling(claim, chunks, texts, q_refs)
             if v:
                 self.report.withheld = (WITHHOLD_FATWA, v)
@@ -512,7 +539,7 @@ class ClaimGuard:
         if reflection and not own:
             return None, hadith
         if chunks:
-            v = self._judge_synthesis(prose, texts, self._texts(chunks, verses=False))
+            v = self._judge_synthesis(prose, texts, self._texts(chunks, verses=False), anchored=bool(own))
             if v:
                 return ("synthesis", v), hadith
         return None, hadith
@@ -548,6 +575,44 @@ class ClaimGuard:
             return True
         have = set(re.findall(r"\d+(?:\.\d+)?", _digits(_spell_numbers(" ".join(texts)))))
         return all(n in have for n in nums)
+
+    def _verbatim_ruling(self, prose: str, chunks: Sequence[object]) -> bool:
+        """
+        Every part of the sentence that states a ruling is copied word for
+        word (normalised) from the clean text of the cited evidence. The
+        sentence is cut at colons and quotation marks, which separate a
+        framing clause ("ومعناها كما في التفسير الميسر:") from the excerpt.
+        """
+        evidence = [_flat(t) for c in self._clean_chunks(chunks) for t in self._raw_texts(c)]
+        if not evidence:
+            return False
+        stating = [seg for seg in _EXCERPT_SPLIT.split(prose or "")
+                   if ruling_claims(seg) or xling.deontic_classes(seg)]
+        if not stating:
+            return False
+        for seg in stating:
+            flat = _flat(seg)
+            if len(flat.split()) < 4 or not any(flat in e for e in evidence):
+                return False
+        return True
+
+    def _verbatim_claim(self, claim: RulingClaim, prose: str, chunks: Sequence[object]) -> bool:
+        """The ruling is quoted: the whole sentence's ruling parts are a
+        verbatim excerpt, or the clause carrying this claim is one once its
+        reporting lead ("ذكر ابن كثير أن…", "Ibn Kathir notes that…") is cut."""
+        if self._verbatim_ruling(prose, chunks):
+            return True
+        evidence = [_flat(t) for c in self._clean_chunks(chunks) for t in self._raw_texts(c)]
+        subject = set(_flat(claim.subject).split())
+        if not evidence or not subject:
+            return False
+        for clause in _RULING_CLAUSE.split(prose or ""):
+            if not subject <= set(_flat(clause).split()):
+                continue
+            body = _flat(_REPORT_LEAD.sub(" ", clause))
+            if len(body.split()) >= 3 and any(body in e for e in evidence):
+                return True
+        return False
 
     def _name_ok(self, name: str, chunks: Sequence[object], texts: Sequence[str]) -> bool:
         if attr.name_supported(name, self._clean_chunks(chunks), texts):
@@ -586,6 +651,7 @@ class ClaimGuard:
         if not chunks and not q_refs:
             return "uncited ruling"
         if self._ruling_supported(claim, texts):
+            _log.debug("ruling %s supported (clause) :: %s", claim.cls, claim.subject[:80])
             return None
         return f"ruling not stated by the evidence ({claim.cls})"
 
@@ -702,7 +768,7 @@ class ClaimGuard:
         carried through the lexicon at the high-risk threshold.
         """
         from app.safety.grounding import evidence_support
-        claim = self._strip_frame(claim)
+        claim = self._strip_frame(_REPORT_LEAD.sub(" ", claim.strip()))
         # The report's own source is the tafsir text (its original edition);
         # a parallel edition in the answer's language and the verse's
         # translations only help read it across scripts.
@@ -764,6 +830,17 @@ class ClaimGuard:
             claim = _QURAN_FRAME.sub(" ", prose)
             threshold = ATTRIBUTED_QURAN_SUPPORT
         sup = self._support(claim, pool, strict=True)
+        if tafsir_cited and sup.comparable and sup.tokens >= MIN_CLAIM_TOKENS and sup.local_coverage < threshold \
+                and _verse_reading(prose) and not _PROMISE_OUTCOME.search(claim):
+            # "The verse promises believers… [Al-Muyassar, 16:97]": a summary
+            # of the verse as the cited tafsir reads it, not words put in
+            # Allah's mouth — its words may be read through synonyms as for
+            # tafsir prose, but the bar is not lowered: the same share of the
+            # claim must be carried. A promised worldly outcome (cure,
+            # wealth, freedom from illness, debt or grief) or an absolute
+            # scope ("every", "never", "كل", "أبدا") never takes this path:
+            # those stay under the strict reading.
+            sup = self._support(claim, pool)
         _log.debug("quran_claim %s/%s unsupported=%s pool=%d :: %s", sup.local, sup.tokens, sup.unsupported,
                    len(pool), claim[:100])
         if not sup.comparable or sup.local_coverage < threshold:
@@ -783,8 +860,8 @@ class ClaimGuard:
 
     # ----------------------------------------------------------- synthesis
     def _judge_synthesis(self, prose: str, texts: Sequence[str],
-                         chunk_texts: Sequence[str] = ()) -> Optional[str]:
-        prose = self._drop_transliterations(prose)
+                         chunk_texts: Sequence[str] = (), anchored: bool = False) -> Optional[str]:
+        prose = _DISCOURSE_OPENER.sub(" ", self._drop_transliterations(prose))
         sup = self._support(prose, texts)
         if not sup.comparable or sup.tokens < MIN_CLAIM_TOKENS:
             return None
@@ -794,6 +871,11 @@ class ClaimGuard:
         script = xling.claim_tokens(prose)[0]
         same_script = any(xling.claim_tokens(t)[0] == script for t in chunk_texts)
         drop_below = SYNTHESIS_DROP if same_script else CROSS_LINGUAL_SYNTHESIS_DROP
+        if anchored and not foreign:
+            if not same_script:
+                drop_below = ANCHORED_CROSS_LINGUAL_DROP
+            elif sup.local >= ANCHOR_TOKENS:
+                drop_below = ANCHORED_SAME_SCRIPT_DROP
         if sup.local_coverage < drop_below:
             return f"content not in evidence ({sup.local}/{sup.tokens})"
         if (len(foreign) >= 2 and sup.local_coverage <= SYNTHESIS_WEAK) or (foreign and sup.local_coverage <= 0.4):
@@ -908,6 +990,39 @@ def _quran_cue_start(prose: str) -> int:
     return m.start() if m else 0
 
 
+_VERSE_SUBJECT = re.compile(r"\b(?:the|this|that)\s+(?:verse|ayah|passage)\b"
+                            r"|(?<![ء-ي])(?:الآية|الاية|هذه\s+الآية|هذه\s+الاية)(?![ء-ي])", re.IGNORECASE)
+
+
+# Promised worldly outcomes and absolute scope: what an invented promise on
+# a verse adds ("cured of every disease", "will never face debt again",
+# "يشفون من كل مرض", "لن يصيبه حزن أبدا").
+_PROMISE_OUTCOME = re.compile(
+    r"\b(?:cur(?:e|es|ed|ing)|heal\w*|remed\w*|disease\w*|ill\w*|sick\w*|ailment\w*|cancer|health\w*|"
+    r"wealth\w*|rich\w*|poor|poverty|debts?|money|financ\w*|prosper\w*|job|jobs|marri\w*|spouse|children|"
+    r"sad\w*|grief|griev\w*|worr\w*|anxi\w*|depress\w*|harm\w*|calamit\w*|misfortune\w*|accident\w*|"
+    r"protect\w*|immun\w*|safe(?:ty)?|every|everything|all|any|never|always|forever|nothing|no\s+one)\b"
+    r"|(?<![ء-ي])[وفبل]?(?:ال)?(?:شفاء|يشفى|يشفون|يشفي|تشفى|شفي|مرض|أمراض|امراض|المرض|يمرض|سقم|علة|صحة|"
+    r"غنى|أغنياء|اغنياء|غني|يغتني|يغنى|فقر|يفتقر|يفتقرون|فقير|مال|أموال|اموال|رزق|ديون|حزن|يحزن|غم|"
+    r"قلق|اكتئاب|مصيبة|مصائب|بلاء|أذى|اذى|ضرر|يحفظ|حفظ|حماية|زواج|أولاد|اولاد|كل|جميع|أبدا|ابدا|لن|دائما|"
+    r"للأبد|للابد|مطلقا|قط)(?![ء-ي])",
+    re.IGNORECASE,
+)
+
+
+def _verse_reading(prose: str) -> bool:
+    """The Qur'an cue is the verse as subject ("the verse promises…", "تبين
+    الآية…"), not Allah or the Qur'an speaking ("Allah says", "the Qur'an
+    tells us"), and nothing is quoted."""
+    from app.safety.grounding import _QURAN_VOICE
+    m = _QURAN_VOICE.search(prose or "")
+    if not m or _QUOTED_SPANS.search(prose or ""):
+        return False
+    cue = m.group(0)
+    return bool(_VERSE_SUBJECT.search(cue)) and not re.search(
+        r"\b(?:allah|god|lord|qur'?an)\b|(?<![ء-ي])(?:الله|تعالى|سبحانه|القرآن|القران|ربنا|ربك)(?![ء-ي])", cue, re.I)
+
+
 def _quran_clause(prose: str) -> str:
     """The part of a sentence presented as the Qur'an's own words: from the
     Qur'an cue to the end of its clause, framing words removed."""
@@ -916,7 +1031,7 @@ def _quran_clause(prose: str) -> str:
     if not m:
         return ""
     rest = prose[m.end():]
-    head = prose[max(0, prose.rfind(",", 0, m.start()) + 1):m.end()]
+    head = prose[max(0, max(prose.rfind(p, 0, m.start()) for p in ",;:،؛") + 1):m.end()]
     clause = _CLAUSE_BREAK.split(rest, maxsplit=1)[0]
     # "…the verse states: ﴿…﴾ Al-Muyassar explains that…": the Qur'an's
     # words end where another speaker begins.
@@ -925,6 +1040,39 @@ def _quran_clause(prose: str) -> str:
         cut = next((i for i, (a, b) in enumerate(zip(clause, marked)) if a != b), len(clause))
         clause = clause[:cut]
     return _QURAN_FRAME.sub(" ", head + " " + clause)
+
+
+# Discourse openers carry no content ("In short,", "In other words,", "The
+# point is that", "والخلاصة أن", "أي أن"): they are not words to support.
+_DISCOURSE_OPENER = re.compile(
+    r"^\W*(?:(?:so|thus|hence|basically|essentially|ultimately|in\s+short|in\s+brief|in\s+other\s+words|in\s+essence|"
+    r"in\s+summary|in\s+a\s+nutshell|to\s+sum\s+up|put\s+simply|simply\s+put|that\s+is\s+to\s+say|that\s+is|"
+    r"the\s+(?:point|idea|message|lesson|upshot|takeaway|gist)(?:\s+here)?\s+is(?:\s+that)?|this\s+means(?:\s+that)?|"
+    r"in\s+practice|in\s+practical\s+terms)\b[\s,:;—–-]*)+"
+    r"|^\W*(?:[وف]?(?:باختصار|بإيجاز|خلاصة\s+المعنى|الخلاصة|خلاصة\s+ذلك|حاصل\s+المعنى|حاصل\s+ذلك|المعنى|"
+    r"معنى\s+ذلك|معنى\s+الآية|المقصود|المراد|أي|اي|يعني|بمعنى\s+آخر|بعبارة\s+أخرى)(?:\s+(?:أن|ان|أنه|انه))?"
+    r"(?![ء-ي])[\s،,:؛]*)+",
+    re.IGNORECASE,
+)
+_RULING_CLAUSE = re.compile(r"[,;:،؛«»“”\"﴿﴾]")
+_REPORT_LEAD = re.compile(
+    r"^\W*[وف]?(?:ذكر|يذكر|بين|بيّن|يبين|قال|يقول|أوضح|يوضح|نقل|ينقل|أفاد|يفيد|أورد|يورد|فسر|يفسر|يرى|رأى|أكد|يؤكد)"
+    r"\s+(?:\S+\s+){0,4}?(?:أن|ان|أنّ|إن)\s+"
+    r"|^\W*(?:(?:the\s+)?[A-Z][\w'’-]*\s+){1,5}?(?:explains?|explained|notes?|noted|states?|stated|says|said|"
+    r"mentions?|mentioned|reports?|reported|writes?|wrote|adds?|added)\s+(?:that\s+)?",
+    re.IGNORECASE,
+)
+_EXCERPT_SPLIT = re.compile(r"[:：«»“”\"﴿﴾]")
+_FLAT_DROP = re.compile(r"[\u064b-\u0652\u0670\u0640\u06d6-\u06ed]")
+_FLAT_FOLD = str.maketrans({"أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا", "ة": "ه", "ى": "ي", "ؤ": "و", "ئ": "ي"})
+
+
+def _flat(text: str) -> str:
+    """Text reduced for a verbatim comparison: no diacritics, folded letters,
+    no punctuation, single spaces."""
+    t = _FLAT_DROP.sub("", text or "").translate(_FLAT_FOLD).lower()
+    t = re.sub(r"[^\w\s]|_", " ", t)
+    return " " + re.sub(r"\s+", " ", t).strip() + " "
 
 
 _REPORT_FRAME = re.compile(
