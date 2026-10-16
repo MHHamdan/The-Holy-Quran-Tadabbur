@@ -8,7 +8,7 @@
  */
 import { memo, useCallback, useState } from 'react';
 import { AlertCircle, Loader2, MapPin, Navigation, Search } from 'lucide-react';
-import { geocodeAddress } from '../../lib/islamicApis';
+import { geocodeAddress, placeLabel } from '../../lib/islamicApis';
 
 export interface ChosenLocation {
   lat: number;
@@ -78,14 +78,12 @@ export const LocationFallback = memo(function LocationFallback({
     setBusy(true);
     setSearchError(null);
     try {
-      const r = await geocodeAddress(q);
+      const r = await geocodeAddress(q, isArabic ? 'ar' : 'en');
       if (r) {
         onChoose({
           lat: r.latitude,
           lng: r.longitude,
-          name: r.city
-            ? [r.city, r.country].filter(Boolean).join(', ')
-            : r.displayName.split(',').slice(0, 2).join(','),
+          name: placeLabel(r, isArabic ? 'ar' : 'en'),
         });
       } else {
         setSearchError(isArabic ? 'لم نعثر على هذه المدينة. جرّب اسماً آخر.' : 'City not found. Try another name.');

@@ -196,14 +196,17 @@ function AssistantMessage({
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-400">
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {response.processing_time_ms < 1000
+                {language === 'ar'
+                  ? `${(response.processing_time_ms / 1000).toLocaleString('ar-EG', { maximumFractionDigits: 1 })} ث`
+                  : response.processing_time_ms < 1000
                   ? `${response.processing_time_ms}ms`
                   : `${(response.processing_time_ms / 1000).toFixed(1)}s`}
               </span>
               {hasCitations && (
                 <span>
-                  {response.citations.length} {language === 'ar' ? 'مصدر' : 'citation'}
-                  {response.citations.length > 1 && (language === 'ar' ? '' : 's')}
+                  {language === 'ar'
+                    ? `المصادر: ${response.citations.length.toLocaleString('ar-EG')}`
+                    : `${response.citations.length} citation${response.citations.length > 1 ? 's' : ''}`}
                 </span>
               )}
               {response.evidence_density && (

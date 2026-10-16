@@ -395,7 +395,21 @@ export interface GeoLocation {
   country?: string;
 }
 
-export async function geocodeAddress(address: string): Promise<GeoLocation | null> {
+/**
+ * "City, Country" in the UI language: Nominatim names places in the language
+ * asked for (accept-language), and Arabic joins with the Arabic comma.
+ */
+export function placeLabel(geo: GeoLocation, language: 'ar' | 'en'): string {
+  const sep = language === 'ar' ? '، ' : ', ';
+  return geo.city
+    ? [geo.city, geo.country].filter(Boolean).join(sep)
+    : geo.displayName.split(',').slice(0, 2).map((s) => s.trim()).join(sep);
+}
+
+export async function geocodeAddress(
+  address: string,
+  language: 'ar' | 'en' = 'en',
+): Promise<GeoLocation | null> {
   try {
     const response = await axios.get('https://nominatim.openstreetmap.org/search', {
       params: {
@@ -403,6 +417,7 @@ export async function geocodeAddress(address: string): Promise<GeoLocation | nul
         format: 'json',
         limit: 1,
         addressdetails: 1,
+        'accept-language': language,
       },
       headers: {
         'User-Agent': 'TadabburApp/1.0',
@@ -427,7 +442,8 @@ export async function geocodeAddress(address: string): Promise<GeoLocation | nul
 
 export async function reverseGeocode(
   latitude: number,
-  longitude: number
+  longitude: number,
+  language: 'ar' | 'en' = 'en',
 ): Promise<GeoLocation | null> {
   try {
     const response = await axios.get('https://nominatim.openstreetmap.org/reverse', {
@@ -436,6 +452,7 @@ export async function reverseGeocode(
         lon: coarsen(longitude),
         format: 'json',
         addressdetails: 1,
+        'accept-language': language,
       },
       headers: {
         'User-Agent': 'TadabburApp/1.0',
