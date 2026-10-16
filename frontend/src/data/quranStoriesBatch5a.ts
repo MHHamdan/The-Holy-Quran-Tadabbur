@@ -1,7 +1,7 @@
 /**
  * Quran Stories — Batch 5a
  * Stories: Sulayman, Ilyas, Alyasa, Dhul-Kifl
- * Generated with qwen2.5:14b assistance; all segments need_review until scholarly verification.
+ * Drafted with a local model before the Hugging Face migration; all segments need_review until scholarly verification.
  */
 
 import type { QuranStory } from '../types/quranStory';
