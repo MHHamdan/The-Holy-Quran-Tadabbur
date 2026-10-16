@@ -1311,7 +1311,7 @@ export function MushafPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setFontScale(fontScale - 0.1)}
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              className="inline-flex items-center justify-center min-h-11 min-w-11 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               title={t('mushaf_zoom_out')}
               aria-label={t('mushaf_zoom_out')}
             >
@@ -1320,7 +1320,7 @@ export function MushafPage() {
             <span className="text-sm min-w-[2rem] text-center">{fontSize}</span>
             <button
               onClick={() => setFontScale(fontScale + 0.1)}
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              className="inline-flex items-center justify-center min-h-11 min-w-11 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               title={t('mushaf_zoom_in')}
               aria-label={t('mushaf_zoom_in')}
             >
@@ -1332,7 +1332,7 @@ export function MushafPage() {
             <button
               onClick={() => setShowAI(!showAI)}
               className={clsx(
-                'p-2 rounded-lg transition-colors',
+                'inline-flex items-center justify-center min-h-11 min-w-11 p-2 rounded-lg transition-colors',
                 showAI ? 'bg-purple-500' : 'bg-white/10 hover:bg-white/20'
               )}
               title={t('ai_assistant')}
@@ -1345,7 +1345,7 @@ export function MushafPage() {
             <button
               onClick={() => setShowSettings(!showSettings)}
               className={clsx(
-                'p-2 rounded-lg transition-colors',
+                'inline-flex items-center justify-center min-h-11 min-w-11 p-2 rounded-lg transition-colors',
                 showSettings ? 'bg-amber-500' : 'bg-white/10 hover:bg-white/20'
               )}
               title={t('mushaf_settings')}

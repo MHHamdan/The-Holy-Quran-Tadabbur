@@ -10,6 +10,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
 
 import { TafsirComparison } from '../components/tafseer/TafsirComparison';
+import { formatCount } from '../components/tafseer/licenceLabels';
 import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import { SURAH_NAMES, SURAH_VERSE_COUNTS } from '../data/surahNames';
@@ -119,7 +120,8 @@ export function TafsirComparePage() {
         {/* The surah name is in the UI language; the verse range is isolated
             so its digits never reorder inside an Arabic run. */}
         <span className="pb-3 text-xs text-stone-400" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-          <bdi>{surahName}</bdi> · <bdi dir="ltr">1–{ayahCount}</bdi>
+          <bdi>{surahName}</bdi>{language === 'ar' ? '، ' : ' · '}
+          <bdi dir="ltr">{formatCount(1, language)}–{formatCount(ayahCount, language)}</bdi>
         </span>
 
         <div className="ms-auto flex items-center gap-1.5">

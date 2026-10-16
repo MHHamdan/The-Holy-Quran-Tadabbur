@@ -193,7 +193,8 @@ function EntryAttribution({
   const ar = uiLanguage === 'ar';
   const licence = licenceLabel(entry.license, entry.license_type, uiLanguage);
   const underReview = licenceUnderReview(entry.license, entry.license_verified);
-  const sep = ar ? '، ' : '· ';
+  // Flex gap separates the parts; a leading Arabic comma would start a wrapped line.
+  const sep = ar ? '' : '· ';
   return (
     <p
       className={clsx(
