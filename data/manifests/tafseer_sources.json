@@ -2,7 +2,7 @@
   "name": "Tafseer Sources Manifest",
   "version": "2.2.0",
   "description": "Manifest of available tafseer sources with explicit licensing and rate limits",
-  "last_updated": "2026-10-14",
+  "last_updated": "2026-10-15",
   "enabled_ids": [
     "ibn_kathir_ar",
     "tabari_ar",
@@ -157,7 +157,7 @@
         ],
         "attribution_required": true,
         "commercial_use": "allowed",
-        "notes": "Original Arabic classical text, public domain by age (d. 774 AH). Seeded from the Apache-2.0 HF dataset below at a pinned revision.",
+        "notes": "The work is classical Arabic text, public domain by age (d. 774 AH). The stored digital copy was seeded from the spa5k tafsir_api CDN (ar-tafsir-ibn-kathir); the terms of that digital edition are not recorded, so the registry marks it unverified. The pinned HF dataset under provenance is the reproducible replacement path, not the origin of the stored text.",
         "verified_date": "2026-10-06"
       },
       "validation": {
@@ -186,7 +186,9 @@
       "stored_copy": {
         "seeded_from": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/ar-tafsir-ibn-kathir",
         "seeded_data_sha256": "4f1e4bdb4e9a6e16f7087fd82eda290f33587711f9c71da8d34735c114f4f659",
-        "note": "Checked 2026-10-14: the tafseer_chunks rows of the development database (and data bundles exported from it) were seeded from the spa5k tafsir_api CDN folder above (recorded cdn_url and data_hash), not from the dataset in provenance; 560 of 6197 stored verse passages are identical to the dataset text. tafseer_sources.source_url records this origin (alembic r3d1a2b3c4d5). The terms of the spa5k digital edition are not recorded; reseeding from the pinned dataset, or recording those terms, needs owner sign-off."
+        "note": "Checked 2026-10-15: the tafseer_chunks rows of the development database (and data bundles exported from it) were seeded from the spa5k tafsir_api CDN folder above (recorded cdn_url, source_url and data_hash), not from the dataset in provenance; 560 of 6197 stored verse passages are identical to the dataset text after the seeder's cleaning. The reader footer therefore credits the spa5k edition with licence status unverified (frontend/src/data/sourceRegistry.ts). Owner action: reseed from the pinned dataset (backend/scripts/datasets/fetch_hf_tafseers.py, then backend/scripts/ingest/seed_tafseer.py --replace ibn_kathir_ar, then scripts/index/index_tafseer.py --source ibn_kathir_ar) and point the registry at the dataset, or record the spa5k edition's terms.",
+        "owner_review": true,
+        "registry_status": "unverified"
       }
     },
     {
@@ -221,13 +223,15 @@
         ],
         "attribution_required": true,
         "commercial_use": "allowed",
-        "notes": "Classical Arabic text, public domain by age (d. 310 AH). Seeded from the Apache-2.0 HF dataset at a pinned revision (SHA-256 checked).",
+        "notes": "The work is classical Arabic text, public domain by age (d. 310 AH). The stored digital copy was seeded from the spa5k tafsir_api CDN (ar-tafsir-al-tabari); the terms of that digital edition are not recorded, so the registry marks it unverified. The pinned HF dataset under provenance is the reproducible replacement path, not the origin of the stored text.",
         "verified_date": "2026-10-06"
       },
       "stored_copy": {
         "seeded_from": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/ar-tafsir-al-tabari",
         "seeded_data_sha256": "1832e0a299dc0cfb9de39c8e55182a9b3cce9da96817af4b8324fdf74b898e4f",
-        "note": "Checked 2026-10-14: the tafseer_chunks rows of the development database (and data bundles exported from it) were seeded from the spa5k tafsir_api CDN folder above (recorded cdn_url and data_hash), not from the dataset in provenance; 3237 of 6236 stored verse passages are identical to the dataset text. tafseer_sources.source_url records this origin (alembic r3d1a2b3c4d5). The terms of the spa5k digital edition are not recorded; reseeding from the pinned dataset, or recording those terms, needs owner sign-off."
+        "note": "Checked 2026-10-15: the tafseer_chunks rows of the development database (and data bundles exported from it) were seeded from the spa5k tafsir_api CDN folder above (recorded cdn_url, source_url and data_hash), not from the dataset in provenance; 3215 of 6236 stored verse passages are identical to the dataset text after the seeder's cleaning. The reader footer therefore credits the spa5k edition with licence status unverified (frontend/src/data/sourceRegistry.ts). Owner action: reseed from the pinned dataset (backend/scripts/datasets/fetch_hf_tafseers.py, then backend/scripts/ingest/seed_tafseer.py --replace tabari_ar, then scripts/index/index_tafseer.py --source tabari_ar) and point the registry at the dataset, or record the spa5k edition's terms.",
+        "owner_review": true,
+        "registry_status": "unverified"
       }
     },
     {
@@ -262,13 +266,15 @@
         ],
         "attribution_required": true,
         "commercial_use": "allowed",
-        "notes": "Classical Arabic text, public domain by age (d. 671 AH). Seeded from the Apache-2.0 HF dataset at a pinned revision (SHA-256 checked).",
+        "notes": "The work is classical Arabic text, public domain by age (d. 671 AH). The stored digital copy was seeded from the spa5k tafsir_api CDN (ar-tafseer-al-qurtubi); the terms of that digital edition are not recorded, so the registry marks it unverified. The pinned HF dataset under provenance is the reproducible replacement path, not the origin of the stored text.",
         "verified_date": "2026-10-06"
       },
       "stored_copy": {
         "seeded_from": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/ar-tafseer-al-qurtubi",
         "seeded_data_sha256": "48af25c42298b9a6071d16f84cd2b168eec08a2d273cd1f61086c6f74a21a076",
-        "note": "Checked 2026-10-14: the tafseer_chunks rows of the development database (and data bundles exported from it) were seeded from the spa5k tafsir_api CDN folder above (recorded cdn_url and data_hash), not from the dataset in provenance; 3177 of 6176 stored verse passages are identical to the dataset text. tafseer_sources.source_url records this origin (alembic r3d1a2b3c4d5). The terms of the spa5k digital edition are not recorded; reseeding from the pinned dataset, or recording those terms, needs owner sign-off."
+        "note": "Checked 2026-10-15: the tafseer_chunks rows of the development database (and data bundles exported from it) were seeded from the spa5k tafsir_api CDN folder above (recorded cdn_url, source_url and data_hash), not from the dataset in provenance; 3116 of 6176 stored verse passages are identical to the dataset text after the seeder's cleaning. The reader footer therefore credits the spa5k edition with licence status unverified (frontend/src/data/sourceRegistry.ts). Owner action: reseed from the pinned dataset (backend/scripts/datasets/fetch_hf_tafseers.py, then backend/scripts/ingest/seed_tafseer.py --replace qurtubi_ar, then scripts/index/index_tafseer.py --source qurtubi_ar) and point the registry at the dataset, or record the spa5k edition's terms.",
+        "owner_review": true,
+        "registry_status": "unverified"
       }
     },
     {

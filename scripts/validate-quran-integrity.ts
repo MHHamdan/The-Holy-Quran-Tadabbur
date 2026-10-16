@@ -459,6 +459,15 @@ interface RegistryEntryInfo {
   id: string;
   licenseStatus?: string;
   blocked: boolean;
+  /** licenseOrTerms or sourceUrl credits the riotu-lab/Quran-Tafseers dataset. */
+  creditsHfDataset: boolean;
+}
+
+/** Manifest record of where a source's stored text really came from. */
+interface StoredCopy {
+  seeded_from?: string;
+  owner_review?: boolean;
+  registry_status?: string;
 }
 
 /** sourceId -> licence facts parsed from the SOURCE_REGISTRY array literal. */
@@ -471,7 +480,10 @@ function readRegistryEntries(): Map<string, RegistryEntryInfo> {
     if (!id) continue;
     const licenseStatus = block.match(/licenseStatus:\s*['"]([^'"]+)['"]/)?.[1];
     const notesBlocked = /notes:\s*['"`]\s*DO NOT DISPLAY/.test(block);
-    out.set(id, { id, licenseStatus, blocked: licenseStatus === 'blocked' || notesBlocked });
+    const terms = block.match(/licenseOrTerms:\s*(['"`])((?:\\.|(?!\1).)*)\1/)?.[2] ?? '';
+    const url = block.match(/sourceUrl:\s*['"`]([^'"`]+)['"`]/)?.[1] ?? '';
+    const creditsHfDataset = /riotu-lab\/Quran-Tafseers/.test(`${terms} ${url}`);
+    out.set(id, { id, licenseStatus, blocked: licenseStatus === 'blocked' || notesBlocked, creditsHfDataset });
   }
   return out;
 }
@@ -520,10 +532,39 @@ function checkTafsirLicenceCrossCheck(manifest: TafsirManifest): CheckResult {
         }
       }
       const reg = registry.get(id);
+      const storedCopy = entry?.stored_copy as StoredCopy | undefined;
       if (!reg) {
         errors.push(`"${id}" may be served but has no sourceRegistry.ts entry`);
+      } else if (
+        reg.licenseStatus === 'unverified' &&
+        !reg.blocked &&
+        storedCopy?.owner_review === true &&
+        storedCopy.registry_status === 'unverified'
+      ) {
+        // The work's licence is verified (checked above) but the terms of the
+        // digital edition the stored text came from are not recorded. That is
+        // stated in the footer and queued for the owner, not hidden.
+        warnings.push(
+          `"${id}": stored copy from ${storedCopy.seeded_from ?? 'an unrecorded origin'} has unrecorded ` +
+          'digital-edition terms (registry "unverified"); owner review: reseed from the pinned dataset or record the terms',
+        );
       } else if (reg.blocked || NOT_SHIPPABLE_STATUSES.has(reg.licenseStatus ?? '')) {
         errors.push(`"${id}": sourceRegistry licenseStatus is "${reg.licenseStatus ?? 'blocked'}"`);
+      }
+      if (reg && storedCopy) {
+        // The footer must not credit a dataset the stored text did not come from.
+        if (storedCopy.registry_status && reg.licenseStatus !== storedCopy.registry_status) {
+          errors.push(
+            `"${id}": manifest stored_copy.registry_status is "${storedCopy.registry_status}" ` +
+            `but sourceRegistry licenseStatus is "${reg.licenseStatus}"`,
+          );
+        }
+        if (reg.creditsHfDataset) {
+          errors.push(
+            `"${id}": sourceRegistry credits riotu-lab/Quran-Tafseers in licenseOrTerms/sourceUrl, ` +
+            `but the stored copy was seeded from ${storedCopy.seeded_from ?? 'another origin'} (manifest stored_copy)`,
+          );
+        }
       }
     }
 

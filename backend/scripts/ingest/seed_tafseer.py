@@ -15,11 +15,33 @@ LICENSING:
   pending). Anything else is skipped, or with --allow-unverified written
   disabled and unverified, for review only.
 
+REPLACING A STORED COPY (--replace):
+- By default existing chunks are never touched, so a source seeded earlier
+  from another origin keeps that origin's text. --replace swaps the stored
+  copy of each named source for the file in data/raw in ONE transaction:
+  changed passages are updated in place (chunk ids are derived from
+  source:sura:ayah, so they stay stable and evidence references keep
+  resolving), new verses are inserted, verses the new file has no passage for
+  are deleted, and the source row's provenance (source_url, cdn_url,
+  version_tag, data_hash, licence URL) is rewritten to the new origin.
+- It requires the <source_id>.provenance.json sidecar written by
+  scripts/datasets/fetch_hf_tafseers.py (pinned revision, SHA-256 checked):
+  the point is that the recorded origin is true.
+- Changed and deleted chunks are marked is_embedded=0 and their Qdrant
+  points are removed, so RAG never serves the old text; re-index with
+  scripts/index/index_tafseer.py --source <source_id>.
+- After a replace, update the source's entry in
+  frontend/src/data/sourceRegistry.ts and the stored_copy note in
+  data/manifests/tafseer_sources.json to name the new origin
+  (tests/unit/test_tafseer_provenance_truth.py checks they agree).
+
 Usage:
     python scripts/ingest/seed_tafseer.py [--allow-unverified] [source_id ...]
+    python scripts/ingest/seed_tafseer.py --replace [--no-qdrant] source_id ...
 
 Example:
-    python scripts/ingest/seed_tafseer.py ibn_kathir_ar tabari_ar
+    python scripts/datasets/fetch_hf_tafseers.py --exclude muyassar_ar
+    python scripts/ingest/seed_tafseer.py --replace tabari_ar qurtubi_ar ibn_kathir_ar
 """
 import sys
 import os
@@ -38,6 +60,7 @@ from sqlalchemy.orm import Session
 
 from app.models.quran import QuranVerse
 from app.models.tafseer import TafseerSource, TafseerChunk, IngestionAuditLog
+from app.services.tafsir_sources import TAFSIR_PLACEHOLDER_TEXTS
 
 # Paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
@@ -199,7 +222,7 @@ MANIFEST_PATH = MANIFESTS_DIR / "tafseer_sources.json"
 # scholar's words: storing them showed the placeholder as al-Qurtubi's or Ibn
 # Kathir's commentary and let RAG cite it. The upstream groups commentary across
 # verses, so such a verse simply has no separate passage in that source.
-PLACEHOLDER_TEXTS = frozenset({"لا يوجد تفسير لهذه الأية", "لا يوجد تفسير لهذه الآية"})
+PLACEHOLDER_TEXTS = TAFSIR_PLACEHOLDER_TEXTS
 
 
 def is_placeholder(text: str) -> bool:
@@ -586,7 +609,182 @@ def seed_source(session: Session, source_id: str, allow_unverified: bool = False
     return inserted, skipped, failed
 
 
+def clean_entries(data: list, language: str) -> dict:
+    """{(sura, ayah): text} exactly as seed_source would store them."""
+    out = {}
+    for entry in data:
+        sura = entry.get("surah", entry.get("sura", 0))
+        ayah = entry.get("ayah", entry.get("aya", 0))
+        text = (entry.get("text") or "").strip()
+        if not sura or not ayah or not text or is_placeholder(text):
+            continue
+        if language == "ar":
+            text, _ = restore_quote_boundaries(text)
+        out[(int(sura), int(ayah))] = text
+    return out
+
+
+def plan_replacement(new: dict, stored: dict) -> dict:
+    """Diff the new copy against the stored one.
+
+    new:    {(sura, ayah): text}
+    stored: {(sura, ayah): text}
+    Returns {"update": [...], "insert": [...], "delete": [...], "unchanged": n}
+    with sorted (sura, ayah) keys.
+    """
+    update = sorted(k for k in new if k in stored and stored[k] != new[k])
+    insert = sorted(k for k in new if k not in stored)
+    delete = sorted(k for k in stored if k not in new)
+    unchanged = sum(1 for k in new if k in stored and stored[k] == new[k])
+    return {"update": update, "insert": insert, "delete": delete, "unchanged": unchanged}
+
+
+def _drop_qdrant_points(point_ids: list) -> None:
+    """Remove stale vectors: their payload carries the old text."""
+    if not point_ids:
+        return
+    try:
+        from qdrant_client import QdrantClient
+        from qdrant_client.models import PointIdsList
+
+        from app.core.config import settings
+
+        client = QdrantClient(host=settings.qdrant_host, port=settings.qdrant_port, check_compatibility=False)
+        collection = os.getenv("QDRANT_COLLECTION", settings.qdrant_collection_tafseer)
+        for i in range(0, len(point_ids), 1000):
+            client.delete(collection_name=collection, points_selector=PointIdsList(points=point_ids[i:i + 1000]))
+        print(f"  Qdrant: removed {len(point_ids)} stale points from {collection}")
+    except Exception as e:  # pragma: no cover - depends on a running Qdrant
+        print(f"  WARNING: could not remove {len(point_ids)} stale Qdrant points ({type(e).__name__}: {e}).")
+        print("  RAG may serve the old text until they are removed and the source is re-indexed.")
+
+
+def replace_source(session: Session, source_id: str, qdrant: bool = True) -> dict:
+    """Replace the stored copy of one source atomically (see module docstring)."""
+    started_at = datetime.utcnow()
+    meta = SOURCE_METADATA.get(source_id)
+    if not meta:
+        raise SystemExit(f"  ERROR: no metadata for {source_id}")
+    sidecar = RAW_DIR / f"{source_id}.provenance.json"
+    if not sidecar.exists():
+        raise SystemExit(
+            f"  ERROR: --replace needs {sidecar.name} (run scripts/datasets/fetch_hf_tafseers.py); "
+            "a stored copy is only replaced by one with a recorded, pinned origin."
+        )
+    prov = json.loads(sidecar.read_text(encoding="utf-8"))
+    data, data_hash = load_tafseer_data(source_id)
+    if not data:
+        raise SystemExit(f"  ERROR: no data for {source_id} in {RAW_DIR}")
+    licence_state = load_licence_state(source_id)
+    if not licence_state["verified"]:
+        raise SystemExit(f"  ERROR: licence of {source_id} not verified ({licence_state['reason']})")
+
+    language = meta.get("language", "ar")
+    new = clean_entries(data, language)
+    source = session.execute(select(TafseerSource).where(TafseerSource.id == source_id)).scalar_one_or_none()
+    if source is None:
+        raise SystemExit(f"  ERROR: {source_id} is not seeded yet; run without --replace first")
+
+    rows = session.execute(select(TafseerChunk).where(TafseerChunk.source_id == source_id)).scalars().all()
+    by_key = {(c.sura_no, c.aya_start): c for c in rows}
+    stored = {k: (c.content_ar if language == "ar" else c.content_en) for k, c in by_key.items()}
+    plan = plan_replacement(new, stored)
+
+    verse_ids = {
+        (s, a): vid
+        for vid, s, a in session.execute(select(QuranVerse.id, QuranVerse.sura_no, QuranVerse.aya_no)).all()
+    }
+    stale_points = []
+    for k in plan["update"]:
+        c = by_key[k]
+        if c.is_embedded:
+            stale_points.append(c.id)
+        if language == "ar":
+            c.content_ar = new[k]
+        else:
+            c.content_en = new[k]
+        c.word_count = len(new[k].split())
+        c.char_count = len(new[k])
+        c.is_embedded = 0
+        c.embedding_model = None
+    failed = 0
+    for k in plan["insert"]:
+        vid = verse_ids.get(k)
+        if not vid:
+            failed += 1
+            continue
+        session.add(TafseerChunk(
+            chunk_id=generate_chunk_id(source_id, *k),
+            source_id=source_id,
+            verse_start_id=vid,
+            verse_end_id=vid,
+            sura_no=k[0],
+            aya_start=k[1],
+            aya_end=k[1],
+            content_ar=new[k] if language == "ar" else None,
+            content_en=new[k] if language == "en" else None,
+            word_count=len(new[k].split()),
+            char_count=len(new[k]),
+            is_embedded=0,
+        ))
+    for k in plan["delete"]:
+        c = by_key[k]
+        if c.is_embedded:
+            stale_points.append(c.id)
+        session.delete(c)
+
+    source.source_url = prov["source_url"]
+    source.cdn_url = prov["source_url"]
+    source.version_tag = prov["revision"]
+    source.license_url = f"https://huggingface.co/datasets/{prov['dataset']}"
+    source.data_hash = data_hash
+    source.ayah_count = len(new)
+    source.retrieval_timestamp = get_retrieval_timestamp(source_id)
+
+    create_audit_log(
+        session=session,
+        source_id=source_id,
+        operation="replace",
+        cdn_url=prov["source_url"],
+        version_tag=prov["revision"],
+        data_hash=data_hash,
+        records_processed=len(data),
+        records_inserted=len(plan["insert"]) - failed,
+        records_skipped=plan["unchanged"],
+        records_failed=failed,
+        status="success" if failed == 0 else "partial",
+        error_message=None if failed == 0 else f"{failed} verses missing from quran_verses",
+        started_at=started_at,
+    )
+    session.commit()  # one transaction per source
+    print(
+        f"  {source_id}: updated {len(plan['update'])}, inserted {len(plan['insert']) - failed}, "
+        f"deleted {len(plan['delete'])}, unchanged {plan['unchanged']}, failed {failed}"
+    )
+    print(f"  Provenance: {prov['dataset']}@{prov['revision'][:12]} ({prov['dataset_license']})")
+    if qdrant:
+        _drop_qdrant_points(stale_points)
+    return {**{k: len(v) for k, v in plan.items() if isinstance(v, list)}, "failed": failed}
+
+
+def main_replace(source_ids: list, qdrant: bool) -> None:
+    if not source_ids:
+        raise SystemExit("--replace needs explicit source ids")
+    engine = create_engine(get_db_url().replace("+asyncpg", ""))
+    for source_id in source_ids:
+        print(f"\nReplacing stored copy: {source_id}")
+        with Session(engine) as session:
+            replace_source(session, source_id, qdrant=qdrant)
+    print("\nRe-index the replaced sources: python scripts/index/index_tafseer.py "
+          + " ".join(f"--source {s}" for s in source_ids))
+
+
 def main():
+    if "--replace" in sys.argv[1:]:
+        rest = [a for a in sys.argv[1:] if a not in ("--replace", "--no-qdrant")]
+        main_replace(rest, qdrant="--no-qdrant" not in sys.argv[1:])
+        return
+
     print("=" * 60)
     print("TAFSEER SEEDING (with Provenance Tracking)")
     print("=" * 60)
