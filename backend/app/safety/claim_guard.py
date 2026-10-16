@@ -120,6 +120,16 @@ _EXTRA_HADITH_CUE = re.compile(
 )
 # A hadith claim reports what the Prophet ﷺ said or did, or cites a
 # narration; merely naming him ("as the Prophet ﷺ brought it") is not one.
+# A named authority's own words or opinion: "X said / held / explained /
+# interpreted…", "قال/نقل عن/فسرها X…".
+_SPEECH_FRAME = re.compile(
+    r"\b(said|says|stated|states|held|holds|explained|explains|interpreted|interprets|understood|commented|"
+    r"argued|wrote|narrated|reported|read\s+it|recited|opined|maintained|viewed)\b"
+    r"|(?<![ء-ي])[وف]?(قال|يقول|نقل|ينقل|فسر|فسرها|فسره|يرى|رأى|ذهب|روى|حكى|عن)(?![ء-ي])",
+    re.IGNORECASE,
+)
+_SPEAKER_CLAUSES = re.compile(r"\s*[،,;؛]\s*(?=(?:و|ف)?(?:عن|قال|نقل|روى|ذكر)\b|\s*(?:while|and)\s+[A-Z])"
+                              r"|\s+(?=(?:وعن|وقال|ونقل|وروى)\s)")
 _HADITH_REPORT = re.compile(
     r"\b(the\s+)?(prophet|messenger(\s+of\s+(allah|god))?|rasul\s*allah|rasulullah)\b"
     r"(?!\s+(of|musa|moses|ibrahim|abraham|yusuf|joseph|nuh|noah|isa|jesus|yunus|jonah|sulayman|solomon|"
@@ -380,9 +390,18 @@ class ClaimGuard:
             return ("reference", v), False
 
         # 4. Attributions: persons and works.
-        for name in attr.find_person_names(bare):
+        persons = attr.find_person_names(bare)
+        for name in persons:
             if not self._name_ok(name, chunks, texts):
                 return ("attribution", name), False
+        # What a named authority other than the cited work's author said
+        # ("Ibn Abbas said…", "وقال مجاهد…") must be what the evidence reports.
+        if chunks and any(attr.registry_key(n) is None for n in persons) and _SPEECH_FRAME.search(bare):
+            originals = [t for c in self._clean_chunks(chunks) for t in self._raw_texts(c) if not is_injected(t)]
+            for clause in _SPEAKER_CLAUSES.split(prose):
+                speakers = [n for n in attr.find_person_names(clause) if attr.registry_key(n) is None]
+                if speakers and _SPEECH_FRAME.search(clause) and not self._said_supported(clause, originals):
+                    return ("attribution", f"{speakers[0]}: words not in evidence"), False
         for kind in attr.collective_claims(prose):
             if not attr.collective_supported(kind, texts):
                 return ("collective", kind), False
@@ -521,6 +540,8 @@ class ClaimGuard:
                 sup = xling.support(subject, self._view([clause]))
                 if not (sup.comparable and sup.local_coverage >= RULING_SUBJECT_SUPPORT):
                     continue
+                if any(t.startswith("non") and len(t) > 4 for t in sup.unsupported):
+                    continue  # "non-Muslim relatives" is not "relatives"
                 if want and not self._sits_with(subject, clause, want):
                     continue
                 return True
@@ -596,6 +617,17 @@ class ClaimGuard:
             return "report not in evidence"
         return None
 
+    def _said_supported(self, claim: str, texts: Sequence[str]) -> bool:
+        """Words attributed to a named authority: near-verbatim in the
+        evidence's own script, or half the content across scripts (a
+        paraphrase of a quoted opinion)."""
+        from app.safety.grounding import evidence_support
+        claim = self._strip_frame(claim)
+        same = evidence_support(claim, texts, ngram=3)
+        if same.comparable and same.tokens >= 2:
+            return same.local_coverage >= 0.6 or (same.ngram and same.local_coverage >= 0.5)
+        return True  # across scripts the name's presence is what can be checked
+
     def _report_supported(self, claim: str, texts: Sequence[str]) -> bool:
         """
         A reported narration or promised benefit must be in one place of the
@@ -623,7 +655,7 @@ class ClaimGuard:
             if psame.comparable and psame.tokens >= 3 and (
                     psame.local_coverage >= 0.85 or (psame.ngram and psame.local_coverage >= 0.65)):
                 return True
-        sup = xling.support(claim, self._view(texts), per_word=xling.STRICT_TRANSLATIONS_PER_WORD)
+        sup = xling.support(claim, self._view(texts))
         _log.debug("report %s/%s unsupported=%s :: %s", sup.local, sup.tokens, sup.unsupported, claim[:100])
         if sup.tokens == 0:
             return True
@@ -707,7 +739,8 @@ class ClaimGuard:
             return True
         # Short names ("Uhud", "Matta") have two-consonant skeletons: they
         # match only a short, rare Arabic word with the same consonants.
-        words = [w for w in re.split(r"[\s-]+", ent) if w.lower() not in ("of", "the", "al", "ibn", "bin", "and")]
+        words = [w for w in re.split(r"[\s-]+", ent)
+                 if w.lower() not in ("of", "the", "al", "ibn", "bin", "and", "dhu", "dhul", "dhi", "dha", "dhil")]
         ar_words = set()
         for t in texts:
             for w in normalize_arabic(t).split():
@@ -780,6 +813,12 @@ def _quran_clause(prose: str) -> str:
     rest = prose[m.end():]
     head = prose[max(0, prose.rfind(",", 0, m.start()) + 1):m.end()]
     clause = _CLAUSE_BREAK.split(rest, maxsplit=1)[0]
+    # "…the verse states: ﴿…﴾ Al-Muyassar explains that…": the Qur'an's
+    # words end where another speaker begins.
+    marked = attr.strip_registry_names(clause.replace("§", " "))
+    if marked != clause:
+        cut = next((i for i, (a, b) in enumerate(zip(clause, marked)) if a != b), len(clause))
+        clause = clause[:cut]
     return _QURAN_FRAME.sub(" ", head + " " + clause)
 
 
@@ -810,6 +849,7 @@ _ENTITY_EXEMPT = frozenset((
     "high ever-living living self-sustaining sustainer forgiving wise knowing all-knowing all-hearing seeing "
     "note reflection however therefore thus moreover furthermore indeed truly also according english arabic "
     "saheeh international sahih kursi throne fatihah baqarah imran nisa maidah kahf yasin rahman mulk ikhlas "
+    "dhu dhul dhi muharram rajab safar shaban sha'ban shawwal qa'dah qadah hijjah "
     "falaq nas asr sharh inshirah duha kafirun nasr"
 ).split())
 _PRONOUNS = frozenset("he his him himself i we our us you your me my it they them their".split())

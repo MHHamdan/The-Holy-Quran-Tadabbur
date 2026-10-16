@@ -1581,6 +1581,7 @@ class RAGPipeline:
             source_ids=[c.source_id for c in citations],
             intent=clf_intent,
             generated=True,
+            rulings_checked=True,
         )
         if not guard_result.passed:
             logger.warning(f"[ANSWER-GUARD] Hard block: {guard_result.hard_block_reason}")

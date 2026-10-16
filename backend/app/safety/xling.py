@@ -73,6 +73,7 @@ def en_fold(text: str) -> str:
     text = unicodedata.normalize("NFKD", text or "")
     text = "".join(ch for ch in text if not unicodedata.combining(ch)).lower()
     text = text.replace("’", "'").replace("‘", "'").replace("ʿ", "").replace("ʾ", "")
+    text = re.sub(r"\bnon[-\s]+(?=[a-z])", "non", text)  # "non-Muslim" is not "Muslim"
     return re.sub(r"'s\b", "", text).replace("'", "")
 
 
@@ -102,9 +103,10 @@ def en_content(text: str, drop_meta: bool = True) -> List[str]:
 
 # Report verbs and discourse words in Arabic (framing, not content).
 AR_META = frozenset(normalize_arabic(w) for w in (
-    "يبين بين يوضح أوضح وضح يذكر ذكر نقل ينقل أورد يورد أفاد يفيد أشار يشير معناه ومعناه والمعنى المراد "
+    "منهم منكم منهن لهم لكم لهن بهم بكم فيهم فيكم عنهم عنكم اليهم اليكم بينهم بينكم عليهم عليكم معهم "
+    "يبين بين يوضح أوضح وضح نقل ينقل أورد يورد أفاد يفيد أشار يشير معناه ومعناه والمعنى المراد "
     "المقصود يقصد أي يعني تفسير التفسير تفسيره المفسر المفسرون قوله وقوله الآية الاية آية كما وكما "
-    "يقرر ذكره ونقل وذكر وبين وأوضح ويذكر ويبين ويوضح حديث الحديث رواية روايه روى وروى"
+    "يقرر ونقل وبين وأوضح ويبين ويوضح حديث الحديث رواية روايه روى وروى"
 ).split())
 
 def ar_content(text: str) -> List[str]:
@@ -313,6 +315,11 @@ def _ar_deontic(words: Sequence[str]) -> List[Tuple[int, str]]:
             out.append((i, cls))
         elif w == "لا" and i + 1 < len(words) and words[i + 1][:1] == "ت" and words[i + 1].endswith(("وا", "وه")):
             out.append((i, "§forbid"))  # "لا تقربوا", "لا تأكلوا"
+        else:
+            # Second-person plural imperative ("فأصلحوا", "أقيموا"): a command.
+            bare = w[1:] if w[:1] in "وف" and len(w) > 5 else w
+            if bare[:1] == "ا" and bare.endswith("وا") and len(bare) >= 5 and not (i and words[i - 1] in _AR_NEGATORS):
+                out.append((i, "§oblige"))
     return out
 
 
@@ -325,8 +332,12 @@ class _Text:
     skeletons: List[str] = field(default_factory=list)  # aligned with tokens ("" for class tokens)
 
 
-def _analyse(text: str, script: Optional[str] = None) -> _Text:
-    """Content stems of ``text`` with aligned transliteration skeletons."""
+def _analyse(text: str, script: Optional[str] = None, deontic_content: bool = False) -> _Text:
+    """Content stems of ``text`` with aligned transliteration skeletons.
+
+    Deontic words become class tokens; with ``deontic_content`` (evidence
+    side) their stem is kept as content too ("فأصلحوا" is a command and also
+    says what is commanded)."""
     ar_n = len(re.findall(r"[ء-ي]", text or ""))
     en_n = len(re.findall(r"[A-Za-z]", text or ""))
     script = script or ("ar" if ar_n > en_n else "en")
@@ -339,7 +350,8 @@ def _analyse(text: str, script: Optional[str] = None) -> _Text:
             if i in deon:
                 toks.append(deon[i])
                 sks.append("")
-                continue
+                if not deontic_content:
+                    continue
             if len(w) <= 2 or w in _AR_STOP or w in AR_META:
                 continue
             st = _stem_ar(w)
@@ -354,7 +366,8 @@ def _analyse(text: str, script: Optional[str] = None) -> _Text:
             if i in deon:
                 toks.append(deon[i])
                 sks.append("")
-                continue
+                if not deontic_content:
+                    continue
             if len(w) < 3 or w in EN_STOP or w in EN_META:
                 continue
             toks.append(en_stem(w))
@@ -372,7 +385,7 @@ class EvidenceView:
         view = cls(lexicon=lexicon or _EMPTY)
         for t in texts:
             if t:
-                a = _analyse(t)
+                a = _analyse(t, deontic_content=True)
                 if a.tokens:
                     view.texts.append(a)
         return view
@@ -436,7 +449,8 @@ def _positions(script: str, need: Sequence[str], skel: Dict[str, str], text: _Te
         match: Dict[str, List[str]] = defaultdict(list)
         for t in need:
             match[t].append(t)
-            if not t.startswith("§"):
+            # Strict reading (one verse carrying a claim): exact stems only.
+            if not t.startswith("§") and per_word >= TRANSLATIONS_PER_WORD:
                 # Mutual best alignments only: t's top translations whose
                 # own top translations include t, and their top renderings.
                 for pivot in fwd.get(t, ())[:1]:
@@ -446,9 +460,19 @@ def _positions(script: str, need: Sequence[str], skel: Dict[str, str], text: _Te
                     for syn in back_list:
                         if syn != t:
                             match[syn].append(t)
+        weak = {}
+        if script == "ar":
+            for t in need:
+                k = _consonants(t)
+                if len(k) >= 3:
+                    weak.setdefault(k, []).append(t)
         for i, tok in enumerate(text.tokens):
             for ct in match.get(tok, ()):
                 where[ct].append(i)
+            if weak and not tok.startswith("§"):
+                for ct in weak.get(_consonants(tok), ()):
+                    if ct != tok:
+                        where[ct].append(i)
         return where
     trans = lex.en2ar if script == "en" else lex.ar2en
     inv: Dict[str, List[str]] = defaultdict(list)
@@ -507,6 +531,11 @@ def nearest_class(claim: str, text: str, lexicon: Optional[Lexicon] = None) -> D
         if best:
             votes[best[1]] += 1
     return votes
+
+
+def _consonants(stem: str) -> str:
+    """An Arabic stem without its long vowels/weak letters (ا و ي ى ء)."""
+    return re.sub(r"[اويىءئؤ]", "", stem)
 
 
 def _best_window(where: Dict[str, List[int]], window: int) -> Set[str]:

@@ -580,7 +580,7 @@ _EN_META_STEMS = frozenset(w[:6] if len(w) > 6 else w for w in _EN_META)
 _AR_STOP_RAW = (
     "قال وقال فقال يقول ويقول النبي رسول الله صلى عليه وسلم رواه حديث الحديث التي الذي الذين هذه هذا "
     "ذلك تلك كان كانت وكان على إلى عن من في أن إن أنه وأنه بأنها أنها إنها هو هي لها له كل ما لا قد وقد "
-    "ثم أو مع بن ابن أبي أبو تعالى سبحانه الآية آية الآيات عز وجل ذكر وذكر يعني أي معنى المعنى تفسير "
+    "ثم أو مع بن ابن أبي أبو تعالى سبحانه الآية آية الآيات عز وجل يعني أي معنى المعنى تفسير "
     "التفسير بين بيّن ومعناها معناها المفسرون العلماء الشيخ العلامة الإمام كما وهذا وهذه فإن وإن ولا "
     "أيضا عند بعد قبل حتى إذا وإذا لم لن ليس عليها عليهم منها منه فيها فيه به بها"
 )
@@ -619,7 +619,8 @@ def _seq(text: str) -> Tuple[List[str], List[str]]:
     ]
     ar = []
     for t in normalize_arabic(text).split():
-        if len(t) > 2 and t not in _AR_STOP:
+        # A stop word with a conjunction ("وعن", "فإن") is still a stop word.
+        if len(t) > 2 and t not in _AR_STOP and not (t[:1] in "وف" and t[1:] in _AR_STOP):
             st = _stem_ar(t)
             if st not in _AR_STOP:
                 ar.append(st)

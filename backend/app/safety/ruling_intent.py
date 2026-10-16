@@ -376,6 +376,10 @@ def _en_ruling_request(q: str) -> Optional[RulingRequest]:
     if re.search(r"\b(is|are|was|were|will|would)\b[^?]{0,60}\b(" + "|".join(sorted(_EN_ACTS)) + r")\b[^?]{0,50}"
                  r"\b(valid|invalid|void|binding|accepted\s+as\s+valid|nullified|sound)\b", low) and not framed:
         return RulingRequest(FIRST if tset & _EN_FIRST else GENERAL, {VALIDITY}, "validity")
+    if re.search(r"\b(is|are|was|were)\s+(it|this|that|they|these|those)\s+(considered\s+|regarded\s+as\s+)?"
+                 r"(haram|halal|makruh|forbidden|permissible|permitted|allowed|a\s+sin|sinful|lawful|unlawful|"
+                 r"obligatory|wajib|mandatory|bid'?ah|an\s+innovation)\b", low) and "?" in q and not framed:
+        return RulingRequest(GENERAL, set(), "general_deontic")
     if re.search(r"\b(still|no\s+longer)\s+(a\s+)?(muslim|married|believer)\b", low):
         person = FIRST if tset & _EN_FIRST else GENERAL
         return RulingRequest(person, {STATUS}, "status")
@@ -424,8 +428,7 @@ _EN_CLAIM_PATTERNS: Tuple[Tuple[str, re.Pattern], ...] = tuple((cls, re.compile(
              r"acceptable|fine|ok|okay|alright|legitimate|no\s+sin|not\s+a\s+sin|not\s+haram|not\s+forbidden|"
              r"not\s+prohibited|not\s+sinful)\b"),
     (PERMIT, r"\b(no|nothing)\s+(harm|sin|blame|problem|issue|wrong)\s+(in|with|if|for)\b|\bnothing\s+wrong\b"
-             r"|\b(you|one|anyone|anybody|a\s+(person|muslim|woman|man|believer|traveller|traveler)|muslims|"
-             r"believers|women|men|people|someone|whoever)\s+(\w+\s+){0,2}?(may|can|is\s+free\s+to|are\s+free\s+to)\s+"
+             r"|\b(you|one)\s+(\w+\s+){0,2}?(may|can|is\s+free\s+to|are\s+free\s+to)\s+"
              r"(still\s+|also\s+|even\s+|safely\s+|freely\s+|simply\s+)?(?!(see|read|learn|reflect|ponder|find|notice|"
              r"understand|consult|ask|refer|recite\s+it\s+and\s+reflect|look|hope|trust|turn\s+to|seek\s+forgiveness|"
              r"repent|remember|thank|benefit)\b)[a-z]+\b"),
@@ -596,8 +599,19 @@ def _subject_en(sentence: str) -> str:
 
 
 def _subject_ar(tokens: Sequence[str], i: int) -> str:
+    """What a ruling word is about, not the framing clause ("بين الميسر
+    أن…") that introduces it: after a ruling verb ("فيجب الإصلاح بين
+    المتقاتلين", "يحرم أكل…"), before a ruling adjective ("فالبيع حلال",
+    "الميتة محرمة على…")."""
+    t = tokens[i]
+    core = t[1:] if t[:1] in "وف" and len(t) > 3 else t
+    if core[:1] in "يت" or segment(t) & _AR_LEGISLATE:
+        span = range(i + 1, min(len(tokens), i + 6))
+    else:
+        span = list(range(max(0, i - 3), i)) + list(range(i + 1, min(len(tokens), i + 3)))
     keep = []
-    for j, t in enumerate(tokens):
+    for j in span:
+        t = tokens[j]
         if j == i or _ar_classes(t) or t in _AR_FIRST_WORDS or t in _AR_SECOND_WORDS:
             continue
         keep.append(t)
@@ -630,6 +644,10 @@ def _ar_ev_class_positions(text: str) -> List[Tuple[int, Set[str]]]:
         if cands & _ar_set("اجتنبوه فاجتنبوه اجتنبوا رجس نهي ينهي"):
             out.append((i, {FORBID}))
         if cands & _ar_set("كتب فرض امر اوجب عليكم عليه"):
+            out.append((i, {OBLIGE}))
+        # Second-person plural imperative ("فأصلحوا", "أقيموا", "اذكروا"): a command.
+        bare = t[1:] if t[:1] in "وف" and len(t) > 5 else t
+        if bare[:1] == "ا" and bare.endswith("وا") and len(bare) >= 5 and (i == 0 or toks[i - 1] not in _AR_NEGATORS):
             out.append((i, {OBLIGE}))
         if cands & _ar_set("احل اباح رخص رخصه"):
             out.append((i, {PERMIT}))

@@ -137,7 +137,7 @@ def porter(word: str) -> str:
 
 # ------------------------------------------------------------------ Arabic
 
-_AR_PROCLITICS = ("وبال", "وال", "فال", "بال", "كال", "لل", "ال", "و", "ف", "ب", "ل", "ك", "س")
+_AR_PROCLITICS = ("وبال", "وال", "فال", "بال", "كال", "لل", "ال", "و", "ف", "ب", "ل", "س")
 _AR_ENCLITICS = ("كموها", "تموها", "هما", "كما", "تما", "هم", "هن", "كم", "كن", "نا", "ها", "ني", "ه", "ك", "ي")
 _AR_VERB_SUFFIXES = ("تم", "وا", "ون", "ين", "ات", "ت")
 
@@ -146,13 +146,14 @@ _AR_VERB_SUFFIXES = ("تم", "وا", "ون", "ين", "ات", "ت")
 def arabic_stem(token: str) -> str:
     """Light stem of a normalised Arabic token (see module doc)."""
     t = token
-    # Accusative tanween carrier ("أعرابيًا" -> "أعرابي"), not the plural "وا".
-    if len(t) >= 4 and t.endswith("ا") and not t.endswith(("وا", "اا")):
+    # Accusative tanween carrier ("أعرابيًا" -> "أعرابي", "ذكرًا" -> "ذكر"):
+    # only on an indefinite word — a definite one cannot carry tanween, so
+    # "الربا", "الدنيا" keep their final alef — and not the plural "وا".
+    if len(t) >= 4 and t.endswith("ا") and not t.endswith(("وا", "اا")) and \
+            not t.startswith(("ال", "وال", "فال", "بال", "كال", "لل")):
         t = t[:-1]
     for p in _AR_PROCLITICS:
-        # The conjunctions و/ف before any 3+ letter word; the prepositions
-        # ب/ل/ك/س only before 4+ letters ("بيوت" is not "ب" + "يوت").
-        if t.startswith(p) and len(t) - len(p) >= (3 if len(p) > 1 or p in "وف" else 4):
+        if t.startswith(p) and len(t) - len(p) >= 3:
             t = t[len(p):]
             break
     for s in _AR_ENCLITICS:

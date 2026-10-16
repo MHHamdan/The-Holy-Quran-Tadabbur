@@ -224,6 +224,11 @@ _AR_FRAME = re.compile(
     r"أشار|يشير|أفاد|يفيد|ذهب|يذهب|اختار|يختار|رجح|يرجح|فسر|يفسر|قرر|يقرر|عند|بحسب|حسب|وفق|وفقا\s+ل|"
     r"رأي|قول|مذهب|تفسير|اجتهاد|كلام|عن|رواية|روايه|حديث|أخرجه|اخرجه|رواه|خرجه|أثر|نقله)(?![ء-ي])\s+(?=(?P<rest>[^\[\].:؛،,؟!\n«»\"]{2,60}))"
 )
+# "قال مجاهد إن…", "وقال قتادة:" — a strong speech verb, one word, then the
+# reported content: that word is a speaker.
+_AR_SINGLE_NAME = re.compile(
+    r"(?<![ء-ي])[وف]?(قال|يقول|روى|ذكر|نقل|حكى|فسرها|فسره)\s+(?P<name>[ء-ي]{3,})\s*(?=[:،,]|\s+(إن|أن|ان|في|عن)(?![ء-ي]))"
+)
 _WEAK_FRAMES = frozenset(normalize_arabic(w) for w in "عن رواية روايه حديث أثر تفسير قول كلام رأي مذهب".split())
 _AR_KUNYA = re.compile(r"(?<![ء-ي])[وفبل]?(?P<name>(?:أبو|أبي|أبا|ابو|ابي|ابا|ابن|بن|أم|ام)\s+[ء-ي]{2,}(?:\s+ال[ء-ي]{2,})?)")
 _AR_TITLED = re.compile(rf"(?<![ء-ي])[وفبل]?{_AR_TITLES}\s+(?P<name>[ء-ي]{{2,}}(?:\s+(?:بن|ابن|أبو|أبي|ال[ء-ي]+|[ء-ي]{{2,}})){{0,3}})")
@@ -313,6 +318,10 @@ def find_person_names(sentence: str) -> List[str]:
                                                and normalize_arabic(first) not in _AR_NAME_STOP else None))
     for m in _AR_KUNYA.finditer(sentence):
         add(_clean_arabic(m.group("name")))
+    for m in _AR_SINGLE_NAME.finditer(sentence):
+        w = normalize_arabic(m.group("name"))
+        if w not in _AR_NOT_NAMES and w not in _AR_NAME_STOP and not w.startswith("ال") and len(w) >= 3:
+            add(m.group("name"))
     for m in _AR_FRAME.finditer(sentence):
         name = _clean_arabic(m.group("rest"))
         verb = normalize_arabic(m.group(0).split()[0]).lstrip("وف")

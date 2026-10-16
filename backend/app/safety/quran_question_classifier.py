@@ -286,7 +286,9 @@ _INJECTION_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     r"tafseer|verdict|thoughts)\b(?!\s+(of|from)\s+(ibn|al-|the\s+(scholars|tafsir|commentators)))",
     r"\b(pretend|imagine|suppose|assume|act\s+as\s+if)\b[^.?!]{0,30}\b(there\s+(are|is|were)\s+no|without\s+any)\s+"
     r"(rules|restrictions|guidelines|limits|sources|filters)\b",
-    r"\b(new|fake|original|invented|made[\s-]up|additional|extra|own)\s+(\w+\s+)?(verses|ayat|ayahs|surahs|suras)\b",
+    r"\b(new|fake|original|invented|made[\s-]up|additional|extra|own|another)\s+(\w+\s+)?(verses?|ayat|ayahs?|surahs?|suras?)\b",
+    r"\byou\s+are\s+(now\s+)?(a|an|the)\s+(\w+\s+)?(mufti|scholar|sheikh|shaykh|imam|faqih|mujtahid|qadi)\b"
+    r"|\b(with|under)\s+no\s+(rules|restrictions|limits|filters)\b|\blet'?s\s+play\s+a\s+game\b",
     r"\b(like|in\s+the\s+manner\s+of|modelled\s+on|modeled\s+on|imitating)\s+(surah|surat|sura)\s+\S+",
     r"\bwhat\s+do\s+you\s+(personally\s+)?(think|believe|feel)\b",
     # Text styled as the Qur'an.

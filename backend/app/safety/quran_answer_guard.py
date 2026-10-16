@@ -285,6 +285,7 @@ class QuranAnswerGuard:
         *,
         is_translation: bool = False,
         generated: bool = False,
+        rulings_checked: bool = False,
     ) -> GuardResult:
         """
         Run all guard checks on an answer before it is returned to the user.
@@ -305,7 +306,7 @@ class QuranAnswerGuard:
         labels: List[str] = []
 
         # Rule 1: fatwa-like intent or content → hard block
-        fatwa_block = self._check_fatwa(answer_text, intent, generated=generated)
+        fatwa_block = self._check_fatwa(answer_text, intent, generated=generated, rulings_checked=rulings_checked)
         if fatwa_block:
             return GuardResult(
                 passed=False,
@@ -414,7 +415,8 @@ class QuranAnswerGuard:
         """Return list of invalid AyahRef objects found in text."""
         return [ref for ref in self.parse_ayah_refs(text) if not ref.is_valid]
 
-    def _check_fatwa(self, text: str, intent: str, generated: bool = False) -> Optional[str]:
+    def _check_fatwa(self, text: str, intent: str, generated: bool = False,
+                     rulings_checked: bool = False) -> Optional[str]:
         """Return a hard-block reason if fatwa-like content is detected."""
         if intent == "fatwa_like":
             return (
@@ -423,7 +425,11 @@ class QuranAnswerGuard:
                 "هذه المنصة لا تُصدر فتاوى دينية. يُرجى الرجوع إلى عالم إسلامي مؤهل."
             )
         text_lower = text.lower()
-        if generated:
+        if generated and rulings_checked:
+            # General rulings were already checked against the evidence
+            # (app.safety.claim_guard); a personal verdict is never allowed.
+            hits = any(kind == VERDICT_PERSONAL for kind, _s, _subj in self.find_verdicts(text))
+        elif generated:
             hits = any(p.search(text) for p in _RULING_ASSERTIONS) or any(
                 kind == VERDICT_PERSONAL for kind, _s, _subj in self.find_verdicts(text)
             )
