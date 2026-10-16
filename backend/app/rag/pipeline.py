@@ -1459,6 +1459,9 @@ class RAGPipeline:
     def _is_vague_question(self, question: str) -> bool:
         """Return True if the question lacks enough context to retrieve targeted sources."""
         q = question.strip()
+        # A verse reference is a referent however short the question ("39:53").
+        if re.search(r"[0-9٠-٩]{1,3}\s*[:：]\s*[0-9٠-٩]{1,3}", q):
+            return False
         # Very short questions are likely decontextualised
         if len(q) < 10:
             return True
