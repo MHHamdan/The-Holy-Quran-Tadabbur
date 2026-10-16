@@ -124,9 +124,11 @@ class SessionCredential(BaseModel):
 
 class DeleteCredential(BaseModel):
     id: str = Field(..., min_length=1, max_length=64)
-    # Optional only so sessions created before tokens existed (no hash on the
-    # row) can still be deleted by their owner; a row that has a hash is only
-    # deleted with its token.
+    # Optional so a batch that mixes keys with and without a token is still
+    # accepted as a whole; a credential without a token never deletes
+    # anything. Rows from before tokens existed (no hash) cannot be proved to
+    # belong to the caller, so they are not deletable on request and expire
+    # through the THERAPY_RETENTION_DAYS purge instead (stated on /privacy).
     token: Optional[str] = Field(None, min_length=8, max_length=128)
 
 
@@ -1721,15 +1723,49 @@ PRIVACY_PURGE_INITIAL_DELAY_SECONDS = int(os.getenv("PRIVACY_PURGE_INITIAL_DELAY
 PRIVACY_PURGE_ENABLED = os.getenv("PRIVACY_PURGE_ENABLED", "1") == "1"
 
 
+async def purge_expired_search_history() -> int:
+    """Drop in-memory search history older than SEARCH_HISTORY_TTL_DAYS.
+
+    Reads already filter expired entries, but an idle session's queries would
+    otherwise stay in process memory until LRU eviction or a restart, while
+    /privacy says they are removed after 30 days. A session whose newest
+    search has expired is cleared completely (clear_session_history); a
+    session with some expired entries keeps only the unexpired ones. Returns
+    the number of sessions touched."""
+    from collections import OrderedDict
+
+    from app.services import search_history as sh
+
+    svc = sh.search_history_service
+    cutoff = datetime.utcnow() - timedelta(days=sh.SEARCH_HISTORY_TTL_DAYS)
+    idle: List[str] = []
+    touched = 0
+    async with svc._lock:
+        store = svc._session_history
+        # OrderedDict accessors so the sweep does not reorder the LRU.
+        for sid, history in list(OrderedDict.items(store)):
+            if not history:
+                store.pop(sid, None)
+            elif history[-1].timestamp < cutoff:
+                idle.append(sid)
+            elif history[0].timestamp < cutoff:
+                OrderedDict.__setitem__(store, sid, [e for e in history if e.timestamp >= cutoff])
+                touched += 1
+    for sid in idle:
+        await svc.clear_session_history(sid)
+    return touched + len(idle)
+
+
 async def purge_expired_private_data(db: AsyncSession) -> None:
     """Apply every retention limit stated on /privacy: guidance sessions,
-    Tasmeeʿ sessions and anonymous dhikr counts."""
+    Tasmeeʿ sessions, anonymous dhikr counts and in-memory search history."""
     from app.api.routes import adhkar, tasmee
 
     await _purge_expired_sessions(db)
     await tasmee._purge_expired_sessions(db)
     await adhkar.purge_expired_dhikr_sessions(db)
     await db.commit()
+    await purge_expired_search_history()
 
 
 async def _retention_loop() -> None:
@@ -1779,23 +1815,20 @@ async def delete_sessions(
     body: DeleteSessionsRequest,
     db: AsyncSession = Depends(get_async_session),
 ) -> DeleteSessionsResponse:
-    """Delete each session whose client token matches. Sessions created before
-    tokens existed (no hash stored) are deleted by id alone so their owners
-    can still erase them. Unknown ids and wrong tokens are skipped silently."""
+    """Delete each session whose client token matches its stored hash.
+    Unknown ids, wrong or missing tokens and legacy rows without a stored hash
+    are skipped alike: knowing an id is never enough to delete a row. Legacy
+    rows expire through the retention purge."""
     from sqlalchemy import delete as sa_delete, select as sa_select
 
-    tokens = {c.id: c.token for c in body.sessions[:200]}
-    result = await db.execute(
-        sa_select(TherapySession.session_id, TherapySession.client_token_hash)
-        .where(TherapySession.session_id.in_(list(tokens)))
-    )
-    deletable = [
-        row.session_id
-        for row in result.all()
-        if row.client_token_hash is None
-        or (tokens.get(row.session_id) and hmac.compare_digest(
-            _hash_token(tokens[row.session_id]), row.client_token_hash))
-    ]
+    tokens = {c.id: c.token for c in body.sessions[:200] if c.token}
+    deletable: List[str] = []
+    if tokens:
+        result = await db.execute(
+            sa_select(TherapySession.session_id, TherapySession.client_token_hash)
+            .where(TherapySession.session_id.in_(list(tokens)))
+        )
+        deletable = [row.session_id for row in result.all() if _token_matches(row, tokens[row.session_id])]
     deleted = 0
     if deletable:
         res = await db.execute(
