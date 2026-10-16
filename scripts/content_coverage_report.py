@@ -12,10 +12,11 @@ Computes, deterministically, from the Postgres DB and the repository data:
   * duas / adhkar: citation coverage and exact match against canonical text
   * UI i18n (frontend/src/i18n/translations.ts): ar/en parity and quality
   * provenance: every enabled religious source has title, author, language,
-    source and licence
+    source and licence; stored tafsir text verbatim vs the pinned dataset
+  * RAG vector index (Qdrant) coverage and staleness per enabled tafsir source
 
 Usage:
-  python3 scripts/content_coverage_report.py [--out report.json] [--probe-audio]
+  python3 scripts/content_coverage_report.py [--out report.json] [--probe-audio] [--no-index]
 
 Reads DATABASE_URL from the environment or from .env. Needs `npx tsx` for the
 TypeScript data modules. Output is sorted and contains no timestamps unless
@@ -91,6 +92,74 @@ console.log(JSON.stringify({{ i18n: dicts, duas: QURANIC_DUAS, adhkar: ADHKAR,
         sys.exit(f"tsx failed: {out.stderr[-2000:]}")
     line = [l for l in out.stdout.splitlines() if l.startswith("{")][-1]
     return json.loads(line)
+
+
+PLACEHOLDER = "لا يوجد تفسير"
+HF_DATASET = "riotu-lab/Quran-Tafseers"
+HF_REVISION = "9ddbdeec22bfabd9821b14c6584ad9587ed7bffa"
+HF_WORKS = {"التفسير الميسر": "muyassar_ar", "تفسير ابن كثير": "ibn_kathir_ar",
+            "تفسير الطبري": "tabari_ar", "تفسير القرطبي": "qurtubi_ar", "تفسير البغوي": "baghawi_ar"}
+
+
+def hf_dataset():
+    """The pinned dataset file from the local HF cache (None when not cached)."""
+    f = (Path.home() / ".cache/huggingface/hub/datasets--riotu-lab--Quran-Tafseers/snapshots"
+         / HF_REVISION / "Tafseer.json")
+    if not f.exists():
+        return None
+    out = defaultdict(dict)
+    for r in json.loads(f.read_text(encoding="utf-8")):
+        sid = HF_WORKS.get(r.get("tafsir_name"))
+        t = (r.get("tafsir") or "").strip()
+        if sid and t:
+            out[sid][(int(r["sura_number"]), int(r["ayah_number"]))] = t
+    return out
+
+
+def vector_index_section(db_text: dict):
+    """Qdrant tafseer_chunks points per source vs the DB (what RAG retrieval serves)."""
+    import urllib.request
+    host = os.environ.get("QDRANT_URL") or f"http://localhost:{os.environ.get('QDRANT_PORT', '19633')}"
+
+    def scroll(sid):
+        pts, off = [], None
+        while True:
+            body = {"limit": 1000, "with_payload": ["chunk_id", "content_ar"], "with_vector": False,
+                    "filter": {"must": [{"key": "source_id", "match": {"value": sid}}]}}
+            if off is not None:
+                body["offset"] = off
+            req = urllib.request.Request(f"{host}/collections/tafseer_chunks/points/scroll",
+                                         data=json.dumps(body).encode(), headers={"content-type": "application/json"})
+            r = json.load(urllib.request.urlopen(req, timeout=30))["result"]
+            pts += r["points"]
+            off = r.get("next_page_offset")
+            if off is None:
+                return pts
+    try:
+        out = {}
+        for sid, chunks in sorted(db_text.items()):
+            pts = scroll(sid)
+            fresh = orphan = stale = ph = 0
+            for p in pts:
+                q = str(p["payload"].get("content_ar") or "")
+                t = chunks.get(p["payload"].get("chunk_id"))
+                ph += PLACEHOLDER in q
+                if t is None:
+                    orphan += 1
+                    continue
+                a, b = re.sub(r"\s", "", t), re.sub(r"\s", "", q)
+                if a == b or (b and a.startswith(b)):   # payload is truncated to 500 chars
+                    fresh += 1
+                else:
+                    stale += 1
+            out[sid] = {"points": len(pts), "points_matching_current_passage": fresh,
+                        "orphan_points_chunk_gone": orphan, "stale_text_points": stale,
+                        "placeholder_text_points": ph, "db_passages": len(chunks),
+                        "index_coverage_pct": pct(fresh, len(chunks))}
+        return {"collection": "tafseer_chunks", "by_enabled_source": out,
+                "note": "retrieval serves payload text directly (rag/retrieval.py vector search)"}
+    except Exception as ex:  # Qdrant not reachable
+        return {"error": f"{type(ex).__name__}: {ex}"}
 
 
 def expand(sura, a, b, valid: set) -> set:
@@ -231,8 +300,34 @@ async def tafsir_section(c, valid, ts):
             "footer_licence_shown": (reg[dbid]["licenseOrTerms"] if dbid in reg else "not yet recorded"),
             "manifest_id_checked": guess, "manifest_status": (m_src.get(guess) or {}).get("status"),
             "manifest_licence_type": ml.get("type"),
-            "ayat_served_by_external_proxy_fallback": (TOTAL_AYAT - len(per.get(dbid, ()))) if dbid else TOTAL_AYAT,
+            # since 1c8480d the reader serves the stored library only; an ayah with
+            # no stored passage answers 404 NO_PASSAGE_IN_SOURCE (no external proxy)
+            "ayat_without_stored_passage_404": (TOTAL_AYAT - len(per.get(dbid, ()))) if dbid else TOTAL_AYAT,
         })
+    # verbatim check of the stored text against the pinned HF dataset it is credited to
+    hf = hf_dataset()
+    texts = await c.fetch("select source_id, sura_no, aya_start, content_ar from tafseer_chunks "
+                          "where source_id = any($1::text[])", list(HF_WORKS.values()))
+    by_src = defaultdict(list)
+    for r in texts:
+        by_src[r["source_id"]].append(r)
+    for s in db_sources:
+        rows = by_src.get(s["id"], [])
+        s["placeholder_passages"] = sum(1 for r in rows if PLACEHOLDER in (r["content_ar"] or ""))
+        if s["id"] not in HF_WORKS.values() or hf is None:
+            s["verbatim_vs_pinned_dataset"] = None
+            continue
+        ref = hf.get(s["id"], {})
+        same = same_ws = 0
+        for r in rows:
+            t, h = (r["content_ar"] or "").strip(), ref.get((r["sura_no"], r["aya_start"]))
+            same += t == h
+            same_ws += h is not None and re.sub(r"\s", "", t) == re.sub(r"\s", "", h)
+        s["verbatim_vs_pinned_dataset"] = {
+            "dataset": f"{HF_DATASET}@{HF_REVISION[:12]}", "dataset_passages": len(ref),
+            "db_passages": len(rows), "identical": same, "identical_ignoring_whitespace": same_ws,
+            "db_passages_not_in_dataset": sum(1 for r in rows if (r["sura_no"], r["aya_start"]) not in ref),
+        }
     return {
         "db_sources": db_sources,
         "enabled_sources": [s["id"] for s in db_sources if s["enabled"]],
@@ -330,7 +425,16 @@ async def stories_section(c, valid):
         "group by 1 order by 1")
     enabled_src = {x["id"] for x in await c.fetch(
         "select id from tafseer_sources where is_enabled = 1 and license_verified = 1")}
-    rel["story_events"] = {"total": r["n"], "with_evidence": r["ev"], "evidence_pct": pct(r["ev"], r["n"]),
+    resolved_ev = await c.fetchval(
+        "select count(*) from story_events se, jsonb_array_elements("
+        "case when jsonb_typeof(se.evidence::jsonb)='array' then se.evidence::jsonb else '[]'::jsonb end) e "
+        "where exists (select 1 from tafseer_chunks ch join tafseer_sources ts on ts.id = ch.source_id "
+        "and ts.is_enabled = 1 and ts.license_verified = 1 where ch.source_id = e->>'source_id' "
+        "and ch.sura_no = split_part(e->>'reference', ':', 1)::int "
+        "and split_part(split_part(e->>'reference', ':', 2), '-', 1)::int between ch.aya_start and coalesce(ch.aya_end, ch.aya_start) "
+        "and coalesce(btrim(ch.content_ar), '') <> '')")
+    rel["story_events"] = {"total": r["n"],
+                           "evidence_refs_resolving_to_enabled_nonempty_passage": resolved_ev, "with_evidence": r["ev"], "evidence_pct": pct(r["ev"], r["n"]),
                            "evidence_source_ids": {x["sid"]: x["n"] for x in ev_ev},
                            "evidence_refs_from_enabled_licensed_source": sum(
                                x["n"] for x in ev_ev if x["sid"] in enabled_src),
@@ -561,6 +665,15 @@ async def provenance_section(c, ts):
         if r.get("licenseStatus") != "cleared":
             issues.append({"kind": "tafsir_db_enabled", "id": s["id"],
                            "missing": [f"registry_licence_status={r.get('licenseStatus')}"]})
+        notes = str((m.get("license") or {}).get("notes") or "")
+        if m.get("provenance") and "seeded from the spa5k" in notes:
+            issues.append({"kind": "tafsir_db_enabled", "id": s["id"],
+                           "missing": ["manifest_licence_notes_stale: still say the stored copy came from "
+                                       "spa5k and that the registry marks it unverified"]})
+        if s["source_url"] and "spa5k" in s["source_url"] and "spa5k" not in str(r.get("sourceUrl") or ""):
+            issues.append({"kind": "tafsir_db_enabled", "id": s["id"],
+                           "missing": [f"db_source_url={s['source_url']} differs from registry sourceUrl="
+                                       f"{r.get('sourceUrl')}"]})
         if m.get("stored_copy"):
             issues.append({"kind": "tafsir_db_enabled", "id": s["id"],
                            "missing": ["stored_copy_origin_terms_unrecorded: served text seeded from "
@@ -645,6 +758,13 @@ async def main_async(args):
             "i18n": i18n_section(ts),
             "provenance": await provenance_section(c, ts),
         }
+        if not args.no_index:
+            en = [x["id"] for x in await c.fetch("select id from tafseer_sources where is_enabled = 1 order by id")]
+            dbt = defaultdict(dict)
+            for x in await c.fetch("select source_id, chunk_id, content_ar from tafseer_chunks "
+                                   "where source_id = any($1::text[])", en):
+                dbt[x["source_id"]][x["chunk_id"]] = x["content_ar"] or ""
+            report["tafsir_vector_index"] = vector_index_section(dbt)
     finally:
         await c.close()
     return report
@@ -653,6 +773,7 @@ async def main_async(args):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--out", help="write JSON here as well as stdout")
+    ap.add_argument("--no-index", action="store_true", help="skip the Qdrant vector-index check")
     ap.add_argument("--probe-audio", action="store_true", help="HEAD-request sample verse audio per reciter")
     args = ap.parse_args()
     report = asyncio.run(main_async(args))
