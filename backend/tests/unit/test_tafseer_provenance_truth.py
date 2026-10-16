@@ -2,14 +2,13 @@
 The tafsir footer credits where the stored text really came from.
 
 The reader footer shows the registry's licenseOrTerms and sourceUrl next to
-"Copy stored in the Tadabbur library". For tabari_ar, qurtubi_ar and
-ibn_kathir_ar it credited the Apache-2.0 riotu-lab/Quran-Tafseers dataset
-while the stored passages were seeded from the spa5k tafsir_api CDN (only
-3215/6236, 3116/6176 and 560/6197 passages identical). The registry now names
-the spa5k edition with licence status "unverified" (owner review), and these
-checks keep the registry, the manifest's stored_copy record and the database
-row's source_url in agreement, so a later reseed from the dataset
-(seed_tafseer.py --replace) has to update all three together.
+"Copy stored in the Tadabbur library". tabari_ar, qurtubi_ar and ibn_kathir_ar
+were once seeded from the spa5k tafsir_api CDN while the registry credited the
+Apache-2.0 riotu-lab/Quran-Tafseers dataset. On 2026-10-15 they were reseeded
+from that dataset (seed_tafseer.py --replace, pinned revision, SHA-256 checked),
+so all four Arabic classical sources now really come from the dataset. These
+checks keep the registry, the manifest and the database row's source_url in
+agreement, so any future change of origin has to update all three together.
 """
 import json
 import re
@@ -21,7 +20,6 @@ ROOT = Path(__file__).resolve().parents[3]
 MANIFEST = json.loads((ROOT / "data" / "manifests" / "tafseer_sources.json").read_text(encoding="utf-8"))
 REGISTRY_SRC = (ROOT / "frontend" / "src" / "data" / "sourceRegistry.ts").read_text(encoding="utf-8")
 HF_DATASET = "riotu-lab/Quran-Tafseers"
-SPA5K = "cdn.jsdelivr.net/gh/spa5k/tafsir_api"
 STORED_ELSEWHERE = ("ibn_kathir_ar", "tabari_ar", "qurtubi_ar")
 
 
@@ -41,25 +39,13 @@ def _manifest(source_id: str) -> dict:
     return next(s for s in MANIFEST["sources"] if s["id"] == source_id)
 
 
-@pytest.mark.parametrize("source_id", STORED_ELSEWHERE)
-def test_registry_names_the_stored_copy_origin_not_the_dataset(source_id):
+@pytest.mark.parametrize("source_id", STORED_ELSEWHERE + ("baghawi_ar",))
+def test_source_really_is_from_the_dataset(source_id):
     reg = _registry(source_id)
-    sc = _manifest(source_id)["stored_copy"]
-    assert HF_DATASET not in reg["licenseOrTerms"]
-    assert HF_DATASET not in reg["sourceUrl"]
-    assert reg["sourceUrl"] == sc["seeded_from"]
-    assert SPA5K in reg["sourceUrl"]
-    assert "spa5k" in reg["licenseOrTerms"] and "unverified" in reg["licenseOrTerms"]
-    assert reg["licenseStatus"] == "unverified" == sc["registry_status"]
-    assert sc["owner_review"] is True
-    assert "seed_tafseer.py --replace" in sc["note"]
-    assert "Seeded from the Apache-2.0 HF dataset" not in _manifest(source_id)["license"]["notes"]
-
-
-def test_baghawi_really_is_from_the_dataset():
-    reg = _registry("baghawi_ar")
     assert HF_DATASET in reg["sourceUrl"]
-    assert "stored_copy" not in _manifest("baghawi_ar")
+    assert HF_DATASET in reg["licenseOrTerms"]
+    assert reg["licenseStatus"] == "cleared"
+    assert "stored_copy" not in _manifest(source_id)
 
 
 @pytest.mark.asyncio
