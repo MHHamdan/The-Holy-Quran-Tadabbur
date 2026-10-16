@@ -440,7 +440,14 @@ def verify_quotations(
     answer = _CONTAINERS.sub(_container, answer)
 
     # Pass 2: text presented as the Qur'an after a cue ("قال الله تعالى: …")
+    shells = [(p.start(), p.end()) for ph in (UNVERIFIED_QUOTE_AR, UNVERIFIED_QUOTE_EN)
+              for p in re.finditer(re.escape(ph), answer)]
+
     def _cue(m: re.Match) -> str:
+        # A removal notice from pass 1 is not a quotation ("…في القرآن أو
+        # المصادر" inside it reads like a cue and its span).
+        if any(m.start() < pe and m.end() > ps for ps, pe in shells):
+            return m.group(0)
         span = m.group("span")
         lead = len(span) - len(span.lstrip())
         core = span.strip()
@@ -482,6 +489,8 @@ def verify_quotations(
             answer = answer[:a] + rep + answer[b:]
 
     return answer, report
+
+
 
 
 # ----------------------------------------------------- names and hadith cues

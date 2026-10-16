@@ -183,6 +183,15 @@ _REFLECTION_LABEL = re.compile(
     re.IGNORECASE,
 )
 # Reference-like text that is not a valid citation marker.
+_REFLECTION_HEADING = re.compile(
+    r"(?m)^[ \t]*(?:#{1,6}[ \t]*)?(?:\*\*|__)?[ \t]*(?P<label>reflection|for\s+reflection|to\s+reflect|"
+    r"a\s+moment\s+of\s+reflection|food\s+for\s+thought|questions?\s+for\s+reflection|للتأمل|تأمل|تأمّل|"
+    r"وقفة\s+تأمل|وقفة\s+تأملية|سؤال\s+للتأمل|أسئلة\s+للتأمل)[ \t]*[:：]?[ \t]*(?:\*\*|__)?[ \t]*[:：]?[ \t]*"
+    r"\n+(?=[ \t]*\S)",
+    re.IGNORECASE,
+)
+_LIST_MARKER = re.compile(r"\s*(?:(?:\d{1,3}|[٠-٩]{1,3})[.)]|[-*•])\s*")
+_ORPHAN_MARKER_LINE = re.compile(r"(?m)^[ \t]*(?:(?:\d{1,3}|[٠-٩]{1,3})[.)]|[-*•])[ \t]*$\n?")
 _LOOSE_REFS = re.compile(
     r"\[[^\[\]\n]*[0-9٠-٩][^\[\]\n]*\]"                                # [2:153], [Ibn Kathir 2:153]
     r"|[<{【⟨〈«][^<>{}【】⟨⟩〈〉«»\n]*[0-9٠-٩]{1,3}\s*[:/]\s*[0-9٠-٩]{1,3}[^<>{}【】⟨⟩〈〉«»\n]*[>}】⟩〉»]"
@@ -364,7 +373,11 @@ class ClaimGuard:
 
     # ------------------------------------------------------------- driver
     def check(self, answer: str) -> Tuple[str, ClaimReport]:
-        paragraphs = re.split(r"(\n{2,})", answer or "")
+        # A reflection heading on its own line ("**Reflection**", "### تأمل")
+        # labels the paragraph under it, as "**Reflection:** …" / "**تأمل:** …"
+        # does inline: one reflection policy for both forms and languages.
+        answer = _REFLECTION_HEADING.sub(lambda m: f"**{m.group('label').strip()}:** ", answer or "")
+        paragraphs = re.split(r"(\n{2,})", answer)
         out_paragraphs: List[str] = []
         for p_index, paragraph in enumerate(paragraphs):
             if p_index % 2 == 1:
@@ -379,8 +392,8 @@ class ClaimGuard:
                 if i % 2 == 1:
                     kept.append(part)
                     continue
-                if not part.strip():
-                    kept.append(part)
+                if not part.strip() or _LIST_MARKER.fullmatch(part):
+                    kept.append(part)  # a list marker ("2.", "٣.") is structure, not a claim
                     continue
                 verdict, prev_hadith = self._judge(part, para_chunks, reflection, prev_hadith)
                 if self.report.withheld:
@@ -391,6 +404,8 @@ class ClaimGuard:
                     self.report.removed.append(verdict)
             out_paragraphs.append("".join(kept))
         text = "".join(out_paragraphs)
+        # List markers whose item was removed ("…[49:13].\n2.\n\n2. **…**").
+        text = _ORPHAN_MARKER_LINE.sub("", text)
         text = re.sub(r"\n{3,}", "\n\n", text)
         return re.sub(r"[ \t]+\n", "\n", text).strip(), self.report
 

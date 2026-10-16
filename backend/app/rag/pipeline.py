@@ -119,6 +119,7 @@ from app.safety.grounding import (
     split_sentences,
     verify_quotations,
 )
+from app.safety.evidence_injection import split_tainted
 from app.safety.quran_answer_guard import QuranAnswerGuard
 from app.safety.xling import Lexicon
 from app.safety.quran_question_classifier import (
@@ -140,6 +141,10 @@ UNVERIFIED_SYNTHESIS_DIGEST_AR = (
     "تعذّر التحقق من الملخص الآلي بالكامل من المصادر، لذلك لم يُعرض. "
     "وتظهر أدناه نصوص التفسير المستشهد بها كما وردت."
 )
+
+
+# Stands in the prompt for text in a source that addressed the assistant.
+PLANTED_TEXT_OMITTED = "[omitted: text in this source addressed to the assistant]"
 
 
 class RAGPipeline:
@@ -972,6 +977,13 @@ class RAGPipeline:
                 content = chunk.content_en if language == "en" else chunk.content_ar
                 if not content:
                     content = chunk.content_ar or chunk.content_en or ""
+                # Instructions planted in a source never reach the model: the
+                # instruction and what it controls are cut from the prompt
+                # (the claim guard still sees them and treats them as data).
+                clean, tainted = split_tainted(content)
+                if tainted:
+                    logger.warning(f"[INJECTION] instructions removed from source {chunk.chunk_id} before generation")
+                    content = (clean.strip() + " " if clean.strip() else "") + PLANTED_TEXT_OMITTED
                 context_parts.append(
                     fence_source(chunk.chunk_id, chunk.source_name, chunk.verse_reference, content[:limit]) + "\n"
                 )
