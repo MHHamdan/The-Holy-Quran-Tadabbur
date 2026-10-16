@@ -1224,7 +1224,8 @@ class HybridRetriever:
             select(TafseerChunk, TafseerSource)
             .join(TafseerSource, TafseerChunk.source_id == TafseerSource.id)
             .where(or_(*conditions))
-            # SAFETY: only enabled, licence-verified sources
+            # SAFETY: only enabled (is_enabled is INTEGER: 1=enabled), licence-verified sources
+            .where(TafseerSource.is_enabled == 1)
             .where(self._retrievable_source_clause())
         )
         if preferred_sources:
