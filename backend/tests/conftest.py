@@ -99,8 +99,9 @@ def pytest_configure(config):
 #   tafsir_corpus         any row in tafseer_chunks
 #   translations          QuranEnc translation editions (seed_translations_quranenc.py)
 #   verse_markers         hizb/rub'/sajdah markers (seed_quran.py --markers-only)
-#   tafsir:S:A            a tafsir chunk covering surah S, ayah A
-#   tafsir_en:S:A         ... with English content
+#   tafsir:S:A            a servable tafsir passage covering surah S, ayah A
+#                         (enabled, license_verified=1 source, not a placeholder)
+#   tafsir_en:S:A         any stored chunk for S:A with English content (any source)
 #   verse_vector:S:A      verse S:A present in the Qdrant quran_verses collection
 _DATA_CACHE: dict = {}
 
@@ -128,12 +129,33 @@ def _data_present(key: str) -> bool:
             ok = _sql_exists("SELECT EXISTS (SELECT 1 FROM translation_editions)", ())
         elif kind == "tafsir_corpus":
             ok = _sql_exists("SELECT EXISTS (SELECT 1 FROM tafseer_chunks)", ())
-        elif kind in ("tafsir", "tafsir_en"):
+        elif kind == "tafsir":
+            # A passage the app can actually serve: an enabled, licence-verified
+            # source with real text, not an upstream "no tafsir for this verse"
+            # placeholder (mirrors is_tafsir_placeholder). A verse covered only
+            # by a source on licence hold skips instead of failing with 404.
+            from app.services.tafsir_sources import TAFSIR_PLACEHOLDER_TEXTS
+
             sura, aya = (int(x) for x in ref.split(":"))
-            extra = " AND COALESCE(content_en, '') <> ''" if kind == "tafsir_en" else ""
+            norm_ar = r"btrim(regexp_replace(COALESCE(c.content_ar, ''), '\s+', ' ', 'g'), ' .')"
+            ok = _sql_exists(
+                "SELECT EXISTS (SELECT 1 FROM tafseer_chunks c "
+                "JOIN tafseer_sources s ON s.id = c.source_id "
+                "WHERE c.sura_no = %s AND c.aya_start <= %s "
+                "AND COALESCE(c.aya_end, c.aya_start) >= %s "
+                "AND s.is_enabled = 1 AND s.license_verified = 1 "
+                "AND (" + norm_ar + " <> '' OR btrim(COALESCE(c.content_en, '')) <> '') "
+                "AND " + norm_ar + " <> ALL(%s))",
+                (sura, aya, aya, list(TAFSIR_PLACEHOLDER_TEXTS)),
+            )
+        elif kind == "tafsir_en":
+            # Raw rows with English content (any source): harnesses that pin
+            # retrieval to stored rows use it, not the served API.
+            sura, aya = (int(x) for x in ref.split(":"))
             ok = _sql_exists(
                 "SELECT EXISTS (SELECT 1 FROM tafseer_chunks WHERE sura_no = %s "
-                "AND aya_start <= %s AND COALESCE(aya_end, aya_start) >= %s" + extra + ")",
+                "AND aya_start <= %s AND COALESCE(aya_end, aya_start) >= %s "
+                "AND COALESCE(content_en, '') <> '')",
                 (sura, aya, aya),
             )
         elif kind == "verse_vector":
