@@ -11,6 +11,8 @@ SAFETY RULES:
 - NEVER mix embedding dimensions in one collection (checked before writing)
 - NEVER write placeholder vectors: without HF_TOKEN the script aborts
 - Chunks are marked ``is_embedded`` only after their batch is upserted
+- Only enabled, licence-verified sources are indexed; placeholder passages
+  are skipped. scripts/index/prune_tafseer_index.py removes stale points.
 
 Usage:
   python scripts/index/index_tafseer.py [--source muyassar_ar] [--limit 500]
@@ -34,6 +36,7 @@ from app.ai.embeddings import HFEmbeddingModel  # noqa: E402
 from app.ai.hf_client import hf_configured  # noqa: E402
 from app.core.config import settings  # noqa: E402
 from app.models.tafseer import TafseerChunk, TafseerSource  # noqa: E402
+from app.rag.retrieval import is_placeholder_text  # noqa: E402
 
 BATCH_SIZE = 32
 
@@ -107,13 +110,21 @@ def main():
             select(TafseerChunk, TafseerSource)
             .join(TafseerSource, TafseerChunk.source_id == TafseerSource.id)
             .where(TafseerChunk.is_embedded == 0)
+            # Only sources RAG may retrieve from (see retrieval.py); vectors
+            # for disabled or unlicensed sources are dead weight in top-k.
+            .where(TafseerSource.is_enabled == 1, TafseerSource.license_verified == 1)
             .order_by(TafseerChunk.id)
         )
         if args.source:
             query = query.where(TafseerChunk.source_id.in_(args.source))
         if args.limit:
             query = query.limit(args.limit)
-        rows = [(c, s) for c, s in session.execute(query).all() if (c.content_en or c.content_ar)]
+        # Never embed empty or placeholder ('لا يوجد تفسير') passages.
+        rows = [
+            (c, s) for c, s in session.execute(query).all()
+            if (c.content_en or c.content_ar)
+            and not is_placeholder_text(c.content_en) and not is_placeholder_text(c.content_ar)
+        ]
 
         if not rows:
             total = session.execute(select(TafseerChunk.id)).all()
