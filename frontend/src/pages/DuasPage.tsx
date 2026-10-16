@@ -28,6 +28,7 @@ import {
   type DuaCategory, type DuaOccasion, type QuranicDua,
 } from '../data/quranicDuas';
 import { shareContent } from '../lib/native';
+import { figureTranslations } from '../i18n/translations';
 
 const ALL_CATEGORIES = Object.keys(CATEGORY_META) as DuaCategory[];
 const ALL_OCCASIONS  = Object.keys(OCCASION_META)  as DuaOccasion[];
@@ -36,6 +37,16 @@ const ALL_OCCASIONS  = Object.keys(OCCASION_META)  as DuaOccasion[];
 const ALL_PROPHETS = Array.from(
   new Set(QURANIC_DUAS.map(d => d.prophet).filter(Boolean) as string[])
 ).sort();
+
+/** Prophet names are stored in English transliteration; show them in the UI language. */
+function prophetLabel(name: string, isRtl: boolean): string {
+  return isRtl ? (figureTranslations[name]?.ar ?? name) : name;
+}
+
+/** One numeral style per language: Arabic-Indic digits in the Arabic UI. */
+function formatCount(n: number, isRtl: boolean): string {
+  return n.toLocaleString(isRtl ? 'ar-EG' : 'en-US');
+}
 
 const ACCENT: Record<string, string> = {
   emerald: 'border-l-emerald-500 bg-emerald-50',
@@ -107,7 +118,7 @@ function CopyButton({ text, isRtl }: { text: string; isRtl: boolean }) {
       type="button"
       onClick={handle}
       aria-label={isRtl ? 'نسخ النص' : 'Copy text'}
-      className="flex items-center gap-1 text-xs text-gray-400 hover:text-teal-600 transition-colors px-2 py-1 rounded-lg hover:bg-teal-50"
+      className="flex min-h-8 items-center gap-1 text-xs text-gray-500 hover:text-teal-600 transition-colors px-2 py-1 rounded-lg hover:bg-teal-50"
     >
       {copied
         ? <><Check className="w-3.5 h-3.5 text-teal-500" /><span className="text-teal-500">{isRtl ? 'تم النسخ' : 'Copied'}</span></>
@@ -130,7 +141,7 @@ function ShareButton({ title, text, isRtl }: { title: string; text: string; isRt
       type="button"
       onClick={handle}
       aria-label={isRtl ? 'مشاركة' : 'Share'}
-      className="flex items-center gap-1 text-xs text-gray-400 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-violet-50"
+      className="flex min-h-8 items-center gap-1 text-xs text-gray-500 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-violet-50"
     >
       {shared
         ? <><Check className="w-3.5 h-3.5 text-violet-500" /><span className="text-violet-500">{isRtl ? 'تمت' : 'Shared'}</span></>
@@ -268,8 +279,8 @@ function DuaCard({
                 {isRtl ? meta.labelAr : meta.labelEn}
               </span>
               {dua.prophet && (
-                <span className="text-[11px] bg-amber-50 text-amber-700 ring-1 ring-amber-200 px-2 py-0.5 rounded-full">
-                  {dua.prophet}
+                <span className={clsx('text-[11px] bg-amber-50 text-amber-700 ring-1 ring-amber-200 px-2 py-0.5 rounded-full', isRtl && 'font-arabic')}>
+                  {prophetLabel(dua.prophet, isRtl)}
                 </span>
               )}
             </span>
@@ -291,10 +302,10 @@ function DuaCard({
           aria-label={isRtl
             ? (isFavorite ? 'إزالة من المحفوظات' : 'حفظ الدعاء')
             : (isFavorite ? 'Remove bookmark' : 'Bookmark')}
-          className="p-1 mt-1 rounded-lg hover:bg-rose-50 transition-colors flex-shrink-0"
+          className="-m-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg hover:bg-rose-50 transition-colors flex-shrink-0"
         >
           <Heart className={clsx(
-            'w-3.5 h-3.5 transition-colors',
+            'w-4 h-4 transition-colors',
             isFavorite ? 'fill-rose-400 text-rose-400' : 'text-gray-300 hover:text-rose-300',
           )} />
         </button>
@@ -320,7 +331,7 @@ function DuaCard({
                   <button
                     type="button"
                     onClick={() => setShowFull(v => !v)}
-                    className={clsx('text-xs text-sky-700 hover:underline px-2 py-1', isRtl && 'font-arabic')}
+                    className={clsx('min-h-8 text-xs text-sky-700 hover:underline px-2 py-1', isRtl && 'font-arabic')}
                   >
                     {showFull
                       ? (isRtl ? 'عرض المقتطف' : 'Show excerpt')
@@ -348,7 +359,7 @@ function DuaCard({
                   <button
                     type="button"
                     onClick={() => setHideTranslit(v => !v)}
-                    className="text-[10px] text-gray-400 hover:text-teal-600 flex items-center gap-1"
+                    className="min-h-6 px-2 text-[10px] text-gray-500 hover:text-teal-600 flex items-center gap-1"
                   >
                     {hideTranslit ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                     {hideTranslit ? 'Show' : 'Hide'}
@@ -373,7 +384,7 @@ function DuaCard({
                 <button
                   type="button"
                   onClick={() => setHideMeaning(v => !v)}
-                  className="text-[10px] text-gray-400 hover:text-teal-600 flex items-center gap-1"
+                  className="min-h-6 px-2 text-[10px] text-gray-500 hover:text-teal-600 flex items-center gap-1"
                 >
                   {hideMeaning ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                   {hideMeaning ? (isRtl ? 'إظهار' : 'Show') : (isRtl ? 'إخفاء' : 'Hide')}
@@ -439,7 +450,8 @@ function DuaCard({
             </div>
           )}
 
-          {/* Tags */}
+          {/* Tags are English search keywords, so they are shown in the English UI only */}
+          {!isRtl && (
           <div className="flex flex-wrap gap-1">
             {dua.tags.map(tag => (
               <span key={tag} className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full" dir="ltr">
@@ -447,12 +459,13 @@ function DuaCard({
               </span>
             ))}
           </div>
+          )}
 
           {/* Read in Mushaf */}
           <Link
             to={`/quran/${dua.surah}?aya=${dua.ayah}`}
             className={clsx(
-              'inline-flex items-center gap-1.5 text-xs font-medium text-teal-700 hover:text-teal-900 transition-colors',
+              'inline-flex min-h-8 items-center gap-1.5 text-xs font-medium text-teal-700 hover:text-teal-900 transition-colors',
               isRtl && 'font-arabic',
             )}
           >
@@ -534,7 +547,8 @@ export function DuasPage() {
         d.tags.some(t => t.includes(q)) ||
         d.surahNameEn.toLowerCase().includes(q) ||
         d.surahNameAr.includes(q) ||
-        (d.prophet?.toLowerCase().includes(q) ?? false)
+        (d.prophet?.toLowerCase().includes(q) ?? false) ||
+        (d.prophet ? (figureTranslations[d.prophet]?.ar ?? '').includes(q) : false)
       );
     });
   }, [search, selectedCategory, selectedOccasion, selectedProphet, favoritesOnly, favorites, randomId]);
@@ -568,7 +582,7 @@ export function DuasPage() {
         </h1>
         <p className={clsx('text-sm text-gray-500', isRtl && 'font-arabic')}>
           {isRtl
-            ? `${QURANIC_DUAS.length} دعاء مُرتَّب حسب ترتيب القرآن — بالنص العثماني والتشكيل والترجمة`
+            ? `${formatCount(QURANIC_DUAS.length, true)} دعاءً مُرتَّبًا حسب ترتيب القرآن — بالنص العثماني والتشكيل والترجمة`
             : `${QURANIC_DUAS.length} supplications in Quranic order — Uthmanic text, transliteration & meaning`}
         </p>
 
@@ -577,7 +591,7 @@ export function DuasPage() {
           <button
             onClick={() => setMemorizeMode(v => !v)}
             className={clsx(
-              'inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl transition-all',
+              'inline-flex min-h-11 items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl transition-all',
               memorizeMode
                 ? 'bg-teal-600 text-white shadow-md shadow-teal-200'
                 : 'bg-white border border-gray-200 text-gray-600 hover:border-teal-300 hover:text-teal-700',
@@ -592,7 +606,7 @@ export function DuasPage() {
           <button
             onClick={() => { setFavoritesOnly(v => !v); setRandomId(null); }}
             className={clsx(
-              'inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl transition-all',
+              'inline-flex min-h-11 items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl transition-all',
               favoritesOnly
                 ? 'bg-rose-500 text-white shadow-md shadow-rose-200'
                 : 'bg-white border border-gray-200 text-gray-600 hover:border-rose-300 hover:text-rose-600',
@@ -604,13 +618,13 @@ export function DuasPage() {
               <span className={clsx(
                 'text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.2rem] text-center',
                 favoritesOnly ? 'bg-white text-rose-500' : 'bg-rose-100 text-rose-600',
-              )}>{favorites.size}</span>
+              )}>{formatCount(favorites.size, isRtl)}</span>
             )}
           </button>
 
           <button
             onClick={pickRandom}
-            className="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl transition-all bg-white border border-gray-200 text-gray-600 hover:border-violet-300 hover:text-violet-700"
+            className="inline-flex min-h-11 items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl transition-all bg-white border border-gray-200 text-gray-600 hover:border-violet-300 hover:text-violet-700"
           >
             <Shuffle className="w-4 h-4" />
             {isRtl ? 'دعاء عشوائي' : 'Random'}
@@ -639,17 +653,19 @@ export function DuasPage() {
           className={clsx(
             'w-full bg-white border border-gray-200 rounded-xl py-2.5 text-sm',
             'focus:ring-2 focus:ring-teal-300 focus:border-teal-400 outline-none transition',
-            isRtl ? 'pr-9 pl-3 text-right font-arabic' : 'pl-9 pr-3',
+            isRtl ? 'pr-9 pl-11 text-right font-arabic' : 'pl-9 pr-11',
           )}
         />
         {search && (
           <button
+            type="button"
             onClick={() => setSearch('')}
+            aria-label={isRtl ? 'مسح البحث' : 'Clear search'}
             className={clsx(
-              'absolute top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600',
-              isRtl ? 'left-3' : 'right-3',
+              'absolute top-1/2 -translate-y-1/2 inline-flex min-h-11 min-w-11 items-center justify-center text-gray-400 hover:text-gray-600',
+              isRtl ? 'left-0' : 'right-0',
             )}
-          ><X className="w-3.5 h-3.5" /></button>
+          ><X className="w-4 h-4" /></button>
         )}
       </div>
 
@@ -661,13 +677,13 @@ export function DuasPage() {
         <button
           onClick={() => setSelectedCategory('all')}
           className={clsx(
-            'flex-shrink-0 text-xs px-3 py-1.5 rounded-full border transition-all whitespace-nowrap',
+            'flex-shrink-0 min-h-11 text-xs px-3 py-1.5 rounded-full border transition-all whitespace-nowrap',
             selectedCategory === 'all'
               ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
               : 'text-gray-600 border-gray-200 bg-white hover:border-teal-300',
           )}
         >
-          {isRtl ? 'الكل' : 'All'} · {categoryCounts.all}
+          {isRtl ? 'الكل' : 'All'} · {formatCount(categoryCounts.all ?? 0, isRtl)}
         </button>
 
         {ALL_CATEGORIES.map(cat => {
@@ -678,7 +694,7 @@ export function DuasPage() {
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={clsx(
-                'flex-shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all whitespace-nowrap',
+                'flex-shrink-0 min-h-11 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all whitespace-nowrap',
                 active
                   ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
                   : 'text-gray-600 border-gray-200 bg-white hover:border-teal-300',
@@ -688,7 +704,7 @@ export function DuasPage() {
               <span>{isRtl ? m.labelAr : m.labelEn}</span>
               {categoryCounts[cat] != null && (
                 <span className={clsx('text-[10px]', active ? 'text-teal-100' : 'text-gray-400')}>
-                  {categoryCounts[cat]}
+                  {formatCount(categoryCounts[cat] ?? 0, isRtl)}
                 </span>
               )}
             </button>
@@ -701,7 +717,7 @@ export function DuasPage() {
         <button
           onClick={() => setShowOccasions(v => !v)}
           className={clsx(
-            'flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all',
+            'flex min-h-11 items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all',
             selectedOccasion
               ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
               : 'text-gray-600 border-gray-200 bg-white hover:border-violet-300',
@@ -713,7 +729,7 @@ export function DuasPage() {
         <button
           onClick={() => setShowProphets(v => !v)}
           className={clsx(
-            'flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all',
+            'flex min-h-11 items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all',
             selectedProphet
               ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
               : 'text-gray-600 border-gray-200 bg-white hover:border-emerald-300',
@@ -723,7 +739,7 @@ export function DuasPage() {
           {selectedProphet && <X className="w-3 h-3 opacity-70" onClick={e => { e.stopPropagation(); setSelectedProphet(null); }} />}
         </button>
         {activeFilterCount > 0 && (
-          <button onClick={clearFilters} className="text-xs text-gray-400 hover:text-red-500 transition-colors px-2">
+          <button onClick={clearFilters} className="min-h-11 text-xs text-gray-500 hover:text-red-500 transition-colors px-2">
             {isRtl ? 'مسح الكل' : 'Clear all'}
           </button>
         )}
@@ -740,7 +756,7 @@ export function DuasPage() {
                 key={occ}
                 onClick={() => { setSelectedOccasion(active ? null : occ); setShowOccasions(false); }}
                 className={clsx(
-                  'flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-all',
+                  'flex min-h-9 items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-all',
                   active
                     ? 'bg-violet-600 text-white border-violet-600'
                     : 'bg-white text-gray-600 border-gray-200 hover:border-violet-300',
@@ -763,13 +779,14 @@ export function DuasPage() {
                 key={prophet}
                 onClick={() => { setSelectedProphet(active ? null : prophet); setShowProphets(false); }}
                 className={clsx(
-                  'text-xs px-2.5 py-1 rounded-full border transition-all',
+                  'min-h-9 text-xs px-2.5 py-1 rounded-full border transition-all',
+                  isRtl && 'font-arabic',
                   active
                     ? 'bg-emerald-600 text-white border-emerald-600'
                     : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300',
                 )}
               >
-                {prophet}
+                {prophetLabel(prophet, isRtl)}
               </button>
             );
           })}
@@ -782,15 +799,15 @@ export function DuasPage() {
           {selectedOccasion && (
             <span className="inline-flex items-center gap-1 text-[11px] bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">
               {OCCASION_META[selectedOccasion].emoji} {isRtl ? OCCASION_META[selectedOccasion].labelAr : OCCASION_META[selectedOccasion].labelEn}
-              <button onClick={() => setSelectedOccasion(null)} className="hover:text-red-500">
+              <button type="button" onClick={() => setSelectedOccasion(null)} aria-label={isRtl ? 'إزالة الفلتر' : 'Remove filter'} className="inline-flex min-h-6 min-w-6 items-center justify-center hover:text-red-500">
                 <X className="w-3 h-3" />
               </button>
             </span>
           )}
           {selectedProphet && (
             <span className="inline-flex items-center gap-1 text-[11px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
-              🕌 {selectedProphet}
-              <button onClick={() => setSelectedProphet(null)} className="hover:text-red-500">
+              🕌 {prophetLabel(selectedProphet, isRtl)}
+              <button type="button" onClick={() => setSelectedProphet(null)} aria-label={isRtl ? 'إزالة الفلتر' : 'Remove filter'} className="inline-flex min-h-6 min-w-6 items-center justify-center hover:text-red-500">
                 <X className="w-3 h-3" />
               </button>
             </span>
@@ -803,7 +820,7 @@ export function DuasPage() {
         {randomId
           ? (isRtl ? 'دعاء عشوائي' : 'Random pick')
           : (isRtl
-              ? `عرض ${filtered.length} من ${QURANIC_DUAS.length} دعاء`
+              ? `عرض ${formatCount(filtered.length, true)} من ${formatCount(QURANIC_DUAS.length, true)} دعاءً`
               : `Showing ${filtered.length} of ${QURANIC_DUAS.length} duʿā`)}
         {search && ` · "${search}"`}
       </p>
@@ -816,7 +833,7 @@ export function DuasPage() {
             {isRtl ? 'لا توجد نتائج' : 'No results found'}
           </p>
           {activeFilterCount > 0 && (
-            <button onClick={clearFilters} className="mt-3 text-xs text-teal-600 hover:underline">
+            <button onClick={clearFilters} className="mt-3 min-h-11 px-3 text-xs text-teal-600 hover:underline">
               {isRtl ? 'مسح الفلاتر' : 'Clear filters'}
             </button>
           )}
