@@ -46,7 +46,10 @@ export function rememberTasmeeSession(id: string, token: string): void {
   const cutoff = Date.now() - REMEMBER_DAYS * 86_400_000;
   const rows = listTasmeeSessions().filter((r) => r.createdAt >= cutoff && r.id !== id);
   rows.push({ id, token, createdAt: Date.now() });
-  try { localStorage.setItem(TASMEE_SESSIONS_STORAGE_KEY, JSON.stringify(rows.slice(-200))); } catch { /* storage unavailable */ }
+  // Pruned by age only: the server keeps rows for up to 90 days, so every key
+  // from that window must stay here or its row could not be deleted on request
+  // (deleteRememberedTasmeeSessions batches by 200).
+  try { localStorage.setItem(TASMEE_SESSIONS_STORAGE_KEY, JSON.stringify(rows)); } catch { /* storage unavailable */ }
 }
 
 /**

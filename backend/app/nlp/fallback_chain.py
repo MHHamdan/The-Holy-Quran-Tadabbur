@@ -31,15 +31,26 @@ from app.nlp.providers.stanza import StanzaProvider
 logger = logging.getLogger(__name__)
 
 
+def _setting(name: str):
+    """Read an NLP default from app settings at construction time."""
+    from app.core.config import settings
+
+    return getattr(settings, name)
+
+
 @dataclass
 class ChainConfig:
-    """Configuration for the NLP fallback chain."""
-    min_confidence: float = 0.6  # Minimum confidence to accept result
-    enable_farasa: bool = True
-    enable_camel: bool = True
-    enable_stanza: bool = True
-    enable_llm: bool = True
-    farasa_use_api: bool = False  # Use local library by default
+    """Configuration for the NLP fallback chain.
+
+    Defaults come from settings (NLP_* env vars), so CAMeL Tools and Stanza
+    stay off unless NLP_ENABLE_CAMEL / NLP_ENABLE_STANZA turn them on.
+    """
+    min_confidence: float = field(default_factory=lambda: _setting("nlp_min_confidence"))
+    enable_farasa: bool = field(default_factory=lambda: _setting("nlp_enable_farasa"))
+    enable_camel: bool = field(default_factory=lambda: _setting("nlp_enable_camel"))
+    enable_stanza: bool = field(default_factory=lambda: _setting("nlp_enable_stanza"))
+    enable_llm: bool = field(default_factory=lambda: _setting("nlp_enable_llm"))
+    farasa_use_api: bool = field(default_factory=lambda: _setting("nlp_farasa_use_api"))
     cache_results: bool = True
 
 

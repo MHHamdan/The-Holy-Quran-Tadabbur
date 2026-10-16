@@ -978,7 +978,7 @@ export function QuranPage() {
                     onMouseEnter={() => prefetchGrammar(verse.sura_no, verse.aya_no)}
                     title={language === 'ar' ? 'إعراب' : 'Grammar'}
                     className={clsx(
-                      'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg font-medium transition-colors',
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 min-h-11 text-xs rounded-lg font-medium transition-colors',
                       showGrammar
                         ? 'bg-primary-100 text-primary-700'
                         : 'text-gray-500 hover:bg-gray-100',
@@ -993,7 +993,7 @@ export function QuranPage() {
                     onMouseEnter={() => prefetchSimilar(verse.sura_no, verse.aya_no)}
                     title={language === 'ar' ? 'آيات متشابهة' : 'Similar verses'}
                     className={clsx(
-                      'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg font-medium transition-colors',
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 min-h-11 text-xs rounded-lg font-medium transition-colors',
                       showSimilar
                         ? 'bg-emerald-100 text-emerald-700'
                         : 'text-gray-500 hover:bg-gray-100',
@@ -1008,7 +1008,7 @@ export function QuranPage() {
                     onMouseEnter={() => prefetchTafsir(verse.sura_no, verse.aya_no)}
                     title={language === 'ar' ? 'التفسير' : 'Tafsir'}
                     className={clsx(
-                      'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg font-medium transition-colors',
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 min-h-11 text-xs rounded-lg font-medium transition-colors',
                       showTafsir
                         ? 'bg-amber-100 text-amber-700'
                         : 'text-gray-500 hover:bg-gray-100',
@@ -1024,7 +1024,7 @@ export function QuranPage() {
                     <button
                       onClick={() => copyVerse(verse, listDisplayText)}
                       title={language === 'ar' ? 'نسخ الآية' : 'Copy verse'}
-                      className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="inline-flex items-center justify-center min-h-11 min-w-11 p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       {isCopied
                         ? <Check className="w-3.5 h-3.5 text-green-500" />
@@ -1036,14 +1036,14 @@ export function QuranPage() {
                       disabled={imageBusyId === verse.id}
                       title={language === 'ar' ? 'مشاركة كصورة' : 'Share as image'}
                       aria-label={language === 'ar' ? 'مشاركة كصورة' : 'Share as image'}
-                      className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40"
+                      className="inline-flex items-center justify-center min-h-11 min-w-11 p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40"
                     >
                       <ImageIcon className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => shareVerse(verse, listDisplayText)}
                       title={language === 'ar' ? 'مشاركة' : 'Share'}
-                      className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="inline-flex items-center justify-center min-h-11 min-w-11 p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <Share2 className="w-3.5 h-3.5" />
                     </button>
@@ -1066,7 +1066,7 @@ export function QuranPage() {
                         ? (language === 'ar' ? 'إزالة الإشارة' : 'Remove bookmark')
                         : (language === 'ar' ? 'حفظ' : 'Bookmark')}
                       className={clsx(
-                        'p-1.5 rounded-lg transition-colors',
+                        'inline-flex items-center justify-center min-h-11 min-w-11 p-1.5 rounded-lg transition-colors',
                         isBookmarked(verse.id)
                           ? 'text-amber-500 hover:bg-amber-50'
                           : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50',
@@ -1080,7 +1080,7 @@ export function QuranPage() {
                     <Link
                       to={`/search?q=${encodeURIComponent(verse.sura_name_ar + ' ' + verse.aya_no)}`}
                       title={language === 'ar' ? 'بحث' : 'Search'}
-                      className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="inline-flex items-center justify-center min-h-11 min-w-11 p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <Search className="w-3.5 h-3.5" />
                     </Link>

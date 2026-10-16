@@ -30,6 +30,7 @@ import {
   getPrayerTimes,
   geocodeAddress,
   reverseGeocode,
+  placeLabel,
   PRAYER_METHODS,
   type PrayerTimesResponse,
   formatPrayerTime,
@@ -690,20 +691,20 @@ function PrayerTimesPageContent() {
   useEffect(() => {
     if (geoState.coords && !location) {
       const { latitude, longitude } = geoState.coords;
-      reverseGeocode(latitude, longitude).then((locationInfo) => {
+      reverseGeocode(latitude, longitude, isArabic ? 'ar' : 'en').then((locationInfo) => {
         setLocationState((current) =>
           current ?? {
             lat: latitude,
             lng: longitude,
             name: locationInfo?.city
-              ? [locationInfo.city, locationInfo.country].filter(Boolean).join(', ')
+              ? placeLabel(locationInfo, isArabic ? 'ar' : 'en')
               : `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`,
             source: 'device',
           }
         );
       });
     }
-  }, [geoState.coords, location]);
+  }, [geoState.coords, location, isArabic]);
 
   // No silent fallback: when geolocation fails the page asks the user to
   // search for a city (or to choose Makkah explicitly) via LocationFallback.
@@ -727,14 +728,12 @@ function PrayerTimesPageContent() {
       setSearchError(null);
 
       try {
-        const result = await geocodeAddress(query);
+        const result = await geocodeAddress(query, isArabic ? 'ar' : 'en');
         if (result) {
           chooseLocation({
             lat: result.latitude,
             lng: result.longitude,
-            name: result.city
-              ? [result.city, result.country].filter(Boolean).join(', ')
-              : result.displayName.split(',').slice(0, 2).join(','),
+            name: placeLabel(result, isArabic ? 'ar' : 'en'),
             source: 'manual',
           });
           setShowSettings(false);

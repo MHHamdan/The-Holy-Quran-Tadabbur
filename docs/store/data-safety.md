@@ -1,7 +1,7 @@
 # Store privacy answers (draft for owner review)
 
 Google Play **Data safety** form and App Store Connect **App Privacy** labels,
-derived from the code as of 2026-10-15 (refreshed after the privacy and deletion fixes). These are drafts: the owner submits the
+derived from the code as of 2026-10-16 (refreshed after search history stopped being recorded). These are drafts: the owner submits the
 final answers and must decide the items marked **OWNER DECISION**.
 
 Sources of truth that must stay in step with this file:
@@ -20,7 +20,7 @@ Sources of truth that must stay in step with this file:
 | Spiritual-guidance message (guidance and its chat mode) | Backend, processed by Hugging Face | Message **not stored**; detected feeling, theme, verse references and any reflection the user saves, without identity, up to 180 days (purged daily). Each session has a server-generated id and a secret token held only by the device (SHA-256 stored); reading, writing and deleting need the token. Legacy rows from before tokens existed (no stored hash) cannot be proved to belong to any device, so they are not deletable on request (an id alone never deletes a row); they expire through the 180-day purge, and `/privacy` says so | `backend/app/api/routes/therapy.py` (`THERAPY_RETENTION_DAYS`, `purge_expired_private_data`, `delete_sessions`) |
 | Recitation audio (Tasmeeʿ) | Streamed to the backend, transcribed by Hugging Face | Audio never written to disk; recognised words and possible slips of each session, without identity, up to 90 days (purged daily); token-protected like guidance sessions | `backend/app/api/routes/tasmee.py` (`TASMEE_RETENTION_DAYS`) |
 | Feedback | Backend | Message text and page URL; not linked to the device, so not reachable by "Delete my data"; no retention limit yet (**OWNER DECISION**) | `backend/app/api/routes/feedback.py` |
-| Search queries | Backend (meaning-based search also via Hugging Face) | The device's recent searches may sit in server memory under its random session key, returned only to that key, for up to 30 days (expired entries are dropped from memory by the daily purge) or until restart; never aggregated or shown to others; "Delete my data" clears them. The device also keeps its own recent-search list | `backend/app/services/search_history.py` (`SEARCH_HISTORY_TTL_DAYS`), `backend/app/api/routes/therapy.py` (`purge_expired_search_history`) |
+| Search queries | Backend, to run the search (meaning-based search also via Hugging Face) | Processed to serve the request only; the app no longer records searches (`searchHistoryStore.recordSearch` keeps them in page memory only, nothing is persisted on the device or posted to `/quran/history`). Entries that earlier test builds posted sit in server memory under the device's random session key for up to 30 days (daily purge) or until restart; "Delete my data" still clears them | `frontend/src/stores/searchHistoryStore.ts`, `backend/app/services/search_history.py` (`SEARCH_HISTORY_TTL_DAYS`), `backend/app/api/routes/therapy.py` (`purge_expired_search_history`) |
 | Dhikr counts | Device only (this version sends nothing) | Older app versions sent anonymous daily totals (date, category, counts; no identifier); the server deletes them after 30 days | `frontend/src/pages/DhikrPage.tsx`, `backend/app/api/routes/adhkar.py` (`DHIKR_RETENTION_DAYS`) |
 | Location | Device → AlAdhan, OpenStreetMap (Nominatim, Overpass) directly, rounded to 2 decimals (about 1 km) before it leaves the device; never to our server | Last position cached on the device only (exact value used on the device for the Qibla) | `frontend/src/lib/islamicApis.ts` (`coarsen`), `frontend/src/pages/tools/MosqueFinderPage.tsx` |
 | IP address | Backend rate limiter | In memory about a minute; not logged | rate limiting |
@@ -56,11 +56,12 @@ and the page says so.
 | App activity → In-app search history | Yes | No | No | Optional | App functionality |
 | App activity → Other user-generated content (questions, reflections, feedback) | Yes | No | No | Optional | App functionality |
 
-Search history is **not** ephemeral in Play's sense (held only in memory for
-as long as it takes to serve the request): the server keeps a device's recent
-searches in memory for up to 30 days and returns them later, so the answer is
-No. Dropping the server copy (the device already keeps its own list) would be
-the only way to answer Yes.
+Search history is declared **not** ephemeral, conservatively. This version
+processes queries only to serve the request and keeps no search list on the
+device or the server, but the server's `/quran/history` endpoint still accepts
+entries (earlier builds posted to it) and keeps them in memory for up to 30
+days. **OWNER DECISION**: once that endpoint is removed, the answer can become
+Yes (ephemeral).
 
 Play treats data sent to a service provider that processes it on the
 developer's behalf (Hugging Face) as not "shared". Data the device sends
@@ -78,6 +79,10 @@ Matches `PrivacyInfo.xcprivacy` (`NSPrivacyCollectedDataTypes`):
 | Other User Content | No | No | App Functionality |
 | Search History | No | No | App Functionality |
 | Coarse Location | No | No | App Functionality |
+
+Search History is declared conservatively: queries reach the backend to be
+served, though nothing is stored for later use. **OWNER DECISION** whether to
+drop it (it would then also come out of `PrivacyInfo.xcprivacy`).
 
 Required-reason API declared: File Timestamp, reason C617.1
 (`@capacitor/filesystem`).

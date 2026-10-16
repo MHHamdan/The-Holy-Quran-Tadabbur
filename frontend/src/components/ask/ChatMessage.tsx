@@ -196,14 +196,17 @@ function AssistantMessage({
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-400">
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {response.processing_time_ms < 1000
+                {language === 'ar'
+                  ? `${(response.processing_time_ms / 1000).toLocaleString('ar-EG', { maximumFractionDigits: 1 })} ث`
+                  : response.processing_time_ms < 1000
                   ? `${response.processing_time_ms}ms`
                   : `${(response.processing_time_ms / 1000).toFixed(1)}s`}
               </span>
               {hasCitations && (
                 <span>
-                  {response.citations.length} {language === 'ar' ? 'مصدر' : 'citation'}
-                  {response.citations.length > 1 && (language === 'ar' ? '' : 's')}
+                  {language === 'ar'
+                    ? `المصادر: ${response.citations.length.toLocaleString('ar-EG')}`
+                    : `${response.citations.length} citation${response.citations.length > 1 ? 's' : ''}`}
                 </span>
               )}
               {response.evidence_density && (
@@ -778,14 +781,14 @@ function ConfidenceBadge({ confidence, language }: { confidence: number; languag
     : 'bg-red-100 text-red-700 border-red-200';
 
   const label = confidence >= 0.7
-    ? (language === 'ar' ? 'ممتاز' : 'High')
+    ? (language === 'ar' ? 'مرتفعة' : 'High')
     : confidence >= 0.4
-    ? (language === 'ar' ? 'متوسط' : 'Medium')
-    : (language === 'ar' ? 'منخفض' : 'Low');
+    ? (language === 'ar' ? 'متوسطة' : 'Medium')
+    : (language === 'ar' ? 'منخفضة' : 'Low');
 
   return (
     <span className={clsx('text-[10px] sm:text-xs font-medium px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg border whitespace-nowrap', colorScheme)}>
-      {percent}% <span className="hidden xs:inline">{language === 'ar' ? 'ثقة' : 'confidence'}</span> ({label})
+      {language === 'ar' ? `${percent.toLocaleString('ar-EG')}٪` : `${percent}%`} <span className="hidden xs:inline">{language === 'ar' ? 'ثقة' : 'confidence'}</span> ({label})
     </span>
   );
 }

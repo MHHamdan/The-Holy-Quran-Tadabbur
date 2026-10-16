@@ -95,8 +95,9 @@ function getDailyDuaId(): string {
 // ─── Reference helpers ────────────────────────────────────────────────────────
 
 /** "1:6–7" — always rendered inside <bdi dir="ltr"> so Arabic text cannot reorder it. */
-function formatAyahRef(surah: number, ayah: number, ayahEnd?: number): string {
-  return `${surah}:${ayah}${ayahEnd ? `–${ayahEnd}` : ''}`;
+function formatAyahRef(surah: number, ayah: number, ayahEnd: number | undefined, isRtl: boolean): string {
+  const n = (x: number) => formatCount(x, isRtl);
+  return `${n(surah)}:${n(ayah)}${ayahEnd ? `–${n(ayahEnd)}` : ''}`;
 }
 
 /** LRI…PDI: keeps a reference left-to-right inside shared or copied plain text. */
@@ -233,7 +234,7 @@ function DuaCard({
   const bodyId = `dua-body-${dua.id}`;
 
   const surahName = isRtl ? dua.surahNameAr : dua.surahNameEn;
-  const ayahRef = formatAyahRef(dua.surah, dua.ayah, dua.ayahEnd);
+  const ayahRef = formatAyahRef(dua.surah, dua.ayah, dua.ayahEnd, isRtl);
 
   const { data: liveVerses } = useQuery({
     queryKey: ['dua-verses', dua.surah, dua.ayah, dua.ayahEnd ?? null, isRtl ? 'ar' : 'en'],
@@ -304,7 +305,7 @@ function DuaCard({
               {isRtl ? dua.titleAr : dua.titleEn}
             </span>
             <span className={clsx('block text-[11px] text-gray-400 mt-0.5', isRtl && 'font-arabic')}>
-              {surahName} · <bdi dir="ltr">{ayahRef}</bdi>
+              {surahName}{isRtl ? '، ' : ' · '}<bdi dir="ltr">{ayahRef}</bdi>
             </span>
           </span>
           <span className="text-gray-300 flex-shrink-0 mt-1" aria-hidden="true">
@@ -699,7 +700,7 @@ export function DuasPage() {
               : 'text-gray-600 border-gray-200 bg-white hover:border-teal-300',
           )}
         >
-          {isRtl ? 'الكل' : 'All'} · {formatCount(categoryCounts.all ?? 0, isRtl)}
+          {isRtl ? 'الكل، ' : 'All · '}{formatCount(categoryCounts.all ?? 0, isRtl)}
         </button>
 
         {ALL_CATEGORIES.map(cat => {

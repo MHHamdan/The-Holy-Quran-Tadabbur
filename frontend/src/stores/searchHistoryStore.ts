@@ -1,10 +1,9 @@
 /**
  * Search History Store
  *
- * Manages user session and search history for personalization:
- * - Persistent session ID
- * - Local search history cache
- * - API integration for recording and retrieving
+ * Recent searches live in memory for the open page only. The persisted
+ * session id is kept so "Delete my data" can still clear any server copy
+ * that earlier builds recorded under it (DELETE /quran/history).
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -72,46 +71,24 @@ export const useSearchHistoryStore = create<SearchHistoryState>()(
       isLoadingRecommendations: false,
 
       // Record a search query
-      recordSearch: async (query: string, queryType = 'text', resultCount = 0, themes?: string[]) => {
-        const { sessionId } = get();
-        try {
-          await quranApi.recordSearch(sessionId, {
-            query,
-            query_type: queryType,
-            result_count: resultCount,
-            themes,
-          });
-
-          // Optimistically update local cache
-          const newEntry: SearchHistoryEntry = {
-            query,
-            query_type: queryType,
-            timestamp: new Date().toISOString(),
-            result_count: resultCount,
-            clicked_verses: [],
-          };
-
-          set((state) => ({
-            recentSearches: [newEntry, ...state.recentSearches.slice(0, 19)],
-          }));
-        } catch (error) {
-          console.error('Failed to record search:', error);
-        }
+      // Record a search query: in this page's memory only. Searches are not
+      // sent to the server's history endpoint (nothing in the app reads a
+      // server copy back) and are not persisted on the device; see /privacy.
+      recordSearch: async (query: string, queryType = 'text', resultCount = 0, _themes?: string[]) => {
+        const newEntry: SearchHistoryEntry = {
+          query,
+          query_type: queryType,
+          timestamp: new Date().toISOString(),
+          result_count: resultCount,
+          clicked_verses: [],
+        };
+        set((state) => ({
+          recentSearches: [newEntry, ...state.recentSearches.slice(0, 19)],
+        }));
       },
 
-      // Record a verse click
-      recordVerseClick: async (suraNo: number, ayaNo: number, context = 'search') => {
-        const { sessionId } = get();
-        try {
-          await quranApi.recordVerseClick(sessionId, {
-            sura_no: suraNo,
-            aya_no: ayaNo,
-            context,
-          });
-        } catch (error) {
-          console.error('Failed to record verse click:', error);
-        }
-      },
+      // Verse clicks are not recorded anywhere (data minimisation).
+      recordVerseClick: async (_suraNo: number, _ayaNo: number, _context = 'search') => {},
 
       // Load search history from server
       loadHistory: async (limit = 20, queryType?: string) => {

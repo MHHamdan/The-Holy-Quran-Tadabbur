@@ -339,6 +339,8 @@ export function GrammarAnalysisView({ suraNo, ayaNo, verseText }: Props) {
 
   if (!analysis) return null;
 
+  // English note the API adds to its degraded-mode responses (not yet in lib/api.ts).
+  const notesEn = (analysis as typeof analysis & { notes_en?: string }).notes_en;
   const isUnavailableResult = analysis.source === 'unavailable' || analysis.source === 'error';
   const hasNoTokens = !analysis.tokens || analysis.tokens.length === 0;
 
@@ -410,9 +412,15 @@ export function GrammarAnalysisView({ suraNo, ayaNo, verseText }: Props) {
 
       {/* Notes */}
       {analysis.notes_ar && !analysis.notes_ar.includes('تعذّر') && (
-        <div className="text-sm bg-amber-50 border border-amber-200 rounded-xl p-3 text-right leading-relaxed font-arabic text-amber-900">
-          {analysis.notes_ar}
-        </div>
+        language === 'en' && notesEn ? (
+          <div className="text-sm bg-amber-50 border border-amber-200 rounded-xl p-3 text-left leading-relaxed text-amber-900" dir="ltr" lang="en">
+            {notesEn}
+          </div>
+        ) : (
+          <div className="text-sm bg-amber-50 border border-amber-200 rounded-xl p-3 text-right leading-relaxed font-arabic text-amber-900" dir="rtl" lang="ar">
+            {analysis.notes_ar}
+          </div>
+        )
       )}
 
       {/* Token grid */}

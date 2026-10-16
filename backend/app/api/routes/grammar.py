@@ -74,6 +74,10 @@ class GrammarResponse(BaseModel):
     sentence_type: str
     tokens: List[TokenResponse]
     notes_ar: str = ""
+    # English counterpart of the route's own degraded-mode notes (unavailable,
+    # timeout, error, static fallback); empty when the notes come from the
+    # analysis itself.
+    notes_en: str = ""
     overall_confidence: float
     source: str  # "corpus", "llm", "hybrid", "fallback"
 
@@ -159,6 +163,7 @@ async def analyze_text(
             sentence_type="غير محدد",
             tokens=[],
             notes_ar="خدمة التحليل النحوي غير متاحة حالياً. يرجى المحاولة لاحقاً.",
+            notes_en="Grammar analysis is unavailable right now. Please try again later.",
             overall_confidence=0.0,
             source="unavailable",
         )
@@ -219,6 +224,7 @@ async def analyze_text(
                     for t in static_result.tokens
                 ],
                 notes_ar="تم استخدام البيانات الثابتة بسبب انتهاء المهلة.",
+                notes_en="The analysis timed out, so the stored (static) analysis is shown.",
                 overall_confidence=static_result.overall_confidence,
                 source="static",
             )
@@ -229,6 +235,7 @@ async def analyze_text(
             sentence_type="غير محدد",
             tokens=[],
             notes_ar="انتهت مهلة التحليل. حاول مرة أخرى.",
+            notes_en="The analysis timed out. Please try again.",
             overall_confidence=0.0,
             source="timeout",
         )
@@ -259,6 +266,7 @@ async def analyze_text(
                     for t in static_result.tokens
                 ],
                 notes_ar="تم استخدام البيانات الثابتة.",
+                notes_en="The stored (static) analysis is shown.",
                 overall_confidence=static_result.overall_confidence,
                 source="static",
             )
@@ -269,6 +277,7 @@ async def analyze_text(
             sentence_type="غير محدد",
             tokens=[],
             notes_ar="حدث خطأ أثناء التحليل. حاول مرة أخرى.",
+            notes_en="An error occurred during the analysis. Please try again.",
             overall_confidence=0.0,
             source="error",
         )
@@ -375,6 +384,7 @@ async def analyze_ayah(
             sentence_type="غير محدد",
             tokens=[],
             notes_ar="خدمة التحليل النحوي غير متاحة حالياً. يرجى المحاولة لاحقاً.",
+            notes_en="Grammar analysis is unavailable right now. Please try again later.",
             overall_confidence=0.0,
             source="unavailable",
         )
@@ -433,6 +443,7 @@ async def analyze_ayah(
                     for t in static_result.tokens
                 ],
                 notes_ar="تم استخدام البيانات الثابتة.",
+                notes_en="The stored (static) analysis is shown.",
                 overall_confidence=static_result.overall_confidence,
                 source="static",
             )
@@ -443,6 +454,7 @@ async def analyze_ayah(
             sentence_type="غير محدد",
             tokens=[],
             notes_ar="حدث خطأ أثناء التحليل. حاول مرة أخرى.",
+            notes_en="An error occurred during the analysis. Please try again.",
             overall_confidence=0.0,
             source="error",
         )

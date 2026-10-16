@@ -5356,6 +5356,16 @@ async def arabic_semantic_search(
         include_life_lessons=include_life_lessons,
     )
 
+    # Without the embedding model the service falls back to hashed term
+    # vectors: say so, in both languages, like /search/semantic does.
+    if isinstance(results, dict) and results.get("model_used") == "fallback":
+        results = {
+            **results,
+            "degraded": "ai_unavailable",
+            "message_ar": "البحث الدلالي غير متاح مؤقتاً، فالنتائج تقريبية أو غير متوفرة.",
+            "message_en": "Semantic search is temporarily unavailable, so results are approximate or missing.",
+        }
+
     return results
 
 

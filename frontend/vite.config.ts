@@ -8,6 +8,7 @@ import path from 'path'
 import { createHash } from 'crypto'
 import os from 'os'
 import { apiUrlProblem, canonicalApiMatcher } from './src/lib/buildPolicy'
+import { secretEnvProblem } from './src/lib/envSecretPolicy'
 
 /**
  * Vite Configuration - Optimized for FAANG-level Performance
@@ -29,6 +30,9 @@ const enforceApiUrlPolicy = {
   configResolved(config: { mode: string; env: Record<string, unknown> }) {
     const problem = apiUrlProblem(config.mode, config.env.VITE_API_URL as string | undefined, process.env.ALLOW_LOCAL_API_URL === 'true')
     if (problem) throw new Error(problem)
+    // VITE_* values are inlined into the public bundle: refuse secret-looking names.
+    const secret = secretEnvProblem(config.env)
+    if (secret) throw new Error(secret)
   },
 }
 
@@ -209,7 +213,9 @@ export default defineConfig(({ mode }) => ({
       // worker (it would only serve stale copies after an app update).
       disable: mode === 'mobile' || mode === 'mobile-dev',
       injectRegister: false,
-      includeAssets: ['favicon.svg', 'icons/*.png'],
+      // No includeAssets: favicon.svg and icons/*.png are already matched by
+      // workbox.globPatterns below; listing them here too put each icon twice
+      // in the precache manifest.
       manifest: false, // we manage manifest.json ourselves in /public
       workbox: {
         // App shell: hashed JS/CSS + index.html, precached and versioned per build.

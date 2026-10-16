@@ -36,6 +36,7 @@ import {
 import { useLanguageStore } from '../../stores/languageStore';
 import { t } from '../../i18n/translations';
 import { getSourceById } from '../../data/sourceRegistry';
+import { formatCount, licenceLabel, licenceUnderReview, sourceHost } from './licenceLabels';
 
 interface Props {
   surah: number;
@@ -138,13 +139,14 @@ function SourceHeader({
             {author}
             {entry.death_year_hijri != null && (
               <span className="text-stone-400">
-                {' · '}
+                {uiLanguage === 'ar' ? '، ' : ' · '}
                 {t('tafsir_compare_died', uiLanguage)}{' '}
                 {/* European digits inside an Arabic run reorder under UAX #9
                     rule N2 unless isolated, which is what <bdi> is for. */}
                 <bdi>
-                  {entry.death_year_hijri} {t('tafsir_compare_hijri', uiLanguage)}
-                  {entry.death_year_ce != null && ` / ${entry.death_year_ce} CE`}
+                  {formatCount(entry.death_year_hijri, uiLanguage)} {t('tafsir_compare_hijri', uiLanguage)}
+                  {entry.death_year_ce != null &&
+                    ` / ${formatCount(entry.death_year_ce, uiLanguage)} ${uiLanguage === 'ar' ? 'م' : 'CE'}`}
                 </bdi>
               </span>
             )}
@@ -169,7 +171,7 @@ function SourceHeader({
           </span>
         )}
         <span className="text-xs text-stone-400 tabular-nums">
-          <bdi>{entry.word_count.toLocaleString()}</bdi>{' '}
+          <bdi>{formatCount(entry.word_count, uiLanguage)}</bdi>{' '}
           {t('tafsir_compare_words', uiLanguage)}
         </span>
       </div>
@@ -189,7 +191,10 @@ function EntryAttribution({
   uiLanguage: 'ar' | 'en';
 }) {
   const ar = uiLanguage === 'ar';
-  const licence = entry.license || entry.license_type;
+  const licence = licenceLabel(entry.license, entry.license_type, uiLanguage);
+  const underReview = licenceUnderReview(entry.license, entry.license_verified);
+  // Flex gap separates the parts; a leading Arabic comma would start a wrapped line.
+  const sep = ar ? '' : '· ';
   return (
     <p
       className={clsx(
@@ -200,32 +205,41 @@ function EntryAttribution({
     >
       <span>
         {ar ? 'المصدر: ' : 'Source: '}
-        {entry.source_url ? (
-          <a
-            href={entry.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-stone-700"
-            dir="ltr"
-          >
-            {entry.source_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-          </a>
-        ) : (
-          <bdi dir="ltr">{entry.source_id}</bdi>
+        <bdi dir="ltr" className="font-mono">{entry.source_id}</bdi>
+        {entry.source_url && (
+          <>
+            {' ('}
+            <a
+              href={entry.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-stone-700"
+              dir="ltr"
+              title={entry.source_url}
+            >
+              {sourceHost(entry.source_url)}
+            </a>
+            {')'}
+          </>
         )}
       </span>
-      {licence && (
+      {(licence || underReview) && (
         <span>
-          {'· '}
+          {sep}
           {ar ? 'الترخيص: ' : 'Licence: '}
-          {/* Licence strings are stored in English. */}
-          <span dir="ltr" lang="en">{licence}</span>
-          {!entry.license_verified && (ar ? ' (قيد التحقق)' : ' (under review)')}
+          {licence && (
+            <span dir={licence.lang === 'ar' ? 'rtl' : 'ltr'} lang={licence.lang}>{licence.text}</span>
+          )}
+          {underReview && (
+            <span className="ms-1 rounded bg-amber-50 px-1 text-amber-800" data-testid="licence-under-review">
+              {ar ? '(قيد المراجعة)' : '(under review)'}
+            </span>
+          )}
         </span>
       )}
       {entry.translator && (
         <span>
-          {'· '}
+          {sep}
           {ar ? 'ترجمة: ' : 'tr. '}
           <span dir="ltr" lang="en">{entry.translator}</span>
         </span>
@@ -372,13 +386,15 @@ function ComparisonStats({
               className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-stone-600"
             >
               <span className="font-medium text-stone-800">{nameOf(pair.a)}</span>
-              <span className="text-stone-400">·</span>
+              <span className="text-stone-400">{uiLanguage === 'ar' ? 'و' : '·'}</span>
               <span className="font-medium text-stone-800">{nameOf(pair.b)}</span>
               <span
                 className="ms-auto tabular-nums rounded bg-white border border-stone-200 px-1.5 py-0.5"
                 dir="ltr"
               >
-                {Math.round(pair.jaccard * 100)}%
+                {uiLanguage === 'ar'
+                  ? `${formatCount(Math.round(pair.jaccard * 100), 'ar')}٪`
+                  : `${Math.round(pair.jaccard * 100)}%`}
               </span>
             </li>
           ))}
@@ -399,7 +415,7 @@ function ComparisonStats({
             <dd className="mt-0.5 font-medium text-stone-800">
               {nameOf(comparison.length.shortest_source_id!)}{' '}
               <span className="text-stone-400 tabular-nums" dir="ltr">
-                ({comparison.length.shortest_word_count?.toLocaleString()})
+                ({comparison.length.shortest_word_count != null && formatCount(comparison.length.shortest_word_count, uiLanguage)})
               </span>
             </dd>
           </div>
@@ -408,7 +424,7 @@ function ComparisonStats({
             <dd className="mt-0.5 font-medium text-stone-800">
               {nameOf(comparison.length.longest_source_id)}{' '}
               <span className="text-stone-400 tabular-nums" dir="ltr">
-                ({comparison.length.longest_word_count?.toLocaleString()})
+                ({comparison.length.longest_word_count != null && formatCount(comparison.length.longest_word_count, uiLanguage)})
               </span>
             </dd>
           </div>
@@ -499,8 +515,8 @@ export function TafsirComparison({ surah, ayah, className, showHeading = true }:
         <h2 className="flex items-center gap-2 text-base font-semibold text-stone-900">
           <BookOpen className="h-4.5 w-4.5 text-primary-600" aria-hidden="true" />
           {t('tafsir_compare_title', language)}
-          <span className="text-sm font-normal text-stone-400 tabular-nums" dir="ltr">
-            ({data.sources_returned} {t('tafsir_compare_sources_count', language)})
+          <span className="text-sm font-normal text-stone-400 tabular-nums">
+            (<bdi>{formatCount(data.sources_returned, language)}</bdi> {t('tafsir_compare_sources_count', language)})
           </span>
         </h2>
         <p className="mt-0.5 text-xs text-stone-500">
