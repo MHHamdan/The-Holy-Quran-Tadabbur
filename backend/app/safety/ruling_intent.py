@@ -187,7 +187,7 @@ def _ar_deontic_hits(tokens: Sequence[str]) -> List[Tuple[int, Set[str]]]:
         # Dialect "عادي" / "ينفع" / "يصير" are a permission only with an act
         # addressed to someone ("عادي تسمع…", "ينفع أصلي…").
         if segment(t) & _ar_set("عادي عادى ينفع يصير") and not (
-                i + 1 < len(tokens) and tokens[i + 1][:1] in "تاين"):
+                i + 1 < len(tokens) and tokens[i + 1][:1] in "تاين" and not tokens[i + 1].startswith("ال")):
             continue
         # Negation flips permission and prohibition: "لا يجوز", "لا يحل",
         # "ليس بحرام", "غير محرم".
@@ -478,6 +478,12 @@ def ruling_claims(sentence: str) -> List[RulingClaim]:
         for clause in _CLAUSES.split(s):
             ctoks = ar_tokens(clause)
             for i, cls in _ar_deontic_hits(ctoks):
+                t = ctoks[i]
+                # "بالحلال", "الحرام", "المحرمات": a category named, not a
+                # ruling predicated ("فالبيع حلال", "الميتة محرمة", "حرّم الله").
+                if t.startswith(("ال", "لل", "بال", "وال", "فال", "كال")) and not (segment(t) & _AR_LEGISLATE) \
+                        and not any(c.endswith(":reported") for c in cls):
+                    continue
                 near = ctoks[max(0, i - 2): i + 3]
                 for c in cls:
                     base = c.split(":")[0]

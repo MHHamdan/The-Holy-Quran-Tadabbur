@@ -224,6 +224,7 @@ _AR_FRAME = re.compile(
     r"أشار|يشير|أفاد|يفيد|ذهب|يذهب|اختار|يختار|رجح|يرجح|فسر|يفسر|قرر|يقرر|عند|بحسب|حسب|وفق|وفقا\s+ل|"
     r"رأي|قول|مذهب|تفسير|اجتهاد|كلام|عن|رواية|روايه|حديث|أخرجه|اخرجه|رواه|خرجه|أثر|نقله)(?![ء-ي])\s+(?=(?P<rest>[^\[\].:؛،,؟!\n«»\"]{2,60}))"
 )
+_WEAK_FRAMES = frozenset(normalize_arabic(w) for w in "عن رواية روايه حديث أثر تفسير قول كلام رأي مذهب".split())
 _AR_KUNYA = re.compile(r"(?<![ء-ي])[وفبل]?(?P<name>(?:أبو|أبي|أبا|ابو|ابي|ابا|ابن|بن|أم|ام)\s+[ء-ي]{2,}(?:\s+ال[ء-ي]{2,})?)")
 _AR_TITLED = re.compile(rf"(?<![ء-ي])[وفبل]?{_AR_TITLES}\s+(?P<name>[ء-ي]{{2,}}(?:\s+(?:بن|ابن|أبو|أبي|ال[ء-ي]+|[ء-ي]{{2,}})){{0,3}})")
 _AR_NOT_NAMES = frozenset(normalize_arabic(w) for w in (
@@ -313,7 +314,12 @@ def find_person_names(sentence: str) -> List[str]:
     for m in _AR_KUNYA.finditer(sentence):
         add(_clean_arabic(m.group("name")))
     for m in _AR_FRAME.finditer(sentence):
-        add(_clean_arabic(m.group("rest")))
+        name = _clean_arabic(m.group("rest"))
+        verb = normalize_arabic(m.group(0).split()[0]).lstrip("وف")
+        if name and verb in _WEAK_FRAMES and not re.search(r"(^| )(ابن|بن|ابو|ابي|ابا|ام|عبد) ",
+                                                            normalize_arabic(name) + " "):
+            continue  # "عن المشي", "حديث النفس": a noun, not a person
+        add(name)
     # Drop names contained in a longer one already found.
     return [n for n in out if not any(n != o and n in o for o in out)]
 

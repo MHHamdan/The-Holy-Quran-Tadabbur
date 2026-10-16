@@ -52,6 +52,7 @@ from typing import Iterable, List, Mapping, Optional, Sequence, Set, Tuple
 from app.safety import attribution as attr
 from app.safety.evidence_injection import is_injected
 from app.safety.grounding import (
+    normalize_arabic,
     _ARABIC_INDIC,
     _HADITH_COLLECTIONS,
     _HADITH_CUE,
@@ -590,7 +591,7 @@ class ClaimGuard:
             return "collection not in evidence"
         if not self._numbers_ok(text, texts):
             return "number not in evidence"
-        claim = _HADITH_CUE.sub(" ", _EXTRA_HADITH_CUE.sub(" ", text))
+        claim = _HADITH_REPORT.sub(" ", _HADITH_CUE.sub(" ", _EXTRA_HADITH_CUE.sub(" ", text)))
         if not self._report_supported(claim, texts):
             return "report not in evidence"
         return None
@@ -622,7 +623,7 @@ class ClaimGuard:
             if psame.comparable and psame.tokens >= 3 and (
                     psame.local_coverage >= 0.85 or (psame.ngram and psame.local_coverage >= 0.65)):
                 return True
-        sup = xling.support(claim, self._view(texts))
+        sup = xling.support(claim, self._view(texts), per_word=xling.STRICT_TRANSLATIONS_PER_WORD)
         _log.debug("report %s/%s unsupported=%s :: %s", sup.local, sup.tokens, sup.unsupported, claim[:100])
         if sup.tokens == 0:
             return True
@@ -690,7 +691,8 @@ class ClaimGuard:
         # The asked-about topic is absent from everything retrieved: the
         # answer is speaking beyond its evidence ("What does the Qur'an say
         # about cryptocurrency?" answered from 2:286).
-        off_topic = [t for t in sup.unsupported if t in self.topic and t not in self.pool_tokens]
+        off_topic = [t for t in sup.unsupported if t in self.topic and t not in self.pool_tokens
+                     and self._foreign(t)]
         if off_topic:
             return f"question topic not in evidence: {', '.join(off_topic[:3])}"
         if sup.local_coverage < SYNTHESIS_WEAK:
@@ -701,7 +703,23 @@ class ClaimGuard:
         if attr.registry_key(ent) or attr.name_supported(ent, self._clean_chunks(chunks), texts):
             return True
         sup = xling.support(ent, self._view(texts))
-        return sup.tokens == 0 or (sup.comparable and sup.local == sup.tokens)
+        if sup.tokens == 0 or (sup.comparable and sup.local == sup.tokens):
+            return True
+        # Short names ("Uhud", "Matta") have two-consonant skeletons: they
+        # match only a short, rare Arabic word with the same consonants.
+        words = [w for w in re.split(r"[\s-]+", ent) if w.lower() not in ("of", "the", "al", "ibn", "bin", "and")]
+        ar_words = set()
+        for t in texts:
+            for w in normalize_arabic(t).split():
+                w = w[2:] if w.startswith("ال") else (w[1:] if w[:1] in "وفب" and len(w) > 3 else w)
+                if 2 <= len(w) <= 4 and self.lexicon.ar_freq.get(w, 0) <= xling.RARE_WORD:
+                    ar_words.add(xling.arabic_skeleton(w))
+        if bool(words) and all(
+                (sk := xling.latin_skeleton(w)) and len(sk) <= 2 and sk in ar_words for w in words):
+            return True
+        # A name too short to verify by its consonants ("Uhud", "Matta":
+        # homographs of common words) is judged with the rest of the sentence.
+        return bool(words) and all(len(xling.latin_skeleton(w)) <= 2 for w in words)
 
     def _drop_transliterations(self, prose: str) -> str:
         """A short single-quoted run of words the English corpus never uses

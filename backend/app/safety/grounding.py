@@ -725,7 +725,8 @@ _QURAN_PRED_EN = (
     r"(says?|said|states?|stated|declares?|declared|tells?(\s+us)?|told\s+us|promises?|promised|informs?(\s+us)?|"
     r"commands?|commanded|reveals?|revealed\s+that|teach(es)?|taught|mentions?|mentioned|shows?|affirms?|"
     r"confirms?|establishes|proclaims?|warns?|reads?|puts\s+it|announces?|assures?(\s+us)?|makes\s+(it\s+)?"
-    r"clear|indicates?|guarantees?|decrees?|ordains?|explains?|describes?|speaks\s+of|calls?)"
+    r"clear|indicates?|guarantees?|decrees?|ordains?|explains?|describes?|speaks\s+of|calls?|"
+    r"is\s+(clear|explicit|plain)(\s+that)?)"
 )
 _QURAN_VOICE = re.compile(
     rf"\b{_QURAN_NOUN_EN}\s+((also|itself|clearly|plainly|explicitly|here|then|further|even|"

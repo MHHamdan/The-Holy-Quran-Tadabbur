@@ -7,7 +7,7 @@ so this module gives every evidence text a view in the other language:
 
 1. A bilingual lexicon learned deterministically from the canonical parallel
    corpus (each Qur'an verse paired with its stored English translations):
-   Dice co-occurrence between Arabic light stems and English stems. It is
+   log-likelihood (G²) co-occurrence between Arabic and English stems. It is
    data-derived, never hand-tuned to particular answers.
 2. A transliteration skeleton for names and terms ("Ubayy ibn Ka'b" vs
    "أبي بن كعب", "rafath" vs "الرفث"): consonant classes only, compared on
@@ -21,6 +21,7 @@ and transliteration count.
 """
 from __future__ import annotations
 
+import math
 import re
 import unicodedata
 from collections import Counter, defaultdict
@@ -40,7 +41,8 @@ EN_STOP = frozenset((
     "who whom whose which what when where why how not no nor all any each every both either neither "
     "some such own same other another more most very can could will would shall should may might must "
     "also just only even still yet too again ever never once whether while until unless because since "
-    "although though however therefore thus hence indeed namely e g i e etc s t one ones"
+    "although though however therefore thus hence indeed namely e g i e etc s t one ones "
+    "become becomes became get gets got come comes came go goes went make makes made let lets"
 ).split())
 
 # Report verbs and discourse words: framing, not content.
@@ -75,8 +77,11 @@ def en_fold(text: str) -> str:
 
 
 def en_stem(word: str) -> str:
-    """Porter stem (irregular plurals folded first)."""
-    return porter(_IRREGULAR.get(word, word))
+    """Porter stem (irregular plurals folded first, British "-our" read as "-or")."""
+    w = _IRREGULAR.get(word, word)
+    if len(w) > 5 and re.search(r"[^aeiou]our(s|ed|ing|able|ite)?$", w):
+        w = re.sub(r"our(s|ed|ing|able|ite)?$", r"or\1", w)
+    return porter(w)
 
 
 def en_words(text: str) -> List[str]:
@@ -156,12 +161,17 @@ MIN_SKELETON = 3
 # ------------------------------------------------------------------ lexicon
 
 class Lexicon:
-    """Arabic stem <-> English stem translation candidates (Dice-ranked)."""
+    """Arabic stem <-> English stem translation candidates (G²-ranked; used mutually)."""
 
     def __init__(self, ar2en: Optional[Dict[str, Tuple[str, ...]]] = None,
                  en2ar: Optional[Dict[str, Tuple[str, ...]]] = None,
-                 vocab: Optional[FrozenSet[str]] = None, names: Optional[FrozenSet[str]] = None):
+                 vocab: Optional[FrozenSet[str]] = None, names: Optional[FrozenSet[str]] = None,
+                 ar_freq: Optional[Dict[str, int]] = None):
         self.ar2en = ar2en or {}
+        # Arabic stem -> number of parallel texts using it. A transliterated
+        # name may only match a rare Arabic word ("البصرة"), never a common
+        # one that shares its consonants ("بصر", sight).
+        self.ar_freq = ar_freq or {}
         self.en2ar = en2ar or {}
         # Every stem the parallel corpus uses (both scripts).
         self.vocab = vocab or frozenset()
@@ -179,16 +189,24 @@ class Lexicon:
         """Add words the English tafsir literature uses to the domain
         vocabulary (no translations: they only mark a term as in-domain)."""
         extra = {en_stem(w) for w in words if w and len(w) > 2}
-        return Lexicon(self.ar2en, self.en2ar, self.vocab | frozenset(extra), self.names)
+        return Lexicon(self.ar2en, self.en2ar, self.vocab | frozenset(extra), self.names, self.ar_freq)
 
     @classmethod
-    def build(cls, pairs: Iterable[Tuple[str, str]], top_k: int = 6, min_dice: float = 0.08,
+    def build(cls, pairs: Iterable[Tuple[str, str]], top_k: int = 6, min_g2: float = 10.83,
               min_pair: int = 2) -> "Lexicon":
-        """Learn the lexicon from (Arabic verse, English translation) pairs."""
+        """
+        Learn the lexicon from (Arabic verse, English translation) pairs.
+
+        Word pairs are ranked by Dunning's log-likelihood ratio (G²) of their
+        co-occurrence, keeping positive associations significant at p < 0.001.
+        Unlike Dice it does not let two rare words that happen to share one
+        verse outrank a word and its usual translation.
+        """
         ca: Counter = Counter()
         ce: Counter = Counter()
         cae: Counter = Counter()
         names: Set[str] = set()
+        n_pairs = [0]
         for ar, en in pairs:
             for m in re.finditer(r"(?<=[a-z,;\]\)]\s)([A-Z][A-Za-z’'`ʿāīūĀĪŪâêîôû-]+)", en or ""):
                 names.add(en_fold(m.group(1)).strip("-"))
@@ -196,25 +214,43 @@ class Lexicon:
             e_set = set(en_content(en, drop_meta=False))
             if not a_set or not e_set:
                 continue
+            n_pairs[0] += 1
             ca.update(a_set)
             ce.update(e_set)
             for a in a_set:
                 for e in e_set:
                     cae[(a, e)] += 1
+        total = max(n_pairs[0], 1)
         ar_best: Dict[str, List[Tuple[float, str]]] = defaultdict(list)
         en_best: Dict[str, List[Tuple[float, str]]] = defaultdict(list)
         for (a, e), n in cae.items():
             if n < min_pair:
                 continue
-            dice = 2.0 * n / (ca[a] + ce[e])
-            if dice < min_dice:
+            g2 = _g2(n, ca[a], ce[e], total)
+            if g2 < min_g2:
                 continue
-            ar_best[a].append((dice, e))
-            en_best[e].append((dice, a))
-        # Candidates are kept in Dice order (best first).
+            ar_best[a].append((g2, e))
+            en_best[e].append((g2, a))
+        # Candidates are kept in G² order (best first).
         ar2en = {a: tuple(e for _, e in sorted(v, reverse=True)[:top_k]) for a, v in ar_best.items()}
         en2ar = {e: tuple(a for _, a in sorted(v, reverse=True)[:top_k]) for e, v in en_best.items()}
-        return cls(ar2en, en2ar, frozenset(ca) | frozenset(ce), frozenset(names))
+        return cls(ar2en, en2ar, frozenset(ca) | frozenset(ce), frozenset(names), dict(ca))
+
+
+def _xlogx(k: float, n: float) -> float:
+    return k * math.log(k / n) if k > 0 else 0.0
+
+
+def _g2(k11: int, ka: int, ke: int, n: int) -> float:
+    """Dunning's G² for a positive association (0 when the pair is under-represented)."""
+    k12, k21 = ka - k11, ke - k11
+    k22 = n - k11 - k12 - k21
+    if k22 < 0 or k11 * n <= ka * ke:
+        return 0.0
+    rows = (k11 + k12, k21 + k22)
+    cols = (k11 + k21, k12 + k22)
+    return 2.0 * (_xlogx(k11, rows[0] * cols[0] / n) + _xlogx(k12, rows[0] * cols[1] / n)
+                  + _xlogx(k21, rows[1] * cols[0] / n) + _xlogx(k22, rows[1] * cols[1] / n))
 
 
 _EMPTY = Lexicon()
@@ -381,8 +417,9 @@ def deontic_classes(text: str) -> List[str]:
     return list(dict.fromkeys(t for t in _analyse(text).tokens if t.startswith("§")))
 
 
-# Best Dice candidates used across scripts: 3 for reading tafsir prose,
+# Best-ranked candidates used across scripts: 3 for reading tafsir prose,
 # 2 (strict) where one verse must carry a claim on its own.
+RARE_WORD = 40             # parallel texts: above this an Arabic word is common vocabulary
 TRANSLATIONS_PER_WORD = 3
 STRICT_TRANSLATIONS_PER_WORD = 2
 SHORT_TEXT = 150   # tokens: verse translations and short tafsir are read whole
@@ -402,7 +439,7 @@ def _positions(script: str, need: Sequence[str], skel: Dict[str, str], text: _Te
             if not t.startswith("§"):
                 # Mutual best alignments only: t's top translations whose
                 # own top translations include t, and their top renderings.
-                for pivot in fwd.get(t, ())[:2]:
+                for pivot in fwd.get(t, ())[:1]:
                     back_list = back.get(pivot, ())[:3]
                     if t not in back_list:
                         continue
@@ -439,7 +476,7 @@ def _positions(script: str, need: Sequence[str], skel: Dict[str, str], text: _Te
     for i, (tok, k) in enumerate(zip(text.tokens, text.skeletons)):
         for ct in inv.get(tok, ()):
             where[ct].append(i)
-        if k and len(k) >= MIN_SKELETON:
+        if k and len(k) >= MIN_SKELETON and (text.script != "ar" or lex.ar_freq.get(tok, 0) <= RARE_WORD):
             for ct in sk_inv.get(k, ()):
                 where[ct].append(i)
         elif k and short_sk.get(k) and len(tok) <= 4:
