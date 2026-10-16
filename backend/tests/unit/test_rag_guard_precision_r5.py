@@ -15,7 +15,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.rag.pipeline import RAGPipeline, UNVERIFIED_SYNTHESIS_DIGEST_AR
-from app.safety.claim_guard import ClaimGuard, _DISCOURSE_OPENER, _flat, _verse_reading
+from app.safety.claim_guard import ClaimGuard, _DISCOURSE_OPENER, _PROMISE_OUTCOME, _flat, _verse_reading
 from app.safety.evidence_injection import is_injected, split_tainted
 from app.safety.ruling_intent import STATUS, ruling_claims
 from app.safety.xling import polarity_conflicts
@@ -75,6 +75,25 @@ class TestVerseReading:
     def test_quoted_text_is_not(self):
         assert not _verse_reading('The verse states, "the grateful shall never be tested"')
 
+    # A promised worldly outcome or an absolute scope never takes the
+    # verse-reading (synonym) path; it stays under the strict reading.
+    @pytest.mark.parametrize("claim", [
+        "the verse promises that believers who are patient and pray will be cured of every disease",
+        "the verse promises that whoever is patient will never face illness, debt or sadness again",
+        "this verse promises those who pray will always become wealthy",
+        "تعد الآية الصابرين بأنهم يشفون من كل مرض",
+        "تعد الآية من صبر بأنه لن يصيبه حزن أبدا",
+    ])
+    def test_promised_outcome_or_absolute_scope_is_excluded(self, claim):
+        assert _PROMISE_OUTCOME.search(claim)
+
+    @pytest.mark.parametrize("claim", [
+        "the verse promises believers who do good a life of contentment",
+        "تبين الآية أن الله مع الصابرين بعونه وتوفيقه",
+    ])
+    def test_plain_reading_is_not_excluded(self, claim):
+        assert not _PROMISE_OUTCOME.search(claim)
+
 
 # ---------------------------------------------------------------- polarity
 
@@ -130,6 +149,9 @@ class TestGroupTakfir:
         "Sufis are disbelievers according to this verse",
         "والصوفية خارجون عن الملة",
         "الأشاعرة ليسوا من المسلمين",
+        "الشيعة هم كفار",
+        "الصوفية كلهم كفار",
+        "The Salafis, all of them, are disbelievers",
     ])
     def test_named_muslim_group_denied_the_faith(self, sentence):
         assert any(c.cls == STATUS for c in ruling_claims(sentence))
@@ -139,6 +161,18 @@ class TestGroupTakfir:
         "المنافقون ليسوا بمؤمنين كما بين التفسير",
     ])
     def test_the_verses_own_subjects_are_not_takfir(self, sentence):
+        assert not any(c.cls == STATUS for c in ruling_claims(sentence))
+
+    # Muslims mentioned as the object of the sentence, not the subject of the
+    # status word: the verse's own subjects (hypocrites, idolaters) are
+    # described, which is not takfir by the answer.
+    @pytest.mark.parametrize("sentence", [
+        "The verse warns Muslims that the hypocrites are disbelievers in reality",
+        "كان المشركون يؤذون المسلمين لأنهم كفار",
+        "يخبر الله المسلمين أن المنافقين كفار في الباطن",
+        "الشيعة والسنة يقرؤون الآية، والمنافقون ليسوا مؤمنين",
+    ])
+    def test_group_mentioned_but_not_the_subject(self, sentence):
         assert not any(c.cls == STATUS for c in ruling_claims(sentence))
 
 
