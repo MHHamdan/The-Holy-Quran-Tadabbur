@@ -5,6 +5,7 @@ import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import { ragApi, RAGResponse, TafseerSource } from '../lib/api';
 import { ChatMessage, ChatMessageData } from '../components/ask';
+import { classifyAskError, classifyAskErrorBody } from '../components/ask/askErrors';
 import clsx from 'clsx';
 
 // Session storage key
@@ -262,10 +263,16 @@ export function AskPage() {
           message_en: string;
         };
         const errorMessage = language === 'ar' ? errorData.message_ar : errorData.message_en;
+        const errorKind = classifyAskErrorBody(result.data);
 
         setMessages(prev => prev.map(msg =>
           msg.id === assistantMessageId
-            ? { ...msg, isLoading: false, error: `${errorMessage} (${errorData.error_id})` }
+            ? {
+                ...msg,
+                isLoading: false,
+                error: errorData.error_id ? `${errorMessage} (${errorData.error_id})` : errorMessage,
+                errorKind,
+              }
             : msg
         ));
         return;
@@ -305,9 +312,12 @@ export function AskPage() {
         }
       }
 
+      // 503/429/offline get their own bilingual notice in ChatMessage.
+      const errorKind = classifyAskError(err);
+
       setMessages(prev => prev.map(msg =>
         msg.id === assistantMessageId
-          ? { ...msg, isLoading: false, error: errorMessage }
+          ? { ...msg, isLoading: false, error: errorMessage, errorKind }
           : msg
       ));
     } finally {

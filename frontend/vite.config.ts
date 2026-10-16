@@ -6,6 +6,8 @@ import license from 'rollup-plugin-license'
 import fs from 'fs'
 import path from 'path'
 import { createHash } from 'crypto'
+import os from 'os'
+import { apiUrlProblem, canonicalApiMatcher } from './src/lib/buildPolicy'
 
 /**
  * Vite Configuration - Optimized for FAANG-level Performance
@@ -21,44 +23,11 @@ import { createHash } from 'crypto'
  * - This enables microphone access over LAN (required for getUserMedia)
  * - For localhost, HTTP works fine (browser exception)
  */
-/**
- * Build-time API origin policy (VITE_API_URL is public: never a secret).
- *
- * - web build (default mode): '' (same origin, nginx proxies /api) or a
- *   public origin. A loopback address is refused, since it would only work on
- *   the developer's machine (override: ALLOW_LOCAL_API_URL=true).
- * - `--mode mobile` (Android/iOS release): the app has no same origin to fall
- *   back on, so VITE_API_URL is REQUIRED, must be https://, must not be a
- *   loopback address and must not be the placeholder from mobile.env.example.
- * - `--mode mobile-dev` (debug builds against a development backend, e.g.
- *   http://10.0.2.2:8000 from the Android emulator): required, any scheme.
- */
-export const MOBILE_API_URL_PLACEHOLDER = 'https://REPLACE_WITH_PRODUCTION_API_HOST'
-const LOOPBACK = /\/\/(localhost|127\.\d+\.\d+\.\d+|0\.0\.0\.0|\[::1\])(:|\/|$)/i
-
-export function apiUrlProblem(mode: string, rawUrl: string | undefined): string | null {
-  const url = (rawUrl ?? '').trim()
-  if (mode === 'mobile') {
-    if (!url) return 'VITE_API_URL is not set. Mobile release builds need the public HTTPS API origin (see frontend/mobile.env.example).'
-    if (url.includes('REPLACE_WITH_PRODUCTION_API_HOST')) return 'VITE_API_URL is still the placeholder; set the real production API origin.'
-    if (LOOPBACK.test(url)) return `VITE_API_URL=${url} is a loopback address; a phone cannot reach it.`
-    if (!/^https:\/\/[^/\s]+/i.test(url)) return `VITE_API_URL=${url} must be an https:// origin for mobile release builds.`
-    return null
-  }
-  if (mode === 'mobile-dev') {
-    return url ? null : 'VITE_API_URL is not set. Mobile debug builds need the development API origin, e.g. http://10.0.2.2:8000 for the Android emulator.'
-  }
-  if (LOOPBACK.test(url) && process.env.ALLOW_LOCAL_API_URL !== 'true') {
-    return `VITE_API_URL=${url} is a loopback address; production bundles must use '' (same origin) or a public origin`
-  }
-  return null
-}
-
 const enforceApiUrlPolicy = {
   name: 'tadabbur-api-url-policy',
   apply: 'build' as const,
   configResolved(config: { mode: string; env: Record<string, unknown> }) {
-    const problem = apiUrlProblem(config.mode, config.env.VITE_API_URL as string | undefined)
+    const problem = apiUrlProblem(config.mode, config.env.VITE_API_URL as string | undefined, process.env.ALLOW_LOCAL_API_URL === 'true')
     if (problem) throw new Error(problem)
   },
 }
@@ -157,6 +126,25 @@ const offlineQuranGuard = {
   },
 }
 
+/**
+ * rollup-plugin-license writes its output with fs at a fixed path. It writes
+ * to a private temp file instead, and this plugin emits that file as an asset
+ * of the real build, so /third-party-licenses.json lands in whatever outDir
+ * the build uses (dist, dist-web, a --outDir override).
+ */
+const LICENSES_TMP = path.join(os.tmpdir(), `tadabbur-third-party-licenses-${process.pid}.json`)
+const emitLicences = {
+  name: 'tadabbur-emit-licences',
+  apply: 'build' as const,
+  generateBundle(this: { emitFile: (f: { type: 'asset'; fileName: string; source: string }) => string }) {
+    if (!fs.existsSync(LICENSES_TMP)) {
+      throw new Error('third-party licence notices were not generated (rollup-plugin-license)')
+    }
+    this.emitFile({ type: 'asset', fileName: 'third-party-licenses.json', source: fs.readFileSync(LICENSES_TMP, 'utf8') })
+    fs.rmSync(LICENSES_TMP, { force: true })
+  },
+}
+
 const FONT_PACKAGES = [
   '@fontsource/scheherazade-new',
   '@fontsource/noto-naskh-arabic',
@@ -247,17 +235,9 @@ export default defineConfig(({ mode }) => ({
             // Everything else under /api (RAG answers, AI output, search,
             // per-user bookmarks/history/progress, stats, admin) is NOT
             // matched here and always goes to the network.
-            // The matcher is serialised into sw.js, so the patterns are inline.
-            urlPattern: ({ url, request }) =>
-              request.method === 'GET' && [
-                /^\/api\/v1\/quran\/(suras|verses|page|juz|tafseer|asbab|asma|allah-names|topics)(\/|$)/,
-                /^\/api\/v1\/quran\/(metadata|tafsir\/sources)$/,
-                /^\/api\/v1\/quran\/(tafsir\/verse|tafsir-comparison\/verse|tafsir\/compare)\//,
-                /^\/api\/v1\/tafseer\/(editions$|surah\/|compare\/|\d+\/\d+$)/,
-                /^\/api\/v1\/duas(\/|$)/,
-                /^\/api\/v1\/vocabulary\/(verse|by-ref|lookup|sources)/,
-                /^\/api\/v1\/quranic-calls\/(list|detail|by-surah|graph)/,
-              ].some((re) => re.test(url.pathname)),
+            // Same origin or the configured API origin only (see
+            // canonicalApiMatcher: the origin is inlined at build time).
+            urlPattern: canonicalApiMatcher(loadEnv(mode, process.cwd(), '').VITE_API_URL),
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'api-canonical-v2',
@@ -300,7 +280,8 @@ export default defineConfig(({ mode }) => ({
       thirdParty: {
         includePrivate: false,
         output: {
-          file: path.resolve(__dirname, 'dist', 'third-party-licenses.json'),
+          // Temp file; emitLicences (below) puts it in the real outDir.
+          file: LICENSES_TMP,
           template(dependencies) {
             // Everything bundled into the JS, as rollup saw it.
             const bundled = new Map<string, LicenseEntry>()
@@ -333,6 +314,7 @@ export default defineConfig(({ mode }) => ({
         },
       },
     }),
+    emitLicences,
     // Build-time precompression: ship .gz (and .br) alongside every text asset so
     // nginx serves them with zero per-request CPU (gzip_static / brotli_static).
     // Heavy graph chunks (e.g. the 3.3 MB story-connection JSON→JS) drop ~6-8x

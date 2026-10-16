@@ -15,6 +15,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { graphApi, GraphSearchHit, SemanticSearchResponse } from '../../lib/api';
 import { Language } from '../../i18n/translations';
+import { classifyAskError } from '../ask/askErrors';
 
 // =============================================================================
 // TYPES
@@ -91,9 +92,22 @@ export function SemanticSearchPanel({
       setResults(response.data);
     } catch (err) {
       console.error('Semantic search error:', err);
-      setError(language === 'ar'
-        ? 'حدث خطأ أثناء البحث'
-        : 'An error occurred during search');
+      // The API normally degrades to keyword results itself (degraded flag);
+      // a 503/429 or a dropped connection still deserves the specific notice.
+      const kind = classifyAskError(err);
+      if (kind === 'ai_unavailable' || kind === 'ai_quota') {
+        setError(language === 'ar'
+          ? 'البحث الدلالي غير متاح مؤقتاً لأن خدمة الذكاء الاصطناعي متوقفة. جرّب البحث النصي.'
+          : 'Semantic search is temporarily unavailable because the AI service is down. Try the text search.');
+      } else if (kind === 'network') {
+        setError(language === 'ar'
+          ? 'تعذّر الاتصال بالخادم. تحقّق من اتصالك ثم حاول مرة أخرى.'
+          : 'Could not reach the server. Check your connection and try again.');
+      } else {
+        setError(language === 'ar'
+          ? 'حدث خطأ أثناء البحث'
+          : 'An error occurred during search');
+      }
     } finally {
       setLoading(false);
     }

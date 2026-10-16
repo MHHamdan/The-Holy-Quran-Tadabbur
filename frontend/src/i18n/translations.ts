@@ -555,8 +555,8 @@ export const translations: Translations = {
     en: 'No themes available yet',
   },
   themes_run_seed: {
-    ar: 'قم بتشغيل seed_themes.py لإضافة البيانات',
-    en: 'Run seed_themes.py to add data',
+    ar: 'جرّب تغيير الفلتر، أو عُد لاحقاً.',
+    en: 'Try another filter, or check back later.',
   },
   themes_explore: {
     ar: 'استكشاف المحور',
@@ -1346,7 +1346,7 @@ export const translations: Translations = {
   stories_category_people: { ar: 'قصص الأقوام', en: 'People Stories' },
   stories_category_event: { ar: 'الأحداث', en: 'Events' },
   stories_no_stories: { ar: 'لا توجد قصص متاحة حالياً', en: 'No stories available yet' },
-  stories_run_seed: { ar: 'قم بتشغيل seed_stories.py لإضافة البيانات', en: 'Run seed_stories.py to add data' },
+  stories_run_seed: { ar: 'جرّب تغيير الفلتر، أو عُد لاحقاً.', en: 'Try another filter, or check back later.' },
   stories_view_story: { ar: 'عرض القصة', en: 'View Story' },
 
   // =============================================================================

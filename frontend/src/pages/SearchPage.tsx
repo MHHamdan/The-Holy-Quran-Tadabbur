@@ -945,8 +945,11 @@ export function SearchPage() {
                     intelligentSearchData.query_language === 'en' ? 'bg-blue-100 text-blue-700' :
                     'bg-purple-100 text-purple-700'
                   )}>
-                    {intelligentSearchData.query_language === 'ar' ? 'عربي' :
-                     intelligentSearchData.query_language === 'en' ? 'English' : 'Mixed'}
+                    {intelligentSearchData.query_language === 'ar'
+                      ? (language === 'ar' ? 'استعلام بالعربية' : 'Arabic query')
+                      : intelligentSearchData.query_language === 'en'
+                        ? (language === 'ar' ? 'استعلام بالإنجليزية' : 'English query')
+                        : (language === 'ar' ? 'استعلام مختلط' : 'Mixed query')}
                   </span>
 
                   {/* Expanded Concepts */}
@@ -1189,8 +1192,13 @@ function SmartSearchCards({ data, language }: { data: SmartSearchResponse; langu
               </div>
               <div className="text-sm text-primary-700">
                 <span dir="rtl" className="font-arabic">{jump.name_ar}</span>
-                {' · '}
-                <span dir="ltr">{jump.name_en}</span>
+                {/* The transliterated name helps English readers only. */}
+                {language === 'en' && (
+                  <>
+                    {' · '}
+                    <span dir="ltr">{jump.name_en}</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -1211,7 +1219,7 @@ function SmartSearchCards({ data, language }: { data: SmartSearchResponse; langu
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 flex flex-wrap items-center gap-2">
           <CheckCircle className="w-4 h-4 flex-shrink-0" />
           <span dir="rtl" className="font-arabic">{alias.label_ar}</span>
-          <span dir="ltr">({alias.label_en})</span>
+          {language === 'en' && <span dir="ltr">({alias.label_en})</span>}
           <Link
             to={`/quran/${alias.sura_no}?aya=${alias.aya_start}`}
             className="text-emerald-700 underline"
@@ -1231,11 +1239,11 @@ function SmartSearchCards({ data, language }: { data: SmartSearchResponse; langu
             <Link
               key={s.number}
               to={`/quran/${s.number}`}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm hover:border-primary-300 hover:bg-primary-50"
+              className="inline-flex min-h-9 items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm hover:border-primary-300 hover:bg-primary-50"
             >
               <span dir="ltr" className="text-xs text-gray-500">{s.number}</span>
               <span dir="rtl" className="font-arabic">{s.name_ar}</span>
-              <span dir="ltr" className="text-gray-600">{s.name_en}</span>
+              {language === 'en' && <span dir="ltr" className="text-gray-600">{s.name_en}</span>}
             </Link>
           ))}
         </div>

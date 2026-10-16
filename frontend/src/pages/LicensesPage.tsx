@@ -60,16 +60,25 @@ const CONTENT_SOURCES: ContentSource[] = [
   {
     name: 'riotu-lab/Quran-Tafseers (Hugging Face)',
     url: 'https://huggingface.co/datasets/riotu-lab/Quran-Tafseers',
-    what: { ar: 'نصوص التفاسير العربية المستخدمة في التطبيق', en: 'Arabic tafsir texts used by the app' },
+    what: {
+      ar: 'نصوص التفاسير العربية المأخوذة من هذه المجموعة (مصدر كل تفسير مبيَّن في صفحة المصادر)',
+      en: 'Arabic tafsir texts taken from this dataset (each work’s origin is given on the Sources page)',
+    },
     terms: {
       ar: 'برخصة Apache-2.0، من مختبر RIOTU بجامعة الأمير سلطان.',
       en: 'Apache-2.0, published by the RIOTU Lab at Prince Sultan University.',
     },
   },
   {
-    name: 'everyayah.com · cdn.islamic.network · quranicaudio.com · verses.quran.com',
+    // Only the hosts the player actually streams from: audio_service.py
+    // (everyayah.com, cdn.islamic.network fallback), AsmaAudioPlayer and
+    // lib/offlineAudio (everyayah.com).
+    name: 'everyayah.com · cdn.islamic.network (alquran.cloud)',
     url: 'https://everyayah.com',
-    what: { ar: 'تلاوات صوتية تُبثّ من هذه الخدمات', en: 'Recitation audio streamed from these services' },
+    what: {
+      ar: 'تلاوات صوتية تُبثّ من everyayah.com، ومن cdn.islamic.network احتياطاً',
+      en: 'Recitation audio streamed from everyayah.com, with cdn.islamic.network as a fallback',
+    },
     terms: {
       ar: 'الحقوق للقرّاء والجهات الناشرة؛ يظهر اسم القارئ في مشغّل التلاوة.',
       en: 'Rights belong to the reciters and publishers; the reciter is named in the player.',
