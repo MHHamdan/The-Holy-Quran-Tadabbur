@@ -150,7 +150,10 @@ async def test_delete_sessions_removes_reflection(client):
     assert r.json()["reflections"] == []
 
 
-async def test_legacy_session_without_hash_is_deletable_but_not_readable(client):
+async def test_legacy_session_without_hash_is_neither_readable_nor_deletable(client):
+    """A row without a stored token hash cannot be proved to belong to the
+    caller: it is not deleted by id (with or without a token) and expires
+    through the retention purge instead (audit: legacy NULL-hash IDOR)."""
     legacy = str(uuid.uuid4())
     await _sql(
         "INSERT INTO therapy_sessions (session_id, emotion, language, reflection_logged, created_at) "
@@ -162,9 +165,29 @@ async def test_legacy_session_without_hash_is_deletable_but_not_readable(client)
                               json={"sessions": [{"id": legacy, "token": "anything-at-all"}]})
         assert r.json()["reflections"] == []
         r = await client.post("/api/v1/therapy/sessions/delete", json={"sessions": [{"id": legacy}]})
-        assert r.json() == {"deleted": 1}
+        assert r.status_code == 200 and r.json() == {"deleted": 0}
+        r = await client.post("/api/v1/therapy/sessions/delete",
+                              json={"sessions": [{"id": legacy, "token": "anything-at-all"}]})
+        assert r.json() == {"deleted": 0}
+        assert await _sql("SELECT 1 FROM therapy_sessions WHERE session_id = :s", s=legacy) != []
     finally:
         await _drop(legacy)
+
+
+async def test_delete_without_token_never_deletes_a_tokened_session(client):
+    d = await _ask(client)
+    sid, token = d["session_id"], d["client_token"]
+    try:
+        r = await client.post("/api/v1/therapy/sessions/delete", json={"sessions": [{"id": sid}]})
+        assert r.json() == {"deleted": 0}
+        assert await _sql("SELECT 1 FROM therapy_sessions WHERE session_id = :s", s=sid) != []
+        # A batch mixing a token-less key with a valid one is accepted; only
+        # the proven session is deleted.
+        r = await client.post("/api/v1/therapy/sessions/delete",
+                              json={"sessions": [{"id": str(uuid.uuid4())}, {"id": sid, "token": token}]})
+        assert r.json() == {"deleted": 1}
+    finally:
+        await _drop(sid)
 
 
 async def test_delete_requires_sessions(client):
@@ -268,3 +291,27 @@ async def test_retention_task_is_registered_in_app_lifespan(monkeypatch):
         await asyncio.sleep(0)
     assert calls == ["started"]
     assert therapy_routes.router.lifespan_context is therapy_routes._retention_lifespan
+
+
+async def test_retention_purge_sweeps_expired_search_history():
+    """Expired searches leave process memory on the daily purge, not only on
+    the session's next search (audit: expired search history kept in RAM)."""
+    from app.services import search_history as sh
+
+    svc = sh.search_history_service
+    idle, mixed = f"sess_{uuid.uuid4()}", f"sess_{uuid.uuid4()}"
+    old = datetime.utcnow() - timedelta(days=sh.SEARCH_HISTORY_TTL_DAYS + 1)
+    try:
+        await svc.record_search(idle, "old query", "text")
+        await svc.record_search(mixed, "stale query", "text")
+        await svc.record_search(mixed, "fresh query", "text")
+        svc._session_history[idle][0].timestamp = old
+        svc._session_history[mixed][0].timestamp = old
+
+        assert await therapy_routes.purge_expired_search_history() == 2
+
+        assert idle not in svc._session_history
+        assert [e.query for e in svc._session_history[mixed]] == ["fresh query"]
+    finally:
+        await svc.clear_session_history(idle)
+        await svc.clear_session_history(mixed)
