@@ -318,14 +318,22 @@ class TestStructuralDistinction:
 
 # --------------------------------------------------------------- 9. fiqh
 
+# Placeholder evidence (labelled, not tafsir) that carries the reported rule,
+# so the claim guard keeps the sentence and the disclaimer logic is what is tested.
+_MAKE_UP_AR = _chunk(content="TEST-EVIDENCE: يقضي المريض الأيام التي أفطرها")
+_MAKE_UP_EN = _chunk(content="TEST-EVIDENCE placeholder: the sick may make up the days later")
+_MAKE_UP_EN.content_en, _MAKE_UP_EN.content_ar = _MAKE_UP_EN.content, None
+
+
 class TestFiqh:
     async def test_disclaimer_is_appended_when_model_omits_it(self):
         r = await _validate("The sick may make up the days later [Al-Muyassar, 2:255].",
-                            intent=QueryIntent.RULING)
+                            chunks=[_MAKE_UP_EN], intent=QueryIntent.RULING)
         assert r.answer.rstrip().endswith(SAFE_REFUSAL_FIQH)
 
     async def test_arabic_disclaimer(self):
-        r = await _validate("يقضي المريض الأيام [التفسير الميسر، ٢:٢٥٥]", intent=QueryIntent.RULING, language="ar")
+        r = await _validate("يقضي المريض الأيام [التفسير الميسر، ٢:٢٥٥]", chunks=[_MAKE_UP_AR],
+                            intent=QueryIntent.RULING, language="ar")
         assert r.answer.rstrip().endswith(FIQH_DISCLAIMER_AR)
 
     async def test_existing_disclaimer_is_not_duplicated(self):

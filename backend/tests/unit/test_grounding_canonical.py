@@ -17,12 +17,12 @@ from app.safety.grounding import (
     UNVERIFIED_QUOTE_EN,
     QuranIndex,
     build_corpus_index,
-    check_named_attributions,
     fence_question,
     normalize_arabic,
     sanitize_source_text,
     verify_quotations,
 )
+from app.safety.claim_guard import ClaimGuard
 from app.validators.citation_validator import CITATION_MARKER_PATTERN
 
 REPO = Path(__file__).resolve().parents[3]
@@ -120,7 +120,8 @@ class TestEnglishQuotations:
 
 
 def _chunk(source_id, content):
-    return SimpleNamespace(source_id=source_id, content=content, content_ar=content, content_en=None)
+    return SimpleNamespace(source_id=source_id, content=content, content_ar=content, content_en=None,
+                           sura_no=2, aya_start=255, aya_end=255)
 
 
 class TestNamedAttributions:
@@ -128,7 +129,8 @@ class TestNamedAttributions:
     MUYASSAR = _chunk("muyassar_ar", "TEST-EVIDENCE: الله هو المعبود بحق")
 
     def _check(self, answer, cited):
-        return check_named_attributions(answer, cited, CITATION_MARKER_PATTERN)
+        out, report = ClaimGuard(list(cited.values()), cited, {}, CITATION_MARKER_PATTERN).check(answer)
+        return out, [detail for kind, detail in report.removed if kind == "attribution"]
 
     def test_scholar_cited_for_own_work_survives(self):
         answer = "Ibn Kathir says it is the greatest verse [Ibn Kathir, 2:255]."

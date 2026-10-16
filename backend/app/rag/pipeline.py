@@ -53,6 +53,7 @@ Any modification to these rules requires:
 - Full test suite re-run
 - Security review
 """
+import asyncio
 import re
 import time
 import logging
@@ -70,12 +71,8 @@ from app.rag.types import (
     GroundedResponse,
     RelatedVerse,
     TafsirExplanation,
-    SAFE_REFUSAL_INSUFFICIENT,
-    SAFE_REFUSAL_NO_SOURCES,
     SAFE_REFUSAL_NO_SOURCES_EN,
     SAFE_REFUSAL_NO_SOURCES_AR,
-    NEEDS_CLARIFICATION_EN,
-    NEEDS_CLARIFICATION_AR,
     SAFE_REFUSAL_FIQH,
     FIQH_DISCLAIMER_AR,
     SAFE_REFUSAL_FATWA_EN,
@@ -98,44 +95,36 @@ from app.rag.types import (
 from app.rag.retrieval import HybridRetriever, extract_verse_reference, FAMOUS_VERSES, diversify
 from app.rag.prompts import GROUNDED_SYSTEM_PROMPT, build_user_prompt
 from app.rag.query_expander import expand_query, ExpandedQuery
-from app.rag.confidence import confidence_scorer, get_confidence_message, ConfidenceBreakdown
+from app.rag.confidence import confidence_scorer, get_confidence_message
 from app.validators.citation_validator import (
     CITATION_MARKER_PATTERN,
     CITATION_MARKER_RE,
     load_surah_name_index,
     match_citations,
 )
-from app.services.tafsir_sources import catalog_entry, source_author
+from app.services.tafsir_sources import source_author
 from app.ai.hf_client import HFErrorKind, HFInferenceError
 from app.rag.llm_provider import get_llm, BaseLLM, PROVIDER_NAME
 from app.rag.source_validator import source_validator
+from app.safety.claim_guard import ClaimGuard, is_reflection_paragraph
 from app.safety.grounding import (
     QuranIndex,
     build_corpus_index,
-    check_claim_support,
-    check_named_attributions,
-    check_quran_self_citations,
     contains_fiqh_disclaimer,
     drop_uncited_paragraphs,
     drop_unsupported_sentences,
     fence_conversation,
     fence_question,
     fence_source,
-    has_quran_voice,
-    ruling_report_supported,
     split_sentences,
-    verdict_supported,
     verify_quotations,
 )
-from app.safety.quran_answer_guard import VERDICT_PERSONAL, VERDICT_REPORTED, QuranAnswerGuard
+from app.safety.quran_answer_guard import QuranAnswerGuard
+from app.safety.xling import Lexicon
 from app.safety.quran_question_classifier import (
     quran_question_classifier,
-    classifier_intent_to_query_intent,
     INTENT_FATWA_LIKE,
     INTENT_PROMPT_INJECTION,
-    INTENT_NEEDS_CLARIFICATION,
-    INTENT_UNSUPPORTED,
-    ROUTE_REFUSAL,
     ROUTE_CLARIFICATION,
 )
 
@@ -248,12 +237,12 @@ class RAGPipeline:
         if language == "ar":
             if verse_name:
                 answer_parts.append(f"**{verse_name}**: {ayah_label_ar} من {sura_name_ar}.")
-            answer_parts.append(f"\nفيما يلي شروحات العلماء لهذه الآية الكريمة من مصادر التفسير المعتمدة:")
+            answer_parts.append("\nفيما يلي شروحات العلماء لهذه الآية الكريمة من مصادر التفسير المعتمدة:")
             answer_parts.append(f"\n\n**عدد المصادر المتوفرة:** {len(tafsir_by_source)} تفسير")
         else:
             if verse_name:
                 answer_parts.append(f"**{verse_name.replace('-', ' ').title()}**: {ayah_label_en} of Surah {sura_name_en} ({sura_no}).")
-            answer_parts.append(f"\nBelow are scholarly explanations of this noble verse from authentic tafsir sources:")
+            answer_parts.append("\nBelow are scholarly explanations of this noble verse from authentic tafsir sources:")
             answer_parts.append(f"\n\n**Available sources:** {len(tafsir_by_source)} tafsir")
 
         answer = "".join(answer_parts)
@@ -266,7 +255,7 @@ class RAGPipeline:
             follow_ups = [
                 f"ما فضل {verse_label_ar}؟",
                 f"ما الدروس المستفادة من {verse_label_ar}؟",
-                f"كيف فسّر العلماء هذه الآية؟",
+                "كيف فسّر العلماء هذه الآية؟",
             ]
         else:
             follow_ups = [
@@ -368,7 +357,7 @@ class RAGPipeline:
         verse_count = len(seen_verse_keys)
         if language == "ar":
             answer_parts = [
-                f"فيما يلي آيات قرآنية كريمة مرتبطة بسؤالك، مع شرح موجز من التفاسير المعتمدة:\n\n",
+                "فيما يلي آيات قرآنية كريمة مرتبطة بسؤالك، مع شرح موجز من التفاسير المعتمدة:\n\n",
                 f"**عدد الآيات المتوفرة:** {verse_count} آية\n",
             ]
         else:
@@ -490,6 +479,10 @@ class RAGPipeline:
         # Blocks fatwa, unsupported, and clarification requests before LLM is called.
         pre_block = self._pre_classify(question, language, session_id)
         if pre_block is not None:
+            if pre_block.intent == INTENT_FATWA_LIKE:
+                return await self._with_sourced_context(
+                    pre_block, question, language, preferred_sources, max_sources,
+                )
             return pre_block
 
         # FAST-PATH: Try direct verse lookup first (skips LLM entirely)
@@ -652,6 +645,47 @@ class RAGPipeline:
         validated.processing_time_ms = llm_latency_ms
 
         return self._mark_degraded(validated)
+
+    async def _with_sourced_context(
+        self,
+        response: GroundedResponse,
+        question: str,
+        language: str,
+        preferred_sources: Optional[List[str]],
+        max_sources: int,
+    ) -> GroundedResponse:
+        """
+        A ruling request gets the consult-a-scholar notice and, beside it,
+        only the retrieved sources verbatim (tafsir by source and the related
+        verses): no AI synthesis is generated for it.
+        """
+        try:
+            expanded = expand_query(question)
+            chunks = await self.retriever.retrieve(
+                query=expanded.combined if expanded.expansion_applied else question,
+                language=language,
+                intent=QueryIntent.RULING,
+                preferred_sources=preferred_sources or [],
+                top_k=max_sources * 2,
+            )
+            chunks = self._rerank_chunks(chunks, question, max_sources)
+            chunks = [c for c in chunks if source_validator.is_trusted_source_id(c.source_id)]
+        except Exception as e:  # noqa: BLE001 - the notice stands on its own
+            logger.warning(f"Sourced context for a ruling request unavailable: {e}")
+            return response
+        if not chunks:
+            return response
+        response.evidence = chunks
+        response.evidence_chunk_count = len({c.chunk_id for c in chunks})
+        response.evidence_source_count = len({c.source_id for c in chunks})
+        response.tafsir_by_source = self._group_tafsir_by_source(chunks, language)
+        try:
+            response.related_verses = await self._extract_related_verses(chunks, language)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Related verses unavailable for a ruling request: {e}")
+        if "sourced_context_only" not in response.warnings:
+            response.warnings.append("sourced_context_only")
+        return self._mark_degraded(response)
 
     def _mark_degraded(self, response: GroundedResponse) -> GroundedResponse:
         """Tell the client when semantic search could not run (keyword-only retrieval)."""
@@ -1253,11 +1287,89 @@ class RAGPipeline:
             RAGPipeline._surah_index = index
         return RAGPipeline._surah_index
 
+    _lexicon: Optional[Lexicon] = None
+
+    async def _get_parallel_editions(self, chunks: List[RetrievedChunk], language: str) -> Dict[str, List[str]]:
+        """
+        For each cited chunk, the same work's edition in the answer's
+        language covering the same verses (e.g. Ibn Kathir in English for an
+        English answer citing Arabic Ibn Kathir). Used only as an evidence
+        view for checking claims; it is never cited or shown.
+        """
+        from app.services.tafsir_sources import source_base_id
+
+        wanted = {}
+        for c in chunks:
+            if c is None:
+                continue
+            base = source_base_id(c.source_id)
+            other = f"{base}_{language}"
+            if other != c.source_id:
+                wanted.setdefault((other, c.sura_no, c.aya_start, c.aya_end or c.aya_start), []).append(c.chunk_id)
+        if not wanted:
+            return {}
+        keys = list(wanted)[:10]
+        clauses = " OR ".join(
+            f"(source_id = :i{n} AND sura_no = :s{n} AND aya_start <= :a{n} AND COALESCE(aya_end, aya_start) >= :a{n})"
+            for n in range(len(keys)))
+        params = {}
+        for n, (sid, s, a0, _a1) in enumerate(keys):
+            params[f"i{n}"], params[f"s{n}"], params[f"a{n}"] = sid, s, a0
+        out: Dict[str, List[str]] = {}
+        try:
+            rows = (await self.session.execute(text(
+                "SELECT source_id, sura_no, aya_start, COALESCE(aya_end, aya_start), content_en, content_ar "
+                f"FROM tafseer_chunks WHERE {clauses}"), params)).all()
+            for row in rows:
+                if len(row) != 6 or not isinstance(row[0], str):
+                    continue  # not a tafseer_chunks row (e.g. a test double)
+                sid, s, a0, a1, en, ar = row
+                body = en if language == "en" else ar
+                for (k_sid, k_s, k_a0, _k_a1), ids in wanted.items():
+                    if body and k_sid == sid and k_s == s and a0 <= k_a0 <= a1:
+                        for cid in ids:
+                            out.setdefault(cid, []).append(body)
+        except Exception as e:  # noqa: BLE001 - the original edition and the lexicon remain
+            logger.warning(f"Parallel tafsir editions unavailable: {e}")
+        return out
+
+    async def _get_lexicon(self) -> Lexicon:
+        """
+        Cross-lingual lexicon learned once per process from the canonical
+        parallel corpus: each verse with its stored English translations, and
+        the verse's plain-Arabic paraphrase (Al-Muyassar) with its Saheeh
+        translation, so tafsir vocabulary is covered too. Without it English
+        claims are compared with Arabic evidence through verse translations
+        and transliteration only.
+        """
+        if RAGPipeline._lexicon is None:
+            try:
+                rows = (await self.session.execute(text(
+                    "SELECT v.text_imlaei, t.text FROM translations t "
+                    "JOIN quran_verses v ON v.id = t.verse_id WHERE t.language = 'en' "
+                    "UNION ALL "
+                    "SELECT c.content_ar, t.text FROM tafseer_chunks c "
+                    "JOIN quran_verses v ON v.sura_no = c.sura_no AND v.aya_no = c.aya_start "
+                    "JOIN translations t ON t.verse_id = v.id AND t.translator = 'english_saheeh' "
+                    "WHERE c.source_id = 'muyassar_ar' AND c.content_ar IS NOT NULL"
+                ))).all()
+                pairs = [(r[0], r[1]) for r in rows
+                         if isinstance(r, (tuple, list)) or hasattr(r, "__getitem__")]
+                pairs = [(a, b) for a, b in pairs if isinstance(a, str) and isinstance(b, str) and a and b]
+                if not pairs:
+                    return Lexicon()
+                RAGPipeline._lexicon = await asyncio.to_thread(Lexicon.build, pairs)
+                logger.info(f"[XLING] lexicon built from {len(pairs)} verse/translation pairs")
+            except Exception as e:  # noqa: BLE001 - cross-lingual checks then use translations only
+                logger.warning(f"Could not build the cross-lingual lexicon: {e}")
+                return Lexicon()
+        return RAGPipeline._lexicon
+
     async def _get_translations(self, refs: List[tuple]) -> Dict[tuple, List[str]]:
         """Stored English translations of the cited verses (to verify English Qur'an quotes)."""
         if not refs:
             return {}
-        refs = refs[:20]
+        refs = refs[:40]
         clauses = " OR ".join(f"(v.sura_no = :s{i} AND v.aya_no = :a{i})" for i in range(len(refs)))
         params = {}
         for i, (sura, aya) in enumerate(refs):
@@ -1267,7 +1379,8 @@ class RAGPipeline:
             rows = (await self.session.execute(text(
                 "SELECT v.sura_no, v.aya_no, t.text FROM translations t "
                 "JOIN quran_verses v ON v.id = t.verse_id "
-                f"WHERE t.language = 'en' AND ({clauses})"
+                f"WHERE t.language = 'en' AND ({clauses}) "
+                "ORDER BY (t.translator = 'english_saheeh') DESC, t.id"
             ), params)).all()
             for sura, aya, body in rows:
                 if body:
@@ -1322,12 +1435,12 @@ class RAGPipeline:
         Validate citations, quotations and content of a generated answer and
         parse it into a structured response with confidence scoring.
 
-        Order: citations -> uncited paragraphs -> attributions (scholars,
-        hadith, consensus, recitation benefits) -> Qur'an self-citations ->
-        claim-to-evidence relevance -> quotations -> surviving citations ->
-        source registry -> answer guard -> confidence. Verdicts (rulings,
-        takfir, unsupported permissibility claims) are checked first, on the
-        untrimmed answer.
+        Order: citations -> evidence view (verse texts and translations,
+        cross-lingual lexicon, parallel editions) -> sentence-level claim
+        guard (rulings withhold the whole answer; unsupported attributions,
+        hadith, references, Qur'an claims and synthesis are removed) ->
+        invalid-citation sentences -> uncited paragraphs -> quotations ->
+        surviving citations -> source registry -> answer guard -> confidence.
         """
         # 1. Citations: every bracketed attribution must resolve to a retrieved
         #    chunk (exact source alias, existing ayah, range inside the chunk).
@@ -1335,18 +1448,49 @@ class RAGPipeline:
         matched = match_citations(raw_response, chunks, surah_index)
         cited_chunks = {m.marker: m.chunk for m in matched.valid if m.chunk is not None}
 
-        # 1a. Verdicts anywhere in the model's own words, before any sentence
-        #     is trimmed: a ruling addressed to the reader, the validity of
-        #     their worship, or takfir means the whole answer is a fatwa and
-        #     is withheld; a permissibility claim stands only when the cited
-        #     evidence itself states it.
-        verdict = self._unsupported_verdict(raw_response, cited_chunks)
-        if verdict:
-            logger.warning(f"[ANSWER-GUARD] Ruling withheld: {verdict}")
+        # 2. Evidence view for the claim checks: the stored English
+        #    translations and canonical text of every verse the retrieved
+        #    chunks explain or the answer cites, plus the cross-lingual lexicon.
+        quran_index = await self._get_quran_index()
+        quran_markers = {m.marker: m.cited for m in matched.valid if m.is_quran and m.cited}
+        quran_refs = sorted({
+            (m.cited[0], a) for m in matched.valid if m.is_quran
+            for a in range(m.cited[1], m.cited[2] + 1)
+        })
+        chunk_refs = sorted({
+            (c.sura_no, a) for c in chunks
+            for a in range(c.aya_start, min((c.aya_end or c.aya_start), c.aya_start + 10) + 1)
+        })
+        evidence_refs = list(dict.fromkeys(quran_refs + chunk_refs))[:40]
+        translations = await self._get_translations(quran_refs)
+        verse_texts: Dict[tuple, List[str]] = {ref: list(v) for ref, v in translations.items()}
+        extra = await self._get_translations([r for r in evidence_refs if r not in verse_texts])
+        for ref, v in extra.items():
+            verse_texts.setdefault(ref, []).extend(v)
+        if quran_index:
+            for ref in evidence_refs:
+                verse_texts.setdefault(ref, []).extend(quran_index.verse_text(*ref))
+        lexicon = await self._get_lexicon()
+
+        # 3. Sentence-level claim typing and per-type grounding (rulings,
+        #    attributions, hadith, Qur'an claims, references, synthesis).
+        #    Runs on the untrimmed answer: a ruling anywhere in the model's
+        #    own words withholds the whole answer.
+        claim_guard = ClaimGuard(
+            chunks, cited_chunks, quran_markers, CITATION_MARKER_PATTERN,
+            verse_texts=verse_texts, lexicon=lexicon, language=language, question=question,
+            parallel=await self._get_parallel_editions(list(cited_chunks.values()), language),
+        )
+        raw_response, claims = claim_guard.check(raw_response)
+        if claims.withheld:
+            logger.warning(f"[ANSWER-GUARD] Ruling withheld: {claims.withheld[1]}")
             return self._withheld_response(
                 SAFE_REFUSAL_FATWA_AR if language == "ar" else SAFE_REFUSAL_FATWA_EN,
                 "answer_withheld_by_guard", chunks, intent, language, query_expansion,
             )
+        if claims.removed:
+            logger.info(f"[CLAIM-GUARD] removed: {claims.removed}")
+
         invalid_count = len(matched.invalid)
         logger.debug(
             f"[CITATION] {len(matched.valid)} valid, {invalid_count} invalid citation markers"
@@ -1356,47 +1500,10 @@ class RAGPipeline:
                 raw_response, matched.invalid_markers, CITATION_MARKER_PATTERN
             )
 
-        # 2. Every substantive paragraph must carry a citation.
-        raw_response, uncited_dropped = drop_uncited_paragraphs(raw_response, CITATION_MARKER_PATTERN)
-
-        # 3. Attributions the evidence does not support: named scholars (on
-        #    the list or not), hadith reports, consensus claims, promised
-        #    benefits of recitation.
-        raw_response, unsupported_names = check_named_attributions(
-            raw_response, cited_chunks, CITATION_MARKER_PATTERN
-        )
-
-        # 3b. Prose backed only by a Qur'an self-reference to an unretrieved
-        #     verse, and unquoted "Allah says that…" text that the verse's
-        #     stored translation/text and its tafsir do not carry.
-        quran_index = await self._get_quran_index()
-        quran_markers = {m.marker: m.cited for m in matched.valid if m.is_quran and m.cited}
-        quran_refs = sorted({
-            (m.cited[0], a) for m in matched.valid if m.is_quran
-            for a in range(m.cited[1], m.cited[2] + 1)
-        })
-        voice_refs = sorted(set(quran_refs) | {
-            (c.sura_no, a) for c in cited_chunks.values()
-            for a in range(c.aya_start, (c.aya_end or c.aya_start) + 1)
-        })[:40]
-        translations = await self._get_translations(quran_refs)
-        verse_texts = {ref: list(v) for ref, v in translations.items()}
-        if not has_quran_voice(raw_response):
-            voice_refs = []
-        if voice_refs:
-            extra = await self._get_translations([r for r in voice_refs if r not in verse_texts])
-            for ref, v in extra.items():
-                verse_texts.setdefault(ref, []).extend(v)
-        if quran_index:
-            for ref in voice_refs:
-                verse_texts.setdefault(ref, []).extend(quran_index.verse_text(*ref))
-        raw_response, quran_prose_removed = check_quran_self_citations(
-            raw_response, quran_markers, cited_chunks, chunks, CITATION_MARKER_PATTERN, verse_texts,
-        )
-
-        # 3c. Claim-to-evidence relevance for every sentence citing a chunk.
-        raw_response, irrelevant_dropped, weak_claims = check_claim_support(
-            raw_response, cited_chunks, CITATION_MARKER_PATTERN
+        # Every substantive paragraph must carry a citation (a paragraph
+        # labelled as reflection is an invitation, not a claim).
+        raw_response, uncited_dropped = drop_uncited_paragraphs(
+            raw_response, CITATION_MARKER_PATTERN, keep=is_reflection_paragraph,
         )
 
         # 4. Quotations: Qur'an text is replaced by the canonical Tanzil text,
@@ -1406,10 +1513,10 @@ class RAGPipeline:
         )
         english_evidence = "\n".join(
             filter(None, ((c.content_en or "") + " " + (c.content or "") for c in chunks))
-        )
+        ) + "\n" + "\n".join(t for ref in chunk_refs for t in verse_texts.get(ref, []))
         raw_response, quote_report = verify_quotations(
             raw_response, quran_index, evidence_index, language,
-            translations=translations, english_evidence=english_evidence,
+            translations=verse_texts, english_evidence=english_evidence,
         )
 
         # 5. Citations that survived the edits above.
@@ -1491,8 +1598,7 @@ class RAGPipeline:
             source_reliability_scores=reliability_scores,
             relevance_scores=relevance_scores,
             has_primary_source=has_primary,
-            unsupported_claims=(uncited_dropped + len(unsupported_names) + len(quran_prose_removed)
-                                + irrelevant_dropped + weak_claims),
+            unsupported_claims=uncited_dropped + claims.removed_count + claims.weak,
             chunk_ids=chunk_ids,
             source_ids=source_ids,
         )
@@ -1507,9 +1613,11 @@ class RAGPipeline:
         if invalid_count > 0:
             warnings.append(f"{invalid_count} citation(s) could not be validated against retrieved sources and were removed.")
 
-        if uncited_dropped or unsupported_names or quran_prose_removed or irrelevant_dropped:
+        if uncited_dropped or claims.removed:
             warnings.append("unsupported_statements_removed")
-        if weak_claims:
+        if claims.injected_chunks:
+            warnings.append("evidence_instructions_ignored")
+        if claims.weak:
             warnings.append("weakly_supported_statements")
 
         if quote_report.misreferenced:
@@ -1611,24 +1719,6 @@ class RAGPipeline:
             evidence_source_count=len({c.source_id for c in chunks}),
             api_version=settings.api_version,
         )
-
-    @staticmethod
-    def _unsupported_verdict(answer: str, cited: Dict[str, RetrievedChunk]) -> Optional[str]:
-        """The first ruling the answer states that it may not, or None."""
-        text = re.sub(r"﴿[^﴾]*﴾|«[^»]*»|“[^”]*”|\"[^\"\n]*\"", " ", answer or "")
-        for kind, sentence, subject in QuranAnswerGuard().find_verdicts(text):
-            if kind == VERDICT_PERSONAL:
-                return f"{kind}: {sentence[:120]}"
-            chunks = [cited[m.group(0)] for m in CITATION_MARKER_RE.finditer(sentence) if m.group(0) in cited]
-            if kind == VERDICT_REPORTED:
-                # A verse's command reported in tafsir style stands only when
-                # the cited evidence states that command.
-                if not ruling_report_supported(CITATION_MARKER_RE.sub(" ", sentence), chunks):
-                    return f"{kind}: {sentence[:120]}"
-                continue
-            if not verdict_supported(CITATION_MARKER_RE.sub(" ", subject), chunks):
-                return f"{kind}: {sentence[:120]}"
-        return None
 
     @staticmethod
     def _answer_own_text(answer: str, intent: QueryIntent) -> str:

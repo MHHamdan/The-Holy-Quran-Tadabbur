@@ -347,10 +347,11 @@ class TestHadithAttributionControls:
     _EVIDENCE = "TEST-EVIDENCE: hadith placeholder alpha bravo charlie, recorded by al-Bukhari, number 1234."
 
     def _check(self, sentence, content):
-        from app.safety.grounding import check_named_attributions
+        from app.safety.claim_guard import ClaimGuard
         chunk = _chunk(content=content)
-        return check_named_attributions(sentence, {"[Al-Muyassar, 2:255]": chunk,
-                                                   "[الميسر، ٢:٢٥٥]": chunk}, _CITE)
+        cited = {"[Al-Muyassar, 2:255]": chunk, "[الميسر، ٢:٢٥٥]": chunk}
+        out, report = ClaimGuard([chunk], cited, {}, _CITE).check(sentence)
+        return out, [kind for kind, _detail in report.removed]
 
     # In English mode the Arabic probe is also caught by the quote checker; in
     # Arabic mode only the hadith check removes these (verified by disabling it).
@@ -371,7 +372,7 @@ class TestHadithAttributionControls:
     def test_wrong_hadith_number_is_dropped(self):
         s = "This hadith (alpha bravo charlie) is recorded by al-Bukhari, number 9999 [Al-Muyassar, 2:255]."
         text, removed = self._check(s, self._EVIDENCE)
-        assert "9999" not in text and removed == ["hadith attribution"]
+        assert "9999" not in text and removed == ["hadith"]
 
     def test_wrong_collection_is_dropped(self):
         s = "This hadith (alpha bravo charlie) is in Sunan al-Tirmidhi [Al-Muyassar, 2:255]."
@@ -385,5 +386,7 @@ class TestHadithAttributionControls:
         "قصة النبي يوسف مع إخوته [الميسر، ٢:٢٥٥].",
     ])
     def test_non_hadith_sentences_are_kept(self, sentence):
-        text, removed = self._check(sentence, EVIDENCE_MUYASSAR)
+        # Judged against evidence that carries the sentence itself: only a
+        # (wrong) hadith reading could remove it.
+        text, removed = self._check(sentence, "TEST-EVIDENCE: " + sentence)
         assert text == sentence and removed == []
