@@ -29,7 +29,7 @@ from typing import List, Optional, Dict, Any, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Response
 from pydantic import BaseModel, Field
-from sqlalchemy import text, bindparam, ARRAY, String
+from sqlalchemy import text, bindparam, ARRAY, Integer, String
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_async_session
@@ -307,15 +307,78 @@ _WITHHELD_TITLE_OVERRIDES: Dict[str, Tuple[str, str]] = {
 }
 
 
-def _public_summary(segment_id: Optional[str], text_value: Optional[str]) -> str:
+# =============================================================================
+# Evidence gate
+#
+# Theme content is an analytical study aid, not tafsir. A segment's summary
+# and reasons are app-authored claims, so they are only served when the
+# segment cites at least one real tafseer_chunks passage of an enabled,
+# licence-verified source. Otherwise the claim text is withheld and only the
+# verse reference is served. Evidence "snippets" are never served: they were
+# typed by hand, not copied from the cited chunk (some were Qur'an text typed
+# from memory). The same rule applies to divine-consequence statements.
+# =============================================================================
+
+_SOURCED_SEGMENTS_SQL = text("""
+    SELECT ts.id, COUNT(DISTINCT c.chunk_id) AS n
+      FROM theme_segments ts
+      CROSS JOIN LATERAL unnest(COALESCE(ts.evidence_chunk_ids, ARRAY[]::varchar[])) AS u(x)
+      JOIN tafseer_chunks c ON c.chunk_id = u.x
+      JOIN tafseer_sources src ON src.id = c.source_id
+     WHERE ts.id = ANY(:ids) AND src.is_enabled = 1 AND src.license_verified = 1
+     GROUP BY ts.id
+""").bindparams(bindparam("ids", type_=ARRAY(String)))
+
+_SOURCED_CONSEQUENCES_SQL = text("""
+    SELECT DISTINCT tc.id
+      FROM theme_consequences tc
+      CROSS JOIN LATERAL unnest(COALESCE(tc.evidence_chunk_ids, ARRAY[]::varchar[])) AS u(x)
+      JOIN tafseer_chunks c ON c.chunk_id = u.x
+      JOIN tafseer_sources src ON src.id = c.source_id
+     WHERE tc.id = ANY(:ids) AND src.is_enabled = 1 AND src.license_verified = 1
+""").bindparams(bindparam("ids", type_=ARRAY(Integer)))
+
+
+async def _sourced_segment_counts(session: AsyncSession, segment_ids) -> Dict[str, int]:
+    """segment id -> number of cited chunks that resolve to an enabled,
+    licence-verified source. Segments with none are absent."""
+    ids = sorted({i for i in segment_ids if i})
+    if not ids:
+        return {}
+    rows = (await session.execute(_SOURCED_SEGMENTS_SQL, {"ids": ids})).all()
+    return {r[0]: int(r[1]) for r in rows}
+
+
+async def _sourced_consequence_ids(session: AsyncSession, ids) -> set:
+    wanted = sorted({i for i in ids if i is not None})
+    if not wanted:
+        return set()
+    return {r[0] for r in (await session.execute(_SOURCED_CONSEQUENCES_SQL, {"ids": wanted})).all()}
+
+
+def _public_summary(
+    segment_id: Optional[str],
+    text_value: Optional[str],
+    sourced: Optional[Dict[str, int]] = None,
+) -> str:
+    """Claim text for a segment, or "" when withheld (owner review) or when
+    `sourced` is given and the segment has no resolvable evidence."""
     if segment_id in SUMMARY_WITHHELD_SEGMENT_IDS:
+        return ""
+    if sourced is not None and segment_id not in sourced:
         return ""
     return text_value or ""
 
 
-def _public_optional_text(segment_id: Optional[str], text_value: Optional[str]) -> Optional[str]:
+def _public_optional_text(
+    segment_id: Optional[str],
+    text_value: Optional[str],
+    sourced: Optional[Dict[str, int]] = None,
+) -> Optional[str]:
     """Like _public_summary but keeps None for optional fields."""
     if segment_id in SUMMARY_WITHHELD_SEGMENT_IDS:
+        return None
+    if sourced is not None and segment_id not in sourced:
         return None
     return text_value
 
@@ -870,6 +933,7 @@ async def get_themes_by_ayah(
     """Get themes that cover a specific ayah."""
     service = ThemeService(session)
     occurrences = await service.get_themes_by_ayah(sura_no, ayah_no)
+    sourced = await _sourced_segment_counts(session, [o.segment_id for o in occurrences])
 
     return [
         ThemeOccurrenceResponse(
@@ -879,8 +943,8 @@ async def get_themes_by_ayah(
             segment_id=o.segment_id,
             segment_title_ar=_public_title(o.segment_id, o.segment_title_ar, "ar"),
             segment_title_en=_public_title(o.segment_id, o.segment_title_en, "en"),
-            summary_ar=_public_summary(o.segment_id, o.summary_ar),
-            summary_en=_public_summary(o.segment_id, o.summary_en),
+            summary_ar=_public_summary(o.segment_id, o.summary_ar, sourced),
+            summary_en=_public_summary(o.segment_id, o.summary_en, sourced),
         )
         for o in occurrences
     ]
@@ -995,6 +1059,7 @@ async def get_theme_segments(
         limit=limit,
         offset=offset,
     )
+    sourced = await _sourced_segment_counts(session, [s.id for s in segments])
 
     return SegmentListResponse(
         segments=[
@@ -1008,19 +1073,19 @@ async def get_theme_segments(
                 verse_reference=getattr(s, 'verse_reference', f"{s.sura_no}:{s.ayah_start}-{s.ayah_end}"),
                 title_ar=_public_title(s.id, s.title_ar, "ar"),
                 title_en=_public_title(s.id, s.title_en, "en"),
-                summary_ar=_public_summary(s.id, s.summary_ar),
-                summary_en=_public_summary(s.id, s.summary_en),
+                summary_ar=_public_summary(s.id, s.summary_ar, sourced),
+                summary_en=_public_summary(s.id, s.summary_en, sourced),
                 semantic_tags=getattr(s, 'semantic_tags', []),
                 revelation_context=getattr(s, 'revelation_context', None),
                 is_entry_point=getattr(s, 'is_entry_point', False),
                 is_verified=getattr(s, 'is_verified', False),
                 importance_weight=getattr(s, 'importance_weight', 0.5),
-                evidence_count=getattr(s, 'evidence_count', 0),
+                evidence_count=sourced.get(s.id, 0),
                 # Discovery fields
                 match_type=getattr(s, 'match_type', None),
                 confidence=getattr(s, 'confidence', None),
-                reasons_ar=_public_optional_text(s.id, getattr(s, 'reasons_ar', None)),
-                reasons_en=_public_optional_text(s.id, getattr(s, 'reasons_en', None)),
+                reasons_ar=_public_optional_text(s.id, getattr(s, 'reasons_ar', None), sourced),
+                reasons_en=_public_optional_text(s.id, getattr(s, 'reasons_en', None), sourced),
                 is_core=getattr(s, 'is_core', None),
                 discovered_at=str(getattr(s, 'discovered_at', None)) if getattr(s, 'discovered_at', None) else None,
             )
@@ -1073,14 +1138,16 @@ async def get_segment_evidence(
     if not evidence:
         raise HTTPException(status_code=404, detail=f"Segment not found: {segment_id}")
 
-    if segment_id in SUMMARY_WITHHELD_SEGMENT_IDS:
-        evidence = dict(evidence)
-        evidence["evidence_sources"] = [
-            {k: v for k, v in (src or {}).items() if k != "snippet"}
-            for src in evidence.get("evidence_sources", [])
-        ]
+    evidence = dict(evidence)
+    # Snippets are never served (see "Evidence gate" above).
+    evidence["evidence_sources"] = [
+        {k: v for k, v in (src or {}).items() if k != "snippet"}
+        for src in evidence.get("evidence_sources", [])
+    ]
+    sourced = await _sourced_segment_counts(session, [segment_id])
+    if segment_id in SUMMARY_WITHHELD_SEGMENT_IDS or segment_id not in sourced:
         # reasons_ar falls back to the segment summary in the service, so it
-        # carries the same withheld claim.
+        # carries the same withheld or unsourced claim.
         evidence["reasons_ar"] = ""
         evidence["reasons_en"] = None
 
@@ -1170,6 +1237,7 @@ async def get_theme_timeline(
         language=language,
         order_by=order_by,
     )
+    sourced = await _sourced_segment_counts(session, [t.segment_id for t in timeline])
 
     return [
         TimelineNodeResponse(
@@ -1182,8 +1250,8 @@ async def get_theme_timeline(
             verse_reference=t.verse_reference,
             title_ar=_public_title(t.segment_id, t.title_ar, "ar"),
             title_en=_public_title(t.segment_id, t.title_en, "en"),
-            summary_ar=_public_summary(t.segment_id, t.summary_ar),
-            summary_en=_public_summary(t.segment_id, t.summary_en),
+            summary_ar=_public_summary(t.segment_id, t.summary_ar, sourced),
+            summary_en=_public_summary(t.segment_id, t.summary_en, sourced),
             revelation_context=t.revelation_context,
             is_entry_point=t.is_entry_point,
             is_verified=t.is_verified,
@@ -1217,6 +1285,10 @@ async def get_theme_consequences(
         theme_id=theme_id,
         consequence_type=consequence_type,
     )
+    # A consequence is a stated claim (several are hadith wording with no
+    # citation). Only those citing a real, enabled tafsir chunk are served.
+    sourced_ids = await _sourced_consequence_ids(session, [c.id for c in consequences])
+    consequences = [c for c in consequences if c.id in sourced_ids]
 
     return [
         ThemeConsequenceResponse(
@@ -1431,7 +1503,7 @@ def _story_search_keywords(slug: str, title_en: str, key_concepts: List[str]) ->
 async def get_theme_tafsir(
     theme_id: str = Path(..., description="Theme ID"),
     verified_only: bool = Query(False, description="Only include verified segments"),
-    source_id: Optional[str] = Query(None, description="Filter tafsir by source (e.g. ibn_kathir_en)"),
+    source_id: Optional[str] = Query(None, description="Filter tafsir by source (e.g. ibn_kathir_ar); only enabled, licensed sources are served"),
     limit: int = Query(20, ge=1, le=50, description="Maximum number of segments to return"),
     session: AsyncSession = Depends(get_async_session),
 ):
@@ -1480,6 +1552,7 @@ async def get_theme_tafsir(
         {"tid": theme_id, "lim": limit},
     )
     segments_raw = seg_result.mappings().all()
+    sourced = await _sourced_segment_counts(session, [seg["id"] for seg in segments_raw])
 
     # 3. Batch-fetch verses + tafsir for all segments in 2 queries per sura group
     result_segments: List[ThematicTafsirSegment] = []
@@ -1521,6 +1594,8 @@ async def get_theme_tafsir(
             WHERE tc.sura_no = :sura
               AND tc.aya_start <= :a2
               AND tc.aya_end   >= :a1
+              AND ts.is_enabled = 1
+              AND ts.license_verified = 1
               {source_clause}
             ORDER BY tc.source_id, tc.aya_start
         """
@@ -1586,8 +1661,8 @@ async def get_theme_tafsir(
                 verse_reference=verse_ref,
                 title_ar=_public_title(seg_id, seg["title_ar"], "ar"),
                 title_en=_public_title(seg_id, seg["title_en"], "en"),
-                summary_ar=_public_summary(seg_id, seg["summary_ar"]),
-                summary_en=_public_summary(seg_id, seg["summary_en"]),
+                summary_ar=_public_summary(seg_id, seg["summary_ar"], sourced),
+                summary_en=_public_summary(seg_id, seg["summary_en"], sourced),
                 is_verified=bool(seg["is_verified"]),
                 is_core=bool(seg["is_core"]),
                 confidence=seg["confidence"],

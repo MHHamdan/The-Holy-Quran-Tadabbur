@@ -7,7 +7,7 @@ import { createHash } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { loadOfflinePage, loadOfflineSurah, OFFLINE_QURAN_FORMAT, type OfflineSurahFile } from './offlineQuran';
+import { juzOfPage, loadOfflinePage, loadOfflineSurah, OFFLINE_QURAN_FORMAT, type OfflineSurahFile } from './offlineQuran';
 
 const ROOT = resolve(__dirname, '../../..');
 const TANZIL = join(ROOT, 'data/raw/quran_tanzil.json');
@@ -92,6 +92,19 @@ describe('bundled offline Qur\'an text', () => {
     expect(Object.keys(manifest.pages)).toHaveLength(604);
     expect(manifest.pages['1']).toEqual([[1, 1], [1, 7]]);
     expect(manifest.pages['604'][1]).toEqual([114, 6]);
+  });
+});
+
+describe('juzOfPage', () => {
+  it('gives the juz of the first verse of every Mushaf page', () => {
+    const firstOnPage = new Map<number, TanzilVerse>();
+    for (const v of tanzil.verses) if (!firstOnPage.has(v.page)) firstOnPage.set(v.page, v);
+    expect(firstOnPage.size).toBe(604);
+    const wrong = [...firstOnPage.entries()].filter(([page, v]) => juzOfPage(page) !== v.jozz).map(([p]) => p);
+    expect(wrong).toEqual([]);
+    expect(juzOfPage(580)).toBe(29); // the page the audit saw labelled "Juz 1" offline
+    expect(juzOfPage(582)).toBe(30);
+    expect(juzOfPage(1)).toBe(1);
   });
 });
 

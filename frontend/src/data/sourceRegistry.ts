@@ -430,7 +430,7 @@ export const SOURCE_REGISTRY: Source[] = [
     sourceUrl: 'https://huggingface.co/datasets/riotu-lab/Quran-Tafseers',
     lastVerifiedAt: '2026-10-06',
     licenseStatus: 'cleared',
-    notes: 'Primary Arabic tafsir. Bil-mathur methodology (narration-based). Seeded into tafseer_sources from the Apache-2.0 Hugging Face dataset riotu-lab/Quran-Tafseers at pinned revision 9ddbdeec22bfabd9821b14c6584ad9587ed7bffa (SHA-256 checked) by backend/scripts/datasets/fetch_hf_tafseers.py. 39 upstream placeholder rows ("no tafsir for this verse") are not stored (alembic ws3b2c3d4e5f6).',
+    notes: 'Primary Arabic tafsir. Bil-mathur methodology (narration-based). Reproducible seed path: the Apache-2.0 Hugging Face dataset riotu-lab/Quran-Tafseers at pinned revision 9ddbdeec22bfabd9821b14c6584ad9587ed7bffa (SHA-256 checked) by backend/scripts/datasets/fetch_hf_tafseers.py. 39 upstream placeholder rows ("no tafsir for this verse") are not stored (alembic ws3b2c3d4e5f6). Stored copy (checked 2026-10-14): the development database rows were seeded from the spa5k tafsir_api CDN (ar-tafsir-ibn-kathir), not from this dataset; 560 of 6197 passages are identical to the dataset text. Terms of that digital edition not recorded; owner review (see stored_copy in data/manifests/tafseer_sources.json).',
   },
   {
     sourceId: 'tabari_ar',
@@ -444,7 +444,7 @@ export const SOURCE_REGISTRY: Source[] = [
     sourceUrl: 'https://huggingface.co/datasets/riotu-lab/Quran-Tafseers',
     lastVerifiedAt: '2026-10-06',
     licenseStatus: 'cleared',
-    notes: 'Earliest comprehensive narration-based tafsir. Seeded into tafseer_sources from the Apache-2.0 Hugging Face dataset riotu-lab/Quran-Tafseers at pinned revision 9ddbdeec22bfabd9821b14c6584ad9587ed7bffa (SHA-256 checked) by backend/scripts/datasets/fetch_hf_tafseers.py.',
+    notes: 'Earliest comprehensive narration-based tafsir. Reproducible seed path: the Apache-2.0 Hugging Face dataset riotu-lab/Quran-Tafseers at pinned revision 9ddbdeec22bfabd9821b14c6584ad9587ed7bffa (SHA-256 checked) by backend/scripts/datasets/fetch_hf_tafseers.py. Stored copy (checked 2026-10-14): the development database rows were seeded from the spa5k tafsir_api CDN (ar-tafsir-al-tabari), not from this dataset; 3237 of 6236 passages are identical to the dataset text. Terms of that digital edition not recorded; owner review (see stored_copy in data/manifests/tafseer_sources.json).',
   },
   {
     sourceId: 'qurtubi_ar',
@@ -458,7 +458,7 @@ export const SOURCE_REGISTRY: Source[] = [
     sourceUrl: 'https://huggingface.co/datasets/riotu-lab/Quran-Tafseers',
     lastVerifiedAt: '2026-10-06',
     licenseStatus: 'cleared',
-    notes: 'Jurisprudence-focused tafsir. 60 upstream placeholder rows are not stored (alembic ws3b2c3d4e5f6). Seeded into tafseer_sources from the Apache-2.0 Hugging Face dataset riotu-lab/Quran-Tafseers at pinned revision 9ddbdeec22bfabd9821b14c6584ad9587ed7bffa (SHA-256 checked) by backend/scripts/datasets/fetch_hf_tafseers.py.',
+    notes: 'Jurisprudence-focused tafsir. 60 upstream placeholder rows are not stored (alembic ws3b2c3d4e5f6). Reproducible seed path: the Apache-2.0 Hugging Face dataset riotu-lab/Quran-Tafseers at pinned revision 9ddbdeec22bfabd9821b14c6584ad9587ed7bffa (SHA-256 checked) by backend/scripts/datasets/fetch_hf_tafseers.py. Stored copy (checked 2026-10-14): the development database rows were seeded from the spa5k tafsir_api CDN (ar-tafseer-al-qurtubi), not from this dataset; 3177 of 6176 passages are identical to the dataset text. Terms of that digital edition not recorded; owner review (see stored_copy in data/manifests/tafseer_sources.json).',
   },
   {
     sourceId: 'baghawi_ar',
@@ -472,7 +472,7 @@ export const SOURCE_REGISTRY: Source[] = [
     sourceUrl: 'https://huggingface.co/datasets/riotu-lab/Quran-Tafseers',
     lastVerifiedAt: '2026-10-06',
     licenseStatus: 'cleared',
-    notes: 'Narration-based tafsir. Seeded into tafseer_sources from the Apache-2.0 Hugging Face dataset riotu-lab/Quran-Tafseers at pinned revision 9ddbdeec22bfabd9821b14c6584ad9587ed7bffa (SHA-256 checked) by backend/scripts/datasets/fetch_hf_tafseers.py.',
+    notes: 'Narration-based tafsir. Seeded into tafseer_sources from the Apache-2.0 Hugging Face dataset riotu-lab/Quran-Tafseers at pinned revision 9ddbdeec22bfabd9821b14c6584ad9587ed7bffa (SHA-256 checked) by backend/scripts/datasets/fetch_hf_tafseers.py: 6,235 verse passages (none for 1:1). The reader tafsir panel serves it from that stored copy.',
   },
   {
     sourceId: 'asbab_wahidi',
@@ -528,11 +528,11 @@ export const SOURCE_REGISTRY: Source[] = [
     language: 'ar',
     type: 'tafsir',
     reliabilityLevel: 'supporting',
-    licenseOrTerms: 'Published by the King Fahd Complex as waqf (endowed for free distribution). Freely redistributed by the Quran Foundation API and mirrored widely; no restrictive terms located at source. Attribution to KFGQPC required.',
-    sourceUrl: 'https://api.quran-tafsir.com/tafsir/16',
-    lastVerifiedAt: '2026-09-23',
-    licenseStatus: 'restricted',
-    notes: 'tafsir_id=16. Production default for Arabic (see backend/app/core/config.py:107). Assessed 2026-09-23: KFGQPC waqf publication, low redistribution risk, no restrictive terms found. Residual caveat: qurancomplex.gov.sa refuses automated retrieval, so this is an assessment from downstream redistributors rather than a grant confirmed at source. Written confirmation from KFGQPC still wanted before commercial use. Previously carried a display block that contradicted its use as the production default.',
+    licenseOrTerms: 'King Fahd Complex publication, displayed with attribution for educational, non-commercial use only, under the free, ad-free distribution policy (docs/distribution-policy.md). The King Fahd Complex terms are pending owner confirmation; not cleared.',
+    sourceUrl: 'https://qurancomplex.gov.sa',
+    lastVerifiedAt: '2026-10-14',
+    licenseStatus: 'restricted', // non-commercial display only; KFGQPC terms pending owner confirmation (not 'cleared')
+    notes: 'Same statement in data/manifests/tafseer_sources.json (status pending_owner_confirmation) and in tafseer_sources (alembic r3d1a2b3c4d5). Owner decision 2026-10-14: shown because Tadabbur is distributed free of charge with no ads, purchases, subscriptions or paid tiers; any change to that model needs written KFGQPC permission or removal of this source. qurancomplex.gov.sa refuses automated retrieval, so the terms were not read at source. Stored text: spa5k tafsir_api CDN (ar-tafsir-muyassar), identical to riotu-lab/Quran-Tafseers at the pinned revision for all 6,235 verses that dataset carries. Alternative: QuranEnc arabic_moyassar once QuranEnc confirms its terms cover that key.',
   },
   {
     sourceId: 'mukhtasar_en',

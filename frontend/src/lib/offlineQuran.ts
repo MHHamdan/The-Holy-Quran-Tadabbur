@@ -3,15 +3,19 @@
  *
  * frontend/public/offline-quran/{1..114}.json are written by
  * scripts/export-offline-quran.ts, verbatim from data/raw/quran_tanzil.json
- * (the same Tanzil text the API serves). They ship inside the web build and
- * the Android/iOS packages, so a surah or Mushaf page can be read with no
- * network and no earlier visit. Only the Arabic text is bundled: translations
- * of the meanings, tafsir and audio still need the API.
+ * (the same Tanzil text the API serves). The Android/iOS packages carry them,
+ * so there any surah or Mushaf page can be read with no network and no earlier
+ * visit. On the web they are files on the site: the service worker keeps each
+ * one after it is first fetched (they are not precached), so offline a
+ * never-opened surah or page is only available after "Save the Qur'an for
+ * offline reading". Only the Arabic text is bundled: translations of the
+ * meanings, tafsir and audio still need the API.
  *
  * The readers use this only when the API cannot be reached. Text is passed
  * through as loaded: never edited, trimmed or re-normalised here.
  */
 import type { Verse } from './api';
+import { JUZ_FIRST_PAGE } from '../components/reader/surahNavigation';
 
 export interface OfflineVerse {
   id: number;
@@ -100,6 +104,29 @@ export function toVerses(file: OfflineSurahFile): Verse[] {
     bismillah_imlaei: v.bismillah_imlaei,
     translations: [],
   }));
+}
+
+/**
+ * Pages on which a juz begins after the page's first verse (juz 4, 7, 11 and
+ * 26 in the canonical Tanzil page/juz data), so the page opens in the previous
+ * juz. offlineQuran.test.ts checks this list against data/raw/quran_tanzil.json.
+ */
+const JUZ_STARTS_MID_PAGE: ReadonlySet<number> = new Set([62, 121, 201, 502]);
+
+/**
+ * Juz of the first verse of a Madinah Mushaf page (1-604), from the juz
+ * markers alone (JUZ_FIRST_PAGE: the page of each juz's first ayah). Readers
+ * use it when no verse of the page is loaded (offline and not saved), so the
+ * header and the juz select never claim the wrong juz.
+ */
+export function juzOfPage(pageNo: number): number {
+  let juz = 1;
+  for (let i = 0; i < JUZ_FIRST_PAGE.length; i++) {
+    const start = JUZ_FIRST_PAGE[i];
+    if (start < pageNo || (start === pageNo && !JUZ_STARTS_MID_PAGE.has(pageNo))) juz = i + 1;
+    else break;
+  }
+  return juz;
 }
 
 /** Every verse of a surah (1-114) from the bundled text. */

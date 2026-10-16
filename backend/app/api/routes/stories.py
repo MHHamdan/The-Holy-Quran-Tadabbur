@@ -140,6 +140,23 @@ def _manifest_connection_index() -> Tuple[FrozenSet[Tuple[str, str, str]], Dict[
     return frozenset(hidden), refs
 
 
+async def _enabled_chunk_ids(session: AsyncSession, ids: Iterable[str]) -> Set[str]:
+    """The subset of ids that are real tafseer_chunks of an enabled,
+    licence-verified source. Legacy pseudo ids ("ibn_kathir_en:18:83") and
+    chunks of disabled sources (the unlicensed English tafsir) drop out."""
+    wanted = sorted({i for i in ids if i})
+    if not wanted:
+        return set()
+    rows = await session.execute(
+        select(TafseerChunk.chunk_id)
+        .join(TafseerSource, TafseerSource.id == TafseerChunk.source_id)
+        .where(TafseerChunk.chunk_id.in_(wanted))
+        .where(TafseerSource.is_enabled == 1)
+        .where(TafseerSource.license_verified == 1)
+    )
+    return {r[0] for r in rows.all()}
+
+
 async def _segment_evidence(
     session: AsyncSession, segments: Iterable[StorySegment]
 ) -> Dict[str, List["SegmentEvidence"]]:
@@ -164,6 +181,7 @@ async def _segment_evidence(
             .join(TafseerSource, TafseerSource.id == TafseerChunk.source_id)
             .where(TafseerChunk.chunk_id.in_(all_ids))
             .where(TafseerSource.is_enabled == 1)
+            .where(TafseerSource.license_verified == 1)
         )
     ).all()
     info = {r.chunk_id: r for r in rows}
@@ -505,7 +523,17 @@ async def get_story_connections(
     result = await session.execute(query)
     connections = result.scalars().all()
 
-    return [ConnectionResponse.model_validate(c) for c in connections]
+    # Only evidence that resolves to an enabled, licensed tafsir chunk is
+    # exposed; anything else is dropped, never substituted.
+    valid = await _enabled_chunk_ids(
+        session, (cid for c in connections for cid in (c.evidence_chunk_ids or []))
+    )
+    out = []
+    for c in connections:
+        payload = ConnectionResponse.model_validate(c)
+        payload.evidence_chunk_ids = [cid for cid in (c.evidence_chunk_ids or []) if cid in valid]
+        out.append(payload)
+    return out
 
 
 @router.get("/{story_id}/graph", response_model=StoryGraphResponse)
@@ -630,13 +658,16 @@ async def get_cross_story_connections(
     connections = result.scalars().all()
 
     hidden, verse_refs = _manifest_connection_index()
+    valid = await _enabled_chunk_ids(
+        session, (cid for c in connections for cid in (c.evidence_chunk_ids or []))
+    )
     out = []
     for c in connections:
         key = (c.source_story_id, c.target_story_id, c.connection_type)
         if key in hidden:
             continue
         payload = CrossStoryConnectionResponse.model_validate(c)
-        payload.evidence_chunk_ids = list(c.evidence_chunk_ids or [])
+        payload.evidence_chunk_ids = [cid for cid in (c.evidence_chunk_ids or []) if cid in valid]
         payload.verse_refs = list(verse_refs.get(key, ()))
         out.append(payload)
     return out

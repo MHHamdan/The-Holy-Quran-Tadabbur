@@ -412,11 +412,18 @@ def seed_source(session: Session, source_id: str, allow_unverified: bool = False
     # Files produced by scripts/datasets/fetch_hf_tafseers.py carry their real
     # origin (dataset + pinned revision) in a sidecar; record that, not the CDN.
     sidecar = RAW_DIR / f"{source_id}.provenance.json"
+    license_url = meta.get("license_url")
     if sidecar.exists():
         prov = json.loads(sidecar.read_text(encoding="utf-8"))
         cdn_url = prov["source_url"]
         version_tag = prov["revision"]
+        # The licence that applies to the digital text is the dataset's, not
+        # the spa5k repository's.
+        license_url = f"https://huggingface.co/datasets/{prov['dataset']}"
         print(f"  Provenance: {prov['dataset']}@{version_tag[:12]} ({prov['dataset_license']})")
+    # source_url records where this text really came from (the pinned dataset
+    # file, or the CDN folder it was fetched from).
+    source_url = cdn_url
     retrieval_timestamp = get_retrieval_timestamp(source_id)
     language = meta.get("language", "en" if "_en" in source_id else "ar")
 
@@ -438,6 +445,7 @@ def seed_source(session: Session, source_id: str, allow_unverified: bool = False
             reliability_score=meta.get("reliability_score", 0.8),
             is_primary_source=1 if meta.get("is_primary_source") else 0,
             # PROVENANCE FIELDS
+            source_url=source_url,
             cdn_url=cdn_url,
             version_tag=version_tag,
             retrieval_timestamp=retrieval_timestamp,
@@ -445,7 +453,7 @@ def seed_source(session: Session, source_id: str, allow_unverified: bool = False
             ayah_count=len(data),
             license_type=meta.get("license_type"),
             license=meta.get("license"),
-            license_url=meta.get("license_url"),
+            license_url=license_url,
             license_verified=verified,
             is_enabled=enabled,
             translator=meta.get("translator"),
@@ -459,6 +467,7 @@ def seed_source(session: Session, source_id: str, allow_unverified: bool = False
     else:
         # Update provenance if missing
         if not existing.cdn_url:
+            existing.source_url = source_url
             existing.cdn_url = cdn_url
             existing.version_tag = version_tag
             existing.retrieval_timestamp = retrieval_timestamp
@@ -466,10 +475,14 @@ def seed_source(session: Session, source_id: str, allow_unverified: bool = False
             existing.ayah_count = len(data)
             existing.license_type = meta.get("license_type")
             existing.license = meta.get("license")
-            existing.license_url = meta.get("license_url")
+            existing.license_url = license_url
             print(f"  Updated provenance for: {source_id}")
         else:
             print(f"  Source exists with provenance: {source_id}")
+            # Existing chunks are kept (skipped below), so the recorded origin
+            # stays the one they were fetched from: the row's cdn_url.
+            if not existing.source_url:
+                existing.source_url = existing.cdn_url
         # Licence state always follows the manifest, never an older row.
         existing.license_verified = verified
         existing.is_enabled = enabled

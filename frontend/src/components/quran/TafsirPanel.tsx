@@ -741,7 +741,7 @@ export function TafsirPanel({ sura, ayah, isExpanded = false, onToggle }: Tafsir
               <TafsirAttributionFooter
                 edition={selectedEdition}
                 source={tafsirData.source}
-                sourceUrl={tafsirSourceUrl(tafsirData.source, sura, ayah, selectedEdition.slug)}
+                sourceUrl={tafsirSourceUrl(tafsirData.source, sura, ayah, selectedEdition.slug, selectedEdition.db_source_id)}
                 language={language}
               />
             </>

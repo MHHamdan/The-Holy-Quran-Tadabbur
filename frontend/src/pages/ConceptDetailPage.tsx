@@ -39,6 +39,7 @@ import { ErrorPanel, parseAPIError, DataIncompleteNotice, APIErrorData, ConceptD
 import clsx from 'clsx';
 import { QuranTextAttribution } from '../components/quran/QuranTextAttribution';
 import { ProvenanceLabel } from '../components/common/ProvenanceLabel';
+import { AnalyticalStudyAidNotice } from '../components/tafsir/AnalyticalStudyAidNotice';
 import { storyTitle } from '../components/stories/storyLabels';
 
 // Enhanced type configuration with gradients
@@ -345,6 +346,7 @@ export function ConceptDetailPage() {
               <p className="text-xl text-white/80 mb-4">
                 {isArabic ? config.description.ar : config.description.en}
               </p>
+              <AnalyticalStudyAidNotice language={isArabic ? 'ar' : 'en'} variant="dark" className="mb-4" />
 
               {/* Type Badge */}
               <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full text-sm">

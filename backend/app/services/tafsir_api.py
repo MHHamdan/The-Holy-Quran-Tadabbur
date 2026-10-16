@@ -121,6 +121,9 @@ class TafsirEditionInfo:
     has_audio: bool
     quran_com_id: Optional[int] = None  # ID for Quran.com API
     tafsir_one_slug: Optional[str] = None  # Slug for read.tafsir.one
+    # Id of the same work in tafseer_sources / the sources manifest. The verse
+    # route serves the locally stored, licensed passage for it first.
+    db_source_id: Optional[str] = None
 
 
 # Available tafsir editions with metadata.
@@ -131,6 +134,15 @@ class TafsirEditionInfo:
 # alsidi, alsiraaj and ibn_ashoor returned 404 from every upstream. Anything
 # not listed here is refused (get_tafsir returns None). Re-adding a work needs
 # its licence recorded in data/manifests/tafseer_sources.json first.
+#
+# Removed 2026-10-14: Tafsir as-Sa'di (d. 1376 AH, saadi_ar is
+# pending_verification in the manifest) and the Arabic al-Jalalayn (no
+# manifest entry). Every edition below names its manifest entry in
+# db_source_id; backend/tests/unit/test_tafsir_edition_licences.py checks that
+# each one has a recorded, non-pending licence and a registry entry.
+#
+# Tafsir audio (read.tafsir.one) stays off until its terms are confirmed
+# (owner review: tafsir-audio-unverified), so has_audio is False everywhere.
 TAFSIR_EDITIONS: Dict[str, TafsirEditionInfo] = {
     # Arabic Tafseers with Audio (from read.tafsir.one)
     "muyassar": TafsirEditionInfo(
@@ -142,35 +154,10 @@ TAFSIR_EDITIONS: Dict[str, TafsirEditionInfo] = {
         author_en="King Fahd Complex",
         language="ar",
         source=TafsirSource.TAFSIR_ONE,
-        has_audio=True,
+        has_audio=False,
         quran_com_id=16,
         tafsir_one_slug="almuyassar",
-    ),
-    "jalalayn": TafsirEditionInfo(
-        id="jalalayn",
-        slug="aljalalayn",
-        name_ar="تفسير الجلالين",
-        name_en="Tafsir Al-Jalalayn",
-        author_ar="جلال الدين المحلي والسيوطي",
-        author_en="Al-Mahalli & As-Suyuti",
-        language="ar",
-        source=TafsirSource.TAFSIR_ONE,
-        has_audio=True,
-        quran_com_id=None,
-        tafsir_one_slug="aljalalayn",
-    ),
-    "saadi": TafsirEditionInfo(
-        id="saadi",
-        slug="alsaadi",
-        name_ar="تفسير السعدي",
-        name_en="Tafsir As-Saadi",
-        author_ar="عبد الرحمن السعدي",
-        author_en="Abdur-Rahman As-Saadi",
-        language="ar",
-        source=TafsirSource.TAFSIR_ONE,
-        has_audio=True,
-        quran_com_id=91,
-        tafsir_one_slug="alsaadi",
+        db_source_id="muyassar_ar",
     ),
     # Arabic Tafseers from Quran.com (text only)
     "ibn_kathir": TafsirEditionInfo(
@@ -184,6 +171,7 @@ TAFSIR_EDITIONS: Dict[str, TafsirEditionInfo] = {
         source=TafsirSource.QURAN_COM,
         has_audio=False,
         quran_com_id=14,
+        db_source_id="ibn_kathir_ar",
     ),
     "tabari": TafsirEditionInfo(
         id="tabari",
@@ -196,6 +184,7 @@ TAFSIR_EDITIONS: Dict[str, TafsirEditionInfo] = {
         source=TafsirSource.QURAN_COM,
         has_audio=False,
         quran_com_id=15,
+        db_source_id="tabari_ar",
     ),
     "qurtubi": TafsirEditionInfo(
         id="qurtubi",
@@ -208,6 +197,7 @@ TAFSIR_EDITIONS: Dict[str, TafsirEditionInfo] = {
         source=TafsirSource.QURAN_COM,
         has_audio=False,
         quran_com_id=90,
+        db_source_id="qurtubi_ar",
     ),
     "baghawi": TafsirEditionInfo(
         id="baghawi",
@@ -220,6 +210,7 @@ TAFSIR_EDITIONS: Dict[str, TafsirEditionInfo] = {
         source=TafsirSource.QURAN_COM,
         has_audio=False,
         quran_com_id=94,
+        db_source_id="baghawi_ar",
     ),
 }
 
@@ -339,6 +330,7 @@ class ExternalTafsirService:
                 "language": info.language,
                 "has_audio": info.has_audio,
                 "source": info.source.value,
+                "db_source_id": info.db_source_id,
             })
         return editions
 
@@ -506,11 +498,8 @@ class ExternalTafsirService:
             "muyassar": 1,
             "ibn_kathir": 2,
             "tabari": 3,
-            "saadi": 4,
             "qurtubi": 5,
             "baghawi": 6,
-            "wasit": 7,
-            "jalalayn": 8,
         }
 
         # 1. Try Quran.com first if available (best source)
@@ -535,6 +524,7 @@ class ExternalTafsirService:
                 "author_en": edition.author_en,
                 "language": edition.language,
                 "has_audio": edition.has_audio,
+                "db_source_id": edition.db_source_id,
             }
 
             # Add audio URL if available

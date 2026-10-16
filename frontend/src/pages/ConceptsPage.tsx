@@ -21,6 +21,7 @@ import {
 import { useLanguageStore } from '../stores/languageStore';
 import { conceptsApi, ConceptSummary, ConceptTypeFacet } from '../lib/api';
 import clsx from 'clsx';
+import { AnalyticalStudyAidNotice } from '../components/tafsir/AnalyticalStudyAidNotice';
 
 // Enhanced type configuration with better Arabic support
 const TYPE_CONFIG: Record<string, {
@@ -223,6 +224,11 @@ export function ConceptsPage() {
                 ? 'استكشف الشخصيات والأمم والأماكن والمعجزات والموضوعات في القرآن الكريم'
                 : 'Explore persons, nations, places, miracles, and themes in the Holy Quran'}
             </p>
+            <AnalyticalStudyAidNotice
+              language={isArabic ? 'ar' : 'en'}
+              variant="dark"
+              className="max-w-2xl mx-auto mb-6 text-start"
+            />
 
             {/* Search Box */}
             <form onSubmit={handleSearch} className="max-w-lg mx-auto px-4">

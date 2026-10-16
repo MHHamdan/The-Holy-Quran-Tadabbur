@@ -6,6 +6,7 @@ import { useLanguageStore } from '../stores/languageStore';
 import { t } from '../i18n/translations';
 import { themesApi, quranApi, asmaApi, QuranicTheme, ThemeCategory, AllahNameResponse, ALLAH_NAME_CATEGORIES } from '../lib/api';
 import clsx from 'clsx';
+import { AnalyticalStudyAidNotice } from '../components/tafsir/AnalyticalStudyAidNotice';
 
 type ActiveTab = 'themes' | 'allah-names';
 
@@ -115,6 +116,7 @@ function ThemesTab({ language }: { language: 'ar' | 'en' }) {
         <p className={clsx('text-gray-600', language === 'ar' && 'font-arabic')}>
           {t('themes_subtitle', language)}
         </p>
+        <AnalyticalStudyAidNotice language={language} className="mt-4" />
       </div>
 
       {/* Category Filter */}
