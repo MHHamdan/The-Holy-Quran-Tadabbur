@@ -219,7 +219,7 @@ The step-1–4 data then served `/quran/*`, `/tafseer/compare/*`, `/rag/ask` (8 
 |---|---|
 | Qur'an text (Hafs; Uthmani and simple script) | **Available, licence verified.** Tanzil Project text, CC BY 3.0, verbatim (`data/raw/tanzil/`, built into `data/raw/quran_tanzil.json`). Attribution with a link to tanzil.net is shown wherever the text appears. Same letters as the previous KFGQPC text in all 6,236 verses apart from encoding conventions (`backend/tests/test_quran_text_source.py`). |
 | Arabic tafsir: Ibn Kathir, al-Tabari, al-Qurtubi, al-Baghawi | Available (HF dataset above; classical, public domain). |
-| Al-Tafsir al-Muyassar | Available technically. **Licence pending** (King Fahd Complex, "educational and non-commercial"; manifest status `pending_user_input`). |
+| Al-Tafsir al-Muyassar | Stored, **on licence hold** (King Fahd Complex terms not yet confirmed by the owner; `license_verified=0`). Not served by any endpoint, not cited by RAG, not a default. |
 | Translations of the meanings | Available: 22 editions in 20 languages from QuranEnc.com (137,192 verse rows), stored verbatim with version and footnotes per its republication terms (`data/manifests/translation_sources.json`). English default: Saheeh International (`english_saheeh`). |
 | English tafsir (Ibn Kathir EN, al-Jalalayn, Tafheem, al-Saʿdi EN) | **Not available.** The CDN/API downloaders exist (`make download-tafseer`) but were not verified. Several of these are marked pending licence verification. |
 | Tafsir and verse vector indexes | Reproducible with HF credit (step 5). Not rebuilt here: the account's HF credits are exhausted. Without them, retrieval falls back to keyword search. |
@@ -311,4 +311,4 @@ These tests spend a little HF credit. They cover chat (Arabic and English), embe
 
 ## Licensing
 
-Code: see repository licence. Content licences are tracked per source in `data/manifests/`. The Qur'an text is Tanzil's (CC BY 3.0). Al-Muyassar is shown under its publisher's educational, non-commercial terms, which the app meets because it is free with no ads or purchases (`docs/distribution-policy.md`).
+Code: see repository licence. Content licences are tracked per source in `data/manifests/`. The Qur'an text is Tanzil's (CC BY 3.0). Al-Muyassar is on licence hold (`license_verified=0`, migration `r5c1a2b3c4d5`) until the owner confirms the KFGQPC terms: it is not served, cited or offered as a default, and the reader defaults to al-Baghawi (Apache-2.0, `riotu-lab/Quran-Tafseers`). See `docs/distribution-policy.md`.
