@@ -41,6 +41,7 @@ from app.services.tafsir_api import (
 )
 from app.services.redis_cache import get_hybrid_cache
 from app.services.tafsir_comparison import tafsir_comparison_service
+from app.services.tafsir_sources import is_tafsir_placeholder
 from app.models.tafseer import TafseerChunk, TafseerSource
 from app.db.database import get_async_session
 from app.core.config import settings
@@ -328,18 +329,49 @@ class _EditionNotServable(Exception):
     """The edition's tafseer_sources row exists but is disabled or unverified."""
 
 
+class _EditionNotSeeded(Exception):
+    """The edition's tafseer_sources row does not exist in this installation."""
+
+
+def _no_passage(info, sura: int, ayah: int) -> HTTPException:
+    """Bilingual 'this source has no passage for this verse' (never a placeholder)."""
+    return HTTPException(
+        status_code=404,
+        detail={
+            "code": "NO_PASSAGE_IN_SOURCE",
+            "source_id": info.db_source_id,
+            "verse_key": f"{sura}:{ayah}",
+            "message": f"{info.name_en} has no separate passage for verse {sura}:{ayah}.",
+            "message_ar": f"لا يوجد في {info.name_ar} مقطع مستقل للآية {sura}:{ayah}.",
+        },
+    )
+
+
+def _edition_not_seeded(info) -> HTTPException:
+    return HTTPException(
+        status_code=404,
+        detail={
+            "code": "EDITION_NOT_SEEDED",
+            "source_id": info.db_source_id,
+            "message": f"{info.name_en} is not in this installation's tafsir library.",
+            "message_ar": f"{info.name_ar} غير موجود في مكتبة التفسير لهذه النسخة.",
+        },
+    )
+
+
 async def _local_licensed_passage(
     session: AsyncSession, db_source_id: str, sura: int, ayah: int
 ) -> Optional[Dict[str, Any]]:
     """The stored passage covering sura:ayah from an enabled, licence-verified
-    source, or None when the source has no row (not seeded here) or no passage
-    for this verse. Raises _EditionNotServable when the row exists but is
-    disabled or unverified: such a source must not be proxied either."""
+    source, or None when the source has no passage for this verse (an empty
+    or upstream-placeholder row counts as none). Raises _EditionNotSeeded
+    when the source has no row here, and _EditionNotServable when the row
+    exists but is disabled or unverified."""
     source = (
         await session.execute(select(TafseerSource).where(TafseerSource.id == db_source_id))
     ).scalar_one_or_none()
     if source is None:
-        return None
+        raise _EditionNotSeeded(db_source_id)
     if not (source.is_enabled and source.license_verified):
         raise _EditionNotServable(db_source_id)
     chunk = (
@@ -358,7 +390,7 @@ async def _local_licensed_passage(
     if chunk is None:
         return None
     text = (chunk.content_ar if source.language == "ar" else chunk.content_en) or chunk.content_ar or chunk.content_en
-    if not text:
+    if is_tafsir_placeholder(text):
         return None
     return {"text": text.strip(), "chunk_id": chunk.chunk_id}
 
@@ -434,14 +466,18 @@ async def get_external_tafsir(
     """
     Get tafsir for a specific verse.
 
-    Every edition names its tafseer_sources id (db_source_id). The stored,
-    licence-verified passage is served first (source "tadabbur_library",
-    with source_id and chunk_id). A source whose row is disabled or
-    unverified is refused (403), never proxied. Only when the source is not
-    seeded here, or has no passage for the verse, is the text fetched from
-    Quran.com / quran-tafseer.com / read.tafsir.one as before.
+    Every edition names its tafseer_sources id (db_source_id), and only the
+    stored, licence-verified passage is served (source "tadabbur_library",
+    with source_id and chunk_id). Nothing is proxied: the Quran.com /
+    quran-tafseer.com / read.tafsir.one terms are not recorded, and Quran.com
+    answers verses without a separate passage with a placeholder ("لا يوجد
+    تفسير لهذه الأية") that was being shown as the scholar's tafsir.
 
-    Performance: Uses Redis caching + HTTP cache headers.
+    - disabled or unverified source: 403 EDITION_NOT_LICENSED
+    - source not seeded here: 404 EDITION_NOT_SEEDED
+    - no passage for this verse (or only a placeholder): 404
+      NO_PASSAGE_IN_SOURCE, with a bilingual message naming the source
+    - database unavailable: 503 TAFSIR_UNAVAILABLE
     """
     if not 1 <= sura <= 114:
         raise HTTPException(
@@ -466,23 +502,121 @@ async def get_external_tafsir(
         )
 
     info = TAFSIR_EDITIONS[edition]
-    local: Optional[Dict[str, Any]] = None
-    if info.db_source_id:
+    if not info.db_source_id:  # every listed edition has one; never proxy
+        raise _edition_not_seeded(info)
+    try:
+        local = await _local_licensed_passage(session, info.db_source_id, sura, ayah)
+    except _EditionNotServable:
+        raise _edition_not_licensed()
+    except _EditionNotSeeded:
+        raise _edition_not_seeded(info)
+    except Exception as e:
+        logger.warning("Local tafsir lookup failed for %s %s:%s: %s", edition, sura, ayah, e)
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "TAFSIR_UNAVAILABLE",
+                "message": "The tafsir library is temporarily unavailable. Please retry.",
+                "message_ar": "مكتبة التفسير غير متاحة مؤقتاً. أعد المحاولة.",
+            },
+        )
+    if not local:
+        raise _no_passage(info, sura, ayah)
+
+    if response:
+        set_cache_headers(response, max_age=CACHE_TTL_TAFSIR, etag_data=local["chunk_id"])
+    return ExternalTafsirResponse(
+        ok=True,
+        verse_key=f"{sura}:{ayah}",
+        text=local["text"],
+        source=LOCAL_LIBRARY_SOURCE,
+        edition={
+            "id": info.id,
+            "name_ar": info.name_ar,
+            "name_en": info.name_en,
+            "author_ar": info.author_ar,
+            "author_en": info.author_en,
+            "language": info.language,
+            "has_audio": False,
+            "db_source_id": info.db_source_id,
+        },
+        audio_url=None,
+        source_id=info.db_source_id,
+        chunk_id=local["chunk_id"],
+    )
+
+
+@router.get("/quran-com/verse/{sura}/{ayah}")
+async def get_quran_com_tafsir(
+    sura: int,
+    ayah: int,
+    tafsir_id: int = Query(..., description="Quran.com tafsir ID of an allowlisted edition"),
+) -> dict:
+    """
+    Former Quran.com proxy, now closed.
+
+    The English works it used to serve (169 Ibn Kathir EN, 168 Ma'arif
+    al-Qur'an, 817 Tazkirul Quran) are copyrighted with no recorded
+    permission and stay refused with 403. The Arabic editions are served from
+    the licensed library by /external/verse: Quran.com's terms are not
+    recorded, and it answers verses without a separate passage with a
+    placeholder that is not tafsir. Listed ids get 410 PROXY_DISABLED.
+    """
+    if tafsir_id not in ALLOWED_QURAN_COM_IDS:
+        raise _edition_not_licensed()
+    raise HTTPException(
+        status_code=410,
+        detail={
+            "code": "PROXY_DISABLED",
+            "message": "Tafsir is served from the app's licensed library: use /api/v1/tafseer/external/verse.",
+            "message_ar": "يُعرض التفسير من مكتبة التطبيق المرخّصة: استخدم /api/v1/tafseer/external/verse.",
+        },
+    )
+
+
+@router.get("/external/compare/{sura}/{ayah}")
+async def compare_external_tafsirs(
+    sura: int,
+    ayah: int,
+    editions: str = Query("muyassar,ibn_kathir,tabari", description="Comma-separated edition IDs"),
+    session: AsyncSession = Depends(get_async_session),
+) -> dict:
+    """
+    Compare tafsir from several editions for a verse.
+
+    Each edition's passage comes from the licensed library only (as in
+    /external/verse); an edition that is unknown, unlicensed, not seeded or
+    has no passage for the verse is simply absent. Nothing is proxied.
+    """
+    if not 1 <= sura <= 114:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "INVALID_SURA",
+                "message": "Sura must be between 1 and 114",
+                "message_ar": "رقم السورة يجب أن يكون بين 1 و 114",
+            }
+        )
+
+    edition_list = [e.strip() for e in editions.split(",") if e.strip()][:len(TAFSIR_EDITIONS)]
+    results = []
+    for edition_id in edition_list:
+        info = TAFSIR_EDITIONS.get(edition_id)
+        if not info or not info.db_source_id:
+            continue
         try:
             local = await _local_licensed_passage(session, info.db_source_id, sura, ayah)
-        except _EditionNotServable:
-            raise _edition_not_licensed()
-        except Exception as e:  # DB unavailable: fall through to the proxy
-            logger.warning("Local tafsir lookup failed for %s %s:%s: %s", edition, sura, ayah, e)
-    if local:
-        if response:
-            set_cache_headers(response, max_age=CACHE_TTL_TAFSIR, etag_data=local["chunk_id"])
-        return ExternalTafsirResponse(
-            ok=True,
-            verse_key=f"{sura}:{ayah}",
-            text=local["text"],
-            source=LOCAL_LIBRARY_SOURCE,
-            edition={
+        except (_EditionNotServable, _EditionNotSeeded):
+            continue
+        if not local:
+            continue
+        results.append({
+            "verse_key": f"{sura}:{ayah}",
+            "text": local["text"],
+            "source": LOCAL_LIBRARY_SOURCE,
+            "source_id": info.db_source_id,
+            "chunk_id": local["chunk_id"],
+            "edition": {
                 "id": info.id,
                 "name_ar": info.name_ar,
                 "name_en": info.name_en,
@@ -492,154 +626,7 @@ async def get_external_tafsir(
                 "has_audio": False,
                 "db_source_id": info.db_source_id,
             },
-            audio_url=None,
-            source_id=info.db_source_id,
-            chunk_id=local["chunk_id"],
-        )
-
-    # Check Redis cache first (v3: v2 entries predate the local-library path
-    # and the removal of saadi/jalalayn and of tafsir audio)
-    cache_key = f"tafsir:external:v3:{edition}:{sura}:{ayah}"
-    cache = get_hybrid_cache()
-    cached = await cache.get(cache_key)
-
-    if cached:
-        logger.debug(f"Cache HIT: {cache_key}")
-        # Set cache headers
-        if response:
-            set_cache_headers(response, max_age=CACHE_TTL_TAFSIR, etag_data=cache_key)
-        return ExternalTafsirResponse(**cached)
-
-    # Fetch from external API
-    result = await external_tafsir_service.get_tafsir(edition, sura, ayah)
-
-    if not result:
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "code": "TAFSIR_NOT_FOUND",
-                "message": f"Tafsir not found for {sura}:{ayah} in edition {edition}",
-                "message_ar": f"التفسير غير موجود للآية {sura}:{ayah}",
-            }
-        )
-
-    # Build response
-    response_data = {
-        "ok": True,
-        "verse_key": result.get("verse_key", f"{sura}:{ayah}"),
-        "text": result.get("text", ""),
-        "source": result.get("source", ""),
-        "edition": result.get("edition", {}),
-        "audio_url": result.get("audio_url"),
-        "source_id": info.db_source_id,
-    }
-
-    # Cache the result
-    await cache.set(cache_key, response_data, l1_ttl=300, l2_ttl=CACHE_TTL_TAFSIR)
-
-    # Set cache headers
-    if response:
-        set_cache_headers(response, max_age=CACHE_TTL_TAFSIR, etag_data=cache_key)
-
-    return ExternalTafsirResponse(**response_data)
-
-
-@router.get("/quran-com/verse/{sura}/{ayah}")
-async def get_quran_com_tafsir(
-    sura: int,
-    ayah: int,
-    tafsir_id: int = Query(..., description="Quran.com tafsir ID of an allowlisted edition"),
-    response: Response = None,
-) -> dict:
-    """
-    Get tafsir from Quran.com API v4 by tafsir ID.
-
-    Only the Quran.com ids of editions in TAFSIR_EDITIONS are proxied
-    (ALLOWED_QURAN_COM_IDS). The English works this route used to serve
-    (169 Ibn Kathir EN, 168 Ma'arif al-Qur'an, 817 Tazkirul Quran) are
-    copyrighted with no recorded permission and are refused with 403.
-
-    Performance: Uses Redis caching + HTTP cache headers.
-    """
-    if tafsir_id not in ALLOWED_QURAN_COM_IDS:
-        raise _edition_not_licensed()
-    if not 1 <= sura <= 114:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "code": "INVALID_SURA",
-                "message": "Sura must be between 1 and 114",
-                "message_ar": "رقم السورة يجب أن يكون بين 1 و 114",
-            }
-        )
-
-    # Check Redis cache first
-    cache_key = f"tafsir:quran_com:v2:{tafsir_id}:{sura}:{ayah}"
-    cache = get_hybrid_cache()
-    cached = await cache.get(cache_key)
-
-    if cached:
-        logger.debug(f"Cache HIT: {cache_key}")
-        if response:
-            set_cache_headers(response, max_age=CACHE_TTL_TAFSIR, etag_data=cache_key)
-        return cached
-
-    # Fetch from Quran.com API
-    result = await external_tafsir_service.fetch_from_quran_com(tafsir_id, sura, ayah)
-
-    if not result:
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "code": "TAFSIR_NOT_FOUND",
-                "message": f"Tafsir not found for {sura}:{ayah} with tafsir_id {tafsir_id}",
-                "message_ar": f"التفسير غير موجود للآية {sura}:{ayah}",
-            }
-        )
-
-    # Build response
-    response_data = {
-        "ok": True,
-        "verse_key": f"{sura}:{ayah}",
-        "text": result.get("text", ""),
-        "source": "quran_com",
-        "tafsir_id": tafsir_id,
-        "resource_name": result.get("resource_name", ""),
-    }
-
-    # Cache the result
-    await cache.set(cache_key, response_data, l1_ttl=300, l2_ttl=CACHE_TTL_TAFSIR)
-
-    # Set cache headers
-    if response:
-        set_cache_headers(response, max_age=CACHE_TTL_TAFSIR, etag_data=cache_key)
-
-    return response_data
-
-
-@router.get("/external/compare/{sura}/{ayah}")
-async def compare_external_tafsirs(
-    sura: int,
-    ayah: int,
-    editions: str = Query("muyassar,ibn_kathir,tabari", description="Comma-separated edition IDs"),
-) -> dict:
-    """
-    Compare tafsir from multiple editions for a verse.
-
-    Returns tafsir text from multiple scholars for comparison.
-    """
-    if not 1 <= sura <= 114:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "code": "INVALID_SURA",
-                "message": "Sura must be between 1 and 114",
-                "message_ar": "رقم السورة يجب أن يكون بين 1 و 114",
-            }
-        )
-
-    edition_list = [e.strip() for e in editions.split(",")]
-    results = await external_tafsir_service.get_multiple_tafsirs(edition_list, sura, ayah)
+        })
 
     return {
         "ok": True,

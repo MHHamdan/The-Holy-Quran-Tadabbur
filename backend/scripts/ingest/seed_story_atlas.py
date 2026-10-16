@@ -15,7 +15,11 @@ GROUNDING RULES:
   Do NOT add "snippet" text: the old snippets were paraphrased ayah
   translations misattributed to Ibn Kathir. The UI links to the tafsir
   comparison page for the cited ayah instead.
-- Evidence sources: ibn_kathir_en, tabari_ar, qurtubi_ar (enabled in system)
+- Evidence cites only enabled, licence-verified tafsir (ibn_kathir_ar,
+  tabari_ar, qurtubi_ar, ...). At seed time every pointer is resolved against
+  tafseer_chunks (app.services.story_atlas_evidence): a pointer with no
+  enabled, licensed passage at that verse is dropped, never written. The
+  disabled English translation of Ibn Kathir is never cited.
 
 CATEGORIES:
 ===========
@@ -38,10 +42,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
+from app.services.story_atlas_evidence import resolve_seed_evidence_sync
+
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "postgresql://tadabbur:tadabbur_dev@localhost:5432/tadabbur"
-)
+).replace("+asyncpg", "")  # the seeder uses a sync engine
 
 # =============================================================================
 # STORY CLUSTERS DATA
@@ -1081,7 +1087,7 @@ STORY_EVENTS = {
             "summary_ar": "أصحاب الكهف والرقيم من آيات الله العجيبة",
             "summary_en": "The companions of the cave and inscription are among Allah's wondrous signs.",
             "semantic_tags": ["signs", "wonder"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:9"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:9"}],
         },
         {
             "id": "cluster_cave_sleepers:flight",
@@ -1094,7 +1100,7 @@ STORY_EVENTS = {
             "summary_ar": "فتية آمنوا بربهم ففروا إلى الكهف طالبين رحمة الله",
             "summary_en": "Young men who believed in their Lord fled to the cave seeking Allah's mercy.",
             "semantic_tags": ["faith", "youth", "escape"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:10"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:10"}],
         },
         {
             "id": "cluster_cave_sleepers:sleep",
@@ -1107,7 +1113,7 @@ STORY_EVENTS = {
             "summary_ar": "ضرب الله على آذانهم في الكهف سنين عدداً",
             "summary_en": "Allah sealed their ears (made them sleep) in the cave for years.",
             "semantic_tags": ["miracle", "sleep", "protection"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:11"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:11"}],
         },
         {
             "id": "cluster_cave_sleepers:awakening",
@@ -1120,7 +1126,7 @@ STORY_EVENTS = {
             "summary_ar": "بعثهم الله ليتساءلوا بينهم، وأرسلوا أحدهم بورقهم إلى المدينة",
             "summary_en": "Allah raised them to question among themselves, sent one with coins to the city.",
             "semantic_tags": ["awakening", "discovery"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:19"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:19"}],
         },
         {
             "id": "cluster_cave_sleepers:duration",
@@ -1133,7 +1139,7 @@ STORY_EVENTS = {
             "summary_ar": "لبثوا في كهفهم ثلاثمائة سنين وازدادوا تسعاً",
             "summary_en": "They remained in their cave 300 years, and add 9 (309 lunar years).",
             "semantic_tags": ["time", "miracle", "lesson"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:25"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:25"}],
         },
     ],
 
@@ -1152,7 +1158,7 @@ STORY_EVENTS = {
             "summary_ar": "مثل رجلين: أحدهما أوتي جنتين من أعناب",
             "summary_en": "Parable of two men: one given two gardens of grapes.",
             "semantic_tags": ["parable", "wealth"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:32"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:32"}],
         },
         {
             "id": "cluster_two_gardens:arrogance",
@@ -1165,7 +1171,7 @@ STORY_EVENTS = {
             "summary_ar": "دخل جنته وهو ظالم لنفسه، أنكر الساعة",
             "summary_en": "He entered his garden wronging himself, denied the Hour.",
             "semantic_tags": ["arrogance", "denial", "kufr"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:35"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:35"}],
         },
         {
             "id": "cluster_two_gardens:warning",
@@ -1178,7 +1184,7 @@ STORY_EVENTS = {
             "summary_ar": "قال له صاحبه: أكفرت بالذي خلقك؟ لولا إذ دخلت جنتك قلت ما شاء الله",
             "summary_en": "His companion said: Do you disbelieve in Him who created you? If only you had said 'What Allah wills!'",
             "semantic_tags": ["advice", "reminder", "mashallah"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:37"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:37"}],
         },
         {
             "id": "cluster_two_gardens:destruction",
@@ -1191,7 +1197,7 @@ STORY_EVENTS = {
             "summary_ar": "أحيط بثمره فأصبح يقلب كفيه على ما أنفق فيها",
             "summary_en": "His fruits were encompassed (destroyed), he wrung his hands over what he had spent.",
             "semantic_tags": ["destruction", "regret"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:42"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:42"}],
         },
         {
             "id": "cluster_two_gardens:lesson",
@@ -1204,7 +1210,7 @@ STORY_EVENTS = {
             "summary_ar": "الولاية لله الحق، هو خير ثواباً وخير عقباً",
             "summary_en": "Protection is from Allah the True. He is best in reward and best in outcome.",
             "semantic_tags": ["lesson", "truth", "protection"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:44"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:44"}],
         },
     ],
 
@@ -1223,7 +1229,7 @@ STORY_EVENTS = {
             "summary_ar": "موسى يرحل مع فتاه طلباً للعلم حتى مجمع البحرين",
             "summary_en": "Musa travels with his young companion seeking knowledge to the junction of two seas.",
             "semantic_tags": ["journey", "knowledge_seeking"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:60"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:60"}],
         },
         {
             "id": "cluster_musa_khidr:meeting_khidr",
@@ -1236,7 +1242,7 @@ STORY_EVENTS = {
             "summary_ar": "لقاء موسى بعبد من عباد الله أوتي رحمة وعلماً من لدنه",
             "summary_en": "Musa meets a servant whom Allah granted mercy and knowledge from Himself.",
             "semantic_tags": ["meeting", "special_knowledge"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:65"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:65"}],
         },
         {
             "id": "cluster_musa_khidr:ship",
@@ -1249,7 +1255,7 @@ STORY_EVENTS = {
             "summary_ar": "خرقا السفينة - الحكمة: حمايتها من ملك غاصب",
             "summary_en": "They damaged the ship - Wisdom: protecting it from a tyrant king.",
             "semantic_tags": ["test", "hidden_wisdom", "ship"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:71"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:71"}],
         },
         {
             "id": "cluster_musa_khidr:boy",
@@ -1262,7 +1268,7 @@ STORY_EVENTS = {
             "summary_ar": "قتل الغلام - الحكمة: كان سيُرهق والديه بالكفر والطغيان",
             "summary_en": "The boy killed - Wisdom: he would burden parents with disbelief and transgression.",
             "semantic_tags": ["test", "hidden_wisdom", "fate"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:74"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:74"}],
         },
         {
             "id": "cluster_musa_khidr:wall",
@@ -1275,7 +1281,7 @@ STORY_EVENTS = {
             "summary_ar": "إقامة الجدار - الحكمة: حماية كنز يتيمين صالحين",
             "summary_en": "Wall erected - Wisdom: protecting treasure of two righteous orphans.",
             "semantic_tags": ["test", "hidden_wisdom", "orphans"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:77"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:77"}],
         },
         {
             "id": "cluster_musa_khidr:explanation",
@@ -1288,7 +1294,7 @@ STORY_EVENTS = {
             "summary_ar": "تفسير الأفعال الثلاثة وبيان الحكمة الخفية",
             "summary_en": "Explanation of the three actions and revelation of hidden wisdom.",
             "semantic_tags": ["explanation", "wisdom_revealed"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:82"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:82"}],
         },
     ],
 
@@ -1307,7 +1313,7 @@ STORY_EVENTS = {
             "summary_ar": "يُسأل النبي ﷺ عن ذي القرنين",
             "summary_en": "The Prophet is asked about Dhul-Qarnayn.",
             "semantic_tags": ["question", "revelation"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:83"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:83"}],
         },
         {
             "id": "cluster_dhulqarnayn:empowerment",
@@ -1320,7 +1326,7 @@ STORY_EVENTS = {
             "summary_ar": "مكّن الله ذا القرنين في الأرض وآتاه من كل شيء سبباً",
             "summary_en": "Allah established him on earth and gave him means to everything.",
             "semantic_tags": ["tamkeen", "power", "means"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:84"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:84"}],
         },
         {
             "id": "cluster_dhulqarnayn:west",
@@ -1333,7 +1339,7 @@ STORY_EVENTS = {
             "summary_ar": "رحل غرباً ووجد قوماً، خُيّر بين العقاب والإحسان فاختار العدل",
             "summary_en": "Traveled west, found a people, chose justice between punishment and kindness.",
             "semantic_tags": ["journey", "justice", "west"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:86"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:86"}],
         },
         {
             "id": "cluster_dhulqarnayn:east",
@@ -1346,7 +1352,7 @@ STORY_EVENTS = {
             "summary_ar": "رحل شرقاً فوجد قوماً لا ستر لهم، عاملهم بالعدل",
             "summary_en": "Traveled east, found vulnerable people with no shelter, treated them justly.",
             "semantic_tags": ["journey", "east", "restraint"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:90"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:90"}],
         },
         {
             "id": "cluster_dhulqarnayn:barrier_encounter",
@@ -1359,7 +1365,7 @@ STORY_EVENTS = {
             "summary_ar": "وجد قوماً بين جبلين يشكون من يأجوج ومأجوج",
             "summary_en": "Found people between mountains suffering from Yajuj and Majuj.",
             "semantic_tags": ["encounter", "oppressed", "yajuj"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:94"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:94"}],
         },
         {
             "id": "cluster_dhulqarnayn:refuses_tribute",
@@ -1372,7 +1378,7 @@ STORY_EVENTS = {
             "summary_ar": "رفض أخذ المال: ما مكني فيه ربي خير",
             "summary_en": "Refused payment: What my Lord has established me in is better.",
             "semantic_tags": ["tawakkul", "generosity", "selfless"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:95"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:95"}],
         },
         {
             "id": "cluster_dhulqarnayn:barrier",
@@ -1385,7 +1391,7 @@ STORY_EVENTS = {
             "summary_ar": "بناء السد من الحديد والنحاس المذاب",
             "summary_en": "Building the barrier from iron and molten copper.",
             "semantic_tags": ["construction", "engineering", "protection"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:96"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:96"}],
         },
         {
             "id": "cluster_dhulqarnayn:humility",
@@ -1398,7 +1404,7 @@ STORY_EVENTS = {
             "summary_ar": "قال: هذا رحمة من ربي، وأقر بزوال كل شيء",
             "summary_en": "He said: This is mercy from my Lord, acknowledged impermanence of all things.",
             "semantic_tags": ["humility", "tawakkul", "gratitude"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "18:98"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "18:98"}],
         },
     ],
 
@@ -1417,7 +1423,7 @@ STORY_EVENTS = {
             "summary_ar": "رأى يوسف أحد عشر كوكباً والشمس والقمر له ساجدين",
             "summary_en": "Yusuf saw eleven stars, sun and moon prostrating to him.",
             "semantic_tags": ["dream", "prophecy", "signs"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:4"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:4"}],
         },
         {
             "id": "cluster_yusuf:brothers_jealousy",
@@ -1430,7 +1436,7 @@ STORY_EVENTS = {
             "summary_ar": "الإخوة يتآمرون على يوسف بسبب الحسد",
             "summary_en": "Brothers plot against Yusuf out of jealousy.",
             "semantic_tags": ["jealousy", "plot", "brothers"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:8"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:8"}],
         },
         {
             "id": "cluster_yusuf:well",
@@ -1443,7 +1449,7 @@ STORY_EVENTS = {
             "summary_ar": "ألقى الإخوة يوسف في غيابة الجب",
             "summary_en": "Brothers threw Yusuf into the depths of the well.",
             "semantic_tags": ["abandonment", "well", "betrayal"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:15"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:15"}],
         },
         {
             "id": "cluster_yusuf:sold_egypt",
@@ -1456,7 +1462,7 @@ STORY_EVENTS = {
             "summary_ar": "جاءت قافلة فالتقطته وباعوه في مصر للعزيز",
             "summary_en": "A caravan found him, sold him in Egypt to the Aziz.",
             "semantic_tags": ["caravan", "egypt", "slavery"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:21"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:21"}],
         },
         {
             "id": "cluster_yusuf:temptation",
@@ -1469,7 +1475,7 @@ STORY_EVENTS = {
             "summary_ar": "راودته التي هو في بيتها، واستعصم وفر منها",
             "summary_en": "She sought to seduce him, but he resisted and fled from her.",
             "semantic_tags": ["chastity", "temptation", "resistance"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:23"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:23"}],
         },
         {
             "id": "cluster_yusuf:prison",
@@ -1482,7 +1488,7 @@ STORY_EVENTS = {
             "summary_ar": "دخل السجن وفسر رؤيا السجينين",
             "summary_en": "Entered prison, interpreted dreams of two prisoners.",
             "semantic_tags": ["prison", "dreams", "patience"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:36"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:36"}],
         },
         {
             "id": "cluster_yusuf:king_dream",
@@ -1495,7 +1501,7 @@ STORY_EVENTS = {
             "summary_ar": "فسر يوسف رؤيا الملك: سبع سنين سمان ثم سبع عجاف",
             "summary_en": "Yusuf interpreted king's dream: seven years of plenty, seven of famine.",
             "semantic_tags": ["dream", "interpretation", "prophecy"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:47"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:47"}],
         },
         {
             "id": "cluster_yusuf:power",
@@ -1508,7 +1514,7 @@ STORY_EVENTS = {
             "summary_ar": "صار يوسف على خزائن الأرض",
             "summary_en": "Yusuf was made treasurer of the land.",
             "semantic_tags": ["power", "vindication", "authority"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:55"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:55"}],
         },
         {
             "id": "cluster_yusuf:brothers_come",
@@ -1521,7 +1527,7 @@ STORY_EVENTS = {
             "summary_ar": "جاء إخوة يوسف لمصر طلباً للطعام",
             "summary_en": "Yusuf's brothers came to Egypt seeking food.",
             "semantic_tags": ["reunion", "recognition", "test"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:58"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:58"}],
         },
         {
             "id": "cluster_yusuf:binyamin",
@@ -1534,7 +1540,7 @@ STORY_EVENTS = {
             "summary_ar": "يوسف يختبر إخوته ويستبقي بنيامين",
             "summary_en": "Yusuf tests his brothers and keeps Benjamin.",
             "semantic_tags": ["test", "brother", "cup"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:70"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:70"}],
         },
         {
             "id": "cluster_yusuf:reveal",
@@ -1547,7 +1553,7 @@ STORY_EVENTS = {
             "summary_ar": "يوسف يكشف هويته لإخوته ويغفر لهم",
             "summary_en": "Yusuf reveals identity to brothers and forgives them.",
             "semantic_tags": ["revelation", "forgiveness", "reunion"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:90"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:90"}],
         },
         {
             "id": "cluster_yusuf:family_reunited",
@@ -1560,7 +1566,7 @@ STORY_EVENTS = {
             "summary_ar": "يعقوب وأسرته يدخلون مصر، سجود الجميع ليوسف",
             "summary_en": "Yaqub and family enter Egypt, all prostrate to Yusuf.",
             "semantic_tags": ["reunion", "dream_fulfilled", "family"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "12:100"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "12:100"}],
         },
     ],
 
@@ -1579,7 +1585,7 @@ STORY_EVENTS = {
             "summary_ar": "أرسلنا نوحاً إلى قومه أن أنذر قومك",
             "summary_en": "We sent Nuh to his people: Warn your people.",
             "semantic_tags": ["mission", "warning", "dawah"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "71:1"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "71:1"}],
         },
         {
             "id": "cluster_nuh:dawah_methods",
@@ -1592,7 +1598,7 @@ STORY_EVENTS = {
             "summary_ar": "دعاهم ليلاً ونهاراً، سراً وجهاراً",
             "summary_en": "Called them night and day, secretly and openly.",
             "semantic_tags": ["dawah", "persistence", "methods"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "71:5"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "71:5"}],
         },
         {
             "id": "cluster_nuh:rejection",
@@ -1605,7 +1611,7 @@ STORY_EVENTS = {
             "summary_ar": "كذبه قومه وقالوا: ما أنت إلا بشر مثلنا",
             "summary_en": "His people denied him: You are only a human like us.",
             "semantic_tags": ["rejection", "mockery", "disbelief"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "11:27"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "11:27"}],
         },
         {
             "id": "cluster_nuh:dua_against",
@@ -1618,7 +1624,7 @@ STORY_EVENTS = {
             "summary_ar": "رب لا تذر على الأرض من الكافرين دياراً",
             "summary_en": "Lord, do not leave upon the earth any disbeliever.",
             "semantic_tags": ["dua", "judgment", "finality"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "71:26"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "71:26"}],
         },
         {
             "id": "cluster_nuh:ark_command",
@@ -1631,7 +1637,7 @@ STORY_EVENTS = {
             "summary_ar": "أوحي إلى نوح أن اصنع الفلك بأعيننا",
             "summary_en": "It was revealed to Nuh: Build the ark under Our observation.",
             "semantic_tags": ["ark", "command", "preparation"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "11:37"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "11:37"}],
         },
         {
             "id": "cluster_nuh:flood",
@@ -1644,7 +1650,7 @@ STORY_EVENTS = {
             "summary_ar": "فار التنور وجاء الطوفان، ونوح ينادي ابنه",
             "summary_en": "The oven gushed, flood came, Nuh called to his son.",
             "semantic_tags": ["flood", "judgment", "son"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "11:42"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "11:42"}],
         },
         {
             "id": "cluster_nuh:survival",
@@ -1657,7 +1663,7 @@ STORY_EVENTS = {
             "summary_ar": "استوت السفينة على الجودي، ونجا المؤمنون",
             "summary_en": "The ark rested on Judi, believers were saved.",
             "semantic_tags": ["salvation", "judi", "new_beginning"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "11:44"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "11:44"}],
         },
     ],
 
@@ -1676,7 +1682,7 @@ STORY_EVENTS = {
             "summary_ar": "إبراهيم يستدل على وحدانية الله من الكواكب",
             "summary_en": "Ibrahim reasons to Allah's oneness from celestial bodies.",
             "semantic_tags": ["reasoning", "tawhid", "stars"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "6:76"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "6:76"}],
         },
         {
             "id": "cluster_ibrahim:arguing_father",
@@ -1689,7 +1695,7 @@ STORY_EVENTS = {
             "summary_ar": "إبراهيم يحاج أباه آزر عن الأصنام",
             "summary_en": "Ibrahim argues with his father Azar about idols.",
             "semantic_tags": ["father", "idols", "dawah"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "19:42"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "19:42"}],
         },
         {
             "id": "cluster_ibrahim:smashing_idols",
@@ -1702,7 +1708,7 @@ STORY_EVENTS = {
             "summary_ar": "حطم إبراهيم الأصنام وترك الكبير",
             "summary_en": "Ibrahim smashed idols, left the big one.",
             "semantic_tags": ["idols", "challenge", "proof"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "21:58"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "21:58"}],
         },
         {
             "id": "cluster_ibrahim:fire",
@@ -1715,7 +1721,7 @@ STORY_EVENTS = {
             "summary_ar": "قالوا حرقوه، قلنا يا نار كوني برداً وسلاماً",
             "summary_en": "They said burn him, We said: O fire, be coolness and peace.",
             "semantic_tags": ["fire", "miracle", "protection"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "21:69"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "21:69"}],
         },
         {
             "id": "cluster_ibrahim:migration",
@@ -1728,7 +1734,7 @@ STORY_EVENTS = {
             "summary_ar": "نجيناه ولوطاً إلى الأرض المباركة",
             "summary_en": "We saved him and Lut to the blessed land.",
             "semantic_tags": ["migration", "salvation", "blessed_land"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "21:71"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "21:71"}],
         },
         {
             "id": "cluster_ibrahim:hajar_ismail",
@@ -1741,7 +1747,7 @@ STORY_EVENTS = {
             "summary_ar": "أسكن إبراهيم من ذريته بوادٍ غير ذي زرع عند البيت المحرم",
             "summary_en": "Ibrahim settled some of his offspring in a barren valley by the Sacred House.",
             "semantic_tags": ["makkah", "family", "trust"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "14:37"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "14:37"}],
         },
         {
             "id": "cluster_ibrahim:sacrifice",
@@ -1754,7 +1760,7 @@ STORY_EVENTS = {
             "summary_ar": "إبراهيم يُؤمر بذبح ابنه، فيطيعان، ثم يُفدى بذبح عظيم",
             "summary_en": "Ibrahim commanded to sacrifice his son, both submit, ransomed with great sacrifice.",
             "semantic_tags": ["sacrifice", "obedience", "test"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "37:102"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "37:102"}],
         },
         {
             "id": "cluster_ibrahim:kaaba",
@@ -1767,7 +1773,7 @@ STORY_EVENTS = {
             "summary_ar": "إبراهيم وإسماعيل يرفعان القواعد من البيت",
             "summary_en": "Ibrahim and Ismail raised the foundations of the House.",
             "semantic_tags": ["kaaba", "building", "dua"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "2:127"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "2:127"}],
         },
     ],
 
@@ -1786,7 +1792,7 @@ STORY_EVENTS = {
             "summary_ar": "خرج النبي ﷺ لتبوئة المؤمنين مقاعد للقتال",
             "summary_en": "The Prophet ﷺ went out to position believers at their battle stations.",
             "semantic_tags": ["battle", "leadership", "strategy"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "3:121"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "3:121"}],
         },
         {
             "id": "cluster_uhud_hypocrites:angel_support",
@@ -1799,7 +1805,7 @@ STORY_EVENTS = {
             "summary_ar": "ذكر نصر بدر وعد الله بإمداد الملائكة للمتقين الصابرين",
             "summary_en": "Reference to Badr victory, Allah's promise of angel reinforcement for those patient and conscious of Him.",
             "semantic_tags": ["angels", "victory", "patience", "badr"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "3:124"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "3:124"}],
         },
         {
             "id": "cluster_uhud_hypocrites:initial_victory",
@@ -1812,7 +1818,7 @@ STORY_EVENTS = {
             "summary_ar": "صدق الله وعده إذ تحسون المشركين بإذنه",
             "summary_en": "Allah fulfilled His promise when believers were defeating the enemy by His permission.",
             "semantic_tags": ["victory", "promise", "divine_help"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "3:152"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "3:152"}],
         },
         {
             "id": "cluster_uhud_hypocrites:archers_disobey",
@@ -1825,7 +1831,7 @@ STORY_EVENTS = {
             "summary_ar": "فشل الرماة وتنازعوا وعصوا بعد أن أراهم الله ما يحبون",
             "summary_en": "Archers failed, disputed, and disobeyed after Allah showed them what they loved (victory).",
             "semantic_tags": ["disobedience", "greed", "test", "archers"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "3:152"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "3:152"}],
         },
         {
             "id": "cluster_uhud_hypocrites:tide_turns",
@@ -1838,7 +1844,7 @@ STORY_EVENTS = {
             "summary_ar": "صعد المسلمون الجبل والرسول يدعوهم، عفا الله عنهم",
             "summary_en": "Believers fled uphill while the Messenger called them back; Allah pardoned them.",
             "semantic_tags": ["retreat", "forgiveness", "test"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "3:153"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "3:153"}],
         },
         {
             "id": "cluster_uhud_hypocrites:hypocrites_exposed",
@@ -1851,7 +1857,7 @@ STORY_EVENTS = {
             "summary_ar": "المنافقون قالوا لإخوانهم: لو أطاعونا ما قتلوا، قيل لهم: ادفعوا عن أنفسكم الموت",
             "summary_en": "Hypocrites said: 'Had they obeyed us, they wouldn't have died.' Told: 'Then avert death from yourselves!'",
             "semantic_tags": ["hypocrisy", "exposure", "cowardice"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "3:167"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "3:167"}],
         },
         {
             "id": "cluster_uhud_hypocrites:dont_lose_heart",
@@ -1864,7 +1870,7 @@ STORY_EVENTS = {
             "summary_ar": "لا تهنوا ولا تحزنوا وأنتم الأعلون إن كنتم مؤمنين",
             "summary_en": "Do not weaken or grieve - you are superior if you are believers.",
             "semantic_tags": ["encouragement", "faith", "superiority"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "3:139"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "3:139"}],
         },
         {
             "id": "cluster_uhud_hypocrites:muhammad_messenger",
@@ -1877,7 +1883,7 @@ STORY_EVENTS = {
             "summary_ar": "محمد رسول قد خلت من قبله الرسل، أفإن مات انقلبتم على أعقابكم؟",
             "summary_en": "Muhammad is only a messenger; messengers passed before him. If he dies, will you turn back?",
             "semantic_tags": ["messenger", "mortality", "steadfastness"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "3:144"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "3:144"}],
         },
         {
             "id": "cluster_uhud_hypocrites:consult_them",
@@ -1890,7 +1896,7 @@ STORY_EVENTS = {
             "summary_ar": "شاورهم في الأمر فإذا عزمت فتوكل على الله",
             "summary_en": "Consult them in affairs, then when decided, trust in Allah.",
             "semantic_tags": ["consultation", "shura", "trust", "leadership"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "3:159"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "3:159"}],
         },
         {
             "id": "cluster_uhud_hypocrites:martyrs_alive",
@@ -1903,7 +1909,7 @@ STORY_EVENTS = {
             "summary_ar": "لا تحسبن الذين قتلوا في سبيل الله أمواتاً بل أحياء عند ربهم يرزقون",
             "summary_en": "Do not think those killed in Allah's cause are dead - they are alive with their Lord, provided for.",
             "semantic_tags": ["martyrdom", "afterlife", "reward", "honor"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "3:169"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "3:169"}],
         },
         {
             "id": "cluster_uhud_hypocrites:believers_rejoice",
@@ -1916,7 +1922,7 @@ STORY_EVENTS = {
             "summary_ar": "يستبشرون بنعمة من الله وفضل وأن الله لا يضيع أجر المؤمنين",
             "summary_en": "They rejoice in Allah's bounty and favor, and that Allah does not waste the reward of believers.",
             "semantic_tags": ["joy", "reward", "blessing", "conclusion"],
-            "evidence": [{"source_id": "ibn_kathir_en", "reference": "3:171"}],
+            "evidence": [{"source_id": "ibn_kathir_ar", "reference": "3:171"}],
         },
     ],
 }
@@ -2037,11 +2043,16 @@ def seed_events(session):
     print("\n2. Seeding Story Events...")
 
     total_events = 0
+    dropped = 0
     for cluster_id, events in STORY_EVENTS.items():
         print(f"\n   Cluster: {cluster_id}")
 
-        for event_data in events:
+        # Only pointers that resolve to an enabled, licensed tafsir passage.
+        resolved = resolve_seed_evidence_sync(session, [e["evidence"] for e in events])
+        for event_data, evidence in zip(events, resolved):
             event_id = event_data["id"]
+            dropped += len(event_data["evidence"]) - len(evidence)
+            event_data = {**event_data, "evidence": evidence}
 
             # Check if exists
             result = session.execute(
@@ -2128,6 +2139,7 @@ def seed_events(session):
             total_events += 1
 
     print(f"\n   Total events: {total_events}")
+    print(f"   Evidence pointers dropped (no enabled, licensed passage): {dropped}")
 
 
 def seed_event_connections(session):

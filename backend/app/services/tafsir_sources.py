@@ -378,6 +378,18 @@ def catalog_entry(source_id: str) -> Optional[Dict[str, Any]]:
     return TAFSIR_CATALOG.get(source_base_id(source_id))
 
 
+# Upstream rows that say "there is no tafsir for this verse" (Quran.com and the
+# spa5k CDN carry them where the scholar's commentary is grouped under another
+# verse). They are not the scholar's words and are never shown as tafsir.
+TAFSIR_PLACEHOLDER_TEXTS = frozenset({"لا يوجد تفسير لهذه الأية", "لا يوجد تفسير لهذه الآية"})
+
+
+def is_tafsir_placeholder(text: Optional[str]) -> bool:
+    """True for empty text or an upstream 'no tafsir for this verse' placeholder."""
+    norm = " ".join((text or "").split()).strip(" .")
+    return not norm or norm in TAFSIR_PLACEHOLDER_TEXTS
+
+
 def source_author(source_id: str, language: str = "en") -> Optional[str]:
     """Catalogued author of a tafsir work, or None when not catalogued (never guessed)."""
     entry = catalog_entry(source_id)
