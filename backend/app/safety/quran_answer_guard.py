@@ -85,25 +85,23 @@ _RULING_ASSERTIONS = tuple(re.compile(p, re.IGNORECASE) for p in (
 # contract, and takfir. A citation does not turn a personal fatwa into
 # tafsir, so these are checked on every sentence (quotations aside).
 _PERSONAL_VERDICTS = tuple(re.compile(p, re.IGNORECASE) for p in (
-    # "Your prayer is not valid…", "your divorce is binding"
+    # "Your prayer is not valid…", "your divorce is binding". Repentance is
+    # left out: "your repentance is accepted when sincere" restates the
+    # promise of a verse (39:53), the hope tafsir gives, not a fiqh verdict.
     r"\byour\s+(prayers?|salah|salat|fast|fasting|sawm|wudu|wudhu|ablution|ghusl|marriage|nikah|"
-    r"divorce|talaq|hajj|umrah|zakat|zakah|oath|repentance|tawbah)\s+(is|are|was|will\s+be|would\s+be|"
+    r"divorce|talaq|hajj|umrah|zakat|zakah|oath)\s+(is|are|was|will\s+be|would\s+be|"
     r"becomes?|remains?)\s+(still\s+|now\s+)?(not\s+)?(valid|invalid|void|accepted|unaccepted|correct|"
     r"sound|nullified|broken|binding|effective|counted)\b",
-    r"\b(the\s+|a\s+|such\s+a\s+)?(prayer|salah|fast|wudu|ablution|ghusl|divorce|talaq|marriage|nikah)\s+"
-    r"(is|are)\s+(still\s+)?(not\s+)?(valid|invalid|void|nullified|binding)\b",
     r"\bdivorce\s+(does\s+not|doesn'?t|does|will|will\s+not|won'?t)\s+(count|take\s+effect|occur)\b",
-    # "You must remove it…", "you should repeat your prayer", "you may not marry…"
-    r"\byou\s+(must|should|have\s+to|need\s+to|are\s+(required|obliged|obligated)\s+to|may\s+not|"
-    r"must\s+not|should\s+not|cannot|can'?t|are\s+not\s+allowed\s+to|are\s+allowed\s+to)\s+"
-    r"(?:\w+\s+){0,2}?(pray|fast|remove|repeat|redo|re-?perform|perform|pay|give|divorce|marry|remarry|"
-    r"break|make\s+up|wash|recite|wear|stop|eat|drink|take|abandon|leave)\b",
     r"\b(you|muslims|a muslim)\s+(are|is)\s+(not\s+)?(allowed|permitted|obliged|required)\s+to\b",
     r"\b(yes|no)\s*[,،]\s*(you|it|your|this|that)\b[^.\n]{0,60}\b(allowed|permitted|permissible|valid|"
     r"invalid|halal|haram|lawful|must|may)\b",
     r"\b(i|we)\s+(rule|declare)\s+(that|it)\b|\bmy\s+(ruling|fatwa)\b",
-    # Takfir: "Anyone who doubts this is a disbeliever (kafir)"
-    r"\b(anyone|anybody|whoever|whosoever|someone|a\s+person|he|she|they|those|one|a\s+muslim|any\s+muslim)"
+    # Takfir as a general rule: "Anyone who doubts this is a disbeliever
+    # (kafir)", "a Muslim who … becomes an apostate". Not "they are
+    # disbelievers who were warned", which describes a verse's own subjects.
+    r"\b(anyone|anybody|whoever|whosoever|someone|somebody|a\s+person|any\s+person|a\s+muslim|"
+    r"any\s+muslim|muslims\s+who|one\s+who|he\s+who|she\s+who|everyone\s+who)"
     r"\b[^.;\n]{0,80}?\b(is|are|becomes?|has\s+become|will\s+become|would\s+be)\s+(a\s+|an\s+)?"
     r"(disbelievers?|kafirs?|kaafirs?|kuffar|apostates?|murtads?|non-?muslims?)\b",
     r"\b(has|have|had)\s+left\s+(the\s+fold\s+of\s+)?islam\b|\bout\s+of\s+(the\s+fold\s+of\s+)?islam\b"
@@ -114,7 +112,7 @@ _PERSONAL_VERDICTS = tuple(re.compile(p, re.IGNORECASE) for p in (
     # own address and appears in verse paraphrase), takfir.
     r"(?<![ء-ي])[وف]?(لا\s+)?(يقع|تقع|وقع|يُحتسب|يحتسب)\s+(طلاقك|طلاقه|طلاقها|الطلاق|الطلقة|طلقة)(?![ء-ي])",
     r"(?<![ء-ي])(طلاقك|الطلاق)\s+(لا\s+)?(يقع|واقع|صحيح|باطل|نافذ)(?![ء-ي])",
-    r"(?<![ء-ي])(صلاتك|صومك|صيامك|وضوؤك|وضوءك|غسلك|زواجك|نكاحك|طلاقك|حجك|عمرتك|زكاتك|توبتك|يمينك)\s+"
+    r"(?<![ء-ي])(صلاتك|صومك|صيامك|وضوؤك|وضوءك|غسلك|زواجك|نكاحك|طلاقك|حجك|عمرتك|زكاتك|يمينك)\s+"
     r"(لا\s+|غير\s+)?(صحيحة|صحيح|باطلة|باطل|مقبولة|مقبول|فاسدة|فاسد|تصح|يصح|تبطل|يبطل|تقبل|يقبل)(?![ء-ي])",
     r"(?<![ء-ي])[وف]?(لا\s+)?(يجوز|تجوز|يحل|تحل|يحرم|تحرم|يجب|تجب|يلزم|يلزمك|يباح)\s+(لك|عليك|لكِ|عليكِ)(?![ء-ي])",
     r"(?<![ء-ي])(فهو|فهي|فإنه|فإنها)\s+(آثم|آثمة)(?![ء-ي])|(?<![ء-ي])[وف]?(تأثم|أثمت)(?![ء-ي])",
@@ -124,6 +122,35 @@ _PERSONAL_VERDICTS = tuple(re.compile(p, re.IGNORECASE) for p in (
     r"(?<![ء-ي])[وف]?(تارك|من\s+ترك|من\s+شك|من\s+أنكر|من\s+ينكر|من\s+لم)[^.،؟\n]{0,60}?(?<![ء-ي])"
     r"(كافر|مرتد|خارج\s+(عن|من)\s+(الملة|الإسلام))(?![ء-ي])",
     r"(خرج|يخرج|خارج)\s+(عن|من)\s+(الملة|ملة\s+الإسلام|الإسلام)(?![ء-ي])",
+))
+
+# "You must remove it…", "you should repeat your prayer", "you may not
+# marry…": a ruling addressed to the reader, unless the sentence reports
+# what the verse itself commands ("In this verse Allah tells the believers:
+# you must not eat the property of orphans unjustly") - second-person
+# paraphrase of a Qur'anic command is ordinary tafsir style.
+_YOU_MUST = re.compile(
+    r"\byou\s+(must|should|have\s+to|need\s+to|are\s+(required|obliged|obligated)\s+to|may\s+not|"
+    r"must\s+not|should\s+not|cannot|can'?t|are\s+not\s+allowed\s+to|are\s+allowed\s+to)\s+"
+    r"(?:\w+\s+){0,2}?(pray|fast|remove|repeat|redo|re-?perform|perform|pay|give|divorce|marry|remarry|"
+    r"break|make\s+up|wash|recite|wear|stop|eat|drink|take|abandon|leave)\b",
+    re.IGNORECASE,
+)
+# The frame that makes such a sentence a report of the verse.
+REPORTING_FRAME = re.compile(
+    r"\b(the\s+(verse|ayah|ayat|passage|surah|sura|qur'?an|koran|tafsir|commentary|command)|"
+    r"this\s+(verse|ayah|passage|surah)|these\s+verses|allah|god|the\s+lord)\b[^.;\n]{0,40}?\b"
+    r"(tells?|told|commands?|commanded|instructs?|instructed|teach(es)?|taught|says|said|orders?|ordered|"
+    r"urges?|urged|enjoins?|enjoined|reminds?|reminded|warns?|warned|address(es)?|addressed|explains?|"
+    r"directs?|directed|forbids?|forbade|requires?|obliges?)\b",
+    re.IGNORECASE,
+)
+# General statements of a rule ("divorce is binding in the third
+# instance"): tafsir may report them, so they stand only when the cited
+# evidence states them (see grounding.ruling_report_supported).
+_GENERAL_RULINGS = tuple(re.compile(p, re.IGNORECASE) for p in (
+    r"\b(the\s+|a\s+|such\s+a\s+)?(prayer|salah|fast|wudu|ablution|ghusl|divorce|talaq|marriage|nikah)\s+"
+    r"(is|are)\s+(still\s+)?(not\s+)?(valid|invalid|void|nullified|binding)\b",
 ))
 
 # Permissibility claims with any subject ("Wine is permitted for believers",
@@ -152,6 +179,7 @@ _RULING_VOCABULARY = re.compile(
 
 VERDICT_PERSONAL = "personal_ruling"
 VERDICT_PERMISSIVE = "permissibility_claim"
+VERDICT_REPORTED = "reported_ruling"
 
 # Keywords that indicate a scientific miracle claim
 _SCIENTIFIC_MIRACLE_KEYWORDS = frozenset({
@@ -396,7 +424,9 @@ class QuranAnswerGuard:
             )
         text_lower = text.lower()
         if generated:
-            hits = any(p.search(text) for p in _RULING_ASSERTIONS + _PERSONAL_VERDICTS)
+            hits = any(p.search(text) for p in _RULING_ASSERTIONS) or any(
+                kind == VERDICT_PERSONAL for kind, _s, _subj in self.find_verdicts(text)
+            )
         else:
             hits = any(kw.lower() in text_lower for kw in _FATWA_KEYWORDS)
         if hits:
@@ -417,15 +447,25 @@ class QuranAnswerGuard:
 
         Returns (kind, sentence, subject) triples. ``kind`` is
         VERDICT_PERSONAL (a ruling addressed to the reader, the validity of
-        their worship, takfir: never allowed, cited or not) or
-        VERDICT_PERMISSIVE (a permissibility claim about ``subject``, allowed
-        only when the cited evidence states it). Pass the answer with its
-        verbatim quotations removed.
+        their worship, takfir: never allowed, cited or not),
+        VERDICT_REPORTED (a verse's command paraphrased in the second person,
+        or a general statement of a rule: allowed only when the cited
+        evidence states it) or VERDICT_PERMISSIVE (a permissibility claim
+        about ``subject``, allowed only when the cited evidence states it).
+        Pass the answer with its verbatim quotations removed.
         """
         out: List[Tuple[str, str, str]] = []
         for sentence in _split_sentences(text):
             if any(p.search(sentence) for p in _PERSONAL_VERDICTS):
                 out.append((VERDICT_PERSONAL, sentence, ""))
+                continue
+            m = _YOU_MUST.search(sentence)
+            if m:
+                frame = REPORTING_FRAME.search(sentence, 0, m.start())
+                out.append((VERDICT_REPORTED if frame else VERDICT_PERSONAL, sentence, ""))
+                continue
+            if any(p.search(sentence) for p in _GENERAL_RULINGS):
+                out.append((VERDICT_REPORTED, sentence, ""))
                 continue
             for p in _PERMISSIVE_VERDICTS:
                 m = p.search(sentence)

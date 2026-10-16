@@ -122,11 +122,12 @@ from app.safety.grounding import (
     fence_question,
     fence_source,
     has_quran_voice,
+    ruling_report_supported,
     split_sentences,
     verdict_supported,
     verify_quotations,
 )
-from app.safety.quran_answer_guard import VERDICT_PERSONAL, QuranAnswerGuard
+from app.safety.quran_answer_guard import VERDICT_PERSONAL, VERDICT_REPORTED, QuranAnswerGuard
 from app.safety.quran_question_classifier import (
     quran_question_classifier,
     classifier_intent_to_query_intent,
@@ -1619,6 +1620,12 @@ class RAGPipeline:
             if kind == VERDICT_PERSONAL:
                 return f"{kind}: {sentence[:120]}"
             chunks = [cited[m.group(0)] for m in CITATION_MARKER_RE.finditer(sentence) if m.group(0) in cited]
+            if kind == VERDICT_REPORTED:
+                # A verse's command reported in tafsir style stands only when
+                # the cited evidence states that command.
+                if not ruling_report_supported(CITATION_MARKER_RE.sub(" ", sentence), chunks):
+                    return f"{kind}: {sentence[:120]}"
+                continue
             if not verdict_supported(CITATION_MARKER_RE.sub(" ", subject), chunks):
                 return f"{kind}: {sentence[:120]}"
         return None

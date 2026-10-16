@@ -1033,6 +1033,36 @@ def verdict_supported(subject: str, chunks: Sequence[object], window: int = 40) 
     return False
 
 
+def ruling_report_supported(
+    claim: str, chunks: Sequence[object], min_coverage: float = 0.6, min_local: float = 0.5,
+) -> bool:
+    """
+    True when the cited evidence itself states the ruling a sentence reports
+    ("the verse tells you that you must not eat the property of orphans").
+    The claim is scored with its reporting frame and the reader's address
+    removed: what must be in the evidence is the content of the command.
+    No comparable evidence (an English claim against Arabic-only text, or
+    only planted instructions) is no support.
+    """
+    texts = _evidence_texts(chunks)
+    if not texts:
+        return False
+    claim = _RULING_REPORT_NOISE.sub(" ", _strip_names(claim))
+    sup = evidence_support(claim, texts)
+    if not sup.comparable or not sup.tokens:
+        return False
+    return sup.coverage >= min_coverage and sup.local_coverage >= min_local
+
+
+_RULING_REPORT_NOISE = re.compile(
+    r"\b(you|your|yours|yourself|must|should|need|needs|ought|may|might|have|has|believers?|muslims?|"
+    r"tells?|told|commands?|commanded|instructs?|instructed|teach(es)?|taught|orders?|ordered|urges?|"
+    r"urged|enjoins?|enjoined|reminds?|reminded|warns?|warned|address(es)?|addressed|directs?|directed|"
+    r"forbids?|forbade|requires?|obliges?|promises?|promised|instance|case)\b",
+    re.IGNORECASE,
+)
+
+
 def _digits_supported(sentence: str, chunks: Sequence[object], cite_re: re.Pattern) -> bool:
     body = _VERSE_REF.sub(" ", cite_re.sub(" ", sentence).translate(_ARABIC_INDIC))
     numbers = re.findall(r"\d+", body)

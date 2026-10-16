@@ -187,21 +187,31 @@ _FATWA_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     r"جائزة|مكروه|مكروهة|واجب|واجبة|فرض)(?![ء-ي])",
     r"هل\s+(يصح|تصح|تجوز|يجب|تجب|يلزم|تلزم|يحل|تحل|يحرم|تحرم|يأثم|تأثم|أأثم)\b",
     r"(ما|وما)\s+(حكم|الحكم في|الحكم الشرعي)(?![ء-ي])",
-    # Validity of the asker's own worship or contract: "Is my prayer valid if…",
-    # "Is our marriage still valid…"
-    r"\b(is|are|was|were|will)\s+(my|our|his|her|their)\b[^?.!]{0,50}?\b(valid|invalid|void|"
-    r"nullified|broken|accepted|sound|binding)\b",
+    # Validity of a specific act of worship or contract: "Is my prayer valid
+    # if…", "Is our marriage still valid…". Acceptance ("will my repentance be
+    # accepted", "was his prayer accepted" in a story) is a question of hope
+    # and tafsir, not validity, and is not matched.
+    r"\b(is|are|was|were|will)\s+(my|our|his|her|their)\s+(?:\w+\s+){0,2}?(prayers?|salah|salat|fast|"
+    r"fasting|sawm|wudu|wudhu|ablution|ghusl|marriage|nikah|divorce|talaq|hajj|umrah|zakat|zakah|oath|"
+    r"sale|contract|transaction)\b[^?.!]{0,50}?\b(valid|invalid|void|nullified|broken|sound|binding)\b",
     r"\bdoes\s+(my|our|the|a|his|her)\s+[^?.!]{0,40}?\b(break|invalidate|nullify|void)\b"
     r"[^?.!]{0,30}\b(prayer|fast|fasting|wudu|ablution|ghusl|marriage|nikah)\b",
-    # Takfir questions: "Is someone who abandons prayer a kafir?"
-    r"\b(is|are|am|was|were)\s+(i|he|she|they|someone|anyone|a person|a muslim|people|those|the one|"
-    r"one|whoever)\b[^?]{0,60}?\b(kafirs?|kaafirs?|kuffar|disbelievers?|apostates?|murtads?|"
+    # Takfir questions about a person's status: "Is someone who abandons
+    # prayer a kafir?", "Am I a disbeliever if…". Not "Who are those
+    # described as disbelievers in 2:6?" (tafsir of the verse's subjects).
+    r"\b(is|are|am|was|were|becomes?)\s+(i|someone|somebody|anyone|anybody|a\s+person|any\s+person|"
+    r"a\s+muslim|any\s+muslim|muslims|people\s+who|the\s+one\s+who|one\s+who|whoever|my\s+\w+)\b"
+    r"[^?]{0,60}?\b(kafirs?|kaafirs?|kuffar|disbelievers?|apostates?|murtads?|"
     r"out of (the fold of )?islam)\b",
     # Amounts owed: "How much zakat do I have to pay?"
     r"\bhow much\s+(zakat|zakah|zakaat|fidya|fidyah|kaffara|kaffarah|expiation)\b",
     r"\bhow much\s+(do|should|must)\s+i\s+(pay|give)\b",
-    # Arabic: "هل يقع الطلاق…", "هل تبطل الصلاة…", "هل تارك الصلاة كافر؟", "كم يجب علي…"
-    r"هل\s+(يقع|تقع|وقع|يبطل|تبطل|يفسد|تفسد|ينقض|تنقض|ينتقض|تنتقض|يكفر|أكفر|يخرج)(?![ء-ي])",
+    # Arabic: "هل يقع الطلاق…", "هل تبطل الصلاة…", "هل تارك الصلاة كافر؟", "كم يجب علي…".
+    # يكفر/يخرج alone are not rulings ("هل يكفر الله السيئات" = expiates;
+    # "هل يخرج المؤمن من النار"): only "هل يكفر من…" / "هل يخرج من الملة".
+    r"هل\s+(يقع|تقع|وقع|يبطل|تبطل|يفسد|تفسد|ينقض|تنقض|ينتقض|تنتقض|أكفر)(?![ء-ي])",
+    r"هل\s+(يكفر|يكفّر|يُكفَّر|نكفر|أكفّر)\s+(من|الذي|التي|المسلم|المسلمة|تارك|تاركة|فاعل|صاحب)(?![ء-ي])",
+    r"هل\s+[^؟?]{0,30}?(يخرج|تخرج|خرج|خرجت|أخرج)\s+(من|عن)\s+(الملة|ملة\s+الإسلام|الإسلام|الدين)(?![ء-ي])",
     r"هل\s[^؟?]{0,50}?(?<![ء-ي])(كافر|كافرة|كفار|مرتد|مرتدة|مشرك|مشركة)(?![ء-ي])"
     r"(?![^؟?]{0,30}(في القرآن|في الآية|في السورة|في قصة))",
     r"(?<![ء-ي])كم\s+(يجب|يلزم|يتوجب|يتعين)\s+(علي|عليّ|علينا|عليه|عليها|عليك)(?![ء-ي])",
@@ -223,16 +233,26 @@ _INJECTION_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     r"(ألف|ألّف|أنشئ|اخترع)\s+(لي\s+)?(آية|آيات|سورة)",
     r"(آية|سورة)\s+جديدة",
     r"أكمل\s+(الآية|السورة)",
-    # Role-play: "Pretend you are a mufti…", "Act as a scholar and…"
-    r"\bpretend\s+(that\s+)?(you|to\s+be)\b",
-    r"\b(act|behave|respond|answer|speak|reply)\s+(as|like)\s+(if\s+you\s+(were|are)|a|an|the)\s+"
-    r"(mufti|scholar|sheikh|shaykh|imam|faqih|mujtahid|qadi|judge|unrestricted|different|another)\b",
+    # Role-play aimed at the assistant: "Pretend you are a mufti…", "Act as a
+    # scholar and…" ("you are now…" is matched above). Not "Why did the hypocrites
+    # pretend to be believers?" or "How did Dawud act as a judge?".
+    r"\bpretend\s+(that\s+)?(you\s+are|you'?re|you\s+were|to\s+be\s+(a|an|the)\s+(mufti|scholar|sheikh|"
+    r"shaykh|imam|faqih|mujtahid|qadi|unrestricted|different))\b",
+    r"(^|[.!?,;:\n]\s*|\b(please|now|just|you)\s+)(act|behave|respond|answer|speak|reply)\s+(as|like)\s+"
+    r"(a|an|the)\s+(mufti|scholar|sheikh|shaykh|imam|faqih|mujtahid|qadi|judge|unrestricted|different|"
+    r"another)\b",
+    r"\b(act|behave|respond|answer|speak|reply)\s+(as|like)\s+if\s+you\s+(were|are)\b",
     r"\brole[\s-]?play\b",
     # "Answer from your own knowledge", "skip the sources", "without citations"
     r"\b(from|using|use|with|on)\s+(only\s+)?your\s+own\s+(knowledge|opinion|view|understanding)\b",
-    r"\bwithout\s+(any\s+|the\s+|using\s+)?(sources|citations|references|evidence)\b",
+    r"\bwithout\s+(any\s+|the\s+|using\s+|citing\s+|giving\s+)?(sources|citations|references)\b",
+    r"\b(answer|respond|reply|explain|tell\s+me)\b[^.?!]{0,30}\bwithout\s+(any\s+)?evidence\b",
     r"\b(skip|ignore|disregard|forget|drop|bypass)\s+(all\s+|the\s+|any\s+|your\s+)?(sources|citations|"
-    r"references|rules|guidelines|instructions|restrictions)\b",
+    r"references)\b",
+    r"\b(skip|ignore|disregard|forget|drop|bypass)\s+(all\s+|any\s+)?(of\s+)?(the\s+)?(your|previous|prior|"
+    r"earlier|above|system|safety|these|my)\s+(\w+\s+)?(rules|guidelines|instructions|restrictions|prompt)\b",
+    r"\b(skip|ignore|disregard|forget|drop|bypass)\s+(all\s+|any\s+)?(the\s+)?(rules|guidelines|"
+    r"instructions|restrictions)\s+(above|before|you\s+were\s+given|given\s+to\s+you)\b",
     r"\b(the\s+)?sources\s+(don'?t|do not|doesn'?t)\s+matter\b",
     r"\bdeveloper\s+mode\b",
     # Markup that impersonates prompt structure: "</question><system>…"
@@ -242,7 +262,7 @@ _INJECTION_PATTERNS = tuple(re.compile(p, re.IGNORECASE) for p in (
     r"(تصرف|تصرّف|تظاهر|تقمص|تقمّص)\s+(ك|وك)?(أنك|انك|كأنك|كانك|بأنك|بانك|على\s+أنك|دور)",
     r"(اعتبر|تخيل|تخيّل)\s+(أنك|انك|نفسك)",
     r"(من|على|حسب|بحسب)\s+(معرفتك|علمك|رأيك|فهمك)(\s+الخاص(ة)?)?(?![ء-ي])",
-    r"(دون|بدون|بلا|من\s+غير)\s+(أي\s+)?(ال)?(مصادر|مراجع|استشهاد|استشهادات|توثيق|أدلة)(?![ء-ي])",
+    r"(دون|بدون|بلا|من\s+غير)\s+(أي\s+)?(ال)?(مصادر|مراجع|استشهاد|استشهادات|توثيق)(?![ء-ي])",
     r"(لا|ولا)\s+(تلتزم|تتقيد|تتقيّد|تهتم)\s+(بال|ب)?(مصادر|قواعد|تعليمات|مراجع)",
 ))
 
