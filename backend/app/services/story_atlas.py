@@ -9,6 +9,8 @@ This service provides:
 GROUNDING RULES:
 ================
 - All data comes from seeded clusters/events with tafsir evidence
+- Evidence is served only when it resolves to an enabled, licence-verified
+  tafsir source (story_atlas_evidence.filter_licensed_evidence)
 - Place/time basis is tracked (explicit/inferred/unknown)
 - No data invention
 """
@@ -20,6 +22,7 @@ from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.services.story_atlas_evidence import filter_licensed_evidence
 from app.models.story_atlas import (
     StoryCluster,
     StoryEvent,
@@ -222,6 +225,8 @@ class StoryAtlasService:
 
         # Sort events by chronological index
         events = sorted(cluster.events, key=lambda e: e.chronological_index)
+        # Only enabled, licence-verified tafsir is cited (never a snippet).
+        evidence = await filter_licensed_evidence(self.session, [e.evidence for e in events])
 
         return {
             "id": cluster.id,
@@ -261,9 +266,9 @@ class StoryAtlasService:
                     "summary_en": e.summary_en,
                     "semantic_tags": e.semantic_tags or [],
                     "is_entry_point": e.is_entry_point,
-                    "evidence": e.evidence,
+                    "evidence": ev,
                 }
-                for e in events
+                for e, ev in zip(events, evidence)
             ],
         }
 
@@ -327,9 +332,10 @@ class StoryAtlasService:
 
         # Add event nodes
         events_sorted = sorted(cluster.events, key=lambda e: e.chronological_index)
+        evidence = await filter_licensed_evidence(self.session, [e.evidence for e in events_sorted])
         entry_node = None
 
-        for event in events_sorted:
+        for event, event_evidence in zip(events_sorted, evidence):
             label = event.title_ar if language == "ar" else event.title_en
             summary = event.summary_ar if language == "ar" else event.summary_en
 
@@ -347,7 +353,7 @@ class StoryAtlasService:
                     "summary": summary,
                     "semantic_tags": event.semantic_tags or [],
                     "is_entry_point": event.is_entry_point,
-                    "evidence": event.evidence,
+                    "evidence": event_evidence,
                 },
             )
             graph.nodes.append(node)
