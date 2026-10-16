@@ -68,7 +68,7 @@ export function TafsirComparePage() {
   const NextIcon = direction === 'rtl' ? ArrowLeft : ArrowRight;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
+    <div className="mx-auto w-full min-w-0 max-w-4xl px-4 py-6">
       <header className="mb-5">
         <h1 className="flex items-center gap-2 text-xl font-bold text-stone-900">
           <BookOpen className="h-5 w-5 text-primary-600" />
@@ -87,7 +87,7 @@ export function TafsirComparePage() {
           <select
             value={surahInput}
             onChange={(e) => go(Number(e.target.value), 1)}
-            className="rounded-md border border-stone-300 bg-white px-2 py-1.5 text-sm"
+            className="min-h-11 max-w-[60vw] rounded-md border border-stone-300 bg-white px-2 py-1.5 text-sm"
           >
             {SURAH_NAMES.map((meta, i) => (
               <option key={i + 1} value={i + 1}>
@@ -111,22 +111,24 @@ export function TafsirComparePage() {
             onKeyDown={(e) => {
               if (e.key === 'Enter') go(surah, Number(ayahInput));
             }}
-            className="w-24 rounded-md border border-stone-300 bg-white px-2 py-1.5 text-sm tabular-nums"
+            className="min-h-11 w-24 rounded-md border border-stone-300 bg-white px-2 py-1.5 text-sm tabular-nums"
             dir="ltr"
           />
         </label>
 
-        <span className="pb-2 text-xs text-stone-400" dir="ltr">
-          {surahName} · 1–{ayahCount}
+        {/* The surah name is in the UI language; the verse range is isolated
+            so its digits never reorder inside an Arabic run. */}
+        <span className="pb-3 text-xs text-stone-400" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          <bdi>{surahName}</bdi> · <bdi dir="ltr">1–{ayahCount}</bdi>
         </span>
 
-        <div className="ms-auto flex items-center gap-1.5 pb-1">
+        <div className="ms-auto flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => go(surah, ayah - 1)}
             disabled={ayah <= 1}
             aria-label={language === 'ar' ? 'الآية السابقة' : 'Previous ayah'}
-            className="rounded-md border border-stone-300 bg-white p-1.5 text-stone-600 hover:bg-stone-50 disabled:opacity-40"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-stone-300 bg-white text-stone-600 hover:bg-stone-50 disabled:opacity-40"
           >
             <PrevIcon className="h-4 w-4" />
           </button>
@@ -135,14 +137,19 @@ export function TafsirComparePage() {
             onClick={() => go(surah, ayah + 1)}
             disabled={ayah >= ayahCount}
             aria-label={language === 'ar' ? 'الآية التالية' : 'Next ayah'}
-            className="rounded-md border border-stone-300 bg-white p-1.5 text-stone-600 hover:bg-stone-50 disabled:opacity-40"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-stone-300 bg-white text-stone-600 hover:bg-stone-50 disabled:opacity-40"
           >
             <NextIcon className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      <TafsirComparison key={`${surah}:${ayah}`} surah={surah} ayah={ayah} showHeading={false} />
+      {/* Source links carry long unbroken URLs (a pinned dataset revision is
+          ~100 characters). Letting them wrap anywhere keeps the page inside a
+          360px phone viewport, so the bottom tab bar is not pushed off screen. */}
+      <div className="min-w-0 [overflow-wrap:anywhere]">
+        <TafsirComparison key={`${surah}:${ayah}`} surah={surah} ayah={ayah} showHeading={false} />
+      </div>
     </div>
   );
 }
