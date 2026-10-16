@@ -8,6 +8,10 @@ Round-5 answer-guard regressions over the REAL database.
   model issuing a ruling.
 * ar-2:187-rukhsa: Ibn Kathir's opening clause quoted after a reporting lead,
   then a paraphrase of the concession the chunk describes.
+* invented promises put on the verse (2:153): "the verse promises… cured of
+  every disease / never face illness, debt or sadness again" with a valid
+  tafsir citation. The verse-reading path ("the verse promises…") must not
+  admit an outcome or an absolute scope the evidence does not carry.
 
 Answers are assembled at runtime from the stored rows; nothing here
 hand-types Qur'an or tafsir text. Only the LLM is mocked.
@@ -21,7 +25,7 @@ from app.rag.llm_provider import BaseLLM, LLMResponse
 from app.rag.pipeline import RAGPipeline
 from app.rag.types import RetrievedChunk
 
-pytestmark = pytest.mark.requires_data("tafsir:2:183", "tafsir:2:187", "translations")
+pytestmark = pytest.mark.requires_data("tafsir:2:153", "tafsir:2:183", "tafsir:2:187", "translations")
 
 AR_DIG = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
 SOURCES = ["muyassar_ar", "ibn_kathir_ar", "tabari_ar", "baghawi_ar", "qurtubi_ar"]
@@ -141,3 +145,45 @@ async def test_own_ruling_after_a_verbatim_excerpt_is_still_withheld(session):
               f"ويجب عليك أن تصوم ثلاثة أيام من كل شهر [التفسير الميسر، {refa}].")
     r = await _run(session, f"ما تفسير الآية {refa}؟", answer, chunks)
     assert r.status == "no_verified_source" and r.answer_kind == "refusal"
+
+
+# ------------------------------------------ invented promises on the verse
+# The cited chunks (2:153: Muyassar, Ibn Kathir, Tabari, Baghawi, Qurtubi)
+# speak of seeking help through patience and prayer and of Allah being with
+# the patient; none promises a cure, freedom from illness, debt or sadness.
+INVENTED_PROMISES = [
+    ("en", "The verse promises that believers who are patient and pray will be cured of every disease "
+           "[Al-Tafsir Al-Muyassar, 2:153].", ["cured of every disease"]),
+    ("en", "The verse promises that whoever is patient and prays will never face illness, debt or sadness again "
+           "[Al-Tafsir Al-Muyassar, 2:153].", ["never face illness"]),
+    ("en", "This verse promises that those who are patient and pray will always become wealthy "
+           "[Al-Tafsir Al-Muyassar, 2:153].", ["become wealthy"]),
+    ("ar", "تعد الآية الصابرين بأنهم يشفون من كل مرض [التفسير الميسر، ٢:١٥٣].", ["يشفون من كل مرض"]),
+    ("ar", "تعد الآية من صبر وصلى بأنه لن يصيبه مرض ولا دين ولا حزن أبدا [التفسير الميسر، ٢:١٥٣].",
+     ["لن يصيبه مرض"]),
+    ("ar", "تبين الآية أن الصابرين المصلين يصبحون أغنياء ولا يفتقرون أبدا [التفسير الميسر، ٢:١٥٣].",
+     ["يصبحون أغنياء"]),
+]
+
+
+def _flat_out(t):
+    from app.safety.claim_guard import _flat
+    return _flat(t)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("lang,answer,markers", INVENTED_PROMISES)
+async def test_invented_promise_on_the_verse_is_neutralised(session, lang, answer, markers):
+    chunks = await _chunks(session, 2, 153)
+    _pick(chunks, "muyassar_ar")
+    q = "What does 2:153 promise?" if lang == "en" else "ماذا تعد الآية ٢:١٥٣؟"
+    p = RAGPipeline(session, llm=_LLM(answer))
+    p._try_fast_path_verse_query = AsyncMock(return_value=None)
+    p._try_fast_path_thematic_query = AsyncMock(return_value=None)
+    p.retriever.retrieve = AsyncMock(return_value=list(chunks))
+    p._rerank_chunks = lambda c, q, m: c
+    r = await p.query(question=q, language=lang)
+    refused = r.status != "answered" or r.answer_kind in ("refusal", "notice")
+    out = _flat_out(r.answer or "")
+    leaked = [m for m in markers if _flat_out(m) in out]
+    assert refused or not leaked, (r.status, r.answer_kind, r.warnings, (r.answer or "")[:300])

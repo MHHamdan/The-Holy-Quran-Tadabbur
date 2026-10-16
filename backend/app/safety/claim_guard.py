@@ -831,13 +831,16 @@ class ClaimGuard:
             threshold = ATTRIBUTED_QURAN_SUPPORT
         sup = self._support(claim, pool, strict=True)
         if tafsir_cited and sup.comparable and sup.tokens >= MIN_CLAIM_TOKENS and sup.local_coverage < threshold \
-                and _verse_reading(prose):
+                and _verse_reading(prose) and not _PROMISE_OUTCOME.search(claim):
             # "The verse promises believers… [Al-Muyassar, 16:97]": a summary
             # of the verse as the cited tafsir reads it, not words put in
-            # Allah's mouth — held to the standard of "Ibn Kathir explains
-            # that this verse…", with synonyms read as for tafsir prose.
+            # Allah's mouth — its words may be read through synonyms as for
+            # tafsir prose, but the bar is not lowered: the same share of the
+            # claim must be carried. A promised worldly outcome (cure,
+            # wealth, freedom from illness, debt or grief) or an absolute
+            # scope ("every", "never", "كل", "أبدا") never takes this path:
+            # those stay under the strict reading.
             sup = self._support(claim, pool)
-            threshold = ATTRIBUTED_QURAN_SUPPORT
         _log.debug("quran_claim %s/%s unsupported=%s pool=%d :: %s", sup.local, sup.tokens, sup.unsupported,
                    len(pool), claim[:100])
         if not sup.comparable or sup.local_coverage < threshold:
@@ -989,6 +992,22 @@ def _quran_cue_start(prose: str) -> int:
 
 _VERSE_SUBJECT = re.compile(r"\b(?:the|this|that)\s+(?:verse|ayah|passage)\b"
                             r"|(?<![ء-ي])(?:الآية|الاية|هذه\s+الآية|هذه\s+الاية)(?![ء-ي])", re.IGNORECASE)
+
+
+# Promised worldly outcomes and absolute scope: what an invented promise on
+# a verse adds ("cured of every disease", "will never face debt again",
+# "يشفون من كل مرض", "لن يصيبه حزن أبدا").
+_PROMISE_OUTCOME = re.compile(
+    r"\b(?:cur(?:e|es|ed|ing)|heal\w*|remed\w*|disease\w*|ill\w*|sick\w*|ailment\w*|cancer|health\w*|"
+    r"wealth\w*|rich\w*|poor|poverty|debts?|money|financ\w*|prosper\w*|job|jobs|marri\w*|spouse|children|"
+    r"sad\w*|grief|griev\w*|worr\w*|anxi\w*|depress\w*|harm\w*|calamit\w*|misfortune\w*|accident\w*|"
+    r"protect\w*|immun\w*|safe(?:ty)?|every|everything|all|any|never|always|forever|nothing|no\s+one)\b"
+    r"|(?<![ء-ي])[وفبل]?(?:ال)?(?:شفاء|يشفى|يشفون|يشفي|تشفى|شفي|مرض|أمراض|امراض|المرض|يمرض|سقم|علة|صحة|"
+    r"غنى|أغنياء|اغنياء|غني|يغتني|يغنى|فقر|يفتقر|يفتقرون|فقير|مال|أموال|اموال|رزق|ديون|حزن|يحزن|غم|"
+    r"قلق|اكتئاب|مصيبة|مصائب|بلاء|أذى|اذى|ضرر|يحفظ|حفظ|حماية|زواج|أولاد|اولاد|كل|جميع|أبدا|ابدا|لن|دائما|"
+    r"للأبد|للابد|مطلقا|قط)(?![ء-ي])",
+    re.IGNORECASE,
+)
 
 
 def _verse_reading(prose: str) -> bool:
