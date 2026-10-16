@@ -41,7 +41,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 // useDebouncedCallback available from '../../hooks/useDebounce' if needed
 import { ErrorBoundary, InlineError } from '../../components/ui/ErrorBoundary';
 import { SkeletonPrayerTimes } from '../../components/ui/Skeleton';
-import { LocationDenied } from '../../components/ui/EmptyState';
+import { LocationFallback, locationProblemOf } from './LocationFallback';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import clsx from 'clsx';
 import { qiblaBearing } from '../../lib/qibla';
@@ -62,6 +62,8 @@ interface Location {
   lat: number;
   lng: number;
   name: string;
+  /** device: from geolocation; manual: a city the user searched; makkah: the user chose Makkah as a stand-in. */
+  source?: 'device' | 'manual' | 'makkah';
 }
 
 interface PrayerSettings {
@@ -89,11 +91,43 @@ const DEFAULT_SETTINGS: PrayerSettings = {
   use24Hour: false,
 };
 
+/** Offered only as an explicit user choice when the device location is unavailable. */
 const MAKKAH_LOCATION: Location = {
   lat: 21.4225,
   lng: 39.8262,
   name: 'Makkah',
+  source: 'makkah',
 };
+
+/**
+ * Qibla bearing for the user's own position, or null when there is none.
+ * The Makkah stand-in is not the user's position (and sits on the Kaaba, where
+ * the bearing is numerical noise), so it never yields a Qibla direction.
+ */
+export function qiblaForLocation(location: Location | null): number | null {
+  if (!location || location.source === 'makkah') return null;
+  return qiblaBearing(location.lat, location.lng);
+}
+
+/** Minutes since local midnight at the prayer-times location (falls back to device time). */
+export function minutesInTimeZone(now: Date, timeZone: string | undefined): number {
+  if (timeZone) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone,
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+      }).formatToParts(now);
+      const h = Number(parts.find((p) => p.type === 'hour')?.value);
+      const m = Number(parts.find((p) => p.type === 'minute')?.value);
+      if (Number.isFinite(h) && Number.isFinite(m)) return (h % 24) * 60 + m;
+    } catch {
+      // Unknown time zone id: use the device clock.
+    }
+  }
+  return now.getHours() * 60 + now.getMinutes();
+}
 
 // ============================================
 // Custom Hook: usePrayerTimes
@@ -109,7 +143,7 @@ function usePrayerTimes(
 
     const prayerResponse = await getPrayerTimes(location.lat, location.lng, method, date);
     // Computed locally: no network round trip, and it works offline.
-    return { prayerData: prayerResponse, qiblaDirection: qiblaBearing(location.lat, location.lng) };
+    return { prayerData: prayerResponse, qiblaDirection: qiblaForLocation(location) };
   }, [location, method, date]);
 
   const { execute, isPending, isError, data, error, reset } = useAsync(fetchPrayerData, {
@@ -190,7 +224,7 @@ const NextPrayerCard = memo(function NextPrayerCard({
   isArabic,
 }: NextPrayerCardProps) {
   const nextPrayer = useMemo(() => {
-    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+    const currentMinutes = minutesInTimeZone(currentTime, prayerData.meta?.timezone);
 
     for (const prayerName of MAIN_PRAYERS) {
       const timeStr = prayerData.timings[prayerName as keyof typeof prayerData.timings];
@@ -346,7 +380,7 @@ const PrayerTimesGrid = memo(function PrayerTimesGrid({
   isArabic,
 }: PrayerTimesGridProps) {
   const nextPrayerName = useMemo(() => {
-    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+    const currentMinutes = minutesInTimeZone(currentTime, prayerData.meta?.timezone);
 
     for (const prayerName of MAIN_PRAYERS) {
       const timeStr = prayerData.timings[prayerName as keyof typeof prayerData.timings];
@@ -479,7 +513,7 @@ const SettingsPanel = memo(function SettingsPanel({
         >
           {isArabic ? 'تغيير الموقع' : 'Change Location'}
         </label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <input
             id="location-search"
             type="text"
@@ -487,13 +521,13 @@ const SettingsPanel = memo(function SettingsPanel({
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={isArabic ? 'ابحث عن مدينة...' : 'Search for a city...'}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="min-w-0 flex-1 basis-40 min-h-11 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             aria-describedby="location-search-hint"
           />
           <button
             onClick={handleSearch}
             disabled={searchLoading || !searchQuery.trim()}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+            className="shrink-0 min-h-11 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
             aria-busy={searchLoading}
           >
             {searchLoading ? (
@@ -523,7 +557,7 @@ const SettingsPanel = memo(function SettingsPanel({
           onChange={(e) =>
             onSettingsChange({ ...settings, method: Number(e.target.value) })
           }
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          className="w-full min-w-0 min-h-11 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         >
           {Object.entries(PRAYER_METHODS).map(([id, method]) => (
             <option key={id} value={id}>
@@ -534,7 +568,7 @@ const SettingsPanel = memo(function SettingsPanel({
       </div>
 
       {/* 24-hour format toggle */}
-      <div className="flex items-center">
+      <div className="flex items-center min-h-11">
         <input
           id="use-24-hour"
           type="checkbox"
@@ -542,11 +576,11 @@ const SettingsPanel = memo(function SettingsPanel({
           onChange={(e) =>
             onSettingsChange({ ...settings, use24Hour: e.target.checked })
           }
-          className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+          className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
         />
         <label
           htmlFor="use-24-hour"
-          className="ms-2 text-sm text-gray-700 cursor-pointer"
+          className="ms-2 py-2 flex-1 text-sm text-gray-700 cursor-pointer"
         >
           {isArabic ? 'صيغة 24 ساعة' : '24-hour format'}
         </label>
@@ -580,7 +614,7 @@ const DateNavigator = memo(function DateNavigator({
       >
         <ChevronLeft className={clsx('w-5 h-5', isArabic && 'rotate-180')} aria-hidden="true" />
       </button>
-      <div className="text-center min-w-[200px]">
+      <div className="text-center min-w-0 flex-1 max-w-xs">
         <p className="font-semibold text-gray-900">
           {date.toLocaleDateString(isArabic ? 'ar-SA-u-ca-gregory-nu-arab' : 'en-US', {
             weekday: 'long',
@@ -622,8 +656,22 @@ function PrayerTimesPageContent() {
     DEFAULT_SETTINGS
   );
 
+  // A city the user picked (search, or Makkah chosen explicitly) is kept on
+  // this device so the next visit does not ask again.
+  const [savedLocation, setSavedLocation] = useLocalStorage<Location | null>(
+    'prayer_manual_location',
+    null
+  );
+
   // State
-  const [location, setLocation] = useState<Location | null>(null);
+  const [location, setLocationState] = useState<Location | null>(savedLocation);
+  const chooseLocation = useCallback(
+    (loc: Location) => {
+      setLocationState(loc);
+      if (loc.source === 'manual' || loc.source === 'makkah') setSavedLocation(loc);
+    },
+    [setSavedLocation]
+  );
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [showSettings, setShowSettings] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -638,32 +686,32 @@ function PrayerTimesPageContent() {
     timeout: 10000,
   });
 
-  // Initialize location from geolocation
+  // Initialize location from geolocation (only when the user has not picked one).
   useEffect(() => {
     if (geoState.coords && !location) {
-      reverseGeocode(geoState.coords.latitude, geoState.coords.longitude).then(
-        (locationInfo) => {
-          setLocation({
-            lat: geoState.coords!.latitude,
-            lng: geoState.coords!.longitude,
+      const { latitude, longitude } = geoState.coords;
+      reverseGeocode(latitude, longitude).then((locationInfo) => {
+        setLocationState((current) =>
+          current ?? {
+            lat: latitude,
+            lng: longitude,
             name: locationInfo?.city
-              ? `${locationInfo.city}, ${locationInfo.country}`
-              : `${geoState.coords!.latitude.toFixed(2)}, ${geoState.coords!.longitude.toFixed(2)}`,
-          });
-        }
-      );
+              ? [locationInfo.city, locationInfo.country].filter(Boolean).join(', ')
+              : `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`,
+            source: 'device',
+          }
+        );
+      });
     }
   }, [geoState.coords, location]);
 
-  // Set default location if geolocation fails
-  useEffect(() => {
-    if (geoState.error && !location) {
-      setLocation({
-        ...MAKKAH_LOCATION,
-        name: isArabic ? 'مكة المكرمة' : 'Makkah',
-      });
-    }
-  }, [geoState.error, location, isArabic]);
+  // No silent fallback: when geolocation fails the page asks the user to
+  // search for a city (or to choose Makkah explicitly) via LocationFallback.
+  const retryDeviceLocation = useCallback(() => {
+    setSavedLocation(null);
+    setLocationState(null);
+    getCurrentPosition();
+  }, [getCurrentPosition, setSavedLocation]);
 
   // Prayer times data
   const { prayerData, qiblaDirection, loading, error, refetch } = usePrayerTimes(
@@ -681,13 +729,15 @@ function PrayerTimesPageContent() {
       try {
         const result = await geocodeAddress(query);
         if (result) {
-          setLocation({
+          chooseLocation({
             lat: result.latitude,
             lng: result.longitude,
             name: result.city
-              ? `${result.city}, ${result.country}`
+              ? [result.city, result.country].filter(Boolean).join(', ')
               : result.displayName.split(',').slice(0, 2).join(','),
+            source: 'manual',
           });
+          setShowSettings(false);
         } else {
           setSearchError(isArabic ? 'لم يتم العثور على الموقع' : 'Location not found');
         }
@@ -697,7 +747,7 @@ function PrayerTimesPageContent() {
         setSearchLoading(false);
       }
     },
-    [isArabic]
+    [isArabic, chooseLocation]
   );
 
   // Date change handler
@@ -709,12 +759,21 @@ function PrayerTimesPageContent() {
     });
   }, []);
 
-  // Request location on mount if not cached
+  // Request the device location on mount unless a city is already chosen.
+  // Runs once: a failure must not trigger an automatic retry loop.
+  const [askedDevice, setAskedDevice] = useState(false);
   useEffect(() => {
-    if (!geoState.coords && !geoState.loading && !geoState.error) {
-      getCurrentPosition();
-    }
-  }, [geoState.coords, geoState.loading, geoState.error, getCurrentPosition]);
+    if (askedDevice || savedLocation) return;
+    setAskedDevice(true);
+    if (!geoState.coords) getCurrentPosition();
+  }, [askedDevice, savedLocation, geoState.coords, getCurrentPosition]);
+
+  const locationLabel =
+    location?.source === 'makkah'
+      ? isArabic
+        ? 'مكة المكرمة'
+        : 'Makkah'
+      : location?.name;
 
   return (
     <div
@@ -725,25 +784,25 @@ function PrayerTimesPageContent() {
       <header className="mb-6">
         <Link
           to="/tools"
-          className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-4 focus:outline-none focus:underline"
+          className="inline-flex min-h-11 items-center gap-2 text-primary-600 hover:text-primary-700 mb-2 focus:outline-none focus:underline"
         >
           <ArrowLeft className={clsx('w-4 h-4', isArabic && 'rotate-180')} aria-hidden="true" />
           {isArabic ? 'العودة للأدوات' : 'Back to Tools'}
         </Link>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-primary-100 rounded-lg" aria-hidden="true">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-3 bg-primary-100 rounded-lg shrink-0" aria-hidden="true">
               <Clock className="w-8 h-8 text-primary-600" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h1 className={clsx('text-2xl font-bold text-gray-900', isArabic && 'font-arabic')}>
                 {isArabic ? 'أوقات الصلاة' : 'Prayer Times'}
               </h1>
               <p className="text-gray-600 flex items-center gap-1">
                 <MapPin className="w-4 h-4" aria-hidden="true" />
                 <span>
-                  {location?.name ||
+                  {locationLabel ||
                     (geoState.loading
                       ? isArabic
                         ? 'جاري تحديد الموقع...'
@@ -757,7 +816,7 @@ function PrayerTimesPageContent() {
           </div>
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="tap shrink-0 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             aria-expanded={showSettings}
             aria-controls="settings-panel"
             aria-label={isArabic ? 'الإعدادات' : 'Settings'}
@@ -787,12 +846,49 @@ function PrayerTimesPageContent() {
         </div>
       )}
 
-      {/* Location Permission Denied */}
+      {/* Device location denied / unavailable: ask, never substitute silently. */}
       {geoState.error && !location && (
-        <LocationDenied
-          onManualEntry={() => setShowSettings(true)}
+        <LocationFallback
+          isArabic={isArabic}
+          problem={locationProblemOf(geoState.error)}
+          purpose={{
+            ar: 'نحتاج إلى مدينتك لحساب أوقات الصلاة واتجاه القبلة.',
+            en: 'Prayer times and the Qibla direction are calculated for your city.',
+          }}
+          onChoose={(loc) => chooseLocation({ ...loc, source: 'manual' })}
+          onRetry={retryDeviceLocation}
+          onUseMakkah={() => chooseLocation(MAKKAH_LOCATION)}
           className="mb-6"
         />
+      )}
+
+      {/* Makkah is shown only because the user chose it; say so plainly. */}
+      {location?.source === 'makkah' && (
+        <div
+          role="status"
+          data-testid="makkah-stand-in"
+          className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-xl flex flex-wrap items-center gap-2"
+        >
+          <p className="text-sm text-gray-800 flex-1 basis-48">
+            {isArabic
+              ? 'تُعرض أوقات الصلاة في مكة المكرمة إلى أن تختار موقعك، ولا يُعرض اتجاه القبلة.'
+              : 'Showing Makkah prayer times until you choose your location; the Qibla direction is not shown.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowSettings(true)}
+            className="min-h-11 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-800 hover:bg-gray-50"
+          >
+            {isArabic ? 'اختر مدينتك' : 'Choose your city'}
+          </button>
+          <button
+            type="button"
+            onClick={retryDeviceLocation}
+            className="min-h-11 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-800 hover:bg-gray-50"
+          >
+            {isArabic ? 'استخدم موقعي' : 'Use my location'}
+          </button>
+        </div>
       )}
 
       {/* Date Navigation */}
@@ -819,8 +915,20 @@ function PrayerTimesPageContent() {
           />
 
           {/* Qibla Direction */}
-          {qiblaDirection !== null && (
-            <QiblaCompass bearing={qiblaDirection} isArabic={isArabic} />
+          {location?.source === 'makkah' ? (
+            <p
+              data-testid="qibla-needs-location"
+              dir={isArabic ? 'rtl' : 'ltr'}
+              className="mb-6 p-3 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-xl"
+            >
+              {isArabic
+                ? 'اختر مدينتك أو استخدم موقعك لمعرفة اتجاه القبلة.'
+                : 'Choose your city or use your location to see the Qibla direction.'}
+            </p>
+          ) : (
+            qiblaDirection !== null && (
+              <QiblaCompass bearing={qiblaDirection} isArabic={isArabic} />
+            )
           )}
 
           {/* Prayer Times Grid */}

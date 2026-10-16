@@ -87,7 +87,7 @@ export function IslamicWebSearchPage() {
       <div className="mb-6">
         <Link
           to="/tools"
-          className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-4"
+          className="inline-flex min-h-11 items-center gap-2 text-primary-600 hover:text-primary-700 mb-2"
         >
           <ArrowLeft className={clsx('w-4 h-4', isArabic && 'rotate-180')} aria-hidden="true" />
           {isArabic ? 'العودة للأدوات' : 'Back to Tools'}

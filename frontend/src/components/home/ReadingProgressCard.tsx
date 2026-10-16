@@ -60,8 +60,9 @@ export function ReadingProgressCard() {
         {visited > 0 && (
           <button
             onClick={handleReset}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/60 transition-colors"
+            className="tap shrink-0 rounded-lg text-gray-500 hover:text-red-500 hover:bg-white/60 transition-colors"
             title={isRtl ? 'إعادة تعيين' : 'Reset progress'}
+            aria-label={isRtl ? 'إعادة تعيين' : 'Reset progress'}
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
@@ -155,7 +156,7 @@ export function ReadingProgressCard() {
         <Link
           to="/quran"
           className={clsx(
-            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium flex-1 justify-center',
+            'inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium flex-1 justify-center',
             'bg-violet-600 text-white hover:bg-violet-700 transition-colors',
             isRtl && 'flex-row-reverse font-arabic',
           )}
@@ -166,7 +167,7 @@ export function ReadingProgressCard() {
         <Link
           to="/reading-plan"
           className={clsx(
-            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium flex-1 justify-center',
+            'inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium flex-1 justify-center',
             'bg-white border border-violet-200 text-violet-700 hover:bg-violet-50 transition-colors',
             isRtl && 'flex-row-reverse font-arabic',
           )}
@@ -177,7 +178,7 @@ export function ReadingProgressCard() {
         <Link
           to="/stats"
           className={clsx(
-            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium flex-1 justify-center',
+            'inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium flex-1 justify-center',
             'bg-white border border-violet-200 text-violet-700 hover:bg-violet-50 transition-colors',
             isRtl && 'flex-row-reverse font-arabic',
           )}

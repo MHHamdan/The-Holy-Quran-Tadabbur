@@ -5,6 +5,7 @@ import { useLanguageStore } from '../../stores/languageStore';
 import { coarsen, safeHttpUrl } from '../../lib/islamicApis';
 import { Dialog } from '../../components/ui/Dialog';
 import clsx from 'clsx';
+import { LocationFallback, locationProblemOf, type ChosenLocation, type LocationProblem } from './LocationFallback';
 
 interface Place {
   id: string;
@@ -55,14 +56,18 @@ export function MosqueFinderPage() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [qiblaDirection, setQiblaDirection] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  // Set when the device location cannot be read; the page then offers a city search.
+  const [geoProblem, setGeoProblem] = useState<LocationProblem | null>(null);
+  const [placeName, setPlaceName] = useState<string | null>(null);
 
   // Get user's location
   const getUserLocation = useCallback(() => {
     setLocationLoading(true);
     setError(null);
+    setGeoProblem(null);
 
     if (!navigator.geolocation) {
-      setError(isArabic ? 'تحديد الموقع غير مدعوم في متصفحك' : 'Geolocation is not supported by your browser');
+      setGeoProblem('unsupported');
       setLocationLoading(false);
       return;
     }
@@ -74,21 +79,25 @@ export function MosqueFinderPage() {
           lon: position.coords.longitude,
         };
         setLocation(loc);
+        setPlaceName(null);
         calculateQibla(loc.lat, loc.lon);
         setLocationLoading(false);
       },
       (err) => {
-        let errorMsg = isArabic ? 'تعذر الحصول على موقعك' : 'Unable to get your location';
-        if (err.code === 1) {
-          errorMsg = isArabic ? 'يرجى السماح بالوصول إلى موقعك' : 'Please allow location access';
-        }
-        setError(errorMsg);
+        setGeoProblem(locationProblemOf(err));
         setLocationLoading(false);
       },
       // Coarse location is enough for nearby places and the Qibla bearing.
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 10 * 60 * 1000 }
     );
-  }, [isArabic]);
+  }, []);
+
+  const chooseCity = useCallback((loc: ChosenLocation) => {
+    setLocation({ lat: loc.lat, lon: loc.lng });
+    setPlaceName(loc.name);
+    setGeoProblem(null);
+    calculateQibla(loc.lat, loc.lng);
+  }, []);
 
   // Calculate Qibla direction
   function calculateQibla(lat: number, lon: number) {
@@ -267,7 +276,7 @@ export function MosqueFinderPage() {
       <div className="mb-6">
         <Link
           to="/tools"
-          className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-4"
+          className="inline-flex min-h-11 items-center gap-2 text-primary-600 hover:text-primary-700 mb-2"
         >
           <ArrowLeft className={clsx('w-4 h-4', isArabic && 'rotate-180')} />
           {isArabic ? 'العودة للأدوات' : 'Back to Tools'}
@@ -315,8 +324,33 @@ export function MosqueFinderPage() {
         </div>
       )}
 
+      {/* Device location denied / unavailable: offer a city search instead. */}
+      {!location && geoProblem && (
+        <LocationFallback
+          isArabic={isArabic}
+          problem={geoProblem}
+          purpose={{
+            ar: 'نحتاج إلى مدينتك لإظهار الأماكن القريبة واتجاه القبلة.',
+            en: 'Nearby places and the Qibla direction need your city.',
+          }}
+          onChoose={chooseCity}
+          onRetry={getUserLocation}
+          className="mb-6"
+        />
+      )}
+
+      {location && placeName && (
+        <p className="mb-4 text-sm text-gray-700 flex items-center gap-1">
+          <MapPin className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <span>
+            {isArabic ? 'الأماكن القريبة من: ' : 'Places near: '}
+            {placeName}
+          </span>
+        </p>
+      )}
+
       {/* Location Status */}
-      {!location && (
+      {!location && !geoProblem && (
         <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl text-center">
           {locationLoading ? (
             <div className="flex items-center justify-center gap-2 text-gray-600">
@@ -332,7 +366,7 @@ export function MosqueFinderPage() {
               </p>
               <button
                 onClick={getUserLocation}
-                className="px-4 py-2 bg-teal-700 text-white rounded-lg hover:bg-teal-800 inline-flex items-center gap-2"
+                className="min-h-11 px-4 py-2 bg-teal-700 text-white rounded-lg hover:bg-teal-800 inline-flex items-center gap-2"
               >
                 <Navigation className="w-4 h-4" />
                 {isArabic ? 'تحديد موقعي' : 'Get My Location'}
@@ -357,7 +391,7 @@ export function MosqueFinderPage() {
               key={type.id}
               onClick={() => setSelectedType(type.id)}
               className={clsx(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2',
+                'min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2',
                 selectedType === type.id
                   ? 'bg-teal-700 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -379,7 +413,7 @@ export function MosqueFinderPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label={isArabic ? 'ابحث عن مكان' : 'Search places'}
               placeholder={isArabic ? 'ابحث عن مكان...' : 'Search places...'}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              className="w-full min-h-11 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -388,7 +422,7 @@ export function MosqueFinderPage() {
               value={radius}
               aria-label={isArabic ? 'نطاق البحث' : 'Search radius'}
               onChange={(e) => setRadius(Number(e.target.value))}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              className="min-h-11 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             >
               {RADIUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>

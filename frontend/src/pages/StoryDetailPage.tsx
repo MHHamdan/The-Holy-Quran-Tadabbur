@@ -154,7 +154,7 @@ export function StoryDetailPage() {
       {/* Back Link */}
       <Link
         to="/stories"
-        className={clsx('inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-6', language === 'ar' && 'font-arabic')}
+        className={clsx('inline-flex min-h-11 items-center gap-2 text-gray-600 hover:text-primary-600 mb-6', language === 'ar' && 'font-arabic')}
       >
         <ArrowLeft className={clsx('w-4 h-4', language === 'ar' && 'rotate-180')} />
         {language === 'ar' ? 'العودة للقصص' : 'Back to Stories'}
@@ -230,7 +230,7 @@ export function StoryDetailPage() {
               <button
                 onClick={() => setAudienceLevel('kids')}
                 className={clsx(
-                  'flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
+                  'flex min-h-11 items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
                   audienceLevel === 'kids'
                     ? 'bg-amber-500 text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -242,7 +242,7 @@ export function StoryDetailPage() {
               <button
                 onClick={() => setAudienceLevel('adults')}
                 className={clsx(
-                  'flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
+                  'flex min-h-11 items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
                   audienceLevel === 'adults'
                     ? 'bg-primary-600 text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -357,7 +357,7 @@ export function StoryDetailPage() {
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <Link
                         to={`/stories/${related.storyId}`}
-                        className="text-sm font-medium text-primary-700 hover:text-primary-900 transition-colors"
+                        className="inline-flex min-h-6 items-center text-sm font-medium text-primary-700 hover:text-primary-900 transition-colors"
                       >
                         {storyTitle(related.storyId, language)}
                       </Link>
@@ -377,7 +377,7 @@ export function StoryDetailPage() {
                           <Link
                             key={idx}
                             to={`/quran/${ev.surahNumber}?aya=${ev.ayahStart}`}
-                            className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full hover:bg-primary-100 transition-colors"
+                            className="inline-flex min-h-6 items-center text-xs bg-primary-50 text-primary-700 px-2 py-1 rounded-full hover:bg-primary-100 transition-colors"
                             title={`${getSurahName(ev.surahNumber)[language === 'ar' ? 'ar' : 'en']} ${ev.surahNumber}:${ev.ayahStart}`}
                           >
                             {language === 'ar' ? getSurahName(ev.surahNumber).ar : getSurahName(ev.surahNumber).en}{' '}
@@ -430,7 +430,7 @@ export function StoryDetailPage() {
           <button
             onClick={() => setViewMode('list')}
             className={clsx(
-              'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
+              'flex items-center gap-2 min-h-11 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
               viewMode === 'list'
                 ? 'bg-white shadow text-primary-600'
                 : 'text-gray-600 hover:text-gray-900'
@@ -444,7 +444,7 @@ export function StoryDetailPage() {
           <button
             onClick={() => setViewMode('graph')}
             className={clsx(
-              'hidden sm:flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
+              'hidden sm:flex items-center gap-2 min-h-11 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
               viewMode === 'graph'
                 ? 'bg-white shadow text-primary-600'
                 : 'text-gray-600 hover:text-gray-900'
@@ -457,7 +457,7 @@ export function StoryDetailPage() {
             <button
               onClick={() => setViewMode('themes')}
               className={clsx(
-                'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
+                'flex items-center gap-2 min-h-11 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
                 viewMode === 'themes'
                   ? 'bg-white shadow text-primary-600'
                   : 'text-gray-600 hover:text-gray-900'
@@ -471,7 +471,7 @@ export function StoryDetailPage() {
             <button
               onClick={() => setViewMode('insights')}
               className={clsx(
-                'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
+                'flex items-center gap-2 min-h-11 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0',
                 viewMode === 'insights'
                   ? 'bg-white shadow text-primary-600'
                   : 'text-gray-600 hover:text-gray-900'
@@ -546,7 +546,7 @@ export function StoryDetailPage() {
                             </div>
                             <Link
                               to={`/quran/${segment.sura_no}?aya=${segment.aya_start}`}
-                              className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-800 transition-colors"
+                              className="flex min-h-11 items-center gap-1 text-sm text-primary-600 hover:text-primary-800 transition-colors"
                             >
                               {language === 'ar' ? 'عرض في المصحف' : 'View in Quran'}
                               <ExternalLink className="w-3.5 h-3.5" />
@@ -661,7 +661,7 @@ function StoryFallbackView({
     <div className="max-w-3xl mx-auto px-4 py-8" dir={isAr ? 'rtl' : 'ltr'}>
       <Link
         to="/stories"
-        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6"
+        className="inline-flex min-h-11 items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6"
       >
         <ArrowLeft className={clsx('w-4 h-4', isAr && 'rotate-180')} size={14} />
         {isAr ? 'العودة للقصص' : 'Back to Stories'}
@@ -873,7 +873,7 @@ function SegmentEvidenceChips({ segment, language }: { segment: SegmentWithEvide
             key={ev.source_id}
             to={`/tafsir/compare/${segment.sura_no}/${segment.aya_start}`}
             title={author ?? undefined}
-            className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-800 border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-100"
+            className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-800 border border-blue-200 rounded-full px-2 py-1 min-h-6 hover:bg-blue-100"
           >
             <span dir={isAr ? 'rtl' : 'ltr'}>{title}</span>
           </Link>
@@ -998,7 +998,7 @@ function StoryPeopleStrip({ storyId, language }: { storyId: string; language: 'a
                     key={pid}
                     to={`/stories?person=${encodeURIComponent(pid)}`}
                     title={isArabic ? p.noteArabic : p.noteEnglish}
-                    className="inline-flex items-center text-xs font-medium text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded hover:bg-indigo-100"
+                    className="inline-flex items-center min-h-6 text-xs font-medium text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-1 rounded hover:bg-indigo-100"
                   >
                     {isArabic ? p.nameArabic : p.nameEnglish}
                   </Link>
@@ -1048,7 +1048,7 @@ function StoryPlaceStrip({ storyId, language }: { storyId: string; language: 'ar
                     key={pid}
                     to={`/stories?place=${encodeURIComponent(pid)}`}
                     title={isArabic ? p.noteArabic : p.noteEnglish}
-                    className="inline-flex items-center text-xs font-medium text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded hover:bg-amber-100"
+                    className="inline-flex min-h-6 items-center text-xs font-medium text-amber-900 bg-amber-50 border border-amber-200 px-2 py-1 rounded hover:bg-amber-100"
                   >
                     {isArabic ? p.nameArabic : p.nameEnglish}
                   </Link>
@@ -1097,7 +1097,7 @@ function StorySubcategoryStrip({ storyId, language }: { storyId: string; languag
                   <Link
                     key={sc}
                     to={`/stories?subcategory=${encodeURIComponent(sc)}`}
-                    className="inline-flex items-center text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded hover:bg-emerald-100"
+                    className="inline-flex min-h-6 items-center text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded hover:bg-emerald-100"
                   >
                     {isArabic ? label.ar : label.en}
                   </Link>

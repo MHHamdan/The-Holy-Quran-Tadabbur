@@ -16,6 +16,16 @@ import { useLanguageStore } from '../../stores/languageStore';
 import { getTodayWord, WORD_OF_DAY_VOCAB } from '../../data/wordOfDayVocab';
 import { QuranTextAttribution } from '../quran/QuranTextAttribution';
 
+/** Arabic labels for the part-of-speech strings in wordOfDayVocab.ts. */
+export const POS_AR: Record<string, string> = {
+  noun: 'اسم',
+  'noun (maṣdar)': 'مصدر',
+  'noun (maṣdar, form IV)': 'مصدر (وزن إفعال)',
+  'noun (maṣdar, form V)': 'مصدر (وزن تفعُّل)',
+  'noun (maṣdar, form VI)': 'مصدر (وزن تفاعُل)',
+  'noun (maṣdar, form X)': 'مصدر (وزن استفعال)',
+};
+
 function getWordForDate(dateStr: string) {
   return getTodayWord(dateStr);
 }
@@ -61,11 +71,14 @@ export function WordOfDayCard() {
         <p className="text-4xl font-arabic font-bold text-teal-800 mb-0.5 leading-none" dir="rtl">
           {word.arabic}
         </p>
-        <p className="text-sm text-gray-500 mt-1 italic">{word.transliteration}</p>
+        {/* Transliteration helps non-Arabic readers only. */}
+        {!isRtl && <p className="text-sm text-gray-500 mt-1 italic" dir="ltr">{word.transliteration}</p>}
         <div className={clsx('flex items-center gap-2 mt-1 flex-wrap', isRtl && 'flex-row-reverse')}>
-          <span className="text-[10px] bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">
-            {word.partOfSpeech}
-          </span>
+          {(!isRtl || POS_AR[word.partOfSpeech]) && (
+            <span className="text-[10px] bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">
+              {isRtl ? POS_AR[word.partOfSpeech] : word.partOfSpeech}
+            </span>
+          )}
           <span className="text-[10px] text-gray-400" dir="rtl">
             {word.root}
           </span>
@@ -92,7 +105,7 @@ export function WordOfDayCard() {
         <button
           onClick={() => setShowHint(v => !v)}
           className={clsx(
-            'flex items-center gap-1.5 text-xs text-amber-700 hover:text-amber-900 transition-colors w-full',
+            'flex min-h-11 items-center gap-1.5 text-xs text-amber-700 hover:text-amber-900 transition-colors w-full',
             isRtl && 'flex-row-reverse'
           )}
         >

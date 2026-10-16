@@ -140,16 +140,16 @@ export function Layout({ children }: LayoutProps) {
               aria-label={t('more_section_app', language)}
               className={clsx('mt-2 flex flex-wrap justify-center gap-x-4 text-sm text-gray-600', isAr && 'font-arabic')}
             >
-              <Link to="/about" className="inline-block py-2 underline hover:text-primary-700">
+              <Link to="/about" className="inline-flex min-h-11 items-center underline hover:text-primary-700">
                 {t('footer_about', language)}
               </Link>
-              <Link to="/privacy" className="inline-block py-2 underline hover:text-primary-700">
+              <Link to="/privacy" className="inline-flex min-h-11 items-center underline hover:text-primary-700">
                 {t('footer_privacy', language)}
               </Link>
-              <Link to="/sources" className="inline-block py-2 underline hover:text-primary-700">
+              <Link to="/sources" className="inline-flex min-h-11 items-center underline hover:text-primary-700">
                 {t('footer_sources', language)}
               </Link>
-              <Link to="/licenses" className="inline-block py-2 underline hover:text-primary-700">
+              <Link to="/licenses" className="inline-flex min-h-11 items-center underline hover:text-primary-700">
                 {t('footer_licenses', language)}
               </Link>
             </nav>

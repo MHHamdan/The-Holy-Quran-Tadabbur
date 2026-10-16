@@ -158,7 +158,7 @@ function SegmentCard({
             </h3>
             <Link
               to={`/quran/${segment.surahNumber}?aya=${segment.ayahStart}`}
-              className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full hover:bg-primary-100 transition-colors"
+              className="inline-flex min-h-6 items-center text-xs bg-primary-50 text-primary-700 px-2 py-1 rounded-full hover:bg-primary-100 transition-colors"
             >
               {ref}
             </Link>
@@ -276,7 +276,7 @@ function SegmentCard({
       <div className="mt-2">
         <Link
           to={`/quran/${segment.surahNumber}?aya=${segment.ayahStart}`}
-          className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 transition-colors"
+          className="inline-flex min-h-11 items-center gap-1 text-xs text-primary-600 hover:text-primary-800 transition-colors"
         >
           <ExternalLink className="w-3 h-3" />
           {language === 'ar' ? 'عرض في المصحف' : 'View in Quran'}

@@ -66,7 +66,15 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />
     <!-- Prayer times, Qibla and nearby mosques read the location through the
          WebView's geolocation API, which needs these declared. Asked at
-         runtime only when the user uses one of those tools. -->
+         runtime only when the user uses one of those tools.
+         The app only needs approximate location: every page asks with
+         enableHighAccuracy: false and only a position rounded to ~1 km
+         (coarsen()) leaves the device. FINE is still declared because
+         Capacitor's BridgeWebChromeClient requests COARSE+FINE together and,
+         below Android 12 (minSdk is 24), denies the WebView geolocation
+         request outright unless both are granted. On Android 12+ the user can
+         pick "Approximate" in the system dialog and the app works with it.
+         Revisit if minSdk moves to 31 or the bridge stops requiring FINE. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-feature android:name="android.hardware.location" android:required="false" />

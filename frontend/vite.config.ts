@@ -227,7 +227,13 @@ export default defineConfig(({ mode }) => ({
         // App shell: hashed JS/CSS + index.html, precached and versioned per build.
         // Fonts are not precached (every subset of every weight would be
         // downloaded on install); they are cached on first use below.
-        globPatterns: ['**/*.{js,css,html,ico,svg,png}'],
+        // The bundled Qur'an text (public/offline-quran/: manifest + 114
+        // surah files, ~4 MB in total, the largest ~270 KB, well under the
+        // 2 MiB per-file limit) is precached too, so any surah or Mushaf page
+        // opens offline after the first load, with no earlier visit to it.
+        // Workbox revisions each file by content hash, so a re-export is
+        // picked up on the next service-worker update.
+        globPatterns: ['**/*.{js,css,html,ico,svg,png}', 'offline-quran/*.json'],
         cleanupOutdatedCaches: true,
         // SPA routes fall back to the cached shell offline; API, health and
         // backend docs must never be answered with index.html.
@@ -266,18 +272,6 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'fonts-v1',
               expiration: { maxEntries: 60, maxAgeSeconds: 365 * 24 * 3600 },
-              cacheableResponse: { statuses: [200] },
-            },
-          },
-          {
-            // Bundled offline Qur'an text (public/offline-quran/, ~4 MB in
-            // total, so not precached): kept for a year once fetched and
-            // revalidated in the background, so a re-export reaches readers.
-            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/offline-quran/'),
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'offline-quran-v1',
-              expiration: { maxEntries: 130, maxAgeSeconds: 365 * 24 * 3600 },
               cacheableResponse: { statuses: [200] },
             },
           },
