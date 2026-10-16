@@ -49,6 +49,29 @@ def test_seed_cites_no_disabled_source_and_no_snippets():
             assert seed._REF_RE.match(ref), ref
 
 
+ADD_MISSING_EVENTS = ROOT / "backend" / "scripts" / "ingest" / "add_missing_events.py"
+
+
+def test_add_missing_events_cites_no_blocked_source_and_no_snippets():
+    """The ingest script must not reintroduce blocked refs or translated snippets."""
+    src = ADD_MISSING_EVENTS.read_text(encoding="utf-8")
+    for blocked in ("ibn_kathir_en", "jalalayn_en", "ibn_abbas_en"):
+        assert blocked not in src
+    assert '"snippet":' not in src
+    assert "resolve_seed_evidence_sync" in src
+    mod = _load(ADD_MISSING_EVENTS, "add_missing_events")
+    n = 0
+    for events in mod.NEW_EVENTS.values():
+        for event in events:
+            for ev in event.get("evidence", []):
+                assert set(ev) == {"source_id", "reference"}, event["id"]
+                assert ev["source_id"] == "ibn_kathir_ar", event["id"]
+                s, a = map(int, ev["reference"].split(":"))
+                assert s == event["sura_no"], event["id"]
+                n += 1
+    assert n == 27
+
+
 def test_migration_chains_after_story_prune():
     mod = _load(MIGRATION, "r3d_migration")
     assert mod.revision == "r3d1a2b3c4d5"
