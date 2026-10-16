@@ -36,7 +36,7 @@ from; the API no longer serves a consequence without real evidence.
 Idempotent: every statement only touches rows that still need it.
 
 Revision ID: r3d1a2b3c4d5
-Revises: r2a1b2c3d4e5
+Revises: r3b1c2d3e4f5
 Create Date: 2026-10-14
 """
 from typing import Sequence, Union
@@ -44,7 +44,7 @@ from typing import Sequence, Union
 from alembic import op
 
 revision: str = "r3d1a2b3c4d5"
-down_revision: Union[str, None] = "r2a1b2c3d4e5"
+down_revision: Union[str, None] = "r3b1c2d3e4f5"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
