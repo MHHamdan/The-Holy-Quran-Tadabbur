@@ -27,7 +27,7 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 import httpx
-from sqlalchemy import select, or_, func, and_, text
+from sqlalchemy import select, or_, and_, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -338,6 +338,7 @@ _ARABIC_PROCLITICS = ("", "ال", "و", "ف", "ب", "ل", "ك", "وال", "فا�
 # proclitic is allowed (فهم = "understood"), so they only match bare or with ال.
 _SHORT_KEYWORD_PROCLITICS = ("", "ال")
 _TOKEN = re.compile(r"[\w\u0600-\u06FF]+")
+_ARABIC_SCRIPT = re.compile(r"[\u0600-\u06FF]")
 
 
 def contains_keyword(text: str, keyword: str) -> bool:
@@ -407,6 +408,34 @@ def normalize_arabic(text: str) -> str:
     # Normalize yaa variants
     text = text.replace('ى', 'ي').replace('ئ', 'ي')
     return text
+
+
+# Text some tafsir datasets carry for an ayah they do not comment on
+# ("there is no tafsir for this ayah"). It is never evidence, whatever index
+# or table it comes from.
+PLACEHOLDER_MARKERS: Tuple[str, ...] = ("لا يوجد تفسير",)
+# External (alquran.cloud) editions that carry the same text as a local
+# source; they follow that source's enabled/licence status.
+EXTERNAL_EDITION_LOCAL_SOURCE: Dict[str, str] = {"ar.muyassar": "muyassar_ar"}
+# Passages shorter than this carry no usable commentary.
+MIN_EVIDENCE_CHARS = 20
+
+
+def is_placeholder_text(text: Optional[str]) -> bool:
+    """True when ``text`` is a dataset placeholder rather than commentary."""
+    if not text:
+        return False
+    return any(marker in text for marker in PLACEHOLDER_MARKERS)
+
+
+def usable_evidence_text(chunk) -> bool:
+    """A tafseer_chunks row has real, non-placeholder commentary."""
+    texts = [t for t in (chunk.content_ar, chunk.content_en) if t and t.strip()]
+    if not texts:
+        return False
+    if any(is_placeholder_text(t) for t in texts):
+        return False
+    return max(len(t.strip()) for t in texts) >= MIN_EVIDENCE_CHARS
 
 
 def extract_verse_reference(query: str) -> Optional[Tuple[int, int, Optional[int]]]:
@@ -529,7 +558,10 @@ class HybridRetriever:
     4. Reciprocal Rank Fusion for merging results
     5. External API fallback (alquran.cloud)
 
-    SAFETY: Only retrieves from ENABLED sources (is_enabled=True).
+    SAFETY: Only retrieves from RETRIEVABLE sources: is_enabled=1 AND
+    license_verified=1. Every passage handed to the LLM or cited comes from
+    a tafseer_chunks row; a vector hit is only a pointer (chunk_id) that is
+    resolved against the database, never a source of text.
     """
 
     # Safety limits for evidence content
@@ -547,20 +579,50 @@ class HybridRetriever:
         # the pipeline then tells the user retrieval was keyword-only.
         self.vector_search_failed = False
 
+    @staticmethod
+    def _retrievable_source_clause():
+        """SQL condition for sources RAG may retrieve from: enabled and licence-verified."""
+        return and_(TafseerSource.is_enabled == 1, TafseerSource.license_verified == 1)
+
     async def _get_enabled_source_ids(self) -> set:
         """
-        Get set of enabled source IDs from the database.
+        Get the set of retrievable source IDs (is_enabled=1 AND license_verified=1).
         Cached per retriever instance to avoid repeated queries.
         """
         if self._enabled_sources_cache is not None:
             return self._enabled_sources_cache
 
         result = await self.session.execute(
-            select(TafseerSource.id).where(TafseerSource.is_enabled == 1)
+            select(TafseerSource.id).where(self._retrievable_source_clause())
         )
         self._enabled_sources_cache = {row[0] for row in result.fetchall()}
-        logger.info(f"Cached {len(self._enabled_sources_cache)} enabled sources")
+        logger.info(f"Cached {len(self._enabled_sources_cache)} retrievable sources")
         return self._enabled_sources_cache
+
+    @staticmethod
+    def _chunk_from_row(chunk, source, language: str, score: float) -> RetrievedChunk:
+        """Build a RetrievedChunk from a tafseer_chunks row and its source row."""
+        content = chunk.content_en if language == "en" else chunk.content_ar
+        if not content:
+            content = chunk.content_ar or chunk.content_en or ""
+        verse_ref = f"{chunk.sura_no}:{chunk.aya_start}"
+        if chunk.aya_end and chunk.aya_end != chunk.aya_start:
+            verse_ref = f"{chunk.sura_no}:{chunk.aya_start}-{chunk.aya_end}"
+        return RetrievedChunk(
+            chunk_id=chunk.chunk_id,
+            source_id=chunk.source_id,
+            source_name=source.name_en,
+            source_name_ar=source.name_ar,
+            verse_reference=verse_ref,
+            sura_no=chunk.sura_no,
+            aya_start=chunk.aya_start,
+            aya_end=chunk.aya_end,
+            content=content,
+            content_ar=chunk.content_ar,
+            content_en=chunk.content_en,
+            relevance_score=score,
+            scholarly_consensus=chunk.scholarly_consensus,
+        )
 
     def _truncate_content(self, content: str, max_length: int = None) -> str:
         """Truncate content to max length with ellipsis if needed."""
@@ -779,7 +841,8 @@ class HybridRetriever:
                 select(TafseerChunk, TafseerSource)
                 .join(TafseerSource, TafseerChunk.source_id == TafseerSource.id)
                 .where(and_(*conditions))
-                .where(TafseerSource.is_enabled == 1)
+                # SAFETY: enabled (is_enabled == 1) and licence-verified only
+                .where(self._retrievable_source_clause())
             )
 
             # Filter by preferred sources if specified
@@ -801,36 +864,11 @@ class HybridRetriever:
 
             chunks = []
             for chunk, source in rows:
-                # Determine content based on language preference
-                content = chunk.content_en if language == "en" else chunk.content_ar
-                if not content:
-                    content = chunk.content_ar or chunk.content_en or ""
-
-                # Skip empty content
-                if not content or len(content.strip()) < 20:
+                # Skip empty, too-short and placeholder passages
+                if not usable_evidence_text(chunk):
                     continue
-
-                verse_ref = f"{chunk.sura_no}:{chunk.aya_start}"
-                if chunk.aya_end and chunk.aya_end != chunk.aya_start:
-                    verse_ref = f"{chunk.sura_no}:{chunk.aya_start}-{chunk.aya_end}"
-
-                chunks.append(
-                    RetrievedChunk(
-                        chunk_id=chunk.chunk_id,
-                        source_id=chunk.source_id,
-                        source_name=source.name_en,
-                        source_name_ar=source.name_ar,
-                        verse_reference=verse_ref,
-                        sura_no=chunk.sura_no,
-                        aya_start=chunk.aya_start,
-                        aya_end=chunk.aya_end,
-                        content=content,
-                        content_ar=chunk.content_ar,
-                        content_en=chunk.content_en,
-                        relevance_score=0.95,  # High score for direct match
-                        scholarly_consensus=chunk.scholarly_consensus,
-                    )
-                )
+                # High score for a direct verse match
+                chunks.append(self._chunk_from_row(chunk, source, language, 0.95))
 
             return chunks
 
@@ -918,10 +956,20 @@ class HybridRetriever:
                 from app.services.tafseer_api import get_tafseer_client
                 self._tafseer_client = get_tafseer_client()
 
-            # Get tafseer from external API
-            # Tafsir editions only: a translation of meanings (e.g. en.sahih)
-            # must never be cited as tafsir evidence.
+            # Get tafseer from external API. Tafsir editions only: a translation
+            # of meanings (e.g. en.sahih) must never be cited as tafsir evidence.
+            # An external edition that mirrors a
+            # local source is only used while that local source is retrievable
+            # (enabled + licence-verified): the API must not bypass the gate.
             editions = ["ar.muyassar"]
+            retrievable = await self._get_enabled_source_ids()
+            editions = [
+                e for e in editions
+                if EXTERNAL_EDITION_LOCAL_SOURCE.get(e) is None
+                or EXTERNAL_EDITION_LOCAL_SOURCE[e] in retrievable
+            ]
+            if not editions:
+                return []
             response = await self._tafseer_client.get_tafseer(sura_no, aya_no, editions)
 
             if not response.success:
@@ -1008,109 +1056,126 @@ class HybridRetriever:
         top_k: int,
     ) -> List[RetrievedChunk]:
         """
-        Search using vector embeddings in Qdrant via HTTP API.
+        Semantic search in Qdrant, resolved against PostgreSQL.
 
-        SAFETY: Filters results to only include ENABLED sources.
+        Qdrant only ranks: each hit's ``chunk_id`` is looked up in
+        tafseer_chunks (one batched IN query) joined with tafseer_sources, and
+        the passage, verse range and source names come from that row. Hits
+        whose chunk no longer exists (orphans), whose source is disabled or
+        not licence-verified, or whose text is a placeholder are dropped, so a
+        stale index can never put text in front of the LLM or into a citation.
+
+        SAFETY: the Qdrant query is pre-filtered to retrievable (enabled and
+        licence-verified) sources, and the DB join re-checks it.
         """
         try:
-            # Get enabled sources for filtering
             enabled_sources = await self._get_enabled_source_ids()
             if not enabled_sources:
                 logger.warning("No enabled sources found - returning empty results")
                 return []
 
-            # Generate query embedding
-            model = self._get_embedding_model()
-            # E5 models need "query: " prefix for queries
-            query_text = f"query: {query}"
-            query_vector = (await model.aencode(query_text)).tolist()
-
-            # Build search request - fetch extra to account for filtering
-            search_body = {
-                "vector": query_vector,
-                "limit": top_k * 2,  # Fetch extra to account for disabled source filtering
-                "with_payload": True,
-            }
-
-            # Add filter if preferred sources specified (intersect with enabled)
             if preferred_sources:
                 # Only include preferred sources that are also enabled
                 valid_sources = [s for s in preferred_sources if s in enabled_sources]
                 if not valid_sources:
                     logger.warning("None of the preferred sources are enabled")
                     return []
-                search_body["filter"] = {
-                    "must": [
-                        {
-                            "key": "source_id",
-                            "match": {"any": valid_sources},
-                        }
-                    ]
-                }
+            else:
+                valid_sources = sorted(enabled_sources)
 
-            # Execute search via HTTP
-            logger.info(f"Vector search: querying Qdrant with {len(query_vector)} dim vector")
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{self.qdrant_url}/collections/{settings.qdrant_collection_tafseer}/points/search",
-                    json=search_body,
-                )
-                response.raise_for_status()
-                data = response.json()
+            # Generate query embedding (E5 models need the "query: " prefix)
+            model = self._get_embedding_model()
+            query_vector = (await model.aencode(f"query: {query}")).tolist()
 
-            if data.get("status") != "ok":
-                logger.warning(f"Qdrant search failed: {data}")
-                return []
+            search_body = {
+                "vector": query_vector,
+                "limit": top_k * 2,  # head-room for hits dropped during DB resolution
+                "with_payload": True,
+                # Filter inside Qdrant so disabled-source points cannot crowd
+                # the enabled ones out of the top-k.
+                "filter": {"must": [{"key": "source_id", "match": {"any": valid_sources}}]},
+            }
+            hits = await self._qdrant_search(search_body)
+            logger.info(f"Vector search returned {len(hits)} hits")
 
-            logger.info(f"Vector search returned {len(data.get('result', []))} results")
-
-            # Parse results and filter by enabled sources
-            chunks = []
+            ordered: List[Tuple[str, float]] = []
             filtered_count = 0
-            for result in data.get("result", []):
-                payload = result.get("payload", {})
-                source_id = payload.get("source_id", "")
-
-                # SAFETY: Skip results from disabled sources
-                if source_id not in enabled_sources:
+            for hit in hits:
+                payload = hit.get("payload") or {}
+                # SAFETY: skip hits from disabled sources (re-checked in the DB join)
+                if payload.get("source_id", "") not in enabled_sources:
                     filtered_count += 1
                     continue
+                chunk_id = payload.get("chunk_id")
+                if chunk_id:
+                    ordered.append((str(chunk_id), float(hit.get("score", 0.0))))
+            if filtered_count:
+                logger.info(f"Filtered out {filtered_count} hits from disabled sources")
 
-                score = result.get("score", 0.0)
-                if len(chunks) < 3:  # Log first 3 scores
-                    print(f"[VECTOR] Raw Qdrant score: {score}")
-
-                chunks.append(
-                    RetrievedChunk(
-                        chunk_id=payload.get("chunk_id", ""),
-                        source_id=source_id,
-                        source_name=payload.get("source_name", ""),
-                        source_name_ar=payload.get("source_name_ar", ""),
-                        verse_reference=payload.get("verse_reference", ""),
-                        sura_no=payload.get("sura_no", 0),
-                        aya_start=payload.get("aya_start", 0),
-                        aya_end=payload.get("aya_end", 0),
-                        content=payload.get(f"content_{language}", ""),
-                        content_ar=payload.get("content_ar"),
-                        content_en=payload.get("content_en"),
-                        relevance_score=result.get("score", 0.0),
-                        scholarly_consensus=payload.get("scholarly_consensus"),
-                    )
-                )
-
-                # Stop once we have enough results
-                if len(chunks) >= top_k:
-                    break
-
-            if filtered_count > 0:
-                logger.info(f"Filtered out {filtered_count} results from disabled sources")
-
-            return chunks
+            return await self._resolve_vector_hits(ordered, language, valid_sources, top_k)
 
         except Exception as e:
             self.vector_search_failed = True
             logger.error(f"Vector search error: {e}")
             return []
+
+    async def _qdrant_search(self, search_body: dict) -> List[dict]:
+        """POST a search to the tafseer collection; returns the raw hit list."""
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{self.qdrant_url}/collections/{settings.qdrant_collection_tafseer}/points/search",
+                json=search_body,
+            )
+            response.raise_for_status()
+            data = response.json()
+        if data.get("status") != "ok":
+            logger.warning(f"Qdrant search failed: {data}")
+            return []
+        return data.get("result", []) or []
+
+    async def _resolve_vector_hits(
+        self,
+        hits: List[Tuple[str, float]],
+        language: str,
+        allowed_sources: List[str],
+        top_k: int,
+    ) -> List[RetrievedChunk]:
+        """
+        Resolve (chunk_id, score) vector hits to DB rows in one batched query.
+
+        Keeps Qdrant's ranking; the text, verse range and source come from
+        tafseer_chunks / tafseer_sources only.
+        """
+        if not hits:
+            return []
+        chunk_ids = list(dict.fromkeys(cid for cid, _ in hits))
+        stmt = (
+            select(TafseerChunk, TafseerSource)
+            .join(TafseerSource, TafseerChunk.source_id == TafseerSource.id)
+            .where(TafseerChunk.chunk_id.in_(chunk_ids))
+            .where(TafseerChunk.source_id.in_(allowed_sources))
+            .where(self._retrievable_source_clause())
+        )
+        rows = {chunk.chunk_id: (chunk, source) for chunk, source in (await self.session.execute(stmt)).all()}
+
+        chunks: List[RetrievedChunk] = []
+        seen: set = set()
+        dropped = 0
+        for chunk_id, score in hits:
+            if chunk_id in seen:
+                continue
+            seen.add(chunk_id)
+            row = rows.get(chunk_id)
+            if row is None or not usable_evidence_text(row[0]):
+                # orphan point, disabled/unlicensed source, or placeholder text
+                dropped += 1
+                continue
+            chunks.append(self._chunk_from_row(row[0], row[1], language, score))
+            if len(chunks) >= top_k:
+                break
+        if dropped:
+            logger.info(f"Vector search: dropped {dropped} hits that do not resolve to usable DB passages")
+        return chunks
 
     async def _keyword_search(
         self,
@@ -1129,7 +1194,7 @@ class HybridRetriever:
         indexes (migration ws2a1b2c3d4e5) keep that fast — and at most
         MAX_CHUNKS_PER_SOURCE chunks per source are returned.
 
-        SAFETY: Only searches ENABLED sources.
+        SAFETY: Only searches ENABLED, licence-verified sources.
         """
         keywords = query_keywords(query)
         all_keywords = list(dict.fromkeys(keywords + [t for t in expanded_terms if len(t) > 2]))[:12]
@@ -1139,15 +1204,25 @@ class HybridRetriever:
 
         logger.info(f"Keyword search with {len(all_keywords)} terms ({query_fingerprint(query)})")
 
-        content_column = TafseerChunk.content_en if language == "en" else TafseerChunk.content_ar
-        conditions = [content_column.ilike(f"%{kw}%") for kw in all_keywords]
+        # Lexical DB fallback. It covers every retrievable source, including
+        # those with few or no vectors yet. Each keyword is matched against a
+        # bare column (never coalesce(...), which defeats the trigram GIN
+        # indexes): Arabic-script keywords (including glossary expansions such
+        # as patience -> صبر) against content_ar, so English queries reach
+        # Arabic-only sources, and Latin keywords against content_en.
+        conditions = []
+        for kw in all_keywords:
+            if language == "en" and not _ARABIC_SCRIPT.search(kw):
+                conditions.append(TafseerChunk.content_en.ilike(f"%{kw}%"))
+            else:
+                conditions.append(TafseerChunk.content_ar.ilike(f"%{kw}%"))
 
         stmt = (
             select(TafseerChunk, TafseerSource)
             .join(TafseerSource, TafseerChunk.source_id == TafseerSource.id)
             .where(or_(*conditions))
-            # SAFETY: Only include enabled sources (is_enabled is INTEGER: 1=enabled, 0=disabled)
-            .where(TafseerSource.is_enabled == 1)
+            # SAFETY: only enabled, licence-verified sources
+            .where(self._retrievable_source_clause())
         )
         if preferred_sources:
             stmt = stmt.where(TafseerChunk.source_id.in_(preferred_sources))
@@ -1166,28 +1241,11 @@ class HybridRetriever:
             stmt = stmt.limit(top_k)
 
         result = await self.session.execute(stmt)
-        rows = result.all()
-
-        chunks = []
-        for rank, (chunk, source) in enumerate(rows):
-            content = chunk.content_en if language == "en" else chunk.content_ar
-            chunks.append(
-                RetrievedChunk(
-                    chunk_id=chunk.chunk_id,
-                    source_id=chunk.source_id,
-                    source_name=source.name_en,
-                    source_name_ar=source.name_ar,
-                    verse_reference=chunk.verse_reference,
-                    sura_no=chunk.sura_no,
-                    aya_start=chunk.aya_start,
-                    aya_end=chunk.aya_end,
-                    content=content or "",
-                    content_ar=chunk.content_ar,
-                    content_en=chunk.content_en,
-                    relevance_score=0.5,  # base score for keyword matches
-                    scholarly_consensus=chunk.scholarly_consensus,
-                )
-            )
+        chunks = [
+            self._chunk_from_row(chunk, source, language, 0.5)  # base score for keyword matches
+            for chunk, source in result.all()
+            if usable_evidence_text(chunk)
+        ]
 
         if not ranked:
             return chunks
