@@ -88,7 +88,7 @@ _AR_FORBID = _ar_set(
     "يحرم تحرم حرام محرم محرمه محرما محرمه ممنوع ممنوعه منهي ياثم تاثم ناثم ااثم اثمت اثم"
 )
 _AR_OBLIGE = _ar_set(
-    "يجب تجب وجب واجب واجبه الوجوب فرض فريضه مفروض مفروضه يلزم تلزم يلزمك لازم لازمه يتوجب يتعين "
+    "يجب تجب وجب واجب واجبه الوجوب وجوب فرض فريضه مفروض مفروضه يلزم تلزم يلزمك لازم لازمه يتوجب يتعين "
     "ملزم ملزمه مطالب"
 )
 _AR_VALIDITY = _ar_set(
@@ -454,6 +454,41 @@ _AR_REPORT_FRAME = re.compile(
 )
 
 
+# Takfir as a change or loss of a person's religious status, in any wording:
+# "has stopped being a Muslim", "can no longer be counted among the
+# believers", "lost his Islam", "ما عاد من أهل الإسلام", "انسلخ من دينه".
+_IDENTITY_EN = r"(?:muslims?|believers?|mu'?mins?|(?:the\s+)?(?:community|people|fold|ranks|circle)\s+of\s+(?:islam|the\s+faith|the\s+believers|the\s+muslims)|(?:the\s+)?ummah|islam|the\s+faith|the\s+religion|the\s+deen)"
+_EN_STATUS_CHANGE = re.compile(
+    rf"\b(?:no\s+longer|not|never\s+again)\s+(?:\w+\s+){{0,2}}?(?:be\s+)?(?:counted|considered|regarded|reckoned|"
+    rf"treated|seen|deemed|classed|included)\s+(?:as\s+|among\s+|with\s+|one\s+of\s+|part\s+of\s+)?(?:the\s+)?(?:an?\s+)?{_IDENTITY_EN}\b"
+    rf"|\b(?:stopped|stops|stop|ceased|ceases|cease|quit|quits)\s+(?:to\s+be|being|to\s+belong\s+to|belonging\s+to)\s+"
+    rf"(?:the\s+)?(?:an?\s+)?{_IDENTITY_EN}\b"
+    r"|\b(?:lost|loses|lose|forfeits?|forfeited|abandon(?:s|ed)?|stripped\s+of|nullif(?:y|ies|ied))\s+(?:his|her|their|"
+    r"one's|your|its)\s+(?:islam|faith|iman|religion|deen|status\s+as\s+a\s+(?:muslim|believer))\b"
+    rf"|\b(?:outside|out\s+of|expelled\s+from|removed\s+from|cut\s+off\s+from|excluded\s+from|thrown\s+out\s+of|"
+    rf"no\s+(?:longer\s+)?(?:part|member)\s+of)\s+(?:the\s+)?{_IDENTITY_EN}\b"
+    r"|\b(?:is|are|was|becomes?|became|has\s+become)\s+(?:a\s+|an\s+)?(?:non-?muslims?|non-?believers?|"
+    r"unbelievers?|heretics?|zindiqs?)\b",
+    re.IGNORECASE,
+)
+_EN_RULE_SUBJECT = re.compile(
+    r"\b(?:anyone|anybody|whoever|whosoever|someone|somebody|everyone|you|he\s+who|she\s+who|one\s+who|those\s+who|"
+    r"people\s+who|(?:a|any|every|each|the)\s+(?:\w+\s+)?(?:man|woman|person|muslim|believer|one|individual|husband|"
+    r"wife|son|daughter)\s+(?:who|that|whose)|if\s+(?:a|someone|anyone|he|she|you|one))\b",
+    re.IGNORECASE,
+)
+_AR_STATUS_CHANGE = re.compile(
+    r"(?<![ء-ي])(?:لم\s+يعد|لم\s+تعد|ما\s+عاد|ماعاد|ما\s+عادت|مو|مش|موش)\s+(?:من\s+)?(?:أهل\s+|اهل\s+|جماعة\s+|زمرة\s+)?"
+    r"(?:ال)?(?:مسلم|مسلما|مسلمة|مسلمين|المسلمين|مؤمن|مؤمنا|الإسلام|الاسلام|الإيمان|الايمان|الملة)(?![ء-ي])"
+    r"|(?<![ء-ي])(?:خارج|خرج\s+من|يخرج\s+من|أخرج\s+من|اخرج\s+من)\s+(?:دائرة|حظيرة|ملة|جماعة|زمرة|صف|صفوف)\s+"
+    r"(?:ال)?(?:إسلام|اسلام|مسلمين|إيمان|ايمان|مؤمنين|دين)"
+    r"|(?<![ء-ي])[وف]?(?:انسلخ|ينسلخ|انسلخت|سقط|يسقط|فقد|يفقد|زال|يزول|بطل|يبطل|ضاع|ذهب)\s+(?:منه\s+|عنه\s+)?(?:من\s+|عن\s+)?"
+    r"(?:دينه|دينها|إسلامه|اسلامه|إسلامها|اسلامها|إيمانه|ايمانه|إيمانها|اسم\s+الإسلام|اسم\s+الاسلام|الملة|ملته)(?![ء-ي])"
+    r"|(?<![ء-ي])[وف]?(?:صار|أصبح|اصبح|يصير|يصبح|بات|يعتبر|يعد|يُعد)\s+(?:من\s+)?(?:كافرا|كافر|مرتدا|مرتد|زنديقا|"
+    r"غير\s+مسلم|من\s+غير\s+المسلمين|خارج)(?![ء-ي])"
+)
+
+
 def _en_person(sentence: str) -> str:
     toks = set(_en_tokens(sentence))
     if toks & _EN_SECOND:
@@ -513,10 +548,14 @@ def ruling_claims(sentence: str) -> List[RulingClaim]:
         elif re.search(r"(?<![ء-ي])[وف]?(عليك|عليكي)\s+(أن|ان)\s+ت|(?<![ء-ي])[وف]?(لازم|لازمك|يلزمك|واجب\s+عليك)\s+ت", s):
             out.append(RulingClaim(SECOND, OBLIGE, s, s))
         if re.search(r"(?<![ء-ي])(ليس|ليست|لم\s+يعد|لم\s+تعد|غير)\s+(ب)?(مسلم|مسلما|مسلمة|مؤمن|مؤمنا|من\s+المسلمين)"
-                     r"(?![ء-ي])|(خرج|يخرج|خارج|تخرج|خرجت)\s+(عن|من)\s+(الملة|ملة|الإسلام|الاسلام|الدين)", s):
+                     r"(?![ء-ي])|(خرج|يخرج|خارج|تخرج|خرجت)\s+(عن|من)\s+(الملة|ملة|الإسلام|الاسلام|الدين)", s) \
+                or _AR_STATUS_CHANGE.search(s):
             out.append(RulingClaim(GENERAL, STATUS, s, s))
     low = s
     seen_cls: Set[str] = set()
+    if _EN_STATUS_CHANGE.search(s) and (_EN_RULE_SUBJECT.search(s) or _en_person(s) == SECOND):
+        out.append(RulingClaim(_en_person(s), STATUS, s, s))
+        seen_cls.add(STATUS)
     for cls, pat in _EN_CLAIM_PATTERNS:
         if cls in seen_cls:
             continue
@@ -556,6 +595,13 @@ def ruling_claims(sentence: str) -> List[RulingClaim]:
                 cut = s[:m.start()]
                 start = max(cut.rfind(","), cut.rfind(";"), cut.rfind(":"))
                 head = re.split(r"\b(?:while|whereas|but|although)\b", cut[start + 1:])[-1]
+                # "trade is lawful and riba is forbidden": the subject of the
+                # second ruling starts after the first one.
+                conj = re.split(r"\band\b", head)
+                for k in range(len(conj) - 1, 0, -1):
+                    if _EN_ANY_DEONTIC.search(conj[k - 1]):
+                        head = " and ".join(conj[k:])
+                        break
                 clause = head if xling_tokens(head) else clause
             out.append(RulingClaim(_en_person(s), cls, s, _subject_en(clause),
                                    reported=bool(_EN_REPORT_FRAME.search(s))))
@@ -564,6 +610,9 @@ def ruling_claims(sentence: str) -> List[RulingClaim]:
     return out
 
 
+_EN_ANY_DEONTIC = re.compile(
+    r"\b(?:permissible|permitted|allowed|lawful|halal|haram|forbidden|prohibited|unlawful|impermissible|sinful|"
+    r"obligatory|mandatory|compulsory|required|valid|invalid)\b", re.IGNORECASE)
 _EN_DEONTIC_NOISE = re.compile(
     r"\b(is|are|was|were|be|been|it|its|this|that|so|thus|therefore|then|also|now|not|no|nothing|"
     r"permissible|permitted|allowed|lawful|halal|acceptable|fine|ok|okay|alright|legitimate|haram|forbidden|"
@@ -599,6 +648,9 @@ def _subject_en(sentence: str) -> str:
     s = re.sub(r"\[[^\]]*\]", " ", sentence)
     s = re.sub(r"^.*?\b(explains?|notes?|states?|says|said|mentions?|reports?|writes?|indicates?|clarifies?|"
                r"holds?|adds?)\s+(that\s+)?", "", s, flags=re.I)
+    # "the verse is evidence / proof / an indication that …": framing.
+    s = re.sub(r"^.*?\b(?:evidence|proof|indication|sign|shows?|proves?|demonstrates?|means?)\s+(?:that|of|for)\s+",
+               "", s, flags=re.I)
     return _EN_DEONTIC_NOISE.sub(" ", s)
 
 
@@ -612,7 +664,19 @@ def _subject_ar(tokens: Sequence[str], i: int) -> str:
     if core[:1] in "يت" or segment(t) & _AR_LEGISLATE:
         span = range(i + 1, min(len(tokens), i + 6))
     else:
-        span = list(range(max(0, i - 3), i)) + list(range(i + 1, min(len(tokens), i + 3)))
+        # "فالبيع حلال والربا حرام": the subject precedes the adjective and
+        # ends where the next conjunct ("والربا") begins.
+        after = []
+        for j in range(i + 1, min(len(tokens), i + 3)):
+            if tokens[j][:1] in "وف" and len(tokens[j]) > 3:
+                break
+            after.append(j)
+        before = []
+        for j in range(i - 1, max(-1, i - 4), -1):
+            before.insert(0, j)
+            if tokens[j][:1] in "وف" and len(tokens[j]) > 3:
+                break
+        span = before + after
     keep = []
     for j in span:
         t = tokens[j]
@@ -645,7 +709,7 @@ def _ar_ev_class_positions(text: str) -> List[Tuple[int, Set[str]]]:
     # Imperatives/prohibitions in verse style: "فاجتنبوه", "لا تقربوا", "كتب عليكم"
     for i, t in enumerate(toks):
         cands = segment(t)
-        if cands & _ar_set("اجتنبوه فاجتنبوه اجتنبوا رجس نهي ينهي"):
+        if cands & _ar_set("اجتنبوه فاجتنبوه اجتنبوا رجس نهي ينهي حرم") and not (i + 1 < len(toks) and toks[i + 1] in _ar_set("مكه المدينه")):
             out.append((i, {FORBID}))
         if cands & _ar_set("كتب فرض امر اوجب عليكم عليه"):
             out.append((i, {OBLIGE}))
@@ -655,6 +719,10 @@ def _ar_ev_class_positions(text: str) -> List[Tuple[int, Set[str]]]:
             out.append((i, {OBLIGE}))
         if cands & _ar_set("احل اباح رخص رخصه"):
             out.append((i, {PERMIT}))
+        # Prohibitive "لا تفعلوا / لا تقربوا / ولا تقل" (verse and tafsir style).
+        if t in _AR_NEGATORS and t not in ("غير", "لم", "لن", "ليس", "ليست") and i + 1 < len(toks) \
+                and toks[i + 1][:1] in "تي" and len(toks[i + 1]) >= 4 and not toks[i + 1].startswith("ال"):
+            out.append((i + 1, {FORBID}))
     return out
 
 

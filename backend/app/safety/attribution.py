@@ -246,6 +246,35 @@ _AR_NAME_STOP = frozenset(normalize_arabic(w) for w in (
 ).split())
 
 
+# An honorific title (laqab) used as a name, with no proper-name token:
+# "the Proof of Islam", "the Sultan of the Scholars", "Fakhr al-Din",
+# "Shaykh al-Mufassirin", "حجة الإسلام", "سلطان العلماء", "شيخ المفسرين".
+# A title-noun in construct with a community, discipline or the religion is
+# a person's epithet; the Prophet's titles (…of the Messengers / Prophets)
+# are not matched.
+_LAQAB_HEADS_EN = (r"(?:Proof|Sultan|Shaykh|Sheikh|Imam|Seal|Pride|Lamp|Sun|Ornament|Pillar|Crown|Chief|Master|Leader|"
+                   r"Ocean|Sea|Ink|Interpreter|Hafiz|Hujjat|Hujja|Sayyid|Mujaddid|Reviver|Teacher|Elder|Glory|Light|"
+                   r"Star|Sword|Moon|Beauty|Support)")
+_LAQAB_TAILS_EN = (r"(?:Islam|the\s+Religion|the\s+Faith|the\s+Ummah|the\s+Community|the\s+Scholars|the\s+Exegetes|"
+                   r"the\s+Commentators|the\s+Interpreters|the\s+Jurists|the\s+Traditionists|the\s+Hadith\s+Scholars|"
+                   r"the\s+Muslims|the\s+Believers|the\s+Sunnah|the\s+Qur'?an|the\s+Imams|the\s+Age|the\s+Era|"
+                   r"(?:His|Their)\s+Time|the\s+Mufassirin|the\s+Muhaddithin)")
+_LAQAB_EN = re.compile(
+    rf"\b(?:the\s+)?{_LAQAB_HEADS_EN}\s+of\s+{_LAQAB_TAILS_EN}\b"
+    r"|\b(?:Shaykh|Sheikh|Imam|Hujjat|Sultan|Taj|Shams|Fakhr|Badr|Sayf|Jamal|Izz|Najm|Muhyi|Taqi|Sharaf|Nur|Qutb|Zayn|"
+    r"Burhan|Sadr|Imad|Jalal|Kamal|Rukn|Shihab|Siraj|Ala|Ala'|Nasir|Sa'd|Shaikh)[\s-]+(?:al|ad|ud|ul|an|ash|as|ar)[\s-]+"
+    r"(?:Islam|Din|Deen|Dien|Ummah|Mufassirin|Muhaddithin|Ulama|Sunnah)\b",
+    re.IGNORECASE,
+)
+_LAQAB_AR = re.compile(
+    r"(?<![ء-ي])[وفل]?(?:ال)?(?:شيخ|إمام|امام|حجة|حبر|ترجمان|سلطان|تاج|شمس|فخر|بدر|سيف|جمال|عز|نجم|محيي|محيى|تقي|"
+    r"شرف|نور|عمدة|خاتمة|رئيس|قطب|زين|برهان|صدر|عماد|جلال|كمال|ركن|شهاب|سراج|علاء|ناصر|مجدد|بحر|فقيه|محدث|مفسر)\s+"
+    r"(?:ال)?(?:إسلام|اسلام|دين|أمة|امة|مفسرين|محدثين|علماء|قرآن|قران|سنة|حفاظ|فقهاء|أئمة|ائمة|مسلمين|عصر|زمان|"
+    r"دنيا|مشرق|مغرب|شام|عراق|حجاز|يمن|حرمين|هدى|مذهب|ملة|حق|عارفين|زاهدين|قراء|نحاة|لغة)(?![ء-ي])"
+)
+_LAQAB_NOT = re.compile(r"المرسلين|النبيين|الأنبياء|الانبياء|Messengers|Prophets", re.IGNORECASE)
+
+
 def _clean_latin(name: str) -> Optional[str]:
     name = re.sub(r"(?:'s|’s)$", "", name.strip())
     toks = [t.strip(" '’`-") for t in re.split(r"\s+", name.strip()) if t.strip(" '’`-")]
@@ -312,6 +341,10 @@ def find_person_names(sentence: str) -> List[str]:
             add(_clean_latin(m.group("name")))
     for m in _LAQAB_ONLY.finditer(sentence):
         add(m.group(1))
+    for pat in (_LAQAB_EN, _LAQAB_AR):
+        for m in pat.finditer(sentence):
+            if not _LAQAB_NOT.search(m.group(0)):
+                add(m.group(0).strip())
     for m in _AR_TITLED.finditer(sentence):
         first = m.group("name").split()[0]
         add(_clean_arabic(m.group("name")) or (first if normalize_arabic(first) not in _AR_NOT_NAMES
@@ -354,6 +387,38 @@ def _skeleton_sequence_in(name: str, text_skeletons: Sequence[str]) -> bool:
     return False
 
 
+def _latin_variants(word: str) -> Set[str]:
+    """Consonant skeletons of a Latin name word, read with and without a
+    leading article and with a final "-ah"/"-at" as tā' marbūṭa."""
+    w = re.sub(r"[^a-z]", "", en_fold(word))
+    forms = {w, re.sub(r"(?<=[aiu])[ht]$", "", w)}
+    out = set()
+    for f in forms:
+        out.add(latin_skeleton(f))
+        sk = re.sub(r"[aeiouwy]", "", f)
+        for a, b in (("th", "t"), ("dh", "d"), ("sh", "s"), ("kh", "h"), ("gh", "g"), ("q", "k")):
+            sk = sk.replace(a, b)
+        out.add(re.sub(r"(.)\1+", r"\1", sk))
+    return {x for x in out if x}
+
+
+def _kunya_in(name: str, words: Sequence[str]) -> bool:
+    """"Abu al-Aliyah" / "Umm Salamah" = "أبو العالية" / "أم سلمة": a kunya whose
+    second word is too short in consonants to match alone is matched as the
+    adjacent pair (the Latin word must be four letters or more)."""
+    toks = [t for t in _norm_latin(name).split() if t not in ("al", "el")]
+    for i, t in enumerate(toks[:-1]):
+        if t not in ("abu", "abi", "aba", "umm") or len(toks[i + 1]) < 4:
+            continue
+        variants = _latin_variants(toks[i + 1])
+        for j, w in enumerate(words[:-1]):
+            nxt = words[j + 1][2:] if words[j + 1].startswith("ال") else words[j + 1]
+            if w in ("ابو", "ابي", "ابا", "ام", "وابو", "وابي", "فابو") and arabic_skeleton(words[j + 1]) in variants \
+                    and len(nxt) >= 0.6 * len(toks[i + 1]):
+                return True
+    return False
+
+
 def _evidence_meta(chunk: object) -> str:
     return " ".join(filter(None, (str(getattr(chunk, f, "") or "") for f in
                                    ("source_name", "source_name_ar", "author", "author_name", "author_name_ar"))))
@@ -385,9 +450,18 @@ def name_in_text(name: str, text: str) -> bool:
         long = [s for s in sks if len(s) >= MIN_SKELETON]
         short = [s for s in sks if len(s) < MIN_SKELETON]
         if not long or short:
-            return _skeleton_sequence_in(name, sk_words)
+            return _skeleton_sequence_in(name, sk_words) or _kunya_in(name, normalize_arabic(text).split())
         if not all(s in skset for s in long):
             return False
+        # A nisba ("al-Fahdawi", "al-Qurashi") is matched only by a nisba
+        # (a word ending in ي): a three-consonant skeleton alone matches
+        # ordinary words ("فهد").
+        nisba_sk = {latin_skeleton(p) for p in parts if re.search(r"(?:i|iy|iyy|ee)$", p) and len(p) > 4}
+        if nisba_sk:
+            words = normalize_arabic(text).split()
+            nisba_words = {arabic_skeleton(w) for w in words if w.endswith("ي") and len(w) >= 4}
+            if not all(s in nisba_words for s in nisba_sk if len(s) <= 3):
+                return False
         if short:
             # short parts must appear next to a long part
             for i, s in enumerate(sk_words):
@@ -463,6 +537,23 @@ def collective_claims(sentence: str) -> List[str]:
     return kinds
 
 
+_SPEAKER_AR = re.compile(r"(?<![ء-ي])[وف]?(?:قال|وقال|قاله|روي\s+عن|عن)\s+((?:ابن|أبو|ابو|أبي|ابي)?\s*[ء-ي]{3,})")
+_SPEAKER_EN = re.compile(r"\b([A-Z][\w'`-]+(?:\s+(?:ibn|bin|bint|Ibn|Abu|al-\w+|Al-\w+))?(?:\s+[A-Z][\w'`-]+)?)\s+said\b")
+
+
+def _several_speakers(text: str) -> bool:
+    """The text reports the words of several different authorities on the
+    point ("قال مجاهد… وقال الحسن…"): a difference of views laid out."""
+    speakers = {normalize_arabic(m.group(1)) for m in _SPEAKER_AR.finditer(text or "")}
+    speakers -= {normalize_arabic(w) for w in ("تعالى", "الله", "رسول", "النبي", "رسول الله", "لهم", "له")}
+    if len(speakers) >= 3:
+        return True
+    return len({m.group(1) for m in _SPEAKER_EN.finditer(text or "")} - {"Allah", "He", "The"}) >= 3
+
+
 def collective_supported(kind: str, texts: Iterable[str]) -> bool:
     pat = _EVIDENCE_MARKERS[kind]
-    return any(pat.search(t or "") for t in texts)
+    texts = list(texts)
+    if any(pat.search(t or "") for t in texts):
+        return True
+    return kind == DISPUTE and any(_several_speakers(t) for t in texts)

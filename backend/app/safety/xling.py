@@ -313,7 +313,7 @@ def _ar_deontic(words: Sequence[str]) -> List[Tuple[int, str]]:
             if i and words[i - 1] in _AR_NEGATORS:
                 cls = _FLIP[cls]
             out.append((i, cls))
-        elif w == "لا" and i + 1 < len(words) and words[i + 1][:1] == "ت" and words[i + 1].endswith(("وا", "وه")):
+        elif w in ("لا", "ولا", "فلا") and i + 1 < len(words) and words[i + 1][:1] == "ت" and words[i + 1].endswith(("وا", "وه")):
             out.append((i, "§forbid"))  # "لا تقربوا", "لا تأكلوا"
         else:
             # Second-person plural imperative ("فأصلحوا", "أقيموا"): a command.
@@ -330,6 +330,7 @@ class _Text:
     script: str                          # "en" | "ar"
     tokens: List[str]                    # content stems in order (with deontic class tokens)
     skeletons: List[str] = field(default_factory=list)  # aligned with tokens ("" for class tokens)
+    groups: List[int] = field(default_factory=list)     # conjunct index of each token ("X و Y", "X and Y")
 
 
 def _analyse(text: str, script: Optional[str] = None, deontic_content: bool = False) -> _Text:
@@ -343,13 +344,18 @@ def _analyse(text: str, script: Optional[str] = None, deontic_content: bool = Fa
     script = script or ("ar" if ar_n > en_n else "en")
     toks: List[str] = []
     sks: List[str] = []
+    grp: List[int] = []
+    g = 0
     if script == "ar":
         words = ar_words(text)
         deon = dict(_ar_deontic(words))
         for i, w in enumerate(words):
+            if i and w[:1] in "وف" and len(w) > 3:
+                g += 1
             if i in deon:
                 toks.append(deon[i])
                 sks.append("")
+                grp.append(g)
                 if not deontic_content:
                     continue
             if len(w) <= 2 or w in _AR_STOP or w in AR_META:
@@ -359,20 +365,25 @@ def _analyse(text: str, script: Optional[str] = None, deontic_content: bool = Fa
                 continue
             toks.append(st)
             sks.append(arabic_skeleton(w))
+            grp.append(g)
     else:
         words = en_words(text)
         deon = dict(_en_deontic(words))
         for i, w in enumerate(words):
+            if w in ("and", "but", "while", "whereas"):
+                g += 1
             if i in deon:
                 toks.append(deon[i])
                 sks.append("")
+                grp.append(g)
                 if not deontic_content:
                     continue
             if len(w) < 3 or w in EN_STOP or w in EN_META:
                 continue
             toks.append(en_stem(w))
             sks.append(latin_skeleton(w))
-    return _Text(script, toks, sks)
+            grp.append(g)
+    return _Text(script, toks, sks, grp)
 
 
 @dataclass
@@ -481,12 +492,24 @@ def _positions(script: str, need: Sequence[str], skel: Dict[str, str], text: _Te
             inv[t].append(t)
             continue
         back = lex.ar2en if script == "en" else lex.en2ar
-        for c in trans.get(t, ())[:per_word]:
+        for rank, c in enumerate(trans.get(t, ())[:per_word]):
             # Mutual alignment only (each among the other's best renderings):
             # "consume" is not a translation of "ربا" just because the two
-            # co-occur in "those who consume riba".
-            if t in back.get(c, ())[:per_word]:
+            # co-occur in "those who consume riba". A word's single best
+            # rendering counts when the word is among that rendering's kept
+            # candidates at all ("riba" -> "ربا", whose own list is led by
+            # "usury" and "interest").
+            if t in back.get(c, ())[:per_word] or (rank == 0 and t in back.get(c, ())):
                 inv[c].append(t)
+    # Arabic renderings are also matched on their consonants, so a light
+    # stem's morphological variants carry the same translation ("استماع" /
+    # "استمع", "الحضور" / "حضر").
+    inv_cons: Dict[str, List[str]] = defaultdict(list)
+    if script == "en" and text.script == "ar":
+        for c, cts in list(inv.items()):
+            k = _consonants(c)
+            if len(k) >= 3:
+                inv_cons[k].extend(cts)
     sk_inv: Dict[str, List[str]] = defaultdict(list)
     short_sk: Dict[str, List[str]] = defaultdict(list)
     for t in need:
@@ -500,6 +523,9 @@ def _positions(script: str, need: Sequence[str], skel: Dict[str, str], text: _Te
     for i, (tok, k) in enumerate(zip(text.tokens, text.skeletons)):
         for ct in inv.get(tok, ()):
             where[ct].append(i)
+        if inv_cons and tok not in inv and not tok.startswith("§"):
+            for ct in inv_cons.get(_consonants(tok), ()):
+                where[ct].append(i)
         if k and len(k) >= MIN_SKELETON and (text.script != "ar" or lex.ar_freq.get(tok, 0) <= RARE_WORD):
             for ct in sk_inv.get(k, ()):
                 where[ct].append(i)
@@ -527,7 +553,11 @@ def nearest_class(claim: str, text: str, lexicon: Optional[Lexicon] = None) -> D
     for tok, ps in where.items():
         if tok.startswith("§") or not ps:
             continue
-        best = min(((abs(p - i), cls) for p in ps for i, cls in marks), default=None)
+        # Nearest marker, preferring one in the same conjunct ("أحل البيع
+        # وحرم الربا": البيع goes with أحل, not with the equally near حرم).
+        gr = t.groups
+        best = min(((abs(p - i) + (0 if (p < len(gr) and i < len(gr) and gr[p] == gr[i]) else 0.5), cls)
+                    for p in ps for i, cls in marks), default=None)
         if best:
             votes[best[1]] += 1
     return votes
@@ -594,3 +624,193 @@ def support(claim: str, view: EvidenceView, window: int = 60, per_word: int = TR
     any_found = short_found.union(*longs) if longs else short_found
     return Support(tokens=len(need), found=len(any_found), local=len(found),
                    unsupported=[t for t in need if t not in found], comparable=True)
+
+
+# ------------------------------------------------------- polarity and scope
+#
+# Lexical coverage cannot tell "Allah forgives whoever repents" from "Allah
+# forgives even without repentance": both share every content word. Two
+# checks read what coverage ignores:
+#
+# * polarity: a content word the claim negates or cancels as a condition
+#   ("without repentance", "no need to repent", "regardless of whether they
+#   turn back", "not prohibited") that the evidence only ever states
+#   affirmatively, or the reverse;
+# * absolute scope: "guaranteed", "permanently", "never again",
+#   "automatically", "unconditionally", "أبدا", "حتما", "مضمون". The claim
+#   asserts a scope the evidence must state too (same class of marker).
+
+_EN_NEG_SPLIT = re.compile(
+    r"(\b(?:not|no|never|nor|neither|without|cannot|cant|dont|doesnt|didnt|isnt|arent|wasnt|werent|wont|"
+    r"regardless\s+of(?:\s+whether)?|irrespective\s+of|no\s+matter(?:\s+whether|\s+if)?|need\s+not|neednt|"
+    r"no\s+need\s+(?:to|for)|instead\s+of|rather\s+than|free\s+from|free\s+of|exempt\s+from)\b|[,;:.!?])"
+)
+_EN_SCOPE_RESET = frozenset("but except only unless while whereas until till so".split())
+# On the claim side only cancelled conditions count ("without repentance",
+# "no need to repent"): a plain "not" is too often a prohibition paraphrased
+# ("do not approach" = "forbids approaching").
+_EN_CANCEL = re.compile(
+    r"(\b(?:without|regardless\s+of(?:\s+whether)?|irrespective\s+of|no\s+matter(?:\s+whether|\s+if)?|need\s+not|"
+    r"neednt|no\s+need\s+(?:to|for)|not\s+need(?:ed)?\s+to|dont\s+need\s+to|doesnt\s+need\s+to|"
+    r"not\s+(?:required|necessary)\s+to|instead\s+of|free\s+from|free\s+of|exempt\s+from|beyond|exceeding|in\s+excess\s+of)\b|[,;:.!?])"
+)
+_AR_CANCEL = frozenset(normalize_arabic(w) for w in "بلا دون بدون بغير".split())
+_AR_CANCEL_PHRASE = re.compile(r"(?<![ء-ي])(?:من\s+غير|بغض\s+النظر\s+عن|لا\s+حاجة\s+(?:إلى|الى|ل)|"
+                               r"لا\s+يشترط|لا\s+يلزم|ليس\s+بحاجة\s+(?:إلى|الى))(?![ء-ي])")
+_AR_NEG_WORDS = frozenset(normalize_arabic(w) for w in
+                          "لا ولا فلا ليس ليست غير بغير لم ولم فلم لن ولن بلا دون بدون عدم".split())
+_AR_SCOPE_RESET = frozenset(normalize_arabic(w) for w in "إلا الا لكن ولكن بل حتى".split())
+NEG_SCOPE_EN = 3
+NEG_SCOPE_AR = 2
+
+ABSOLUTE_CLASSES = {
+    # (claim marker, evidence marker)
+    "temporal": (
+        re.compile(r"\b(?:forever|permanent(?:ly)?|for\s+life|for\s+ever|(?:never|not)\s+(?:\w+\s+){0,4}?again|"
+                   r"ever\s+again|eternal(?:ly)?|perpetual(?:ly)?|always|at\s+all\s+times)\b"
+                   r"|(?<![ء-ي])[وف]?(?:أبدا|ابدا|دائما|للأبد|للابد|مدى\s+الحياة|بعد\s+اليوم)(?![ء-ي])", re.I),
+        re.compile(r"\b(?:forever|for\s+ever|eternal\w*|perpetual\w*|always|everlasting|abid\w+)\b"
+                   r"|(?<![ء-ي])[وف]?(?:أبدا|ابدا|أبد|ابد|دائما|دائم|خالد|خالدا|خالدين|خالدون|الخلود|مؤبد|"
+                   r"لا\s+يزال|كل\s+حين|كل\s+وقت)(?![ء-ي])", re.I),
+    ),
+    "guarantee": (
+        re.compile(r"\b(?:guarante\w+|assured(?:ly)?|automatic(?:ally)?|certain\s+to|sure\s+to|bound\s+to|"
+                   r"inevitabl[ey]|definitely|without\s+fail|instant(?:ly)?|immediate(?:ly)?)\b"
+                   r"|(?<![ء-ي])[وفب]?(?:مضمون|مضمونة|يضمن|تضمن|ضمان|حتما|لا\s+محالة|قطعا|تلقائيا|فورا|"
+                   r"على\s+الفور)(?![ء-ي])", re.I),
+        re.compile(r"\b(?:guarante\w+|assur\w+|certain\w*|surely|inevitabl\w+|undoubted\w*|"
+                   r"immediate\w*|instant\w*)\b"
+                   r"|(?<![ء-ي])[وفب]?(?:ضمن|يضمن|مضمون|ضمان|حتما|لا\s+محالة|قطعا|عاجل|عاجلا|فورا)(?![ء-ي])", re.I),
+    ),
+    "unconditional": (
+        re.compile(r"\b(?:regardless|irrespective|no\s+matter|unconditional(?:ly)?|without\s+(?:any\s+)?"
+                   r"(?:condition|conditions|exception|need)|even\s+without|whatever\s+(?:he|she|they|one|you)\s+"
+                   r"(?:does|do|did))\b"
+                   r"|(?<![ء-ي])(?:بغض\s+النظر|بلا\s+شرط|دون\s+شرط|بدون\s+شرط|من\s+غير\s+شرط|دون\s+حاجة|بلا\s+حاجة|"
+                   r"مهما\s+(?:فعل|عمل|فعلوا|عملوا))(?![ء-ي])", re.I),
+        re.compile(r"\b(?:regardless|irrespective|unconditional\w*|without\s+exception)\b"
+                   r"|(?<![ء-ي])(?:بغض\s+النظر|بلا\s+شرط|دون\s+شرط|على\s+كل\s+حال|في\s+كل\s+حال)", re.I),
+    ),
+}
+
+
+def absolute_scope(claim: str) -> List[str]:
+    """Classes of absolute scope the claim asserts."""
+    return [k for k, (pat, _) in ABSOLUTE_CLASSES.items() if pat.search(claim or "")]
+
+
+def scope_supported(cls: str, texts: Iterable[str]) -> bool:
+    pat = ABSOLUTE_CLASSES[cls][1]
+    return any(pat.search(t or "") for t in texts)
+
+
+def _polar_tokens(text: str, claim: bool = False) -> Tuple[_Text, List[bool]]:
+    """Content tokens of ``text`` (as the evidence view reads them) and, for
+    each, whether it sits in the scope of a negation (evidence) or of a
+    cancelled condition (``claim``)."""
+    if claim and re.search(r"[ء-ي]", text or ""):
+        text = _AR_CANCEL_PHRASE.sub(" بدون ", text)
+    ar_n = len(re.findall(r"[ء-ي]", text or ""))
+    en_n = len(re.findall(r"[A-Za-z]", text or ""))
+    toks: List[str] = []
+    sks: List[str] = []
+    negs: List[bool] = []
+    if ar_n > en_n:
+        scope = 0
+        for r in re.findall(r"[ء-يً-ْ]+|[,;:،؛.!?؟]", text or ""):
+            if re.fullmatch(r"[,;:،؛.!?؟]", r):
+                scope = 0
+                continue
+            w = normalize_arabic(r)
+            if not w:
+                continue
+            if w in _AR_SCOPE_RESET:
+                scope = 0
+                continue
+            if w in (_AR_CANCEL if claim else _AR_NEG_WORDS):
+                scope = NEG_SCOPE_AR
+                continue
+            negated = scope > 0
+            scope = max(0, scope - 1)
+            if len(w) <= 2 or w in _AR_STOP or w in AR_META:
+                continue
+            st = _stem_ar(w)
+            if st in _AR_STOP or st in AR_META:
+                continue
+            toks.append(st)
+            sks.append(arabic_skeleton(w))
+            negs.append(negated)
+        return _Text("ar", toks, sks), negs
+    scope = 0
+    split = _EN_CANCEL if claim else _EN_NEG_SPLIT
+    for p in split.split(en_fold(text)):
+        if not p:
+            continue
+        if re.fullmatch(r"[,;:.!?]", p):
+            scope = 0
+            continue
+        if split.fullmatch(p):
+            scope = 2 if claim else NEG_SCOPE_EN
+            continue
+        for w in _EN_WORD.findall(p):
+            if w in _EN_SCOPE_RESET:
+                scope = 0
+                continue
+            if len(w) < 3 or w in EN_STOP or w in EN_META:
+                continue
+            toks.append(en_stem(w))
+            sks.append(latin_skeleton(w))
+            negs.append(scope > 0)
+            scope = max(0, scope - 1)
+    return _Text("en", toks, sks), negs
+
+
+def polarity_conflicts(claim: str, texts: Sequence[str], lexicon: Optional[Lexicon] = None) -> List[str]:
+    """
+    Content words of ``claim`` whose polarity no evidence occurrence shares:
+    negated / cancelled in the claim but stated only affirmatively in the
+    evidence, or the reverse. Words the evidence does not carry at all are
+    not polarity conflicts (coverage judges those).
+    """
+    lex = lexicon or _EMPTY
+    c_text, c_negs = _polar_tokens(claim, claim=True)
+    if not c_text.tokens:
+        return []
+    want: Dict[str, Set[bool]] = defaultdict(set)
+    for tok, neg in zip(c_text.tokens, c_negs):
+        want[tok].add(neg)
+    need = list(want)
+    skel = dict(zip(c_text.tokens, c_text.skeletons))
+    seen: Dict[str, Set[bool]] = defaultdict(set)
+    for t in texts:
+        if not t:
+            continue
+        e_text, e_negs = _polar_tokens(t)
+        if e_text.script != c_text.script and not lex:
+            continue
+        where = _positions(c_text.script, need, skel, e_text, lex)
+        for tok, ps in where.items():
+            for p in ps:
+                if p < len(e_negs):
+                    seen[tok].add(e_negs[p])
+    # A condition the claim cancels that the evidence states; or what the
+    # evidence only ever denies, asserted by a claim that is not itself a
+    # prohibition ("forbids approaching" restates "do not approach").
+    out = [tok for tok, pol in want.items() if pol == {True} and tok in seen and seen[tok] == {False}]
+    if not _FORBID_PARAPHRASE.search(claim or ""):
+        c_plain, _ = _polar_tokens(claim)
+        out += [tok for tok, pol in want.items() if pol == {False} and seen.get(tok) == {True}
+                and tok not in out and not _negated_in(tok, claim)]
+    return out
+
+
+_FORBID_PARAPHRASE = re.compile(
+    r"\b(?:forbid\w*|forbade|prohibit\w*|avoid\w*|refrain\w*|abstain\w*|warn\w*|shun\w*|stay\s+away|keep\s+away|"
+    r"bann?\w*|not\s+allowed|unlawful|haram|never|not|no|nor|neither|cannot|only|except)\b"
+    r"|(?<![ء-ي])[وف]?(?:ينهى|نهى|ينهي|نهي|النهي|حرم|يحرم|تحريم|محرم|اجتناب|يجتنب|اجتنبوا|تجنب|يحذر|حذر|لا|ليس|لم|لن|"
+    r"غير|إلا|الا|إنما|انما|عدم|دون)(?![ء-ي])", re.IGNORECASE)
+
+
+def _negated_in(tok: str, claim: str) -> bool:
+    text, negs = _polar_tokens(claim)
+    return any(t == tok and n for t, n in zip(text.tokens, negs))

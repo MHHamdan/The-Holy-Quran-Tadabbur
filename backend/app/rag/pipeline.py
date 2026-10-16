@@ -1336,9 +1336,10 @@ class RAGPipeline:
     async def _get_lexicon(self) -> Lexicon:
         """
         Cross-lingual lexicon learned once per process from the canonical
-        parallel corpus: each verse with its stored English translations, and
-        the verse's plain-Arabic paraphrase (Al-Muyassar) with its Saheeh
-        translation, so tafsir vocabulary is covered too. Without it English
+        parallel corpus: each verse with its stored English translations, the
+        verse's plain-Arabic paraphrase (Al-Muyassar) with its Saheeh
+        translation, and Al-Muyassar with Al-Jalalayn's English paraphrase of
+        the same verse, so tafsir vocabulary is covered too. Without it English
         claims are compared with Arabic evidence through verse translations
         and transliteration only.
         """
@@ -1351,7 +1352,17 @@ class RAGPipeline:
                     "SELECT c.content_ar, t.text FROM tafseer_chunks c "
                     "JOIN quran_verses v ON v.sura_no = c.sura_no AND v.aya_no = c.aya_start "
                     "JOIN translations t ON t.verse_id = v.id AND t.translator = 'english_saheeh' "
-                    "WHERE c.source_id = 'muyassar_ar' AND c.content_ar IS NOT NULL"
+                    "WHERE c.source_id = 'muyassar_ar' AND c.content_ar IS NOT NULL "
+                    # The two short plain-language tafsirs of the same verse
+                    # (Al-Muyassar in Arabic, Al-Jalalayn in English): the
+                    # vocabulary answers paraphrase with ("fornication",
+                    # "Friday", "sermon") that verse translations word
+                    # differently.
+                    "UNION ALL "
+                    "SELECT m.content_ar, j.content_en FROM tafseer_chunks m "
+                    "JOIN tafseer_chunks j ON j.sura_no = m.sura_no AND j.aya_start = m.aya_start "
+                    "AND j.source_id = 'jalalayn_en' "
+                    "WHERE m.source_id = 'muyassar_ar' AND m.content_ar IS NOT NULL AND j.content_en IS NOT NULL"
                 ))).all()
                 pairs = [(r[0], r[1]) for r in rows
                          if isinstance(r, (tuple, list)) or hasattr(r, "__getitem__")]
@@ -1753,6 +1764,14 @@ class RAGPipeline:
         are attributed scholarship, not the answer's own ruling.
         """
         text = re.sub(r"﴿[^﴾]*﴾|«[^»]*»|“[^”]*”|\"[^\"\n]*\"", " ", answer or "")
+        # Questions in a paragraph labelled as reflection invite the reader
+        # to think; they assert no ruling (the claim guard checked the rest).
+        paragraphs = re.split(r"\n{2,}", text)
+        text = "\n\n".join(
+            " ".join(s for s in split_sentences(p) if not re.search(r"[?؟]\s*[\)\]\*_\"'»”]*\s*$", s.strip()))
+            if is_reflection_paragraph(p) else p
+            for p in paragraphs
+        )
         sentences = split_sentences(text)
         if intent == QueryIntent.RULING:
             sentences = [s for s in sentences if not CITATION_MARKER_RE.search(s)]

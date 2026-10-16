@@ -50,7 +50,7 @@ from dataclasses import dataclass, field
 from typing import Iterable, List, Mapping, Optional, Sequence, Set, Tuple
 
 from app.safety import attribution as attr
-from app.safety.evidence_injection import is_injected
+from app.safety.evidence_injection import is_injected, split_tainted
 from app.safety.grounding import (
     normalize_arabic,
     _ARABIC_INDIC,
@@ -88,6 +88,11 @@ RULING_SUBJECT_SUPPORT = 0.5
 SYNTHESIS_DROP = 0.3
 CROSS_LINGUAL_SYNTHESIS_DROP = 0.2
 SYNTHESIS_WEAK = 0.5
+CROSS_LINGUAL_REASON = 0.25
+# A reported narration paraphrased in the evidence's own script: most of its
+# content words in one place (or a verbatim run of three plus over half).
+REPORT_SAME_SCRIPT = 0.85
+REPORT_SAME_SCRIPT_NGRAM = 0.65
 MIN_CLAIM_TOKENS = 3
 
 WITHHOLD_FATWA = "fatwa"
@@ -156,7 +161,8 @@ _BENEFIT_CLAIM = re.compile(
     re.IGNORECASE,
 )
 _REVELATION_CLAIM = re.compile(
-    r"\b(was|were|is)\s+revealed\s+(about|after|before|in|concerning|regarding|when|during|at|on|for)\b"
+    r"\b(was|were|is)\s+(revealed|sent\s+down|brought\s+down)\s+(about|after|before|in|concerning|regarding|when|"
+    r"during|at|on|for)\b|\b(came|come|comes)\s+down\s+(about|after|during|when|in|on|concerning)\b"
     r"|\boccasion\s+of\s+revelation\b|\basbab\b"
     r"|(?<![ء-ي])[وف]?(نزلت|نزل|أنزلت|انزلت)\s+(في|بعد|قبل|عند|يوم|حين|لما|بسبب)(?![ء-ي])|سبب\s+النزول",
     re.IGNORECASE,
@@ -239,11 +245,29 @@ class ClaimGuard:
         # chunk_id -> the same work's edition in the other language for the
         # same verses (e.g. Ibn Kathir in English for an Arabic Ibn Kathir
         # chunk): the tafsir's own wording in the answer's language.
-        self.parallel = {k: [t for t in v if t and not is_injected(t)] for k, v in (parallel or {}).items()}
+        self.parallel = {k: [split_tainted(t)[0] for t in v if t and split_tainted(t)[0].strip()]
+                         for k, v in (parallel or {}).items()}
         self.lexicon = lexicon or Lexicon()
-        self.injected = [c for c in chunks if any(is_injected(t) for t in self._raw_texts(c))]
-        inj_ids = {id(c) for c in self.injected}
-        self.clean = [c for c in chunks if id(c) not in inj_ids]
+        # Instructions planted in evidence: each chunk text is split into its
+        # ordinary part (still evidence) and the part an instruction controls
+        # (the instruction and its payload: never evidence).
+        self._clean_text: dict = {}
+        self.tainted: List[str] = []
+        self.injected = []
+        for c in chunks:
+            hit = False
+            for t in self._all_texts(c):
+                clean, taint = split_tainted(t)
+                self._clean_text[t] = clean
+                if taint:
+                    hit = True
+                    # Sentence by sentence: an instruction in one script
+                    # appended to text in another is read in its own script.
+                    self.tainted.extend(u for u in re.split(r"(?<=[.!?؟؛;\n])\s*", taint) if u.strip())
+            if hit:
+                self.injected.append(c)
+        # A chunk is usable evidence while some ordinary text remains in it.
+        self.clean = [c for c in chunks if any(re.search(r"\w", t) for t in self._raw_texts(c))]
         self.cited = dict(cited)
         self.quran_markers = dict(quran_markers)
         self.report = ClaimReport(injected_chunks=[getattr(c, "chunk_id", "") for c in self.injected])
@@ -264,7 +288,7 @@ class ClaimGuard:
 
     # ------------------------------------------------------------ evidence
     @staticmethod
-    def _raw_texts(chunk: object) -> List[str]:
+    def _all_texts(chunk: object) -> List[str]:
         out = []
         for f in ("content", "content_ar", "content_en"):
             t = getattr(chunk, f, None)
@@ -272,9 +296,21 @@ class ClaimGuard:
                 out.append(t)
         return out
 
+    def _raw_texts(self, chunk: object) -> List[str]:
+        """The chunk's texts with any planted instruction and its payload cut out."""
+        out = []
+        for t in self._all_texts(chunk):
+            clean = self._clean_text.get(t)
+            if clean is None:
+                clean = split_tainted(t)[0]
+                self._clean_text[t] = clean
+            if clean and clean.strip() and clean not in out:
+                out.append(clean)
+        return out
+
     def _clean_chunks(self, chunks: Iterable[object]) -> List[object]:
-        inj = {id(c) for c in self.injected}
-        return [c for c in chunks if id(c) not in inj]
+        ok = {id(c) for c in self.clean}
+        return [c for c in chunks if id(c) in ok]
 
     def _verses(self, chunks: Iterable[object]) -> List[Tuple[int, int]]:
         out = []
@@ -296,7 +332,7 @@ class ClaimGuard:
         out: List[str] = []
         for c in self._clean_chunks(chunks):
             for t in self._raw_texts(c) + self.parallel.get(getattr(c, "chunk_id", ""), []):
-                if t not in out and not is_injected(t):
+                if t not in out:
                     out.append(t)
         if not verses:
             return out
@@ -373,9 +409,20 @@ class ClaimGuard:
 
         # 1. Planted instructions repeated by the answer.
         if self.injected and self._echoes_injection(prose, chunks):
-            if ruling_claims(prose):
+            # A planted ruling in any wording ("absolutely prohibited in
+            # every circumstance"): the whole answer is withheld, so no
+            # citation-backed fragment of it can survive beside a disclaimer.
+            from app.safety.quran_answer_guard import QuranAnswerGuard
+            if ruling_claims(prose) or QuranAnswerGuard.has_ruling_vocabulary(prose) \
+                    or xling.deontic_classes(prose):
                 self.report.withheld = (WITHHOLD_FATWA, "ruling planted in evidence")
             return ("injection", "repeats planted instruction"), False
+
+        # A question inside a paragraph labelled as reflection ("Reflection:
+        # would it be right to…?") invites the reader to think; it asserts
+        # nothing, so it states no ruling and needs no support.
+        if reflection and _is_question(prose):
+            return None, False
 
         # 2. Rulings.
         for claim in ruling_claims(prose):
@@ -397,7 +444,7 @@ class ClaimGuard:
         # What a named authority other than the cited work's author said
         # ("Ibn Abbas said…", "وقال مجاهد…") must be what the evidence reports.
         if chunks and any(attr.registry_key(n) is None for n in persons) and _SPEECH_FRAME.search(bare):
-            originals = [t for c in self._clean_chunks(chunks) for t in self._raw_texts(c) if not is_injected(t)]
+            originals = [t for c in self._clean_chunks(chunks) for t in self._raw_texts(c)]
             for clause in _SPEAKER_CLAUSES.split(prose):
                 speakers = [n for n in attr.find_person_names(clause) if attr.registry_key(n) is None]
                 if speakers and _SPEECH_FRAME.search(clause) and not self._said_supported(clause, originals):
@@ -441,6 +488,14 @@ class ClaimGuard:
         if v:
             return ("quran_claim", v), hadith
 
+        # 8b. Scope and polarity: what the claim asserts beyond its words
+        #     ("guaranteed", "never again", "without repentance") must be
+        #     what the evidence states, not its opposite.
+        if chunks and not (reflection and not own):
+            v = self._judge_scope_polarity(prose, texts)
+            if v:
+                return v, hadith
+
         # 9. Proper names of places, groups, events and institutions
         #    ("the United Nations", "a merchant from Yemen") must be in the
         #    evidence like any other name.
@@ -448,6 +503,8 @@ class ClaimGuard:
         for ent in (_proper_nouns(prose) if self.lexicon else []):
             if any(ent in n or n in ent for n in names):
                 continue  # a person name, checked as an attribution above
+            if self._epithet(ent):
+                continue
             if not self._entity_ok(ent, chunks, texts):
                 return ("entity", ent), hadith
 
@@ -504,15 +561,19 @@ class ClaimGuard:
         return False
 
     def _echoes_injection(self, prose: str, chunks: Sequence[object]) -> bool:
-        """The sentence carries what a planted instruction asks the answer to
-        say (judged against the instruction sentences themselves, so a
-        tafsir passage that merely shares the chunk is not affected)."""
-        from app.safety.evidence_injection import injected_sentences
-        orders = [s for c in self.injected for t in self._raw_texts(c) for s in injected_sentences(t)]
-        if not orders:
+        """
+        The sentence carries what a planted instruction controls: it is
+        carried by the instruction or its payload better than by any ordinary
+        evidence (so a faithful paraphrase of the genuine part of a tampered
+        chunk is not affected).
+        """
+        if not self.tainted:
             return False
-        sup = xling.support(prose, self._view(orders))
-        return sup.tokens >= 2 and sup.local_coverage >= 0.6
+        sup = xling.support(prose, self._view(self.tainted))
+        if sup.tokens < 2 or sup.local_coverage < 0.6:
+            return False
+        clean = xling.support(prose, self._view(self._texts(self.clean)))
+        return not (clean.comparable and clean.local_coverage >= sup.local_coverage)
 
     # ----------------------------------------------------------- rulings
     def _judge_ruling(self, claim: RulingClaim, chunks: Sequence[object], texts: Sequence[str],
@@ -649,7 +710,7 @@ class ClaimGuard:
         source = [t for t in texts if t in originals] or list(texts)
         same = evidence_support(claim, source, ngram=3)
         if same.comparable and same.tokens >= 3:
-            return same.local_coverage >= 0.85 or (same.ngram and same.local_coverage >= 0.65)
+            return same.local_coverage >= REPORT_SAME_SCRIPT or (same.ngram and same.local_coverage >= REPORT_SAME_SCRIPT_NGRAM)
         if same.comparable and same.tokens:
             return same.local_coverage >= 0.99
         parallel = [t for ts in self.parallel.values() for t in ts if t in texts]
@@ -658,6 +719,9 @@ class ClaimGuard:
             if psame.comparable and psame.tokens >= 3 and (
                     psame.local_coverage >= 0.85 or (psame.ngram and psame.local_coverage >= 0.65)):
                 return True
+        # The chain and the honorific frame of a report ("via Ibn Abbas",
+        # "the Prophet ﷺ", "many times") are not its content.
+        claim = _REPORT_FRAME.sub(" ", claim)
         sup = xling.support(claim, self._view(texts))
         _log.debug("report %s/%s unsupported=%s :: %s", sup.local, sup.tokens, sup.unsupported, claim[:100])
         if sup.tokens == 0:
@@ -706,6 +770,17 @@ class ClaimGuard:
             return f"not carried by the verse ({sup.local}/{sup.tokens})"
         return None
 
+    # ------------------------------------------------- scope and polarity
+    def _judge_scope_polarity(self, prose: str, texts: Sequence[str]) -> Optional[Tuple[str, str]]:
+        for cls in xling.absolute_scope(prose):
+            if not xling.scope_supported(cls, texts):
+                return ("scope", f"{cls} scope not stated by the evidence")
+        conflicts = xling.polarity_conflicts(self._strip_frame(prose), texts, self.lexicon)
+        _log.debug("polarity conflicts=%s :: %s", conflicts, prose[:120])
+        if conflicts:
+            return ("polarity", f"opposite of the evidence: {', '.join(conflicts[:3])}")
+        return None
+
     # ----------------------------------------------------------- synthesis
     def _judge_synthesis(self, prose: str, texts: Sequence[str],
                          chunk_texts: Sequence[str] = ()) -> Optional[str]:
@@ -730,9 +805,36 @@ class ClaimGuard:
                      and self._foreign(t)]
         if off_topic:
             return f"question topic not in evidence: {', '.join(off_topic[:3])}"
+        # A reason or purpose given for the content ("because…", "لأن…")
+        # is a claim of its own: it must be carried by the evidence, not
+        # ride on the support of the clause it explains.
+        m = _CAUSAL.search(prose)
+        if m:
+            reason = prose[m.end():]
+            rsup = self._support(reason, texts)
+            need = SYNTHESIS_WEAK if same_script else CROSS_LINGUAL_REASON
+            if rsup.comparable and rsup.tokens >= 3 and rsup.local_coverage < need:
+                return f"reason not in evidence ({rsup.local}/{rsup.tokens})"
         if sup.local_coverage < SYNTHESIS_WEAK:
+            # Words put in a named author's mouth are held to the evidence:
+            # a weakly supported attribution is removed, not just flagged.
+            if same_script and (attr.strip_registry_names(prose) != prose or attr.find_person_names(prose)):
+                return f"attributed content weakly supported ({sup.local}/{sup.tokens})"
             self.report.weak += 1
         return None
+
+    def _epithet(self, ent: str) -> bool:
+        """A capitalised English compound of ordinary words in the form the
+        translations give divine names ("Self-Subsisting" beside
+        "Self-Sustaining", "Ever-Living"): a rendering, not a named entity."""
+        lex = self.lexicon
+        if "-" not in ent or not lex:
+            return False
+        parts = [xling.en_fold(p) for p in ent.split("-") if p]
+        if len(parts) < 2 or not all(xling.en_stem(p) in lex.vocab for p in parts):
+            return False
+        head = parts[0] + "-"
+        return any(n.startswith(head) for n in lex.names)
 
     def _entity_ok(self, ent: str, chunks: Sequence[object], texts: Sequence[str]) -> bool:
         if attr.registry_key(ent) or attr.name_supported(ent, self._clean_chunks(chunks), texts):
@@ -825,6 +927,17 @@ def _quran_clause(prose: str) -> str:
     return _QURAN_FRAME.sub(" ", head + " " + clause)
 
 
+_REPORT_FRAME = re.compile(
+    r"\b(?:via|through|on\s+the\s+authority\s+of|the\s+prophet|prophet|the\s+messenger(?:\s+of\s+(?:allah|god))?|"
+    r"messenger|pbuh|saw|many\s+times|several\s+times)\b|ﷺ|\(\s*(?:pbuh|saw|s\.a\.w\.?)\s*\)",
+    re.IGNORECASE,
+)
+_CAUSAL = re.compile(
+    r"\b(?:because|since|due\s+to|owing\s+to|on\s+account\s+of|for\s+the\s+reason\s+that|the\s+reason\s+(?:is|being|was)|"
+    r"in\s+order\s+to|so\s+that|as\s+a\s+result\s+of|caused\s+by)\b"
+    r"|(?<![ء-ي])[وف]?(?:لأن|لان|لأنه|لانه|لأنها|لانها|بسبب|لكي|كي\s|لأجل|لاجل|من\s+أجل|من\s+اجل|إذ\s|والسبب|السبب\s+في)",
+    re.IGNORECASE,
+)
 _SEGMENTS = re.compile(r"\s*[,،;؛:]\s*|\s+(?:while|whereas|but)\s+", re.IGNORECASE)
 _CLAUSE_SPLIT = re.compile(r"(?<=[.!?؟؛;:\n])\s+|،\s*(?=و)|\s+(?=وقال|وقيل|وعن|وروى)")
 
@@ -882,6 +995,11 @@ def _proper_nouns(prose: str) -> List[str]:
         if keep:
             out.append(m.group(1))
     return out
+
+
+def _is_question(sentence: str) -> bool:
+    """A sentence put as a question (ends with "?" / "؟")."""
+    return bool(re.search(r"[?؟]\s*[\)\]\*_\"'»”]*\s*$", (sentence or "").strip()))
 
 
 def is_reflection_paragraph(paragraph: str) -> bool:
